@@ -3,22 +3,40 @@
 from __future__ import annotations
 
 import logging
+import math
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from skimage.morphology import label
-from scipy import ndimage, interpolate as interp
-import math
+from scipy import interpolate as interp
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
-from topostats.utils import convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class splineTrace:
+    """
+    Smooth the ordered trace via an average of splines.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Whole image containing all molecules and grains.
+    mol_ordered_tracing_data : dict
+        Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
+    pixel_to_nm_scaling : float
+        The pixel to nm scaling factor, by default 1.
+    spline_step_size : float
+        Step length in meters to use a coordinate for splining.
+    spline_linear_smoothing : float
+        Amount of linear spline smoothing.
+    spline_circular_smoothing : float
+        Amount of circular spline smoothing.
+    spline_degree : int
+        Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
+        small s-value.
+    """
 
     def __init__(
         self,
@@ -30,8 +48,29 @@ class splineTrace:
         spline_circular_smoothing: float,
         spline_degree: int,
     ) -> None:
-        
+        """
+        Initialise the splineTrace class.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Whole image containing all molecules and grains.
+        mol_ordered_tracing_data : dict
+            Nx2 ordered trace coordinates.
+        pixel_to_nm_scaling : float
+            The pixel to nm scaling factor, by default 1.
+        spline_step_size : float
+            Step length in meters to use a coordinate for splining.
+        spline_linear_smoothing : float
+            Amount of linear spline smoothing.
+        spline_circular_smoothing : float
+            Amount of circular spline smoothing.
+        spline_degree : int
+            Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
+            small s-value.
+        """
         self.image = image
+        self.number_of_rows, self.number_of_columns = image.shape
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
         self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -44,120 +83,6 @@ class splineTrace:
             "contour_length": None,
             "end_to_end_distance": None,
         }
-    
-    def get_fitted_traces(self, ordered_trace: npt.NDArray, mol_is_circular: bool) -> npt.NDArray:
-        """
-        Adjust coordinates to lie along the highest points of the molecule.
-
-        Parameters
-        ----------
-        ordered_trace : npt.NDArray
-            Ordered trace.
-        mol_is_circular : bool
-            Whether molecule is circular.
-
-        Returns
-        -------
-        npt.NDArray
-            Adjusted ordered trace sitting on the highest points of the molecule.
-        """
-        # This indexes a 3 nm height profile perpendicular to DNA backbone
-        # note that this is a hard coded parameter
-        index_width = int(3e-9 / (self.pixel_to_nm_scaling))
-        if index_width < 2:
-            index_width = 2
-
-        for coord_num, trace_coordinate in enumerate(ordered_trace):
-            height_values = None
-
-            # Block of code to prevent indexing outside image limits
-            # e.g. indexing self.smoothed_mask[130, 130] for 128x128 image
-            if trace_coordinate[0] < 0:
-                # prevents negative number indexing
-                # i.e. stops (trace_coordinate - index_width) < 0
-                trace_coordinate[0] = index_width
-            elif trace_coordinate[0] >= (self.number_of_rows - index_width):
-                # prevents indexing above image range causing IndexError
-                trace_coordinate[0] = self.number_of_rows - index_width
-            # do same for y coordinate
-            elif trace_coordinate[1] < 0:
-                trace_coordinate[1] = index_width
-            elif trace_coordinate[1] >= (self.number_of_columns - index_width):
-                trace_coordinate[1] = self.number_of_columns - index_width
-
-            # calculate vector to n - 2 coordinate in trace
-            if mol_is_circular:
-                nearest_point = ordered_trace[coord_num - 2]
-                vector = np.subtract(nearest_point, trace_coordinate)
-                vector_angle = math.degrees(math.atan2(vector[1], vector[0]))
-            else:
-                try:
-                    nearest_point = ordered_trace[coord_num + 2]
-                except IndexError:
-                    nearest_point = ordered_trace[coord_num - 2]
-                vector = np.subtract(nearest_point, trace_coordinate)
-                vector_angle = math.degrees(math.atan2(vector[1], vector[0]))
-
-            if vector_angle < 0:
-                vector_angle += 180
-
-            # if  angle is closest to 45 degrees
-            if 67.5 > vector_angle >= 22.5:
-                perp_direction = "negative diaganol"
-                # positive diagonal (change in x and y)
-                # Take height values at the inverse of the positive diaganol
-                # (i.e. the negative diaganol)
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)[::-1]
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
-
-            # if angle is closest to 135 degrees
-            elif 157.5 >= vector_angle >= 112.5:
-                perp_direction = "positive diaganol"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
-
-            # if angle is closest to 90 degrees
-            if 112.5 > vector_angle >= 67.5:
-                perp_direction = "horizontal"
-                x_coords = np.arange(trace_coordinate[0] - index_width, trace_coordinate[0] + index_width)
-                y_coords = np.full(len(x_coords), trace_coordinate[1])
-
-            elif 22.5 > vector_angle:  # if angle is closest to 0 degrees
-                perp_direction = "vertical"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
-                x_coords = np.full(len(y_coords), trace_coordinate[0])
-
-            elif vector_angle >= 157.5:  # if angle is closest to 180 degrees
-                perp_direction = "vertical"
-                y_coords = np.arange(trace_coordinate[1] - index_width, trace_coordinate[1] + index_width)
-                x_coords = np.full(len(y_coords), trace_coordinate[0])
-
-            # Use the perp array to index the gaussian filtered image
-            perp_array = np.column_stack((x_coords, y_coords))
-            try:
-                height_values = self.smoothed_mask[perp_array[:, 0], perp_array[:, 1]]
-            except IndexError:
-                perp_array[:, 0] = np.where(
-                    perp_array[:, 0] > self.smoothed_mask.shape[0], self.smoothed_mask.shape[0], perp_array[:, 0]
-                )
-                perp_array[:, 1] = np.where(
-                    perp_array[:, 1] > self.smoothed_mask.shape[1], self.smoothed_mask.shape[1], perp_array[:, 1]
-                )
-                height_values = self.image[perp_array[:, 1], perp_array[:, 0]]
-
-            # Grab x,y coordinates for highest point
-            # fine_coords = np.column_stack((fine_x_coords, fine_y_coords))
-            sorted_array = perp_array[np.argsort(height_values)]
-            highest_point = sorted_array[-1]
-
-            try:
-                # could use np.append() here
-                fitted_coordinate_array = np.vstack((fitted_coordinate_array, highest_point))
-            except UnboundLocalError:
-                fitted_coordinate_array = highest_point
-
-        return fitted_coordinate_array
-        del fitted_coordinate_array  # cleaned up by python anyway?
 
     def get_splined_traces(
         self,
@@ -173,19 +98,16 @@ class splineTrace:
         ----------
         fitted_trace : npt.NDArray
             Numpy array of the fitted trace.
-        mol_is_circular : bool
-            Is the molecule circular.
 
         Returns
         -------
         npt.NDArray
             Splined (smoothed) array of trace.
         """
-
         # Calculate the step size in pixels from the step size in metres.
         # Should always be at least 1.
-        # Note that step_size_m is in m and pixel_to_nm_scaling is in m because of the legacy code which seems to almost always have
-        # pixel_to_nm_scaling be set in metres using the flag convert_nm_to_m. No idea why this is the case.
+        # Note that step_size_m is in m and pixel_to_nm_scaling is in m because of the legacy code which seems to almost
+        # always have pixel_to_nm_scaling be set in metres using the flag convert_nm_to_m. No idea why this is the case.
         step_size_px = max(int(self.spline_step_size / (self.pixel_to_nm_scaling * 1e-9)), 1)
         # Splines will be totalled and then divived by number of splines to calculate the average spline
         spline_sum = None
@@ -241,13 +163,13 @@ class splineTrace:
             # tck is a tuple, (t,c,k) containing the vector of knots, the B-spline coefficients
             # and the degree of the spline.
             # s is the smoothing factor, per is the periodicity, k is the degree of the spline
-            tck, _ = interp.splprep(
+            tck = interp.splprep(
                 [x_sampled, y_sampled],
                 s=spline_smoothness,
                 per=spline_periodicity,
-                #quiet=self.spline_quiet,
+                # quiet=self.spline_quiet,
                 k=self.spline_degree,
-            )
+            )[0]
             # splev returns a tuple (x_coords ,y_coords) containing the smoothed coordinates of the
             # spline, constructed from the B-spline coefficients and knots. The number of points in
             # the spline is controlled by the ev_array variable.
@@ -265,10 +187,9 @@ class splineTrace:
 
         # Find the average spline between the set of splines
         # This is an attempt to find a better spline by averaging our candidates
-        spline_average = np.divide(spline_sum, [step_size_px, step_size_px])
 
-        return spline_average
-    
+        return np.divide(spline_sum, [step_size_px, step_size_px])
+
     @staticmethod
     # Perhaps we need a module for array functions?
     def remove_duplicate_consecutive_tuples(tuple_list: list[tuple | npt.NDArray]) -> list[tuple]:
@@ -290,48 +211,99 @@ class splineTrace:
         For the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
         [(1, 2), (2, 3), (3, 4)]
         """
-
         duplicates_removed = []
         for index, tup in enumerate(tuple_list):
             if index == 0 or not np.array_equal(tuple_list[index - 1], tup):
                 duplicates_removed.append(tup)
         return np.array(duplicates_removed)
 
-    def run_spline_trace(self):
+    def run_spline_trace(self) -> tuple[npt.NDArray, dict]:
+        """
+        Pipeline to run the splining smoothing and obtaining smoothing stats.
+
+        Returns
+        -------
+        tuple[npt.NDArray, dict]
+            Tuple of Nx2 smoothed trace coordinates, and smoothed trace statistics.
+        """
         # fitted trace
-        #fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
+        # fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
         # splined trace
-        # splined_trace = self.get_splined_traces(fitted_trace, mol_is_circular)
         splined_trace = self.get_splined_traces(self.mol_ordered_trace)
         # compile CL & E2E distance
-        self.tracing_stats["contour_length"] = measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
-        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
-        # compile images?
+        self.tracing_stats["contour_length"] = measure_contour_length(
+            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        )
+        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(
+            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        )
 
         return splined_trace, self.tracing_stats
-    
+
 
 class windowTrace:
-    
+    """
+    Obtain a smoothed trace of a molecule.
+
+    Parameters
+    ----------
+    mol_ordered_tracing_data : dict
+        Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
+    pixel_to_nm_scaling : float, optional
+        The pixel to nm scaling factor, by default 1.
+    rolling_window_size : np.float64, optional
+        The length of the rolling window too average over, by default 6.0.
+    """
+
     def __init__(
         self,
         mol_ordered_tracing_data: dict,
         pixel_to_nm_scaling: float,
         rolling_window_size: float,
     ) -> None:
-        
+        """
+        Initialise the windowTrace class.
+
+        Parameters
+        ----------
+        mol_ordered_tracing_data : dict
+            Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
+        pixel_to_nm_scaling : float, optional
+            The pixel to nm scaling factor, by default 1.
+        rolling_window_size : np.float64, optional
+            The length of the rolling window too average over, by default 6.0.
+        """
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
         self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.rolling_window_size = rolling_window_size
+        self.rolling_window_size = rolling_window_size / 1e-9  # for nm scaling factor
 
         self.tracing_stats = {
             "contour_length": None,
             "end_to_end_distance": None,
         }
-    
+
     @staticmethod
-    def pool_trace(pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> npt.NDArray[np.float64]:
+    def pool_trace_circular(
+        pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1
+    ) -> npt.NDArray[np.float64]:
+        """
+        Smooth a pixelwise ordered trace of circular molecules via a sliding window.
+
+        Parameters
+        ----------
+        pixel_trace : npt.NDArray[np.int32]
+            Nx2 ordered trace coordinates.
+        rolling_window_size : np.float64, optional
+            The length of the rolling window too average over, by default 6.0.
+        pixel_to_nm_scaling : float, optional
+            The pixel to nm scaling factor, by default 1.
+
+        Returns
+        -------
+        npt.NDArray[np.float64]
+            MxN Smoothed ordered trace coordinates.
+        """
         # Pool the trace points
         pooled_trace = []
 
@@ -341,14 +313,16 @@ class windowTrace:
             j = 1
 
             # compile rolling window
-            while (current_length < rolling_window_size):
+            while current_length < rolling_window_size:
                 current_index = i + j
                 previous_index = i + j - 1
                 while current_index >= len(pixel_trace):
                     current_index -= len(pixel_trace)
                 while previous_index >= len(pixel_trace):
                     previous_index -= len(pixel_trace)
-                current_length += np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                current_length += (
+                    np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                )
                 binned_points.append(pixel_trace[current_index])
                 j += 1
 
@@ -356,51 +330,87 @@ class windowTrace:
             pooled_trace.append(np.mean(binned_points, axis=0))
 
         return np.array(pooled_trace)
-    
-    @staticmethod
-    def pool_trace_linear(pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> npt.NDArray[np.float64]:
-        # Pool the trace points
-        pooled_trace = [pixel_trace[0]] # add first coord as to not cut it off
 
-        for i in range(1,len(pixel_trace)-1):
+    @staticmethod
+    def pool_trace_linear(
+        pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1
+    ) -> npt.NDArray[np.float64]:
+        """
+        Smooth a pixelwise ordered trace of linear molecules via a sliding window.
+
+        Parameters
+        ----------
+        pixel_trace : npt.NDArray[np.int32]
+            Nx2 ordered trace coordinates.
+        rolling_window_size : np.float64, optional
+            The length of the rolling window too average over, by default 6.0.
+        pixel_to_nm_scaling : float, optional
+            The pixel to nm scaling factor, by default 1.
+
+        Returns
+        -------
+        npt.NDArray[np.float64]
+            MxN Smoothed ordered trace coordinates.
+        """
+        pooled_trace = [pixel_trace[0]]  # Add first coord as to not cut it off
+
+        # Get average point for trace in rolling window
+        for i in range(1, len(pixel_trace) - 1):
             binned_points = []
             current_length = 0
             j = 1
-
-            # compile rolling window
+            # Compile rolling window
             while current_length < rolling_window_size:
                 current_index = i + j
                 previous_index = i + j - 1
-                if current_index + 1 >= len(pixel_trace): # exit if exceeding the trace
+                if current_index + 1 >= len(pixel_trace):  # exit if exceeding the trace
                     break
-                current_length += np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                current_length += (
+                    np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
+                )
                 binned_points.append(pixel_trace[current_index])
                 j += 1
             # Get the mean of the binned points
             pooled_trace.append(np.mean(binned_points, axis=0))
-            
-            # exit if reached the end of the trace
+
+            # Exit if reached the end of the trace
             if current_index + 1 >= len(pixel_trace):
                 break
 
-        pooled_trace.append(pixel_trace[-1]) # add last coord as to not cut it off
+        pooled_trace.append(pixel_trace[-1])  # Add last coord as to not cut it off
 
         return np.array(pooled_trace)
-    
-    def run_window_trace(self):
+
+    def run_window_trace(self) -> tuple[npt.NDArray, dict]:
+        """
+        Pipeline to run the rolling window smoothing and obtaining smoothing stats.
+
+        Returns
+        -------
+        tuple[npt.NDArray, dict]
+            Tuple of Nx2 smoothed trace coordinates, and smoothed trace statistics.
+        """
         # fitted trace
-        #fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
+        # fitted_trace = self.get_fitted_traces(self.ordered_trace, mol_is_circular)
         # splined trace
         if self.mol_is_circular:
-            splined_trace = self.pool_trace(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
+            splined_trace = self.pool_trace_circular(
+                self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
+            )
         else:
-            splined_trace = self.pool_trace_linear(self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling)
+            splined_trace = self.pool_trace_linear(
+                self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
+            )
         # compile CL & E2E distance
-        self.tracing_stats["contour_length"] = measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
-        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling)
+        self.tracing_stats["contour_length"] = measure_contour_length(
+            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        )
+        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(
+            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        )
 
         return splined_trace, self.tracing_stats
-    
+
 
 def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pixel_to_nm_scaling: float) -> float:
     """
@@ -414,6 +424,8 @@ def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pi
         The splined trace.
     mol_is_circular : bool
         Whether the molecule is circular or not.
+    pixel_to_nm_scaling : float
+        Scaling factor from pixels to nanometres.
 
     Returns
     -------
@@ -421,7 +433,7 @@ def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pi
         Length of molecule in nanometres (nm).
     """
     if mol_is_circular:
-        for num, i in enumerate(splined_trace):
+        for num in range(len(splined_trace)):
             x1 = splined_trace[num - 1, 0]
             y1 = splined_trace[num - 1, 1]
             x2 = splined_trace[num, 0]
@@ -436,7 +448,7 @@ def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pi
         del hypotenuse_array
 
     else:
-        for num, i in enumerate(splined_trace):
+        for num in range(len(splined_trace)):
             try:
                 x1 = splined_trace[num, 0]
                 y1 = splined_trace[num, 1]
@@ -453,6 +465,7 @@ def measure_contour_length(splined_trace: npt.NDArray, mol_is_circular: bool, pi
                 break
     return contour_length
 
+
 def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scaling: float):
     """
     Euclidean distance between the start and end of linear molecules.
@@ -466,6 +479,8 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
         The splined trace.
     mol_is_circular : bool
         Whether the molecule is circular or not.
+    pixel_to_nm_scaling : float
+        Scaling factor from pixels to nanometres.
 
     Returns
     -------
@@ -491,8 +506,39 @@ def splining_image(
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
-    pad_width: int,
-):
+) -> tuple[dict, pd.DataFrame]:
+    """
+    Obtain smoothed traces of pixel-wise ordered traces for molecules in an image.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Whole image containing all molecules and grains.
+    ordered_tracing_direction_data : dict
+        Dictionary result from the ordered traces.
+    pixel_to_nm_scaling : float
+        Scaling factor from pixels to nanometres.
+    filename : str
+        Name of the image file.
+    method : str
+        Method of trace smoothing, options are 'splining' and 'rolling_window'.
+    rolling_window_size : float
+        Length in meters to average coordinates over in the rolling window.
+    spline_step_size : float
+        Step length in meters to use a coordinate for splining.
+    spline_linear_smoothing : float
+        Amount of linear spline smoothing.
+    spline_circular_smoothing : float
+        Amount of circular spline smoothing.
+    spline_degree : int
+        Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
+        small s-value.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe.
+    """
     grainstats_additions = {}
     all_splines_data = {}
 
@@ -503,8 +549,16 @@ def splining_image(
         for mol_no, mol_trace_data in ordered_grain_data.items():
             LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
             # check if want to do nodestats tracing or not
-            if method == "spline":
-                spline = splineTrace(
+            if method == "rolling_window":
+                splined_data, tracing_stats = windowTrace(
+                    mol_ordered_tracing_data=mol_trace_data,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    rolling_window_size=rolling_window_size,
+                ).run_window_trace()
+
+            # if not doing nodestats ordering, do original TS ordering
+            else:  # method == "spline":
+                splined_data, tracing_stats = splineTrace(
                     image=image,
                     mol_ordered_tracing_data=mol_trace_data,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -512,24 +566,12 @@ def splining_image(
                     spline_linear_smoothing=spline_linear_smoothing,
                     spline_circular_smoothing=spline_circular_smoothing,
                     spline_degree=spline_degree,
-                )
-                splined_data, tracing_stats = spline.run_spline_trace()
-
-            # if not doing nodestats ordering, do original TS ordering
-            elif method == "rolling_window":
-                smooth = windowTrace(
-                    mol_ordered_tracing_data=mol_trace_data,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    rolling_window_size=rolling_window_size,
-                )
-                splined_data, tracing_stats = smooth.run_window_trace()
-            else:
-                LOGGER.warning("Neither 'spline' or 'rolling_window' methods are being used.")
+                ).run_spline_trace()
 
             # get combined stats for the grains
             grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
             grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
-            
+
             # get individual mol stats
             all_splines_data[grain_no][mol_no] = {
                 "spline_coords": splined_data,
@@ -537,9 +579,9 @@ def splining_image(
                 "tracing_stats": tracing_stats,
             }
             LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
-            
-        # average the e2e dists
-        grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split('_')[-1]) + 1
+
+        # average the e2e dists -> mol_no should always be in the grain dict
+        grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split("_")[-1]) + 1
 
         # compile metrics
         grainstats_additions[grain_no] = {

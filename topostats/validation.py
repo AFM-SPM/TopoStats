@@ -274,7 +274,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'splining.method', valid values are 'spline' or 'rolling_window'",
             ),
             "rolling_window_size": lambda n: n > 0.0,
-            "pad_width": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
             "spline_circular_smoothing": lambda n: n >= 0.0,
@@ -1150,8 +1149,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'splined_trace.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'splined_trace.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "title": str,
