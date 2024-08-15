@@ -13,7 +13,6 @@ from topostats.measure.geometry import (
     calculate_shortest_branch_distances,
     connect_best_matches,
     do_points_in_arrays_touch,
-    find_branches_for_nodes,
 )
 
 
