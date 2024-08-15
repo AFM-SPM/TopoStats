@@ -2,9 +2,7 @@
 
 import pickle
 from pathlib import Path
-from typing import TypedDict
 
-import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
