@@ -370,8 +370,9 @@ class windowTrace:
                 )
                 binned_points.append(pixel_trace[current_index])
                 j += 1
-            # Get the mean of the binned points
-            pooled_trace.append(np.mean(binned_points, axis=0))
+            else:
+                # Get the mean of the binned points
+                pooled_trace.append(np.mean(binned_points, axis=0))
 
             # Exit if reached the end of the trace
             if current_index + 1 >= len(pixel_trace):
