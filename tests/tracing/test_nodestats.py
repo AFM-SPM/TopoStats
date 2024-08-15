@@ -1,9 +1,11 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Test the nodestats module."""
 
+import pickle
 from pathlib import Path
 
 import numpy as np
-import pickle
 import numpy.typing as npt
 import pytest
 from pytest_lazyfixture import lazy_fixture
@@ -16,6 +18,8 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 # from topostats.tracing.nodestats import nodeStats
 
 # pylint: disable=unnecessary-pass
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 
 
 # @pytest.mark.parametrize()
@@ -160,7 +164,7 @@ def test_connect_extended_nodes_nearest(
         mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         smoothed_mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         skeleton=connected_nodes.astype(bool),
-        px_2_nm=1.0,
+        px_2_nm=np.float64(1.0),
         n_grain=0,
         node_joining_length=0.0,
         node_extend_dist=14.0,
@@ -185,10 +189,9 @@ def test_analyse_nodes(
     nodestats_catenane_all_connected_nodes: npt.NDArray[np.int32],
 ) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
-    # Sylvia: Max branch length is hardcoded in nodestats as 20e-9. Unsure of why this value is used.
     nodestats_catenane.analyse_nodes(max_branch_length=20)
 
-    node_dict_result = nodestats_catenane.node_dict
+    node_dict_result = nodestats_catenane.node_dicts
     image_dict_result = nodestats_catenane.image_dict
 
     # Nodestats dict has structure:
@@ -204,11 +207,11 @@ def test_analyse_nodes(
 
     # Image dict has structure:
     # - nodes
-    #   - 1: dict
+    #   - node_1: dict
     #     - node_area_skeleton: array NxN
     #     - node_branch_mask: array NxN
-    #     - node_average_mask: None
-    #   - 2 ...
+    #     - node_average_mask: array NxN
+    #   - node_2 ...
     # - grain
     #   - grain_image: array NxN
     #   - grain_mask: array NxN
@@ -263,11 +266,10 @@ def test_add_branches_to_labelled_image(
     pairs: npt.NDArray[np.int32],
     average_trace_advised: bool,
     image_shape: tuple[int, int],
-    expected_branch_image_filename: npt.NDArray[np.int32],
-    expected_average_image_filename: npt.NDArray[np.float64],
+    expected_branch_image_filename: str,
+    expected_average_image_filename: str,
 ) -> None:
     """Test of add_branches_to_labelled_image() method of nodeStats class."""
-
     # Load the matched branches
     with Path(RESOURCES / f"{matched_branches_filename}").open("rb") as f:
         matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pickle.load(f)
@@ -281,10 +283,10 @@ def test_add_branches_to_labelled_image(
         ordered_branches: list[npt.NDArray[np.int32]] = pickle.load(f)
 
     # Load the branch image
-    expected_branch_image = np.load(RESOURCES / expected_branch_image_filename)
+    expected_branch_image: npt.NDArray[np.int32] = np.load(RESOURCES / expected_branch_image_filename)
 
     # Load the average image
-    expected_average_image = np.load(RESOURCES / expected_average_image_filename)
+    expected_average_image: npt.NDArray[np.float64] = np.load(RESOURCES / expected_average_image_filename)
 
     result_branch_image, result_average_image = nodeStats.add_branches_to_labelled_image(
         branch_under_over_order=branch_under_over_order,
@@ -329,9 +331,9 @@ def test_add_branches_to_labelled_image(
             "catenane_node_0_reduced_skeleton_graph.pkl",
             lazy_fixture("catenane_image"),
             True,
-            (280, 353),
+            (np.int32(280), np.int32(353)),
             "catenane_test_image",
-            1000 / 512,
+            np.float64(1000 / 512),
             np.array([(1, 3), (2, 0)]),
             "catenane_node_0_matched_branches_analyse_node_branches.pkl",
             "catenane_node_0_ordered_branches.pkl",
@@ -350,9 +352,9 @@ def test_analyse_node_branches(
     reduced_skeleton_graph_filename: npt.NDArray[np.int32],
     image: npt.NDArray[np.float64],
     average_trace_advised: bool,
-    node_coord: tuple[int, int],
+    node_coord: tuple[np.int32, np.int32],
     filename: str,
-    resolution_threshold: float,
+    resolution_threshold: np.float64,
     expected_pairs: npt.NDArray[np.int32],
     expected_matched_branches_filename: str,
     expected_ordered_branches_filename: str,
@@ -361,7 +363,6 @@ def test_analyse_node_branches(
     expected_conf: float,
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
-
     # Load the reduced node area
     reduced_node_area = np.load(RESOURCES / f"{reduced_node_area_filename}")
 
@@ -377,7 +378,7 @@ def test_analyse_node_branches(
         result_branch_idx_order,
         result_conf,
     ) = nodeStats.analyse_node_branches(
-        p_to_nm=p_to_nm,
+        p_to_nm=np.float64(p_to_nm),
         reduced_node_area=reduced_node_area,
         branch_start_coords=branch_start_coords,
         max_length_px=max_length_px,
@@ -396,7 +397,6 @@ def test_analyse_node_branches(
     # Load expected masked image
     with Path(RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
         expected_masked_image = pickle.load(f)
-
     # Load expected ordered branches
     with Path(RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
         expected_ordered_branches = pickle.load(f)
@@ -496,7 +496,6 @@ def test_join_matching_branches_through_node(
     expected_masked_image_filename: str,
 ) -> None:
     """Test of join_matching_branches_through_node() method of nodeStats class."""
-
     # Load the ordered branches
     with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches = pickle.load(f)
@@ -784,7 +783,6 @@ def test_only_centre_branches(
     expected_node_image: npt.NDArray[np.int32],
 ) -> None:
     """Test of only_centre_branches() method of nodeStats class."""
-
     result_node_image = nodeStats.only_centre_branches(node_image, node_coordinate)
 
     np.testing.assert_equal(result_node_image, expected_node_image)

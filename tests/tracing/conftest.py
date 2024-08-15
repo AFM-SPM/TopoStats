@@ -1,20 +1,20 @@
 """Fixtures for the tracing tests."""
 
-from pathlib import Path
 import pickle
+from pathlib import Path
+from typing import TypedDict
 
+import h5py
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
-from typing import TypedDict
 
 from topostats.filters import Filters
 from topostats.grains import Grains
-import numpy.typing as npt
-import h5py
 from topostats.tracing.dnatracing import dnaTrace
-from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 from topostats.tracing.nodestats import nodeStats
+from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
