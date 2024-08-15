@@ -155,32 +155,7 @@ class nodeStats:
             "min_crossing_confidence": None,
         }
 
-        # self.node_dict: dict[
-        #     str, dict[str, bool | np.float64 | dict[str, npt.NDArray] | npt.NDArray | dict[str, MatchedBranch]]
-        # ] = {}
-        # self.node_dict: NodeDict = NodeDict(
-        #     error=False,
-        #     px_2_nm=self.px_2_nm,
-        #     branch_stats=None,  # To be filled in later
-        #     node_coords=None,  # To be filled in later
-        #     confidence=None,  # To be filled in later
-        # )
         self.node_dicts: dict[str, NodeDict] = {}
-        # self.image_dict: dict[
-        #     str,
-        #     npt.NDArray[np.int32]  # Individual images
-        #     | dict[str, dict[str, npt.NDArray[np.int32] | None]]  # Nodes
-        #     | dict[str, npt.NDArray[np.int32]]  # Grain
-        #     | None,
-        # ] = {
-        #     "nodes": {},
-        #     "grain": {
-        #         "grain_image": self.image,
-        #         "grain_mask": self.mask,
-        #         "grain_skeleton": self.skeleton,
-        #     },
-        #     # Other images can be added by functions
-        # }
         self.image_dict: ImageDict = {
             "nodes": {},
             "grain": {
@@ -700,8 +675,8 @@ class nodeStats:
 
         Returns
         -------
-        npt.NDArray[np.int32]
-            The labelled image with the branches added.
+        tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]
+            The branch image and the average image.
         """
         branch_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
         avg_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
@@ -739,11 +714,9 @@ class nodeStats:
         average_trace_advised: bool,
         node_coord: tuple[np.int32, np.int32],
         filename: str,
-        # test_run: bool,
         resolution_threshold: np.float64,
     ) -> tuple[
         npt.NDArray[np.int32],
-        # dict[int, dict[str, npt.NDArray[np.number] | np.float64]],
         dict[int, MatchedBranch],
         list[npt.NDArray[np.int32]],
         dict[int, dict[str, npt.NDArray[np.bool_]]],
@@ -800,8 +773,8 @@ class nodeStats:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         branch_under_over_order: npt.NDArray[np.int32]
             The order of the branches based on the FWHM.
-        conf: np.float64
-            The confidence of the crossing.
+        conf: np.float64 | None
+            The confidence of the crossing. Optional.
         """
         if not p_to_nm <= resolution_threshold:
             LOGGER.warning(
@@ -826,20 +799,6 @@ class nodeStats:
             node_coord,
             filename,
         )
-
-        # if test_run:
-        # pkl.dump(
-        #     matched_branches,
-        #     open(
-        #         f"tests/resources/catenane_node_{node_number}_matched_branches_"
-        #          "join_matching_branches_through_node.pkl",
-        #         "wb",
-        #     ),
-        # )
-        # pkl.dump(
-        #     masked_image,
-        #     open(f"tests/resources/catenane_node_{node_number}_masked_image.pkl", "wb"),
-        # )
 
         # Redo the FWHMs after the processing for more accurate determination of under/overs.
         hms = []
