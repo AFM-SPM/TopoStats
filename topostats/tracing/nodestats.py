@@ -19,7 +19,7 @@ from topostats.measure.geometry import (
     connect_best_matches,
     find_branches_for_nodes,
 )
-from topostats.tracing.pruning import prune_skeleton  # pruneSkeleton
+from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
 from topostats.utils import ResolutionError, convolve_skeleton
@@ -219,7 +219,6 @@ class nodeStats:
             )
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
-            print("CENT: ", self.node_centre_mask)
             # Begin the hefty crossing analysis
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
