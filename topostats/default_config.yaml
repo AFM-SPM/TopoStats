@@ -1,8 +1,8 @@
 # Config file generated 2024-07-29 11:11:05
 # # For more information on configuration and how to use it:
 # https://afm-spm.github.io/TopoStats/main/configuration.html
-base_dir: ./data # Directory in which to search for data files
-output_dir: ./data # Directory to output results to
+base_dir: ./ # Directory in which to search for data files
+output_dir: ./output # Directory to output results to
 log_level: info # Verbosity of output. Options: warning, error, info, debug
 cores: 1 # Number of CPU cores to utilise for processing multiple files simultaneously.
 file_ext: .spm # File extension of the data files.
