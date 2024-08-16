@@ -563,10 +563,10 @@ def run_nodestats(
 
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
-            return nodestats_whole_data, resultant_grainstats
+            return nodestats_whole_data, grainstats_additions_image
     else:
         LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
-        return None, results_df
+        return None, None
 
 
 def run_ordered_tracing(
@@ -672,7 +672,7 @@ def run_ordered_tracing(
 
         except Exception as e:
             LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
-            return ordered_tracing_image_data, resultant_grainstats
+            return ordered_tracing_image_data, grainstats_additions_image
 
     return None, None
 
@@ -720,55 +720,55 @@ def run_splining(
         splined_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
 
-        # try:
-        # run image using directional grain masks
-        for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
-            (
-                splined_data,
-                grainstats_additions_df,
-            ) = splining_image(
-                image=image,
-                ordered_tracing_direction_data=ordered_tracing_direction_data,
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                **splining_config,
+        try:
+            # run image using directional grain masks
+            for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
+                (
+                    splined_data,
+                    grainstats_additions_df,
+                ) = splining_image(
+                    image=image,
+                    ordered_tracing_direction_data=ordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **splining_config,
+                )
+
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
+                # append direction results to dict
+                splined_image_data[direction] = splined_data
+
+                # Plot traces on each grain individually
+                all_splines = []
+                for _, grain_dict in splined_data.items():
+                    for _, mol_dict in grain_dict.items():
+                        all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
+                Images(
+                    data=image,
+                    output_dir=core_out_path,
+                    filename=f"{filename}_{direction}_all_splines",
+                    plot_coords=all_splines,
+                    **plotting_config["plot_dict"]["splined_trace"],
+                ).plot_and_save()
+                LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
             )
 
-            # save per image new grainstats stats
-            grainstats_additions_df["threshold"] = direction
-            grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+            # merge all image dictionaries
+            return splined_image_data, resultant_grainstats
 
-            # append direction results to dict
-            splined_image_data[direction] = splined_data
-
-            # Plot traces on each grain individually
-            all_splines = []
-            for _, grain_dict in splined_data.items():
-                for _, mol_dict in grain_dict.items():
-                    all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
-            Images(
-                data=image,
-                output_dir=core_out_path,
-                filename=f"{filename}_{direction}_all_splines",
-                plot_coords=all_splines,
-                **plotting_config["plot_dict"]["splined_trace"],
-            ).plot_and_save()
-            LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
-
-        # merge grainstats data with other dataframe
-        resultant_grainstats = (
-            pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
-            if results_df is not None
-            else grainstats_additions_image
-        )
-
-        # merge all image dictionaries
-        return splined_image_data, resultant_grainstats
-        """
         except Exception as e:
-            LOGGER.info(f"NodeStats failed with {e} - skipping.")
-            return nodestats_image_data, resultant_grainstats
-        """
+            LOGGER.info(f"Splining failed with {e} - skipping.")
+            return splined_image_data, grainstats_additions_image
+
     return None, None
 
 

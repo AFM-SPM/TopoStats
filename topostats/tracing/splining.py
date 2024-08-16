@@ -548,38 +548,43 @@ def splining_image(
         grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
         all_splines_data[grain_no] = {}
         for mol_no, mol_trace_data in ordered_grain_data.items():
-            LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
-            # check if want to do nodestats tracing or not
-            if method == "rolling_window":
-                splined_data, tracing_stats = windowTrace(
-                    mol_ordered_tracing_data=mol_trace_data,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    rolling_window_size=rolling_window_size,
-                ).run_window_trace()
+            try:
+                LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
+                # check if want to do nodestats tracing or not
+                if method == "rolling_window":
+                    splined_data, tracing_stats = windowTrace(
+                        mol_ordered_tracing_data=mol_trace_data,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        rolling_window_size=rolling_window_size,
+                    ).run_window_trace()
 
-            # if not doing nodestats ordering, do original TS ordering
-            else:  # method == "spline":
-                splined_data, tracing_stats = splineTrace(
-                    image=image,
-                    mol_ordered_tracing_data=mol_trace_data,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    spline_step_size=spline_step_size,
-                    spline_linear_smoothing=spline_linear_smoothing,
-                    spline_circular_smoothing=spline_circular_smoothing,
-                    spline_degree=spline_degree,
-                ).run_spline_trace()
+                # if not doing nodestats ordering, do original TS ordering
+                else:  # method == "spline":
+                    splined_data, tracing_stats = splineTrace(
+                        image=image,
+                        mol_ordered_tracing_data=mol_trace_data,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        spline_step_size=spline_step_size,
+                        spline_linear_smoothing=spline_linear_smoothing,
+                        spline_circular_smoothing=spline_circular_smoothing,
+                        spline_degree=spline_degree,
+                    ).run_spline_trace()
 
-            # get combined stats for the grains
-            grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
-            grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
+                # get combined stats for the grains
+                grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
+                grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
 
-            # get individual mol stats
-            all_splines_data[grain_no][mol_no] = {
-                "spline_coords": splined_data,
-                "bbox": mol_trace_data["bbox"],
-                "tracing_stats": tracing_stats,
-            }
-            LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
+                # get individual mol stats
+                all_splines_data[grain_no][mol_no] = {
+                    "spline_coords": splined_data,
+                    "bbox": mol_trace_data["bbox"],
+                    "tracing_stats": tracing_stats,
+                }
+                LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
+
+            except Exception as e:
+                LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
+                all_splines_data[grain_no] = {}
 
         # average the e2e dists -> mol_no should always be in the grain dict
         grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split("_")[-1]) + 1

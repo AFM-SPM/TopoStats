@@ -1859,50 +1859,50 @@ def nodestats_image(
 
     for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
         nodestats = None  # reset the nodestats variable
-        # try:
-        nodestats = nodeStats(
-            image=disordered_tracing_grain_data["original_image"],
-            mask=disordered_tracing_grain_data["original_grain"],
-            smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
-            skeleton=disordered_tracing_grain_data["pruned_skeleton"],
-            px_2_nm=pixel_to_nm_scaling,
-            filename=filename,
-            n_grain=n_grain,
-            node_joining_length=node_joining_length,
-            node_extend_dist=node_extend_dist,
-            branch_pairing_length=branch_pairing_length,
-        )
-        nodestats_dict, node_image_dict = nodestats.get_node_stats()
-        LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+        try:
+            nodestats = nodeStats(
+                image=disordered_tracing_grain_data["original_image"],
+                mask=disordered_tracing_grain_data["original_grain"],
+                smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
+                skeleton=disordered_tracing_grain_data["pruned_skeleton"],
+                px_2_nm=pixel_to_nm_scaling,
+                filename=filename,
+                n_grain=n_grain,
+                node_joining_length=node_joining_length,
+                node_extend_dist=node_extend_dist,
+                branch_pairing_length=branch_pairing_length,
+            )
+            nodestats_dict, node_image_dict = nodestats.get_node_stats()
+            LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
 
-        # compile images
-        nodestats_images = {
-            "convolved_skeletons": nodestats.conv_skelly,
-            "node_centres": nodestats.node_centre_mask,
-            "connected_nodes": nodestats.connected_nodes,
-        }
-        nodestats_branch_images[n_grain] = node_image_dict
+            # compile images
+            nodestats_images = {
+                "convolved_skeletons": nodestats.conv_skelly,
+                "node_centres": nodestats.node_centre_mask,
+                "connected_nodes": nodestats.connected_nodes,
+            }
+            nodestats_branch_images[n_grain] = node_image_dict
 
-        # compile metrics
-        grainstats_additions[n_grain] = {
-            "image": filename,
-            "grain_number": int(n_grain.split("_")[-1]),
-        }
-        grainstats_additions[n_grain].update(nodestats.metrics)
-        if nodestats_dict:  # if the grain's nodestats dict is not empty
-            nodestats_data[n_grain] = nodestats_dict
+            # compile metrics
+            grainstats_additions[n_grain] = {
+                "image": filename,
+                "grain_number": int(n_grain.split("_")[-1]),
+            }
+            grainstats_additions[n_grain].update(nodestats.metrics)
+            if nodestats_dict:  # if the grain's nodestats dict is not empty
+                nodestats_data[n_grain] = nodestats_dict
 
-        # remap the cropped images back onto the original
-        for image_name, full_image in all_images.items():
-            crop = nodestats_images[image_name]
-            bbox = disordered_tracing_grain_data["bbox"]
-            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-        """
+            # remap the cropped images back onto the original
+            for image_name, full_image in all_images.items():
+                crop = nodestats_images[image_name]
+                bbox = disordered_tracing_grain_data["bbox"]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+
         except Exception as e:
-            LOGGER.error(f"[{filename}] : Disordered tracing for {n_grain} failed with - {e}")
+            LOGGER.error(f"[{filename}] : Nodestats for {n_grain} failed with - {e}")
             nodestats_data[n_grain] = {}
-        """
-        # turn the grainstats additions into a dataframe
+
+        # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
     return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
