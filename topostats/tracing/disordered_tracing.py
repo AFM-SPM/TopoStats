@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 import skimage.measure as skimage_measure
 from scipy import ndimage
 from skimage import filters
@@ -15,6 +16,7 @@ from skimage.morphology import label
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
+from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -301,6 +303,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
     disordered_trace_crop_data = {}
+    grainstats_additions = {}
 
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
@@ -328,6 +331,15 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             )
             LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
+            # obtain stats
+            conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
+            grainstats_additions[cropped_image_index] = {
+                "image": filename,
+                "grain_number": cropped_image_index,
+                "grain_endpoints": any(conv_pruned_skeleton[conv_pruned_skeleton == 2]),
+                "grain_crossings": any(conv_pruned_skeleton[conv_pruned_skeleton == 3]),
+            }
+
             # remap the cropped images back onto the original
             for image_name, full_image in all_images.items():
                 crop = disordered_trace_images[image_name]
@@ -339,7 +351,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.warning(f"[{filename}] : Disordered tracing of grain {cropped_image_index} failed with {e}.")
 
-    return disordered_trace_crop_data, all_images
+        # convert stats dict to dataframe
+        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+
+    return disordered_trace_crop_data, grainstats_additions_df, all_images
 
 
 def prep_arrays(

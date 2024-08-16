@@ -363,6 +363,7 @@ def run_disorderedTrace(
     tracing_out_path: Path,
     disordered_tracing_config: dict,
     plotting_config: dict,
+    results_df: pd.DataFrame = None,
 ) -> dict:
     """
     Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
@@ -386,6 +387,8 @@ def run_disorderedTrace(
         Dictionary configuration for obtaining a disordered trace representation of the grains.
     plotting_config : dict
         Dictionary configuration for plotting images.
+    results_df : pd.DataFrame, optional
+        The grainstats dataframe to bee added to. by default None.
 
     Returns
     -------
@@ -396,16 +399,23 @@ def run_disorderedTrace(
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
         disordered_traces = defaultdict()
+        grainstats_additions_image = pd.DataFrame()
         try:
             # run image using directional grain masks
             for direction, _ in grain_masks.items():
-                disordered_traces_cropped_data, disordered_tracing_images = trace_image_disordered(
-                    image=image,
-                    grains_mask=grain_masks[direction],
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **disordered_tracing_config,
+                disordered_traces_cropped_data, grainstats_additions_df, disordered_tracing_images = (
+                    trace_image_disordered(
+                        image=image,
+                        grains_mask=grain_masks[direction],
+                        filename=filename,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        **disordered_tracing_config,
+                    )
                 )
+                # save per image new grainstats stats
+                grainstats_additions_df["threshold"] = direction
+                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
@@ -424,14 +434,22 @@ def run_disorderedTrace(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-            return disordered_traces
+                    # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                if results_df is not None
+                else grainstats_additions_image
+            )
+
+            return disordered_traces, resultant_grainstats
 
         except Exception:
             LOGGER.info("Disordered tracing failed - skipping.")
-            return disordered_traces
+            return {}, None
+
     else:
         LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-        return {}
+        return {}, None
 
 
 def run_nodestats(
@@ -915,7 +933,7 @@ def process_scan(
         )
 
         # Disordered Tracing
-        disordered_traces = run_disorderedTrace(
+        disordered_traces_data, results_df = run_disorderedTrace(
             image=topostats_object["image_flattened"],
             grain_masks=topostats_object["grain_masks"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
@@ -923,10 +941,11 @@ def process_scan(
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             disordered_tracing_config=disordered_tracing_config,
+            results_df=results_df,
             plotting_config=plotting_config,
         )
         topostats_object["disordered_traces"] = (
-            disordered_traces if disordered_traces is not None else topostats_object["grain_masks"]
+            disordered_traces_data if disordered_traces_data is not None else topostats_object["grain_masks"]
         )
 
         # Nodestats
@@ -946,7 +965,7 @@ def process_scan(
         # Ordered Tracing
         ordered_tracing, results_df = run_ordered_tracing(
             image=topostats_object["image_flattened"],
-            disordered_tracing_data=disordered_traces,
+            disordered_tracing_data=topostats_object["disordered_traces"],
             nodestats_data=nodestats,
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
