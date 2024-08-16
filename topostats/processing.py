@@ -449,7 +449,7 @@ def run_disorderedTrace(
 
     else:
         LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-        return {}, None
+        return {}, results_df
 
 
 def run_nodestats(
@@ -584,7 +584,7 @@ def run_nodestats(
             return nodestats_whole_data, grainstats_additions_image
     else:
         LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
-        return None, None
+        return None, results_df
 
 
 def run_ordered_tracing(
@@ -692,7 +692,7 @@ def run_ordered_tracing(
             LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
             return ordered_tracing_image_data, grainstats_additions_image
 
-    return None, None
+    return None, results_df
 
 
 def run_splining(
@@ -787,7 +787,7 @@ def run_splining(
             LOGGER.info(f"Splining failed with {e} - skipping.")
             return splined_image_data, grainstats_additions_image
 
-    return None, None
+    return None, results_df
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
