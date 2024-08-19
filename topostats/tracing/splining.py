@@ -541,6 +541,7 @@ def splining_image(
         A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe.
     """
     grainstats_additions = {}
+    molstats = {}
     all_splines_data = {}
 
     # iterate through disordered_tracing_dict
@@ -580,6 +581,8 @@ def splining_image(
                     "bbox": mol_trace_data["bbox"],
                     "tracing_stats": tracing_stats,
                 }
+                molstats[mol_no.split("_")[-1]] = {"image": filename, "grain_number": grain_no.split("_")[-1]}
+                molstats[mol_no.split("_")[-1]].update(tracing_stats)
                 LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
 
             except Exception as e:
@@ -598,5 +601,6 @@ def splining_image(
 
     # convert grainstats metrics to dataframe
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
 
-    return all_splines_data, grainstats_additions_df
+    return all_splines_data, grainstats_additions_df, molstats_df

@@ -700,6 +700,7 @@ def run_splining(
     ordered_tracing_data: dict,
     pixel_to_nm_scaling: float,
     filename: str,
+    basename: Path,
     core_out_path: Path,
     splining_config: dict,
     plotting_config: dict,
@@ -718,6 +719,8 @@ def run_splining(
         Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
     filename : str
         Name of the image.
+    basename : Path
+        Path to directory containing the image.
     core_out_path : Path
         Path to save the core ordered tracing image to.
     splining_config : dict
@@ -737,6 +740,7 @@ def run_splining(
         LOGGER.info(f"[{filename}] : *** Splining ***")
         splined_image_data = defaultdict()
         grainstats_additions_image = pd.DataFrame()
+        image_molstats_df = pd.DataFrame()
 
         try:
             # run image using directional grain masks
@@ -744,6 +748,7 @@ def run_splining(
                 (
                     splined_data,
                     grainstats_additions_df,
+                    molstats_df,
                 ) = splining_image(
                     image=image,
                     ordered_tracing_direction_data=ordered_tracing_direction_data,
@@ -755,6 +760,8 @@ def run_splining(
                 # save per image new grainstats stats
                 grainstats_additions_df["threshold"] = direction
                 grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+                molstats_df["threshold"] = direction
+                image_molstats_df = pd.concat([image_molstats_df, molstats_df])
 
                 # append direction results to dict
                 splined_image_data[direction] = splined_data
@@ -779,15 +786,16 @@ def run_splining(
                 if results_df is not None
                 else grainstats_additions_image
             )
+            image_molstats_df["basename"] = basename.parent
 
             # merge all image dictionaries
-            return splined_image_data, resultant_grainstats
+            return splined_image_data, resultant_grainstats, image_molstats_df
 
         except Exception as e:
             LOGGER.info(f"Splining failed with {e} - skipping.")
-            return splined_image_data, grainstats_additions_image
+            return splined_image_data, grainstats_additions_image, None
 
-    return None, results_df
+    return None, results_df, None
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -978,11 +986,12 @@ def process_scan(
         topostats_object["ordered_traces"] = ordered_tracing
 
         # splining
-        splined_data, results_df = run_splining(
+        splined_data, results_df, molstats_df = run_splining(
             image=topostats_object["image_flattened"],
             ordered_tracing_data=topostats_object["ordered_traces"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
+            basename=topostats_object["img_path"],
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             splining_config=splining_config,
@@ -991,9 +1000,11 @@ def process_scan(
 
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
+        print(molstats_df)
 
     else:
         results_df = create_empty_dataframe()
+        molstats_df = create_empty_dataframe()
 
     # Get image statistics
     LOGGER.info(f"[{topostats_object['filename']}] : *** Image Statistics ***")
@@ -1014,8 +1025,9 @@ def process_scan(
     save_topostats_file(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
-
-    return topostats_object["img_path"], results_df, image_stats
+    print(results_df.columns)
+    print(molstats_df.columns)
+    return topostats_object["img_path"], results_df, image_stats, molstats_df
 
 
 def check_run_steps(
