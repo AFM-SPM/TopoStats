@@ -30,7 +30,7 @@ filter:
 grains:
   run: true # Options : true, false
   # Thresholding by height
-  threshold_method: std_dev # Options : std_dev, otsu, absolute
+  threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:
     below: 10.0 # Threshold for grains below the image background
@@ -45,6 +45,10 @@ grains:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
+  unet_config:
+    model_path: null # Path to a trained U-Net model
+    upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
+    lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
