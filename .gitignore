@@ -55,3 +55,6 @@ topostats/_version.py
 
 # default output directory, often common from testing
 output/
+
+# Debugging
+pytest-debug.ini
