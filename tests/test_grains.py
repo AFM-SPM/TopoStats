@@ -3,11 +3,14 @@
 import logging
 
 import numpy as np
+import numpy.typing as npt
 import pytest
+
+from topostats.grains import Grains
 
 # Pylint returns this error for from skimage.filters import gaussian
 # pylint: disable=no-name-in-module
-from topostats.grains import Grains
+# pylint: disable=too-many-arguments
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.propagate = True
@@ -208,3 +211,137 @@ def test_remove_edge_intersecting_grains(
     number_of_grains = len(grains.region_properties["above"])
 
     assert number_of_grains == expected_number_of_grains
+
+
+@pytest.mark.parametrize(
+    (
+        "image",
+        "pixel_to_nm_scaling",
+        "threshold_method",
+        "otsu_threshold_multiplier",
+        "threshold_std_dev",
+        "threshold_absolute",
+        "absolute_area_threshold",
+        "direction",
+        "smallest_grain_size_nm2",
+        "remove_edge_intersecting_grains",
+        "expected_grain_mask",
+    ),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                    [0.2, 1.1, 1.0, 1.2, 0.2, 0.1, 1.5, 1.6, 1.7, 0.1],
+                    [0.1, 1.1, 0.2, 1.0, 0.1, 0.2, 1.6, 0.2, 1.6, 0.2],
+                    [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
+                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                    [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
+                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                    [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
+                    [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ),
+            1.0,
+            "absolute",
+            None,
+            None,
+            {"above": 0.9, "below": 0.0},
+            {"above": [1, 10000000], "below": [1, 10000000]},
+            "above",
+            1,
+            True,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
+                    [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
+                    [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="absolute, above 0.9, remove edge, smallest grain 1",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                    [0.2, 1.1, 1.0, 1.2, 0.2, 0.1, 1.5, 1.6, 1.7, 0.1],
+                    [0.1, 1.1, 0.2, 1.0, 0.1, 0.2, 1.6, 0.2, 1.6, 0.2],
+                    [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
+                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                    [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
+                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                    [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
+                    [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ),
+            1.0,
+            "absolute",
+            None,
+            None,
+            {"above": 0.9, "below": 0.0},
+            {"above": [1, 10000000], "below": [1, 10000000]},
+            "above",
+            2,
+            False,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [3, 3, 0, 4, 4, 0, 5, 5, 5, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
+                    [0, 6, 6, 0, 0, 0, 0, 0, 5, 0],
+                    [0, 0, 6, 0, 0, 0, 5, 5, 5, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="absolute, above 0.9, no remove edge, smallest grain 2",
+        ),
+    ],
+)
+def test_find_grains(
+    image: npt.NDArray[np.float32],
+    pixel_to_nm_scaling: float,
+    threshold_method: str,
+    otsu_threshold_multiplier: float,
+    threshold_std_dev: dict,
+    threshold_absolute: dict,
+    absolute_area_threshold: dict,
+    direction: str,
+    smallest_grain_size_nm2: int,
+    remove_edge_intersecting_grains: bool,
+    expected_grain_mask: npt.NDArray[np.int32],
+) -> None:
+    """Test the find_grains method of the Grains class."""
+    # Initialise the grains object
+    grains_object = Grains(
+        image=image,
+        filename="test_image",
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        unet_config=None,
+        threshold_method=threshold_method,
+        otsu_threshold_multiplier=otsu_threshold_multiplier,
+        threshold_std_dev=threshold_std_dev,
+        threshold_absolute=threshold_absolute,
+        absolute_area_threshold=absolute_area_threshold,
+        direction=direction,
+        smallest_grain_size_nm2=smallest_grain_size_nm2,
+        remove_edge_intersecting_grains=remove_edge_intersecting_grains,
+    )
+
+    grains_object.find_grains()
+
+    result_removed_small_objects = grains_object.directions[direction]["removed_small_objects"]
+
+    np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
