@@ -82,3 +82,42 @@ def make_crop_square(
         new_crop_max_col = crop_max_col
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
+
+
+def pad_bounding_box(
+    crop_min_row: int,
+    crop_min_col: int,
+    crop_max_row: int,
+    crop_max_col: int,
+    image_shape: tuple[int, int],
+    padding: int,
+) -> tuple[int, int, int, int]:
+    """
+    Pad a bounding box.
+
+    Parameters
+    ----------
+    crop_min_row : int
+        The minimum row index of the crop.
+    crop_min_col : int
+        The minimum column index of the crop.
+    crop_max_row : int
+        The maximum row index of the crop.
+    crop_max_col : int
+        The maximum column index of the crop.
+    image_shape : tuple[int, int]
+        The shape of the image.
+    padding : int
+        The padding to apply to the bounding box.
+
+    Returns
+    -------
+    tuple[int, int, int, int]
+        The new crop indices.
+    """
+    new_crop_min_row = max(0, crop_min_row - padding)
+    new_crop_min_col = max(0, crop_min_col - padding)
+    new_crop_max_row = min(image_shape[0], crop_max_row + padding)
+    new_crop_max_col = min(image_shape[1], crop_max_col + padding)
+
+    return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
