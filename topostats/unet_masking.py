@@ -1,11 +1,89 @@
 """Segment grains using a U-Net model."""
 
+import logging
 
-def make_crop_square(
+import numpy as np
+import numpy.typing as npt
+import tensorflow as tf
+
+from topostats.logs.logs import LOGGER_NAME
+
+LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+# DICE Loss
+def dice_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float = 1e-5) -> tf.Tensor:
+    """
+    DICE loss function.
+
+    Expects y_true and y_pred to be of shape (batch_size, height, width, 1).
+
+    Parameters
+    ----------
+    y_true : npt.NDArray[np.float32]
+        True values.
+    y_pred : npt.NDArray[np.float32]
+        Predicted values.
+    smooth : float
+        Smoothing factor to prevent division by zero.
+
+    Returns
+    -------
+    tf.Tensor
+        The DICE loss.
+    """
+    # Ensure the tensors are of the same shape
+    y_true = tf.squeeze(y_true, axis=-1) if y_true.shape[-1] == 1 else y_true
+    y_pred = tf.squeeze(y_pred, axis=-1) if y_pred.shape[-1] == 1 else y_pred
+    # Ensure floats not bool
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.cast(y_pred, tf.float32)
+
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    return 1 - (2 * intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true + smooth)
+
+
+# IoU Loss
+def iou_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float = 1e-5) -> tf.Tensor:
+    """
+    Intersection over Union loss function.
+
+    Expects y_true and y_pred to be of shape (batch_size, height, width, 1).
+
+    Parameters
+    ----------
+    y_true : npt.NDArray[np.float32]
+        True values.
+    y_pred : npt.NDArray[np.float32]
+        Predicted values.
+    smooth : float
+        Smoothing factor to prevent division by zero.
+
+    Returns
+    -------
+    tf.Tensor
+        The IoU loss.
+    """
+    # Ensure the tensors are of the same shape
+    y_true = tf.squeeze(y_true, axis=-1) if y_true.shape[-1] == 1 else y_true
+    y_pred = tf.squeeze(y_pred, axis=-1) if y_pred.shape[-1] == 1 else y_pred
+    # Ensure floats not bool
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.cast(y_pred, tf.float32)
+
+    intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2))
+    sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
+    sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
+    return 1 - (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
+
+
+def make_bounding_box_square(
     crop_min_row: int, crop_min_col: int, crop_max_row: int, crop_max_col: int, image_shape: tuple[int, int]
 ) -> tuple[int, int, int, int]:
     """
-    Make a crop square.
+    Make a bounding box square.
 
     Parameters
     ----------
@@ -115,9 +193,9 @@ def pad_bounding_box(
     tuple[int, int, int, int]
         The new crop indices.
     """
-    new_crop_min_row = max(0, crop_min_row - padding)
-    new_crop_min_col = max(0, crop_min_col - padding)
-    new_crop_max_row = min(image_shape[0], crop_max_row + padding)
-    new_crop_max_col = min(image_shape[1], crop_max_col + padding)
+    new_crop_min_row: int = max(0, crop_min_row - padding)
+    new_crop_min_col: int = max(0, crop_min_col - padding)
+    new_crop_max_row: int = min(image_shape[0], crop_max_row + padding)
+    new_crop_max_col: int = min(image_shape[1], crop_max_col + padding)
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
