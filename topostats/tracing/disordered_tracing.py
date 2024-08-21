@@ -313,7 +313,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "pruned_skeleton": img_base.copy(),
     }
 
-    LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
+    LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains.")
 
     for cropped_image_index, cropped_image in cropped_images.items():
         try:

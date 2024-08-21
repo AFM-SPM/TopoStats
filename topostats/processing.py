@@ -403,6 +403,14 @@ def run_disorderedTrace(
         try:
             # run image using directional grain masks
             for direction, _ in grain_masks.items():
+                # Check if there are grains
+                if np.max(grain_masks[direction]) == 0:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                    )
+                    raise ValueError(f"No grains exist for the {direction} direction")
+
+                # if grains are found
                 disordered_traces_cropped_data, grainstats_additions_df, disordered_tracing_images = (
                     trace_image_disordered(
                         image=image,
@@ -567,7 +575,7 @@ def run_nodestats(
                                         / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
-                LOGGER.info(f"[{filename}] : Finished Plotting DNA Tracing Images")
+                LOGGER.info(f"[{filename}] : Finished Plotting NodeStats Images")
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
@@ -582,6 +590,7 @@ def run_nodestats(
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
             return nodestats_whole_data, grainstats_additions_image
+
     else:
         LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
         return None, results_df
@@ -639,6 +648,14 @@ def run_ordered_tracing(
         try:
             # run image using directional grain masks
             for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                # Check if there are grains
+                if not disordered_tracing_direction_data:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                    )
+                    raise ValueError(f"No grains exist for the {direction} direction")
+
+                # if grains are found
                 (
                     ordered_tracing_data,
                     grainstats_additions_df,
@@ -745,6 +762,15 @@ def run_splining(
         try:
             # run image using directional grain masks
             for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
+                if not ordered_tracing_direction_data:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                    )
+                    grainstats_additions_image = create_empty_dataframe()
+                    image_molstats_df = create_empty_dataframe(columns=["image", "basename", "threshold"])
+                    raise ValueError(f"No grains exist for the {direction} direction")
+
+                # if grains are found
                 (
                     splined_data,
                     grainstats_additions_df,
@@ -793,9 +819,9 @@ def run_splining(
 
         except Exception as e:
             LOGGER.info(f"Splining failed with {e} - skipping.")
-            return splined_image_data, grainstats_additions_image, None
+            return splined_image_data, grainstats_additions_image, image_molstats_df
 
-    return None, results_df, None
+    return None, results_df, create_empty_dataframe(columns=["image", "basename", "threshold"])
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -1000,7 +1026,6 @@ def process_scan(
 
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
-        print(molstats_df)
 
     else:
         results_df = create_empty_dataframe()
@@ -1025,8 +1050,7 @@ def process_scan(
     save_topostats_file(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
-    print(results_df.columns)
-    print(molstats_df.columns)
+
     return topostats_object["img_path"], results_df, image_stats, molstats_df
 
 
