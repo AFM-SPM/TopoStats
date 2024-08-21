@@ -1,10 +1,12 @@
 """Test unet masking methods."""
 
+from unittest.mock import MagicMock
+
 import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box
+from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
 
 
 @pytest.mark.parametrize(
@@ -85,6 +87,36 @@ def test_iou_loss(
     y_pred = np.expand_dims(y_pred, axis=0)
     result = iou_loss(y_true, y_pred, smooth)
     np.testing.assert_allclose(result, expected_loss, atol=1e-5)
+
+
+def test_predict_unet(mock_model: MagicMock) -> None:
+    """Test the predict_unet method."""
+    image = np.array(
+        [
+            [0.1, 0.2, 0.1, 0.2, 0.1],
+            [0.1, 1.1, 1.2, 1.0, 0.2],
+            [0.2, 1.2, 0.3, 1.3, 0.2],
+            [0.1, 1.0, 1.2, 1.2, 0.1],
+            [0.1, 0.1, 0.2, 0.2, 0.1],
+        ]
+    )
+    confidence = 0.5
+    model_input_shape = (None, 5, 5, 1)
+    upper_norm_bound = 1.0
+    lower_norm_bound = 0.0
+
+    predicted_mask = predict_unet(
+        image=image,
+        model=mock_model,
+        confidence=confidence,
+        model_input_shape=model_input_shape,
+        upper_norm_bound=upper_norm_bound,
+        lower_norm_bound=lower_norm_bound,
+    )
+
+    assert predicted_mask.shape == (5, 5)
+    assert isinstance(predicted_mask, np.ndarray)
+    assert predicted_mask.dtype == np.bool_
 
 
 @pytest.mark.parametrize(

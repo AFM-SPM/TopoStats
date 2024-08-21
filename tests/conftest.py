@@ -2,6 +2,7 @@
 
 import importlib.resources as pkg_resources
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import numpy as np
 import numpy.typing as npt
@@ -959,3 +960,35 @@ def skeleton_linear3() -> dict:
 # pruned_plot(skeleton_linear1)
 # pruned_plot(skeleton_linear2)
 # pruned_plot(skeleton_linear3)
+
+
+# U-Net fixtures
+@pytest.fixture()
+def mock_model() -> MagicMock:
+    """Create a mock model."""
+    # Create a mock model
+    model_mocker = MagicMock()
+
+    # Define a custom side effect function for the predict method
+    def side_effect_predict(input_array: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+        assert input_array.shape == (1, 5, 5, 1), "Input shape is not as expected"
+        assert input_array.dtype == np.float32, "Input data type is not as expected"
+
+        return (
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 0, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            )
+            .reshape((1, 5, 5, 1))
+            .astype(np.float32)
+        )
+
+    # Assign the side effect to the mock's predict method
+    model_mocker.predict.side_effect = side_effect_predict
+
+    return model_mocker
