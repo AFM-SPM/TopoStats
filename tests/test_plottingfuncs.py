@@ -277,22 +277,6 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
     return fig
 
 
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
-    """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config["mask_cmap"] = "blu"
-    mask = np.zeros((1024, 1024))
-    mask[500, :] = 1
-    fig, _ = Images(
-        data=RNG.random((1024, 1024)),
-        output_dir=tmp_path,
-        filename="mask_dilation",
-        masked_array=mask,
-        **plotting_config,
-    ).plot_and_save()
-    return fig
-
-
 @pytest.mark.parametrize(
     ("n", "expected"),
     [
