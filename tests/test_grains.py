@@ -1,6 +1,7 @@
 """Test finding of grains."""
 
 import logging
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import numpy.typing as npt
@@ -213,6 +214,7 @@ def test_remove_edge_intersecting_grains(
     assert number_of_grains == expected_number_of_grains
 
 
+# Find grains without unet
 @pytest.mark.parametrize(
     (
         "image",
@@ -345,3 +347,63 @@ def test_find_grains(
     result_removed_small_objects = grains_object.directions[direction]["removed_small_objects"]
 
     np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
+
+
+# Find grains with unet - needs mocking
+def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
+    """Test the find_grains method of the Grains class with a unet model."""
+    with patch("keras.models.load_model") as mock_load_model:
+        mock_load_model.return_value = mock_model_5_by_5
+
+        # Initialise the grains object
+        grains_object = Grains(
+            image=np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
+                    [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
+                    [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            filename="test_image",
+            pixel_to_nm_scaling=1.0,
+            unet_config={
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            threshold_method="absolute",
+            threshold_absolute={"above": 0.9, "below": 0.0},
+            absolute_area_threshold={"above": [1, 10000000], "below": [1, 10000000]},
+            direction="above",
+            smallest_grain_size_nm2=1,
+            remove_edge_intersecting_grains=True,
+        )
+
+        grains_object.find_grains()
+
+        result_removed_small_objects = grains_object.directions["above"]["removed_small_objects"]
+
+        expected_grain_mask = np.array(
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        )
+
+        np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)

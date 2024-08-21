@@ -89,14 +89,14 @@ def test_iou_loss(
     np.testing.assert_allclose(result, expected_loss, atol=1e-5)
 
 
-def test_predict_unet(mock_model: MagicMock) -> None:
+def test_predict_unet(mock_model_5_by_5: MagicMock) -> None:
     """Test the predict_unet method."""
     image = np.array(
         [
             [0.1, 0.2, 0.1, 0.2, 0.1],
-            [0.1, 1.1, 1.2, 1.0, 0.2],
-            [0.2, 1.2, 0.3, 1.3, 0.2],
-            [0.1, 1.0, 1.2, 1.2, 0.1],
+            [0.1, 1.0, 1.0, 1.0, 0.1],
+            [0.2, 1.0, 1.0, 1.0, 0.2],
+            [0.1, 1.0, 1.0, 1.0, 0.1],
             [0.1, 0.1, 0.2, 0.2, 0.1],
         ]
     )
@@ -107,7 +107,7 @@ def test_predict_unet(mock_model: MagicMock) -> None:
 
     predicted_mask = predict_unet(
         image=image,
-        model=mock_model,
+        model=mock_model_5_by_5,
         confidence=confidence,
         model_input_shape=model_input_shape,
         upper_norm_bound=upper_norm_bound,
@@ -117,6 +117,18 @@ def test_predict_unet(mock_model: MagicMock) -> None:
     assert predicted_mask.shape == (5, 5)
     assert isinstance(predicted_mask, np.ndarray)
     assert predicted_mask.dtype == np.bool_
+    np.testing.assert_array_equal(
+        predicted_mask,
+        np.array(
+            [
+                [0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0],
+                [0, 1, 0, 1, 0],
+                [0, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0],
+            ]
+        ),
+    )
 
 
 @pytest.mark.parametrize(
