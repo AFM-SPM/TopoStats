@@ -4,20 +4,18 @@
 import logging
 from collections import defaultdict
 
-from pathlib import Path
-
+import keras
 import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
 from skimage.measure import regionprops
 from skimage.segmentation import clear_border
-from tensorflow import keras
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
+from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
 from topostats.utils import _get_mask, get_thresholds
-from topostats.unet_masking import load_model, predict_unet, make_crop_square
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -41,6 +39,16 @@ class Grains:
         File being processed (used in logging).
     pixel_to_nm_scaling : float
         Scaling of pixels to nanometres.
+    unet_config : dict
+        Configuration for the UNet model.
+        model_path: str
+            Path to the UNet model.
+        grain_crop_padding: int
+            Padding to add to the bounding box of the grain before cropping.
+        upper_norm_bound: float
+            Upper bound for normalising the image.
+        lower_norm_bound: float
+            Lower bound for normalising the image.
     threshold_method : str
         Method for determining thershold to mask values, default is 'otsu'.
     otsu_threshold_multiplier : float
@@ -86,6 +94,16 @@ class Grains:
             File being processed (used in logging).
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
+        unet_config : dict
+            Configuration for the UNet model.
+            model_path: str
+                Path to the UNet model.
+            grain_crop_padding: int
+                Padding to add to the bounding box of the grain before cropping.
+            upper_norm_bound: float
+                Upper bound for normalising the image.
+            lower_norm_bound: float
+                Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
         otsu_threshold_multiplier : float
@@ -427,41 +445,51 @@ class Grains:
 
                 LOGGER.info(f"[{self.filename}] : Running UNet model on {direction} grains")
 
-                unet_model: keras.models.Model = load_model(self.unet_config["model_path"])
-                # Will need to load custom objects sometimes. Here is the code to do so. dice_loss etc would need to be defined / imported.
-                # model = load_model(model_path=model_path, custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss})
+                # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
+                # for its loss during training and so this will need to be changed a lot.
+                # Once the group has gotten used to training models, this can be made configurable, but currently it's too changeable.
+                unet_model = keras.models.load_model(
+                    self.unet_config["model_path"], custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss}
+                )
 
                 # For each detected molecule, create an image of just that molecule and run the UNet
                 # on that image to segment it
+
+                # Initialise an empty mask to iteratively add to for each grain
                 unet_mask = np.zeros_like(self.image)
+                # Sylvia: Sadly mypy cannot infer the type of regionprops since skimage don't provide stubs AFAIK
                 for grain_number, region in enumerate(self.region_properties[direction]):
                     LOGGER.info(
                         f"Unet predicting mask for grain {grain_number} of {len(self.region_properties[direction])}"
                     )
 
                     # Get the bounding box for the region
-                    bounding_box: npt.NDArray = np.array(region.bbox)  # min_row, min_col, max_row, max_col
+                    bounding_box = np.array(region.bbox)  # min_row, min_col, max_row, max_col
+
+                    # Pad the bounding box
+                    padded_bounding_box = pad_bounding_box(
+                        crop_min_row=bounding_box[0],
+                        crop_min_col=bounding_box[1],
+                        crop_max_row=bounding_box[2],
+                        crop_max_col=bounding_box[3],
+                        image_shape=self.image.shape,
+                        padding=self.unet_config["grain_crop_padding"],
+                    )
 
                     # Make the bounding box square within the confines of the image
-                    try:
-                        resized_bounding_box = make_crop_square(
-                            crop_min_row=bounding_box[0],
-                            crop_min_col=bounding_box[1],
-                            crop_max_row=bounding_box[2],
-                            crop_max_col=bounding_box[3],
-                            image_shape=self.image.shape,
-                        )
-                    except ValueError:
-                        LOGGER.warning(
-                            f"Auto crop shape adjustment failed for grain {grain_number} in {self.filename}. Skipping."
-                        )
-                        continue
+                    square_bounding_box = make_bounding_box_square(
+                        crop_min_row=padded_bounding_box[0],
+                        crop_min_col=padded_bounding_box[1],
+                        crop_max_row=padded_bounding_box[2],
+                        crop_max_col=padded_bounding_box[3],
+                        image_shape=self.image.shape,
+                    )
 
                     # Grab the cropped image. Using slice since the bounding box from skimage is
                     # half-open, so the max_row and max_col are not included in the region.
                     region_image = self.image[
-                        resized_bounding_box[0] : resized_bounding_box[2],
-                        resized_bounding_box[1] : resized_bounding_box[3],
+                        square_bounding_box[0] : square_bounding_box[2],
+                        square_bounding_box[1] : square_bounding_box[3],
                     ]
 
                     # Run the UNet on the region
@@ -474,17 +502,26 @@ class Grains:
                         lower_norm_bound=self.unet_config["lower_norm_bound"],
                     )
 
-                    # Get only the biggest segmentation object
-                    # pred_labeled = morphology.label(predicted_mask)
-                    # sizes = np.array([(pred_labeled == lbl).sum() for lbl in range(1, pred_labeled.max() + 1)])
-                    # predicted_mask = np.where(pred_labeled == sizes.argmax() + 1, predicted_mask, 0)
+                    # Use only the largest segmentation object
+                    predicted_labelled = morphology.label(predicted_mask)
+                    sizes = np.array(
+                        [(predicted_labelled == label).sum() for label in range(1, predicted_labelled.max() + 1)]
+                    )
+                    predicted_mask = np.where(predicted_labelled == sizes.argmax() + 1, predicted_mask, 0)
 
                     # Add the predicted mask to the overall mask
-                    unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]] = np.logical_or(
-                        unet_mask[bounding_box[0] : bounding_box[2], bounding_box[1] : bounding_box[3]],
+                    unet_mask[
+                        square_bounding_box[0] : square_bounding_box[2],
+                        square_bounding_box[1] : square_bounding_box[3],
+                    ] = np.logical_or(
+                        unet_mask[
+                            square_bounding_box[0] : square_bounding_box[2],
+                            square_bounding_box[1] : square_bounding_box[3],
+                        ],
                         predicted_mask,
                     )
 
+                    # Update the image masks to be the unet masks instead
                     self.directions[direction]["removed_small_objects"] = unet_mask
                     unet_labelled_regions = self.label_regions(unet_mask)
                     self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
