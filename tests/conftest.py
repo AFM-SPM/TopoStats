@@ -1,5 +1,7 @@
 """Fixtures for testing."""
 
+from __future__ import annotations
+
 import importlib.resources as pkg_resources
 from pathlib import Path
 from unittest.mock import MagicMock

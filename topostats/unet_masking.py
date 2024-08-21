@@ -1,5 +1,7 @@
 """Segment grains using a U-Net model."""
 
+from __future__ import annotations
+
 import logging
 
 import keras

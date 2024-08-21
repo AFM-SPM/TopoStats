@@ -1,6 +1,8 @@
 """Find grains in an image."""
 
 # pylint: disable=no-name-in-module
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 
