@@ -181,6 +181,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "unet_config": {
                 "model_path": str,
+                "grain_crop_padding": int,
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
             },
