@@ -1,8 +1,90 @@
 """Test unet masking methods."""
 
+import numpy as np
+import numpy.typing as npt
 import pytest
 
-from topostats.unet_masking import make_crop_square, pad_bounding_box
+from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box
+
+
+@pytest.mark.parametrize(
+    ("y_true", "y_pred", "smooth", "expected_loss"),
+    [
+        pytest.param(
+            np.array([[0, 0], [0, 0]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 0.0, id="perfect match"
+        ),
+        pytest.param(
+            np.array([[1, 1], [1, 1]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 1.0, id="complete mismatch"
+        ),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]).astype(np.float32),
+            np.array([[0.5, 0], [0, 0]]).astype(np.float32),
+            1e-5,
+            0.2,
+            id="partial match, perfect location, weak intensity",
+        ),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]).astype(np.float32),
+            np.array([[1, 0.5], [0, 0]]).astype(float),
+            1e-5,
+            0.111111,
+            id="partial match, perfect intensity, weak location (spillage)",
+        ),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]).astype(np.float32),
+            np.array([[0.5, 1], [0, 0]]).astype(np.float32),
+            1e-5,
+            0.555555,
+            id="mostly mismatched, poor location, poor intensity",
+        ),
+    ],
+)
+def test_dice_loss(
+    y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float, expected_loss: float
+):
+    """Test the dice_loss function."""
+    y_true = np.expand_dims(y_true, axis=0)
+    y_pred = np.expand_dims(y_pred, axis=0)
+    result = dice_loss(y_true, y_pred, smooth)
+    np.testing.assert_allclose(result, expected_loss, atol=1e-5)
+
+
+@pytest.mark.parametrize(
+    ("y_true", "y_pred", "smooth", "expected_loss"),
+    [
+        pytest.param(np.array([[0, 0], [0, 0]]), np.array([[0, 0], [0, 0]]), 1e-5, 0.0, id="perfect match"),
+        pytest.param(np.array([[1, 1], [1, 1]]), np.array([[0, 0], [0, 0]]), 1e-5, 1.0, id="complete mismatch"),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]),
+            np.array([[0.5, 0], [0, 0]]),
+            1e-5,
+            0.333333,
+            id="partial match, perfect location, weak intensity",
+        ),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]),
+            np.array([[1, 0.5], [0, 0]]),
+            1e-5,
+            0.2,
+            id="partial match, perfect intensity, weak location (spillage)",
+        ),
+        pytest.param(
+            np.array([[1, 0], [0, 0]]),
+            np.array([[0.5, 1], [0, 0]]),
+            1e-5,
+            0.714282,
+            id="mostly mismatched, poor location, poor intensity",
+        ),
+    ],
+)
+def test_iou_loss(
+    y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float, expected_loss: float
+):
+    """Test the iou_loss function."""
+    y_true = np.expand_dims(y_true, axis=0)
+    y_pred = np.expand_dims(y_pred, axis=0)
+    result = iou_loss(y_true, y_pred, smooth)
+    np.testing.assert_allclose(result, expected_loss, atol=1e-5)
 
 
 @pytest.mark.parametrize(
@@ -23,16 +105,16 @@ from topostats.unet_masking import make_crop_square, pad_bounding_box
         pytest.param(6, 1, 8, 7, (10, 10), (2, 1, 8, 7), id="constrained bottom"),
     ],
 )
-def test_make_crop_square(
+def test_make_bounding_box_square(
     crop_min_row: int,
     crop_min_col: int,
     crop_max_row: int,
     crop_max_col: int,
     image_shape: tuple[int, int],
     expected_indices: tuple[int, int, int, int],
-):
-    """Test the crop square method."""
-    result = make_crop_square(crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape)
+) -> None:
+    """Test the make_bounding_box_square method."""
+    result = make_bounding_box_square(crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape)
     assert result == expected_indices
 
 
@@ -56,7 +138,7 @@ def test_pad_bounding_box(
     image_shape: tuple[int, int],
     padding,
     expected_indices,
-):
-    """Test the pad bounding box method."""
+) -> None:
+    """Test the pad_bounding_box method."""
     result = pad_bounding_box(crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape, padding)
     assert result == expected_indices
