@@ -24,6 +24,7 @@ from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
+# pylint: disable=too-many-lines
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
@@ -964,9 +965,8 @@ def skeleton_linear3() -> dict:
 
 # U-Net fixtures
 @pytest.fixture()
-def mock_model() -> MagicMock:
+def mock_model_5_by_5() -> MagicMock:
     """Create a mock model."""
-    # Create a mock model
     model_mocker = MagicMock()
 
     # Define a custom side effect function for the predict method
@@ -974,21 +974,94 @@ def mock_model() -> MagicMock:
         assert input_array.shape == (1, 5, 5, 1), "Input shape is not as expected"
         assert input_array.dtype == np.float32, "Input data type is not as expected"
 
-        return (
+        input_array_without_batch_and_channel = input_array[0, :, :, 0]
+        print(input_array_without_batch_and_channel)
+
+        # Different output for different input
+        if np.array_equal(
+            input_array_without_batch_and_channel,
             np.array(
                 [
-                    [0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0],
-                    [0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0],
+                    [0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 1.0, 0.2, 1.0, 0.2],
+                    [0.2, 1.0, 0.1, 0.2, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.1, 0.1, 0.1, 0.2, 0.1],
                 ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 0, 1, 0],
+                        [0, 1, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
             )
-            .reshape((1, 5, 5, 1))
-            .astype(np.float32)
+        if np.array_equal(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.2, 1.0, 1.0, 1.0, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1],
+                ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 0, 1, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        if np.allclose(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.20455678, 0.18093494, 0.13962264, 0.10629401, 0.08889285],
+                    [0.18093495, 0.3309646, 0.5164179, 0.28279683, 0.10629401],
+                    [0.13962264, 0.5164179, 1.0, 0.5164179, 0.13962264],
+                    [0.10629401, 0.28279683, 0.5164179, 0.3309646, 0.18093495],
+                    [0.08889285, 0.10629401, 0.13962264, 0.18093494, 0.20455678],
+                ]
+            ).astype(np.float32),
+            atol=1e-6,
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        raise ValueError(
+            "Input is not as expected. Check the image crop sent to the model and check the"
+            "mocked unet predict function has a case for that exact input."
         )
 
     # Assign the side effect to the mock's predict method
     model_mocker.predict.side_effect = side_effect_predict
+    # Override the output of the input_shape property
+    model_mocker.input_shape = (1, 5, 5, 1)
 
     return model_mocker
