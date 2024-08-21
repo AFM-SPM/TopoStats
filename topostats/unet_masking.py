@@ -2,9 +2,11 @@
 
 import logging
 
+import keras
 import numpy as np
 import numpy.typing as npt
 import tensorflow as tf
+from PIL import Image
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -77,6 +79,74 @@ def iou_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], s
     sum_of_squares_pred = tf.reduce_sum(tf.square(y_pred), axis=(1, 2))
     sum_of_squares_true = tf.reduce_sum(tf.square(y_true), axis=(1, 2))
     return 1 - (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
+
+
+def predict_unet(
+    image: npt.NDArray[np.float32],
+    model: keras.Model,
+    confidence: float,
+    model_input_shape: tuple[int | None, int, int, int],
+    upper_norm_bound: float,
+    lower_norm_bound: float,
+) -> npt.NDArray[np.bool_]:
+    """
+    Predict cats segmentation from a flattened image.
+
+    Parameters
+    ----------
+    image : npt.NDArray[np.float32]
+        The image to predict the mask for.
+    model : keras.Model
+        The U-Net model.
+    confidence : float
+        The confidence threshold for the mask.
+    model_input_shape : tuple[int | None, int, int, int]
+        The shape of the model input, including the batch and channel dimensions.
+    upper_norm_bound : float
+        The upper bound for normalising the image.
+    lower_norm_bound : float
+        The lower bound for normalising the image.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        The predicted mask.
+    """
+    # Strip the batch dimension from the model input shape
+    image_shape: tuple[int, int] = model_input_shape[1:3]
+    LOGGER.info(f"Model input shape: {model_input_shape}")
+
+    # Make a copy of the original image
+    original_image = image.copy()
+
+    # Run the model on a single image
+    LOGGER.info("Preprocessing image for Unet prediction...")
+
+    # Normalise the image
+    image = np.clip(image, lower_norm_bound, upper_norm_bound)
+    image = image - lower_norm_bound
+    image = image / (upper_norm_bound - lower_norm_bound)
+
+    # Resize the image to the model input shape
+    image_resized = Image.fromarray(image)
+    image_resized = image_resized.resize(image_shape)
+    image_resized_np: npt.NDArray[np.float32] = np.array(image_resized)
+
+    # Predict the mask
+    LOGGER.info("Running Unet & predicting mask")
+    prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
+    LOGGER.info("Unet finished predicted mask.")
+
+    # Threshold the predicted mask
+    predicted_mask: npt.NDArray[np.bool_] = prediction > confidence
+    # Remove the batch and channel dimensions
+    predicted_mask = predicted_mask[0, :, :, 0]
+
+    # Resize the predicted mask back to the original image size
+    predicted_mask_PIL = Image.fromarray(predicted_mask)
+    predicted_mask_PIL = predicted_mask_PIL.resize((original_image.shape[0], original_image.shape[1]))
+
+    return np.array(predicted_mask_PIL)
 
 
 def make_bounding_box_square(
