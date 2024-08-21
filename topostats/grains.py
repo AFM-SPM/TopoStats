@@ -73,7 +73,7 @@ class Grains:
         image: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
-        unet_config: dict[str, str | int | float | None] | None = None,
+        unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
         threshold_std_dev: dict | None = None,
@@ -532,3 +532,5 @@ class Grains:
                     self.directions[direction]["removed_small_objects"] = unet_mask
                     unet_labelled_regions = self.label_regions(unet_mask)
                     self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
+
+                    LOGGER.info(f"[{self.filename}] : Overridden grains with UNet predictions ({direction})")
