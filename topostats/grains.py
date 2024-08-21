@@ -39,7 +39,7 @@ class Grains:
         File being processed (used in logging).
     pixel_to_nm_scaling : float
         Scaling of pixels to nanometres.
-    unet_config : dict
+    unet_config : dict[str, str | int | float | None]
         Configuration for the UNet model.
         model_path: str
             Path to the UNet model.
@@ -73,14 +73,14 @@ class Grains:
         image: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
-        unet_config: dict[str, str],
-        threshold_method: str = None,
-        otsu_threshold_multiplier: float = None,
-        threshold_std_dev: dict = None,
-        threshold_absolute: dict = None,
-        absolute_area_threshold: dict = None,
-        direction: str = None,
-        smallest_grain_size_nm2: float = None,
+        unet_config: dict[str, str | int | float | None] | None = None,
+        threshold_method: str | None = None,
+        otsu_threshold_multiplier: float | None = None,
+        threshold_std_dev: dict | None = None,
+        threshold_absolute: dict | None = None,
+        absolute_area_threshold: dict | None = None,
+        direction: str | None = None,
+        smallest_grain_size_nm2: float | None = None,
         remove_edge_intersecting_grains: bool = True,
     ):
         """
@@ -94,7 +94,7 @@ class Grains:
             File being processed (used in logging).
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        unet_config : dict
+        unet_config : dict[str, str | int | float | None]
             Configuration for the UNet model.
             model_path: str
                 Path to the UNet model.
@@ -122,6 +122,13 @@ class Grains:
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         """
+        if unet_config is None:
+            unet_config = {
+                "model_path": None,
+                "grain_crop_padding": 0,
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+            }
         if absolute_area_threshold is None:
             absolute_area_threshold = {"above": [None, None], "below": [None, None]}
         self.image = image

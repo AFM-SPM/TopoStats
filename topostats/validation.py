@@ -180,7 +180,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
             "unet_config": {
-                "model_path": str,
+                "model_path": Or(None, str),
                 "grain_crop_padding": int,
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
