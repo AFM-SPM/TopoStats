@@ -89,7 +89,9 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         filter_run=config["filter"]["run"],
         grains_run=config["grains"]["run"],
         grainstats_run=config["grainstats"]["run"],
-        dnatracing_run=config["dnatracing"]["run"],
+        disordered_tracing_run=config["disordered_tracing"]["run"],
+        nodestats_run=config["nodestats"]["run"],
+        splining_run=config["splining"]["run"],
     )
     # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
@@ -115,7 +117,10 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         filter_config=config["filter"],
         grains_config=config["grains"],
         grainstats_config=config["grainstats"],
-        dnatracing_config=config["dnatracing"],
+        disordered_tracing_config=config["disordered_tracing"],
+        nodestats_config=config["nodestats"],
+        ordered_tracing_config=config["ordered_tracing"],
+        splining_config=config["splining"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )
@@ -130,15 +135,17 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
         image_stats_all = defaultdict()
+        mols_results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, individual_image_stats_df in pool.imap_unordered(
+            for img, result, individual_image_stats_df, mols_result in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
+                mols_results[str(img)] = mols_result
                 pbar.update()
 
                 # Add the dataframe to the results dict
@@ -157,6 +164,12 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         results = pd.concat(results.values())
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+        LOGGER.error(error)
+
+    try:
+        mols_results = pd.concat(mols_results.values())
+    except ValueError as error:
+        LOGGER.error("No mols found in any images, consider adjusting splining parameters.")
         LOGGER.error(error)
 
     # Summary Statistics and Plots
@@ -221,6 +234,16 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         save_folder_grainstats(config["output_dir"], config["base_dir"], results)
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
+    else:
+        images_processed = 0
+        LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
+
+    if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
+        mols_results.reset_index(drop=True, inplace=True)
+        mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+        mols_results.to_csv(config["output_dir"] / "all_mol_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        mols_results.reset_index(inplace=True)  # So we can access unique image names
     else:
         images_processed = 0
         LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")

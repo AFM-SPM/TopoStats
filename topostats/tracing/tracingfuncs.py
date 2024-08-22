@@ -1,12 +1,19 @@
 """Miscellaneous tracing functions."""
 
+from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 import math
 
+from topostats.utils import convolve_skeleton
+
 
 class reorderTrace:
+    """
+    Class to aid the consecutive ordering of adjacent coordinates of a pixel grid.
+    """
+
     @staticmethod
     def linearTrace(trace_coordinates):
         """My own function to order the points from a linear trace.
@@ -32,7 +39,7 @@ class reorderTrace:
 
         # Find one of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 1:
+            if genTracingFuncs.count_and_get_neighbours(x, y, trace_coordinates)[0] == 1:
                 ordered_points = [[x, y]]
                 trace_coordinates.pop(i)
                 break
@@ -45,7 +52,7 @@ class reorderTrace:
 
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
-            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(
+            no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
                 x_n, y_n, remaining_unordered_coords
             )
 
@@ -61,7 +68,7 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
             elif no_of_neighbours == 0:
-                # nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                # nn, neighbour_array_all_coords = genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)
                 # best_next_pixel = genTracingFuncs.checkVectorsCandidatePoints(x_n, y_n, ordered_points, neighbour_array_all_coords)
                 best_next_pixel = genTracingFuncs.findBestNextPoint(
                     x_n, y_n, ordered_points, remaining_unordered_coords
@@ -73,7 +80,7 @@ class reorderTrace:
                 ordered_points.append(best_next_pixel)
 
             # If the tracing has reached the other end of the trace then its finished
-            if genTracingFuncs.countNeighbours(x_n, y_n, trace_coordinates) == 1:
+            if genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)[0] == 1:
                 break
 
         return np.array(ordered_points)
@@ -92,7 +99,7 @@ class reorderTrace:
 
         # Find a sensible point to start of the end points
         for i, (x, y) in enumerate(trace_coordinates):
-            if genTracingFuncs.countNeighbours(x, y, trace_coordinates) == 2:
+            if genTracingFuncs.count_and_get_neighbours(x, y, trace_coordinates)[0] == 2:
                 ordered_points = [[x, y]]
                 remaining_unordered_coords.pop(i)
                 break
@@ -100,7 +107,9 @@ class reorderTrace:
         # Randomly choose one of the neighbouring points as the next point
         x_n = ordered_points[0][0]
         y_n = ordered_points[0][1]
-        no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(x_n, y_n, remaining_unordered_coords)
+        no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
+            x_n, y_n, remaining_unordered_coords
+        )
         ordered_points.append(neighbour_array[0])
         remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
 
@@ -109,7 +118,7 @@ class reorderTrace:
         while remaining_unordered_coords:
             x_n, y_n = ordered_points[-1]  # get the last point to be added to the array and find its neighbour
 
-            no_of_neighbours, neighbour_array = genTracingFuncs.countandGetNeighbours(
+            no_of_neighbours, neighbour_array = genTracingFuncs.count_and_get_neighbours(
                 x_n, y_n, remaining_unordered_coords
             )
 
@@ -140,7 +149,7 @@ class reorderTrace:
 
             elif no_of_neighbours == 0:
                 # Check if the tracing is finished
-                nn, neighbour_array_all_coords = genTracingFuncs.countandGetNeighbours(x_n, y_n, trace_coordinates)
+                nn, neighbour_array_all_coords = genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)
                 if ordered_points[0] in neighbour_array_all_coords:
                     break
 
@@ -374,3 +383,151 @@ class genTracingFuncs:
 
         ordered_x_y_theta = sorted(x_y_theta, key=lambda x: x[2])
         return [ordered_x_y_theta[0][0], ordered_x_y_theta[0][1]]
+
+
+def order_branch(binary_image: npt.NDArray, anchor: list):
+    """
+    Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
+
+    Parameters
+    ----------
+    binary_image : npt.NDArray
+        A binary image of a skeleton segment to order it's points.
+    anchor : list
+        A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
+
+    Returns
+    -------
+    npt.NDArray
+        An array of ordered coordinates.
+    """
+    skel = binary_image.copy()
+
+    if len(np.argwhere(skel == 1)) < 3:  # if < 3 coords just return them
+        return np.argwhere(skel == 1)
+
+    # get branch starts
+    endpoints_highlight = convolve_skeleton(skel)
+    endpoints = np.argwhere(endpoints_highlight == 2)
+    if len(endpoints) != 0:  # if any endpoints, start closest to anchor
+        dist_vals = abs(endpoints - anchor).sum(axis=1)
+        start = endpoints[np.argmin(dist_vals)]
+    else:  # will be circular so pick the first coord (is this always the case?)
+        start = np.argwhere(skel == 1)[0]
+    # order the points according to what is nearby
+    ordered = order_branch_from_start(skel, start)
+
+    return np.array(ordered)
+
+
+def order_branch_from_start(
+    nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
+) -> npt.NDArray:
+    """
+    Order an unbranching skeleton from an end (startpoint) along a specified length.
+
+    Parameters
+    ----------
+    nodeless : npt.NDArray
+        A 2D array of a binary unbranching skeleton.
+    start : npt.NDArray
+        2x1 coordinate that must exist in 'nodeless'.
+    max_length : float | np.inf, optional
+        Maximum length to traverse along while ordering, by default np.inf.
+
+    Returns
+    -------
+    npt.NDArray
+        Ordered coordinates.
+    """
+    dist = 0
+    # add starting point to ordered array
+    ordered = []
+    ordered.append(start)
+    nodeless[start[0], start[1]] = 0  # remove from array
+
+    # iterate to order the rest of the points
+    current_point = ordered[-1]  # get last point
+    area, _ = local_area_sum(nodeless, current_point)  # look at local area
+    local_next_point = np.argwhere(
+        area.reshape(
+            (
+                3,
+                3,
+            )
+        )
+        == 1
+    ) - (1, 1)
+    dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+    while len(local_next_point) != 0 and dist <= max_length:
+        next_point = (current_point + local_next_point)[0]
+        # find where to go next
+        ordered.append(next_point)
+        nodeless[next_point[0], next_point[1]] = 0  # set value to zero
+        current_point = ordered[-1]  # get last point
+        area, _ = local_area_sum(nodeless, current_point)  # look at local area
+        local_next_point = np.argwhere(
+            area.reshape(
+                (
+                    3,
+                    3,
+                )
+            )
+            == 1
+        ) - (1, 1)
+        dist += np.sqrt(2) if abs(local_next_point).sum() > 1 else 1
+
+    return np.array(ordered)
+
+
+def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -> npt.NDArray:
+    """
+    Evaluate the local area around a point in a binary map.
+
+    Parameters
+    ----------
+    binary_map : npt.NDArray
+        A binary array of an image.
+    point : Union[list, tuple, npt.NDArray]
+        A single object containing 2 integers relating to a point within the binary_map.
+
+    Returns
+    -------
+    npt.NDArray
+        An array values of the local coordinates around the point.
+    int
+        A value corresponding to the number of neighbours around the point in the binary_map.
+    """
+    x, y = point
+    local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
+    local_pixels[4] = 0  # ensure centre is 0
+    return local_pixels, local_pixels.sum()
+
+
+@staticmethod
+def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
+    """
+    Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
+
+    Parameters
+    ----------
+    coords : npt.NDArray
+        A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+    px_2_nm : float
+        The pixel to nanometer scaling factor.
+
+    Returns
+    -------
+    npt.NDArray
+        An array of length N containing thcumulative sum of the distances.
+    """
+    dist_list = [0]
+    dist = 0
+    for i in range(len(coords) - 1):
+        if abs(coords[i] - coords[i + 1]).sum() == 2:
+            dist += 2**0.5
+        else:
+            dist += 1
+        dist_list.append(dist)
+    return np.asarray(dist_list) * px_2_nm

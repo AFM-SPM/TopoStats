@@ -1,5 +1,8 @@
+# Config file generated 2024-07-29 11:11:05
+# # For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html
 base_dir: ./ # Directory in which to search for data files
-output_dir: ./ # Directory to output results to
+output_dir: ./output # Directory to output results to
 log_level: info # Verbosity of output. Options: warning, error, info, debug
 cores: 1 # Number of CPU cores to utilise for processing multiple files simultaneously.
 file_ext: .spm # File extension of the data files.
@@ -49,12 +52,14 @@ grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
   cropped_size: -1 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
-dnatracing:
+disordered_tracing:
   run: true # Options : true, false
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
+  pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
-    gaussian_sigma: null # Gaussian smoothing parameter 'sigma'. 'null' defaults to max(grain.shape) / 256.
+    gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
+    holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refil in the smoothed masks.
   skeletonisation_params:
     method: topostats # Options : zhang | lee | thin | topostats
     height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
@@ -62,27 +67,40 @@ dnatracing:
     method: topostats # Method to clean branches of the skeleton. Options : topostats
     max_length: -1 # Maximum length in nm to remove a branch containing an endpoint. '-1' is 15% of total trace length (in pixels).
     height_threshold: # The height to remove branches below.
-    method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid
+    method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid.
     method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
-  joining_node_length: 7.0e-9 # The distance over which to join nearby crossing nodes.
+nodestats:
+  run: true # Options : true, false
+  node_joining_length: 7.0 # The distance over which to join nearby crossing points.
+  node_extend_dist: 14.0 # The distance over which to join nearby odd-branched nodes.
+  branch_pairing_length: 20.0 # The length from the crossing point to pair and trace, obtaining FWHM's.
+  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
+ordered_tracing:
+  run: true
+  ordering_method: nodestats # The method of ordering the disordered traces.
+  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
+splining:
+  run: true # Options : true, false
+  method: "rolling_window" # Options : "spline", "rolling_window"
+  rolling_window_size: 20.0e-9 # size in nm of the rolling window.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
-  spline_circular_smoothing: 0.0 # The amount of smoothing to apply to circular splines.
-  pad_width: 1 # Cells to pad grains by when tracing
+  spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular splines.
+  spline_degree: 3 # The polynomial degree of the spline.
 #  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
   savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
-  savefig_dpi: null # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_dpi: 600 # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
-  image_set: all # Options : all, core
+  image_set: core # Options : all, core
   zrange: [-2, 6] # low and high height range for core images (can take [null, null]). low <= high
   colorbar: true # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)
   num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
   cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
-  mask_cmap: blu # Options : blu, jet_r and any in matplotlib
+  mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
   histogram_log_axis: false # Options : true, false
 summary_stats:
   run: true # Whether to make summary plots for output data

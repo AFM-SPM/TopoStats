@@ -196,13 +196,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 int,
             ),
         },
-        "dnatracing": {
+        "disordered_tracing": {
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'disordered_tracing.run', valid values are 'True' or 'False'",
             ),
             "min_skeleton_size": lambda n: n > 0.0,
+            "pad_width": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
                     float,
@@ -213,6 +214,17 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     int,
                     None,
                 ),
+                "holearea_min_max": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for 'disordered_tracing.mask_smoothing_params.holearea_min_max', valid values "
+                            "are int, float or null"
+                        ),
+                    ),
+                ],
             },
             "skeletonisation_params": {
                 "method": Or(
@@ -221,7 +233,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "thin",
                     "medial_axis",
                     "topostats",
-                    error="Invalid value in config for 'dnatracing.skeletonisation_method',"
+                    error="Invalid value in config for 'disordered_tracing.skeletonisation_method',"
                     "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'topostats'",
                 ),
                 "height_bias": lambda n: 0 < n <= 1,
@@ -229,18 +241,54 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "pruning_params": {
                 "method": Or(
                     "topostats",
-                    error="Invalid value in config for 'dnatracing.pruning_method', valid values are 'topostats'",
+                    error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
                 ),
                 "max_length": Or(int, float, None),
                 "method_values": Or("min", "median", "mid"),
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
             },
-            "joining_node_length": float,
+        },
+        "nodestats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+            ),
+            "node_joining_length": float,
+            "node_extend_dist": float,
+            "branch_pairing_length": float,
             "pad_width": lambda n: n > 0.0,
+        },
+        "ordered_tracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'ordered_tracing.run', valid values are 'True' or 'False'",
+            ),
+            "ordering_method": Or(
+                "nodestats",
+                "original",
+                error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
+            ),
+            "pad_width": lambda n: n > 0.0,
+        },
+        "splining": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'splining.run', valid values are 'True' or 'False'",
+            ),
+            "method": Or(
+                "spline",
+                "rolling_window",
+                error="Invalid value in config for 'splining.method', valid values are 'spline' or 'rolling_window'",
+            ),
+            "rolling_window_size": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
             "spline_circular_smoothing": lambda n: n >= 0.0,
+            "spline_degree": int,
             # "cores": lambda n: n > 0.0,
         },
         "plotting": {
@@ -881,7 +929,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
-        "orig_grains": {
+        "orig_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -894,7 +942,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "smoothed_grains": {
+        "smoothed_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -907,21 +955,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
         },
-        "orig_skeletons": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "pruned_skeletons": {
+        "skeleton": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -935,96 +969,172 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "nodes": {
+        "pruned_skeleton": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "convolved_skeletons": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'convolved_skeleton.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "zoom_node": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "crossings": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "tripple_crossings": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-        },
-        "line_trace": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "cmap": str,
-        },
-        "visual_crop": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-        },
-        "visual": {
+        "node_centres": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_centres.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "single_mol": {
+        "connected_nodes": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_branch_mask.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "node_area_skeleton": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_area_skeleton.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "node_branch_mask": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_branch_mask.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "node_avg_mask": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_avg_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "node_line_trace": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+        },
+        "ordered_traces": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "trace_segments": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "over_under": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "all_molecules": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1051,46 +1161,15 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "savefig_dpi": int,
         },
-        "ordered_trace": {
-            "filename": str,
+        "splined_trace": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'splined_trace.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
             "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": int,
-        },
-        "all_molecule_traces": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-        },
-        "single_molecule_trace": {
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,

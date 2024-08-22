@@ -59,10 +59,10 @@ class Colormap:
             self.cmap = self.nanoscope()
         elif name.lower() == "gwyddion":
             self.cmap = self.gwyddion()
-        elif name.lower() == "blu":
-            self.cmap = self.blu()
-        elif name.lower() == "blu_purp_green":
-            self.cmap = self.blu_purp_green()
+        elif name.lower() == "blue":
+            self.cmap = self.blue()
+        elif name.lower() == "blue_purple_green":
+            self.cmap = self.blue_purple_green()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
@@ -164,7 +164,7 @@ class Colormap:
         return LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
 
     @staticmethod
-    def blu() -> ListedColormap:
+    def blue() -> ListedColormap:
         """
         Set RGBA colour map of just the colour blue.
 
@@ -173,13 +173,13 @@ class Colormap:
         ListedColormap
             The 'blu' colormap.
         """
-        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
+        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blue", N=256)
 
     @staticmethod
-    def blu_purp_green():
+    def blue_purple_green():
         """RGBA colour map of just the colour blue."""
         return ListedColormap(
             [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
-            "blu_purp_green",
+            "blue_purple_green",
             N=3,
         )

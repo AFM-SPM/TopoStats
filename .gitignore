@@ -35,6 +35,7 @@ notebooks/.ipynb_checkpoints/
 .vscode/
 .idea/
 *~
+pytest-debug.ini
 
 # Documentation
 _build/
