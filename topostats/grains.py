@@ -41,7 +41,7 @@ class Grains:
         File being processed (used in logging).
     pixel_to_nm_scaling : float
         Scaling of pixels to nanometres.
-    unet_config : dict[str, str | int | float | None]
+    unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
         Configuration for the UNet model.
         model_path: str
             Path to the UNet model.
@@ -96,7 +96,7 @@ class Grains:
             File being processed (used in logging).
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        unet_config : dict[str, str | int | float | None]
+        unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
             Configuration for the UNet model.
             model_path: str
                 Path to the UNet model.
