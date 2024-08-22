@@ -74,6 +74,7 @@ nodestats:
   node_joining_length: 7.0 # The distance over which to join nearby crossing points.
   node_extend_dist: 14.0 # The distance over which to join nearby odd-branched nodes.
   branch_pairing_length: 20.0 # The length from the crossing point to pair and trace, obtaining FWHM's.
+  pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
   pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 ordered_tracing:
   run: true
