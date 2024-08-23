@@ -1881,7 +1881,7 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, 
+        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
         an image dictionary of nodestats steps for the entire image, and single grain images.
     """
     n_grains = len(disordered_tracing_direction_data)
