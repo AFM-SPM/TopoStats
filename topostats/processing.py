@@ -718,7 +718,7 @@ def run_ordered_tracing(
 
         except Exception as e:
             LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
-            return ordered_tracing_image_data, grainstats_additions_image
+            return ordered_tracing_image_data, results_df
 
     return None, results_df
 
