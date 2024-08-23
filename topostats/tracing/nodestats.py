@@ -538,6 +538,7 @@ class nodeStats:
         avg_image = np.zeros_like(self.image)
         real_node_count = 0
         for node_no, (node_x, node_y) in enumerate(node_coords):
+            unmatched_branches = {}
             error = False
 
             # Get branches relevant to the node
@@ -603,31 +604,32 @@ class nodeStats:
                         image_shape=(self.image.shape[0], self.image.shape[1]),
                     )
 
-                    # Calculate crossing angles
+                    # Calculate crossing angles of unpaired branches and add to stats dict
+                    nodestats_calc_singlet_angles_result = nodeStats.calc_angles(np.asarray(singlet_branch_vectors))
+                    angles_between_singlet_branch_vectors: npt.NDArray[np.float64] = (
+                        nodestats_calc_singlet_angles_result[0]
+                    )
+
+                    for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
+                        unmatched_branches[branch_index] = {"angles": angle}
+
                     # Get the vector of each branch based on ordered_coords. Ordered_coords is only the first N nm
                     # of the branch so this is just a general vibe on what direction a branch is going.
                     if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
                         vectors: list[npt.NDArray[np.float64]] = []
                         for _, values in matched_branches.items():
-                            # Add the vector of the branch to the list of vectors for the node
-                            # TODO: do we want to calculate vectors for all the non crossing points?
                             vectors.append(nodeStats.get_vector(values["ordered_coords"], np.array([node_x, node_y])))
+                        # Calculate angles between the vectors
+                        nodestats_calc_angles_result = nodeStats.calc_angles(np.asarray(vectors))
+                        angles_between_vectors_along_branch: npt.NDArray[np.float64] = nodestats_calc_angles_result[0]
+                        for branch_index, angle in enumerate(angles_between_vectors_along_branch):
+                            if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
+                                matched_branches[branch_index]["angles"] = angle
                     else:
-                        vectors = singlet_branch_vectors
+                        self.image_dict["grain"]["grain_skeleton"][node_coords[:, 0], node_coords[:, 1]] = 0
 
-                    # Calculate angles between the vectors
-                    nodestats_calc_angles_result = nodeStats.calc_angles(np.asarray(vectors))
                     # Eg: length 2 array: [array([ nan, 79.00]), array([79.00, 0.0])]
                     # angles_between_vectors_along_branch
-                    angles_between_vectors_along_branch: npt.NDArray[np.float64] = nodestats_calc_angles_result[0]
-                    branch_index: int
-                    angle: np.float64
-                    for branch_index, angle in enumerate(angles_between_vectors_along_branch):
-                        if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
-                            matched_branches[branch_index]["angles"] = angle
-                        else:
-                            self.image_dict["grain"]["grain_skeleton"][node_coords[:, 0], node_coords[:, 1]] = 0
-                            # matched_branches[branch_index] = {"angles": angle}
 
                 except ResolutionError:
                     LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
@@ -637,6 +639,7 @@ class nodeStats:
                     "error": error,
                     "px_2_nm": self.px_2_nm,
                     "branch_stats": matched_branches,
+                    "unmatched_branch_stats": unmatched_branches,
                     "node_coords": node_coords,
                     "confidence": conf,
                 }
@@ -1878,7 +1881,8 @@ def nodestats_image(
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, an image dictionary of nodestats steps for the entire image, and single grain images.
+        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics, 
+        an image dictionary of nodestats steps for the entire image, and single grain images.
     """
     n_grains = len(disordered_tracing_direction_data)
     img_base = np.zeros_like(image)
@@ -1898,50 +1902,50 @@ def nodestats_image(
 
     for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
         nodestats = None  # reset the nodestats variable
-        # try:
-        nodestats = nodeStats(
-            image=disordered_tracing_grain_data["original_image"],
-            mask=disordered_tracing_grain_data["original_grain"],
-            smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
-            skeleton=disordered_tracing_grain_data["pruned_skeleton"],
-            px_2_nm=pixel_to_nm_scaling,
-            filename=filename,
-            n_grain=n_grain,
-            node_joining_length=node_joining_length,
-            node_extend_dist=node_extend_dist,
-            branch_pairing_length=branch_pairing_length,
-            pair_odd_branches=pair_odd_branches,
-        )
-        nodestats_dict, node_image_dict = nodestats.get_node_stats()
-        LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+        try:
+            nodestats = nodeStats(
+                image=disordered_tracing_grain_data["original_image"],
+                mask=disordered_tracing_grain_data["original_grain"],
+                smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
+                skeleton=disordered_tracing_grain_data["pruned_skeleton"],
+                px_2_nm=pixel_to_nm_scaling,
+                filename=filename,
+                n_grain=n_grain,
+                node_joining_length=node_joining_length,
+                node_extend_dist=node_extend_dist,
+                branch_pairing_length=branch_pairing_length,
+                pair_odd_branches=pair_odd_branches,
+            )
+            nodestats_dict, node_image_dict = nodestats.get_node_stats()
+            LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
 
-        # compile images
-        nodestats_images = {
-            "convolved_skeletons": nodestats.conv_skelly,
-            "node_centres": nodestats.node_centre_mask,
-            "connected_nodes": nodestats.connected_nodes,
-        }
-        nodestats_branch_images[n_grain] = node_image_dict
+            # compile images
+            nodestats_images = {
+                "convolved_skeletons": nodestats.conv_skelly,
+                "node_centres": nodestats.node_centre_mask,
+                "connected_nodes": nodestats.connected_nodes,
+            }
+            nodestats_branch_images[n_grain] = node_image_dict
 
-        # compile metrics
-        grainstats_additions[n_grain] = {
-            "image": filename,
-            "grain_number": int(n_grain.split("_")[-1]),
-        }
-        grainstats_additions[n_grain].update(nodestats.metrics)
-        if nodestats_dict:  # if the grain's nodestats dict is not empty
-            nodestats_data[n_grain] = nodestats_dict
+            # compile metrics
+            grainstats_additions[n_grain] = {
+                "image": filename,
+                "grain_number": int(n_grain.split("_")[-1]),
+            }
+            grainstats_additions[n_grain].update(nodestats.metrics)
+            if nodestats_dict:  # if the grain's nodestats dict is not empty
+                nodestats_data[n_grain] = nodestats_dict
 
-        # remap the cropped images back onto the original
-        for image_name, full_image in all_images.items():
-            crop = nodestats_images[image_name]
-            bbox = disordered_tracing_grain_data["bbox"]
-            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-        """
+            # remap the cropped images back onto the original
+            for image_name, full_image in all_images.items():
+                crop = nodestats_images[image_name]
+                bbox = disordered_tracing_grain_data["bbox"]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+
         except Exception as e:
             LOGGER.error(f"[{filename}] : Nodestats for {n_grain} failed with - {e}")
             nodestats_data[n_grain] = {}
-        """
+
         # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
