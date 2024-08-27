@@ -54,6 +54,8 @@ dependencies = [
   "snoop",
   "tifffile",
   "tqdm",
+  "keras",
+  "tensorflow",
 ]
 
 [project.optional-dependencies]
