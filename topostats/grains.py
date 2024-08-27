@@ -16,7 +16,12 @@ from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
-from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
+from topostats.unet_masking import (
+    make_bounding_box_square,
+    mean_iou,
+    pad_bounding_box,
+    predict_unet,
+)
 from topostats.utils import _get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -457,8 +462,11 @@ class Grains:
                 # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
                 # for its loss during training and so this will need to be changed a lot.
                 # Once the group has gotten used to training models, this can be made configurable, but currently it's too changeable.
+                # unet_model = keras.models.load_model(
+                #     self.unet_config["model_path"], custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss}
+                # )
                 unet_model = keras.models.load_model(
-                    self.unet_config["model_path"], custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss}
+                    self.unet_config["model_path"], custom_objects={"mean_iou": mean_iou}
                 )
 
                 # For each detected molecule, create an image of just that molecule and run the UNet
