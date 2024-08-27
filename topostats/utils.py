@@ -254,9 +254,9 @@ def get_thresholds(  # noqa: C901
             raise TypeError(
                 f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
             )
-        if threshold_method not in ["otsu", "std_dev", "absolute", "unet"]:
+        if threshold_method not in ["otsu", "std_dev", "absolute"]:
             raise ValueError(
-                f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute' 'unet'"
+                f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
             )
     return thresholds
 

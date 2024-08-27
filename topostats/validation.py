@@ -120,10 +120,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "absolute",
                 "otsu",
                 "std_dev",
-                "unet",
                 error=(
                     "Invalid value in config for 'grains.threshold_method', valid values "
-                    "are 'absolute', 'otsu', 'std_dev' or 'unet'"
+                    "are 'absolute', 'otsu' or 'std_dev'"
                 ),
             ),
             "otsu_threshold_multiplier": float,
