@@ -662,7 +662,7 @@ def run_ordered_tracing(
                 # Check if there are grains
                 if not disordered_tracing_direction_data:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping ordered_tracing for {direction}."
                     )
                     raise ValueError(f"No grains exist for the {direction} direction")
 
