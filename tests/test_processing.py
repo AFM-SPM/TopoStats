@@ -13,7 +13,6 @@ from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     check_run_steps,
     process_scan,
-    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,

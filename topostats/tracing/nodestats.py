@@ -1792,16 +1792,15 @@ class nodeStats:
         """
         sum_conf = 0
         valid_confs = 0
-        for i, (_, values) in enumerate(node_dict.items()):
+        for _, (_, values) in enumerate(node_dict.items()):
             conf = values["confidence"]
             if conf is not None:
                 sum_conf += conf
                 valid_confs += 1
-            try:
-                return sum_conf / (i + 1)
-            except ZeroDivisionError:
-                return None
-        return None
+        try:
+            return sum_conf / valid_confs
+        except ZeroDivisionError:
+            return None
 
     @staticmethod
     def minimum_crossing_confs(node_dict: dict) -> None | float:

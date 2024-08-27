@@ -605,5 +605,5 @@ def splining_image(
     # convert grainstats metrics to dataframe
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
-
+    molstats_df.reset_index(drop=True, inplace=True)
     return all_splines_data, grainstats_additions_df, molstats_df

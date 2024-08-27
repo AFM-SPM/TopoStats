@@ -423,8 +423,7 @@ def prep_arrays(
         index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
     }
     cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
-    # Flip every labelled region to be 1 instead of its label
-    cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
+    cropped_masks = {index: np.where(grain == (index + 1), 1, 0) for index, grain in cropped_masks.items()}
     # Get BBOX coords to remap crops to images
     bboxs = [pad_bounding_box(image.shape, list(grain.bbox), pad_width=pad_width) for grain in region_properties]
 
