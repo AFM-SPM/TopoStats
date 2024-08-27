@@ -83,6 +83,36 @@ def iou_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], s
     return 1 - (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
 
 
+def mean_iou(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32]):
+    """
+    Mean Intersection Over Union metric, ignoring the background class.
+
+    Parameters
+    ----------
+    y_true : npt.NDArray[np.float32]
+        True values.
+    y_pred : npt.NDArray[np.float32]
+        Predicted values.
+
+    Returns
+    -------
+    tf.Tensor
+        The mean IoU.
+    """
+    # Ensure the tensors are of the same shape, and ignore the background class
+    # The [-1] here is to flatten the tensor into a 1D array, allowing for the calculation of the IoU
+    # The 1: is to use all channels except channel 0. Since this would be the background class and if
+    # we include it, the IoU would be very low since it is going to be mostly zero and so highly accurate?
+    y_true_f = tf.reshape(y_true[:, :, :, 1:], [-1])  # ignore background class
+    y_pred_f = tf.round(tf.reshape(y_pred[:, :, :, 1:], [-1]))  # ignore background class
+
+    # Calculate the IoU, using all channels except the background class
+    intersect = tf.reduce_sum(y_true_f * y_pred_f)
+    union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) - intersect
+    smooth = tf.ones(tf.shape(intersect))  # Smoothing factor to prevent division by zero
+    return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
+
+
 def predict_unet(
     image: npt.NDArray[np.float32],
     model: keras.Model,
@@ -141,14 +171,20 @@ def predict_unet(
 
     # Threshold the predicted mask
     predicted_mask: npt.NDArray[np.bool_] = prediction > confidence
-    # Remove the batch and channel dimensions
-    predicted_mask = predicted_mask[0, :, :, 0]
 
-    # Resize the predicted mask back to the original image size
-    predicted_mask_PIL = Image.fromarray(predicted_mask)
-    predicted_mask_PIL = predicted_mask_PIL.resize((original_image.shape[0], original_image.shape[1]))
+    # Note that this predicted mask can have any number of channels, depending on the number of classes for the model
 
-    return np.array(predicted_mask_PIL)
+    if predicted_mask.shape[3] == 0:
+        # Remove the batch and channel dimensions
+        predicted_mask = predicted_mask[0, :, :, 0]
+
+        # Resize the predicted mask back to the original image size
+        predicted_mask_PIL = Image.fromarray(predicted_mask)
+        predicted_mask_PIL = predicted_mask_PIL.resize((original_image.shape[0], original_image.shape[1]))
+
+        return np.array(predicted_mask_PIL)
+
+    raise ValueError("Multi channel predictions are not yet handled.")
 
 
 def make_bounding_box_square(
