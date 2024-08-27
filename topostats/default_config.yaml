@@ -47,7 +47,7 @@ grains:
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   unet_config:
     model_path: null # Path to a trained U-Net model
-    grain_crop_padding: 0 # Padding to apply to the grain crop bounding box
+    grain_crop_padding: 2 # Padding to apply to the grain crop bounding box
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
 grainstats:
