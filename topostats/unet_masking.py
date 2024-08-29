@@ -167,24 +167,40 @@ def predict_unet(
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
     prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
-    LOGGER.info("Unet finished predicted mask.")
+    LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
 
     # Threshold the predicted mask
     predicted_mask: npt.NDArray[np.bool_] = prediction > confidence
 
+    # Remove the batch dimension since we are predicting single images at a time
+    predicted_mask = predicted_mask[0]
+
     # Note that this predicted mask can have any number of channels, depending on the number of classes for the model
 
-    if predicted_mask.shape[3] == 0:
-        # Remove the batch and channel dimensions
-        predicted_mask = predicted_mask[0, :, :, 0]
+    # Check if the output is a single channel mask and convert it to a two-channel mask since the output is
+    # designed to be categorical, where even the background has a channel
+    if predicted_mask.shape[2] == 1:
+        predicted_mask = np.concatenate((1 - predicted_mask, predicted_mask), axis=2)
 
-        # Resize the predicted mask back to the original image size
-        predicted_mask_PIL = Image.fromarray(predicted_mask)
-        predicted_mask_PIL = predicted_mask_PIL.resize((original_image.shape[0], original_image.shape[1]))
+    assert len(predicted_mask.shape) == 3, f"Predicted mask shape is not 3D: {predicted_mask.shape}"
+    assert (
+        predicted_mask.shape[2] >= 2
+    ), f"Predicted mask has less than 2 channels: {predicted_mask.shape[2]}, needs separate background channel"
 
-        return np.array(predicted_mask_PIL)
+    # Resize each channel of the predicted mask to the original image size, also remove the batch
+    # dimension but keep channel
+    resized_predicted_mask: npt.NDArray[np.bool_] = np.zeros(
+        (original_image.shape[0], original_image.shape[1], predicted_mask.shape[2])
+    ).astype(bool)
+    for channel_index in range(predicted_mask.shape[2]):
+        # Note that uint8 is required to allow PIL to load the array into an image
+        channel_mask = predicted_mask[:, :, channel_index].astype(np.uint8)
+        channel_mask_PIL = Image.fromarray(channel_mask)
+        # Resize the channel mask to the original image size, but we want boolean so use nearest neighbour
+        channel_mask_PIL = channel_mask_PIL.resize((original_image.shape[0], original_image.shape[1]), Image.NEAREST)
+        resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
 
-    raise ValueError("Multi channel predictions are not yet handled.")
+    return resized_predicted_mask
 
 
 def make_bounding_box_square(
