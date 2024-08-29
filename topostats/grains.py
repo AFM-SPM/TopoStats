@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 
+import h5py
 import keras
 import numpy as np
 import numpy.typing as npt
@@ -454,6 +455,20 @@ class Grains:
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
+            # Force labelled_regions_02 to be of shape NxNx2, where the two classes are a binary background mask and the second is a binary grain mask.
+            # This is because we want to support multiple classes, and so we standardise so that the first layer is background mask, then feature mask 1, then feature mask 2 etc.
+
+            # Get a binary mask where 1s are background and 0s are grains
+            labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
+
+            self.directions[direction]["labelled_regions_02"] = np.stack(
+                [
+                    labelled_regions_background_mask,
+                    self.directions[direction]["labelled_regions_02"],
+                ],
+                axis=-1,
+            )  # Will produce an NxNx2 array
+
             # Check whether to run the UNet model
             if self.unet_config["model_path"] is not None:
 
@@ -465,15 +480,48 @@ class Grains:
                 # unet_model = keras.models.load_model(
                 #     self.unet_config["model_path"], custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss}
                 # )
-                unet_model = keras.models.load_model(
-                    self.unet_config["model_path"], custom_objects={"mean_iou": mean_iou}
-                )
+
+                try:
+                    unet_model = keras.models.load_model(
+                        self.unet_config["model_path"], custom_objects={"mean_iou": mean_iou}
+                    )
+                except ValueError as e:
+                    if "group" in str(e):
+                        LOGGER.info(
+                            "Issues loading model due to the groups error, trying to convert model to correct format"
+                        )
+                        f = h5py.File(self.unet_config["model_path"], mode="r+")
+                        model_config_string = f.attrs.get("model_config")
+                        if model_config_string.find('"groups": 1,') != -1:
+                            model_config_string = model_config_string.replace('"groups": 1,', "")
+                            f.attrs.modify("model_config", model_config_string)
+                            f.flush()
+                            model_config_string = f.attrs.get("model_config")
+                            assert model_config_string.find('"groups": 1,') == -1
+                        f.close()
+                        unet_model = keras.models.load_model(
+                            self.unet_config["model_path"], custom_objects={"mean_iou": mean_iou}
+                        )
+
+                # Get output shape
+                output_shape = unet_model.output_shape
+                LOGGER.info(f"Output shape of UNet model: {output_shape}")
 
                 # For each detected molecule, create an image of just that molecule and run the UNet
                 # on that image to segment it
 
-                # Initialise an empty mask to iteratively add to for each grain
-                unet_mask = np.zeros_like(self.image)
+                # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
+                # the loaded model's output shape
+                # Note that the minimum number of classes is 2, as even for binary outputs, we will force categorical type
+                # data, so we have a class for background.
+                num_model_classes = output_shape[-1]
+                if num_model_classes < 2:
+                    LOGGER.info(f"Model has {num_model_classes} classes, forcing to have at least 2 classes")
+                    num_model_classes = 2
+                unet_mask = np.zeros((self.image.shape[0], self.image.shape[1], num_model_classes)).astype(np.bool_)
+                # Set the background class to be all 1s by default since not all of the image will be covered by the
+                # u-net predictions.
+                unet_mask[:, :, 0] = 1
                 # Sylvia: Sadly mypy cannot infer the type of regionprops since skimage don't provide stubs AFAIK
                 for grain_number, region in enumerate(self.region_properties[direction]):
                     LOGGER.info(
@@ -509,7 +557,10 @@ class Grains:
                         square_bounding_box[1] : square_bounding_box[3],
                     ]
 
-                    # Run the UNet on the region
+                    # Run the UNet on the region. This is allowed to be a single channel
+                    # as we can add a background channel afterwards if needed.
+                    # Remember that this region is cropped from the original image, so it's not
+                    # the same size as the original image.
                     predicted_mask = predict_unet(
                         image=region_image,
                         model=unet_model,
@@ -519,28 +570,85 @@ class Grains:
                         lower_norm_bound=self.unet_config["lower_norm_bound"],
                     )
 
-                    # Use only the largest segmentation object
-                    predicted_labelled = morphology.label(predicted_mask)
-                    sizes = np.array(
-                        [(predicted_labelled == label).sum() for label in range(1, predicted_labelled.max() + 1)]
-                    )
-                    predicted_mask = np.where(predicted_labelled == sizes.argmax() + 1, predicted_mask, 0)
+                    assert len(predicted_mask.shape) == 3
+                    LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
 
+                    # Use only the largest segmentation object
+                    # For each class in the unet mask tensor, label the mask
+                    unet_predicted_mask_labelled = np.zeros_like(predicted_mask).astype(np.bool_)
+                    for class_index in range(predicted_mask.shape[2]):
+                        # Get the mask for the class
+                        predicted_mask_class = predicted_mask[:, :, class_index]
+                        # Label the mask
+                        predicted_mask_class_labelled = morphology.label(predicted_mask_class)
+                        # Get the sizes of the regions
+                        sizes = np.array(
+                            [
+                                (predicted_mask_class_labelled == label).sum()
+                                for label in range(1, predicted_mask_class_labelled.max() + 1)
+                            ]
+                        )
+                        # Keep only the largest region
+                        predicted_mask_class = np.where(
+                            predicted_mask_class_labelled == sizes.argmax() + 1, predicted_mask_class, 0
+                        )
+
+                        # Add the class mask to the overall mask
+                        unet_predicted_mask_labelled[:, :, class_index] = predicted_mask_class
+
+                    # NEED TO MAKE THIS GENERAL TO MULTIPLE CLASSES
                     # Add the predicted mask to the overall mask
-                    unet_mask[
-                        square_bounding_box[0] : square_bounding_box[2],
-                        square_bounding_box[1] : square_bounding_box[3],
-                    ] = np.logical_or(
-                        unet_mask[
-                            square_bounding_box[0] : square_bounding_box[2],
-                            square_bounding_box[1] : square_bounding_box[3],
-                        ],
-                        predicted_mask,
-                    )
+                    # unet_mask[
+                    #     square_bounding_box[0] : square_bounding_box[2],
+                    #     square_bounding_box[1] : square_bounding_box[3],
+                    # ] = np.logical_or(
+                    #     unet_mask[
+                    #         square_bounding_box[0] : square_bounding_box[2],
+                    #         square_bounding_box[1] : square_bounding_box[3],
+                    #     ],
+                    #     predicted_mask,
+                    # )
+
+                    # Add each class of the predicted mask to the overall full image mask
+                    for class_index in range(unet_mask.shape[2]):
+                        # Directly set the background to be equal since they are by default
+                        # 1, and should be turned off if any other class is on
+                        if class_index == 0:
+                            unet_mask[
+                                square_bounding_box[0] : square_bounding_box[2],
+                                square_bounding_box[1] : square_bounding_box[3],
+                                class_index,
+                            ] = unet_predicted_mask_labelled[:, :, class_index]
+                        else:
+                            unet_mask[
+                                square_bounding_box[0] : square_bounding_box[2],
+                                square_bounding_box[1] : square_bounding_box[3],
+                                class_index,
+                            ] = np.logical_or(
+                                unet_mask[
+                                    square_bounding_box[0] : square_bounding_box[2],
+                                    square_bounding_box[1] : square_bounding_box[3],
+                                    class_index,
+                                ],
+                                unet_predicted_mask_labelled[:, :, class_index],
+                            )
+
+                    # If the unet mask is a single channel, in an NxNx1 array, then we need to add a background channel to force
+                    # it to have the standard NxNxC shape where C >= 2 (background and DNA at least)
+                    # if len(unet_mask.shape) == 2 or unet_mask.shape[-1] == 1:
+                    #     unet_mask = np.stack([np.where(unet_mask == 0, 1, 0), unet_mask], axis=-1)
+
+                    assert len(unet_mask.shape) == 3, f"Unet mask shape: {unet_mask.shape}"
+                    assert unet_mask.shape[-1] >= 2, f"Unet mask shape: {unet_mask.shape}"
 
                     # Update the image masks to be the unet masks instead
                     self.directions[direction]["removed_small_objects"] = unet_mask
-                    unet_labelled_regions = self.label_regions(unet_mask)
+
+                    # For each class in the unet mask tensor, label the mask
+                    unet_labelled_regions = np.zeros_like(unet_mask).astype(int)
+                    for class_index in range(unet_mask.shape[2]):
+                        unet_labelled_regions[:, :, class_index] = self.label_regions(unet_mask[:, :, class_index])
+
                     self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
 
                     LOGGER.info(f"[{self.filename}] : Overridden grains with UNet predictions ({direction})")
