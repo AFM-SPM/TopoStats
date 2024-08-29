@@ -91,7 +91,7 @@ def test_iou_loss(
     np.testing.assert_allclose(result, expected_loss, atol=1e-5)
 
 
-def test_predict_unet(mock_model_5_by_5: MagicMock) -> None:
+def test_predict_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
     """Test the predict_unet method."""
     image = np.array(
         [
@@ -109,27 +109,29 @@ def test_predict_unet(mock_model_5_by_5: MagicMock) -> None:
 
     predicted_mask = predict_unet(
         image=image,
-        model=mock_model_5_by_5,
+        model=mock_model_5_by_5_single_class,
         confidence=confidence,
         model_input_shape=model_input_shape,
         upper_norm_bound=upper_norm_bound,
         lower_norm_bound=lower_norm_bound,
     )
 
-    assert predicted_mask.shape == (5, 5)
+    assert predicted_mask.shape == (5, 5, 1)
     assert isinstance(predicted_mask, np.ndarray)
     assert predicted_mask.dtype == np.bool_
     np.testing.assert_array_equal(
         predicted_mask,
         np.array(
             [
-                [0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0],
-                [0, 1, 0, 1, 0],
-                [0, 1, 1, 1, 0],
-                [0, 0, 0, 0, 0],
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 0, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                ]
             ]
-        ),
+        ).reshape((5, 5, 1)),
     )
 
 

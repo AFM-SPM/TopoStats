@@ -352,10 +352,10 @@ def test_find_grains(
 
 
 # Find grains with unet - needs mocking
-def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
+def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
     with patch("keras.models.load_model") as mock_load_model:
-        mock_load_model.return_value = mock_model_5_by_5
+        mock_load_model.return_value = mock_model_5_by_5_single_class
 
         # Initialise the grains object
         grains_object = Grains(
@@ -393,8 +393,22 @@ def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
         grains_object.find_grains()
 
         result_removed_small_objects = grains_object.directions["above"]["removed_small_objects"]
+        result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
 
-        expected_grain_mask = np.array(
+        expected_removed_small_objects_class_0 = np.array(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            ]
+        )
+        expected_removed_small_objects_class_1 = np.array(
             [
                 [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 1, 1, 1, 0, 1, 0, 1, 0],
@@ -408,4 +422,46 @@ def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
             ]
         )
 
-        np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
+        expected_removed_small_objects_tensor = np.stack(
+            [expected_removed_small_objects_class_0, expected_removed_small_objects_class_1], axis=-1
+        ).astype(np.bool_)
+        assert expected_removed_small_objects_tensor.shape == (9, 9, 2)
+
+        expected_region_mask_class_0 = np.array(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            ]
+        )
+
+        expected_region_mask_class_1 = np.array(
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                [0, 1, 0, 1, 0, 2, 0, 0, 0],
+                [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        )
+
+        expected_region_tensor = np.stack([expected_region_mask_class_0, expected_region_mask_class_1], axis=-1).astype(
+            int
+        )
+        assert expected_region_tensor.shape == (9, 9, 2)
+
+        assert result_removed_small_objects.shape == expected_removed_small_objects_tensor.shape
+        assert result_labelled_regions.shape == expected_region_tensor.shape
+
+        np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
+        np.testing.assert_array_equal(result_labelled_regions, expected_region_tensor)
