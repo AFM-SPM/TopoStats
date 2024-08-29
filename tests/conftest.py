@@ -967,7 +967,7 @@ def skeleton_linear3() -> dict:
 
 # U-Net fixtures
 @pytest.fixture()
-def mock_model_5_by_5() -> MagicMock:
+def mock_model_5_by_5_single_class() -> MagicMock:
     """Create a mock model."""
     model_mocker = MagicMock()
 
@@ -1065,5 +1065,6 @@ def mock_model_5_by_5() -> MagicMock:
     model_mocker.predict.side_effect = side_effect_predict
     # Override the output of the input_shape property
     model_mocker.input_shape = (1, 5, 5, 1)
+    model_mocker.output_shape = (1, 5, 5, 1)
 
     return model_mocker
