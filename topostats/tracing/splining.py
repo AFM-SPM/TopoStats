@@ -593,7 +593,7 @@ def splining_image(
                 all_splines_data[grain_no] = {}
 
         # average the e2e dists -> mol_no should always be in the grain dict
-        grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split("_")[-1]) + 1
+        grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
 
         # compile metrics
         grainstats_additions[grain_no] = {

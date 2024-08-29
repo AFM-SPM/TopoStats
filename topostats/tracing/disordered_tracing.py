@@ -339,8 +339,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             grainstats_additions[cropped_image_index] = {
                 "image": filename,
                 "grain_number": cropped_image_index,
-                "grain_endpoints": any(conv_pruned_skeleton[conv_pruned_skeleton == 2]),
-                "grain_crossings": any(conv_pruned_skeleton[conv_pruned_skeleton == 3]),
+                "grain_endpoints": (conv_pruned_skeleton == 2).sum(),
+                "grain_junctions": (conv_pruned_skeleton == 3).sum(),
             }
             # obtain segment stats
             res = skan.summarize(
