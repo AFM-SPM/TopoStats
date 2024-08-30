@@ -116,22 +116,32 @@ def test_predict_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
         lower_norm_bound=lower_norm_bound,
     )
 
-    assert predicted_mask.shape == (5, 5, 1)
+    assert predicted_mask.shape == (5, 5, 2)
     assert isinstance(predicted_mask, np.ndarray)
     assert predicted_mask.dtype == np.bool_
+
+    expected_predicted_mask = np.array(
+        [
+            [
+                [1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 1],
+                [1, 0, 1, 0, 1],
+                [1, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1],
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 0],
+                [0, 1, 0, 1, 0],
+                [0, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0],
+            ],
+        ]
+    ).astype(np.bool_)
+    expected_predicted_mask = np.moveaxis(expected_predicted_mask, 0, -1)
     np.testing.assert_array_equal(
         predicted_mask,
-        np.array(
-            [
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0],
-                    [0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0],
-                ]
-            ]
-        ).reshape((5, 5, 1)),
+        expected_predicted_mask,
     )
 
 
