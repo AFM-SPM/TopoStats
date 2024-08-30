@@ -164,17 +164,20 @@ class TopoLabel:
     def save_brush_strokes(self):
         if self.mask is None:
             messagebox.showerror("Error", "No brush strokes to save! Please load an image and draw first.")
-            return False  # Return False since there's nothing to save
+            return False
 
         if self.image_files:
             current_image_file = self.image_files[self.current_index]
             base_name, ext = os.path.splitext(current_image_file)
-            default_save_path_npy = os.path.join(self.current_folder, f"{base_name}_mask.npy")
-            default_save_path_png = os.path.join(self.current_folder, f"{base_name}_mask.png")
+            
+            base_name = base_name.replace("image_", "mask_")
+            
+            default_save_path_npy = os.path.join(self.current_folder, f"{base_name}.npy")
+            default_save_path_png = os.path.join(self.current_folder, f"{base_name}.png")
         else:
             default_save_path_npy = filedialog.asksaveasfilename(defaultextension=".npy", filetypes=[("NumPy files", "*.npy")])
             default_save_path_png = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
-        
+
         if not default_save_path_npy or not default_save_path_png:
             return False
 
@@ -200,7 +203,7 @@ class TopoLabel:
             # Save as .png with black background
             rgb_mask.save(default_save_path_png)
             
-            messagebox.showinfo("Success", f"Brush strokes saved as: {default_save_path_npy} and {default_save_path_png}")
+            messagebox.showinfo("Success", f"Mask saved as: {default_save_path_npy} and {default_save_path_png}")
             return True
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save the file: {e}")
