@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
-from skimage.measure import regionprops, label
+from skimage.measure import label, regionprops
 from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
