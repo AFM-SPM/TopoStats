@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
-from skimage.measure import regionprops
+from skimage.measure import regionprops, label
 from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
@@ -460,6 +460,12 @@ class Grains:
 
             # Get a binary mask where 1s are background and 0s are grains
             labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
+            # keep only the largest region
+            labelled_regions_background_mask = label(labelled_regions_background_mask)
+            areas = [region.area for region in regionprops(labelled_regions_background_mask)]
+            labelled_regions_background_mask = np.where(
+                labelled_regions_background_mask == np.argmax(areas) + 1, labelled_regions_background_mask, 0
+            )
 
             self.directions[direction]["labelled_regions_02"] = np.stack(
                 [
