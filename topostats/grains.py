@@ -469,6 +469,15 @@ class Grains:
                 axis=-1,
             )  # Will produce an NxNx2 array
 
+            # Do the same for removed_small_objects, using the same labelled_regions_backgroudn_mask as the background since they will be the same
+            self.directions[direction]["removed_small_objects"] = np.stack(
+                [
+                    labelled_regions_background_mask,
+                    self.directions[direction]["removed_small_objects"],
+                ],
+                axis=-1,
+            )  # Will produce an NxNx2 array
+
             # Check whether to run the UNet model
             if self.unet_config["model_path"] is not None:
 
