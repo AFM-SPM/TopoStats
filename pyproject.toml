@@ -54,6 +54,7 @@ dependencies = [
   "tifffile",
   "AFMReader",
   "tqdm",
+  "topoly",
 ]
 
 [project.optional-dependencies]
