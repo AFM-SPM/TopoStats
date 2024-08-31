@@ -158,7 +158,6 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         saved_topostats = hdf5_to_dict(f, group_path="/")
 
     # Remove the image path as this differs on CI
-    expected_topostats.pop("img_path")
     saved_topostats.pop("img_path")
 
     # Check the keys, this will flag all new keys when adding output stats
