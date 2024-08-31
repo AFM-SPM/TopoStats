@@ -160,6 +160,10 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Remove the image path as this differs on CI
     saved_topostats.pop("img_path")
 
+    # Script for updating the regtest file
+    # with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "w") as f:
+    #     dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=saved_topostats)
+
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
     # Check the data
