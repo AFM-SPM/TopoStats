@@ -585,10 +585,19 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the dnatracing_wrapper function of processing.py."""
+    # Load flattened image
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    grain_masks = {"above": mask_above, "below": mask_below}
+    # Load background and foreground of above and below directions for the mask tensors
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    # Construct the full image tensor (background class and class 1 (dna))
+    tensor_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    tensor_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+
+    grain_masks = {"above": tensor_above, "below": tensor_below}
 
     dnatracing_df, grain_trace_data = run_dnatracing(
         image=flattened_image,
