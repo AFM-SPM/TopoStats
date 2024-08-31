@@ -8,7 +8,7 @@ The `disordered_tracing.py` module handles all the functions associated with obt
 
 The quality and likeness of the resultant pruned skeleton thus depends on the quality of the mask, the effectiveness of smoothing parameters, the method of skeletonisation, and the quality of automating the pruning of incorrect skeletal branches.
 
-![object mask to pruned skeleton](html/_static/images/disordered_tracing/overview.png)
+![object mask to pruned skeleton](../_static/images/disordered_tracing/overview.png)
 
 Some quick FYI's:
 
