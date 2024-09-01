@@ -68,7 +68,7 @@ Additionally, how these branch height values compare to the `height_threshold` i
 
 - `abs` - prunes branch values below the absolute value of the `height_threshold`.
 - `mean_abs` - prunes branch values below the whole skeleton mean pixel value - absolute threshold. This is useful for non-surface samples or periodic structures e.g. in DNA we expect the mean height to be around 2nm, but high resolution imaging may cause this to dip to 0.8nm (the depth of a major groove), so we'd want to prune branch heights below this.
-- `iqr` - prunes branch values below 1.5 \* inter-quartile range of all the branches.
+- `iqr` - prunes branch values below 1.5x inter-quartile range (IQR) of all the branches.
   Height pruning cannot produce more than one skeleton and so avoids breaking up the skeleton into multiple parts.
 
 ## Outputs
