@@ -289,7 +289,7 @@ def test_remove_edge_intersecting_grains(
                             ],
                         ),
                     ],
-                ),
+                ).astype(np.int32),
                 0,
                 -1,
             ),
@@ -352,7 +352,7 @@ def test_remove_edge_intersecting_grains(
                             ],
                         ),
                     ]
-                ),
+                ).astype(np.int32),
                 0,
                 -1,
             ),
