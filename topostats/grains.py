@@ -671,3 +671,24 @@ class Grains:
                     self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
 
                     LOGGER.info(f"[{self.filename}] : Overridden grains with UNet predictions ({direction})")
+    @staticmethod
+    def keep_largest_labelled_region(
+        labelled_image: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.bool_]:
+        """
+        Keep only the largest region in a labelled image.
+
+        Parameters
+        ----------
+        labelled_image : npt.NDArray
+            2-D Numpy array of labelled regions.
+
+        Returns
+        -------
+        npt.NDArray
+            2-D Numpy boolean array of labelled regions with only the largest region.
+        """
+        # Get the sizes of the regions
+        sizes = np.array([(labelled_image == label).sum() for label in range(1, labelled_image.max() + 1)])
+        # Keep only the largest region
+        return np.where(labelled_image == sizes.argmax() + 1, labelled_image, 0).astype(bool)
