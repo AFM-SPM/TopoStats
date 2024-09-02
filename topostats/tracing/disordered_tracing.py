@@ -334,14 +334,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             )
             LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
-            # obtain stats
-            conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
-            grainstats_additions[cropped_image_index] = {
-                "image": filename,
-                "grain_number": cropped_image_index,
-                "grain_endpoints": any(conv_pruned_skeleton[conv_pruned_skeleton == 2]),
-                "grain_crossings": any(conv_pruned_skeleton[conv_pruned_skeleton == 3]),
-            }
             # obtain segment stats
             res = skan.summarize(
                 skan.Skeleton(
@@ -366,6 +358,16 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     ],
                 )
             )
+
+            # obtain stats
+            conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
+            grainstats_additions[cropped_image_index] = {
+                "image": filename,
+                "grain_number": cropped_image_index,
+                "grain_endpoints": any(conv_pruned_skeleton[conv_pruned_skeleton == 2]),
+                "grain_crossings": any(conv_pruned_skeleton[conv_pruned_skeleton == 3]),
+                "total_branch_lengths": res["branch-distance"].sum(),
+            }
 
             # remap the cropped images back onto the original
             for image_name, full_image in all_images.items():
