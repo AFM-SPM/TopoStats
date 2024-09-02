@@ -1,7 +1,6 @@
 """Test end-to-end running of topostats."""
 
-import json
-import platform
+import pickle
 from pathlib import Path
 
 import filetype
@@ -9,7 +8,6 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytest
-from numpyencoder import NumpyEncoder
 from test_io import dict_almost_equal
 
 from topostats.io import LoadScans, hdf5_to_dict
@@ -54,10 +52,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
-@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
-def test_process_scan_below_height_profiles(
-    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
-) -> None:
+def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
@@ -76,7 +71,18 @@ def test_process_scan_below_height_profiles(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
 
 
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -102,10 +108,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
-@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
-def test_process_scan_above_height_profiles(
-    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
-) -> None:
+def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
@@ -122,8 +125,18 @@ def test_process_scan_above_height_profiles(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    # Remove the Basename column as this differs on CI
-    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
