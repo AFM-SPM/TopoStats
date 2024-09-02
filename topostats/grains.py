@@ -473,6 +473,8 @@ class Grains:
                     self.directions[direction]["labelled_regions_02"],
                 ],
                 axis=-1,
+            ).astype(
+                np.int32
             )  # Will produce an NxNx2 array
 
             # Do the same for removed_small_objects, using the same labelled_regions_backgroudn_mask as the background since they will be the same
@@ -482,6 +484,8 @@ class Grains:
                     self.directions[direction]["removed_small_objects"],
                 ],
                 axis=-1,
+            ).astype(
+                np.int32
             )  # Will produce an NxNx2 array
 
             # Check whether to run the UNet model
@@ -660,7 +664,7 @@ class Grains:
                     self.directions[direction]["removed_small_objects"] = unet_mask
 
                     # For each class in the unet mask tensor, label the mask
-                    unet_labelled_regions = np.zeros_like(unet_mask).astype(int)
+                    unet_labelled_regions = np.zeros_like(unet_mask).astype(np.int32)
                     for class_index in range(unet_mask.shape[2]):
                         unet_labelled_regions[:, :, class_index] = self.label_regions(unet_mask[:, :, class_index])
 
