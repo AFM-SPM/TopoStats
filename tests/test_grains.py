@@ -513,3 +513,43 @@ def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
 
         np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
         np.testing.assert_array_equal(result_labelled_regions, expected_region_tensor)
+
+
+@pytest.mark.parametrize(
+    ("labelled_image", "expected_labelled_image"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 1, 1, 1, 0, 2, 2, 0],
+                    [0, 1, 1, 1, 0, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 2, 2, 0],
+                    [0, 3, 3, 3, 0, 2, 2, 0],
+                    [0, 3, 3, 3, 0, 0, 0, 0],
+                    [0, 3, 3, 0, 0, 4, 4, 0],
+                    [0, 0, 3, 0, 0, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ).astype(np.bool_),
+        ),
+    ],
+)
+def test_keep_largest_labelled_region(
+    labelled_image: npt.NDArray[np.int32], expected_labelled_image: npt.NDArray[np.int32]
+) -> None:
+    """Test the keep_largest_labelled_region method of the Grains class."""
+    result = Grains.keep_largest_labelled_region(labelled_image)
+
+    np.testing.assert_array_equal(result, expected_labelled_image)
