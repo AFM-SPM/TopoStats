@@ -593,7 +593,7 @@ def splining_image(
                 LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
 
             except Exception as e:  # pylint: disable=broad-exception-caught
-                LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
+                LOGGER.error(f"[{filename}] : Splining for {grain_no} failed with - {e}")
                 all_splines_data[grain_no] = {}
 
         # average the e2e dists -> mol_no should always be in the grain dict

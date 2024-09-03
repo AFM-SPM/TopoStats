@@ -98,8 +98,6 @@ class OrderedTraceNodestats:
         tuple[list, npt.NDArray]
             A list of each complete path's ordered coordinates, and labeled crossing image array.
         """
-        LOGGER.info(f"[{self.filename}] : Compiling the trace.")
-
         # iterate through the dict to get branch coords, heights and fwhms
         node_coords = [
             [stats["node_coords"] for branch_stats in stats["branch_stats"].values() if branch_stats["fwhm"]["fwhm"]]
@@ -264,10 +262,10 @@ class OrderedTraceNodestats:
                 pd_code = translate_code(
                     nxyz_cp, output_type="pdcode"
                 )  # pd code helps prevents freezing and spawning multiple processes
-                LOGGER.info(f"{self.filename} : PD Code is: {pd_code}")
+                LOGGER.debug(f"{self.filename} : PD Code is: {pd_code}")
                 top_class = jones(pd_code)
             except (IndexError, KeyError):
-                LOGGER.info(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
+                LOGGER.warning(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
                 top_class = "N/A"
 
             # don't separate catenanes / overlaps - used for distribution comparison
