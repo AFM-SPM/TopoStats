@@ -16,6 +16,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class splineTrace:
+    # pylint: disable=too-many-instance-attributes
     """
     Smooth the ordered trace via an average of splines.
 
@@ -48,6 +49,7 @@ class splineTrace:
         spline_circular_smoothing: float,
         spline_degree: int,
     ) -> None:
+        # pylint: disable=too-many-arguments
         """
         Initialise the splineTrace class.
 
@@ -508,6 +510,8 @@ def splining_image(
     spline_circular_smoothing: float,
     spline_degree: int,
 ) -> tuple[dict, pd.DataFrame]:
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     """
     Obtain smoothed traces of pixel-wise ordered traces for molecules in an image.
 
@@ -583,17 +587,17 @@ def splining_image(
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
                     "image": filename,
-                    "grain_number": grain_no.split("_")[-1],
+                    "grain_number": int(grain_no.split("_")[-1]),
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
                 LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
                 all_splines_data[grain_no] = {}
 
         # average the e2e dists -> mol_no should always be in the grain dict
-        grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split("_")[-1]) + 1
+        grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
 
         # compile metrics
         grainstats_additions[grain_no] = {
