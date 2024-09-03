@@ -257,42 +257,39 @@ def test_remove_edge_intersecting_grains(
             1,
             True,
             # Move axis required to force a (10, 10, 2) shape
-            np.moveaxis(
-                np.stack(
-                    [
-                        np.array(
-                            [
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                                [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
-                                [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            ]
-                        ),
-                        np.array(
-                            [
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                                [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                                [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
-                                [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
-                                [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            ],
-                        ),
-                    ],
-                ).astype(np.int32),
-                0,
-                -1,
-            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
+                            [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
+                            [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ],
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
             id="absolute, above 0.9, remove edge, smallest grain 1",
         ),
         pytest.param(
@@ -319,43 +316,39 @@ def test_remove_edge_intersecting_grains(
             "above",
             2,
             False,
-            # Move axis required to force a (10, 10, 2) shape
-            np.moveaxis(
-                np.stack(
-                    [
-                        np.array(
-                            [
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                [0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                                [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
-                                [1, 1, 0, 1, 1, 1, 0, 0, 0, 1],
-                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            ]
-                        ),
-                        np.array(
-                            [
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                                [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                                [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                [3, 3, 0, 4, 4, 0, 5, 5, 5, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
-                                [0, 6, 6, 0, 0, 0, 0, 0, 5, 0],
-                                [0, 0, 6, 0, 0, 0, 5, 5, 5, 0],
-                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            ],
-                        ),
-                    ]
-                ).astype(np.int32),
-                0,
-                -1,
-            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 1, 0, 1, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [3, 3, 0, 4, 4, 0, 5, 5, 5, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
+                            [0, 6, 6, 0, 0, 0, 0, 0, 5, 0],
+                            [0, 0, 6, 0, 0, 0, 5, 5, 5, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ],
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
             id="absolute, above 0.9, no remove edge, smallest grain 2",
         ),
     ],
@@ -513,6 +506,144 @@ def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
 
         np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
         np.testing.assert_array_equal(result_labelled_regions, expected_region_tensor)
+
+
+@pytest.mark.parametrize(
+    (
+        "image",
+        "unet_config",
+        "traditional_threshold_labelled_regions",
+        "expected_boolean_mask_tensor",
+        "expected_labelled_regions_tensor",
+    ),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
+                    [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
+                    [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            {
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            # This has the centre pixel filled in, representing a feature that is impossible to segment
+            # with just thresholding. The U-Net is simulated to be able to recognise that there should be a
+            # hole in the grain and thus improves the mask.
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.bool_),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                            [0, 1, 0, 1, 0, 2, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
+        )
+    ],
+)
+def test_improve_grain_segmentation_unet(
+    mock_model_5_by_5_single_class: MagicMock,
+    image: npt.NDArray[np.float32],
+    unet_config: dict[str, str | int | float | tuple[int | None, int, int, int]],
+    traditional_threshold_labelled_regions: npt.NDArray[np.int32],
+    expected_boolean_mask_tensor: npt.NDArray[np.bool_],
+    expected_labelled_regions_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the improve_grain_segmentation method of the Grains class with a unet model."""
+    with patch("keras.models.load_model") as mock_load_model:
+        mock_load_model.return_value = mock_model_5_by_5_single_class
+
+        result_boolean_masks_tensor, result_labelled_regions_tensor = Grains.improve_grain_segmentation_unet(
+            filename="test_image",
+            direction="above",
+            unet_config=unet_config,
+            image=image,
+            labelled_grain_regions=traditional_threshold_labelled_regions,
+        )
+
+        assert result_boolean_masks_tensor.shape == expected_boolean_mask_tensor.shape
+        assert result_labelled_regions_tensor.shape == expected_labelled_regions_tensor.shape
+        np.testing.assert_array_equal(result_boolean_masks_tensor, expected_boolean_mask_tensor)
+        np.testing.assert_array_equal(result_labelled_regions_tensor, expected_labelled_regions_tensor)
 
 
 @pytest.mark.parametrize(

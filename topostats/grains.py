@@ -490,12 +490,14 @@ class Grains:
             # Check whether to run the UNet model
             if self.unet_config["model_path"] is not None:
 
+                # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
+                # later on along with all the other hardcoded class 1s.
                 unet_mask, unet_labelled_regions = Grains.improve_grain_segmentation_unet(
                     filename=self.filename,
                     direction=direction,
                     unet_config=self.unet_config,
                     image=self.image,
-                    labelled_grain_regions=self.directions[direction]["labelled_regions_02"],
+                    labelled_grain_regions=self.directions[direction]["labelled_regions_02"][:, :, 1],
                 )
 
                 # Update the image masks to be the unet masks instead
@@ -512,7 +514,7 @@ class Grains:
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
         image: npt.NDArray,
         labelled_grain_regions: npt.NDArray,
-    ):
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Use a UNet model to re-segment existing grains to improve their accuracy.
 
@@ -562,10 +564,14 @@ class Grains:
         # the loaded model's output shape
         # Note that the minimum number of classes is 2, as even for binary outputs, we will force categorical type
         # data, so we have a class for background.
-        unet_mask = np.zeros((image.shape[0], image.shape[1], np.max(2, unet_model.output_shape[-1]))).astype(np.bool_)
+        unet_mask = np.zeros((image.shape[0], image.shape[1], np.max([2, unet_model.output_shape[-1]]))).astype(
+            np.bool_
+        )
         # Set the background class to be all 1s by default since not all of the image will be covered by the
         # u-net predictions.
         unet_mask[:, :, 0] = 1
+        # Labelled regions will be the same by default, but will be overwritten if there are any grains present.
+        unet_labelled_regions = np.zeros_like(unet_mask).astype(np.int32)
         # For each detected molecule, create an image of just that molecule and run the UNet
         # on that image to segment it
         grain_region_properties = regionprops(labelled_grain_regions)
@@ -632,7 +638,7 @@ class Grains:
                         bounding_box[0] : bounding_box[2],
                         bounding_box[1] : bounding_box[3],
                         class_index,
-                    ] = unet_predicted_mask_labelled[:, :, class_index]
+                    ] = unet_predicted_mask_labelled
                 else:
                     unet_mask[
                         bounding_box[0] : bounding_box[2],
@@ -644,21 +650,20 @@ class Grains:
                             bounding_box[1] : bounding_box[3],
                             class_index,
                         ],
-                        unet_predicted_mask_labelled[:, :, class_index],
+                        unet_predicted_mask_labelled,
                     )
 
             assert len(unet_mask.shape) == 3, f"Unet mask shape: {unet_mask.shape}"
             assert unet_mask.shape[-1] >= 2, f"Unet mask shape: {unet_mask.shape}"
 
-            # For each class in the unet mask tensor, label the mask
-            unet_labelled_regions = np.zeros_like(unet_mask).astype(np.int32)
+            # For each class in the unet mask tensor, label the mask and add to unet_labelled_regions
+            # The labelled background class will be identical to the binary one from the unet mask.
+            unet_labelled_regions[:, :, 0] = unet_mask[:, :, 0]
+            # Iterate over each class and label the regions
             for class_index in range(unet_mask.shape[2]):
                 unet_labelled_regions[:, :, class_index] = Grains.label_regions(unet_mask[:, :, class_index])
 
-            return unet_mask, unet_labelled_regions
-
-        # If no grains, then return the empty mask for both the binary and labelled regions
-        return unet_mask, unet_mask
+        return unet_mask, unet_labelled_regions
 
     @staticmethod
     def keep_largest_labelled_region(
