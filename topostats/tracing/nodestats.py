@@ -337,7 +337,7 @@ class nodeStats:
         # new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
         #     {"method": "topostats", "max_length": -1}
         # )
-        new_skeleton = prune_skeleton(image, new_skeleton, **{"method": "topostats", "max_length": -1})
+        new_skeleton = prune_skeleton(image, new_skeleton, self.px_2_nm, **{"method": "topostats", "max_length": -1})
         # cleanup around nibs
         new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
