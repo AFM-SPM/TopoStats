@@ -128,7 +128,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        self.pruned_skeleton = prune_skeleton(self.image, self.skeleton, self.pixel_to_nm_scaling, **self.pruning_params.copy())
+        self.pruned_skeleton = prune_skeleton(
+            self.image, self.skeleton, self.pixel_to_nm_scaling, **self.pruning_params.copy()
+        )
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
