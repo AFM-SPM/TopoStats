@@ -315,6 +315,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "smoothed_grain": img_base.copy(),
         "skeleton": img_base.copy(),
         "pruned_skeleton": img_base.copy(),
+        "branch_indexes": img_base.copy(),
         "branch_types": img_base.copy(),
     }
 
@@ -526,11 +527,12 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
-        "branch_types": get_branch_type_image(cropped_image, disorderedtrace.pruned_skeleton),
+        "branch_types": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "branch-type"),
+        "branch_indexes": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "node-id-src"),
     }
 
 
-def get_branch_type_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray) -> npt.NDArray:
+def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, skan_column: str) -> npt.NDArray:
     """
     Label each branch with it's Skan branch type label.
 
@@ -552,16 +554,18 @@ def get_branch_type_image(original_image: npt.NDArray, pruned_skeleton: npt.NDAr
     npt.NDArray
         2D array where the background is 0, and skeleton branches label as their Skan branch type.
     """
-    branch_type_image = np.zeros_like(original_image)
+    branch_field_image = np.zeros_like(original_image)
     skeleton_image = np.where(pruned_skeleton == 1, original_image, 0)
     skan_skeleton = skan.Skeleton(skeleton_image, spacing=1e-9, value_is_height=True)
     res = skan.summarize(skan_skeleton)
 
-    for i, branch_type in enumerate(res["branch-type"]):
+    for i, branch_field in enumerate(res[skan_column]):
         path_coords = skan_skeleton.path_coordinates(i)
-        branch_type_image[path_coords[:, 0], path_coords[:, 1]] = branch_type + 1
+        if skan_column == "node-id-src":
+            branch_field = i
+        branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
 
-    return branch_type_image
+    return branch_field_image
 
 
 def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> npt.NDArray:
