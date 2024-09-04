@@ -393,14 +393,12 @@ def test_find_grains(
 
 
 # Find grains with unet - needs mocking
-def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
-    """Test the find_grains method of the Grains class with a unet model."""
-    with patch("keras.models.load_model") as mock_load_model:
-        mock_load_model.return_value = mock_model_5_by_5_single_class
-
-        # Initialise the grains object
-        grains_object = Grains(
-            image=np.array(
+@pytest.mark.parametrize(
+    ("image", "expected_removed_small_objects_tensor", "expected_labelled_regions_tensor"),
+    [
+        pytest.param(
+            # Image
+            np.array(
                 [
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
                     [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
@@ -413,6 +411,120 @@ def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                 ]
             ),
+            # Expected removed small objects tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                            [0, 1, 0, 1, 0, 2, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, multi class, 3 grains",
+        ),
+        pytest.param(
+            # Image
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.1, 0.1, 0.2, 0.1, 0.2],
+                    [0.2, 0.2, 0.1, 0.3, 0.2, 0.2, 0.1, 0.2, 0.2],
+                    [0.1, 0.0, 0.2, 0.2, 0.1, 0.1, 0.2, 0.1, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            # Expected removed small objects tensor
+            np.stack(
+                [
+                    np.ones((9, 9)),
+                    np.zeros((9, 9)),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.zeros((9, 9)),
+                    np.zeros((9, 9)),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, no grains",
+        ),
+    ],
+)
+def test_find_grains_unet(
+    mock_model_5_by_5_single_class: MagicMock,
+    image: npt.NDArray[np.float32],
+    expected_removed_small_objects_tensor: npt.NDArray[np.bool_],
+    expected_labelled_regions_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the find_grains method of the Grains class with a unet model."""
+    with patch("keras.models.load_model") as mock_load_model:
+        mock_load_model.return_value = mock_model_5_by_5_single_class
+
+        # Initialise the grains object
+        grains_object = Grains(
+            image=image,
             filename="test_image",
             pixel_to_nm_scaling=1.0,
             unet_config={
@@ -436,76 +548,14 @@ def test_find_grains_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
         result_removed_small_objects = grains_object.directions["above"]["removed_small_objects"]
         result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
 
-        expected_removed_small_objects_class_0 = np.array(
-            [
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                [1, 0, 0, 0, 1, 0, 1, 1, 1],
-                [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-            ]
-        )
-        expected_removed_small_objects_class_1 = np.array(
-            [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                [0, 1, 0, 1, 0, 1, 0, 0, 0],
-                [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ]
-        )
-
-        expected_removed_small_objects_tensor = np.stack(
-            [expected_removed_small_objects_class_0, expected_removed_small_objects_class_1], axis=-1
-        ).astype(np.bool_)
         assert expected_removed_small_objects_tensor.shape == (9, 9, 2)
-
-        expected_region_mask_class_0 = np.array(
-            [
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                [1, 0, 0, 0, 1, 0, 1, 1, 1],
-                [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1],
-            ]
-        )
-
-        expected_region_mask_class_1 = np.array(
-            [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                [0, 1, 0, 1, 0, 2, 0, 0, 0],
-                [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ]
-        )
-
-        expected_region_tensor = np.stack([expected_region_mask_class_0, expected_region_mask_class_1], axis=-1).astype(
-            int
-        )
-        assert expected_region_tensor.shape == (9, 9, 2)
+        assert expected_labelled_regions_tensor.shape == (9, 9, 2)
 
         assert result_removed_small_objects.shape == expected_removed_small_objects_tensor.shape
-        assert result_labelled_regions.shape == expected_region_tensor.shape
+        assert result_labelled_regions.shape == expected_labelled_regions_tensor.shape
 
         np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
-        np.testing.assert_array_equal(result_labelled_regions, expected_region_tensor)
+        np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions_tensor)
 
 
 @pytest.mark.parametrize(
