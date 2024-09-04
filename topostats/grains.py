@@ -682,6 +682,9 @@ class Grains:
         npt.NDArray
             2-D Numpy boolean array of labelled regions with only the largest region.
         """
+        # Check if there are any labelled regions
+        if labelled_image.max() == 0:
+            return np.zeros_like(labelled_image).astype(np.bool_)
         # Get the sizes of the regions
         sizes = np.array([(labelled_image == label).sum() for label in range(1, labelled_image.max() + 1)])
         # Keep only the largest region
