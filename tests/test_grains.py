@@ -568,6 +568,7 @@ def test_find_grains_unet(
     ),
     [
         pytest.param(
+            # Image
             np.array(
                 [
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
@@ -581,6 +582,7 @@ def test_find_grains_unet(
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                 ]
             ),
+            # Unet config
             {
                 "model_path": "dummy_model_path",
                 "confidence": 0.5,
@@ -589,6 +591,7 @@ def test_find_grains_unet(
                 "lower_norm_bound": 0.0,
                 "grain_crop_padding": 1,
             },
+            # Traditional thresholding labelled regions
             # This has the centre pixel filled in, representing a feature that is impossible to segment
             # with just thresholding. The U-Net is simulated to be able to recognise that there should be a
             # hole in the grain and thus improves the mask.
@@ -605,6 +608,7 @@ def test_find_grains_unet(
                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
+            # Expected boolean mask tensor
             np.stack(
                 [
                     np.array(
@@ -636,6 +640,7 @@ def test_find_grains_unet(
                 ],
                 axis=-1,
             ).astype(np.bool_),
+            # Expected labelled regions tensor
             np.stack(
                 [
                     np.array(
@@ -667,7 +672,88 @@ def test_find_grains_unet(
                 ],
                 axis=-1,
             ).astype(np.int32),
-        )
+            id="unet, 5x5, multi class, 3 grains",
+        ),
+        pytest.param(
+            # Image
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.2, 0.1, 1.1, 0.1, 0.2],
+                    [0.1, 1.1, 1.1, 1.1, 0.1],
+                    [0.2, 0.1, 1.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ),
+            # U-Net config
+            {
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            # Traditional thresholding labelled regions
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            # Expected boolean mask tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, traditional detects grains but unet doesn't. tests for empty unet predictions.",
+        ),
     ],
 )
 def test_improve_grain_segmentation_unet(
