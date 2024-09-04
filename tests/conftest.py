@@ -1056,6 +1056,31 @@ def mock_model_5_by_5_single_class() -> MagicMock:
                 .reshape((1, 5, 5, 1))
                 .astype(np.float32)
             )
+        if np.array_equal(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.2, 0.1, 1.0, 0.1, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.2, 0.1, 1.0, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
         raise ValueError(
             "Input is not as expected. Check the image crop sent to the model and check the"
             "mocked unet predict function has a case for that exact input."
