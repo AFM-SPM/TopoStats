@@ -256,20 +256,40 @@ def test_remove_edge_intersecting_grains(
             "above",
             1,
             True,
-            np.array(
+            # Move axis required to force a (10, 10, 2) shape
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
+                            [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
+                            [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ],
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
             id="absolute, above 0.9, remove edge, smallest grain 1",
         ),
         pytest.param(
@@ -296,20 +316,39 @@ def test_remove_edge_intersecting_grains(
             "above",
             2,
             False,
-            np.array(
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [3, 3, 0, 4, 4, 0, 5, 5, 5, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
-                    [0, 6, 6, 0, 0, 0, 0, 0, 5, 0],
-                    [0, 0, 6, 0, 0, 0, 5, 5, 5, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                            [1, 1, 0, 1, 1, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
+                            [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [3, 3, 0, 4, 4, 0, 5, 5, 5, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
+                            [0, 6, 6, 0, 0, 0, 0, 0, 5, 0],
+                            [0, 0, 6, 0, 0, 0, 5, 5, 5, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ],
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
             id="absolute, above 0.9, no remove edge, smallest grain 2",
         ),
     ],
@@ -348,18 +387,18 @@ def test_find_grains(
 
     result_removed_small_objects = grains_object.directions[direction]["removed_small_objects"]
 
+    assert result_removed_small_objects.shape == expected_grain_mask.shape
+    assert result_removed_small_objects.dtype == expected_grain_mask.dtype
     np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
 
 
 # Find grains with unet - needs mocking
-def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
-    """Test the find_grains method of the Grains class with a unet model."""
-    with patch("keras.models.load_model") as mock_load_model:
-        mock_load_model.return_value = mock_model_5_by_5
-
-        # Initialise the grains object
-        grains_object = Grains(
-            image=np.array(
+@pytest.mark.parametrize(
+    ("image", "expected_removed_small_objects_tensor", "expected_labelled_regions_tensor"),
+    [
+        pytest.param(
+            # Image
+            np.array(
                 [
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
                     [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
@@ -372,6 +411,120 @@ def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                 ]
             ),
+            # Expected removed small objects tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                            [0, 1, 0, 1, 0, 2, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, multi class, 3 grains",
+        ),
+        pytest.param(
+            # Image
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.1, 0.1, 0.2, 0.1, 0.2],
+                    [0.2, 0.2, 0.1, 0.3, 0.2, 0.2, 0.1, 0.2, 0.2],
+                    [0.1, 0.0, 0.2, 0.2, 0.1, 0.1, 0.2, 0.1, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            # Expected removed small objects tensor
+            np.stack(
+                [
+                    np.ones((9, 9)),
+                    np.zeros((9, 9)),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.zeros((9, 9)),
+                    np.zeros((9, 9)),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, no grains",
+        ),
+    ],
+)
+def test_find_grains_unet(
+    mock_model_5_by_5_single_class: MagicMock,
+    image: npt.NDArray[np.float32],
+    expected_removed_small_objects_tensor: npt.NDArray[np.bool_],
+    expected_labelled_regions_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the find_grains method of the Grains class with a unet model."""
+    with patch("keras.models.load_model") as mock_load_model:
+        mock_load_model.return_value = mock_model_5_by_5_single_class
+
+        # Initialise the grains object
+        grains_object = Grains(
+            image=image,
             filename="test_image",
             pixel_to_nm_scaling=1.0,
             unet_config={
@@ -393,19 +546,305 @@ def test_find_grains_unet(mock_model_5_by_5: MagicMock) -> None:
         grains_object.find_grains()
 
         result_removed_small_objects = grains_object.directions["above"]["removed_small_objects"]
+        result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
 
-        expected_grain_mask = np.array(
-            [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                [0, 1, 0, 1, 0, 1, 0, 0, 0],
-                [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ]
+        assert expected_removed_small_objects_tensor.shape == (9, 9, 2)
+        assert expected_labelled_regions_tensor.shape == (9, 9, 2)
+
+        assert result_removed_small_objects.shape == expected_removed_small_objects_tensor.shape
+        assert result_labelled_regions.shape == expected_labelled_regions_tensor.shape
+
+        np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
+        np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions_tensor)
+
+
+@pytest.mark.parametrize(
+    (
+        "image",
+        "unet_config",
+        "traditional_threshold_labelled_regions",
+        "expected_boolean_mask_tensor",
+        "expected_labelled_regions_tensor",
+    ),
+    [
+        pytest.param(
+            # Image
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
+                    [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
+                    [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            # Unet config
+            {
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            # Traditional thresholding labelled regions
+            # This has the centre pixel filled in, representing a feature that is impossible to segment
+            # with just thresholding. The U-Net is simulated to be able to recognise that there should be a
+            # hole in the grain and thus improves the mask.
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            # Expected boolean mask tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.bool_),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 0, 3, 0],
+                            [0, 1, 0, 1, 0, 2, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 2, 2, 2, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(np.int32),
+            id="unet, 5x5, multi class, 3 grains",
+        ),
+        pytest.param(
+            # Image
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.2, 0.1, 1.1, 0.1, 0.2],
+                    [0.1, 1.1, 1.1, 1.1, 0.1],
+                    [0.2, 0.1, 1.1, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ),
+            # U-Net config
+            {
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            # Traditional thresholding labelled regions
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            # Expected boolean mask tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            # Expected labelled regions tensor
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="unet, 5x5, traditional detects grains but unet doesn't. tests for empty unet predictions.",
+        ),
+    ],
+)
+def test_improve_grain_segmentation_unet(
+    mock_model_5_by_5_single_class: MagicMock,
+    image: npt.NDArray[np.float32],
+    unet_config: dict[str, str | int | float | tuple[int | None, int, int, int]],
+    traditional_threshold_labelled_regions: npt.NDArray[np.int32],
+    expected_boolean_mask_tensor: npt.NDArray[np.bool_],
+    expected_labelled_regions_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the improve_grain_segmentation method of the Grains class with a unet model."""
+    with patch("keras.models.load_model") as mock_load_model:
+        mock_load_model.return_value = mock_model_5_by_5_single_class
+
+        result_boolean_masks_tensor, result_labelled_regions_tensor = Grains.improve_grain_segmentation_unet(
+            filename="test_image",
+            direction="above",
+            unet_config=unet_config,
+            image=image,
+            labelled_grain_regions=traditional_threshold_labelled_regions,
         )
 
-        np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
+        assert result_boolean_masks_tensor.shape == expected_boolean_mask_tensor.shape
+        assert result_labelled_regions_tensor.shape == expected_labelled_regions_tensor.shape
+        np.testing.assert_array_equal(result_boolean_masks_tensor, expected_boolean_mask_tensor)
+        np.testing.assert_array_equal(result_labelled_regions_tensor, expected_labelled_regions_tensor)
+
+
+@pytest.mark.parametrize(
+    ("labelled_image", "expected_labelled_image"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="empty array",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [0, 1, 1, 1, 0, 2, 2, 0],
+                    [0, 1, 1, 1, 0, 2, 2, 0],
+                    [0, 0, 0, 0, 0, 2, 2, 0],
+                    [0, 3, 3, 3, 0, 2, 2, 0],
+                    [0, 3, 3, 3, 0, 0, 0, 0],
+                    [0, 3, 3, 0, 0, 4, 4, 0],
+                    [0, 0, 3, 0, 0, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ).astype(np.bool_),
+            id="simple",
+        ),
+    ],
+)
+def test_keep_largest_labelled_region(
+    labelled_image: npt.NDArray[np.int32], expected_labelled_image: npt.NDArray[np.int32]
+) -> None:
+    """Test the keep_largest_labelled_region method of the Grains class."""
+    result = Grains.keep_largest_labelled_region(labelled_image)
+
+    np.testing.assert_array_equal(result, expected_labelled_image)

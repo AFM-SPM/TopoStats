@@ -171,8 +171,11 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         saved_topostats = hdf5_to_dict(f, group_path="/")
 
     # Remove the image path as this differs on CI
-    expected_topostats.pop("img_path")
     saved_topostats.pop("img_path")
+
+    # Script for updating the regtest file
+    # with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "w") as f:
+    #     dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=saved_topostats)
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
@@ -546,8 +549,40 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+
+    mask_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    assert mask_above.shape == (256, 256, 2)
+
+    # Create inverted mask above
+    # mask_above_background = np.logical_not(mask_above)
+    # # Keep only the largest grain
+    # from skimage.measure import label, regionprops
+
+    # mask_above_labelled = label(mask_above)
+    # regions = regionprops(mask_above_labelled)
+    # areas = [region.area for region in regions]
+    # mask_above[mask_above_labelled != np.argmax(areas) + 1] = False
+    # # save the mask above
+    # np.save("./tests/resources/minicircle_cropped_masks_above_background.npy", mask_above_background)
+
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    mask_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+    assert mask_below.shape == (256, 256, 2)
+
+    # Create inverted mask below
+    # mask_below_background = np.logical_not(mask_below)
+    # # Keep only the largest grain
+    # mask_below_labelled = label(mask_below)
+    # regions = regionprops(mask_below_labelled)
+    # areas = [region.area for region in regions]
+    # mask_below[mask_below_labelled != np.argmax(areas) + 1] = False
+    # # save the mask below
+    # np.save("./tests/resources/minicircle_cropped_masks_below_background.npy", mask_below_background)
+
     grain_masks = {"above": mask_above, "below": mask_below}
 
     grainstats_df, _ = run_grainstats(
@@ -567,10 +602,19 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the dnatracing_wrapper function of processing.py."""
+    # Load flattened image
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    grain_masks = {"above": mask_above, "below": mask_below}
+    # Load background and foreground of above and below directions for the mask tensors
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    # Construct the full image tensor (background class and class 1 (dna))
+    tensor_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    tensor_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+
+    grain_masks = {"above": tensor_above, "below": tensor_below}
 
     dnatracing_df, grain_trace_data = run_dnatracing(
         image=flattened_image,
