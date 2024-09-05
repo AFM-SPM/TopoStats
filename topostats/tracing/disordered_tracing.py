@@ -338,29 +338,13 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
             # obtain segment stats
-            res = skan.summarize(
-                skan.Skeleton(
-                    np.where(disordered_trace_images["pruned_skeleton"] == 1, cropped_image, 0),
-                    spacing=pixel_to_nm_scaling,
-                )
+            skan_skeleton = skan.Skeleton(
+                np.where(disordered_trace_images["pruned_skeleton"] == 1, cropped_image, 0),
+                spacing=pixel_to_nm_scaling,
             )
-            res["image"] = filename
-            res["grain_number"] = cropped_image_index
-            disordered_tracing_stats = pd.concat(
-                (
-                    disordered_tracing_stats,
-                    res[
-                        [
-                            "image",
-                            "grain_number",
-                            "branch-distance",
-                            "branch-type",
-                            "mean-pixel-value",
-                            "stdev-pixel-value",
-                        ]
-                    ],
-                )
-            )
+            skan_df = skan.summarize(skan_skeleton)
+            skan_df = compile_skan_stats(skan_df, skan_skeleton, cropped_image, filename, cropped_image_index)
+            disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
 
             # obtain stats
             conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
@@ -369,7 +353,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 "grain_number": cropped_image_index,
                 "grain_endpoints": any(conv_pruned_skeleton[conv_pruned_skeleton == 2]),
                 "grain_crossings": any(conv_pruned_skeleton[conv_pruned_skeleton == 3]),
-                "total_branch_lengths": res["branch-distance"].sum(),
+                "total_branch_lengths": skan_df["branch-distance"].sum(),
             }
 
             # remap the cropped images back onto the original
@@ -387,6 +371,128 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
     return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
+
+
+def compile_skan_stats(
+    skan_df: pd.DataFrame, skan_skeleton: skan.Skeleton, image: npt.NDArray, filename: str, grain_number: int
+) -> pd.DataFrame:
+    """
+    Obtain and add more stats to the resultant Skan dataframe.
+
+    Parameters
+    ----------
+    skan_df : pd.DataFrame
+        The statistics DataFrame produced by Skan's `summarize` function.
+    skan_skeleton : skan.Skeleton
+        The graphical representation of the skeleton produced by Skan.
+    image : npt.NDArray
+        The image the skeleton was produced from.
+    filename : str
+        Name of the file being processed.
+    grain_number : int
+        The number of the grain being processed.
+
+    Returns
+    -------
+    pd.DataFrame
+        A dataframe containing the filename, grain_number, branch-distance, branch-type, connected_segments,
+        mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.
+    """
+    skan_df["image"] = filename
+    skan_df["grain_number"] = grain_number
+    skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, df=skan_df)
+    skan_df["min-value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
+    skan_df["median-value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
+    skan_df["mid-value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
+
+    # remove unused skan columns
+    return skan_df[
+        [
+            "image",
+            "grain_number",
+            "branch-distance",
+            "branch-type",
+            "connected_segments",
+            "mean-pixel-value",
+            "stdev-pixel-value",
+            "min-value",
+            "median-value",
+            "mid-value",
+        ]
+    ]
+
+
+def segment_heights(row: pd.Series, skan_skeleton: skan.Skeleton, image: npt.NDArray) -> npt.NDArray:
+    """
+    Obtain an ordered list of heights from the skan defined skeleton segment.
+
+    Parameters
+    ----------
+    row : pd.Series
+        A row from the Skan summarize dataframe.
+    skan_skeleton : skan.Skeleton
+        The graphical representation of the skeleton produced by Skan.
+    image : npt.NDArray
+        The image the skeleton was produced from.
+
+    Returns
+    -------
+    npt.NDArray
+        Heights along the segment, naturally ordered by Skan.
+    """
+    coords = skan_skeleton.path_coordinates(row.name)
+    return image[coords[:, 0], coords[:, 1]]
+
+
+def segment_middles(row: pd.Series, skan_skeleton: skan.csr.Skeleton, image: npt.NDArray) -> float:
+    """
+    Obtain the pixel value in the middle of the ordered segment.
+
+    Parameters
+    ----------
+    row : pd.Series
+        A row from the Skan summarize dataframe.
+    skan_skeleton : skan.csr.Skeleton
+        The graphical representation of the skeleton produced by Skan.
+    image : npt.NDArray
+        The image the skeleton was produced from.
+
+    Returns
+    -------
+    float
+        The single or mean pixel value corresponding to the middle coordinate(s) of the segment.
+    """
+    heights = segment_heights(row, skan_skeleton, image)
+    middle_idx, middle_remainder = (len(heights) + 1) // 2 - 1, (len(heights) + 1) % 2
+    return heights[[middle_idx, middle_idx + middle_remainder]].mean()
+
+
+def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> list:
+    """
+    Compile the neighbouring branch indexes of the row.
+
+    Parameters
+    ----------
+    row : pd.Series
+        A row from the Skan summarize dataframe.
+    skan_df : pd.DataFrame
+        The statistics DataFrame produced by Skan's `summarize` function.
+
+    Returns
+    -------
+    list
+        A list of matching row indices where the node src and dst columns match that of the rows.
+    """
+    connections = skan_df[
+        (skan_df["node-id-src"] == row["node-id-src"])
+        | (skan_df["node-id-dst"] == row["node-id-dst"])
+        | (skan_df["node-id-src"] == row["node-id-dst"])
+        | (skan_df["node-id-dst"] == row["node-id-src"])
+    ].index.tolist()
+
+    # Remove the index of the current row itself from the list of connections
+    connections.remove(row.name)
+    return connections
 
 
 def prep_arrays(
@@ -548,6 +654,8 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
         Height image from which the pruned skeleton is derived from.
     pruned_skeleton : npt.NDArray
         Single pixel thick skeleton mask.
+    skan_column : str
+        A column from Skan's summarize function to colour the branch segments with.
 
     Returns
     -------
