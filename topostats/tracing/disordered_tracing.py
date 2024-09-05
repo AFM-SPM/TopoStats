@@ -400,7 +400,7 @@ def compile_skan_stats(
     """
     skan_df["image"] = filename
     skan_df["grain_number"] = grain_number
-    skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, df=skan_df)
+    skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
     skan_df["min-value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
     skan_df["median-value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
     skan_df["mid-value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
