@@ -1245,32 +1245,32 @@ def test_trace_image_disordered() -> None:
 
     # Update expected values
     # Pickle result_disordered_crop_data
-    # with open("tests/resources/example_catenanes_result_disordered_crop_data.pkl", "wb") as f:
+    # with open("tests/resources/example_catenanes_disordered_crop_data.pkl", "wb") as f:
     #     pkl.dump(result_disordered_crop_data, f)
 
     # # Save result_grainstats_additions_df as a csv
-    # result_grainstats_additions_df.to_csv("tests/resources/example_catenanes_result_grainstats_additions_df.csv")
+    # result_grainstats_additions_df.to_csv("tests/resources/example_catenanes_grainstats_additions_df.csv")
 
     # # Save result_all_images as a pickle
-    # with open("tests/resources/example_catenanes_result_all_images.pkl", "wb") as f:
+    # with open("tests/resources/example_catenanes_all_images.pkl", "wb") as f:
     #     pkl.dump(result_all_images, f)
 
     # # Save result_disordered_tracing_stats dataframe as a csv
-    # result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_result_disordered_tracing_stats.csv")
+    # result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_disordered_tracing_stats.csv")
 
     # Load expected values
-    with Path.open(RESOURCES / "example_catenanes_result_disordered_crop_data.pkl", "rb") as f:
+    with Path.open(RESOURCES / "example_catenanes_disordered_crop_data.pkl", "rb") as f:
         expected_disordered_crop_data = pkl.load(f)
 
     expected_grainstats_additions_df = pd.read_csv(
-        "tests/resources/example_catenanes_result_grainstats_additions_df.csv", index_col=0
+        "tests/resources/example_catenanes_grainstats_additions_df.csv", index_col=0
     )
 
-    with Path.open(RESOURCES / "example_catenanes_result_all_images.pkl", "rb") as f:
+    with Path.open(RESOURCES / "example_catenanes_all_images.pkl", "rb") as f:
         expected_all_images = pkl.load(f)
 
     expected_disordered_tracing_stats = pd.read_csv(
-        "tests/resources/example_catenanes_result_disordered_tracing_stats.csv", index_col=0
+        "tests/resources/example_catenanes_disordered_tracing_stats.csv", index_col=0
     )
 
     assert dict_almost_equal(result_disordered_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
