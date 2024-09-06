@@ -2,15 +2,24 @@
 # ruff: noqa: S301
 """Test the disordered tracing module."""
 
+import pickle as pkl
+from pathlib import Path
+
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 import pytest
 
-from topostats.tracing.disordered_tracing import disordered_trace_grain
+from tests.test_io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
+from topostats.tracing.disordered_tracing import disordered_trace_grain, trace_image_disordered
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
+# pylint: disable=unspecified-encoding
+
+BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests" / "resources"
 
 # # Do spindly moleules, with and without branches
 # def test_trace_image_disordered() -> None:
@@ -1192,3 +1201,79 @@ def test_disordered_trace_grain(
     np.testing.assert_array_equal(result_skeleton, expected_skeleton)
     np.testing.assert_array_equal(result_pruned_skeleton, expected_pruned_skeleton)
     np.testing.assert_array_equal(result_branch_types, expected_branch_types)
+
+
+def test_trace_image_disordered() -> None:
+    """Test the trace image disordered method."""
+    # Load the image
+    image = np.load("tests/resources/example_catenanes.npy")
+    mask = np.load("tests/resources/example_catenanes_labelled_grain_mask_thresholded.npy")
+
+    result_disordered_crop_data, result_grainstats_additions_df, result_all_images, result_disordered_tracing_stats = (
+        trace_image_disordered(
+            image=image,
+            grains_mask=mask,
+            filename="test_image",
+            pixel_to_nm_scaling=0.488,
+            min_skeleton_size=6,
+            mask_smoothing_params={
+                "gaussian_sigma": 2,
+                "dilation_iterations": 2,
+                "holearea_min_max": [0, None],
+            },
+            skeletonisation_params={
+                "method": "topostats",
+                "height_bias": 0.6,
+            },
+            pruning_params={
+                "method": "topostats",
+                "max_length": -1,
+                "height_threshold": None,
+                "method_values": "mid",
+                "method_outlier": "mean_abs",
+            },
+            pad_width=1,
+        )
+    )
+
+    # DEBUGGING CODE
+    # Turning sub-structures into variables to be able to be inspected
+    # variable_smoothed_grain = result_all_images["smoothed_grain"]
+    # variable_skeleton = result_all_images["skeleton"]
+    # variable_pruned_skeleton = result_all_images["pruned_skeleton"]
+    # variable_branch_types = result_all_images["branch_types"]
+
+    # Update expected values
+    # Pickle result_disordered_crop_data
+    # with open("tests/resources/example_catenanes_result_disordered_crop_data.pkl", "wb") as f:
+    #     pkl.dump(result_disordered_crop_data, f)
+
+    # # Save result_grainstats_additions_df as a csv
+    # result_grainstats_additions_df.to_csv("tests/resources/example_catenanes_result_grainstats_additions_df.csv")
+
+    # # Save result_all_images as a pickle
+    # with open("tests/resources/example_catenanes_result_all_images.pkl", "wb") as f:
+    #     pkl.dump(result_all_images, f)
+
+    # # Save result_disordered_tracing_stats dataframe as a csv
+    # result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_result_disordered_tracing_stats.csv")
+
+    # Load expected values
+    with Path.open(RESOURCES / "example_catenanes_result_disordered_crop_data.pkl", "rb") as f:
+        expected_disordered_crop_data = pkl.load(f)
+
+    expected_grainstats_additions_df = pd.read_csv(
+        "tests/resources/example_catenanes_result_grainstats_additions_df.csv", index_col=0
+    )
+
+    with Path.open(RESOURCES / "example_catenanes_result_all_images.pkl", "rb") as f:
+        expected_all_images = pkl.load(f)
+
+    expected_disordered_tracing_stats = pd.read_csv(
+        "tests/resources/example_catenanes_result_disordered_tracing_stats.csv", index_col=0
+    )
+
+    assert dict_almost_equal(result_disordered_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
+    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    assert dict_almost_equal(result_all_images, expected_all_images, abs_tol=1e-11)
+    pd.testing.assert_frame_equal(result_disordered_tracing_stats, expected_disordered_tracing_stats)

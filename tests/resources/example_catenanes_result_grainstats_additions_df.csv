@@ -1,0 +1,3 @@
+,image,grain_number,grain_endpoints,grain_crossings,total_branch_lengths
+0,test_image,0,False,True,589.3336572871511
+1,test_image,1,False,True,588.8109761949609
