@@ -130,9 +130,6 @@ class OrderedTraceNodestats:
             for crossing_num, crossing in enumerate(crossings):
                 both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
 
-        np.save("skel.npy", self.skeleton)
-        np.save("minus.npy", minus)
-
         # order minus segments
         ordered = []
         for i in range(1, minus.max() + 1):
@@ -156,8 +153,6 @@ class OrderedTraceNodestats:
         for i, coords in enumerate(ordered):
             single_cross_img = coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img != 0] = i + 1
-
-        np.save("cross_add.npy", cross_add)
 
         coord_trace = self.trace(ordered, cross_add)
 
