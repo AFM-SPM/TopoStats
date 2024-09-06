@@ -49,6 +49,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "seaborn",
+  "skan",
   "snoop",
   "tifffile",
   "AFMReader",

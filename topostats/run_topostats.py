@@ -136,15 +136,17 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         results = defaultdict()
         image_stats_all = defaultdict()
         mols_results = defaultdict()
+        disordered_trace_results = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, individual_image_stats_df, mols_result in pool.imap_unordered(
+            for img, result, individual_image_stats_df, disordered_trace_result, mols_result in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
                 results[str(img)] = result
+                disordered_trace_results[str(img)] = disordered_trace_result
                 mols_results[str(img)] = mols_result
                 pbar.update()
 
@@ -164,6 +166,12 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         results = pd.concat(results.values())
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+        LOGGER.error(error)
+
+    try:
+        disordered_trace_results = pd.concat(disordered_trace_results.values())
+    except ValueError as error:
+        LOGGER.error("No mols found in any images, consider adjusting disordered tracing parameters.")
         LOGGER.error(error)
 
     try:
@@ -238,6 +246,15 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         images_processed = 0
         LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
 
+    if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
+        disordered_trace_results.reset_index(inplace=True)
+        disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+        disordered_trace_results.to_csv(config["output_dir"] / "all_disordered_segment_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
+    else:
+        LOGGER.warning("There are no grainstats or disordered tracing statistics to write to CSV.")
+
     if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
         mols_results.reset_index(drop=True, inplace=True)
         mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
@@ -245,8 +262,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
         mols_results.reset_index(inplace=True)  # So we can access unique image names
     else:
-        images_processed = 0
-        LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
+        LOGGER.warning("There are no grainstats or molecule tracing statistics to write to CSV.")
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])

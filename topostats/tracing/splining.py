@@ -581,13 +581,11 @@ def splining_image(
                     "bbox": mol_trace_data["bbox"],
                     "tracing_stats": tracing_stats,
                 }
-                unique_key = f"{mol_no.split('_')[-1]}_{grain_no.split('_')[-1]}"
-                molstats[unique_key] = {
+                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
                     "image": filename,
                     "grain_number": grain_no.split("_")[-1],
-                    "mol_number": mol_no.split("_")[-1],  # Adding mol_no as a separate column
                 }
-                molstats[unique_key].update(tracing_stats)
+                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
                 LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
 
             except Exception as e:

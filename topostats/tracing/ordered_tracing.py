@@ -93,16 +93,30 @@ class OrderedTraceNodestats:
 
         # iterate through the dict to get branch coords, heights and fwhms
         node_coords = [
-            [stats["node_coords"] for _ in stats["branch_stats"].values()] for stats in self.nodestats_dict.values()
+            [stats["node_coords"] for branch_stats in stats["branch_stats"].values() if branch_stats["fwhm"]["fwhm"]]
+            for stats in self.nodestats_dict.values()
         ]
+        node_coords = [lst for lst in node_coords if lst]
+
         crossing_coords = [
-            [branch_stats["ordered_coords"] for branch_stats in stats["branch_stats"].values()]
+            [
+                branch_stats["ordered_coords"]
+                for branch_stats in stats["branch_stats"].values()
+                if branch_stats["fwhm"]["fwhm"]
+            ]
             for stats in self.nodestats_dict.values()
         ]
+        crossing_coords = [lst for lst in crossing_coords if lst]
+
         fwhms = [
-            [branch_stats["fwhm"]["fwhm"] for branch_stats in stats["branch_stats"].values()]
+            [
+                branch_stats["fwhm"]["fwhm"]
+                for branch_stats in stats["branch_stats"].values()
+                if branch_stats["fwhm"]["fwhm"]
+            ]
             for stats in self.nodestats_dict.values()
         ]
+        fwhms = [lst for lst in fwhms if lst]
 
         # Get the image minus the crossing regions
         minus = self.skeleton.copy()
@@ -110,7 +124,6 @@ class OrderedTraceNodestats:
             for crossing in crossings:
                 minus[crossing[:, 0], crossing[:, 1]] = 0
         minus = label(minus)
-
         # Get both image
         both = minus.copy()
         for node_num, crossings in enumerate(crossing_coords):
@@ -145,8 +158,11 @@ class OrderedTraceNodestats:
 
         # visual over under img
         self.images["trace_segments"] = cross_add
-        self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
-        self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
+        try:
+            self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
+            self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
+        except IndexError:
+            pass
         self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
 
         return coord_trace, self.images
@@ -205,14 +221,14 @@ class OrderedTraceNodestats:
         """
         mol_coords = []
         remaining = both_img.copy().astype(np.int32)
-        endpoints = np.unique(remaining[convolve_skeleton(remaining) == 2])  # unique in case of whole mol
+        endpoints = np.unique(remaining[convolve_skeleton(remaining.astype(bool)) == 2])  # unique in case of whole mol
         prev_segment = None
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
             endpoints = [i for i in endpoints if i in np.unique(remaining)]  # remove if removed from remaining
             if endpoints:
-                coord_idx = endpoints[0] - 1
+                coord_idx = endpoints.pop(0) - 1
             else:  # if no endpoints, just a loop
                 coord_idx = np.unique(remaining)[1] - 1  # avoid choosing 0
             coord_trace = np.empty((0, 2)).astype(np.int32)
@@ -636,55 +652,53 @@ def ordered_tracing_image(
 
     # iterate through disordered_tracing_dict
     for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
-        try:
-            # check if want to do nodestats tracing or not
-            if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
-                LOGGER.info(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
-                nodestats_tracing = OrderedTraceNodestats(
-                    image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
-                    filename=filename,
-                    nodestats_dict=nodestats_direction_data["stats"][grain_no],
-                    skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
-                )
-                if nodestats_tracing.check_node_errorless():
-                    ordered_traces_data, tracing_stats, images = nodestats_tracing.run_nodestats_tracing()
-                    LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
-                else:
-                    LOGGER.warning(
-                        f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
-                    )
-            # if not doing nodestats ordering, do original TS ordering
+        # try:
+        # check if want to do nodestats tracing or not
+        if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
+            LOGGER.info(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
+            nodestats_tracing = OrderedTraceNodestats(
+                image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
+                filename=filename,
+                nodestats_dict=nodestats_direction_data["stats"][grain_no],
+                skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
+            )
+            if nodestats_tracing.check_node_errorless():
+                ordered_traces_data, tracing_stats, images = nodestats_tracing.run_nodestats_tracing()
+                LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
             else:
-                LOGGER.info(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
-                topostats_tracing = OrderedTraceTopostats(
-                    image=disordered_trace_data["original_image"],
-                    skeleton=disordered_trace_data["pruned_skeleton"],
-                )
-                ordered_traces_data, tracing_stats, images = topostats_tracing.run_topostats_tracing()
-                LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
+                LOGGER.warning(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
+        # if not doing nodestats ordering, do original TS ordering
+        else:
+            LOGGER.info(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
+            topostats_tracing = OrderedTraceTopostats(
+                image=disordered_trace_data["original_image"],
+                skeleton=disordered_trace_data["pruned_skeleton"],
+            )
+            ordered_traces_data, tracing_stats, images = topostats_tracing.run_topostats_tracing()
+            LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
 
-            # compile traces
-            all_traces_data[grain_no] = ordered_traces_data
-            for mol_no, _ in ordered_traces_data.items():
-                all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
-            # compile metrics
-            grainstats_additions[grain_no] = {
-                "image": filename,
-                "grain_number": int(grain_no.split("_")[-1]),
-            }
-            tracing_stats.pop("circular")
-            grainstats_additions[grain_no].update(tracing_stats)
+        # compile traces
+        all_traces_data[grain_no] = ordered_traces_data
+        for mol_no, _ in ordered_traces_data.items():
+            all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
+        # compile metrics
+        grainstats_additions[grain_no] = {
+            "image": filename,
+            "grain_number": int(grain_no.split("_")[-1]),
+        }
+        tracing_stats.pop("circular")
+        grainstats_additions[grain_no].update(tracing_stats)
 
-            # remap the cropped images back onto the original
-            for image_name, full_image in ordered_trace_full_images.items():
-                crop = images[image_name]
-                bbox = disordered_trace_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-
+        # remap the cropped images back onto the original
+        for image_name, full_image in ordered_trace_full_images.items():
+            crop = images[image_name]
+            bbox = disordered_trace_data["bbox"]
+            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+        """
         except Exception as e:
             LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
             all_traces_data[grain_no] = {}
-
+        """
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
     return all_traces_data, grainstats_additions_df, ordered_trace_full_images

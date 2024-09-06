@@ -258,6 +258,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "node_joining_length": float,
             "node_extend_dist": float,
             "branch_pairing_length": float,
+            "pair_odd_branches": bool,
             "pad_width": lambda n: n > 0.0,
         },
         "ordered_tracing": {
@@ -970,6 +971,20 @@ PLOTTING_SCHEMA = Schema(
             "savefig_dpi": int,
         },
         "pruned_skeleton": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "branch_types": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
