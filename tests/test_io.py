@@ -59,7 +59,8 @@ CONFIG = {
 # pylint: disable=too-many-lines
 
 
-def dict_almost_equal(dict1, dict2, abs_tol=1e-9):
+# Sylvia: Ruff says too complex but I think breaking this out would be more complex.
+def dict_almost_equal(dict1, dict2, abs_tol=1e-9):  # noqa: C901
     """Recursively check if two dictionaries are almost equal with a given absolute tolerance.
 
     Parameters
@@ -91,9 +92,13 @@ def dict_almost_equal(dict1, dict2, abs_tol=1e-9):
                 LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                 return False
         elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
-            if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
-                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
-                return False
+            # Skip if both values are NaN
+            if not (np.isnan(dict1[key]) and np.isnan(dict2[key])):
+                # Check if both values are close
+                if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
+                    LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                    return False
+
         elif dict1[key] != dict2[key]:
             LOGGER.info(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
             return False
@@ -280,6 +285,13 @@ def test_load_array() -> None:
             0.001,
             False,
             id="float not equal",
+        ),
+        pytest.param(
+            {"a": np.nan},
+            {"a": np.nan},
+            0.0001,
+            True,
+            id="nan equal",
         ),
     ],
 )
@@ -769,7 +781,7 @@ def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> No
         assert list(f.keys()) == list(expected.keys())
         assert f["d"]["a"][()] == expected["d"]["a"]
         np.testing.assert_array_equal(f["d"]["b"][()], expected["d"]["b"])
-        assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]
+        assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]  # pylint: disable=no-member
         assert f["d"]["d"]["e"][()] == expected["d"]["d"]["e"]
         np.testing.assert_array_equal(f["d"]["d"]["f"][()], expected["d"]["d"]["f"])
         assert f["d"]["d"]["g"][()].decode("utf-8") == expected["d"]["d"]["g"]
