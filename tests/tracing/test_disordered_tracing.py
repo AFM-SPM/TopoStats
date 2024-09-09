@@ -1203,11 +1203,39 @@ def test_disordered_trace_grain(
     np.testing.assert_array_equal(result_branch_types, expected_branch_types)
 
 
-def test_trace_image_disordered() -> None:
+@pytest.mark.parametrize(
+    (
+        "image_filename",
+        "mask_filename",
+        "expected_disordered_crop_data_filename",
+        "expected_grainstats_additions_df_filename",
+        "expected_all_images_filename",
+        "expected_disordered_tracing_stats_filename",
+    ),
+    [
+        pytest.param(
+            "example_catenanes.npy",
+            "example_catenanes_labelled_grain_mask_thresholded.npy",
+            "example_catenanes_disordered_crop_data.pkl",
+            "example_catenanes_grainstats_additions_df.csv",
+            "example_catenanes_all_images.pkl",
+            "example_catenanes_disordered_tracing_stats.csv",
+            id="catenane",
+        )
+    ],
+)
+def test_trace_image_disordered(
+    image_filename: str,
+    mask_filename: str,
+    expected_disordered_crop_data_filename: str,
+    expected_grainstats_additions_df_filename: str,
+    expected_all_images_filename: str,
+    expected_disordered_tracing_stats_filename: str,
+) -> None:
     """Test the trace image disordered method."""
     # Load the image
-    image = np.load("tests/resources/example_catenanes.npy")
-    mask = np.load("tests/resources/example_catenanes_labelled_grain_mask_thresholded.npy")
+    image = np.load(RESOURCES / image_filename)
+    mask = np.load(RESOURCES / mask_filename)
 
     result_disordered_crop_data, result_grainstats_additions_df, result_all_images, result_disordered_tracing_stats = (
         trace_image_disordered(
@@ -1245,6 +1273,7 @@ def test_trace_image_disordered() -> None:
 
     # Update expected values
     # Pickle result_disordered_crop_data
+    # if image_filename == "example_catenanes.npy":
     # with open("tests/resources/example_catenanes_disordered_crop_data.pkl", "wb") as f:
     #     pkl.dump(result_disordered_crop_data, f)
 
@@ -1255,23 +1284,19 @@ def test_trace_image_disordered() -> None:
     # with open("tests/resources/example_catenanes_all_images.pkl", "wb") as f:
     #     pkl.dump(result_all_images, f)
 
-    # # Save result_disordered_tracing_stats dataframe as a csv
+    # Save result_disordered_tracing_stats dataframe as a csv
     # result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_disordered_tracing_stats.csv")
 
     # Load expected values
-    with Path.open(RESOURCES / "example_catenanes_disordered_crop_data.pkl", "rb") as f:
+    with Path.open(RESOURCES / expected_disordered_crop_data_filename, "rb") as f:
         expected_disordered_crop_data = pkl.load(f)
 
-    expected_grainstats_additions_df = pd.read_csv(
-        "tests/resources/example_catenanes_grainstats_additions_df.csv", index_col=0
-    )
+    expected_grainstats_additions_df = pd.read_csv(RESOURCES / expected_grainstats_additions_df_filename, index_col=0)
 
-    with Path.open(RESOURCES / "example_catenanes_all_images.pkl", "rb") as f:
+    with Path.open(RESOURCES / expected_all_images_filename, "rb") as f:
         expected_all_images = pkl.load(f)
 
-    expected_disordered_tracing_stats = pd.read_csv(
-        "tests/resources/example_catenanes_disordered_tracing_stats.csv", index_col=0
-    )
+    expected_disordered_tracing_stats = pd.read_csv(RESOURCES / expected_disordered_tracing_stats_filename, index_col=0)
 
     assert dict_almost_equal(result_disordered_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
     pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
