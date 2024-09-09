@@ -125,18 +125,21 @@ mask_grains:
   filename: "17-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
+  mask_cmap: "binary"
   savefig_dpi: 100
   core_set: false
 labelled_regions_01:
   filename: "18-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 tidied_border:
   filename: "19-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 removed_noise:
@@ -178,6 +181,7 @@ coloured_boxes:
   filename: "25-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 grain_image:

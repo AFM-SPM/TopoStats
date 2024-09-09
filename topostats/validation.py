@@ -729,6 +729,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "labelled_regions_01": {
             "filename": str,
@@ -747,6 +748,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "tidied_border": {
             "filename": str,
@@ -764,6 +766,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "removed_noise": {
             "filename": str,
@@ -885,6 +888,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "grain_image": {
             "image_type": Or(

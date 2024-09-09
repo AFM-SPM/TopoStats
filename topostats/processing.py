@@ -199,7 +199,9 @@ def run_grains(  # noqa: C901
                     for plot_name, array in image_arrays.items():
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                        Images(
+                            data=np.zeros_like(array), masked_array=array, **plotting_config["plot_dict"][plot_name]
+                        ).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
                     Images(
@@ -209,7 +211,8 @@ def run_grains(  # noqa: C901
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     Images(
-                        grains.directions[direction]["labelled_regions_02"],
+                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
+                        masked_array=grains.directions[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
@@ -219,7 +222,7 @@ def run_grains(  # noqa: C901
                     Images(
                         image,
                         filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"],
+                        masked_array=grains.directions[direction]["removed_small_objects"].astype(bool),
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
