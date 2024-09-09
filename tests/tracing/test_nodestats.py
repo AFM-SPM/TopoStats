@@ -7,10 +7,14 @@ from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 import pytest
 from pytest_lazyfixture import lazy_fixture
 
-from topostats.tracing.nodestats import nodeStats
+# pylint: disable=import-error
+# pylint: disable=no-name-in-module
+from tests.test_io import dict_almost_equal
+from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
@@ -296,6 +300,7 @@ def test_add_branches_to_labelled_image(
     np.testing.assert_equal(result_average_image, expected_average_image)
 
 
+# FIXME Need a test for not pairing odd branches. Will need a test image with 3-nodes.
 @pytest.mark.parametrize(
     (
         "p_to_nm",
@@ -306,6 +311,7 @@ def test_add_branches_to_labelled_image(
         "image",
         "average_trace_advised",
         "node_coord",
+        "pair_odd_branches",
         "filename",
         "resolution_threshold",
         "expected_pairs",
@@ -314,6 +320,7 @@ def test_add_branches_to_labelled_image(
         "expected_masked_image_filename",
         "expected_branch_under_over_order",
         "expected_conf",
+        "expected_singlet_branch_vectors",
     ),
     [
         pytest.param(
@@ -325,6 +332,7 @@ def test_add_branches_to_labelled_image(
             lazy_fixture("catenane_image"),
             True,
             (np.int32(280), np.int32(353)),
+            True,
             "catenane_test_image",
             np.float64(1000 / 512),
             np.array([(1, 3), (2, 0)]),
@@ -333,6 +341,12 @@ def test_add_branches_to_labelled_image(
             "catenane_node_0_masked_image.pkl",
             np.array([0, 1]),
             0.48972025484111525,
+            [
+                np.array([-0.97044686, -0.24131493]),
+                np.array([0.10375883, -0.99460249]),
+                np.array([0.98972257, -0.14300081]),
+                np.array([0.46367343, 0.88600618]),
+            ],
             id="node 0",
         )
     ],
@@ -346,6 +360,7 @@ def test_analyse_node_branches(
     image: npt.NDArray[np.float64],
     average_trace_advised: bool,
     node_coord: tuple[np.int32, np.int32],
+    pair_odd_branches: np.bool_,
     filename: str,
     resolution_threshold: np.float64,
     expected_pairs: npt.NDArray[np.int32],
@@ -354,6 +369,7 @@ def test_analyse_node_branches(
     expected_masked_image_filename: str,
     expected_branch_under_over_order: npt.NDArray[np.int32],
     expected_conf: float,
+    expected_singlet_branch_vectors: list[npt.NDArray[np.int32]],
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
     # Load the reduced node area
@@ -370,6 +386,7 @@ def test_analyse_node_branches(
         result_masked_image,
         result_branch_idx_order,
         result_conf,
+        result_singlet_branch_vectors,
     ) = nodeStats.analyse_node_branches(
         p_to_nm=np.float64(p_to_nm),
         reduced_node_area=reduced_node_area,
@@ -379,6 +396,7 @@ def test_analyse_node_branches(
         image=image,
         average_trace_advised=average_trace_advised,
         node_coord=node_coord,
+        pair_odd_branches=pair_odd_branches,
         filename=filename,
         resolution_threshold=resolution_threshold,
     )
@@ -400,6 +418,7 @@ def test_analyse_node_branches(
     np.testing.assert_equal(result_masked_image, expected_masked_image)
     np.testing.assert_equal(result_branch_idx_order, expected_branch_under_over_order)
     np.testing.assert_almost_equal(result_conf, expected_conf, decimal=6)
+    np.testing.assert_almost_equal(result_singlet_branch_vectors, expected_singlet_branch_vectors, decimal=6)
 
 
 @pytest.mark.parametrize(
