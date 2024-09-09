@@ -189,9 +189,6 @@ def test_find_branch_starts() -> None:
 # Create nodestats class using the cats image - will allow running the code for diagnostics
 def test_analyse_nodes(
     nodestats_catenane: nodeStats,
-    nodestats_catenane_node_dict: dict,
-    nodestats_catenane_image_dict: dict,
-    nodestats_catenane_all_connected_nodes: npt.NDArray[np.int32],
 ) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
     nodestats_catenane.analyse_nodes(max_branch_length=20)
@@ -204,11 +201,17 @@ def test_analyse_nodes(
     #  - error: Bool
     #  - px_2_nm: float
     #  - crossing_type: None
-    #  - branch_starts: dict:
-    #    - ordered coords: array Nx2
-    #    - heights: array Nx2
-    #    - distances: array Nx2
-    #    - fwhm2: tuple(float, list(3?), list (3?))
+    #  - branch_stats: dict:
+    #    - 0:
+    #      - ordered coords: array Nx2
+    #      - heights: array Nx2
+    #      - distances: array Nx2
+    #      - fwhm2: tuple(float, list(3?), list (3?))
+    #    - ...
+    #  - unmatched_branch_stats: dict:
+    #    - 0: dict:
+    #      -  angles: float (angle of the branch relative to the first branch)
+    #    - ...
 
     # Image dict has structure:
     # - nodes
@@ -222,9 +225,35 @@ def test_analyse_nodes(
     #   - grain_mask: array NxN
     #   - grain_skeleton: array NxN
 
-    np.testing.assert_equal(node_dict_result, nodestats_catenane_node_dict)
-    np.testing.assert_equal(image_dict_result, nodestats_catenane_image_dict)
-    np.testing.assert_array_equal(nodestats_catenane.all_connected_nodes, nodestats_catenane_all_connected_nodes)
+    # Debugging
+    # Save the results to overwrite expected results
+    # with Path(RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("wb") as f:
+    #     pickle.dump(node_dict_result, f)
+
+    # with Path(RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("wb") as f:
+    #     pickle.dump(image_dict_result, f)
+
+    # np.save(
+    #     RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy", nodestats_catenane.all_connected_nodes
+    # )
+
+    # Load the nodestats catenane node dict from pickle
+    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("rb") as f:
+        expected_nodestats_catenane_node_dict = pickle.load(f)
+
+    # Load the nodestats catenane image dict from pickle
+    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("rb") as f:
+        expected_nodestats_catenane_image_dict = pickle.load(f)
+
+    # Load the nodestats catenane all connected nodes from pickle
+    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy").open("rb") as f:
+        expected_nodestats_catenane_all_connected_nodes = np.load(f)
+
+    np.testing.assert_equal(node_dict_result, expected_nodestats_catenane_node_dict)
+    np.testing.assert_equal(image_dict_result, expected_nodestats_catenane_image_dict)
+    np.testing.assert_array_equal(
+        nodestats_catenane.all_connected_nodes, expected_nodestats_catenane_all_connected_nodes
+    )
 
 
 @pytest.mark.parametrize(
