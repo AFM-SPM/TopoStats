@@ -869,3 +869,70 @@ def test_average_crossing_confs() -> None:
 def test_minimum_crossing_confs() -> None:
     """Test minimum_crossing_confs() method of nodeStats class."""
     pass
+
+
+def test_nodestats_image() -> None:
+    """Test of nodestats_image() method of nodeStats class."""
+    # Load the image
+    image = np.load(RESOURCES / "example_catenanes.npy")
+    # load disordered_tracing_crop_data from pickle
+    with Path(RESOURCES / "example_catenanes_disordered_crop_data.pkl").open("rb") as f:
+        disordered_tracing_crop_data = pickle.load(f)
+
+    result_nodestats_data, result_grainstats_additions_df, result_all_images, result_nodestats_branch_images = (
+        nodestats_image(
+            image=image,
+            disordered_tracing_direction_data=disordered_tracing_crop_data,
+            filename="test_image",
+            pixel_to_nm_scaling=0.488,
+            node_joining_length=7.0,
+            node_extend_dist=14.0,
+            branch_pairing_length=20.0,
+            pair_odd_branches=False,
+            pad_width=1,
+        )
+    )
+
+    # DEBUGGING (For viewing images)
+    # convolved_skeletons = result_all_images["convolved_skeletons"]
+    # node_centres = result_all_images["node_centres"]
+    # connected_nodes = result_all_images["connected_nodes"]
+
+    # # Save the results
+    # with Path(RESOURCES / "example_catenanes_nodestats_data.pkl").open("wb") as f:
+    #     pickle.dump(result_nodestats_data, f)
+
+    # # Save the result_grainstats_additions_df as a csv
+    # result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_grainstats_additions_nodestats.csv")
+
+    # # Save the result_all_images
+    # with Path(RESOURCES / "example_catenanes_all_images_nodestats.pkl").open("wb") as f:
+    #     pickle.dump(result_all_images, f)
+
+    # # Save the result_nodestats_branch_images
+    # with Path(RESOURCES / "example_catenanes_nodestats_branch_images.pkl").open("wb") as f:
+    #     pickle.dump(result_nodestats_branch_images, f)
+
+    # Load expected data
+
+    # Load the expected nodestats data
+    with Path(RESOURCES / "example_catenanes_nodestats_data.pkl").open("rb") as f:
+        expected_nodestats_data = pickle.load(f)
+
+    # Load the expected grainstats additions
+    expected_grainstats_additions_df = pd.read_csv(
+        RESOURCES / "example_catenanes_grainstats_additions_nodestats.csv", index_col=0
+    )
+
+    # Load the expected all images
+    with Path(RESOURCES / "example_catenanes_all_images_nodestats.pkl").open("rb") as f:
+        expected_all_images = pickle.load(f)
+
+    # Load the expected nodestats branch images
+    with Path(RESOURCES / "example_catenanes_nodestats_branch_images.pkl").open("rb") as f:
+        expected_nodestats_branch_images = pickle.load(f)
+
+    assert dict_almost_equal(result_nodestats_data, expected_nodestats_data, abs_tol=1e-3)
+    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    assert dict_almost_equal(result_all_images, expected_all_images)
+    assert dict_almost_equal(result_nodestats_branch_images, expected_nodestats_branch_images)
