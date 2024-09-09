@@ -220,6 +220,7 @@ def nodestats_catenane(
         node_joining_length=7,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
+        pair_odd_branches=True,
     )
 
     nodestats.node_centre_mask = catenane_node_centre_mask
