@@ -173,6 +173,7 @@ def test_connect_extended_nodes_nearest(
         node_joining_length=0.0,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
+        pair_odd_branches=True,
     )
     nodestats.whole_skel_graph = nodestats.skeleton_image_to_graph(nodestats.skeleton)
     result = nodestats.connect_extended_nodes_nearest(connected_nodes, node_extend_dist=8.0)
