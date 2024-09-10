@@ -24,6 +24,7 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 # pylint: disable=unnecessary-pass
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-lines
 
 
 # @pytest.mark.parametrize()
@@ -904,6 +905,7 @@ def test_minimum_crossing_confs() -> None:
     (
         "image_filename",
         "disordered_tracing_crop_data_filename",
+        "pair_odd_branches",
         "expected_nodestats_data_filename",
         "expected_grainstats_additions_filename",
         "expected_all_images_filename",
@@ -913,17 +915,29 @@ def test_minimum_crossing_confs() -> None:
         pytest.param(
             "example_catenanes.npy",
             "example_catenanes_disordered_crop_data.pkl",
+            True,
             "example_catenanes_nodestats_data.pkl",
             "example_catenanes_grainstats_additions_nodestats.csv",
             "example_catenanes_all_images_nodestats.pkl",
             "example_catenanes_nodestats_branch_images.pkl",
             id="catenane",
         ),
+        pytest.param(
+            "example_rep_int.npy",
+            "example_rep_int_disordered_crop_data.pkl",
+            False,
+            "example_rep_int_nodestats_data.pkl",
+            "example_rep_int_grainstats_additions_nodestats.csv",
+            "example_rep_int_all_images_nodestats.pkl",
+            "example_rep_int_nodestats_branch_images.pkl",
+            id="replication_intermediate",
+        ),
     ],
 )
 def test_nodestats_image(
     image_filename: str,
     disordered_tracing_crop_data_filename: str,
+    pair_odd_branches: bool,
     expected_nodestats_data_filename: str,
     expected_grainstats_additions_filename: str,
     expected_all_images_filename: str,
@@ -945,31 +959,47 @@ def test_nodestats_image(
             node_joining_length=7.0,
             node_extend_dist=14.0,
             branch_pairing_length=20.0,
-            pair_odd_branches=True,
+            pair_odd_branches=pair_odd_branches,
             pad_width=1,
         )
     )
 
-    # DEBUGGING (For viewing images)
+    # # DEBUGGING (For viewing images)
     # convolved_skeletons = result_all_images["convolved_skeletons"]
     # node_centres = result_all_images["node_centres"]
     # connected_nodes = result_all_images["connected_nodes"]
 
-    # # Save the results
+    # # # Save the results
     # if image_filename == "example_catenanes.npy":
-    # with Path(RESOURCES / "example_catenanes_nodestats_data.pkl").open("wb") as f:
-    #     pickle.dump(result_nodestats_data, f)
+    #     # Save the result_nodestats_data
+    #     with Path(RESOURCES / "example_catenanes_nodestats_data.pkl").open("wb") as f:
+    #         pickle.dump(result_nodestats_data, f)
 
-    # # Save the result_grainstats_additions_df as a csv
-    # result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_grainstats_additions_nodestats.csv")
+    #     # Save the result_grainstats_additions_df as a csv
+    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_grainstats_additions_nodestats.csv")
 
-    # # Save the result_all_images
-    # with Path(RESOURCES / "example_catenanes_all_images_nodestats.pkl").open("wb") as f:
-    #     pickle.dump(result_all_images, f)
+    #     # Save the result_all_images
+    #     with Path(RESOURCES / "example_catenanes_all_images_nodestats.pkl").open("wb") as f:
+    #         pickle.dump(result_all_images, f)
 
-    # # Save the result_nodestats_branch_images
-    # with Path(RESOURCES / "example_catenanes_nodestats_branch_images.pkl").open("wb") as f:
-    #     pickle.dump(result_nodestats_branch_images, f)
+    #     # Save the result_nodestats_branch_images
+    #     with Path(RESOURCES / "example_catenanes_nodestats_branch_images.pkl").open("wb") as f:
+    #         pickle.dump(result_nodestats_branch_images, f)
+    # elif image_filename == "example_rep_int.npy":
+    #     # Save the result_nodestats_data
+    #     with Path(RESOURCES / "example_rep_int_nodestats_data.pkl").open("wb") as f:
+    #         pickle.dump(result_nodestats_data, f)
+
+    #     # Save the result_grainstats_additions_df as a csv
+    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_rep_int_grainstats_additions_nodestats.csv")
+
+    #     # Save the result_all_images
+    #     with Path(RESOURCES / "example_rep_int_all_images_nodestats.pkl").open("wb") as f:
+    #         pickle.dump(result_all_images, f)
+
+    #     # Save the result_nodestats_branch_images
+    #     with Path(RESOURCES / "example_rep_int_nodestats_branch_images.pkl").open("wb") as f:
+    #         pickle.dump(result_nodestats_branch_images, f)
 
     # Load expected data
 
