@@ -57,3 +57,7 @@ topostats/_version.py
 
 # default output directory, often common from testing
 output/
+
+# Include all files in tests and all subdirectories except processed
+!tests/**
+tests/resources/processed/
