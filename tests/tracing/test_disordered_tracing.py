@@ -1221,7 +1221,16 @@ def test_disordered_trace_grain(
             "example_catenanes_all_images.pkl",
             "example_catenanes_disordered_tracing_stats.csv",
             id="catenane",
-        )
+        ),
+        pytest.param(
+            "example_rep_int.npy",
+            "example_rep_int_labelled_grain_mask_thresholded.npy",
+            "example_rep_int_disordered_crop_data.pkl",
+            "example_rep_int_grainstats_additions_df.csv",
+            "example_rep_int_all_images.pkl",
+            "example_rep_int_disordered_tracing_stats.csv",
+            id="replication intermediate",
+        ),
     ],
 )
 def test_trace_image_disordered(
@@ -1271,21 +1280,34 @@ def test_trace_image_disordered(
     # variable_pruned_skeleton = result_all_images["pruned_skeleton"]
     # variable_branch_types = result_all_images["branch_types"]
 
-    # Update expected values
+    # Update expected values - CHECK RESULTS WITH EXPERT BEFORE UPDATING
     # Pickle result_disordered_crop_data
     # if image_filename == "example_catenanes.npy":
-    # with open("tests/resources/example_catenanes_disordered_crop_data.pkl", "wb") as f:
-    #     pkl.dump(result_disordered_crop_data, f)
+    #     with open("tests/resources/example_catenanes_disordered_crop_data.pkl", "wb") as f:
+    #         pkl.dump(result_disordered_crop_data, f)
 
-    # # Save result_grainstats_additions_df as a csv
-    # result_grainstats_additions_df.to_csv("tests/resources/example_catenanes_grainstats_additions_df.csv")
+    #     # Save result_grainstats_additions_df as a csv
+    #     result_grainstats_additions_df.to_csv("tests/resources/example_catenanes_grainstats_additions_df.csv")
 
-    # # Save result_all_images as a pickle
-    # with open("tests/resources/example_catenanes_all_images.pkl", "wb") as f:
-    #     pkl.dump(result_all_images, f)
+    #     # Save result_all_images as a pickle
+    #     with open("tests/resources/example_catenanes_all_images.pkl", "wb") as f:
+    #         pkl.dump(result_all_images, f)
 
-    # Save result_disordered_tracing_stats dataframe as a csv
-    # result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_disordered_tracing_stats.csv")
+    #     # Save result_disordered_tracing_stats dataframe as a csv
+    #     result_disordered_tracing_stats.to_csv("tests/resources/example_catenanes_disordered_tracing_stats.csv")
+    # elif image_filename == "example_rep_int.npy":
+    #     with open("tests/resources/example_rep_int_disordered_crop_data.pkl", "wb") as f:
+    #         pkl.dump(result_disordered_crop_data, f)
+
+    #     # Save result_grainstats_additions_df as a csv
+    #     result_grainstats_additions_df.to_csv("tests/resources/example_rep_int_grainstats_additions_df.csv")
+
+    #     # Save result_all_images as a pickle
+    #     with open("tests/resources/example_rep_int_all_images.pkl", "wb") as f:
+    #         pkl.dump(result_all_images, f)
+
+    #     # Save result_disordered_tracing_stats dataframe as a csv
+    #     result_disordered_tracing_stats.to_csv("tests/resources/example_rep_int_disordered_tracing_stats.csv")
 
     # Load expected values
     with Path.open(RESOURCES / expected_disordered_crop_data_filename, "rb") as f:
