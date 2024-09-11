@@ -23,7 +23,7 @@ def test_melt_data():
     df_to_melt = {
         "Image": ["im1", "im1", "im1", "im2", "im2", "im3", "im3"],
         "threshold": ["above", "above", "above", "below", "below", "above", "above"],
-        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "grain_number": [0, 1, 2, 0, 1, 0, 1],
         "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
         "area": [10, 20, 30, 40, 50, 60, 70],
     }
@@ -33,7 +33,7 @@ def test_melt_data():
     melted_data = TopoSum.melt_data(df=df_to_melt, stat_to_summarize="area", var_to_label={"area": "AREA"})
 
     expected = {
-        "molecule_number": [0, 1, 2, 0, 1, 0, 1],
+        "grain_number": [0, 1, 2, 0, 1, 0, 1],
         "basename": ["super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub1", "super/sub2", "super/sub2"],
         "variable": ["AREA", "AREA", "AREA", "AREA", "AREA", "AREA", "AREA"],
         "value": [10, 20, 30, 40, 50, 60, 70],
