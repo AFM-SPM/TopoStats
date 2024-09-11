@@ -35,16 +35,17 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 
 
 # Sylvia: Ruff says too complex but I think breaking this out would be more complex.
-def dict_almost_equal(dict1, dict2, abs_tol=1e-9):  # noqa: C901
-    """Recursively check if two dictionaries are almost equal with a given absolute tolerance.
+def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa: C901
+    """
+    Recursively check if two dictionaries are almost equal with a given absolute tolerance.
 
     Parameters
     ----------
-    dict1: dict
+    dict1 : dict
         First dictionary to compare.
-    dict2: dict
+    dict2 : dict
         Second dictionary to compare.
-    abs_tol: float
+    abs_tol : float
         Absolute tolerance to check for equality.
 
     Returns
