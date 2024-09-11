@@ -10,7 +10,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from tests.test_io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
+from topostats.io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
 from topostats.tracing.disordered_tracing import disordered_trace_grain, trace_image_disordered
 
 # pylint: disable=too-many-arguments

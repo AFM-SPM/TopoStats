@@ -13,7 +13,7 @@ from pytest_lazyfixture import lazy_fixture
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
-from tests.test_io import dict_almost_equal
+from topostats.io import dict_almost_equal
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
