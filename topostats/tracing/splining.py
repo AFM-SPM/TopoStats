@@ -513,7 +513,7 @@ def splining_image(
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
-) -> tuple[dict, pd.DataFrame]:
+) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-locals
     """
@@ -545,8 +545,9 @@ def splining_image(
 
     Returns
     -------
-    tuple[dict, pd.DataFrame]
-        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe.
+    tuple[dict, pd.DataFrame, pd.DataFrame]
+        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe and molecule
+        statistics dataframe.
     """
     grainstats_additions = {}
     molstats = {}
