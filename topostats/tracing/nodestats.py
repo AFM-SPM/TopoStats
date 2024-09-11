@@ -21,7 +21,7 @@ from topostats.measure.geometry import (
 )
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
+from topostats.tracing.tracingfuncs import get_two_combinations, order_branch, order_branch_from_start
 from topostats.utils import ResolutionError, convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -844,7 +844,7 @@ class nodeStats:
         if len(crossing_quants) <= 1:
             conf = None
         else:
-            combs = nodeStats.get_two_combinations(crossing_quants)
+            combs = get_two_combinations(crossing_quants)
             conf = np.float64(nodeStats.cross_confidence(combs))
 
         fwhms = []
@@ -1019,29 +1019,6 @@ class nodeStats:
             vectors.append(vector)
 
         return ordered_branches, vectors
-
-    @staticmethod
-    def get_two_combinations(fwhm_list) -> list:
-        """
-        Obtain all paired combinations of values in the list.
-
-        Example: [1,2] -> [[1,2]], [1,2,3] -> [[1,2],[1,3],[2,3]]
-
-        Parameters
-        ----------
-        fwhm_list : list
-            List of FWHMs from crossing analysis.
-
-        Returns
-        -------
-        list
-            A list of pairs of 'fwhm_list' values.
-        """
-        combs = []
-        for i in range(len(fwhm_list) - 1):
-            for j in fwhm_list[i + 1 :]:
-                combs.append([fwhm_list[i], j])
-        return combs
 
     @staticmethod
     def cross_confidence(combs: list) -> float:

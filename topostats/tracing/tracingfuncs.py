@@ -531,3 +531,26 @@ def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
             dist += 1
         dist_list.append(dist)
     return np.asarray(dist_list) * px_2_nm
+
+
+def get_two_combinations(list_of_values) -> list:
+    """
+    Obtain all paired combinations of values in the list.
+
+    Example: [1,2] -> [[1,2]], [1,2,3] -> [[1,2],[1,3],[2,3]]
+
+    Parameters
+    ----------
+    list_of_values : list
+        List of numbers.
+
+    Returns
+    -------
+    list
+        A list of combinatorics pairs of values, retaining the initial order.
+    """
+    combs = []
+    for i in range(len(list_of_values) - 1):
+        for j in list_of_values[i + 1 :]:
+            combs.append([list_of_values[i], j])
+    return combs
