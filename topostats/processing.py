@@ -1020,7 +1020,6 @@ def process_scan(
             nodestats_config=nodestats_config,
             grainstats_df=grainstats_df,
         )
-        topostats_object["nodestats"] = nodestats
 
         # Ordered Tracing
         ordered_tracing, grainstats_df, molstats_df = run_ordered_tracing(
@@ -1036,6 +1035,7 @@ def process_scan(
             grainstats_df=grainstats_df,
         )
         topostats_object["ordered_traces"] = ordered_tracing
+        topostats_object["nodestats"] = nodestats  # looks weird but ordered adds an extra field
 
         # splining
         splined_data, grainstats_df, molstats_df = run_splining(
