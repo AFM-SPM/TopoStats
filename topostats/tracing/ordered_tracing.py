@@ -11,7 +11,7 @@ from skimage.morphology import label
 from topoly import jones, translate_code
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
+from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, get_two_combinations, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -76,6 +76,8 @@ class OrderedTraceNodestats:
         }
 
         self.profiles = {}
+
+        self.img_idx_to_node = {}
 
         self.ordered_coordinates = []
 
@@ -147,14 +149,13 @@ class OrderedTraceNodestats:
 
         # setup z array
         z = []
-        img_idx_to_node = {}
         # order minus segments
         ordered = []
         for non_cross_segment_idx in range(1, minus.max() + 1):
             arr = np.where(minus, minus == non_cross_segment_idx, 0)
             ordered.append(order_branch(arr, [0, 0]))  # orientated later
             z.append(0)
-            img_idx_to_node[non_cross_segment_idx] = {}
+            self.img_idx_to_node[non_cross_segment_idx] = {}
 
         # add crossing coords to ordered segment list
         uneven_count = non_cross_segment_idx + 1
@@ -174,7 +175,11 @@ class OrderedTraceNodestats:
                 if len(uncommon_single_cross) > 0:
                     ordered.append(uncommon_single_cross)
                 z.append(z_idx[node_cross_idx])
-                img_idx_to_node[uneven_count+node_cross_idx] = {"node_idx": node_num, "coords": single_cross, "z_idx": z_idx[node_cross_idx]}
+                self.img_idx_to_node[uneven_count + node_cross_idx] = {
+                    "node_idx": node_num,
+                    "coords": single_cross,
+                    "z_idx": z_idx[node_cross_idx],
+                }
             uneven_count += len(node_crossing_coords)
 
         # get an image of each ordered segment
@@ -183,7 +188,7 @@ class OrderedTraceNodestats:
             single_cross_img = coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img != 0] = i + 1
 
-        coord_trace, simple_trace, img_idx_to_node = self.trace(ordered, cross_add, z, img_idx_to_node, n=100)
+        coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
 
         # visual over under img
         self.images["trace_segments"] = cross_add
@@ -199,7 +204,7 @@ class OrderedTraceNodestats:
         if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
             topology = [None for _ in enumerate(topology)]
 
-        return coord_trace, self.images, topology, img_idx_to_node
+        return coord_trace, self.images, topology
 
     @staticmethod
     def remove_common_values(
@@ -279,7 +284,7 @@ class OrderedTraceNodestats:
 
         return topology
 
-    def trace(self, ordered_segment_coords: list, both_img: npt.NDArray, zs: npt.NDArray, img_idx_to_node: dict, n: int = 100) -> list:
+    def trace(self, ordered_segment_coords: list, both_img: npt.NDArray, zs: npt.NDArray, n: int = 100) -> list:
         # pylint: disable=too-many-locals
         """
         Obtain an ordered trace of each complete path.
@@ -329,13 +334,15 @@ class OrderedTraceNodestats:
                     trace_segment = self.remove_common_values(
                         trace_segment, prev_segment
                     )  # remove overlaps in trace (may be more efficient to do it on the previous segment)
-                    trace_segment, flipped = self.order_from_end(coord_trace[-1,:2], trace_segment)
+                    trace_segment, flipped = self.order_from_end(coord_trace[-1, :2], trace_segment)
                     full_trace_segment = full_trace_segment[::-1] if flipped else full_trace_segment
                 # get vector if crossing
-                if img_idx_to_node[coord_idx+1]:
-                    segment_vector = full_trace_segment[-1] - full_trace_segment.mean(axis=0) # from start to mean coord
-                    segment_vector /= np.sqrt(segment_vector @ segment_vector) # normalise
-                    img_idx_to_node[coord_idx+1]["vector"] = segment_vector
+                if self.img_idx_to_node[coord_idx + 1]:
+                    segment_vector = full_trace_segment[-1] - full_trace_segment.mean(
+                        axis=0
+                    )  # from start to mean coord
+                    segment_vector /= np.sqrt(segment_vector @ segment_vector)  # normalise
+                    self.img_idx_to_node[coord_idx + 1]["vector"] = segment_vector
                 prev_segment = trace_segment.copy()  # update previous segment
                 trace_segment_z = np.column_stack(
                     (trace_segment, np.ones((len(trace_segment), 1)) * zs[coord_idx])
@@ -355,7 +362,7 @@ class OrderedTraceNodestats:
                 )  # add z's
                 simple_trace = np.append(simple_trace, simple_trace_temp_z, axis=0)
 
-                x, y = coord_trace[-1,:2]
+                x, y = coord_trace[-1, :2]
                 coord_idx = remaining[x - 1 : x + 2, y - 1 : y + 2].max() - 1  # should only be one value
             mol_coords.append(coord_trace)
 
@@ -370,7 +377,7 @@ class OrderedTraceNodestats:
         # convert into lists for Topoly
         simple_coords = [[list(row) for row in mol] for mol in simple_coords]
 
-        return mol_coords, simple_coords, img_idx_to_node
+        return mol_coords, simple_coords
 
     @staticmethod
     def reduce_rows(array: npt.NDArray, n: int = 300) -> npt.NDArray:
@@ -444,7 +451,7 @@ class OrderedTraceNodestats:
         npt.NDArray
             The current segment orientated to follow on from the last.
         bool
-            Wether the order has been flipped.
+            Whether the order has been flipped.
         """
         start_xy = current_segment[0]
         dist = np.sum((start_xy - last_segment_coord) ** 2) ** 0.5
@@ -572,37 +579,32 @@ class OrderedTraceNodestats:
             if vals["error"]:
                 return False
         return True
-    
-    def identify_writhes(self, img_idx_to_node: dict) -> str:
-        """
-        Identify the writhe topology at each crossing.
 
-        Parameters
-        ----------
-        trace_xyz : npt.NDArray
-            _description_
+    def identify_writhes(self) -> str | dict:
+        """
+        Identify the writhe topology at each crossing in the image.
 
         Returns
         -------
-        str
-            _description_
+        str | dict
+            A string of the whole grain writhe sign, and a dictionary linking each node to it's sign.
         """
         # compile all vectors for each node and their z_idx
         #   - want for each node, ordered vectors according to z_idx
-        writhe_string = ''
+        writhe_string = ""
         node_to_writhe = {}
-        idx2node_df = pd.DataFrame.from_dict(img_idx_to_node, orient='index')
-        if idx2node_df.empty: # for when no crossovers but still crossings (i.e. unpaired 3-way)
-            return '', {}
-        
+        idx2node_df = pd.DataFrame.from_dict(self.img_idx_to_node, orient="index")
+        if idx2node_df.empty:  # for when no crossovers but still crossings (i.e. unpaired 3-way)
+            return "", {}
+
         for node_num, node_df in idx2node_df.groupby("node_idx"):
             vector_series = node_df.sort_values(by=["z_idx"], ascending=False)["vector"]
-            vectors = [vector for vector in vector_series]
+            vectors = list(vector_series)
             # get pairs
-            combs = self.get_two_combinations(vectors)
+            combs = get_two_combinations(vectors)
             # calculate the writhe
-            temp_writhes = ''
-            for comb in combs: # if > 2 crossing branches
+            temp_writhes = ""
+            for comb in combs:  # if > 2 crossing branches
                 temp_writhes += self.writhe_direction(comb[0], comb[1])
             if len(temp_writhes) > 1:
                 temp_writhes = f"({temp_writhes})"
@@ -610,44 +612,30 @@ class OrderedTraceNodestats:
             writhe_string += temp_writhes
 
         return writhe_string, node_to_writhe
-    
-    @staticmethod
-    def get_two_combinations(fwhm_list) -> list:
-        """
-        Obtain all paired combinations of values in the list.
 
-        Example: [1,2] -> [[1,2]], [1,2,3] -> [[1,2],[1,3],[2,3]]
+    @staticmethod
+    def writhe_direction(first_vector: npt.NDArray, second_vector: npt.NDArray) -> str:
+        """
+        Use the cross product of crossing vectors to determine the writhe sign.
 
         Parameters
         ----------
-        fwhm_list : list
-            List of FWHMs from crossing analysis.
+        first_vector : npt.NDArray
+            An x,y component vector of the overlying strand.
+        second_vector : npt.NDArray
+            An x,y component vector of the underlying strand.
 
         Returns
         -------
-        list
-            A list of pairs of 'fwhm_list' values.
+        str
+            '+', '-' or '0' for positive, negative, or no writhe.
         """
-        combs = []
-        for i in range(len(fwhm_list) - 1):
-            for j in fwhm_list[i + 1 :]:
-                combs.append([fwhm_list[i], j])
-        return combs
-    
-    @staticmethod
-    def writhe_direction(first_vector, second_vector):
-        #first_vector = np.pad(first_vector, pad_width=[0,1])
-        #second_vector = np.pad(second_vector, pad_width=[0,1])
         cross = np.cross(first_vector, second_vector)
-        #rel_vector = first_vector @ second_vector
-        #print(rel_vector, cross)
-        #cross = rel_vector * cross
-        print("CP: ", cross)
         if cross < 0:
-            return '-'
-        elif cross > 0:
-            return '+'
-        return '0'
+            return "-"
+        if cross > 0:
+            return "+"
+        return "0"
 
     def run_nodestats_tracing(self) -> tuple[list, dict, dict]:
         """
@@ -658,13 +646,13 @@ class OrderedTraceNodestats:
         tuple[list, dict, dict]
             A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
         """
-        self.ordered_traces, self.images, topology, writhe_dict  = self.compile_trace(reverse_min_conf_crossing=False)
+        self.ordered_traces, self.images, topology = self.compile_trace(reverse_min_conf_crossing=False)
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[2]
         self.grain_tracing_stats["num_mols"] = len(self.ordered_traces)
-        writhe_string, node_to_writhes =  self.identify_writhes(writhe_dict)
+        writhe_string, node_to_writhes = self.identify_writhes()
         self.grain_tracing_stats["writhe_string"] = writhe_string
-        
-        for node_num, node_writhes in node_to_writhes.items(): # should self update as the dicts are linked
+
+        for node_num, node_writhes in node_to_writhes.items():  # should self update as the dicts are linked
             self.nodestats_dict[f"node_{node_num+1}"]["writhe"] = node_writhes
 
         ordered_trace_data = {}
@@ -676,9 +664,9 @@ class OrderedTraceNodestats:
                 self.mol_tracing_stats["topology"] = topology[i]
                 self.mol_tracing_stats["topology_flip"] = topology_flip[i]
                 ordered_trace_data[f"mol_{i}"] = {
-                    "ordered_coords": mol_trace[:,:2],
+                    "ordered_coords": mol_trace[:, :2],
                     "heights": self.image[mol_trace[:, 0], mol_trace[:, 1]],
-                    "distances": coord_dist(mol_trace[:,:2]),
+                    "distances": coord_dist(mol_trace[:, :2]),
                     "mol_stats": self.mol_tracing_stats,
                 }
                 grain_mol_tracing_stats[f"{i}"] = self.mol_tracing_stats
@@ -892,66 +880,64 @@ def ordered_tracing_image(
 
     # iterate through disordered_tracing_dict
     for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
-        #try:
-        # check if want to do nodestats tracing or not
-        if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
-            LOGGER.info(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
-            nodestats_tracing = OrderedTraceNodestats(
-                image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
-                filename=filename,
-                nodestats_dict=nodestats_direction_data["stats"][grain_no],
-                skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
-            )
-            print("PRE: ", nodestats_direction_data["stats"][grain_no]['node_1'].keys())
-            if nodestats_tracing.check_node_errorless():
-                ordered_traces_data, tracing_stats, grain_molstats, images = (
-                    nodestats_tracing.run_nodestats_tracing()
+        try:
+            # check if want to do nodestats tracing or not
+            if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
+                LOGGER.info(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
+                nodestats_tracing = OrderedTraceNodestats(
+                    image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
+                    filename=filename,
+                    nodestats_dict=nodestats_direction_data["stats"][grain_no],
+                    skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
                 )
-                print("POST: ", nodestats_direction_data["stats"][grain_no]['node_1'].keys())
-                LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
+                if nodestats_tracing.check_node_errorless():
+                    ordered_traces_data, tracing_stats, grain_molstats, images = (
+                        nodestats_tracing.run_nodestats_tracing()
+                    )
+                    LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
+                else:
+                    LOGGER.warning(
+                        f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
+                    )
+            # if not doing nodestats ordering, do original TS ordering
             else:
-                LOGGER.warning(
-                    f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
+                LOGGER.info(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
+                topostats_tracing = OrderedTraceTopostats(
+                    image=disordered_trace_data["original_image"],
+                    skeleton=disordered_trace_data["pruned_skeleton"],
                 )
-        # if not doing nodestats ordering, do original TS ordering
-        else:
-            LOGGER.info(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
-            topostats_tracing = OrderedTraceTopostats(
-                image=disordered_trace_data["original_image"],
-                skeleton=disordered_trace_data["pruned_skeleton"],
-            )
-            ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
-            LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
+                ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
+                LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
 
-        # compile traces
-        all_traces_data[grain_no] = ordered_traces_data
-        for mol_no, _ in ordered_traces_data.items():
-            all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
-        # compile metrics
-        grainstats_additions[grain_no] = {
-            "image": filename,
-            "grain_number": int(grain_no.split("_")[-1]),
-        }
-        tracing_stats.pop("circular")
-        grainstats_additions[grain_no].update(tracing_stats)
-        # compile molecule metrics
-        for mol_no, molstat_values in grain_molstats.items():
-            molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
+            # compile traces
+            all_traces_data[grain_no] = ordered_traces_data
+            for mol_no, _ in ordered_traces_data.items():
+                all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
+            # compile metrics
+            grainstats_additions[grain_no] = {
                 "image": filename,
                 "grain_number": int(grain_no.split("_")[-1]),
             }
-            molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
+            tracing_stats.pop("circular")
+            grainstats_additions[grain_no].update(tracing_stats)
+            # compile molecule metrics
+            for mol_no, molstat_values in grain_molstats.items():
+                molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
+                    "image": filename,
+                    "grain_number": int(grain_no.split("_")[-1]),
+                }
+                molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
 
-        # remap the cropped images back onto the original
-        for image_name, full_image in ordered_trace_full_images.items():
-            crop = images[image_name]
-            bbox = disordered_trace_data["bbox"]
-            full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-        """
+            # remap the cropped images back onto the original
+            for image_name, full_image in ordered_trace_full_images.items():
+                crop = images[image_name]
+                bbox = disordered_trace_data["bbox"]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
             all_traces_data[grain_no] = {}
-        """
+
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
 
