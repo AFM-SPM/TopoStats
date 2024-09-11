@@ -1,3 +1,131 @@
 # Disable ruff 301 - pickle loading is unsafe, but we don't care for tests
 # ruff: noqa: S301
 """Test the splining module."""
+
+import pickle
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from topostats.tracing.splining import splining_image
+
+BASE_DIR = Path.cwd()
+RESOURCES = BASE_DIR / "tests" / "resources"
+
+# pylint: disable=unspecified-encoding
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments
+
+
+@pytest.mark.parametrize(
+    ("image_filename", "ordered_tracing_direction_data_filename", "pixel_to_nm_scaling", "filename"),
+    [
+        pytest.param(
+            "example_catenanes.npy",
+            "example_catenanes_ordered_tracing_data.pkl",
+            1.0,  # pixel_to_nm_scaling
+            "catenane",  # filename
+            id="catenane",
+        ),
+    ],
+)
+def test_splining_image(
+    image_filename: str,
+    ordered_tracing_direction_data_filename: str,
+    pixel_to_nm_scaling: float,
+    filename: str,
+) -> None:
+    """Test the splining_image function of the splining module."""
+    # Load the data
+    image = np.load(RESOURCES / image_filename)
+
+    # Load the ordered tracing direction data
+    with Path.open(RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
+        ordered_tracing_direction_data = pickle.load(file)
+
+    result_all_splines_data, result_grainstats_additions_df, result_molstats_df = splining_image(
+        image=image,
+        ordered_tracing_direction_data=ordered_tracing_direction_data,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        filename=filename,
+        method="rolling_window",
+        rolling_window_size=20e-9,
+        spline_step_size=7.0e-9,
+        spline_linear_smoothing=5.0,
+        spline_circular_smoothing=5.0,
+        spline_degree=3,
+    )
+
+    # # Debugging
+    # # Spline coords is Nx2 array of spline coordinates
+    # # Visualise the spline coordinates
+    # import matplotlib.pyplot as plt
+    # import numpy.typing as npt
+
+    # fig, ax = plt.subplots(figsize=(10, 10))
+    # ax.imshow(image, cmap="gray")
+    # # Array of lots of matplotlib colours
+    # lots_of_colours = [
+    #     "blue",
+    #     "green",
+    #     "red",
+    #     "cyan",
+    #     "magenta",
+    #     "yellow",
+    #     "black",
+    #     "white",
+    #     "orange",
+    #     "purple",
+    # ]
+    # for grain_key_index, grain_key in enumerate(result_all_splines_data.keys()):
+    #     print(f"Grain key: {grain_key}")
+    #     for mol_key_index, mol_key in enumerate(result_all_splines_data[grain_key].keys()):
+    #         spline_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["spline_coords"]
+    #         bbox = result_all_splines_data[grain_key][mol_key]["bbox"]
+    #         bbox_min_col = bbox[0]
+    #         bbox_min_row = bbox[1]
+    #         previous_point = spline_coords[0]
+    #         colour = lots_of_colours[mol_key_index + grain_key_index * 3 % len(lots_of_colours)]
+    #         for point in spline_coords[1:]:
+    #             ax.plot(
+    #                 [
+    #                     previous_point[1] / pixel_to_nm_scaling + bbox_min_row,
+    #                     point[1] / pixel_to_nm_scaling + bbox_min_row,
+    #                 ],
+    #                 [
+    #                     previous_point[0] / pixel_to_nm_scaling + bbox_min_col,
+    #                     point[0] / pixel_to_nm_scaling + bbox_min_col,
+    #                 ],
+    #                 color=colour,
+    #                 linewidth=2,
+    #             )
+    #             previous_point = point
+    # plt.show()
+
+    # # Save the results to update the test data
+    # if filename == "catenane":
+    #     # Save result splining data as pickle
+    #     with Path.open(RESOURCES / "example_catenanes_splining_data.pkl", "wb") as file:
+    #         pickle.dump(result_all_splines_data, file)
+
+    #     # Save result grainstats additions as csv
+    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_splining_grainstats_additions.csv")
+
+    #     # Save result molstats as csv
+    #     result_molstats_df.to_csv(RESOURCES / "example_catenanes_splining_molstats.csv")
+
+    # Load the expected results
+    with Path.open(RESOURCES / "example_catenanes_splining_data.pkl", "rb") as file:
+        expected_all_splines_data = pickle.load(file)
+
+    expected_grainstats_additions_df = pd.read_csv(
+        RESOURCES / "example_catenanes_splining_grainstats_additions.csv", index_col=0
+    )
+    expected_molstats_df = pd.read_csv(RESOURCES / "example_catenanes_splining_molstats.csv", index_col=0)
+
+    # Check the results
+    np.testing.assert_equal(result_all_splines_data, expected_all_splines_data)
+    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
