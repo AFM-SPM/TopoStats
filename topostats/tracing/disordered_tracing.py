@@ -467,7 +467,7 @@ def segment_middles(row: pd.Series, skan_skeleton: skan.csr.Skeleton, image: npt
     return heights[[middle_idx, middle_idx + middle_remainder]].mean()
 
 
-def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> list:
+def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> str:
     """
     Compile the neighbouring branch indexes of the row.
 
@@ -480,8 +480,10 @@ def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> list:
 
     Returns
     -------
-    list
-        A list of matching row indices where the node src and dst columns match that of the rows.
+    str
+        A string representation of a list of matching row indices where the node src and dst
+        columns match that of the rows.
+        String is needed for csv compatibility since csvs can't hold lists.
     """
     connections = skan_df[
         (skan_df["node-id-src"] == row["node-id-src"])
@@ -492,7 +494,7 @@ def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> list:
 
     # Remove the index of the current row itself from the list of connections
     connections.remove(row.name)
-    return connections
+    return str(connections)
 
 
 def prep_arrays(
