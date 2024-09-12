@@ -236,7 +236,7 @@ def run_grains(  # noqa: C901
             return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
-    LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+    LOGGER.info(f"[{filename}] Detection of grains disabled, GrainStats will not be run.")
 
     return None
 
@@ -612,7 +612,6 @@ def run_ordered_tracing(
     image: npt.NDArray,
     disordered_tracing_data: dict,
     nodestats_data: dict,
-    pixel_to_nm_scaling: float,
     filename: str,
     core_out_path: Path,
     tracing_out_path: Path,
@@ -631,8 +630,6 @@ def run_ordered_tracing(
         Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
     nodestats_data : dict
         Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
     filename : str
         Name of the image.
     core_out_path : Path
@@ -677,7 +674,6 @@ def run_ordered_tracing(
                     disordered_tracing_direction_data=disordered_tracing_direction_data,
                     nodestats_direction_data=nodestats_data[direction],
                     filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
                     **ordered_tracing_config,
                 )
 
@@ -1012,7 +1008,6 @@ def process_scan(
             image=topostats_object["image_flattened"],
             disordered_tracing_data=topostats_object["disordered_traces"],
             nodestats_data=nodestats,
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
