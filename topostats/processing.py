@@ -28,6 +28,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=line-too-long
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-branches
+# pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
@@ -471,7 +472,7 @@ def run_disorderedTrace(
         return {}, results_df, None
 
 
-def run_nodestats(
+def run_nodestats(  # noqa: C901
     image: npt.NDArray,
     disordered_tracing_data: dict,
     pixel_to_nm_scaling: float,
@@ -1065,7 +1066,7 @@ def process_scan(
     return topostats_object["img_path"], results_df, image_stats, disordered_tracing_stats, molstats_df
 
 
-def check_run_steps(
+def check_run_steps(  # noqa: C901
     filter_run: bool,
     grains_run: bool,
     grainstats_run: bool,
