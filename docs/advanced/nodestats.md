@@ -173,6 +173,17 @@ Images produced by the `plotting.image_set: all` for this module are:
 - `26-node_centres` - The highest pixel in each crossing region (green) with
   the same colourmap as above. This is where the '0' distance point corresponds
   to in the height traces.
+- `nodes` folder:
+  - `grain_<X>_node_<Y>_node_area_skeleton>` - Contains the reduced area of
+    grain number X and node number Y which consists of the node in question and
+    only it's emanating branches.
+  - `grain_<X>_node_<Y>_node_branch_mask>` - Visualises the crossing branches
+    where the length depends on `branch_pairing_length`.
+  - `grain_<X>_node_<Y>_node_avg_mask>` - Visualises the dilated crossing
+    branches used to obtain an average height trace along the crossing branches.
+  - `grain_<X>_node_<Y>_linetrace_halfmax>` - Shows the height trace of each
+    crossing branch, and was used to determine the FWHM. The vertical lines show
+    the location of where the half-maximum was taken from.
 
 ![Examples of diagnostic images](../_static/images/nodestats/diagnostics.png)
 
