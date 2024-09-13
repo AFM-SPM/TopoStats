@@ -154,7 +154,6 @@ contains a multitude of grain and branch statistics such as:
 - number of nodes per grain
 - node confidences
 - node coordinates
-- node writhe sign
 - number of branches per node
 - branch distance array
 - branch height array
@@ -162,6 +161,9 @@ contains a multitude of grain and branch statistics such as:
 - matched and unmatched branch angles
 
 ![TopoStats file - NodeStats structure](../_static/images/nodestats/topostats_file.png)
+**Note:** The writhe sign is identified in `ordered_traces.py`, not `nodestats`
+as the path needs directionality provided by the ordering. It is added to the
+NodeStats dictionary as this carries the node statistics.
 
 ## Diagnostic Images
 
