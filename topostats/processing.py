@@ -158,81 +158,82 @@ def run_grains(  # noqa: C901
     if grains_config["run"]:
         grains_config.pop("run")
 
-        # try:
-        LOGGER.info(f"[{filename}] : *** Grain Finding ***")
-        grains = Grains(
-            image=image,
-            filename=filename,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            **grains_config,
-        )
-        grains.find_grains()
-        for direction, _ in grains.region_properties.items():
-            LOGGER.info(
-                f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
+        try:
+            LOGGER.info(f"[{filename}] : *** Grain Finding ***")
+            grains = Grains(
+                image=image,
+                filename=filename,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                **grains_config,
             )
-            if len(grains.region_properties[direction]) == 0:
-                LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
-        # except Exception as e:
-        #     LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
-        #     LOGGER.error(f"[{filename}] : The error: {e}")
-        # else:
-        for direction, region_props in grains.region_properties.items():
-            if len(region_props) == 0:
-                LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
-        # Optionally plot grain finding stage if we have found grains and plotting is required
-        if plotting_config["run"]:
-            plotting_config.pop("run")
-            LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
-            for direction, image_arrays in grains.directions.items():
-                LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
-                grain_out_path_direction = grain_out_path / f"{direction}"
-                if plotting_config["image_set"] == "all":
-                    grain_out_path_direction.mkdir(parents=True, exist_ok=True)
-                    LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
-                for plot_name, array in image_arrays.items():
-                    if len(array.shape) == 3:
-                        # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
-                        array = array[:, :, 1]
-                    LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
-                Images(
-                    grains.directions[direction]["coloured_regions"],
-                    **plotting_config["plot_dict"]["bounding_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
-                # hard code to class index 1, as this implementation is not yet generalised.
-                Images(
-                    grains.directions[direction]["labelled_regions_02"][:, :, 1],
-                    **plotting_config["plot_dict"]["coloured_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                # hard code to class index 1, as this implementation is not yet generalised.
-                Images(
-                    image,
-                    filename=f"{filename}_{direction}_masked",
-                    masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1],
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
-
-            plotting_config["run"] = True
-
+            grains.find_grains()
+            for direction, _ in grains.region_properties.items():
+                LOGGER.info(
+                    f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
+                )
+                if len(grains.region_properties[direction]) == 0:
+                    LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
+        except Exception as e:
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : The error: {e}")
         else:
-            # Otherwise, return None and warn that plotting is disabled for grain finding images
-            LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
+            for direction, region_props in grains.region_properties.items():
+                if len(region_props) == 0:
+                    LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
+            # Optionally plot grain finding stage if we have found grains and plotting is required
+            if plotting_config["run"]:
+                plotting_config.pop("run")
+                LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
+                for direction, image_arrays in grains.directions.items():
+                    LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
+                    grain_out_path_direction = grain_out_path / f"{direction}"
+                    if plotting_config["image_set"] == "all":
+                        grain_out_path_direction.mkdir(parents=True, exist_ok=True)
+                        LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
+                    for plot_name, array in image_arrays.items():
+                        if len(array.shape) == 3:
+                            # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
+                            array = array[:, :, 1]
+                        LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                    # Make a plot of coloured regions with bounding boxes
+                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
+                    Images(
+                        grains.directions[direction]["coloured_regions"],
+                        **plotting_config["plot_dict"]["bounding_boxes"],
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
+                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
+                    # hard code to class index 1, as this implementation is not yet generalised.
+                    Images(
+                        grains.directions[direction]["labelled_regions_02"][:, :, 1],
+                        **plotting_config["plot_dict"]["coloured_boxes"],
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
+                    # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
+                    plot_name = "mask_overlay"
+                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                    # hard code to class index 1, as this implementation is not yet generalised.
+                    Images(
+                        image,
+                        filename=f"{filename}_{direction}_masked",
+                        masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1],
+                        **plotting_config["plot_dict"][plot_name],
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
 
-        grain_masks = {}
-        for direction in grains.directions:
-            grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+                plotting_config["run"] = True
 
-        return grain_masks
+            else:
+                # Otherwise, return None and warn that plotting is disabled for grain finding images
+                LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
+
+            grain_masks = {}
+            for direction in grains.directions:
+                grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+
+            return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
     LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
@@ -292,7 +293,6 @@ def run_grainstats(
             height_profiles_dict = {}
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
-
                 # Get the DNA class mask from the tensor
                 LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
@@ -423,7 +423,6 @@ def run_dnatracing(  # noqa: C901
             tracing_stats = defaultdict()
             grain_trace_data = defaultdict()
             for direction, _ in grain_masks.items():
-
                 # Get the DNA class mask from the tensor
                 LOGGER.info(f"[{filename}] : Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
