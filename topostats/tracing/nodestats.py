@@ -210,7 +210,7 @@ class nodeStats:
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
             LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
-            self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            # self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
             self.image_dict["grain"]["grain_skeleton"] = self.skeleton
@@ -789,7 +789,7 @@ class nodeStats:
             keys:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
-            - "distances" :
+            - "distances" : npt.NDArray[np.number]. The accumulating distance along the branch.
             - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
             - "angles" : np.float64. The angle of the branch, added in later steps.
         ordered_branches: list[npt.NDArray[np.int32]]
