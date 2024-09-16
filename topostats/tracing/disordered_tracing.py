@@ -401,9 +401,9 @@ def compile_skan_stats(
     skan_df["image"] = filename
     skan_df["grain_number"] = grain_number
     skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
-    skan_df["min-value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
-    skan_df["median-value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
-    skan_df["mid-value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
+    skan_df["min_value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
+    skan_df["median_value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
+    skan_df["mid_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
 
     # remove unused skan columns
     return skan_df[
@@ -415,9 +415,9 @@ def compile_skan_stats(
             "connected_segments",
             "mean-pixel-value",
             "stdev-pixel-value",
-            "min-value",
-            "median-value",
-            "mid-value",
+            "min_value",
+            "median_value",
+            "mid_value",
         ]
     ]
 
