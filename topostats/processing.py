@@ -18,6 +18,7 @@ from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
+from topostats.dna_protein_analysis import run_dna_protein_analysis
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -658,6 +659,13 @@ def process_scan(
             dnatracing_config=dnatracing_config,
             results_df=results_df,
         )
+
+        # DNAprotein analysis
+        run_dna_protein_analysis(
+            image=topostats_object["image_flattened"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            grain_masks=topostats_object["grain_masks"],
+            filename=topostats_object["filename"],)
 
         # Add grain trace data and height profiles to topostats object
         topostats_object["grain_trace_data"] = grain_trace_data
