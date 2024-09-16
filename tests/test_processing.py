@@ -1,7 +1,6 @@
 """Test end-to-end running of topostats."""
 
-import json
-import platform
+import pickle
 from pathlib import Path
 
 import filetype
@@ -9,7 +8,6 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytest
-from numpyencoder import NumpyEncoder
 from test_io import dict_almost_equal
 
 from topostats.io import LoadScans, hdf5_to_dict
@@ -54,10 +52,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
-@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
-def test_process_scan_below_height_profiles(
-    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
-) -> None:
+def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
@@ -76,7 +71,18 @@ def test_process_scan_below_height_profiles(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
 
 
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -102,10 +108,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
-@pytest.mark.skipif(platform.platform()[:5] == "macOS", reason="Precision differences on macOS")
-def test_process_scan_above_height_profiles(
-    regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans
-) -> None:
+def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
@@ -122,8 +125,18 @@ def test_process_scan_above_height_profiles(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    # Remove the Basename column as this differs on CI
-    print(json.dumps(height_profiles, cls=NumpyEncoder), file=regtest)  # noqa: T201
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
 
 
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -158,8 +171,11 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         saved_topostats = hdf5_to_dict(f, group_path="/")
 
     # Remove the image path as this differs on CI
-    expected_topostats.pop("img_path")
     saved_topostats.pop("img_path")
+
+    # Script for updating the regtest file
+    # with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "w") as f:
+    #     dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=saved_topostats)
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
@@ -533,8 +549,40 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+
+    mask_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    assert mask_above.shape == (256, 256, 2)
+
+    # Create inverted mask above
+    # mask_above_background = np.logical_not(mask_above)
+    # # Keep only the largest grain
+    # from skimage.measure import label, regionprops
+
+    # mask_above_labelled = label(mask_above)
+    # regions = regionprops(mask_above_labelled)
+    # areas = [region.area for region in regions]
+    # mask_above[mask_above_labelled != np.argmax(areas) + 1] = False
+    # # save the mask above
+    # np.save("./tests/resources/minicircle_cropped_masks_above_background.npy", mask_above_background)
+
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    mask_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+    assert mask_below.shape == (256, 256, 2)
+
+    # Create inverted mask below
+    # mask_below_background = np.logical_not(mask_below)
+    # # Keep only the largest grain
+    # mask_below_labelled = label(mask_below)
+    # regions = regionprops(mask_below_labelled)
+    # areas = [region.area for region in regions]
+    # mask_below[mask_below_labelled != np.argmax(areas) + 1] = False
+    # # save the mask below
+    # np.save("./tests/resources/minicircle_cropped_masks_below_background.npy", mask_below_background)
+
     grain_masks = {"above": mask_above, "below": mask_below}
 
     grainstats_df, _ = run_grainstats(
@@ -554,10 +602,19 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the dnatracing_wrapper function of processing.py."""
+    # Load flattened image
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    grain_masks = {"above": mask_above, "below": mask_below}
+    # Load background and foreground of above and below directions for the mask tensors
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    # Construct the full image tensor (background class and class 1 (dna))
+    tensor_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    tensor_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+
+    grain_masks = {"above": tensor_above, "below": tensor_below}
 
     dnatracing_df, grain_trace_data = run_dnatracing(
         image=flattened_image,

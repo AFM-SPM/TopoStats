@@ -83,6 +83,36 @@ def iou_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], s
     return 1 - (intersection + smooth) / (sum_of_squares_pred + sum_of_squares_true - intersection + smooth)
 
 
+def mean_iou(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32]):
+    """
+    Mean Intersection Over Union metric, ignoring the background class.
+
+    Parameters
+    ----------
+    y_true : npt.NDArray[np.float32]
+        True values.
+    y_pred : npt.NDArray[np.float32]
+        Predicted values.
+
+    Returns
+    -------
+    tf.Tensor
+        The mean IoU.
+    """
+    # Ensure the tensors are of the same shape, and ignore the background class
+    # The [-1] here is to flatten the tensor into a 1D array, allowing for the calculation of the IoU
+    # The 1: is to use all channels except channel 0. Since this would be the background class and if
+    # we include it, the IoU would be very low since it is going to be mostly zero and so highly accurate?
+    y_true_f = tf.reshape(y_true[:, :, :, 1:], [-1])  # ignore background class
+    y_pred_f = tf.round(tf.reshape(y_pred[:, :, :, 1:], [-1]))  # ignore background class
+
+    # Calculate the IoU, using all channels except the background class
+    intersect = tf.reduce_sum(y_true_f * y_pred_f)
+    union = tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) - intersect
+    smooth = tf.ones(tf.shape(intersect))  # Smoothing factor to prevent division by zero
+    return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
+
+
 def predict_unet(
     image: npt.NDArray[np.float32],
     model: keras.Model,
@@ -137,18 +167,42 @@ def predict_unet(
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
     prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
-    LOGGER.info("Unet finished predicted mask.")
+    LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
 
     # Threshold the predicted mask
     predicted_mask: npt.NDArray[np.bool_] = prediction > confidence
-    # Remove the batch and channel dimensions
-    predicted_mask = predicted_mask[0, :, :, 0]
 
-    # Resize the predicted mask back to the original image size
-    predicted_mask_PIL = Image.fromarray(predicted_mask)
-    predicted_mask_PIL = predicted_mask_PIL.resize((original_image.shape[0], original_image.shape[1]))
+    # Remove the batch dimension since we are predicting single images at a time
+    predicted_mask = predicted_mask[0]
 
-    return np.array(predicted_mask_PIL)
+    # Note that this predicted mask can have any number of channels, depending on the number of classes for the model
+
+    # Check if the output is a single channel mask and convert it to a two-channel mask since the output is
+    # designed to be categorical, where even the background has a channel
+    if predicted_mask.shape[2] == 1:
+        predicted_mask = np.concatenate((1 - predicted_mask, predicted_mask), axis=2)
+
+    assert len(predicted_mask.shape) == 3, f"Predicted mask shape is not 3D: {predicted_mask.shape}"
+    assert (
+        predicted_mask.shape[2] >= 2
+    ), f"Predicted mask has less than 2 channels: {predicted_mask.shape[2]}, needs separate background channel"
+
+    # Resize each channel of the predicted mask to the original image size, also remove the batch
+    # dimension but keep channel
+    resized_predicted_mask: npt.NDArray[np.bool_] = np.zeros(
+        (original_image.shape[0], original_image.shape[1], predicted_mask.shape[2])
+    ).astype(bool)
+    for channel_index in range(predicted_mask.shape[2]):
+        # Note that uint8 is required to allow PIL to load the array into an image
+        channel_mask = predicted_mask[:, :, channel_index].astype(np.uint8)
+        channel_mask_PIL = Image.fromarray(channel_mask)
+        # Resize the channel mask to the original image size, but we want boolean so use nearest neighbour
+        # Sylvia: Pylint incorrectly thinks that Image.NEAREST is not a member of Image. IDK why.
+        # pylint: disable=no-member
+        channel_mask_PIL = channel_mask_PIL.resize((original_image.shape[0], original_image.shape[1]), Image.NEAREST)
+        resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
+
+    return resized_predicted_mask
 
 
 def make_bounding_box_square(
