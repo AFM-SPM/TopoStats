@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from skimage.morphology import label
+from skimage.morphology import binary_dilation, label
 from topoly import jones, translate_code
 
 from topostats.logs.logs import LOGGER_NAME
@@ -136,16 +136,15 @@ class OrderedTraceNodestats:
             low_conf_idx = None
 
         # Get the image minus the crossing regions
-        minus = self.skeleton.copy()
+        nodes = np.zeros_like(self.skeleton)
+        for node_no in node_coords:  # this stops unpaired branches from interacting with the pairs
+            nodes[node_no[0][:, 0], node_no[0][:, 1]] = 1
+        minus = np.where(binary_dilation(binary_dilation(nodes)) == self.skeleton, 0, self.skeleton)
+        # remove crossings from skeleton
         for crossings in crossing_coords:
             for crossing in crossings:
                 minus[crossing[:, 0], crossing[:, 1]] = 0
         minus = label(minus)
-        # Get both image
-        both = minus.copy()
-        for node_num, crossings in enumerate(crossing_coords):
-            for crossing_num, crossing in enumerate(crossings):
-                both[crossing[:, 0], crossing[:, 1]] = node_num + crossing_num + minus.max()
 
         # setup z array
         z = []
