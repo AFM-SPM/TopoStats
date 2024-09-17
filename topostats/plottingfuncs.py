@@ -18,17 +18,12 @@ import topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
+# pylint: disable=dangerous-default-value
+# pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=dangerous-default-value
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
-# pylint: disable=too-many-instance-attributes
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-locals
-# pylint: disable=dangerous-default-value
 
 
 def add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict:
