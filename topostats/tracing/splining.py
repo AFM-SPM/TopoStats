@@ -14,6 +14,10 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-locals
+
 
 # pylint: disable=too-many-instance-attributes
 class splineTrace:
@@ -557,6 +561,7 @@ def splining_image(
         A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe.
     """
     grainstats_additions = {}
+    molstats = {}
     all_splines_data = {}
 
     # iterate through disordered_tracing_dict
@@ -565,44 +570,54 @@ def splining_image(
         all_splines_data[grain_no] = {}
         mol_no = None
         for mol_no, mol_trace_data in ordered_grain_data.items():
-            LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
-            # check if want to do nodestats tracing or not
-            if method == "rolling_window":
-                splined_data, tracing_stats = windowTrace(
-                    mol_ordered_tracing_data=mol_trace_data,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    rolling_window_size=rolling_window_size,
-                ).run_window_trace()
+            try:
+                LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
+                # check if want to do nodestats tracing or not
+                if method == "rolling_window":
+                    splined_data, tracing_stats = windowTrace(
+                        mol_ordered_tracing_data=mol_trace_data,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        rolling_window_size=rolling_window_size,
+                    ).run_window_trace()
 
-            # if not doing nodestats ordering, do original TS ordering
-            else:  # method == "spline":
-                splined_data, tracing_stats = splineTrace(
-                    image=image,
-                    mol_ordered_tracing_data=mol_trace_data,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    spline_step_size=spline_step_size,
-                    spline_linear_smoothing=spline_linear_smoothing,
-                    spline_circular_smoothing=spline_circular_smoothing,
-                    spline_degree=spline_degree,
-                ).run_spline_trace()
+                # if not doing nodestats ordering, do original TS ordering
+                else:  # method == "spline":
+                    splined_data, tracing_stats = splineTrace(
+                        image=image,
+                        mol_ordered_tracing_data=mol_trace_data,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        spline_step_size=spline_step_size,
+                        spline_linear_smoothing=spline_linear_smoothing,
+                        spline_circular_smoothing=spline_circular_smoothing,
+                        spline_degree=spline_degree,
+                    ).run_spline_trace()
 
-            # get combined stats for the grains
-            grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
-            grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
+                # get combined stats for the grains
+                grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
+                grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
 
-            # get individual mol stats
-            all_splines_data[grain_no][mol_no] = {
-                "spline_coords": splined_data,
-                "bbox": mol_trace_data["bbox"],
-                "tracing_stats": tracing_stats,
-            }
-            LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
+                # get individual mol stats
+                all_splines_data[grain_no][mol_no] = {
+                    "spline_coords": splined_data,
+                    "bbox": mol_trace_data["bbox"],
+                    "tracing_stats": tracing_stats,
+                }
+                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
+                    "image": filename,
+                    "grain_number": grain_no.split("_")[-1],
+                }
+                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
+                LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
+
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
+                all_splines_data[grain_no] = {}
 
         if mol_no is None:
             LOGGER.warning(f"[{filename}] : No molecules found for grain {grain_no}")
         else:
-            # average the e2e dists -> mol_no should always be in the grain dict
-            grain_trace_stats["average_end_to_end_distance"] /= int(mol_no.split("_")[-1]) + 1
+          # average the e2e dists -> mol_no should always be in the grain dict
+          grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
 
         # compile metrics
         grainstats_additions[grain_no] = {
@@ -612,6 +627,7 @@ def splining_image(
         grainstats_additions[grain_no].update(grain_trace_stats)
 
     # convert grainstats metrics to dataframe
-    grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-
-    return all_splines_data, grainstats_additions_df
+    splining_stats_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
+    molstats_df.reset_index(drop=True, inplace=True)
+    return all_splines_data, splining_stats_df, molstats_df

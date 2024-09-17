@@ -7,6 +7,8 @@ import warnings
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
+import skan
 import skimage.measure as skimage_measure
 from scipy import ndimage
 from skimage import filters
@@ -15,6 +17,7 @@ from skimage.morphology import label
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
+from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -301,6 +304,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     n_grains = len(cropped_images)
     img_base = np.zeros_like(image)
     disordered_trace_crop_data = {}
+    grainstats_additions = {}
+    disordered_tracing_stats = pd.DataFrame()
 
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
@@ -308,9 +313,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "smoothed_grain": img_base.copy(),
         "skeleton": img_base.copy(),
         "pruned_skeleton": img_base.copy(),
+        "branch_types": img_base.copy(),
     }
 
-    LOGGER.info(f"[{filename}] : Calculating DNA tracing statistics for {n_grains} grains.")
+    LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains.")
 
     for cropped_image_index, cropped_image in cropped_images.items():
         try:
@@ -328,6 +334,39 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             )
             LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
+            # obtain stats
+            conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
+            grainstats_additions[cropped_image_index] = {
+                "image": filename,
+                "grain_number": cropped_image_index,
+                "grain_endpoints": (conv_pruned_skeleton == 2).sum(),
+                "grain_junctions": (conv_pruned_skeleton == 3).sum(),
+            }
+            # obtain segment stats
+            res = skan.summarize(
+                skan.Skeleton(
+                    np.where(disordered_trace_images["pruned_skeleton"] == 1, cropped_image, 0),
+                    spacing=pixel_to_nm_scaling,
+                )
+            )
+            res["image"] = filename
+            res["grain_number"] = cropped_image_index
+            disordered_tracing_stats = pd.concat(
+                (
+                    disordered_tracing_stats,
+                    res[
+                        [
+                            "image",
+                            "grain_number",
+                            "branch-distance",
+                            "branch-type",
+                            "mean-pixel-value",
+                            "stdev-pixel-value",
+                        ]
+                    ],
+                )
+            )
+
             # remap the cropped images back onto the original
             for image_name, full_image in all_images.items():
                 crop = disordered_trace_images[image_name]
@@ -339,7 +378,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.warning(f"[{filename}] : Disordered tracing of grain {cropped_image_index} failed with {e}.")
 
-    return disordered_trace_crop_data, all_images
+        # convert stats dict to dataframe
+        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+
+    return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
 
 
 def prep_arrays(
@@ -381,8 +423,7 @@ def prep_arrays(
         index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
     }
     cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
-    # Flip every labelled region to be 1 instead of its label
-    cropped_masks = {index: np.where(grain == 0, 0, 1) for index, grain in cropped_masks.items()}
+    cropped_masks = {index: np.where(grain == (index + 1), 1, 0) for index, grain in cropped_masks.items()}
     # Get BBOX coords to remap crops to images
     bboxs = [pad_bounding_box(image.shape, list(grain.bbox), pad_width=pad_width) for grain in region_properties]
 
@@ -481,7 +522,42 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
+        "branch_types": get_branch_type_image(cropped_image, disorderedtrace.pruned_skeleton),
     }
+
+
+def get_branch_type_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray) -> npt.NDArray:
+    """
+    Label each branch with it's Skan branch type label.
+
+    Branch types (+1 compared to Skan docs) are defined as:
+    1 = Endpoint-to-endpoint (isolated branch)
+    2 = Junction-to-endpoint
+    3 = Junction-to-junction
+    4 = Isolated cycle
+
+    Parameters
+    ----------
+    original_image : npt.NDArray
+        Height image from which the pruned skeleton is derived from.
+    pruned_skeleton : npt.NDArray
+        Single pixel thick skeleton mask.
+
+    Returns
+    -------
+    npt.NDArray
+        2D array where the background is 0, and skeleton branches label as their Skan branch type.
+    """
+    branch_type_image = np.zeros_like(original_image)
+    skeleton_image = np.where(pruned_skeleton == 1, original_image, 0)
+    skan_skeleton = skan.Skeleton(skeleton_image, spacing=1e-9, value_is_height=True)
+    res = skan.summarize(skan_skeleton)
+
+    for i, branch_type in enumerate(res["branch-type"]):
+        path_coords = skan_skeleton.path_coordinates(i)
+        branch_type_image[path_coords[:, 0], path_coords[:, 1]] = branch_type + 1
+
+    return branch_type_image
 
 
 def crop_array(array: npt.NDArray, bounding_box: tuple, pad_width: int = 0) -> npt.NDArray:

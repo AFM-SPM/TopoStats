@@ -207,16 +207,23 @@ smoothed_grain:
   core_set: false
 skeleton:
   filename: "22-original_skeletons"
-  title: "Image with Overlapping Original Skeletons"
+  title: "Original Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
   core_set: false
   savefig_dpi: 600
 pruned_skeleton:
-  title: "Image with Overlapping Pruned Skeletons"
+  title: "Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
-  core_set: true
+  core_set: false
+  savefig_dpi: 600
+branch_types:
+  filename: "23-branch_types"
+  title: "Skeleton Branch Types"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  core_set: false
   savefig_dpi: 600
 # Nodestats troubleshooting images
 convolved_skeletons:
@@ -228,7 +235,7 @@ convolved_skeletons:
   savefig_dpi: 600
 node_centres:
   filename: "25-node_centres"
-  title: "Image with Skeletons and Highlighted Nodes"
+  title: "Skeletons and Highlighted Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
@@ -286,7 +293,7 @@ all_molecules:
   filename: "28-all_molecules"
   title: "Individual Molecules"
   image_type: "non-binary"
-  mask_cmap: "viridis"
+  mask_cmap: "blue_purple_green"
   savefig_dpi: 600
   core_set: false
 # Splining

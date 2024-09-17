@@ -22,7 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 ALL_STATISTICS_COLUMNS = (
     "image",
     "basename",
-    "molecule_number",
+    "grain_number",
     "area",
     "area_cartesian_bbox",
     "aspect_ratio",
@@ -128,7 +128,7 @@ def update_plotting_config(plotting_config: dict) -> dict:
         LOGGER.debug(f"Dictionary for image : {image}")
         LOGGER.debug(f"{pformat(options, indent=4)}")
         # First update options with values that exist in main_config
-        if not plotting_config["plot_dict"][image]["core_set"]:  # avoids updating colurmap for diagnostic images
+        if not plotting_config["plot_dict"][image]["core_set"]:  # avoids updating colourmap for diagnostic images
             main_config_temp.pop("mask_cmap")
         plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
         LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
@@ -265,7 +265,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "molecule_number") -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "grain_number") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 

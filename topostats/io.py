@@ -1079,7 +1079,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             try:
                 open_hdf5_file[group_path + key] = item
             except Exception as e:
-                LOGGER.info(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+                LOGGER.warning(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
 
 
 def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
