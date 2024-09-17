@@ -1207,6 +1207,10 @@ def test_disordered_trace_grain(
     (
         "image_filename",
         "mask_filename",
+        "min_skeleton_size",
+        "mask_smoothing_params",
+        "skeletonisation_params",
+        "pruning_params",
         "expected_disordered_crop_data_filename",
         "expected_grainstats_additions_df_filename",
         "expected_all_images_filename",
@@ -1216,6 +1220,27 @@ def test_disordered_trace_grain(
         pytest.param(
             "example_catenanes.npy",
             "example_catenanes_labelled_grain_mask_thresholded.npy",
+            # Min skeleton size
+            10,
+            # Mask smoothing parameters
+            {
+                "gaussian_sigma": 2,
+                "dilation_iterations": 2,
+                "holearea_min_max": [10, None],
+            },
+            # Skeletonisation parameters
+            {
+                "method": "topostats",
+                "height_bias": 0.6,
+            },
+            # Pruning parameters
+            {
+                "method": "topostats",
+                "max_length": 7.0,
+                "height_threshold": None,
+                "method_values": "mid",
+                "method_outlier": "mean_abs",
+            },
             "example_catenanes_disordered_crop_data.pkl",
             "example_catenanes_grainstats_additions_df.csv",
             "example_catenanes_all_images.pkl",
@@ -1225,6 +1250,27 @@ def test_disordered_trace_grain(
         pytest.param(
             "example_rep_int.npy",
             "example_rep_int_labelled_grain_mask_thresholded.npy",
+            # Min skeleton size
+            10,
+            # Mask smoothing parameters
+            {
+                "gaussian_sigma": 2,
+                "dilation_iterations": 2,
+                "holearea_min_max": [10, None],
+            },
+            # Skeletonisation parameters
+            {
+                "method": "topostats",
+                "height_bias": 0.6,
+            },
+            # Pruning parameters
+            {
+                "method": "topostats",
+                "max_length": 20.0,
+                "height_threshold": None,
+                "method_values": "mid",
+                "method_outlier": "mean_abs",
+            },
             "example_rep_int_disordered_crop_data.pkl",
             "example_rep_int_grainstats_additions_df.csv",
             "example_rep_int_all_images.pkl",
@@ -1236,6 +1282,10 @@ def test_disordered_trace_grain(
 def test_trace_image_disordered(
     image_filename: str,
     mask_filename: str,
+    min_skeleton_size: int,
+    mask_smoothing_params: dict,
+    skeletonisation_params: dict,
+    pruning_params: dict,
     expected_disordered_crop_data_filename: str,
     expected_grainstats_additions_df_filename: str,
     expected_all_images_filename: str,
@@ -1252,23 +1302,10 @@ def test_trace_image_disordered(
             grains_mask=mask,
             filename="test_image",
             pixel_to_nm_scaling=0.488,
-            min_skeleton_size=6,
-            mask_smoothing_params={
-                "gaussian_sigma": 2,
-                "dilation_iterations": 2,
-                "holearea_min_max": [0, None],
-            },
-            skeletonisation_params={
-                "method": "topostats",
-                "height_bias": 0.6,
-            },
-            pruning_params={
-                "method": "topostats",
-                "max_length": -1,
-                "height_threshold": None,
-                "method_values": "mid",
-                "method_outlier": "mean_abs",
-            },
+            min_skeleton_size=min_skeleton_size,
+            mask_smoothing_params=mask_smoothing_params,
+            skeletonisation_params=skeletonisation_params,
+            pruning_params=pruning_params,
             pad_width=1,
         )
     )
