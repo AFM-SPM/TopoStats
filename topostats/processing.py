@@ -355,7 +355,7 @@ def run_grainstats(
         return create_empty_dataframe()
 
 
-def run_disorderedTrace(
+def run_disordered_trace(
     image: npt.NDArray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
@@ -975,7 +975,7 @@ def process_scan(
         )
 
         # Disordered Tracing
-        disordered_traces_data, results_df, disordered_tracing_stats = run_disorderedTrace(
+        disordered_traces_data, results_df, disordered_tracing_stats = run_disordered_trace(
             image=topostats_object["image_flattened"],
             grain_masks=topostats_object["grain_masks"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
@@ -1089,17 +1089,53 @@ def check_run_steps(  # noqa: C901
     splining_run : bool
         Flag for running DNA Tracing.
     """
+    LOGGER.debug(f"{filter_run=}")
+    LOGGER.debug(f"{grains_run=}")
+    LOGGER.debug(f"{grainstats_run=}")
+    LOGGER.debug(f"{disordered_tracing_run=}")
+    LOGGER.debug(f"{nodestats_run=}")
+    LOGGER.debug(f"{splining_run=}")
     if splining_run:
         if nodestats_run is False:
-            LOGGER.error("Splining enabled but NodeStats is disabled. Tracing will use the 'old' method.")
+            LOGGER.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
+            if grainstats_run is False:
+                LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
+            elif grains_run is False:
+                LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
+            elif grains_run is False:
+                LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+            else:
+                LOGGER.info("Configuration run options are consistent, processing can proceed.")
         elif disordered_tracing_run is False:
-            LOGGER.error("Splining enabled but Disordered Tracing is disabled. Please check your configuration file.")
+            LOGGER.error(
+                "Splining is enabled but Disordered Tracing is disabled. Please check your configuration file."
+            )
         elif grainstats_run is False:
-            LOGGER.error("Tracing enabled but Grainstats disabled. Please check your configuration file.")
+            LOGGER.error("Splining is enabled but Grainstats is disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Tracing enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error("Splining is enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Tracing enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif nodestats_run:
+        if disordered_tracing_run is False:
+            LOGGER.error("NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif disordered_tracing_run:
+        if grainstats_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Disordered Tracing enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
