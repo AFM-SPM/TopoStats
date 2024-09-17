@@ -905,6 +905,9 @@ def test_minimum_crossing_confs() -> None:
     (
         "image_filename",
         "disordered_tracing_crop_data_filename",
+        "node_joining_length",
+        "node_extend_dist",
+        "branch_pairing_length",
         "pair_odd_branches",
         "expected_nodestats_data_filename",
         "expected_grainstats_additions_filename",
@@ -915,6 +918,13 @@ def test_minimum_crossing_confs() -> None:
         pytest.param(
             "example_catenanes.npy",
             "example_catenanes_disordered_crop_data.pkl",
+            # Node joining length
+            7.0,
+            # Node extend distance
+            14.0,
+            # Branch pairing length
+            20.0,
+            # Pair odd branches
             True,
             "example_catenanes_nodestats_data.pkl",
             "example_catenanes_grainstats_additions_nodestats.csv",
@@ -925,18 +935,45 @@ def test_minimum_crossing_confs() -> None:
         pytest.param(
             "example_rep_int.npy",
             "example_rep_int_disordered_crop_data.pkl",
+            # Node joining length
+            7.0,
+            # Node extend distance
+            14.0,
+            # Branch pairing length
+            20.0,
+            # Pair odd branches
             False,
-            "example_rep_int_nodestats_data.pkl",
-            "example_rep_int_grainstats_additions_nodestats.csv",
-            "example_rep_int_all_images_nodestats.pkl",
-            "example_rep_int_nodestats_branch_images.pkl",
-            id="replication_intermediate",
+            "example_rep_int_nodestats_data_no_pair_odd_branches.pkl",
+            "example_rep_int_grainstats_additions_nodestats_no_pair_odd_branches.csv",
+            "example_rep_int_all_images_nodestats_no_pair_odd_branches.pkl",
+            "example_rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
+            id="replication_intermediate, not pairing odd branches",
+        ),
+        pytest.param(
+            "example_rep_int.npy",
+            "example_rep_int_disordered_crop_data.pkl",
+            # Node joining length
+            7.0,
+            # Node extend distance
+            14.0,
+            # Branch pairing length
+            20.0,
+            # Pair odd branches
+            True,
+            "example_rep_int_nodestats_data_pair_odd_branches.pkl",
+            "example_rep_int_grainstats_additions_nodestats_pair_odd_branches.csv",
+            "example_rep_int_all_images_nodestats_pair_odd_branches.pkl",
+            "example_rep_int_nodestats_branch_images_pair_odd_branches.pkl",
+            id="replication_intermediate, pairing odd branches",
         ),
     ],
 )
 def test_nodestats_image(
     image_filename: str,
     disordered_tracing_crop_data_filename: str,
+    node_joining_length: float,
+    node_extend_dist: float,
+    branch_pairing_length: float,
     pair_odd_branches: bool,
     expected_nodestats_data_filename: str,
     expected_grainstats_additions_filename: str,
@@ -956,9 +993,9 @@ def test_nodestats_image(
             disordered_tracing_direction_data=disordered_tracing_crop_data,
             filename="test_image",
             pixel_to_nm_scaling=0.488,
-            node_joining_length=7.0,
-            node_extend_dist=14.0,
-            branch_pairing_length=20.0,
+            node_joining_length=node_joining_length,
+            node_extend_dist=node_extend_dist,
+            branch_pairing_length=branch_pairing_length,
             pair_odd_branches=pair_odd_branches,
             pad_width=1,
         )
