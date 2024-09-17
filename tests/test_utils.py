@@ -84,6 +84,7 @@ def test_update_plotting_config(
                     "extracted_channel": {
                         "filename": "00-raw_heightmap",
                         "image_type": "non-binary",
+                        "core_set": False,
                         "savefig_dpi": 100,
                     }
                 },
@@ -97,6 +98,7 @@ def test_update_plotting_config(
                         "filename": "00-raw_heightmap",
                         "image_type": "non-binary",
                         "savefig_dpi": 100,
+                        "core_set": False,
                         "pixel_interpolation": None,
                     }
                 },
@@ -113,6 +115,7 @@ def test_update_plotting_config(
                         "filename": "00-raw_heightmap",
                         "image_type": "non-binary",
                         "savefig_dpi": 100,
+                        "core_set": False,
                     }
                 },
             },
@@ -125,6 +128,7 @@ def test_update_plotting_config(
                         "filename": "00-raw_heightmap",
                         "image_type": "non-binary",
                         "savefig_dpi": 600,
+                        "core_set": False,
                         "pixel_interpolation": None,
                     }
                 },
@@ -182,8 +186,8 @@ def test_create_empty_dataframe() -> None:
     """Test the empty dataframe is created correctly."""
     empty_df = create_empty_dataframe(ALL_STATISTICS_COLUMNS)
 
-    assert empty_df.index.name == "molecule_number"
-    assert "molecule_number" not in empty_df.columns
+    assert empty_df.index.name == "grain_number"
+    assert "grain_number" not in empty_df.columns
     assert empty_df.shape == (0, 26)
     assert {"image", "basename", "area"}.intersection(empty_df.columns)
 
