@@ -616,8 +616,8 @@ def splining_image(
         if mol_no is None:
             LOGGER.warning(f"[{filename}] : No molecules found for grain {grain_no}")
         else:
-          # average the e2e dists -> mol_no should always be in the grain dict
-          grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
+            # average the e2e dists -> mol_no should always be in the grain dict
+            grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
 
         # compile metrics
         grainstats_additions[grain_no] = {
