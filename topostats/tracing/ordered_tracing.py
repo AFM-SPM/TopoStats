@@ -16,7 +16,7 @@ from topostats.utils import convolve_skeleton, coords_2_img
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class OrderedTraceNodestats:
+class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
     """
     Order single pixel thick skeleton coordinates via NodeStats results.
 
@@ -77,7 +77,8 @@ class OrderedTraceNodestats:
 
         self.ordered_coordinates = []
 
-    def compile_trace(self) -> tuple[list, npt.NDArray]:
+    # pylint: disable=too-many-locals
+    def compile_trace(self) -> tuple[list, npt.NDArray]:  # noqa: C901
         """
         Obtain the trace and diagnostic crossing trace and molecule trace images.
 
@@ -338,6 +339,7 @@ class OrderedTraceNodestats:
 
         return img
 
+    # pylint: disable=too-many-locals
     def get_mols_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
         """
         Obtain a labeled image according to each molecule traced N=3 -> n=1,2,3.
@@ -606,12 +608,12 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
     return ordered_mask
 
 
+# pylint: disable=too-many-locals
 def ordered_tracing_image(
     image: npt.NDArray,
     disordered_tracing_direction_data: dict,
     nodestats_direction_data: dict,
     filename: str,
-    pixel_to_nm_scaling: float,
     ordering_method: str,
     pad_width: int,
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -628,8 +630,6 @@ def ordered_tracing_image(
         Dictionary result from the nodestats analysis.
     filename : str
         Image filename (for logging purposes).
-    pixel_to_nm_scaling : float
-        _description_.
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
     pad_width : int
@@ -694,11 +694,6 @@ def ordered_tracing_image(
             crop = images[image_name]
             bbox = disordered_trace_data["bbox"]
             full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-        """
-        except Exception as e:
-            LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
-            all_traces_data[grain_no] = {}
-        """
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
     return all_traces_data, grainstats_additions_df, ordered_trace_full_images
