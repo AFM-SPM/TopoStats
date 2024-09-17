@@ -12,7 +12,7 @@ import pytest
 from topostats.tracing.ordered_tracing import ordered_tracing_image
 
 BASE_DIR = Path.cwd()
-RESOURCES = BASE_DIR / "tests" / "resources"
+ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "ordered_tracing"
 
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
@@ -26,9 +26,9 @@ RESOURCES = BASE_DIR / "tests" / "resources"
         "nodestats_data_filename",
         "nodestats_branch_images_filename",
         "filename",
-        "pixel_to_nm_scaling",
         "expected_ordered_tracing_data_filename",
         "expected_grainstats_additions_filename",
+        "expected_molstats_filename",
         "expected_ordered_tracing_full_images_filename",
     ),
     [
@@ -38,21 +38,21 @@ RESOURCES = BASE_DIR / "tests" / "resources"
             "example_catenanes_nodestats_data.pkl",
             "example_catenanes_nodestats_branch_images.pkl",
             "catenane",  # filename
-            1.0,  # pixel_to_nm_scaling
             "example_catenanes_ordered_tracing_data.pkl",
             "example_catenanes_ordered_tracing_grainstats_additions.csv",
+            "example_catenanes_ordered_tracing_molstats.csv",
             "example_catenanes_ordered_tracing_full_images.pkl",
             id="catenane",
         ),
         pytest.param(
             "example_rep_int.npy",
             "example_rep_int_disordered_crop_data.pkl",
-            "example_rep_int_nodestats_data.pkl",
-            "example_rep_int_nodestats_branch_images.pkl",
+            "example_rep_int_nodestats_data_no_pair_odd_branches.pkl",
+            "example_rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
             "replication_intermediate",  # filename
-            1.0,  # pixel_to_nm_scaling
             "example_rep_int_ordered_tracing_data.pkl",
             "example_rep_int_ordered_tracing_grainstats_additions.csv",
+            "example_rep_int_ordered_tracing_molstats.csv",
             "example_rep_int_ordered_tracing_full_images.pkl",
             id="replication_intermediate",
         ),
@@ -66,6 +66,7 @@ def test_ordered_tracing_image(
     filename: str,
     expected_ordered_tracing_data_filename: str,
     expected_grainstats_additions_filename: str,
+    expected_molstats_filename: str,
     expected_ordered_tracing_full_images_filename: str,
 ) -> None:
     """Test the ordered tracing image method of ordered tracing."""
@@ -75,15 +76,15 @@ def test_ordered_tracing_image(
     # nodestats_direction_data contains both nodestats_data and nodestats_branch_images
 
     # Load the required data
-    image = np.load(RESOURCES / image_filename)
+    image = np.load(ORDERED_TRACING_RESOURCES / image_filename)
 
-    with Path.open(RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
+    with Path.open(ORDERED_TRACING_RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
         disordered_tracing_direction_data = pickle.load(f)
 
-    with Path.open(RESOURCES / nodestats_data_filename, "rb") as f:
+    with Path.open(ORDERED_TRACING_RESOURCES / nodestats_data_filename, "rb") as f:
         nodestats_data = pickle.load(f)
 
-    with Path.open(RESOURCES / nodestats_branch_images_filename, "rb") as f:
+    with Path.open(ORDERED_TRACING_RESOURCES / nodestats_branch_images_filename, "rb") as f:
         nodestats_branch_images = pickle.load(f)
 
     nodestats_whole_data = {"stats": nodestats_data, "images": nodestats_branch_images}
@@ -102,50 +103,37 @@ def test_ordered_tracing_image(
         pad_width=1,
     )
 
-    # Debugging - grab variables to show images
+    # # Debugging - grab variables to show images
     # variable_ordered_traces = result_ordered_tracing_full_images["ordered_traces"]
     # variable_all_molecules = result_ordered_tracing_full_images["all_molecules"]
     # variable_over_under = result_ordered_tracing_full_images["over_under"]
     # variable_trace_segments = result_ordered_tracing_full_images["trace_segments"]
 
-    # # Save the results to update the test data
-    # if filename == "catenane":
-    #     # Save result ordered tracing data as pickle
-    #     with Path.open(RESOURCES / "example_catenanes_ordered_tracing_data.pkl", "wb") as f:
-    #         pickle.dump(result_ordered_tracing_data, f)
+    # # Save result ordered tracing data as pickle
+    # with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_data_filename, "wb") as f:
+    #     pickle.dump(result_ordered_tracing_data, f)
 
-    #     # Save result grainstats additions as csv
-    #     result_grainstats_additions_df.to_csv(
-    # RESOURCES / "example_catenanes_ordered_tracing_grainstats_additions.csv")
+    # # Save result grainstats additions as csv
+    # result_grainstats_additions_df.to_csv(ORDERED_TRACING_RESOURCES / expected_grainstats_additions_filename)
 
-    #     # Save result ordered tracing full images as pickle
-    #     with Path.open(RESOURCES / "example_catenanes_ordered_tracing_full_images.pkl", "wb") as f:
-    #         pickle.dump(result_ordered_tracing_full_images, f)
-    # elif filename == "replication_intermediate":
-    #     # Save result ordered tracing data as pickle
-    #     with Path.open(RESOURCES / "example_rep_int_ordered_tracing_data.pkl", "wb") as f:
-    #         pickle.dump(result_ordered_tracing_data, f)
+    # # Save the molstats dataframe as csv
+    # result_molstats_df.to_csv(ORDERED_TRACING_RESOURCES / expected_molstats_filename)
 
-    #     # Save result grainstats additions as csv
-    #     result_grainstats_additions_df.to_csv(
-    # RESOURCES / "example_rep_int_ordered_tracing_grainstats_additions.csv")
-
-    # Save the molstats dataframe as csv
-    # result_molstats_df.to_csv(RESOURCES / "example_rep_int_ordered_tracing_molstats.csv")
-
-    #     # Save result ordered tracing full images as pickle
-    #     with Path.open(RESOURCES / "example_rep_int_ordered_tracing_full_images.pkl", "wb") as f:
-    #         pickle.dump(result_ordered_tracing_full_images, f)
+    # # Save result ordered tracing full images as pickle
+    # with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_full_images_filename, "wb") as f:
+    #     pickle.dump(result_ordered_tracing_full_images, f)
 
     # Load the expected results
-    with Path.open(RESOURCES / expected_ordered_tracing_data_filename, "rb") as f:
+    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_data_filename, "rb") as f:
         expected_ordered_tracing_data = pickle.load(f)
 
-    expected_grainstats_additions_df = pd.read_csv(RESOURCES / expected_grainstats_additions_filename, index_col=0)
+    expected_grainstats_additions_df = pd.read_csv(
+        ORDERED_TRACING_RESOURCES / expected_grainstats_additions_filename, index_col=0
+    )
 
-    expected_molstats_df = pd.read_csv(RESOURCES / "example_rep_int_ordered_tracing_molstats.csv", index_col=0)
+    expected_molstats_df = pd.read_csv(ORDERED_TRACING_RESOURCES / expected_molstats_filename, index_col=0)
 
-    with Path.open(RESOURCES / expected_ordered_tracing_full_images_filename, "rb") as f:
+    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_full_images_filename, "rb") as f:
         expected_ordered_tracing_full_images = pickle.load(f)
 
     # Check the results
