@@ -764,7 +764,7 @@ def run_splining(
         splining_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Splining ***")
         splined_image_data = defaultdict()
-        grainstats_additions_image = pd.DataFrame()
+        splining_stats = pd.DataFrame()
         image_molstats_df = pd.DataFrame()
 
         try:
@@ -774,14 +774,14 @@ def run_splining(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
-                    grainstats_additions_image = create_empty_dataframe()
+                    splining_stats = create_empty_dataframe()
                     image_molstats_df = create_empty_dataframe(columns=["image", "basename", "threshold"])
                     raise ValueError(f"No grains exist for the {direction} direction")
 
                 # if grains are found
                 (
                     splined_data,
-                    grainstats_additions_df,
+                    _splining_stats,
                     molstats_df,
                 ) = splining_image(
                     image=image,
@@ -792,8 +792,8 @@ def run_splining(
                 )
 
                 # save per image new grainstats stats
-                grainstats_additions_df["threshold"] = direction
-                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+                _splining_stats["threshold"] = direction
+                splining_stats = pd.concat([splining_stats, _splining_stats])
                 molstats_df["threshold"] = direction
                 image_molstats_df = pd.concat([image_molstats_df, molstats_df])
 
@@ -816,9 +816,9 @@ def run_splining(
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(results_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                pd.merge(results_df, splining_stats, on=["image", "threshold", "grain_number"])
                 if results_df is not None
-                else grainstats_additions_image
+                else splining_stats
             )
             image_molstats_df["basename"] = basename.parent
 
@@ -827,7 +827,7 @@ def run_splining(
 
         except Exception as e:
             LOGGER.info(f"Splining failed with {e} - skipping.")
-            return splined_image_data, grainstats_additions_image, image_molstats_df
+            return splined_image_data, splining_stats, image_molstats_df
 
     return None, results_df, create_empty_dataframe(columns=["image", "basename", "threshold"])
 
