@@ -64,7 +64,6 @@ def test_ordered_tracing_image(
     nodestats_data_filename: str,
     nodestats_branch_images_filename: str,
     filename: str,
-    pixel_to_nm_scaling: float,
     expected_ordered_tracing_data_filename: str,
     expected_grainstats_additions_filename: str,
     expected_ordered_tracing_full_images_filename: str,
@@ -89,16 +88,18 @@ def test_ordered_tracing_image(
 
     nodestats_whole_data = {"stats": nodestats_data, "images": nodestats_branch_images}
 
-    result_ordered_tracing_data, result_grainstats_additions_df, result_ordered_tracing_full_images = (
-        ordered_tracing_image(
-            image=image,
-            disordered_tracing_direction_data=disordered_tracing_direction_data,
-            nodestats_direction_data=nodestats_whole_data,
-            filename=filename,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            ordering_method="nodestats",
-            pad_width=1,
-        )
+    (
+        result_ordered_tracing_data,
+        result_grainstats_additions_df,
+        result_molstats_df,
+        result_ordered_tracing_full_images,
+    ) = ordered_tracing_image(
+        image=image,
+        disordered_tracing_direction_data=disordered_tracing_direction_data,
+        nodestats_direction_data=nodestats_whole_data,
+        filename=filename,
+        ordering_method="nodestats",
+        pad_width=1,
     )
 
     # Debugging - grab variables to show images
@@ -129,6 +130,9 @@ def test_ordered_tracing_image(
     #     result_grainstats_additions_df.to_csv(
     # RESOURCES / "example_rep_int_ordered_tracing_grainstats_additions.csv")
 
+    # Save the molstats dataframe as csv
+    # result_molstats_df.to_csv(RESOURCES / "example_rep_int_ordered_tracing_molstats.csv")
+
     #     # Save result ordered tracing full images as pickle
     #     with Path.open(RESOURCES / "example_rep_int_ordered_tracing_full_images.pkl", "wb") as f:
     #         pickle.dump(result_ordered_tracing_full_images, f)
@@ -139,10 +143,13 @@ def test_ordered_tracing_image(
 
     expected_grainstats_additions_df = pd.read_csv(RESOURCES / expected_grainstats_additions_filename, index_col=0)
 
+    expected_molstats_df = pd.read_csv(RESOURCES / "example_rep_int_ordered_tracing_molstats.csv", index_col=0)
+
     with Path.open(RESOURCES / expected_ordered_tracing_full_images_filename, "rb") as f:
         expected_ordered_tracing_full_images = pickle.load(f)
 
     # Check the results
     np.testing.assert_equal(result_ordered_tracing_data, expected_ordered_tracing_data)
     pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
     np.testing.assert_equal(result_ordered_tracing_full_images, expected_ordered_tracing_full_images)
