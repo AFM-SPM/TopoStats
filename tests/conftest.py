@@ -156,6 +156,7 @@ def plotting_config(default_config: dict) -> dict:
     """Configurations for plotting."""
     config = default_config["plotting"]
     config["image_set"] = "all"
+    config["zrange"] = [None, None]
     config.pop("run")
     config.pop("plot_dict")
     return config
