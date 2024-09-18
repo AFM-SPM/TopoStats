@@ -12,7 +12,9 @@ import pytest
 from topostats.tracing.splining import splining_image
 
 BASE_DIR = Path.cwd()
-RESOURCES = BASE_DIR / "tests" / "resources"
+GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
+SPLINING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "splining"
+ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "ordered_tracing"
 
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
@@ -32,22 +34,22 @@ RESOURCES = BASE_DIR / "tests" / "resources"
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_ordered_tracing_data.pkl",
+            "catenanes_ordered_tracing_data.pkl",
             1.0,  # pixel_to_nm_scaling
             "catenane",  # filename
-            "example_catenanes_splining_data.pkl",
-            "example_catenanes_splining_grainstats_additions.csv",
-            "example_catenanes_splining_molstats.csv",
+            "catenanes_splining_data.pkl",
+            "catenanes_splining_grainstats_additions.csv",
+            "catenanes_splining_molstats.csv",
             id="catenane",
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_ordered_tracing_data.pkl",
+            "rep_int_ordered_tracing_data.pkl",
             1.0,  # pixel_to_nm_scaling
             "replication_intermediate",  # filename
-            "example_rep_int_splining_data.pkl",
-            "example_rep_int_splining_grainstats_additions.csv",
-            "example_rep_int_splining_molstats.csv",
+            "rep_int_splining_data.pkl",
+            "rep_int_splining_grainstats_additions.csv",
+            "rep_int_splining_molstats.csv",
             id="replication_intermediate",
         ),
     ],
@@ -63,10 +65,10 @@ def test_splining_image(
 ) -> None:
     """Test the splining_image function of the splining module."""
     # Load the data
-    image = np.load(RESOURCES / image_filename)
+    image = np.load(GENERAL_RESOURCES / image_filename)
 
     # Load the ordered tracing direction data
-    with Path.open(RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
+    with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
         ordered_tracing_direction_data = pickle.load(file)
 
     result_all_splines_data, result_grainstats_additions_df, result_molstats_df = splining_image(
@@ -128,34 +130,25 @@ def test_splining_image(
     #             previous_point = point
     # plt.show()
 
-    # # Save the results to update the test data
-    # if filename == "catenane":
-    #     # Save result splining data as pickle
-    #     with Path.open(RESOURCES / "example_catenanes_splining_data.pkl", "wb") as file:
-    #         pickle.dump(result_all_splines_data, file)
+    # Save the results to update the test data
+    # Save result splining data as pickle
+    # with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "wb") as file:
+    #     pickle.dump(result_all_splines_data, file)
 
-    #     # Save result grainstats additions as csv
-    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_splining_grainstats_additions.csv")
+    # # Save result grainstats additions as csv
+    # result_grainstats_additions_df.to_csv(SPLINING_RESOURCES / expected_grainstats_additions_filename)
 
-    #     # Save result molstats as csv
-    #     result_molstats_df.to_csv(RESOURCES / "example_catenanes_splining_molstats.csv")
-    # elif filename == "replication_intermediate":
-    #     # Save result splining data as pickle
-    #     with Path.open(RESOURCES / "example_rep_int_splining_data.pkl", "wb") as file:
-    #         pickle.dump(result_all_splines_data, file)
-
-    #     # Save result grainstats additions as csv
-    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_rep_int_splining_grainstats_additions.csv")
-
-    #     # Save result molstats as csv
-    #     result_molstats_df.to_csv(RESOURCES / "example_rep_int_splining_molstats.csv")
+    # # Save result molstats as csv
+    # result_molstats_df.to_csv(SPLINING_RESOURCES / expected_molstats_filename)
 
     # Load the expected results
-    with Path.open(RESOURCES / expected_all_splines_data_filename, "rb") as file:
+    with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "rb") as file:
         expected_all_splines_data = pickle.load(file)
 
-    expected_grainstats_additions_df = pd.read_csv(RESOURCES / expected_grainstats_additions_filename, index_col=0)
-    expected_molstats_df = pd.read_csv(RESOURCES / expected_molstats_filename, index_col=0)
+    expected_grainstats_additions_df = pd.read_csv(
+        SPLINING_RESOURCES / expected_grainstats_additions_filename, index_col=0
+    )
+    expected_molstats_df = pd.read_csv(SPLINING_RESOURCES / expected_molstats_filename, index_col=0)
 
     # Check the results
     np.testing.assert_equal(result_all_splines_data, expected_all_splines_data)

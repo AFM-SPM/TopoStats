@@ -12,7 +12,10 @@ import pytest
 from topostats.tracing.ordered_tracing import ordered_tracing_image
 
 BASE_DIR = Path.cwd()
-ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "ordered_tracing"
+GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
+ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "ordered_tracing"
+NODESTATS_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "nodestats"
+DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
 
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
@@ -34,26 +37,26 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "ordered_tracing"
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_disordered_crop_data.pkl",
-            "example_catenanes_nodestats_data.pkl",
-            "example_catenanes_nodestats_branch_images.pkl",
+            "catenanes_disordered_tracing_crop_data.pkl",
+            "catenanes_nodestats_data.pkl",
+            "catenanes_nodestats_branch_images.pkl",
             "catenane",  # filename
-            "example_catenanes_ordered_tracing_data.pkl",
-            "example_catenanes_ordered_tracing_grainstats_additions.csv",
-            "example_catenanes_ordered_tracing_molstats.csv",
-            "example_catenanes_ordered_tracing_full_images.pkl",
+            "catenanes_ordered_tracing_data.pkl",
+            "catenanes_ordered_tracing_grainstats_additions.csv",
+            "catenanes_ordered_tracing_molstats.csv",
+            "catenanes_ordered_tracing_full_images.pkl",
             id="catenane",
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_disordered_crop_data.pkl",
-            "example_rep_int_nodestats_data_no_pair_odd_branches.pkl",
-            "example_rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
+            "rep_int_disordered_tracing_crop_data.pkl",
+            "rep_int_nodestats_data_no_pair_odd_branches.pkl",
+            "rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
             "replication_intermediate",  # filename
-            "example_rep_int_ordered_tracing_data.pkl",
-            "example_rep_int_ordered_tracing_grainstats_additions.csv",
-            "example_rep_int_ordered_tracing_molstats.csv",
-            "example_rep_int_ordered_tracing_full_images.pkl",
+            "rep_int_ordered_tracing_data.pkl",
+            "rep_int_ordered_tracing_grainstats_additions.csv",
+            "rep_int_ordered_tracing_molstats.csv",
+            "rep_int_ordered_tracing_full_images.pkl",
             id="replication_intermediate",
         ),
     ],
@@ -76,15 +79,15 @@ def test_ordered_tracing_image(
     # nodestats_direction_data contains both nodestats_data and nodestats_branch_images
 
     # Load the required data
-    image = np.load(ORDERED_TRACING_RESOURCES / image_filename)
+    image = np.load(GENERAL_RESOURCES / image_filename)
 
-    with Path.open(ORDERED_TRACING_RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
+    with Path.open(DISORDERED_TRACING_RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
         disordered_tracing_direction_data = pickle.load(f)
 
-    with Path.open(ORDERED_TRACING_RESOURCES / nodestats_data_filename, "rb") as f:
+    with Path.open(NODESTATS_RESOURCES / nodestats_data_filename, "rb") as f:
         nodestats_data = pickle.load(f)
 
-    with Path.open(ORDERED_TRACING_RESOURCES / nodestats_branch_images_filename, "rb") as f:
+    with Path.open(NODESTATS_RESOURCES / nodestats_branch_images_filename, "rb") as f:
         nodestats_branch_images = pickle.load(f)
 
     nodestats_whole_data = {"stats": nodestats_data, "images": nodestats_branch_images}

@@ -17,7 +17,9 @@ from topostats.io import dict_almost_equal
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
-RESOURCES = BASE_DIR / "tests" / "resources"
+GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
+DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
+NODESTATS_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "nodestats"
 
 # from topostats.tracing.nodestats import nodeStats
 
@@ -239,15 +241,15 @@ def test_analyse_nodes(
     # )
 
     # Load the nodestats catenane node dict from pickle
-    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("rb") as f:
         expected_nodestats_catenane_node_dict = pickle.load(f)
 
     # Load the nodestats catenane image dict from pickle
-    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("rb") as f:
         expected_nodestats_catenane_image_dict = pickle.load(f)
 
     # Load the nodestats catenane all connected nodes from pickle
-    with Path(RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy").open("rb") as f:
         expected_nodestats_catenane_all_connected_nodes = np.load(f)
 
     np.testing.assert_equal(node_dict_result, expected_nodestats_catenane_node_dict)
@@ -299,22 +301,22 @@ def test_add_branches_to_labelled_image(
 ) -> None:
     """Test of add_branches_to_labelled_image() method of nodeStats class."""
     # Load the matched branches
-    with Path(RESOURCES / f"{matched_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{matched_branches_filename}").open("rb") as f:
         matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pickle.load(f)
 
     # Load the masked image
-    with Path(RESOURCES / f"{masked_image_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{masked_image_filename}").open("rb") as f:
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = pickle.load(f)
 
     # Load the ordered branches
-    with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches: list[npt.NDArray[np.int32]] = pickle.load(f)
 
     # Load the branch image
-    expected_branch_image: npt.NDArray[np.int32] = np.load(RESOURCES / expected_branch_image_filename)
+    expected_branch_image: npt.NDArray[np.int32] = np.load(NODESTATS_RESOURCES / expected_branch_image_filename)
 
     # Load the average image
-    expected_average_image: npt.NDArray[np.float64] = np.load(RESOURCES / expected_average_image_filename)
+    expected_average_image: npt.NDArray[np.float64] = np.load(NODESTATS_RESOURCES / expected_average_image_filename)
 
     result_branch_image, result_average_image = nodeStats.add_branches_to_labelled_image(
         branch_under_over_order=branch_under_over_order,
@@ -404,10 +406,10 @@ def test_analyse_node_branches(
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
     # Load the reduced node area
-    reduced_node_area = np.load(RESOURCES / f"{reduced_node_area_filename}")
+    reduced_node_area = np.load(NODESTATS_RESOURCES / f"{reduced_node_area_filename}")
 
     # Load the reduced skeleton graph
-    with Path(RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
         reduced_skeleton_graph = pickle.load(f)
 
     (
@@ -433,14 +435,14 @@ def test_analyse_node_branches(
     )
 
     # Load expected matched branches
-    with Path(RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
         expected_matched_branches = pickle.load(f)
 
     # Load expected masked image
-    with Path(RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
         expected_masked_image = pickle.load(f)
     # Load expected ordered branches
-    with Path(RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
         expected_ordered_branches = pickle.load(f)
 
     np.testing.assert_equal(result_pairs, expected_pairs)
@@ -540,19 +542,19 @@ def test_join_matching_branches_through_node(
 ) -> None:
     """Test of join_matching_branches_through_node() method of nodeStats class."""
     # Load the ordered branches
-    with Path(RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches = pickle.load(f)
 
     # Load the reduced skeleton graph
-    with Path(RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
         reduced_skeleton_graph = pickle.load(f)
 
     # Load expected matched branches
-    with Path(RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
         expected_matched_branches = pickle.load(f)
 
     # Load expected masked image
-    with Path(RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
+    with Path(NODESTATS_RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
         expected_masked_image = pickle.load(f)
 
     result_matched_branches, result_masked_image = nodeStats.join_matching_branches_through_node(
@@ -904,20 +906,23 @@ def test_minimum_crossing_confs() -> None:
 @pytest.mark.parametrize(
     (
         "image_filename",
+        "pixel_to_nm_scaling",
         "disordered_tracing_crop_data_filename",
         "node_joining_length",
         "node_extend_dist",
         "branch_pairing_length",
         "pair_odd_branches",
         "expected_nodestats_data_filename",
-        "expected_grainstats_additions_filename",
-        "expected_all_images_filename",
+        "expected_nodestats_grainstats_additions_filename",
+        "expected_nodestats_all_images_filename",
         "expected_nodestats_branch_images_filename",
     ),
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_disordered_crop_data.pkl",
+            # Pixel to nm scaling
+            0.488,
+            "catenanes_disordered_tracing_crop_data.pkl",
             # Node joining length
             7.0,
             # Node extend distance
@@ -926,15 +931,17 @@ def test_minimum_crossing_confs() -> None:
             20.0,
             # Pair odd branches
             True,
-            "example_catenanes_nodestats_data.pkl",
-            "example_catenanes_grainstats_additions_nodestats.csv",
-            "example_catenanes_all_images_nodestats.pkl",
-            "example_catenanes_nodestats_branch_images.pkl",
+            "catenanes_nodestats_data.pkl",
+            "catenanes_nodestats_grainstats_additions.csv",
+            "catenanes_nodestats_all_images.pkl",
+            "catenanes_nodestats_branch_images.pkl",
             id="catenane",
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_disordered_crop_data.pkl",
+            # Pixel to nm scaling
+            0.488,
+            "rep_int_disordered_tracing_crop_data.pkl",
             # Node joining length
             7.0,
             # Node extend distance
@@ -943,15 +950,17 @@ def test_minimum_crossing_confs() -> None:
             20.0,
             # Pair odd branches
             False,
-            "example_rep_int_nodestats_data_no_pair_odd_branches.pkl",
-            "example_rep_int_grainstats_additions_nodestats_no_pair_odd_branches.csv",
-            "example_rep_int_all_images_nodestats_no_pair_odd_branches.pkl",
-            "example_rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
+            "rep_int_nodestats_data_no_pair_odd_branches.pkl",
+            "rep_int_nodestats_grainstats_additions_no_pair_odd_branches.csv",
+            "rep_int_nodestats_all_images_no_pair_odd_branches.pkl",
+            "rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
             id="replication_intermediate, not pairing odd branches",
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_disordered_crop_data.pkl",
+            # Pixel to nm scaling
+            0.488,
+            "rep_int_disordered_tracing_crop_data.pkl",
             # Node joining length
             7.0,
             # Node extend distance
@@ -960,45 +969,49 @@ def test_minimum_crossing_confs() -> None:
             20.0,
             # Pair odd branches
             True,
-            "example_rep_int_nodestats_data_pair_odd_branches.pkl",
-            "example_rep_int_grainstats_additions_nodestats_pair_odd_branches.csv",
-            "example_rep_int_all_images_nodestats_pair_odd_branches.pkl",
-            "example_rep_int_nodestats_branch_images_pair_odd_branches.pkl",
+            "rep_int_nodestats_data_pair_odd_branches.pkl",
+            "rep_int_nodestats_grainstats_additions_pair_odd_branches.csv",
+            "rep_int_nodestats_all_images_pair_odd_branches.pkl",
+            "rep_int_nodestats_branch_images_pair_odd_branches.pkl",
             id="replication_intermediate, pairing odd branches",
         ),
     ],
 )
 def test_nodestats_image(
     image_filename: str,
+    pixel_to_nm_scaling: float,
     disordered_tracing_crop_data_filename: str,
     node_joining_length: float,
     node_extend_dist: float,
     branch_pairing_length: float,
     pair_odd_branches: bool,
     expected_nodestats_data_filename: str,
-    expected_grainstats_additions_filename: str,
-    expected_all_images_filename: str,
+    expected_nodestats_grainstats_additions_filename: str,
+    expected_nodestats_all_images_filename: str,
     expected_nodestats_branch_images_filename: str,
 ) -> None:
     """Test of nodestats_image() method of nodeStats class."""
     # Load the image
-    image = np.load(RESOURCES / image_filename)
+    image = np.load(GENERAL_RESOURCES / image_filename)
     # load disordered_tracing_crop_data from pickle
-    with Path(RESOURCES / disordered_tracing_crop_data_filename).open("rb") as f:
+    with Path(DISORDERED_TRACING_RESOURCES / disordered_tracing_crop_data_filename).open("rb") as f:
         disordered_tracing_crop_data = pickle.load(f)
 
-    result_nodestats_data, result_grainstats_additions_df, result_all_images, result_nodestats_branch_images = (
-        nodestats_image(
-            image=image,
-            disordered_tracing_direction_data=disordered_tracing_crop_data,
-            filename="test_image",
-            pixel_to_nm_scaling=0.488,
-            node_joining_length=node_joining_length,
-            node_extend_dist=node_extend_dist,
-            branch_pairing_length=branch_pairing_length,
-            pair_odd_branches=pair_odd_branches,
-            pad_width=1,
-        )
+    (
+        result_nodestats_data,
+        result_nodestats_grainstats_additions_df,
+        result_nodestats_all_images,
+        result_nodestats_branch_images,
+    ) = nodestats_image(
+        image=image,
+        disordered_tracing_direction_data=disordered_tracing_crop_data,
+        filename="test_image",
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        node_joining_length=node_joining_length,
+        node_extend_dist=node_extend_dist,
+        branch_pairing_length=branch_pairing_length,
+        pair_odd_branches=pair_odd_branches,
+        pad_width=1,
     )
 
     # # DEBUGGING (For viewing images)
@@ -1006,56 +1019,45 @@ def test_nodestats_image(
     # node_centres = result_all_images["node_centres"]
     # connected_nodes = result_all_images["connected_nodes"]
 
-    # # # Save the results
-    # if image_filename == "example_catenanes.npy":
-    #     # Save the result_nodestats_data
-    #     with Path(RESOURCES / "example_catenanes_nodestats_data.pkl").open("wb") as f:
-    #         pickle.dump(result_nodestats_data, f)
+    # Save the results
 
-    #     # Save the result_grainstats_additions_df as a csv
-    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_catenanes_grainstats_additions_nodestats.csv")
+    # Save the result_nodestats_data
+    # with Path(NODESTATS_RESOURCES / expected_nodestats_data_filename).open("wb") as f:
+    #     pickle.dump(result_nodestats_data, f)
 
-    #     # Save the result_all_images
-    #     with Path(RESOURCES / "example_catenanes_all_images_nodestats.pkl").open("wb") as f:
-    #         pickle.dump(result_all_images, f)
+    # # Save the result_grainstats_additions_df as a csv
+    # result_nodestats_grainstats_additions_df.to_csv(
+    #     NODESTATS_RESOURCES / expected_nodestats_grainstats_additions_filename
+    # )
 
-    #     # Save the result_nodestats_branch_images
-    #     with Path(RESOURCES / "example_catenanes_nodestats_branch_images.pkl").open("wb") as f:
-    #         pickle.dump(result_nodestats_branch_images, f)
-    # elif image_filename == "example_rep_int.npy":
-    #     # Save the result_nodestats_data
-    #     with Path(RESOURCES / "example_rep_int_nodestats_data.pkl").open("wb") as f:
-    #         pickle.dump(result_nodestats_data, f)
+    # # Save the result_all_images
+    # with Path(NODESTATS_RESOURCES / expected_nodestats_all_images_filename).open("wb") as f:
+    #     pickle.dump(result_nodestats_all_images, f)
 
-    #     # Save the result_grainstats_additions_df as a csv
-    #     result_grainstats_additions_df.to_csv(RESOURCES / "example_rep_int_grainstats_additions_nodestats.csv")
-
-    #     # Save the result_all_images
-    #     with Path(RESOURCES / "example_rep_int_all_images_nodestats.pkl").open("wb") as f:
-    #         pickle.dump(result_all_images, f)
-
-    #     # Save the result_nodestats_branch_images
-    #     with Path(RESOURCES / "example_rep_int_nodestats_branch_images.pkl").open("wb") as f:
-    #         pickle.dump(result_nodestats_branch_images, f)
+    # # Save the result_nodestats_branch_images
+    # with Path(NODESTATS_RESOURCES / expected_nodestats_branch_images_filename).open("wb") as f:
+    #     pickle.dump(result_nodestats_branch_images, f)
 
     # Load expected data
 
     # Load the expected nodestats data
-    with Path(RESOURCES / expected_nodestats_data_filename).open("rb") as f:
+    with Path(NODESTATS_RESOURCES / expected_nodestats_data_filename).open("rb") as f:
         expected_nodestats_data = pickle.load(f)
 
     # Load the expected grainstats additions
-    expected_grainstats_additions_df = pd.read_csv(RESOURCES / expected_grainstats_additions_filename, index_col=0)
+    expected_grainstats_additions_df = pd.read_csv(
+        NODESTATS_RESOURCES / expected_nodestats_grainstats_additions_filename, index_col=0
+    )
 
     # Load the expected all images
-    with Path(RESOURCES / expected_all_images_filename).open("rb") as f:
+    with Path(NODESTATS_RESOURCES / expected_nodestats_all_images_filename).open("rb") as f:
         expected_all_images = pickle.load(f)
 
     # Load the expected nodestats branch images
-    with Path(RESOURCES / expected_nodestats_branch_images_filename).open("rb") as f:
+    with Path(NODESTATS_RESOURCES / expected_nodestats_branch_images_filename).open("rb") as f:
         expected_nodestats_branch_images = pickle.load(f)
 
     assert dict_almost_equal(result_nodestats_data, expected_nodestats_data, abs_tol=1e-3)
-    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
-    assert dict_almost_equal(result_all_images, expected_all_images)
+    pd.testing.assert_frame_equal(result_nodestats_grainstats_additions_df, expected_grainstats_additions_df)
+    assert dict_almost_equal(result_nodestats_all_images, expected_all_images)
     assert dict_almost_equal(result_nodestats_branch_images, expected_nodestats_branch_images)
