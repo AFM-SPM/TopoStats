@@ -253,7 +253,7 @@ def test_plot_and_save_non_square_bounding_box(
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config["mask_cmap"] = "blu"
+    plotting_config["mask_cmap"] = "blue"
     fig, _ = Images(
         data=ARRAY,
         output_dir=tmp_path,
@@ -280,7 +280,7 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config["mask_cmap"] = "blu"
+    plotting_config["mask_cmap"] = "blue"
     mask = np.zeros((1024, 1024))
     mask[500, :] = 1
     fig, _ = Images(
