@@ -165,18 +165,6 @@ def catenane_image() -> npt.NDArray[np.number]:
 
 
 @pytest.fixture()
-def catenane_skeleton() -> npt.NDArray[np.bool_]:
-    """Skeleton of the catenane test image."""
-    return np.load(RESOURCES / "catenane_skeleton.npy")
-
-
-@pytest.fixture()
-def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
-    """Smoothed mask of the catenane test image."""
-    return np.load(RESOURCES / "catenane_smoothed_mask.npy")
-
-
-@pytest.fixture()
 def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
     """
     Catenane node centre mask.
@@ -201,12 +189,13 @@ def catenane_connected_nodes() -> npt.NDArray[np.int32]:
 @pytest.fixture()
 def nodestats_catenane(
     catenane_image: npt.NDArray[np.number],
-    catenane_smoothed_mask: npt.NDArray[np.bool_],
-    catenane_skeleton: npt.NDArray[np.bool_],
-    catenane_node_centre_mask: npt.NDArray[np.int32],
-    catenane_connected_nodes: npt.NDArray[np.int32],
 ) -> nodeStats:
     """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
+    catenane_smoothed_mask: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_smoothed_mask.npy")
+    catenane_skeleton: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_skeleton.npy")
+    catenane_node_centre_mask = np.load(RESOURCES / "catenane_node_centre_mask.npy")
+    catenane_connected_nodes = np.load(RESOURCES / "catenane_connected_nodes.npy")
+
     # Create a nodestats object
     nodestats = nodeStats(
         filename="test_catenane",
