@@ -14,6 +14,10 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-locals
+
 
 class splineTrace:
     # pylint: disable=too-many-instance-attributes
@@ -607,7 +611,7 @@ def splining_image(
         grainstats_additions[grain_no].update(grain_trace_stats)
 
     # convert grainstats metrics to dataframe
-    grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    splining_stats_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
     molstats_df.reset_index(drop=True, inplace=True)
-    return all_splines_data, grainstats_additions_df, molstats_df
+    return all_splines_data, splining_stats_df, molstats_df

@@ -26,6 +26,15 @@ from topostats.utils import ResolutionError, convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-branches
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-lines
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-nested-blocks
+# pylint: disable=too-many-public-methods
+# pylint: disable=too-many-statements
+
 
 class NodeDict(TypedDict):
     """Dictionary containing the node information."""
@@ -1482,7 +1491,7 @@ class nodeStats:
             return None
 
     @staticmethod
-    def average_height_trace(
+    def average_height_trace(  # noqa: C901
         img: npt.NDArray, branch_mask: npt.NDArray, branch_coords: npt.NDArray, centre=(0, 0)
     ) -> tuple:
         """
@@ -1918,7 +1927,7 @@ def nodestats_image(
                 bbox = disordered_tracing_grain_data["bbox"]
                 full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(f"[{filename}] : Nodestats for {n_grain} failed with - {e}")
             nodestats_data[n_grain] = {}
 

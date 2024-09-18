@@ -17,8 +17,7 @@ from topostats.utils import convolve_skeleton, coords_2_img
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-class OrderedTraceNodestats:
-    # pylint: disable=too-many-instance-attributes
+class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
     """
     Order single pixel thick skeleton coordinates via NodeStats results.
 
@@ -81,9 +80,9 @@ class OrderedTraceNodestats:
 
         self.ordered_coordinates = []
 
+    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-branches
     def compile_trace(self, reverse_min_conf_crossing: bool = False) -> tuple[list, npt.NDArray]:  # noqa: C901
-        # pylint: disable=too-many-locals
-        # pylint: disable=too-many-branches
         """
         Obtain the trace and diagnostic crossing trace and molecule trace images.
 
@@ -496,6 +495,7 @@ class OrderedTraceNodestats:
 
         return img
 
+    # pylint: disable=too-many-locals
     def get_mols_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
         # pylint: disable=too-many-locals
         """
@@ -834,6 +834,7 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
     return ordered_mask
 
 
+# pylint: disable=too-many-locals
 def ordered_tracing_image(
     image: npt.NDArray,
     disordered_tracing_direction_data: dict,

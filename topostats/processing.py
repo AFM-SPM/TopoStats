@@ -28,6 +28,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=line-too-long
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-branches
+# pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
@@ -239,7 +240,7 @@ def run_grains(  # noqa: C901
             return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
-    LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+    LOGGER.info(f"[{filename}] Detection of grains disabled, GrainStats will not be run.")
 
     return None
 
@@ -358,7 +359,7 @@ def run_grainstats(
         return create_empty_dataframe()
 
 
-def run_disorderedTrace(
+def run_disordered_trace(
     image: npt.NDArray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
@@ -777,8 +778,8 @@ def run_splining(
         splining_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Splining ***")
         splined_image_data = defaultdict()
-        grainstats_additions_image = pd.DataFrame()
-        molstats_additions_image = pd.DataFrame()
+        splining_grainstats = pd.DataFrame()
+        splining_molstats = pd.DataFrame()
 
         try:
             # run image using directional grain masks
@@ -787,15 +788,15 @@ def run_splining(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
-                    grainstats_additions_image = create_empty_dataframe()
-                    molstats_additions_image = create_empty_dataframe(columns=["image", "basename", "threshold"])
+                    splining_grainstats = create_empty_dataframe()
+                    splining_molstats = create_empty_dataframe(columns=["image", "basename", "threshold"])
                     raise ValueError(f"No grains exist for the {direction} direction")
 
                 # if grains are found
                 (
                     splined_data,
-                    grainstats_additions_df,
-                    molstats_additions_df,
+                    _splining_grainstats,
+                    _splining_molstats,
                 ) = splining_image(
                     image=image,
                     ordered_tracing_direction_data=ordered_tracing_direction_data,
@@ -805,11 +806,10 @@ def run_splining(
                 )
 
                 # save per image new grainstats stats
-                grainstats_additions_df["threshold"] = direction
-                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
-                # save per image new molstats stats
-                molstats_additions_df["threshold"] = direction
-                molstats_additions_image = pd.concat([molstats_additions_image, molstats_additions_df])
+                _splining_grainstats["threshold"] = direction
+                splining_grainstats = pd.concat([splining_stats, _splining_stats])
+                _splining_molstats["threshold"] = direction
+                splining_molstats = pd.concat([splining_molstats, _splining_molstats])
 
                 # append direction results to dict
                 splined_image_data[direction] = splined_data
@@ -830,15 +830,15 @@ def run_splining(
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, splining_grainstats, on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
-                else grainstats_additions_image
+                else splining_grainstats
             )
             # merge molstats data with other dataframe
             resultant_molstats = (
-                pd.merge(molstats_df, molstats_additions_df, on=["image", "threshold", "grain_number"])
+                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number"])
                 if molstats_df is not None
-                else molstats_additions_df
+                else splining_molstats
             )
 
             # merge all image dictionaries
@@ -846,7 +846,7 @@ def run_splining(
 
         except Exception as e:
             LOGGER.info(f"Splining failed with {e} - skipping.")
-            return splined_image_data, grainstats_additions_image, molstats_additions_image
+            return splined_image_data, splining_grainstats, splining_molstats
 
     return None, grainstats_df, molstats_df
 
@@ -1109,17 +1109,53 @@ def check_run_steps(  # noqa: C901
     splining_run : bool
         Flag for running DNA Tracing.
     """
+    LOGGER.debug(f"{filter_run=}")
+    LOGGER.debug(f"{grains_run=}")
+    LOGGER.debug(f"{grainstats_run=}")
+    LOGGER.debug(f"{disordered_tracing_run=}")
+    LOGGER.debug(f"{nodestats_run=}")
+    LOGGER.debug(f"{splining_run=}")
     if splining_run:
         if nodestats_run is False:
-            LOGGER.error("Splining enabled but NodeStats is disabled. Tracing will use the 'old' method.")
+            LOGGER.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
+            if grainstats_run is False:
+                LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
+            elif grains_run is False:
+                LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
+            elif grains_run is False:
+                LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+            else:
+                LOGGER.info("Configuration run options are consistent, processing can proceed.")
         elif disordered_tracing_run is False:
-            LOGGER.error("Splining enabled but Disordered Tracing is disabled. Please check your configuration file.")
+            LOGGER.error(
+                "Splining is enabled but Disordered Tracing is disabled. Please check your configuration file."
+            )
         elif grainstats_run is False:
-            LOGGER.error("Tracing enabled but Grainstats disabled. Please check your configuration file.")
+            LOGGER.error("Splining is enabled but Grainstats is disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Tracing enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error("Splining is enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("Tracing enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif nodestats_run:
+        if disordered_tracing_run is False:
+            LOGGER.error("NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif disordered_tracing_run:
+        if grainstats_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Disordered Tracing enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:
