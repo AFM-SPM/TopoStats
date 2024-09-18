@@ -199,35 +199,6 @@ def test_analyse_nodes(
     node_dict_result = nodestats_catenane.node_dicts
     image_dict_result = nodestats_catenane.image_dict
 
-    # Nodestats dict has structure:
-    # "node_1":
-    #  - error: Bool
-    #  - px_2_nm: float
-    #  - crossing_type: None
-    #  - branch_stats: dict:
-    #    - 0:
-    #      - ordered coords: array Nx2
-    #      - heights: array Nx2
-    #      - distances: array Nx2
-    #      - fwhm2: tuple(float, list(3?), list (3?))
-    #    - ...
-    #  - unmatched_branch_stats: dict:
-    #    - 0: dict:
-    #      -  angles: float (angle of the branch relative to the first branch)
-    #    - ...
-
-    # Image dict has structure:
-    # - nodes
-    #   - node_1: dict
-    #     - node_area_skeleton: array NxN
-    #     - node_branch_mask: array NxN
-    #     - node_average_mask: array NxN
-    #   - node_2 ...
-    # - grain
-    #   - grain_image: array NxN
-    #   - grain_mask: array NxN
-    #   - grain_skeleton: array NxN
-
     # Debugging
     # Save the results to overwrite expected results
     # with Path(RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("wb") as f:
