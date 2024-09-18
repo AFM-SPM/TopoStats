@@ -65,8 +65,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         }
         self.mol_tracing_stats = {"circular": None, "topology": None, "topology_flip": None, "processing": "nodestats"}
 
-        self.ordered_traces = None
-
         self.images = {
             "over_under": np.zeros_like(image),
             "all_molecules": np.zeros_like(image),
@@ -188,6 +186,30 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
 
+        # obtain topology from the simple trace
+        topology = self.get_topology(simple_trace)
+        if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
+            topology = [None for _ in enumerate(topology)]
+
+        return coord_trace, topology, cross_add, crossing_coords, fwhms
+
+    def compile_images(self, coord_trace: list, cross_add: npt.NDArray, crossing_coords: list, fwhms: list) -> None:
+        """
+        Obtain all the diagnostic images based on the produced traces, and values.
+
+        Crossing coords and fwhms are used as arguments as reversing the minimum confidence can modify these.
+
+        Parameters
+        ----------
+        coord_trace : list
+            List of N molecule objects containing 2xM arrays of X, Y coordinates.
+        cross_add : npt.NDArray
+            A labelled array with segments of the ordered trace.
+        crossing_coords : list
+            A list of I nodes objects containing 2xJ arrays of X, Y coordinates for each crossing branch.
+        fwhms : list
+            A list of I nodes objects containing FWHM values for each crossing branch.
+        """
         # visual over under img
         self.images["trace_segments"] = cross_add
         try:
@@ -196,13 +218,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         except IndexError:
             pass
         self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
-
-        # obtain topology from the simple trace
-        topology = self.get_topology(simple_trace)
-        if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
-            topology = [None for _ in enumerate(topology)]
-
-        return coord_trace, self.images, topology
 
     @staticmethod
     def remove_common_values(
@@ -459,7 +474,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     def get_over_under_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
         """
-        Obtain a labeled image according to the main trace (=1), under (=2), over (=3).
+        Obtain a labelled image according to the main trace (=1), under (=2), over (=3).
 
         Parameters
         ----------
@@ -473,7 +488,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
         npt.NDArray
-            2D crossing order labeled image.
+            2D crossing order labelled image.
         """
         # put down traces
         img = np.zeros_like(self.skeleton)
@@ -481,10 +496,10 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
             # temp_img = binary_dilation(temp_img)
-            img[temp_img != 0] = 1  # mol_no + 1
-        lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
+            img[temp_img != 0] = 1
 
-        # place over/unders onto image array
+        # place over/under strands onto image array
+        lower_idxs, upper_idxs = self.get_trace_idxs(fwhms)
         for i, type_idxs in enumerate([lower_idxs, upper_idxs]):
             for crossing, type_idx in zip(crossing_coords, type_idxs):
                 temp_img = np.zeros_like(img)
@@ -499,7 +514,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
     def get_mols_img(self, coord_trace: list, fwhms: list, crossing_coords: list) -> npt.NDArray:
         # pylint: disable=too-many-locals
         """
-        Obtain a labeled image according to each molecule traced N=3 -> n=1,2,3.
+        Obtain a labelled image according to each molecule traced N=3 -> n=1,2,3.
 
         Parameters
         ----------
@@ -513,7 +528,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
         npt.NDArray
-            2D individual 'molecule' labeled image.
+            2D individual 'molecule' labelled image.
         """
         img = np.zeros_like(self.skeleton)
         for mol_no, coords in enumerate(coord_trace):
@@ -544,7 +559,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def get_trace_idxs(fwhms: list) -> tuple[list, list]:
         """
-        Split underpassing and overpassing indices.
+        Split under-passing and over-passing indices.
 
         Parameters
         ----------
@@ -645,9 +660,13 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         tuple[list, dict, dict]
             A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
         """
-        self.ordered_traces, self.images, topology = self.compile_trace(reverse_min_conf_crossing=False)
-        topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[2]
-        self.grain_tracing_stats["num_mols"] = len(self.ordered_traces)
+        ordered_traces, topology, cross_add, crossing_coords, fwhms = self.compile_trace(
+            reverse_min_conf_crossing=False
+        )
+        self.compile_images(ordered_traces, cross_add, crossing_coords, fwhms)
+        topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
+
+        self.grain_tracing_stats["num_mols"] = len(ordered_traces)
         writhe_string, node_to_writhes = self.identify_writhes()
         self.grain_tracing_stats["writhe_string"] = writhe_string
 
@@ -656,7 +675,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         ordered_trace_data = {}
         grain_mol_tracing_stats = {}
-        for i, mol_trace in enumerate(self.ordered_traces):
+        for i, mol_trace in enumerate(ordered_traces):
             if len(mol_trace) > 3:  # if > 4 coords to trace
                 np.save(f"trace_xyz_{i}", mol_trace)
                 self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
