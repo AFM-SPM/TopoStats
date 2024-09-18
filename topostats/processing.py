@@ -807,7 +807,7 @@ def run_splining(
 
                 # save per image new grainstats stats
                 _splining_grainstats["threshold"] = direction
-                splining_grainstats = pd.concat([splining_stats, _splining_stats])
+                splining_grainstats = pd.concat([splining_grainstats, _splining_grainstats])
                 _splining_molstats["threshold"] = direction
                 splining_molstats = pd.concat([splining_molstats, _splining_molstats])
 
@@ -994,7 +994,7 @@ def process_scan(
         )
 
         # Disordered Tracing
-        disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disorderedTrace(
+        disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_trace(
             image=topostats_object["image_flattened"],
             grain_masks=topostats_object["grain_masks"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
