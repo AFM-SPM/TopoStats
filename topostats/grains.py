@@ -499,10 +499,10 @@ class Grains:
                     image=self.image,
                     labelled_grain_regions=self.directions[direction]["labelled_regions_02"][:, :, 1],
                 )
-
                 # Update the image masks to be the unet masks instead
                 self.directions[direction]["removed_small_objects"] = unet_mask
                 self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
+                np.save(f"/Users/laura/Desktop/mask_{self.filename}", unet_labelled_regions)
 
                 LOGGER.info(f"[{self.filename}] : Overridden grains with UNet predictions ({direction})")
 
@@ -629,7 +629,7 @@ class Grains:
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
                 # Keep only the largest object in the grain crop (needs to be configurable in future)
-                unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
+                #unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
 
                 # Directly set the background to be equal instead of logical or since they are by default
                 # 1, and should be turned off if any other class is on
@@ -662,6 +662,19 @@ class Grains:
             # Iterate over each class and label the regions
             for class_index in range(unet_mask.shape[2]):
                 unet_labelled_regions[:, :, class_index] = Grains.label_regions(unet_mask[:, :, class_index])
+
+        # Add an extra class that combines all the masks
+        combined_mask = np.zeros_like(unet_mask[:, :, 0])
+
+        # Combine all classes (excluding the background class at index 0)
+        for class_index in range(1, unet_mask.shape[2]):
+            combined_mask = np.logical_or(combined_mask, unet_mask[:, :, class_index])
+
+        # Label the combined mask and append it as an additional class
+        unet_labelled_regions = np.concatenate(
+            (unet_labelled_regions, np.expand_dims(Grains.label_regions(combined_mask), axis=2)),
+            axis=2
+        )
 
         return unet_mask, unet_labelled_regions
 
