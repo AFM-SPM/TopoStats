@@ -19,6 +19,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 
 
+# pylint: disable=too-many-instance-attributes
 class splineTrace:
     """
     Smooth the ordered trace via an average of splines.
@@ -42,6 +43,7 @@ class splineTrace:
         small s-value.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         image: npt.NDArray,
@@ -359,15 +361,15 @@ class windowTrace:
         pooled_trace = [pixel_trace[0]]  # Add first coord as to not cut it off
 
         # Get average point for trace in rolling window
-        for i in range(1, len(pixel_trace) - 1):
+        for i in range(0, len(pixel_trace)):
             binned_points = []
             current_length = 0
-            j = 1
+            j = 0
             # Compile rolling window
             while current_length < rolling_window_size:
                 current_index = i + j
                 previous_index = i + j - 1
-                if current_index + 1 >= len(pixel_trace):  # exit if exceeding the trace
+                if current_index >= len(pixel_trace):  # exit if exceeding the trace
                     break
                 current_length += (
                     np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
@@ -383,6 +385,18 @@ class windowTrace:
                 break
 
         pooled_trace.append(pixel_trace[-1])  # Add last coord as to not cut it off
+
+        # Check if the first two points are the same and remove the first point if they are
+        # This can happen if the algorithm happens to add the first point naturally due to having a small
+        # rolling window size.
+        if np.array_equal(pooled_trace[0], pooled_trace[1]):
+            pooled_trace.pop(0)
+
+        # Check if the last two points are the same and remove the last point if they are
+        # This can happen if the algorithm happens to add the last point naturally due to having a small
+        # rolling window size.
+        if np.array_equal(pooled_trace[-1], pooled_trace[-2]):
+            pooled_trace.pop(-1)
 
         return np.array(pooled_trace)
 
@@ -500,6 +514,8 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
     return 0
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def splining_image(
     image: npt.NDArray,
     ordered_tracing_direction_data: dict,
@@ -552,6 +568,7 @@ def splining_image(
     for grain_no, ordered_grain_data in ordered_tracing_direction_data.items():
         grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
         all_splines_data[grain_no] = {}
+        mol_no = None
         for mol_no, mol_trace_data in ordered_grain_data.items():
             try:
                 LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
@@ -596,8 +613,11 @@ def splining_image(
                 LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
                 all_splines_data[grain_no] = {}
 
-        # average the e2e dists -> mol_no should always be in the grain dict
-        grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
+        if mol_no is None:
+            LOGGER.warning(f"[{filename}] : No molecules found for grain {grain_no}")
+        else:
+            # average the e2e dists -> mol_no should always be in the grain dict
+            grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
 
         # compile metrics
         grainstats_additions[grain_no] = {
