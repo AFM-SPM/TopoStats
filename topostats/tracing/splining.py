@@ -591,7 +591,8 @@ def splining_image(
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
                     "image": filename,
-                    "grain_number": int(grain_no.split("_")[-1]),
+                    "grain_number": int(grain_no.rsplit("_", maxsplit=1)[-1]),
+                    "molecule_number": int(mol_no.rsplit("_", maxsplit=1)[-1]),
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
                 LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")

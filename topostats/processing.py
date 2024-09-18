@@ -836,7 +836,7 @@ def run_splining(
             )
             # merge molstats data with other dataframe
             resultant_molstats = (
-                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number"])
+                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number", "molecule_number"])
                 if molstats_df is not None
                 else splining_molstats
             )

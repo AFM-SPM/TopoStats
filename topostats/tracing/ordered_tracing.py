@@ -943,7 +943,8 @@ def ordered_tracing_image(
             for mol_no, molstat_values in grain_molstats.items():
                 molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
                     "image": filename,
-                    "grain_number": int(grain_no.split("_")[-1]),
+                    "grain_number": int(grain_no.rsplit("_", maxsplit=1)[-1]),
+                    "molecule_number": int(mol_no.rsplit("_", maxsplit=1)[-1]),
                 }
                 molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
 
@@ -959,5 +960,6 @@ def ordered_tracing_image(
 
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
+    molstats_df.reset_index(drop=True, inplace=True)
 
     return all_traces_data, grainstats_additions_df, molstats_df, ordered_trace_full_images
