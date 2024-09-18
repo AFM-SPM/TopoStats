@@ -664,14 +664,14 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             reverse_min_conf_crossing=False
         )
         self.compile_images(ordered_traces, cross_add, crossing_coords, fwhms)
-        topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
-
         self.grain_tracing_stats["num_mols"] = len(ordered_traces)
+
         writhe_string, node_to_writhes = self.identify_writhes()
         self.grain_tracing_stats["writhe_string"] = writhe_string
-
         for node_num, node_writhes in node_to_writhes.items():  # should self update as the dicts are linked
             self.nodestats_dict[f"node_{node_num+1}"]["writhe"] = node_writhes
+
+        topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
         ordered_trace_data = {}
         grain_mol_tracing_stats = {}
