@@ -26,6 +26,12 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
         "image_filename",
         "ordered_tracing_direction_data_filename",
         "pixel_to_nm_scaling",
+        "splining_method",
+        "rolling_window_size",
+        "spline_step_size",
+        "spline_linear_smoothing",
+        "spline_circular_smoothing",
+        "spline_degree",
         "filename",
         "expected_all_splines_data_filename",
         "expected_grainstats_additions_filename",
@@ -36,6 +42,13 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
             "example_catenanes.npy",
             "catenanes_ordered_tracing_data.pkl",
             1.0,  # pixel_to_nm_scaling
+            # Splining parameters
+            "rolling_window",  # splining_method
+            20e-9,  # rolling_window_size
+            7.0e-9,  # spline_step_size
+            5.0,  # spline_linear_smoothing
+            5.0,  # spline_circular_smoothing
+            3,  # spline_degree
             "catenane",  # filename
             "catenanes_splining_data.pkl",
             "catenanes_splining_grainstats_additions.csv",
@@ -46,6 +59,13 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
             "example_rep_int.npy",
             "rep_int_ordered_tracing_data.pkl",
             1.0,  # pixel_to_nm_scaling
+            # Splining parameters
+            "rolling_window",  # splining_method
+            20e-9,  # rolling_window_size
+            7.0e-9,  # spline_step_size
+            5.0,  # spline_linear_smoothing
+            5.0,  # spline_circular_smoothing
+            3,  # spline_degree
             "replication_intermediate",  # filename
             "rep_int_splining_data.pkl",
             "rep_int_splining_grainstats_additions.csv",
@@ -58,6 +78,12 @@ def test_splining_image(
     image_filename: str,
     ordered_tracing_direction_data_filename: str,
     pixel_to_nm_scaling: float,
+    splining_method: str,
+    rolling_window_size: float,
+    spline_step_size: float,
+    spline_linear_smoothing: float,
+    spline_circular_smoothing: float,
+    spline_degree: int,
     filename: str,
     expected_all_splines_data_filename: str,
     expected_grainstats_additions_filename: str,
@@ -76,17 +102,17 @@ def test_splining_image(
         ordered_tracing_direction_data=ordered_tracing_direction_data,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         filename=filename,
-        method="rolling_window",
-        rolling_window_size=20e-9,
-        spline_step_size=7.0e-9,
-        spline_linear_smoothing=5.0,
-        spline_circular_smoothing=5.0,
-        spline_degree=3,
+        method=splining_method,
+        rolling_window_size=rolling_window_size,
+        spline_step_size=spline_step_size,
+        spline_linear_smoothing=spline_linear_smoothing,
+        spline_circular_smoothing=spline_circular_smoothing,
+        spline_degree=spline_degree,
     )
 
-    # # Debugging
-    # # Spline coords is Nx2 array of spline coordinates
-    # # Visualise the spline coordinates
+    # Debugging
+    # Spline coords is Nx2 array of spline coordinates
+    # Visualise the spline coordinates
     # import matplotlib.pyplot as plt
     # import numpy.typing as npt
 
@@ -130,8 +156,8 @@ def test_splining_image(
     #             previous_point = point
     # plt.show()
 
-    # Save the results to update the test data
-    # Save result splining data as pickle
+    # # Save the results to update the test data
+    # # Save result splining data as pickle
     # with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "wb") as file:
     #     pickle.dump(result_all_splines_data, file)
 
