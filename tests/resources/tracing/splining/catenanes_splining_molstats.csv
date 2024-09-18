@@ -1,5 +1,5 @@
-,image,grain_number,contour_length,end_to_end_distance
-0,catenane,0,846.6004494307274,0
-1,catenane,0,266.7145272014749,0
-2,catenane,1,846.5829590713623,0
-3,catenane,1,266.869872046825,0
+,image,grain_number,molecule_number,contour_length,end_to_end_distance
+0,catenane,0,0,846.6004494307274,0
+1,catenane,0,1,266.7145272014749,0
+2,catenane,1,0,846.5829590713623,0
+3,catenane,1,1,266.869872046825,0
