@@ -53,20 +53,25 @@ skeleton is the remapped onto the resultant image. This produces a non-binary
 skeleton where the value of each skeleton pixel is the count of it's
 neighbours + 1. This is used to produce a new skeleton image in with pixels
 labelled as:
-1 - Endpoints
-2 - Skeleton segments
-3 - Junctions
 
-![skeleton to convolved skeleton image](../_static/images/nodestats/.png)
+- 1 - Endpoints
+- 2 - Skeleton segments
+- 3 - Junctions
+
+![skeleton to convolved skeleton image](../_static/images/nodestats/convolved.png)
+
+This produces a skeleton mask (blue) where the junctions (green) and endpoints
+(pink) can be seen.
 
 ### 2. Clean-up the Crossing Regions
 
 The alignment of the skeleton onto the crossing backbone is key to obtaining
 good analyses from this module, especially for accurate topological
-classifications and calculation of writhe signs. For this reason, the area
-around the junctions points are re-filled with the mask and skeletonised again.
+classifications and calculation of writhe signs. For this reason, a small area
+around the junctions points are re-filled with the mask and skeletonised again
+using the height biasing skeletonisation approach.
 
-![skeleton to convolved skeleton image](../_static/images/nodestats/.png)
+![refilling ](../_static/images/nodestats/tidy.png)
 
 This has been useful to align the skeletons at branch crossing points however,
 the modification to the skeleton has also been known to cause problems as no
@@ -79,19 +84,20 @@ single pixel (junction) and as a result of the skeletonisation procedure, may
 be offset from one another and need to be combined to represent the crossing
 region or "node". Therefore, junctions closer than the `node_joining_length` of
 each other define a crossing region, and the pixels which span between the
-junctions along the skeleton are also labelled as a crossing.
+junctions along the skeleton are also labelled as part of the crossing.
 
-![convolved skeleton to nodes image](../_static/images/nodestats/.png)
+![convolved skeleton to nodes image](../_static/images/nodestats/joining.png)
 
 Depending on the sample type or skeletonisation / pruning errors, there might
-exist an odd number of emanating branches. In DNA samples, we typically see
-this where just before a crossing region, the two strands lie close to each
-other, creating an elongated crossing in the skeletonisation representation. In
-order to capture these for analysis, the `node_extend_dist` tells odd-branch
-crossing regions to look for and extend to other odd-branch crossing regions
-within this distance.
-
-![example of an extended node](../_static/images/nodestats/.png)
+exist an odd number of emanating branches after this initial pairing. In DNA
+samples, we typically see this where just before a crossing region, the two
+strands lie close to each other, creating an elongated crossing region in the
+skeletonisation representation. In order to capture these for analysis, the
+`node_extend_dist` tells _only_ odd-branch crossing regions to look for and
+extend to other odd-branch crossing regions within this distance, using the
+shortest path possible along the skeleton. Coming after the initial connection,
+this means that closer crossing regions can be joined, and that 3-branch
+nodes can be joined through a 4-branch node to another 3-branch node.
 
 ### 4. Pair the Branches
 
@@ -102,7 +108,7 @@ and obtain traces for are branch regions defined as extending upto the
 should be below half the persistence length of the material, so that the
 branches should follow (roughly) straight lines through the crossing region.
 
-![example of an extended node](../_static/images/nodestats/.png)
+![paring vectors overlaid onto the emanating branches](../_static/images/nodestats/pairing.png)
 
 This enables us to pair emanating branches based on the angles between their
 vectors using bipartite matching to obtain the best pairing combinations to use
@@ -120,7 +126,7 @@ centre), a height trace of the topographic crossing can be used to find the
 full-width half-maximum (FWHM) value of the crossing peak and determine which
 crossing branch lies atop (largest value) or beneath (smallest value) the other.
 
-![crossing and height trace](../_static/images/nodestats/.png)
+![crossing and height trace](../_static/images/nodestats/height_trace.png)
 
 From the FWHM of the height traces, a pseudo confidence value is obtained using
 the equation below. It calculates the ratio of the minimum to maximum value
