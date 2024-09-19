@@ -26,6 +26,7 @@ listed below to find out more.
     :caption: Advanced Documentation
 
     advanced/disordered_tracing
+    advanced/nodestats
 
 .. toctree::
    :maxdepth: 1
