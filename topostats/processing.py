@@ -12,13 +12,13 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
+from topostats.dna_protein_analysis import dnaProteinComplex
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
 from topostats.tracing.dnatracing import trace_image
 from topostats.utils import create_empty_dataframe
-from topostats.dna_protein_analysis import run_dna_protein_analysis
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
@@ -208,7 +208,7 @@ def run_grains(  # noqa: C901
                 plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                 # hard code to class index 1, as this implementation is not yet generalised.
                 Images(
-                    grains.directions[direction]["labelled_regions_02"][:, :, 1],
+                    grains.directions[direction]["labelled_regions_02"][:, :, 3],
                     **plotting_config["plot_dict"]["coloured_boxes"],
                     region_properties=grains.region_properties[direction],
                 ).plot_and_save()
@@ -219,7 +219,7 @@ def run_grains(  # noqa: C901
                 Images(
                     image,
                     filename=f"{filename}_{direction}_masked",
-                    masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1],
+                    masked_array=grains.directions[direction]["removed_small_objects"][:, :, 3],
                     **plotting_config["plot_dict"][plot_name],
                 ).plot_and_save()
 
@@ -232,7 +232,6 @@ def run_grains(  # noqa: C901
         grain_masks = {}
         for direction in grains.directions:
             grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
-
         return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
@@ -240,6 +239,34 @@ def run_grains(  # noqa: C901
 
     return None
 
+def run_dna_protein_analysis(
+    image: np.ndarray,
+    grain_masks: np.ndarray,
+    filename: str,
+    pixel_to_nm_scaling: float,
+) -> pd.DataFrame:
+    
+    for direction, _ in grain_masks.items():
+        dna_protein = dnaProteinComplex(
+            image=image,
+            grain=grain_masks[direction],
+            filename=filename,
+            pixel_to_nm_scaling=pixel_to_nm_scaling
+        )
+
+        dna_or_protein_regions = dna_protein.isolate_connected_classes()
+
+        for region_id, masks in dna_or_protein_regions.items():
+            dna_only_mask = masks['dna_only']
+            protein_only_mask = masks['protein_only']
+
+            dna_filename = f"/Users/laura/Desktop/dna_only_region_{region_id}.npy"
+            protein_filename = f"/Users/laura/Desktop/protein_only_region_{region_id}.npy"
+
+            np.save(dna_filename, dna_only_mask)
+            np.save(protein_filename, protein_only_mask)
+
+    return None
 
 def run_grainstats(
     image: np.ndarray,
@@ -297,7 +324,7 @@ def run_grainstats(
                 # Get the DNA class mask from the tensor
                 LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 1]
+                dna_class_mask = grain_masks[direction][:, :, 3]
                 LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 # Check if there are grains
@@ -424,11 +451,10 @@ def run_dnatracing(  # noqa: C901
             tracing_stats = defaultdict()
             grain_trace_data = defaultdict()
             for direction, _ in grain_masks.items():
-
                 # Get the DNA class mask from the tensor
                 LOGGER.info(f"[{filename}] : Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 1]
+                dna_class_mask = grain_masks[direction][:, :, 3]
                 LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 tracing_results = trace_image(
@@ -666,6 +692,7 @@ def process_scan(
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],)
+        
 
         # Add grain trace data and height profiles to topostats object
         topostats_object["grain_trace_data"] = grain_trace_data
