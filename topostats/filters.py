@@ -68,13 +68,13 @@ class Filters:
         filename: str,
         pixel_to_nm_scaling: float,
         row_alignment_quantile: float = 0.5,
-        threshold_method: str = "otsu",
+        threshold_method: str | None = "otsu",
         otsu_threshold_multiplier: float = 1.7,
-        threshold_std_dev: dict = None,
-        threshold_absolute: dict = None,
-        gaussian_size: float = None,
+        threshold_std_dev: dict | None = None,
+        threshold_absolute: dict | None = None,
+        gaussian_size: float = 0.01,
         gaussian_mode: str = "nearest",
-        remove_scars: dict = None,
+        remove_scars: dict | None = None,
     ):
         """
         Initialise the class.
@@ -108,6 +108,13 @@ class Filters:
         remove_scars : dict
             Dictionary containing configuration parameters for the scar removal function.
         """
+        # Set defaults for dictionary arguments
+        if remove_scars is None:
+            remove_scars = {"run": False}
+        if threshold_std_dev is None:
+            threshold_std_dev = {"above": 1.0, "below": 1.0}
+        if threshold_absolute is None:
+            threshold_absolute = {"above": 1.0, "below": -1.0}
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.gaussian_size = gaussian_size
@@ -508,11 +515,17 @@ processed, please refer to <url to page where we document common problems> for m
         ...             threshold_method='otsu')
         filter.filter_image()
         """
-        self.images["initial_median_flatten"] = self.median_flatten(
-            self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
-        )
+        if self.row_alignment_quantile is not None:
+            self.images["initial_median_flatten"] = self.median_flatten(
+                self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
+            )
+        else:
+            self.images["initial_median_flatten"] = self.images["pixels"]
+
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None
+        )
         self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
             self.images["initial_quadratic_removal"], mask=None
         )
@@ -535,46 +548,56 @@ processed, please refer to <url to page where we document common problems> for m
             self.images["initial_scar_removal"], mask=None
         )
 
-        # Get the thresholds
-        try:
-            self.thresholds = get_thresholds(
+        if self.threshold_method is not None:
+            # Get the thresholds
+            try:
+                self.thresholds = get_thresholds(
+                    image=self.images["initial_zero_average_background"],
+                    threshold_method=self.threshold_method,
+                    otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+                    threshold_std_dev=self.threshold_std_dev,
+                    absolute=self.threshold_absolute,
+                )
+            except TypeError as type_error:
+                raise type_error
+            self.images["mask"] = get_mask(
                 image=self.images["initial_zero_average_background"],
-                threshold_method=self.threshold_method,
-                otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-                threshold_std_dev=self.threshold_std_dev,
-                absolute=self.threshold_absolute,
+                thresholds=self.thresholds,
+                img_name=self.filename,
             )
-        except TypeError as type_error:
-            raise type_error
-        self.images["mask"] = get_mask(
-            image=self.images["initial_zero_average_background"],
-            thresholds=self.thresholds,
-            img_name=self.filename,
-        )
-        self.images["masked_median_flatten"] = self.median_flatten(
-            self.images["initial_tilt_removal"],
-            self.images["mask"],
-            row_alignment_quantile=self.row_alignment_quantile,
-        )
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
-        self.images["masked_quadratic_removal"] = self.remove_quadratic(
-            self.images["masked_tilt_removal"], self.images["mask"]
-        )
-        self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
-            self.images["masked_quadratic_removal"], self.images["mask"]
-        )
-        # Remove scars
-        if run_scar_removal:
-            LOGGER.info(f"[{self.filename}] : Secondary scar removal")
-            self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
-                self.images["masked_nonlinear_polynomial_removal"],
-                filename=self.filename,
-                **self.remove_scars_config,
+            if self.row_alignment_quantile is not None:
+                self.images["masked_median_flatten"] = self.median_flatten(
+                    self.images["initial_tilt_removal"],
+                    self.images["mask"],
+                    row_alignment_quantile=self.row_alignment_quantile,
+                )
+            else:
+                self.images["masked_median_flatten"] = self.images["initial_tilt_removal"]
+            self.images["masked_tilt_removal"] = self.remove_tilt(
+                self.images["masked_median_flatten"], self.images["mask"]
             )
-            self.images["scar_mask"] = scar_mask
+            self.images["masked_quadratic_removal"] = self.remove_quadratic(
+                self.images["masked_tilt_removal"], self.images["mask"]
+            )
+            self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+                self.images["masked_quadratic_removal"], self.images["mask"]
+            )
+            # Remove scars
+            if run_scar_removal:
+                LOGGER.info(f"[{self.filename}] : Secondary scar removal")
+                self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
+                    self.images["masked_nonlinear_polynomial_removal"],
+                    filename=self.filename,
+                    **self.remove_scars_config,
+                )
+                self.images["scar_mask"] = scar_mask
+            else:
+                LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
+                self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
         else:
-            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
-            self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
+            # If no thresholding is required then just copy the image
+            self.images["secondary_scar_removal"] = self.images["initial_scar_removal"]
+
         self.images["final_zero_average_background"] = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]
         )
