@@ -1,4 +1,4 @@
-# NodeStats
+# Ordered Tracing
 
 This section gives an in-depth overview of the steps taken in the ordered
 tracing module.
@@ -54,7 +54,7 @@ the disordered trace and all remaining segments labelled 1 to N. Then,
 branch-by-branch the crossing coordinates are replaced with following labels,
 resulting in an image where each skeleton and crossing segment are labelled.
 
-![Disordered trace segment image](../_static/images/ordered_tracing/.png)
+![Disordered trace segment image](../_static/images/ordered_tracing/ns_segments.png)
 
 #### 2. The NodeStats Tracing Loop
 
@@ -71,14 +71,15 @@ value found in a 3x3 area around the final coordinate in the ordered trace is
 used to identify the following trace segment. This repeats until a segment
 terminates and the only values in that 3x3 area are 0's (background).
 
-![Trace segment image & next index selector](../_static/images/ordered_tracing/.png)
+![Trace segment image & next index selector](../_static/images/ordered_tracing/ns_tracing.png)
 
 If there are no more remaining segments, the trace is finished. However, if any
 segments remain, a new ordered trace is started, again from an endpoint segment
 if possible, hence why this method is able to untangle two interlinked
 molecules such as DNA catenanes.
 
-![Two molecule trace](../_static/images/ordered_tracing/.png)
+![Two molecule trace](../_static/images/ordered_tracing/ns_sep_mols.png)
+\*Skeletons dilated for visual aid
 
 #### 2.2. A Simple Trace
 
@@ -90,7 +91,7 @@ distinguish between skeleton segments (Z=0) and crossing segments
 Topoly to hang, so they are reduced to ~100 coordinates. Each reduced points of
 each segments ensure the points capture the start and end of each segment.
 
-![3D simple trace](../_static/images/ordered_tracing/.png)
+![3D simple trace](../_static/images/ordered_tracing/ns_3d.png)
 
 Topoly then uses this NXYZ coordinate trace to produce a topological
 classification using Homfly polynomials. In addition, another trace is built up
@@ -108,7 +109,7 @@ is calculated as "+" or "-". If a crossing contains > 2 crossing branches, the
 single crossing region is split into pairs and the writhe calculated in
 brackets i.e. "+(-++)"
 
-![ordered img, crossing img and sign](../_static/images/ordered_tracing/.png)
+![ordered img, crossing img and sign](../_static/images/ordered_tracing/ns_writhe.png)
 
 For overlapping molecules, the writhe signs are still calculated but this is
 greatly dependent on the directionality of each molecule. In the case of DNA
@@ -128,7 +129,7 @@ is circular or not. The disordered trace is defined as circular by counting the
 number of neighbours of each pixel in the skeleton. If a skeleton contains at
 least one skeleton with only one neighbour it is defined as non-circular.
 
-![circular vs linear trace](../_static/images/ordered_tracing/.png)
+![circular vs linear trace](../_static/images/ordered_tracing/ts_circular.png)
 
 #### 2. Circular and Linear TopoStats Tracing
 
@@ -147,7 +148,7 @@ path, but if there are more, the trace will look up to 4 pixels earlier in the
 ordered trace, and try to identify the next pixel which has the lowest angular
 change.
 
-![pixel diagram making the trace](../_static/images/ordered_tracing/.png)
+![pixel diagram making the trace](../_static/images/ordered_tracing/ts_trace.png)
 
 ## Outputs
 
@@ -204,7 +205,7 @@ Images produced by the `plotting.image_set: all` for this module are:
   grain found by the ordering method. In the default colourmap, only three
   traces will show - blue, green, and pink.
 
-![Examples of diagnostic images](../_static/images/nodestats/diagnostics.png)
+![Examples of diagnostic images](../_static/images/ordered_tracing/diagnostics.png)
 
 ## Possible Uses
 
@@ -213,5 +214,5 @@ structures, and is a requirement for the `splining` module which smooths the
 ordered traces to obtain contour lengths of individual molecules.
 
 Additionally, you could use this module and the writhe string obtained to
-assess the supercoiling degree in DNA samples as well as a preliminary step to
-obtaining the lengths of the individual molecules.
+assess the supercoiling degree (via writhe only, not twist) in DNA samples as
+well as a preliminary step to obtaining the lengths of the individual molecules.
