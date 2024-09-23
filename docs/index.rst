@@ -28,6 +28,7 @@ listed below to find out more.
     advanced/disordered_tracing
     advanced/nodestats
     advanced/ordered_tracing
+    advanced/splining
 
 .. toctree::
    :maxdepth: 1
