@@ -144,7 +144,9 @@ The `<image>_<threshold>_disordered_trace` image shows the pruned skeletons
 that are used to obtain the below metrics and passed onto future processing
 stages.
 
-The `<image>_<threshold>_disordered_trace` image shows the pruned skeletons that are used to obtain the below metrics and passed onto future processing stages.
+The `<image>_<threshold>_disordered_trace` image shows the pruned skeletons 
+that are used to obtain the below metrics and passed onto future processing 
+stages.
 
 The `<image>_<threshold>_disordered_trace` image shows the pruned skeletons
 that are used to obtain the below metrics and passed onto future processing
