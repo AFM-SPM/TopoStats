@@ -848,7 +848,7 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
     ordered_mask = np.zeros(shape)
     if isinstance(ordered_coordinates, list):
         for mol_coords in ordered_coordinates:
-            ordered_mask[mol_coords[:, 0], mol_coords[:, 1]] = np.arange(len(mol_coords))
+            ordered_mask[mol_coords[:, 0], mol_coords[:, 1]] = np.arange(len(mol_coords)) + 1
 
     return ordered_mask
 
