@@ -334,14 +334,6 @@ class Images:
                 vmax=self.zrange[1],
             )
             if isinstance(self.masked_array, np.ndarray):
-                # self.masked_array[self.masked_array != 0] = 1
-                # If the image is too large for singles to be resolved in the mask, then dilate the mask proportionally
-                # to image size to enable clear viewing.
-                # if np.max(self.masked_array.shape) > 500:
-                #     dilation_strength = int(np.max(self.masked_array.shape) / 256)
-                #     self.masked_array = dilate_binary_image(
-                #         binary_image=self.masked_array, dilation_iterations=dilation_strength
-                #     )
                 mask = np.ma.masked_where(self.masked_array == 0, self.masked_array)
                 ax.imshow(
                     mask,
