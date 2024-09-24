@@ -407,7 +407,7 @@ def run_disordered_trace(
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
         disordered_traces = defaultdict()
-        grainstats_additions_image = pd.DataFrame()
+        disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
             # run image using directional grain masks
@@ -422,7 +422,7 @@ def run_disordered_trace(
                 # if grains are found
                 (
                     disordered_traces_cropped_data,
-                    grainstats_additions_df,
+                    _disordered_trace_grainstats,
                     disordered_tracing_images,
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
@@ -433,8 +433,8 @@ def run_disordered_trace(
                     **disordered_tracing_config,
                 )
                 # save per image new grainstats stats
-                grainstats_additions_df["threshold"] = direction
-                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+                _disordered_trace_grainstats["threshold"] = direction
+                disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
 
                 disordered_tracing_stats["threshold"] = direction
                 disordered_tracing_stats["basename"] = basename.parent
@@ -460,9 +460,9 @@ def run_disordered_trace(
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, disordered_trace_grainstats, on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
-                else grainstats_additions_image
+                else disordered_trace_grainstats
             )
 
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
@@ -520,13 +520,13 @@ def run_nodestats(  # noqa: C901
         nodestats_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
         nodestats_whole_data = defaultdict()
-        grainstats_additions_image = pd.DataFrame()
+        nodestats_grainstats = pd.DataFrame()
         try:
             # run image using directional grain masks
             for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
                 (
                     nodestats_data,
-                    grainstats_additions_df,
+                    _nodestats_grainstats,
                     nodestats_full_images,
                     nodestats_branch_images,
                 ) = nodestats_image(
@@ -538,8 +538,8 @@ def run_nodestats(  # noqa: C901
                 )
 
                 # save per image new grainstats stats
-                grainstats_additions_df["threshold"] = direction
-                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
+                _nodestats_grainstats["threshold"] = direction
+                nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
 
                 # append direction results to dict
                 nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
@@ -595,9 +595,9 @@ def run_nodestats(  # noqa: C901
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, nodestats_grainstats, on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
-                else grainstats_additions_image
+                else nodestats_grainstats
             )
 
             # merge all image dictionaries
@@ -605,7 +605,7 @@ def run_nodestats(  # noqa: C901
 
         except Exception as e:
             LOGGER.info(f"NodeStats failed with {e} - skipping.")
-            return nodestats_whole_data, grainstats_additions_image
+            return nodestats_whole_data, nodestats_grainstats
 
     else:
         LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
@@ -660,8 +660,8 @@ def run_ordered_tracing(
         ordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
         ordered_tracing_image_data = defaultdict()
-        molstats_df_image = pd.DataFrame()
-        grainstats_additions_image = pd.DataFrame()
+        ordered_tracing_molstats = pd.DataFrame()
+        ordered_tracing_grainstats = pd.DataFrame()
 
         try:
             # run image using directional grain masks
@@ -676,8 +676,8 @@ def run_ordered_tracing(
                 # if grains are found
                 (
                     ordered_tracing_data,
-                    grainstats_additions_df,
-                    molstats_df,
+                    _ordered_tracing_grainstats,
+                    _ordered_tracing_molstats,
                     ordered_tracing_full_images,
                 ) = ordered_tracing_image(
                     image=image,
@@ -688,10 +688,10 @@ def run_ordered_tracing(
                 )
 
                 # save per image new grainstats stats
-                grainstats_additions_df["threshold"] = direction
-                grainstats_additions_image = pd.concat([grainstats_additions_image, grainstats_additions_df])
-                molstats_df["threshold"] = direction
-                molstats_df_image = pd.concat([molstats_df_image, molstats_df])
+                _ordered_tracing_grainstats["threshold"] = direction
+                ordered_tracing_grainstats = pd.concat([ordered_tracing_grainstats, _ordered_tracing_grainstats])
+                _ordered_tracing_molstats["threshold"] = direction
+                ordered_tracing_molstats = pd.concat([ordered_tracing_molstats, _ordered_tracing_molstats])
 
                 # append direction results to dict
                 ordered_tracing_image_data[direction] = ordered_tracing_data
@@ -717,15 +717,15 @@ def run_ordered_tracing(
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, grainstats_additions_image, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
-                else grainstats_additions_image
+                else ordered_tracing_grainstats
             )
 
-            molstats_df_image["basename"] = basename.parent
+            ordered_tracing_molstats["basename"] = basename.parent
 
             # merge all image dictionaries
-            return ordered_tracing_image_data, resultant_grainstats, molstats_df_image
+            return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
 
         except Exception as e:
             LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
