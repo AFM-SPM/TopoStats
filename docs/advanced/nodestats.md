@@ -6,7 +6,8 @@ module.
 ## At a Glance : Crossing Analyses
 
 The `nodestats.py` module handles all the functions associated with
-identifying and analysing the crossing branches in pruned skeletons.
+identifying and analysing the crossing regions (nodes) and crossing branches
+in pruned skeletons.
 
 The quality of the resultant metrics and over/underlying branch classifications
 depend on the quality of the pruned skeleton, the effectiveness of automating
