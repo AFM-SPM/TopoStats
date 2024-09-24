@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from pytest_lazyfixture import lazy_fixture
 
 from topostats.tracing.dnatracing import (
     crop_array,
@@ -57,12 +56,13 @@ def dnatrace_circular() -> dnaTrace:
 @pytest.mark.parametrize(
     ("dnatrace", "gauss_image_sum"),
     [
-        (lazy_fixture("dnatrace_linear"), 5.517763534147536e-06),
-        (lazy_fixture("dnatrace_circular"), 6.126947266262167e-06),
+        pytest.param("dnatrace_linear", 5.517763534147536e-06, id="linear"),
+        pytest.param("dnatrace_circular", 6.126947266262167e-06, id="circular"),
     ],
 )
-def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
+def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float, request) -> None:
     """Test of the method."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     assert dnatrace.gauss_image.sum() == pytest.approx(gauss_image_sum)
 
@@ -70,20 +70,27 @@ def test_gaussian_filter(dnatrace: dnaTrace, gauss_image_sum: float) -> None:
 @pytest.mark.parametrize(
     ("dnatrace", "skeletonisation_method", "length", "start", "end"),
     [
-        (lazy_fixture("dnatrace_linear"), "topostats", 120, np.asarray([28, 47]), np.asarray([106, 87])),
-        (lazy_fixture("dnatrace_circular"), "topostats", 150, np.asarray([59, 59]), np.asarray([113, 54])),
-        (lazy_fixture("dnatrace_linear"), "zhang", 170, np.asarray([28, 47]), np.asarray([106, 87])),
-        (lazy_fixture("dnatrace_circular"), "zhang", 184, np.asarray([43, 95]), np.asarray([113, 54])),
-        (lazy_fixture("dnatrace_linear"), "lee", 130, np.asarray([27, 45]), np.asarray([106, 87])),
-        (lazy_fixture("dnatrace_circular"), "lee", 177, np.asarray([45, 93]), np.asarray([114, 53])),
-        (lazy_fixture("dnatrace_linear"), "thin", 187, np.asarray([27, 45]), np.asarray([106, 83])),
-        (lazy_fixture("dnatrace_circular"), "thin", 190, np.asarray([38, 85]), np.asarray([115, 52])),
+        pytest.param(
+            "dnatrace_linear", "topostats", 120, np.asarray([28, 47]), np.asarray([106, 87]), id="linear topostats"
+        ),
+        pytest.param(
+            "dnatrace_circular", "topostats", 150, np.asarray([59, 59]), np.asarray([113, 54]), id="circular topostats"
+        ),
+        pytest.param("dnatrace_linear", "zhang", 170, np.asarray([28, 47]), np.asarray([106, 87]), id="linear zhang"),
+        pytest.param(
+            "dnatrace_circular", "zhang", 184, np.asarray([43, 95]), np.asarray([113, 54]), id="circular zhang"
+        ),
+        pytest.param("dnatrace_linear", "lee", 130, np.asarray([27, 45]), np.asarray([106, 87]), id="linear lee"),
+        pytest.param("dnatrace_circular", "lee", 177, np.asarray([45, 93]), np.asarray([114, 53]), id="circular lee"),
+        pytest.param("dnatrace_linear", "thin", 187, np.asarray([27, 45]), np.asarray([106, 83]), id="linear thin"),
+        pytest.param("dnatrace_circular", "thin", 190, np.asarray([38, 85]), np.asarray([115, 52]), id="circular thin"),
     ],
 )
-def test_get_disordered_trace(
-    dnatrace: dnaTrace, skeletonisation_method: str, length: int, start: tuple, end: tuple
+def test_get_disordered_trace(  # pylint: disable=too-many-positional-arguments
+    dnatrace: dnaTrace, skeletonisation_method: str, length: int, start: tuple, end: tuple, request
 ) -> None:
     """Test of get_disordered_trace the method."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.skeletonisation_method = skeletonisation_method
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
@@ -103,12 +110,13 @@ def test_get_disordered_trace(
 @pytest.mark.parametrize(
     ("dnatrace", "mol_is_circular"),
     [
-        # (lazy_fixture("dnatrace_linear"), False),
-        (lazy_fixture("dnatrace_circular"), True),
+        # pytest.param("dnatrace_linear"), False, id="linear"),
+        pytest.param("dnatrace_circular", True, id="circular"),
     ],
 )
-def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
+def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int, request) -> None:
     """Test of the linear_or_circular method."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.min_skeleton_size = MIN_SKELETON_SIZE
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
@@ -119,17 +127,18 @@ def test_linear_or_circular(dnatrace: dnaTrace, mol_is_circular: int) -> None:
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 48]), np.asarray([88, 70])),
-        (lazy_fixture("dnatrace_circular"), 151, np.asarray([59, 59]), np.asarray([59, 59])),
+        pytest.param("dnatrace_linear", 118, np.asarray([28, 48]), np.asarray([88, 70]), id="linear"),
+        pytest.param("dnatrace_circular", 151, np.asarray([59, 59]), np.asarray([59, 59]), id="circular"),
     ],
 )
-def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
+def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array, request) -> None:
     """Test of the get_ordered_traces method.
 
     Note the coordinates at the start and end differ from the fixtures for test_get_disordered_trace, but that the
     circular molecule starts and ends in the same place but the linear doesn't (even though it is currently reported as
     being circular!).
     """
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -149,12 +158,13 @@ def test_get_ordered_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        (lazy_fixture("dnatrace_linear"), 118, 8.8224769e-10, 1.7610771e-09),
-        (lazy_fixture("dnatrace_circular"), 151, 2.5852866e-09, 2.5852866e-09),
+        pytest.param("dnatrace_linear", 118, 8.8224769e-10, 1.7610771e-09, id="linear"),
+        pytest.param("dnatrace_circular", 151, 2.5852866e-09, 2.5852866e-09, id="circular"),
     ],
 )
-def test_get_ordered_trace_heights(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+def test_get_ordered_trace_heights(dnatrace: dnaTrace, length: int, start: float, end: float, request) -> None:
     """Test of the get_trace_heights method."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -169,12 +179,15 @@ def test_get_ordered_trace_heights(dnatrace: dnaTrace, length: int, start: float
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        pytest.param(lazy_fixture("dnatrace_linear"), 118, 0.0, 6.8234101e-08, id="linear"),
-        pytest.param(lazy_fixture("dnatrace_circular"), 151, 0.0, 8.3513084e-08, id="circular"),
+        pytest.param("dnatrace_linear", 118, 0.0, 6.8234101e-08, id="linear"),
+        pytest.param("dnatrace_circular", 151, 0.0, 8.3513084e-08, id="circular"),
     ],
 )
-def test_ordered_get_trace_cumulative_distances(dnatrace: dnaTrace, length: int, start: float, end: float) -> None:
+def test_ordered_get_trace_cumulative_distances(
+    dnatrace: dnaTrace, length: int, start: float, end: float, request
+) -> None:
     """Test of the get_trace_cumulative_distances method."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -215,12 +228,13 @@ def test_coord_dist(coordinate_list: list, pixel_to_nm_scaling: float, target_li
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        (lazy_fixture("dnatrace_linear"), 118, np.asarray([28, 49]), np.asarray([88, 75])),
-        (lazy_fixture("dnatrace_circular"), 151, np.asarray([58, 58]), np.asarray([58, 58])),
+        pytest.param("dnatrace_linear", 118, np.asarray([28, 49]), np.asarray([88, 75]), id="linear"),
+        pytest.param("dnatrace_circular", 151, np.asarray([58, 58]), np.asarray([58, 58]), id="circular"),
     ],
 )
-def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
+def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array, request) -> None:
     """Test of the method get_fitted_traces()."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -242,22 +256,25 @@ def test_get_fitted_traces(dnatrace: dnaTrace, length: int, start: np.array, end
 @pytest.mark.parametrize(
     ("dnatrace", "length", "start", "end"),
     [
-        (
-            lazy_fixture("dnatrace_linear"),
+        pytest.param(
+            "dnatrace_linear",
             1652,
             np.asarray([35.357143, 46.714286]),
             np.asarray([35.357143, 46.714286]),
+            id="linear",
         ),
-        (
-            lazy_fixture("dnatrace_circular"),
+        pytest.param(
+            "dnatrace_circular",
             2114,
             np.asarray([59.285714, 65.428571]),
             np.asarray([59.285714, 65.428571]),
+            id="circular",
         ),
     ],
 )
-def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array) -> None:
+def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, end: np.array, request) -> None:
     """Test of the method for get_splined_traces()."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -280,12 +297,13 @@ def test_get_splined_traces(dnatrace: dnaTrace, length: int, start: np.array, en
 @pytest.mark.parametrize(
     ("dnatrace", "contour_length"),
     [
-        (lazy_fixture("dnatrace_linear"), 9.040267985905398e-08),
-        (lazy_fixture("dnatrace_circular"), 7.617314045334366e-08),
+        pytest.param("dnatrace_linear", 9.040267985905398e-08, id="linear"),
+        pytest.param("dnatrace_circular", 7.617314045334366e-08, id="circular"),
     ],
 )
-def test_measure_contour_length(dnatrace: dnaTrace, contour_length: float) -> None:
+def test_measure_contour_length(dnatrace: dnaTrace, contour_length: float, request) -> None:
     """Test of the method measure_contour_length()."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -301,12 +319,13 @@ def test_measure_contour_length(dnatrace: dnaTrace, contour_length: float) -> No
 @pytest.mark.parametrize(
     ("dnatrace", "end_to_end_distance"),
     [
-        (lazy_fixture("dnatrace_linear"), 0),
-        (lazy_fixture("dnatrace_circular"), 0),
+        pytest.param("dnatrace_linear", 0, id="linear"),
+        pytest.param("dnatrace_circular", 0, id="circular"),
     ],
 )
-def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: float) -> None:
+def test_measure_end_to_end_distance(dnatrace: dnaTrace, end_to_end_distance: float, request) -> None:
     """Test of the method measure_end_to_end_distance()."""
+    dnatrace = request.getfixturevalue(dnatrace)
     dnatrace.gaussian_filter()
     dnatrace.get_disordered_trace()
     dnatrace.linear_or_circular(dnatrace.disordered_trace)
@@ -549,7 +568,7 @@ def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, ta
         ),
     ],
 )
-def test_trace_grain(
+def test_trace_grain(  # pylint: disable=too-many-positional-arguments
     cropped_image: np.ndarray,
     cropped_mask: np.ndarray,
     filename: str,
