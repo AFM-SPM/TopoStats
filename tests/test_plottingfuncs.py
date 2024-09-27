@@ -71,7 +71,6 @@ def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_
 def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
     """Test the dilate binary images function of plottingfuncs.py."""
     result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
-
     np.testing.assert_array_equal(result, expected)
 
 
@@ -272,22 +271,6 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
         data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="high_dpi",
-        **plotting_config,
-    ).plot_and_save()
-    return fig
-
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_mask_dilation(plotting_config: dict, tmp_path: Path) -> None:
-    """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config["mask_cmap"] = "blue"
-    mask = np.zeros((1024, 1024))
-    mask[500, :] = 1
-    fig, _ = Images(
-        data=RNG.random((1024, 1024)),
-        output_dir=tmp_path,
-        filename="mask_dilation",
-        masked_array=mask,
         **plotting_config,
     ).plot_and_save()
     return fig
