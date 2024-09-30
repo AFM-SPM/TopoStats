@@ -22,75 +22,6 @@ BASE_DIR = Path.cwd()
 DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
 
-# # Do spindly moleules, with and without branches
-# def test_trace_image_disordered() -> None:
-#     """Test the disorderedTrace() method."""
-
-#     image = np.array(
-#         [
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#         ]
-#     ).astype(np.float32)
-
-#     labelled_grains_mask = np.array(
-#         [
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 3, 3, 3, 3, 0],
-#             [0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 1, 1, 0, 0, 2, 2, 0, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 0, 1, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 0, 1, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 1, 1, 0, 0, 2, 2, 2, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 1, 0, 0, 0, 2, 0, 2, 0, 3, 0, 0, 0, 3, 0],
-#             [0, 1, 0, 0, 0, 2, 0, 2, 0, 3, 3, 3, 3, 3, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#             [0, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
-#             [0, 4, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 0],
-#             [0, 4, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 0],
-#             [0, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0],
-#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#         ]
-#     ).astype(np.int32)
-
-#     (
-#         result_disordered_trace_crop_data,
-#         result_grainstats_additions_df,
-#         result_all_images,
-#         result_disordered_tracing_stats,
-#     ) = trace_image_disorderd(
-#         image=image,
-#         grains_mask=labelled_grains_mask,
-#         filename="test_image",
-#         pixel_to_nm_scaling=1.0,
-#         min_skeleton_size=6,
-#         mask_smoothing_params={
-#             "gaussian_sigma": 2,
-#             "dilation_iterations": 2,
-#             "holearea_min_max": [0, None],
-#         },
-#         skeletonisation_params={
-#             "method": "topostats",
-#             "height_bias": 0.6,
-#         },
-#         pruning_params={
-#             "method": "topostats",
-#             "max_length": -1,
-#             "height_threshold": None,
-#             "method_values": "mid",
-#             "method_outlier": "mean_abs",
-#         },
-#         pad_width=1,
-#     )
-
 
 @pytest.mark.parametrize(
     (
@@ -1214,7 +1145,7 @@ def test_disordered_trace_grain(
         "skeletonisation_params",
         "pruning_params",
         "expected_disordered_crop_data_filename",
-        "expected_grainstats_additions_df_filename",
+        "expected_disordered_tracing_grainstats_filename",
         "expected_all_images_filename",
         "expected_disordered_tracing_stats_filename",
     ),
@@ -1246,7 +1177,7 @@ def test_disordered_trace_grain(
                 "method_outlier": "mean_abs",
             },
             "catenanes_disordered_tracing_crop_data.pkl",
-            "catenanes_disordered_tracing_grainstats_additions_df.csv",
+            "catenanes_disordered_tracing_grainstats.csv",
             "catenanes_disordered_tracing_all_images.pkl",
             "catenanes_disordered_tracing_stats.csv",
             id="catenane",
@@ -1278,7 +1209,7 @@ def test_disordered_trace_grain(
                 "method_outlier": "mean_abs",
             },
             "rep_int_disordered_tracing_crop_data.pkl",
-            "rep_int_disordered_tracing_grainstats_additions_df.csv",
+            "rep_int_disordered_tracing_grainstats.csv",
             "rep_int_disordered_tracing_all_images.pkl",
             "rep_int_disordered_tracing_stats.csv",
             id="replication intermediate",
@@ -1294,7 +1225,7 @@ def test_trace_image_disordered(
     skeletonisation_params: dict,
     pruning_params: dict,
     expected_disordered_crop_data_filename: str,
-    expected_grainstats_additions_df_filename: str,
+    expected_disordered_tracing_grainstats_filename: str,
     expected_all_images_filename: str,
     expected_disordered_tracing_stats_filename: str,
 ) -> None:
@@ -1303,18 +1234,21 @@ def test_trace_image_disordered(
     image = np.load(GENERAL_RESOURCES / image_filename)
     mask = np.load(GENERAL_RESOURCES / mask_filename)
 
-    result_disordered_crop_data, result_grainstats_additions_df, result_all_images, result_disordered_tracing_stats = (
-        trace_image_disordered(
-            image=image,
-            grains_mask=mask,
-            filename="test_image",
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-            min_skeleton_size=min_skeleton_size,
-            mask_smoothing_params=mask_smoothing_params,
-            skeletonisation_params=skeletonisation_params,
-            pruning_params=pruning_params,
-            pad_width=1,
-        )
+    (
+        result_disordered_crop_data,
+        result_disordered_tracing_grainstats,
+        result_all_images,
+        result_disordered_tracing_stats,
+    ) = trace_image_disordered(
+        image=image,
+        grains_mask=mask,
+        filename="test_image",
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        min_skeleton_size=min_skeleton_size,
+        mask_smoothing_params=mask_smoothing_params,
+        skeletonisation_params=skeletonisation_params,
+        pruning_params=pruning_params,
+        pad_width=1,
     )
 
     # DEBUGGING CODE
@@ -1329,8 +1263,10 @@ def test_trace_image_disordered(
     # with open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "wb") as f:
     #     pkl.dump(result_disordered_crop_data, f)
 
-    # # Save result_grainstats_additions_df as a csv
-    # result_grainstats_additions_df.to_csv(DISORDERED_TRACING_RESOURCES / expected_grainstats_additions_df_filename)
+    # # Save result_disordered_tracing_grainstats as a csv
+    # result_disordered_tracing_grainstats.to_csv(
+    # DISORDERED_TRACING_RESOURCES / expected_disordered_tracing_grainstats_filename
+    # )
 
     # # Save result_all_images as a pickle
     # with open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "wb") as f:
@@ -1343,8 +1279,8 @@ def test_trace_image_disordered(
     with Path.open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "rb") as f:
         expected_disordered_crop_data = pkl.load(f)
 
-    expected_grainstats_additions_df = pd.read_csv(
-        DISORDERED_TRACING_RESOURCES / expected_grainstats_additions_df_filename, index_col=0
+    expected_disordered_tracing_grainstats = pd.read_csv(
+        DISORDERED_TRACING_RESOURCES / expected_disordered_tracing_grainstats_filename, index_col=0
     )
 
     with Path.open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "rb") as f:
@@ -1355,6 +1291,6 @@ def test_trace_image_disordered(
     )
 
     assert dict_almost_equal(result_disordered_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
-    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    pd.testing.assert_frame_equal(result_disordered_tracing_grainstats, expected_disordered_tracing_grainstats)
     assert dict_almost_equal(result_all_images, expected_all_images, abs_tol=1e-11)
     pd.testing.assert_frame_equal(result_disordered_tracing_stats, expected_disordered_tracing_stats)
