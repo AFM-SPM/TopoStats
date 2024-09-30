@@ -27,8 +27,9 @@ def plot_spline_debugging(
     image: npt.NDArray[np.float32],
     result_all_splines_data: dict,
     pixel_to_nm_scaling: float,
-):
-    """Plot splines of an image overlaid on the image.
+) -> None:
+    """
+    Plot splines of an image overlaid on the image.
 
     Used for debugging changes to the splining code & visually ensuring the splines are correct.
 
