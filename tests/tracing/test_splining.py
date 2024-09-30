@@ -95,7 +95,7 @@ def plot_spline_debugging(
         "spline_degree",
         "filename",
         "expected_all_splines_data_filename",
-        "expected_grainstats_additions_filename",
+        "expected_splining_grainstats_filename",
         "expected_molstats_filename",
     ),
     [
@@ -112,7 +112,7 @@ def plot_spline_debugging(
             3,  # spline_degree
             "catenane",  # filename
             "catenanes_splining_data.pkl",
-            "catenanes_splining_grainstats_additions.csv",
+            "catenanes_splining_grainstats.csv",
             "catenanes_splining_molstats.csv",
             id="catenane",
         ),
@@ -129,7 +129,7 @@ def plot_spline_debugging(
             3,  # spline_degree
             "replication_intermediate",  # filename
             "rep_int_splining_data.pkl",
-            "rep_int_splining_grainstats_additions.csv",
+            "rep_int_splining_grainstats.csv",
             "rep_int_splining_molstats.csv",
             id="replication_intermediate",
         ),
@@ -147,7 +147,7 @@ def test_splining_image(
     spline_degree: int,
     filename: str,
     expected_all_splines_data_filename: str,
-    expected_grainstats_additions_filename: str,
+    expected_splining_grainstats_filename: str,
     expected_molstats_filename: str,
 ) -> None:
     """Test the splining_image function of the splining module."""
@@ -158,7 +158,7 @@ def test_splining_image(
     with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
         ordered_tracing_direction_data = pickle.load(file)
 
-    result_all_splines_data, result_grainstats_additions_df, result_molstats_df = splining_image(
+    result_all_splines_data, result_splining_grainstats, result_molstats_df = splining_image(
         image=image,
         ordered_tracing_direction_data=ordered_tracing_direction_data,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -180,7 +180,7 @@ def test_splining_image(
     #     pickle.dump(result_all_splines_data, file)
 
     # # Save result grainstats additions as csv
-    # result_grainstats_additions_df.to_csv(SPLINING_RESOURCES / expected_grainstats_additions_filename)
+    # result_splining_grainstats.to_csv(SPLINING_RESOURCES / expected_splining_grainstats_filename)
 
     # # Save result molstats as csv
     # result_molstats_df.to_csv(SPLINING_RESOURCES / expected_molstats_filename)
@@ -189,12 +189,10 @@ def test_splining_image(
     with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "rb") as file:
         expected_all_splines_data = pickle.load(file)
 
-    expected_grainstats_additions_df = pd.read_csv(
-        SPLINING_RESOURCES / expected_grainstats_additions_filename, index_col=0
-    )
+    expected_splining_grainstats = pd.read_csv(SPLINING_RESOURCES / expected_splining_grainstats_filename, index_col=0)
     expected_molstats_df = pd.read_csv(SPLINING_RESOURCES / expected_molstats_filename, index_col=0)
 
     # Check the results
     np.testing.assert_equal(result_all_splines_data, expected_all_splines_data)
-    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    pd.testing.assert_frame_equal(result_splining_grainstats, expected_splining_grainstats)
     pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
