@@ -30,7 +30,7 @@ DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "d
         "nodestats_branch_images_filename",
         "filename",
         "expected_ordered_tracing_data_filename",
-        "expected_grainstats_additions_filename",
+        "expected_ordered_tracing_grainstats_filename",
         "expected_molstats_filename",
         "expected_ordered_tracing_full_images_filename",
     ),
@@ -42,7 +42,7 @@ DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "d
             "catenanes_nodestats_branch_images.pkl",
             "catenane",  # filename
             "catenanes_ordered_tracing_data.pkl",
-            "catenanes_ordered_tracing_grainstats_additions.csv",
+            "catenanes_ordered_tracing_grainstats.csv",
             "catenanes_ordered_tracing_molstats.csv",
             "catenanes_ordered_tracing_full_images.pkl",
             id="catenane",
@@ -54,7 +54,7 @@ DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "d
             "rep_int_nodestats_branch_images_no_pair_odd_branches.pkl",
             "replication_intermediate",  # filename
             "rep_int_ordered_tracing_data.pkl",
-            "rep_int_ordered_tracing_grainstats_additions.csv",
+            "rep_int_ordered_tracing_grainstats.csv",
             "rep_int_ordered_tracing_molstats.csv",
             "rep_int_ordered_tracing_full_images.pkl",
             id="replication_intermediate",
@@ -68,7 +68,7 @@ def test_ordered_tracing_image(
     nodestats_branch_images_filename: str,
     filename: str,
     expected_ordered_tracing_data_filename: str,
-    expected_grainstats_additions_filename: str,
+    expected_ordered_tracing_grainstats_filename: str,
     expected_molstats_filename: str,
     expected_ordered_tracing_full_images_filename: str,
 ) -> None:
@@ -94,7 +94,7 @@ def test_ordered_tracing_image(
 
     (
         result_ordered_tracing_data,
-        result_grainstats_additions_df,
+        result_ordered_tracing_grainstats,
         result_molstats_df,
         result_ordered_tracing_full_images,
     ) = ordered_tracing_image(
@@ -117,7 +117,7 @@ def test_ordered_tracing_image(
     #     pickle.dump(result_ordered_tracing_data, f)
 
     # # Save result grainstats additions as csv
-    # result_grainstats_additions_df.to_csv(ORDERED_TRACING_RESOURCES / expected_grainstats_additions_filename)
+    # result_ordered_tracing_grainstats.to_csv(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_grainstats_filename)
 
     # # Save the molstats dataframe as csv
     # result_molstats_df.to_csv(ORDERED_TRACING_RESOURCES / expected_molstats_filename)
@@ -130,8 +130,8 @@ def test_ordered_tracing_image(
     with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_data_filename, "rb") as f:
         expected_ordered_tracing_data = pickle.load(f)
 
-    expected_grainstats_additions_df = pd.read_csv(
-        ORDERED_TRACING_RESOURCES / expected_grainstats_additions_filename, index_col=0
+    expected_ordered_tracing_grainstats = pd.read_csv(
+        ORDERED_TRACING_RESOURCES / expected_ordered_tracing_grainstats_filename, index_col=0
     )
 
     expected_molstats_df = pd.read_csv(ORDERED_TRACING_RESOURCES / expected_molstats_filename, index_col=0)
@@ -141,6 +141,6 @@ def test_ordered_tracing_image(
 
     # Check the results
     np.testing.assert_equal(result_ordered_tracing_data, expected_ordered_tracing_data)
-    pd.testing.assert_frame_equal(result_grainstats_additions_df, expected_grainstats_additions_df)
+    pd.testing.assert_frame_equal(result_ordered_tracing_grainstats, expected_ordered_tracing_grainstats)
     pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
     np.testing.assert_equal(result_ordered_tracing_full_images, expected_ordered_tracing_full_images)
