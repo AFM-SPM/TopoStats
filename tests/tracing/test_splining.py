@@ -5,7 +5,9 @@
 import pickle
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 
@@ -19,6 +21,65 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
+
+
+def plot_spline_debugging(
+    image: npt.NDArray[np.float32],
+    result_all_splines_data: dict,
+    pixel_to_nm_scaling: float,
+):
+    """Plot splines of an image overlaid on the image.
+
+    Used for debugging changes to the splining code & visually ensuring the splines are correct.
+
+    Parameters
+    ----------
+    image : npt.NDArray[np.float32]
+        Image to plot the splines on.
+    result_all_splines_data : dict
+        Dictionary containing the spline coordinates for each molecule.
+    pixel_to_nm_scaling : float
+        Pixel to nm scaling factor.
+    """
+    _, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(image, cmap="gray")
+    # Array of lots of matplotlib colours
+    lots_of_colours = [
+        "blue",
+        "green",
+        "red",
+        "cyan",
+        "magenta",
+        "yellow",
+        "black",
+        "white",
+        "orange",
+        "purple",
+    ]
+    for grain_key_index, grain_key in enumerate(result_all_splines_data.keys()):
+        print(f"Grain key: {grain_key}")
+        for mol_key_index, mol_key in enumerate(result_all_splines_data[grain_key].keys()):
+            spline_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["spline_coords"]
+            bbox = result_all_splines_data[grain_key][mol_key]["bbox"]
+            bbox_min_col = bbox[0]
+            bbox_min_row = bbox[1]
+            previous_point = spline_coords[0]
+            colour = lots_of_colours[mol_key_index + grain_key_index * 3 % len(lots_of_colours)]
+            for point in spline_coords[1:]:
+                ax.plot(
+                    [
+                        previous_point[1] / pixel_to_nm_scaling + bbox_min_row,
+                        point[1] / pixel_to_nm_scaling + bbox_min_row,
+                    ],
+                    [
+                        previous_point[0] / pixel_to_nm_scaling + bbox_min_col,
+                        point[0] / pixel_to_nm_scaling + bbox_min_col,
+                    ],
+                    color=colour,
+                    linewidth=2,
+                )
+                previous_point = point
+    plt.show()
 
 
 @pytest.mark.parametrize(
@@ -110,51 +171,8 @@ def test_splining_image(
         spline_degree=spline_degree,
     )
 
-    # Debugging
-    # Spline coords is Nx2 array of spline coordinates
-    # Visualise the spline coordinates
-    # import matplotlib.pyplot as plt
-    # import numpy.typing as npt
-
-    # fig, ax = plt.subplots(figsize=(10, 10))
-    # ax.imshow(image, cmap="gray")
-    # # Array of lots of matplotlib colours
-    # lots_of_colours = [
-    #     "blue",
-    #     "green",
-    #     "red",
-    #     "cyan",
-    #     "magenta",
-    #     "yellow",
-    #     "black",
-    #     "white",
-    #     "orange",
-    #     "purple",
-    # ]
-    # for grain_key_index, grain_key in enumerate(result_all_splines_data.keys()):
-    #     print(f"Grain key: {grain_key}")
-    #     for mol_key_index, mol_key in enumerate(result_all_splines_data[grain_key].keys()):
-    #         spline_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["spline_coords"]
-    #         bbox = result_all_splines_data[grain_key][mol_key]["bbox"]
-    #         bbox_min_col = bbox[0]
-    #         bbox_min_row = bbox[1]
-    #         previous_point = spline_coords[0]
-    #         colour = lots_of_colours[mol_key_index + grain_key_index * 3 % len(lots_of_colours)]
-    #         for point in spline_coords[1:]:
-    #             ax.plot(
-    #                 [
-    #                     previous_point[1] / pixel_to_nm_scaling + bbox_min_row,
-    #                     point[1] / pixel_to_nm_scaling + bbox_min_row,
-    #                 ],
-    #                 [
-    #                     previous_point[0] / pixel_to_nm_scaling + bbox_min_col,
-    #                     point[0] / pixel_to_nm_scaling + bbox_min_col,
-    #                 ],
-    #                 color=colour,
-    #                 linewidth=2,
-    #             )
-    #             previous_point = point
-    # plt.show()
+    # When updating the test, you will want to verify that the splines are correct. Use
+    # plot_spline_debugging to plot the splines on the image.
 
     # # Save the results to update the test data
     # # Save result splining data as pickle
