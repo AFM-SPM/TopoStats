@@ -272,22 +272,22 @@ def test_add_branches_to_labelled_image(
 ) -> None:
     """Test of add_branches_to_labelled_image() method of nodeStats class."""
     # Load the matched branches
-    with Path(NODESTATS_RESOURCES / f"{matched_branches_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{matched_branches_filename}").open("rb") as f:
         matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pickle.load(f)
 
     # Load the masked image
-    with Path(NODESTATS_RESOURCES / f"{masked_image_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{masked_image_filename}").open("rb") as f:
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = pickle.load(f)
 
     # Load the ordered branches
-    with Path(NODESTATS_RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches: list[npt.NDArray[np.int32]] = pickle.load(f)
 
     # Load the branch image
-    expected_branch_image: npt.NDArray[np.int32] = np.load(NODESTATS_RESOURCES / expected_branch_image_filename)
+    expected_branch_image: npt.NDArray[np.int32] = np.load(GENERAL_RESOURCES / expected_branch_image_filename)
 
     # Load the average image
-    expected_average_image: npt.NDArray[np.float64] = np.load(NODESTATS_RESOURCES / expected_average_image_filename)
+    expected_average_image: npt.NDArray[np.float64] = np.load(GENERAL_RESOURCES / expected_average_image_filename)
 
     result_branch_image, result_average_image = nodeStats.add_branches_to_labelled_image(
         branch_under_over_order=branch_under_over_order,
@@ -377,10 +377,10 @@ def test_analyse_node_branches(
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
     # Load the reduced node area
-    reduced_node_area = np.load(NODESTATS_RESOURCES / f"{reduced_node_area_filename}")
+    reduced_node_area = np.load(GENERAL_RESOURCES / f"{reduced_node_area_filename}")
 
     # Load the reduced skeleton graph
-    with Path(NODESTATS_RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{reduced_skeleton_graph_filename}").open("rb") as f:
         reduced_skeleton_graph = pickle.load(f)
 
     (
@@ -406,14 +406,14 @@ def test_analyse_node_branches(
     )
 
     # Load expected matched branches
-    with Path(NODESTATS_RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{expected_matched_branches_filename}").open("rb") as f:
         expected_matched_branches = pickle.load(f)
 
     # Load expected masked image
-    with Path(NODESTATS_RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{expected_masked_image_filename}").open("rb") as f:
         expected_masked_image = pickle.load(f)
     # Load expected ordered branches
-    with Path(NODESTATS_RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
+    with Path(GENERAL_RESOURCES / f"{expected_ordered_branches_filename}").open("rb") as f:
         expected_ordered_branches = pickle.load(f)
 
     np.testing.assert_equal(result_pairs, expected_pairs)
