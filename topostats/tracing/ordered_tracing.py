@@ -861,7 +861,7 @@ def ordered_tracing_image(
     filename: str,
     ordering_method: str,
     pad_width: int,
-) -> tuple[dict, pd.DataFrame, dict]:
+) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
     # pylint: disable=too-many-locals
     """
     Run ordered tracing for an entire image of >=1 grains.
@@ -883,9 +883,9 @@ def ordered_tracing_image(
 
     Returns
     -------
-    tuple[dict, pd.DataFrame, dict]
+    tuple[dict, pd.DataFrame, pd.DataFrame, dict]
         Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
-        dataframe, and the diagnostic images.
+        dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.
     """
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
