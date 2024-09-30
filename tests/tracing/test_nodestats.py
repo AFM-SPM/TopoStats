@@ -18,7 +18,7 @@ from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
-DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
+DISORDERED_TRACING_RESOURCES = GENERAL_RESOURCES / "tracing" / "disordered_tracing"
 NODESTATS_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "nodestats"
 
 # from topostats.tracing.nodestats import nodeStats
