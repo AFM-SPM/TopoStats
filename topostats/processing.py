@@ -697,6 +697,7 @@ def run_ordered_tracing(
                 ordered_tracing_image_data[direction] = ordered_tracing_data
 
                 # save whole image plots
+                plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
                 Images(
                     filename=f"{filename}_{direction}_ordered_traces",
                     data=image,
