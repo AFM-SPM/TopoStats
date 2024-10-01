@@ -65,6 +65,7 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
   "pytest-regtest",
+  "pytest-testmon",
   "filetype",
 ]
 docs = [
@@ -126,7 +127,7 @@ write_to = "topostats/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
+addopts = ["--mpl", "-ra", "--strict-config", "--strict-markers"]
 log_cli_level = "Info"
 testpaths = [
     "tests",
