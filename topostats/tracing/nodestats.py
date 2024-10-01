@@ -40,7 +40,7 @@ class NodeDict(TypedDict):
     """Dictionary containing the node information."""
 
     error: bool
-    px_2_nm: np.float64
+    pixel_to_nm_scaling: np.float64
     branch_stats: dict[int, MatchedBranch] | None
     node_coords: npt.NDArray[np.int32] | None
     confidence: np.float64 | None
@@ -90,7 +90,7 @@ class nodeStats:
         A smoothed version of the bianary segmentation mask.
     skeleton : npt.NDArray
         A binary single-pixel wide mask of objects in the 'image'.
-    px_2_nm : np.float32
+    pixel_to_nm_scaling : np.float32
         The pixel to nm scaling factor.
     n_grain : int
         The grain number.
@@ -111,7 +111,7 @@ class nodeStats:
         mask: npt.NDArray,
         smoothed_mask: npt.NDArray,
         skeleton: npt.NDArray,
-        px_2_nm: np.float64,
+        pixel_to_nm_scaling: np.float64,
         n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
@@ -133,7 +133,7 @@ class nodeStats:
             A smoothed version of the bianary segmentation mask.
         skeleton : npt.NDArray
             A binary single-pixel wide mask of objects in the 'image'.
-        px_2_nm : float
+        pixel_to_nm_scaling : float
             The pixel to nm scaling factor.
         n_grain : int
             The grain number.
@@ -151,10 +151,10 @@ class nodeStats:
         self.mask = mask
         self.smoothed_mask = smoothed_mask  # only used to average traces
         self.skeleton = skeleton
-        self.px_2_nm = px_2_nm
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.n_grain = n_grain
         self.node_joining_length = node_joining_length
-        self.node_extend_dist = node_extend_dist / self.px_2_nm
+        self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
         self.pair_odd_branches = pair_odd_branches
 
@@ -330,7 +330,7 @@ class nodeStats:
             node_centre = coords.mean(axis=0).astype(np.int32)
             node_wid = coords[:, 0].max() - coords[:, 0].min() + 2  # +2 so always 2 by default
             node_len = coords[:, 1].max() - coords[:, 1].min() + 2  # +2 so always 2 by default
-            overflow = int(10 / self.px_2_nm) if int(10 / self.px_2_nm) != 0 else 1
+            overflow = int(10 / self.pixel_to_nm_scaling) if int(10 / self.pixel_to_nm_scaling) != 0 else 1
             # grain mask fill
             new_skeleton[
                 node_centre[0] - node_wid // 2 - overflow : node_centre[0] + node_wid // 2 + overflow,
@@ -346,7 +346,9 @@ class nodeStats:
         # new_skeleton = pruneSkeleton(image, new_skeleton).prune_skeleton(
         #     {"method": "topostats", "max_length": -1}
         # )
-        new_skeleton = prune_skeleton(image, new_skeleton, self.px_2_nm, **{"method": "topostats", "max_length": -1})
+        new_skeleton = prune_skeleton(
+            image, new_skeleton, self.pixel_to_nm_scaling, **{"method": "topostats", "max_length": -1}
+        )
         # cleanup around nibs
         new_skeleton = getSkeleton(image, new_skeleton, method="zhang").get_skeleton()
         # might also need to remove segments that have squares connected
@@ -400,7 +402,7 @@ class nodeStats:
         nodeless[(nodeless == 3) | (nodeless == 2)] = 0  # remove node & termini points
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
-            if nodeless[nodeless_labels == i].size < (node_width / self.px_2_nm):
+            if nodeless[nodeless_labels == i].size < (node_width / self.pixel_to_nm_scaling):
                 # maybe also need to select based on height? and also ensure small branches classified
                 self.connected_nodes[nodeless_labels == i] = 3
 
@@ -551,7 +553,7 @@ class nodeStats:
             error = False
 
             # Get branches relevant to the node
-            max_length_px = max_branch_length / (self.px_2_nm * 1)
+            max_length_px = max_branch_length / (self.pixel_to_nm_scaling * 1)
             reduced_node_area: npt.NDArray[np.int32] = nodeStats.only_centre_branches(
                 self.connected_nodes, np.array([node_x, node_y])
             )
@@ -588,7 +590,7 @@ class nodeStats:
                         conf,
                         singlet_branch_vectors,
                     ) = nodeStats.analyse_node_branches(
-                        p_to_nm=self.px_2_nm,
+                        p_to_nm=self.pixel_to_nm_scaling,
                         reduced_node_area=reduced_node_area,
                         branch_start_coords=branch_start_coords,
                         max_length_px=max_length_px,
@@ -641,12 +643,12 @@ class nodeStats:
                     # angles_between_vectors_along_branch
 
                 except ResolutionError:
-                    LOGGER.info(f"Node stats skipped as resolution too low: {self.px_2_nm}nm per pixel")
+                    LOGGER.info(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
 
                 self.node_dicts[f"node_{real_node_count}"] = {
                     "error": error,
-                    "px_2_nm": self.px_2_nm,
+                    "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
                     "branch_stats": matched_branches,
                     "unmatched_branch_stats": unmatched_branches,
                     "node_coords": node_coords,
@@ -1424,7 +1426,7 @@ class nodeStats:
         return arr
 
     @staticmethod
-    def coord_dist_rad(coords: npt.NDArray, centre: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
+    def coord_dist_rad(coords: npt.NDArray, centre: npt.NDArray, pixel_to_nm_scaling: float = 1) -> npt.NDArray:
         """
         Calculate the distance from the centre coordinate to a point along the ordered coordinates.
 
@@ -1437,7 +1439,7 @@ class nodeStats:
             Nx2 array of branch coordinates.
         centre : npt.NDArray
             A 1x2 array of the centre coordinates to identify a 0 point for the node.
-        px_2_nm : float, optional
+        pixel_to_nm_scaling : float, optional
             The pixel to nanometer scaling factor to provide real units, by default 1.
 
         Returns
@@ -1452,7 +1454,7 @@ class nodeStats:
         cross_idx = np.argwhere(np.all(coords == centre, axis=1))
         rad_dist = np.sqrt(diff_coords[:, 0] ** 2 + diff_coords[:, 1] ** 2)
         rad_dist[0 : cross_idx[0][0]] *= -1
-        return rad_dist * px_2_nm
+        return rad_dist * pixel_to_nm_scaling
 
     @staticmethod
     def above_below_value_idx(array: npt.NDArray, value: float) -> list:
@@ -1893,7 +1895,7 @@ def nodestats_image(
                 mask=disordered_tracing_grain_data["original_grain"],
                 smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
                 skeleton=disordered_tracing_grain_data["pruned_skeleton"],
-                px_2_nm=pixel_to_nm_scaling,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
                 n_grain=n_grain,
                 node_joining_length=node_joining_length,

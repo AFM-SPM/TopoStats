@@ -506,7 +506,7 @@ def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -
 
 
 @staticmethod
-def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
+def coord_dist(coords: npt.NDArray, pixel_to_nm_scaling: float = 1) -> npt.NDArray:
     """
     Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
 
@@ -514,7 +514,7 @@ def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
     ----------
     coords : npt.NDArray
         A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
-    px_2_nm : float
+    pixel_to_nm_scaling : float
         The pixel to nanometer scaling factor.
 
     Returns
@@ -530,7 +530,7 @@ def coord_dist(coords: npt.NDArray, px_2_nm: float = 1) -> npt.NDArray:
         else:
             dist += 1
         dist_list.append(dist)
-    return np.asarray(dist_list) * px_2_nm
+    return np.asarray(dist_list) * pixel_to_nm_scaling
 
 
 def get_two_combinations(list_of_values) -> list:

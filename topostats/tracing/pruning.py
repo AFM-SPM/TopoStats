@@ -17,7 +17,7 @@ from topostats.utils import convolve_skeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **kwargs) -> npt.NDArray:
+def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> npt.NDArray:
     """
     Pruning skeletons using different pruning methods.
 
@@ -29,7 +29,7 @@ def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **
         Original image as 2D numpy array.
     skeleton : npt.NDArray
         Skeleton to be pruned.
-    px_2_nm : float
+    pixel_to_nm_scaling : float
         The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the respective method.
@@ -41,10 +41,10 @@ def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **
     """
     if image.shape != skeleton.shape:
         raise AttributeError("Error image and skeleton are not the same size.")
-    return _prune_method(image, skeleton, px_2_nm, **kwargs)
+    return _prune_method(image, skeleton, pixel_to_nm_scaling, **kwargs)
 
 
-def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **kwargs) -> Callable:
+def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> Callable:
     """
     Determine which skeletonize method to use.
 
@@ -54,7 +54,7 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **k
         Original image as 2D numpy array.
     skeleton : npt.NDArray
         Skeleton to be pruned.
-    px_2_nm : float
+    pixel_to_nm_scaling : float
         The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the respective method.
@@ -71,7 +71,7 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **k
     """
     method = kwargs.pop("method")
     if method == "topostats":
-        return _prune_topostats(image, skeleton, px_2_nm, **kwargs)
+        return _prune_topostats(image, skeleton, pixel_to_nm_scaling, **kwargs)
     # @maxgamill-sheffield I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
     # @ns-rse (2024-06-04) : https://en.wikipedia.org/wiki/Discrete_skeleton_evolution
     #                        https://link.springer.com/chapter/10.1007/978-3-540-74198-5_28
@@ -80,7 +80,7 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **k
     raise ValueError(f"Invalid pruning method provided ({method}) please use one of 'topostats'.")
 
 
-def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **kwargs) -> npt.NDArray:
+def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> npt.NDArray:
     """
     Prune using the original TopoStats method.
 
@@ -92,7 +92,7 @@ def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **
         Image used to find skeleton, may be original heights or binary mask.
     skeleton : npt.NDArray
         Binary mask of the skeleton.
-    px_2_nm : float
+    pixel_to_nm_scaling : float
         The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the topostatsPrune class.
@@ -102,7 +102,7 @@ def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, px_2_nm: float, **
     npt.NDArray
         The skeleton with spurious branches removed.
     """
-    return topostatsPrune(img, skeleton, px_2_nm, **kwargs).prune_skeleton()
+    return topostatsPrune(img, skeleton, pixel_to_nm_scaling, **kwargs).prune_skeleton()
 
 
 # class pruneSkeleton:  pylint: disable=too-few-public-methods
@@ -217,7 +217,7 @@ class topostatsPrune:
         Original image.
     skeleton : npt.NDArray
         Skeleton to be pruned.
-    px_2_nm : float
+    pixel_to_nm_scaling : float
         The pixel to nm scaling for pruning by length.
     max_length : float
         Maximum length of the branch to prune in nanometres (nm).
@@ -236,7 +236,7 @@ class topostatsPrune:
         self,
         img: npt.NDArray,
         skeleton: npt.NDArray,
-        px_2_nm: float,
+        pixel_to_nm_scaling: float,
         max_length: float = None,
         height_threshold: float = None,
         method_values: str = None,
@@ -251,7 +251,7 @@ class topostatsPrune:
             Original image.
         skeleton : npt.NDArray
             Skeleton to be pruned.
-        px_2_nm : float
+        pixel_to_nm_scaling : float
             The pixel to nm scaling for pruning by length.
         max_length : float
             Maximum length of the branch to prune in nanometres (nm).
@@ -266,7 +266,7 @@ class topostatsPrune:
         """
         self.img = img
         self.skeleton = skeleton.copy()
-        self.px_2_nm = px_2_nm
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.max_length = max_length
         self.height_threshold = height_threshold
         self.method_values = method_values
@@ -350,7 +350,7 @@ class topostatsPrune:
             segment = np.where(labeled_segments == segment_idx, conv_skeleton, 0)
             # get segment length
             ordered_coords = order_branch(np.where(segment != 0, 1, 0), [0, 0])
-            segment_length = coord_dist(ordered_coords, self.px_2_nm)[-1] / 1e-9
+            segment_length = coord_dist(ordered_coords, self.pixel_to_nm_scaling)[-1] / 1e-9
             # check if endpoint
             if 2 in segment and segment_length < max_branch_length:
                 # prune

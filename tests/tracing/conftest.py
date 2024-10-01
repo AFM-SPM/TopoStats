@@ -41,7 +41,7 @@ FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
 @pytest.fixture()
 def test_dnatracing() -> dnaTrace:
     """Instantiate a dnaTrace object."""
-    return dnaTrace(image=FULL_IMAGE, grain=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
+    return dnaTrace(image=FULL_IMAGE, mask=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
 
 
 @pytest.fixture()
@@ -203,7 +203,7 @@ def nodestats_catenane(
         mask=catenane_smoothed_mask,
         smoothed_mask=catenane_smoothed_mask,
         skeleton=catenane_skeleton,
-        px_2_nm=np.float64(0.18124609375),
+        pixel_to_nm_scaling=np.float64(0.18124609375),
         n_grain=1,
         node_joining_length=7,
         node_extend_dist=14.0,

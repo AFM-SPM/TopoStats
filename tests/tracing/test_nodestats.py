@@ -170,7 +170,7 @@ def test_connect_extended_nodes_nearest(
         mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         smoothed_mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         skeleton=connected_nodes.astype(bool),
-        px_2_nm=np.float64(1.0),
+        pixel_to_nm_scaling=np.float64(1.0),
         n_grain=0,
         node_joining_length=0.0,
         node_extend_dist=14.0,

@@ -911,7 +911,7 @@ def process_scan(
     Parameters
     ----------
     topostats_object : dict[str, Union[npt.NDArray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
+        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's path and it's
         pixel to namometre scaling value.
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
