@@ -547,7 +547,7 @@ def get_two_combinations(list_of_values) -> list:
     Returns
     -------
     list
-        A list of combinatorics pairs of values, retaining the initial order.
+        A list of combinatoric pairs of values, retaining the initial order.
     """
     combs = []
     for i in range(len(list_of_values) - 1):
