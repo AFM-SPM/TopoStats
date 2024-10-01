@@ -70,10 +70,17 @@ git checkout ns-rse/000-fix-an-issue
 You can now start working on your issue and making regular commits, but please bear in mind the following section on
 Coding Standards.
 
-## Coding Standards
+## Software Development
 
 To make the codebase easier to maintain we ask that you follow the guidelines below on coding style, linting, typing,
-documentation and testing.
+documentation and testing. These entail a number of additional dependencies that can be installed with the following
+command.
+
+```bash
+pip install -e .[dev,tests,docs]
+```
+
+This will pull in all the dependencies we use for development (`dev`), tests (`tests`) and writing documentation (`docs`)
 
 ### Coding Style/Linting
 
@@ -99,12 +106,11 @@ commits. For a more detailed exposition see [pre-commit : Protecting your future
 self](https://rse.shef.ac.uk/blog/pre-commit/).
 
 The repository includes `pre-commit` as a development dependency as well as a `.pre-commit-config.yaml`. To use these
-locally install `pre-commit` in your virtual environment and then install the configuration and all the configured hooks
-(**NB** this will download specific virtual environments that `pre-commit` uses when running hooks so the first time
-this is run may take a little while).
+locally you should have already installed all the `dev` dependencies in your virtual environment. You then need to
+install `pre-commit` configuration and hooks (**NB** this will download specific virtual environments that `pre-commit`
+uses when running hooks so the first time this is run may take a little while).
 
 ```bash
-pip install ".[dev]"
 pre-commit install --install-hooks
 ```
 
@@ -141,6 +147,20 @@ New features should have unit-tests written and included under the `tests/` dire
 expected. The [pytest](https://docs.pytest.org/en/latest/) framework is used for running tests along with a number of
 plugins ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest) for regression testing;
 [pytest-mpl](https://github.com/matplotlib/pytest-mpl) for testing generated Matplotlib images).
+
+In conjunction with [pre-commit](#pre-commit) we leverage [pytest-testmon](https://github.com/tarpas/pytest-testmon/) to
+run tests on each commit, but as the test suite is large and can take a while to run `pytest-testmon` restricts tests to
+only files that have changed (code or tests) or changes in environment variables and dependencies. You will need to
+create a database locally on first run and so should run the following before undertaking any development.
+
+```bash
+pytest --testmon
+```
+
+This will create a database (`.testmondata`) which tracks the current state of the repository, this file is
+ignored by Git (via `.gitignore`) but keeps track of the state of the repository and what has changed so that the
+`pre-commit` hook `Pytest (testmon)` only attempts to run the tests when changes have been made to files that impact the
+tests.
 
 ## Debugging
 
