@@ -353,7 +353,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 "grain_number": cropped_image_index,
                 "grain_endpoints": (conv_pruned_skeleton == 2).sum(),
                 "grain_junctions": (conv_pruned_skeleton == 3).sum(),
-                "total_branch_lengths": skan_df["branch-distance"].sum(),
+                "total_branch_lengths": skan_df["branch_distance"].sum(),
             }
 
             # remap the cropped images back onto the original
@@ -403,21 +403,30 @@ def compile_skan_stats(
     skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
     skan_df["min_value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
     skan_df["median_value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
-    skan_df["mid_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
+    skan_df["middle_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
+
+    skan_df = skan_df.rename(
+        columns={  # remove with Skan new release
+            "branch-distance": "branch_distance",
+            "branch-type": "branch_type",
+            "mean-pixel-value": "mean_pixel_value",
+            "stdev-pixel-value": "stdev_pixel_value",
+        }
+    )
 
     # remove unused skan columns
     return skan_df[
         [
             "image",
             "grain_number",
-            "branch-distance",
-            "branch-type",
+            "branch_distance",
+            "branch_type",
             "connected_segments",
-            "mean-pixel-value",
-            "stdev-pixel-value",
+            "mean_pixel_value",
+            "stdev_pixel_value",
             "min_value",
             "median_value",
-            "mid_value",
+            "middle_value",
         ]
     ]
 
@@ -635,8 +644,12 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
-        "branch_types": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "branch-type"),
-        "branch_indexes": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "node-id-src"),
+        "branch_types": get_skan_image(
+            cropped_image, disorderedtrace.pruned_skeleton, "branch-type"
+        ),  # change with Skan new release
+        "branch_indexes": get_skan_image(
+            cropped_image, disorderedtrace.pruned_skeleton, "node-id-src"
+        ),  # change with Skan new release
     }
 
 
