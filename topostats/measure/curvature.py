@@ -58,24 +58,24 @@ def discrete_angle_difference_per_nm_circular(
     npt.NDArray[np.number]
         The discrete angle difference per nm.
     """
-    angles_per_nm = np.zeros(trace_nm.shape[0] - 1)
+    angles_per_nm = np.zeros(trace_nm.shape[0])
     for index, point in enumerate(trace_nm):
         if index == 0:
             v1 = point - trace_nm[-1]
             v2 = trace_nm[index + 1] - point
         elif index == trace_nm.shape[0] - 1:
-            v1 = trace_nm[index - 1] - point
+            v1 = point - trace_nm[index - 1]
             v2 = trace_nm[0] - point
         else:
-            v1 = trace_nm[index - 1] - point
+            v1 = point - trace_nm[index - 1]
             v2 = trace_nm[index + 1] - point
 
         # Normalise vectors to unit length
-        v1 = v1 / np.linalg.norm(v1)
-        v2 = v2 / np.linalg.norm(v2)
+        norm_v1 = v1 / np.linalg.norm(v1)
+        norm_v2 = v2 / np.linalg.norm(v2)
 
         # Calculate the signed angle difference between the previous direction and the current direction
-        angle = angle_diff_signed(v1, v2)
+        angle = angle_diff_signed(norm_v1, norm_v2)
 
         # Calculate distance travelled between previous point and the current point
         distance = np.linalg.norm(v1)
