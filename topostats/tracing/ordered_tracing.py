@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from itertools import combinations
 
 import numpy as np
 import numpy.typing as npt
@@ -11,7 +12,7 @@ from skimage.morphology import binary_dilation, label
 from topoly import jones, translate_code
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, get_two_combinations, order_branch, reorderTrace
+from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -615,11 +616,11 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             vector_series = node_df.sort_values(by=["z_idx"], ascending=False)["vector"]
             vectors = list(vector_series)
             # get pairs
-            combinations = get_two_combinations(vectors)
+            vector_combinations = list(combinations(vectors, 2))
             # calculate the writhe
             temp_writhes = ""
-            for pair in combinations:  # if > 2 crossing branches
-                temp_writhes += self.writhe_direction(pair[0], pair[1])
+            for vector_pair in vector_combinations:  # if > 2 crossing branches
+                temp_writhes += self.writhe_direction(vector_pair[0], vector_pair[1])
             if len(temp_writhes) > 1:
                 temp_writhes = f"({temp_writhes})"
             node_to_writhe[node_num] = temp_writhes

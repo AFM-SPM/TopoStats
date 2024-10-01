@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from itertools import combinations
 from typing import TypedDict
 
 import networkx as nx
@@ -21,7 +22,7 @@ from topostats.measure.geometry import (
 )
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.tracingfuncs import get_two_combinations, order_branch, order_branch_from_start
+from topostats.tracing.tracingfuncs import order_branch, order_branch_from_start
 from topostats.utils import ResolutionError, convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -587,7 +588,7 @@ class nodeStats:
                         ordered_branches,
                         masked_image,
                         branch_under_over_order,
-                        conf,
+                        confidence,
                         singlet_branch_vectors,
                     ) = nodeStats.analyse_node_branches(
                         p_to_nm=self.pixel_to_nm_scaling,
@@ -652,7 +653,7 @@ class nodeStats:
                     "branch_stats": matched_branches,
                     "unmatched_branch_stats": unmatched_branches,
                     "node_coords": node_coords,
-                    "confidence": conf,
+                    "confidence": confidence,
                 }
 
                 assert reduced_node_area is not None, "Reduced node area is not defined."
@@ -811,7 +812,7 @@ class nodeStats:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         branch_under_over_order: npt.NDArray[np.int32]
             The order of the branches based on the FWHM.
-        conf: np.float64 | None
+        confidence: np.float64 | None
             The confidence of the crossing. Optional.
         """
         if not p_to_nm <= resolution_threshold:
@@ -849,20 +850,17 @@ class nodeStats:
             values["fwhm"] = nodeStats.calculate_fwhm(values["heights"], values["distances"], hm=max(hms))
 
         # Get the confidence of the crossing
-        crossing_quants = []
+        crossing_fwhms = []
         for _, values in matched_branches.items():
-            crossing_quants.append(values["fwhm"]["fwhm"])
-        if len(crossing_quants) <= 1:
-            conf = None
+            crossing_fwhms.append(values["fwhm"]["fwhm"])
+        if len(crossing_fwhms) <= 1:
+            confidence = None
         else:
-            combinations = get_two_combinations(crossing_quants)
-            conf = np.float64(nodeStats.cross_confidence(combinations))
+            crossing_fwhm_combinations = list(combinations(crossing_fwhms, 2))
+            confidence = np.float64(nodeStats.cross_confidence(crossing_fwhm_combinations))
 
-        fwhms = []
-        for _, values in matched_branches.items():
-            fwhms.append(values["fwhm"]["fwhm"])
         # Order the branch indexes based on the FWHM of the branches.
-        branch_under_over_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(fwhms))]
+        branch_under_over_order = np.array(list(matched_branches.keys()))[np.argsort(np.array(crossing_fwhms))]
 
         return (
             pairs,
@@ -870,7 +868,7 @@ class nodeStats:
             ordered_branches,
             masked_image,
             branch_under_over_order,
-            conf,
+            confidence,
             singlet_branch_vectors,
         )
 
@@ -1032,14 +1030,14 @@ class nodeStats:
         return ordered_branches, vectors
 
     @staticmethod
-    def cross_confidence(combinations: list) -> float:
+    def cross_confidence(pair_combinations: list) -> float:
         """
         Obtain the average confidence of the combinations using a reciprical function.
 
         Parameters
         ----------
-        combinations : list
-            List of combinations of FWHM values.
+        pair_combinations : list
+            List of length 2 combinations of FWHM values.
 
         Returns
         -------
@@ -1047,9 +1045,9 @@ class nodeStats:
             The average crossing confidence.
         """
         c = 0
-        for pair in combinations:
+        for pair in pair_combinations:
             c += nodeStats.recip(pair)
-        return c / len(combinations)
+        return c / len(pair_combinations)
 
     @staticmethod
     def recip(vals: list) -> float:
@@ -1781,9 +1779,9 @@ class nodeStats:
         sum_conf = 0
         valid_confs = 0
         for _, (_, values) in enumerate(node_dict.items()):
-            conf = values["confidence"]
-            if conf is not None:
-                sum_conf += conf
+            confidence = values["confidence"]
+            if confidence is not None:
+                sum_conf += confidence
                 valid_confs += 1
         try:
             return sum_conf / valid_confs
@@ -1805,15 +1803,15 @@ class nodeStats:
         Union[None, float]
             The value of minimum confidence or none if not possible.
         """
-        confs = []
+        confidences = []
         valid_confs = 0
         for _, (_, values) in enumerate(node_dict.items()):
-            conf = values["confidence"]
-            if conf is not None:
-                confs.append(conf)
+            confidence = values["confidence"]
+            if confidence is not None:
+                confidences.append(confidence)
                 valid_confs += 1
         try:
-            return min(confs)
+            return min(confidences)
         except ValueError:
             return None
 

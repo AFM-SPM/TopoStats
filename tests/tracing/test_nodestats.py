@@ -605,11 +605,6 @@ def test_auc() -> None:
     pass
 
 
-def test_get_two_combinations() -> None:
-    """Test of get_two_combinations() method of nodeStats class."""
-    pass
-
-
 def test_cross_confidence() -> None:
     """Test of cross_confidence() method of nodeStats class."""
     pass
