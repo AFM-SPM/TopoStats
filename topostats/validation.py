@@ -994,7 +994,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'branch_indexes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
