@@ -944,8 +944,8 @@ def ordered_tracing_image(
             for mol_no, molstat_values in grain_molstats.items():
                 molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
                     "image": filename,
-                    "grain_number": int(grain_no.rsplit("_", maxsplit=1)[-1]),
-                    "molecule_number": int(mol_no.rsplit("_", maxsplit=1)[-1]),
+                    "grain_number": int(grain_no.split("_")[-1]),
+                    "molecule_number": int(mol_no.split("_")[-1]),  # pylint: disable=use-maxsplit-arg
                 }
                 molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
 
