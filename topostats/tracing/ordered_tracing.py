@@ -615,11 +615,11 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             vector_series = node_df.sort_values(by=["z_idx"], ascending=False)["vector"]
             vectors = list(vector_series)
             # get pairs
-            combs = get_two_combinations(vectors)
+            combinations = get_two_combinations(vectors)
             # calculate the writhe
             temp_writhes = ""
-            for comb in combs:  # if > 2 crossing branches
-                temp_writhes += self.writhe_direction(comb[0], comb[1])
+            for pair in combinations:  # if > 2 crossing branches
+                temp_writhes += self.writhe_direction(pair[0], pair[1])
             if len(temp_writhes) > 1:
                 temp_writhes = f"({temp_writhes})"
             node_to_writhe[node_num] = temp_writhes

@@ -855,8 +855,8 @@ class nodeStats:
         if len(crossing_quants) <= 1:
             conf = None
         else:
-            combs = get_two_combinations(crossing_quants)
-            conf = np.float64(nodeStats.cross_confidence(combs))
+            combinations = get_two_combinations(crossing_quants)
+            conf = np.float64(nodeStats.cross_confidence(combinations))
 
         fwhms = []
         for _, values in matched_branches.items():
@@ -1032,13 +1032,13 @@ class nodeStats:
         return ordered_branches, vectors
 
     @staticmethod
-    def cross_confidence(combs: list) -> float:
+    def cross_confidence(combinations: list) -> float:
         """
         Obtain the average confidence of the combinations using a reciprical function.
 
         Parameters
         ----------
-        combs : list
+        combinations : list
             List of combinations of FWHM values.
 
         Returns
@@ -1047,9 +1047,9 @@ class nodeStats:
             The average crossing confidence.
         """
         c = 0
-        for comb in combs:
-            c += nodeStats.recip(comb)
-        return c / len(combs)
+        for pair in combinations:
+            c += nodeStats.recip(pair)
+        return c / len(combinations)
 
     @staticmethod
     def recip(vals: list) -> float:
