@@ -11,7 +11,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.tracing.splining import windowTrace, splining_image
+from topostats.tracing.splining import splining_image, windowTrace
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
@@ -25,6 +25,7 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
 PIXEL_TRACE = np.array(
     [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]]
 ).astype(np.int32)
+
 
 def plot_spline_debugging(
     image: npt.NDArray[np.float32],
