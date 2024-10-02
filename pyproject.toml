@@ -39,6 +39,7 @@ dependencies = [
   "AFMReader",
   "h5py",
   "igor2",
+  "keras",
   "matplotlib",
   "numpy",
   "pandas",
@@ -55,14 +56,14 @@ dependencies = [
   "tifffile",
   "topoly",
   "tqdm",
+  "tensorflow",
 ]
 
 [project.optional-dependencies]
 tests = [
-  "pytest<8.0.0",
+  "pytest",
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
-  "pytest-lazy-fixture",
   "pytest-mpl",
   "pytest-regtest",
   "filetype",
