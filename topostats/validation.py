@@ -778,6 +778,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'removed_noise.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -796,6 +797,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -830,6 +832,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -848,6 +851,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,

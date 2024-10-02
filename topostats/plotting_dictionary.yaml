@@ -146,12 +146,14 @@ removed_noise:
   filename: "20-noise_removed"
   title: "Noise removed"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 removed_small_objects:
   filename: "21-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 mask_overlay:
@@ -163,12 +165,14 @@ labelled_regions_02:
   filename: "22-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 coloured_regions:
   filename: "23-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 bounding_boxes:
