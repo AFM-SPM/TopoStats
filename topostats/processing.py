@@ -467,8 +467,11 @@ def run_disordered_trace(
 
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
 
-        except Exception:
-            LOGGER.info("Disordered tracing failed - skipping.")
+        except Exception as e:
+            LOGGER.info(
+                f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
             return {}, grainstats_df, None
 
     else:
@@ -604,7 +607,9 @@ def run_nodestats(  # noqa: C901
             return nodestats_whole_data, resultant_grainstats
 
         except Exception as e:
-            LOGGER.info(f"NodeStats failed with {e} - skipping.")
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
             return nodestats_whole_data, nodestats_grainstats
 
     else:
@@ -729,7 +734,10 @@ def run_ordered_tracing(
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
 
         except Exception as e:
-            LOGGER.info(f"Ordered Tracing failed with {e} - skipping.")
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
             return ordered_tracing_image_data, grainstats_df, None
 
     return None, grainstats_df, None
@@ -846,7 +854,9 @@ def run_splining(
             return splined_image_data, resultant_grainstats, resultant_molstats
 
         except Exception as e:
-            LOGGER.info(f"Splining failed with {e} - skipping.")
+            LOGGER.error(
+                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
             return splined_image_data, splining_grainstats, splining_molstats
 
     return None, grainstats_df, molstats_df

@@ -305,7 +305,7 @@ class Images:
             # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
             if self.image_set == "all" or self.core_set:
                 fig, ax = self.save_figure()
-                LOGGER.info(
+                LOGGER.debug(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
                     f" | DPI: {self.savefig_dpi}"
                 )

@@ -292,10 +292,10 @@ class topostatsPrune:
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                LOGGER.info("[pruning] : Pruning by length.")
+                LOGGER.debug(f": pruning.py : Pruning by length < {self.max_length}.")
                 single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
-                LOGGER.info("[pruning] : Pruning by height.")
+                LOGGER.debug(": pruning.py : Pruning by height.")
                 single_skeleton = heightPruning(
                     self.img,
                     single_skeleton,

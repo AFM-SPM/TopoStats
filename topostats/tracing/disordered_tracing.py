@@ -120,7 +120,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
-        # LOGGER.info(f"[{self.filename}] : mask_smooth_params : {self.mask_smoothing_params=}")
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         self.skeleton = getSkeleton(
             self.image,
@@ -135,8 +134,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
         if self.disordered_trace is None:
-            LOGGER.info(f"[{self.filename}] : Grain failed to Skeletonise")
+            LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
         elif len(self.disordered_trace) < self.min_skeleton_size:
+            LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} skeleton < {self.min_skeleton_size}, skipping.")
             self.disordered_trace = None
 
     def re_add_holes(
@@ -250,9 +250,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         gauss = gauss.astype(np.int32)
         # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
         if dilation.sum() > gauss.sum():
-            LOGGER.info(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
             return self.re_add_holes(grain, gauss, holearea_min_max)
-        LOGGER.info(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+        LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
         return self.re_add_holes(grain, dilation, holearea_min_max)
 
 
@@ -319,7 +319,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "branch_types": img_base.copy(),
     }
 
-    LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains.")
+    LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains...")
 
     for cropped_image_index, cropped_image in cropped_images.items():
         try:
@@ -335,7 +335,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 min_skeleton_size=min_skeleton_size,
                 n_grain=cropped_image_index,
             )
-            LOGGER.info(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
+            LOGGER.debug(f"[{filename}] : Disordered Traced grain {cropped_image_index + 1} of {n_grains}")
 
             # obtain segment stats
             skan_skeleton = skan.Skeleton(
@@ -365,7 +365,11 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
 
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.warning(f"[{filename}] : Disordered tracing of grain {cropped_image_index} failed with {e}.")
+            LOGGER.error(
+                f"[{filename}] : Disordered tracing of grain"
+                + f"{cropped_image_index} failed. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
 
         # convert stats dict to dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")

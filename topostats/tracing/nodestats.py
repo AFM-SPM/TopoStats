@@ -215,10 +215,10 @@ class nodeStats:
                                 |-> 'grain_mask'
                                 └-> 'grain_skeleton'
         """
-        LOGGER.info(f"Node Stats - Processing Grain: {self.n_grain}")
+        LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
         if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
-            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
+            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
             # self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
             # reset skeleton var as tidy branches may have modified it
@@ -227,7 +227,7 @@ class nodeStats:
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
-            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
+            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
             self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=self.node_joining_length)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
@@ -236,11 +236,11 @@ class nodeStats:
             # obtain a mask of node centers and their count
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # Begin the hefty crossing analysis
-            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
+            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
-            LOGGER.info(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
+            LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
         return self.node_dicts, self.image_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
@@ -377,7 +377,7 @@ class nodeStats:
             max_idx = idxs[np.argmax(counts[1:]) + 1]
             return np.where(labelled_mask == max_idx, 1, 0)
         except ValueError as e:
-            LOGGER.info(f"{e}: mask is empty.")
+            LOGGER.debug(f"{e}: mask is empty.")
             return mask
 
     def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
@@ -572,14 +572,14 @@ class nodeStats:
 
             # Stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
-                LOGGER.info(
+                LOGGER.debug(
                     f"node {node_no} has only two branches - skipped & nodes removed.{len(node_coords)}"
                     "pixels in nib node."
                 )
             else:
                 try:
                     real_node_count += 1
-                    LOGGER.info(f"Node: {real_node_count}")
+                    LOGGER.debug(f"Node: {real_node_count}")
 
                     # Analyse the node branches
                     (
@@ -644,7 +644,7 @@ class nodeStats:
                     # angles_between_vectors_along_branch
 
                 except ResolutionError:
-                    LOGGER.info(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
+                    LOGGER.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
 
                 self.node_dicts[f"node_{real_node_count}"] = {
@@ -816,9 +816,7 @@ class nodeStats:
             The confidence of the crossing. Optional.
         """
         if not p_to_nm <= resolution_threshold:
-            LOGGER.warning(
-                f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse."
-            )
+            LOGGER.debug(f"Resolution {p_to_nm} is below suggested {resolution_threshold}, node difficult to analyse.")
 
         # Pixel-wise order the branches coming from the node and calculate the starting vector for each branch
         ordered_branches, singlet_branch_vectors = nodeStats.get_ordered_branches_and_vectors(
@@ -963,7 +961,7 @@ class nodeStats:
                 AssertionError,
                 IndexError,
             ) as e:  # Assertion - avg trace not advised, Index - wiggy branches
-                LOGGER.info(f"[{filename}] : avg trace failed with {e}, single trace only.")
+                LOGGER.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
                 distances = nodeStats.coord_dist_rad(single_branch_coords, np.array([node_coords[0], node_coords[1]]))
                 # distances = self.coord_dist(single_branch_coords)
@@ -1883,7 +1881,7 @@ def nodestats_image(
     nodestats_branch_images = {}
     grainstats_additions = {}
 
-    LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains.")
+    LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains...")
 
     for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
         nodestats = None  # reset the nodestats variable
@@ -1902,7 +1900,7 @@ def nodestats_image(
                 pair_odd_branches=pair_odd_branches,
             )
             nodestats_dict, node_image_dict = nodestats.get_node_stats()
-            LOGGER.info(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+            LOGGER.debug(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
 
             # compile images
             nodestats_images = {
@@ -1928,7 +1926,10 @@ def nodestats_image(
                 full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(f"[{filename}] : Nodestats for {n_grain} failed with - {e}")
+            LOGGER.error(
+                f"[{filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
             nodestats_data[n_grain] = {}
 
         # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty

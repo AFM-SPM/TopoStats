@@ -289,7 +289,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 LOGGER.debug(f"{self.filename} : PD Code is: {pd_code}")
                 top_class = jones(pd_code)
             except (IndexError, KeyError):
-                LOGGER.warning(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
+                LOGGER.debug(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
                 top_class = "N/A"
 
             # don't separate catenanes / overlaps - used for distribution comparison
@@ -898,12 +898,17 @@ def ordered_tracing_image(
     molstats = {}
     all_traces_data = {}
 
+    LOGGER.info(
+        f"[{filename}] : Calculating Ordered Traces and statistics for "
+        + f"{len(disordered_tracing_direction_data)} grains..."
+    )
+
     # iterate through disordered_tracing_dict
     for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
         try:
             # check if want to do nodestats tracing or not
             if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
-                LOGGER.info(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
+                LOGGER.debug(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
                 nodestats_tracing = OrderedTraceNodestats(
                     image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
                     filename=filename,
@@ -914,20 +919,18 @@ def ordered_tracing_image(
                     ordered_traces_data, tracing_stats, grain_molstats, images = (
                         nodestats_tracing.run_nodestats_tracing()
                     )
-                    LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
+                    LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.warning(
-                        f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
-                    )
+                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
             # if not doing nodestats ordering, do original TS ordering
             else:
-                LOGGER.info(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
+                LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
                 topostats_tracing = OrderedTraceTopostats(
                     image=disordered_trace_data["original_image"],
                     skeleton=disordered_trace_data["pruned_skeleton"],
                 )
                 ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
-                LOGGER.info(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
+                LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
 
             # compile traces
             all_traces_data[grain_no] = ordered_traces_data
@@ -956,7 +959,10 @@ def ordered_tracing_image(
                 full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
 
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
+            LOGGER.error(
+                f"[{filename}] : Ordered tracing for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
             all_traces_data[grain_no] = {}
 
     grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
