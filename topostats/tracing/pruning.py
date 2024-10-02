@@ -314,7 +314,7 @@ class topostatsPrune:
         return pruned_skeleton_mask
 
     def _prune_by_length(  # pylint: disable=too-many-locals  # noqa: C901
-        self, single_skeleton: npt.NDArray, max_length: float | int = -1
+        self, single_skeleton: npt.NDArray, max_length: float
     ) -> npt.NDArray:
         """
         Remove hanging branches from a skeleton by their length.
@@ -325,21 +325,14 @@ class topostatsPrune:
         ----------
         single_skeleton : npt.NDArray
             Binary array of the skeleton.
-        max_length : float | int
-            Maximum length of the branch to prune in nanometers (nm). Default is -1 which calculates a value that is 15%
-            of the total skeleton length.
+        max_length : float
+            Maximum length of the branch to prune in nanometers (nm).
 
         Returns
         -------
         npt.NDArray
             Pruned skeleton as binary array.
         """
-        coordinates = np.argwhere(single_skeleton == 1).tolist()
-        # The branches are typically short so if a branch is longer than
-        #  0.15 * total points, its assumed to be part of the real data
-        max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
-        LOGGER.info(f"[pruning] : Maximum branch length : {max_branch_length}nm")
-
         # get segments via convolution and removing junctions
         conv_skeleton = convolve_skeleton(single_skeleton)
         conv_skeleton[conv_skeleton == 3] = 0
@@ -352,7 +345,7 @@ class topostatsPrune:
             ordered_coords = order_branch(np.where(segment != 0, 1, 0), [0, 0])
             segment_length = coord_dist(ordered_coords, self.pixel_to_nm_scaling)[-1] / 1e-9
             # check if endpoint
-            if 2 in segment and segment_length < max_branch_length:
+            if 2 in segment and segment_length < max_length:
                 # prune
                 single_skeleton[labeled_segments == segment_idx] = 0
 

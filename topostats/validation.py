@@ -243,7 +243,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "topostats",
                     error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
                 ),
-                "max_length": Or(int, float, None),
+                "max_length": lambda n: n >= 0,
                 "method_values": Or("min", "median", "mid"),
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
