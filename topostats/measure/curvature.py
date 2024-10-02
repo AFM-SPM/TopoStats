@@ -84,3 +84,25 @@ def discrete_angle_difference_per_nm_circular(
         angles_per_nm[index] = angle / distance
 
     return angles_per_nm
+
+
+def find_curvature_defects_simple_threshold(
+    curvature_angle_per_nm: npt.NDArray[np.number],
+    defect_threshold: float,
+) -> npt.NDArray[np.bool_]:
+    """
+    Find defects in the curvature of a trace.
+
+    Parameters
+    ----------
+    curvature_angle_per_nm : npt.NDArray[np.number]
+        The curvature angle per nm.
+    defect_threshold : float
+        The threshold for the curvature defect.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        The boolean array indicating the defects.
+    """
+    return np.abs(curvature_angle_per_nm) >= defect_threshold
