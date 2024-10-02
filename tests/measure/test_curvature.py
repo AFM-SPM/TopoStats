@@ -4,7 +4,11 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.measure.curvature import angle_diff_signed, discrete_angle_difference_per_nm_circular
+from topostats.measure.curvature import (
+    angle_diff_signed,
+    discrete_angle_difference_per_nm_circular,
+    find_curvature_defects_simple_threshold,
+)
 
 
 @pytest.mark.parametrize(
@@ -100,3 +104,28 @@ def test_discrete_angle_difference_per_nm_circular(
     )
 
     np.testing.assert_array_equal(angle_difference_per_nm, expected_angle_difference_per_nm)
+
+
+@pytest.mark.parametrize(
+    ("curvature_angle_per_nm", "defect_threshold", "expected_defects"),
+    [
+        pytest.param(
+            np.array(
+                [0.8, 0.9, 1.0, 1.1, 1.1, 1.0, 0.9, 0.6, 0.2, 0.1, -0.1, -0.4, -0.8, -1.0, -1.2, -1.0, -0.8, -0.5]
+            ),
+            1.0,
+            np.array([0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0]).astype(np.bool_),
+        )
+    ],
+)
+def test_find_curvature_defects_simple_threshold(
+    curvature_angle_per_nm: npt.NDArray[np.number], defect_threshold: float, expected_defects: npt.NDArray[np.number]
+) -> None:
+    """Test the simple curvature defect detection."""
+    # Find curvature defects
+    defects = find_curvature_defects_simple_threshold(
+        curvature_angle_per_nm=curvature_angle_per_nm,
+        defect_threshold=defect_threshold,
+    )
+
+    np.testing.assert_array_equal(defects, expected_defects)
