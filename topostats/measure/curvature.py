@@ -106,3 +106,33 @@ def find_curvature_defects_simple_threshold(
         The boolean array indicating the defects.
     """
     return np.abs(curvature_angle_per_nm) >= defect_threshold
+
+
+def calculate_trace_distances_to_last_points_circular(
+    trace_nm: npt.NDArray[np.number],
+) -> npt.NDArray[np.number]:
+    """
+    Calculate the distances between each point in the trace and the preceding point.
+
+    Parameters
+    ----------
+    trace_nm : npt.NDArray[np.number]
+        The coordinate trace, in nanometre units.
+
+    Returns
+    -------
+    npt.NDArray[np.number]
+        The distances between each point in the trace and the preceding point.
+    """
+    if trace_nm.shape[1] != 2:
+        raise ValueError("Trace must be an array of shape (n, 2)")
+
+    distances_to_last_points = np.zeros(trace_nm.shape[0])
+
+    for index, point in enumerate(trace_nm):
+        if index == 0:
+            distances_to_last_points[index] = np.linalg.norm(point - trace_nm[-1])
+        else:
+            distances_to_last_points[index] = np.linalg.norm(point - trace_nm[index - 1])
+
+    return distances_to_last_points
