@@ -136,3 +136,81 @@ def calculate_trace_distances_to_last_points_circular(
             distances_to_last_points[index] = np.linalg.norm(point - trace_nm[index - 1])
 
     return distances_to_last_points
+
+
+# pylint: disable=too-many-branches
+def calculate_distances_between_defects_circular(
+    curvature_defects: npt.NDArray[np.bool_],
+    trace_distances_to_last_points: npt.NDArray[np.number],
+) -> npt.NDArray[np.float32]:
+    """
+    Calculate the real distance along the trace between defects.
+
+    Parameters
+    ----------
+    curvature_defects : npt.NDArray[np.bool_]
+        The boolean array indicating the defects.
+    trace_distances_to_last_points : npt.NDArray[np.number]
+        The distances between each point in the trace and the preceding point.
+
+    Returns
+    -------
+    npt.NDArray[np.float32]
+        The distances between defects. Eg: [5.2, 3.1].
+    """
+    defect_gap_distances: list[float] = []
+
+    # State variables
+    in_defect: bool = False
+    current_gap_distance: float | None = None
+    first_gap_distance: float = 0.0
+
+    # Iterate over the boolean defects array
+    for index, is_defect in enumerate(curvature_defects):
+        if is_defect:
+            if not in_defect:
+                # Start of new defect
+                in_defect = True
+                # If this is the end of the first gap, then don't add it to the defect gaps
+                # else if this is the end of a standard gap, add it to the defect gaps
+                if current_gap_distance is not None:
+                    # Add gap distance to defect distances, including the distance of the current (defect) point to
+                    # the previous (non-defect) point
+                    defect_gap_distances.append(current_gap_distance + trace_distances_to_last_points[index])
+                    current_gap_distance = 0.0
+            else:
+                # Continue defect
+                pass
+        else:
+            if in_defect:
+                # End of defect
+                in_defect = False
+                current_gap_distance = trace_distances_to_last_points[index]
+            else:
+                # Continue gap
+                # If not encountered a defect yet, ignore, since this is the first gap
+                if current_gap_distance is not None:
+                    # If this is not the first gap, add the distance to the current gap
+                    current_gap_distance += trace_distances_to_last_points[index]
+                else:
+                    # If this is the first gap, add the distance to the first gap and save it for later
+                    first_gap_distance += trace_distances_to_last_points[index]
+
+    # If the last point is a defect, then the last gap distance is simply the distance to the first point
+    # from the start of the trace
+    if current_gap_distance is not None:
+        if in_defect:
+            # Check that the current + first gap distance doesn't equal 0.0, since we don't want to add a 0.0 distance
+            if current_gap_distance + first_gap_distance != 0.0:
+                defect_gap_distances.append(current_gap_distance + first_gap_distance)
+            else:
+                pass
+        # Else we need to add the distance from the last defect-the end of the trace to the distance from the
+        # start of the trace to the first defect, which will be the first gap distance plus the current gap distance
+        else:
+            defect_gap_distances.append(first_gap_distance + current_gap_distance)
+    else:
+        # No defect was encountered at all so nothing to add
+        pass
+
+    return np.array(defect_gap_distances).astype(np.float32)
