@@ -6,9 +6,10 @@ import pytest
 
 from topostats.measure.curvature import (
     angle_diff_signed,
+    calculate_distances_between_defects_circular,
+    calculate_trace_distances_to_last_points_circular,
     discrete_angle_difference_per_nm_circular,
     find_curvature_defects_simple_threshold,
-    calculate_distances_between_defects_circular,
 )
 
 
@@ -182,3 +183,61 @@ def test_calculate_trace_distances_to_last_points_circular(
     )
 
     np.testing.assert_array_equal(trace_distances_to_last_points, expected_trace_distances_to_last_points)
+
+
+@pytest.mark.parametrize(
+    ("curvature_defects", "trace_distances_to_last_points", "expected_distances_between_defects"),
+    [
+        pytest.param(
+            np.array(
+                [0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
+            ),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([3.6, 5.2]).astype(np.float32),
+            id="gap at start and end",
+        ),
+        pytest.param(
+            np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1]),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([3.6, 2.4]).astype(np.float32),
+            id="no gap at end, only at start",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0]),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([3.6, 2.8]).astype(np.float32),
+            id="no gap at start, only at end",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 1, 0, 0, 1, 1, 1, 1]),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([3.6]).astype(np.float32),
+            id="no gap at start or at end",
+        ),
+        pytest.param(
+            np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([]).astype(np.float32),
+            id="no defects",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+            np.array([1.1, 1.3, 1.2, 1.1, 1.3, 1.1, 1.2, 1.4, 1.5, 1.3]),
+            np.array([]).astype(np.float32),
+            id="all defects, no gaps",
+        ),
+    ],
+)
+def test_calculate_distances_between_defects_circular(
+    curvature_defects: npt.NDArray[np.bool_],
+    trace_distances_to_last_points: npt.NDArray[np.number],
+    expected_distances_between_defects: npt.NDArray[np.float32],
+) -> None:
+    """Test the calculation of distances between defects."""
+    # Calculate distances between defects
+    distances_between_defects = calculate_distances_between_defects_circular(
+        curvature_defects=curvature_defects,
+        trace_distances_to_last_points=trace_distances_to_last_points,
+    )
+
+    np.testing.assert_array_equal(distances_between_defects, expected_distances_between_defects)
