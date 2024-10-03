@@ -8,6 +8,7 @@ from topostats.measure.curvature import (
     angle_diff_signed,
     discrete_angle_difference_per_nm_circular,
     find_curvature_defects_simple_threshold,
+    calculate_distances_between_defects_circular,
 )
 
 
@@ -129,3 +130,55 @@ def test_find_curvature_defects_simple_threshold(
     )
 
     np.testing.assert_array_equal(defects, expected_defects)
+
+
+@pytest.mark.parametrize(
+    ("trace_nm", "expected_trace_distances_to_last_points"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1],
+                ]
+            ),
+            np.array([1, 1, 1, 1]),
+            id="square",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [0, 0],
+                    [1, 1],
+                    [1, 2],
+                    [0, 2],
+                    [-1, 2],
+                    [-1, -1],
+                ]
+            ),
+            np.array(
+                [
+                    np.sqrt(2),
+                    np.sqrt(2),
+                    1,
+                    1,
+                    1,
+                    3,
+                ]
+            ),
+            id="square with last point",
+        ),
+    ],
+)
+def test_calculate_trace_distances_to_last_points_circular(
+    trace_nm: npt.NDArray[np.number], expected_trace_distances_to_last_points: npt.NDArray[np.number]
+) -> None:
+    """Test the calculation of distances between points in a trace."""
+    # Calculate distances between points
+    trace_distances_to_last_points = calculate_trace_distances_to_last_points_circular(
+        trace_nm=trace_nm,
+    )
+
+    np.testing.assert_array_equal(trace_distances_to_last_points, expected_trace_distances_to_last_points)
