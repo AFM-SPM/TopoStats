@@ -246,3 +246,47 @@ def calculate_number_of_defects(curvature_defects: npt.NDArray[np.bool_], circul
 
     return defect_count
 
+
+def calculate_curvature_stats_single_grain_circular(
+    grain_trace_nm: npt.NDArray[np.number],
+    defect_threshold: float,
+) -> dict:
+    """
+    Calculate curvature statistics for a single grain.
+
+    Parameters
+    ----------
+    grain_trace_nm : npt.NDArray[np.number]
+        The grain trace in nanometres.
+    defect_threshold : float
+        The threshold for the curvature defect.
+
+    Returns
+    -------
+    dict
+        The curvature statistics. Indexes are grain indexes.
+    """
+    # Calculate curvature
+    curvature_angle_per_nm = discrete_angle_difference_per_nm_circular(grain_trace_nm)
+
+    # Find defects
+    curvature_defects_binary_array = find_curvature_defects_simple_threshold(
+        curvature_angle_per_nm=curvature_angle_per_nm, defect_threshold=defect_threshold
+    )
+
+    # Calculate distances between defects
+    trace_distances_to_last_points = calculate_trace_distances_to_last_points_circular(grain_trace_nm)
+    defect_gap_distances = calculate_distances_between_defects_circular(
+        curvature_defects_binary_array, trace_distances_to_last_points
+    )
+
+    # Find the number of defects
+    number_of_defects = calculate_number_of_defects(curvature_defects_binary_array, circular=True)
+
+    return {
+        "grain_trace_nm": grain_trace_nm,
+        "grain_curvature": curvature_angle_per_nm,
+        "curvature_defects_binary_array": curvature_defects_binary_array,
+        "defect_gap_distances": defect_gap_distances,
+        "number_of_defects": number_of_defects,
+    }
