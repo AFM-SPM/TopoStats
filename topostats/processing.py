@@ -883,6 +883,60 @@ def run_splining(
     return None, grainstats_df, molstats_df
 
 
+def run_curvature_stats(
+    image: np.ndarray,
+    grain_trace_data: dict,
+    defect_threshold: float,
+    pixel_to_nm_scaling: float,
+) -> dict:
+    """
+    Calculate curvature statistics for the traced DNA molecules.
+
+    Currently only works on simple traces, not branched traces.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        AFM image, for plotting purposes.
+    grain_trace_data : dict
+        Dictionary of grain trace data.
+    defect_threshold : float
+        Threshold for curvature defect detection.
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+
+    Returns
+    -------
+    dict
+        Dictionary containing curvature statistics.
+    """
+    for direction in grain_trace_data.keys():
+        # Pass the traces to the curvature stats function
+        grains_curvature_stats_dict = calculate_curvature_stats_image(
+            grain_traces_dict_px=grain_trace_data[direction]["ordered_traces"],
+            defect_threshold=defect_threshold,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+        )
+
+        # Plot the curvatures
+        # BROKEN SINCE WE DON"T HAVE THE ORIGIN POINTS OF THE TRACES SO CAN"T PLOT WITH RIGHT
+        # POSITIONING
+        plot_curvatures(
+            image=image,
+            grains_curvature_stats_dict=grains_curvature_stats_dict,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+        )
+
+        plot_curvatures_individual_grains(
+            cropped_images=grain_trace_data[direction]["cropped_images"],
+            grains_curvature_stats_dict=grains_curvature_stats_dict,
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+        )
+
+    return {}
+
+
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
     """
     Determine components of output paths for a given image and plotting config.
