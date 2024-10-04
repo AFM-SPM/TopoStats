@@ -722,6 +722,14 @@ def process_scan(
         topostats_object["grain_trace_data"] = grain_trace_data
         topostats_object["height_profiles"] = height_profiles
 
+        # Calculate curvature statistics
+        curvature_stats = run_curvature_stats(
+            image=topostats_object["image_flattened"],
+            grain_trace_data=grain_trace_data,
+            defect_threshold=0.1,
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+        )
+
     else:
         results_df = create_empty_dataframe()
         height_profiles = {}
