@@ -7,6 +7,7 @@ import pytest
 from topostats.measure.curvature import (
     angle_diff_signed,
     calculate_distances_between_defects_circular,
+    calculate_number_of_defects,
     calculate_trace_distances_to_last_points_circular,
     discrete_angle_difference_per_nm_circular,
     find_curvature_defects_simple_threshold,
@@ -241,3 +242,30 @@ def test_calculate_distances_between_defects_circular(
     )
 
     np.testing.assert_array_equal(distances_between_defects, expected_distances_between_defects)
+
+
+@pytest.mark.parametrize(
+    ("curvature_defects", "circular", "expected_number_of_defects"),
+    [
+        pytest.param(np.array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0]), False, 2, id="linear, gap at start and end"),
+        pytest.param(np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1]), False, 2, id="linear, gap at start"),
+        pytest.param(np.array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0]), False, 2, id="linear, gap at end"),
+        pytest.param(np.array([1, 1, 1, 1, 0, 0, 1, 1, 1, 1]), False, 2, id="linear, no gaps at ends"),
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), False, 0, id="linear, no defects"),
+        pytest.param(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), False, 1, id="linear, all defects"),
+        pytest.param(np.array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0]), True, 2, id="circular, gap at start and end"),
+        pytest.param(np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1]), True, 2, id="circular, gap at start"),
+        pytest.param(np.array([1, 1, 1, 1, 0, 0, 1, 1, 0, 0]), True, 2, id="circular, gap at end"),
+        pytest.param(np.array([1, 1, 1, 1, 0, 0, 1, 1, 1, 1]), True, 1, id="circular, no gaps at ends"),
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), True, 0, id="circular, no defects"),
+        pytest.param(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), True, 1, id="circular, all defects"),
+    ],
+)
+def test_calculate_number_of_defects(
+    curvature_defects: npt.NDArray[np.bool_], circular: bool, expected_number_of_defects: int
+) -> None:
+    """Test the calculation of the number of defects."""
+    # Calculate the number of defects
+    number_of_defects = calculate_number_of_defects(curvature_defects=curvature_defects, circular=circular)
+
+    assert number_of_defects == expected_number_of_defects
