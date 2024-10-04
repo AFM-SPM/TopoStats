@@ -506,3 +506,52 @@ def plot_curvatures(
     # save the figure
     plt.savefig("./curvature_plot.png")
     plt.close()
+
+
+def plot_curvatures_individual_grains(
+    cropped_images: dict,
+    grains_curvature_stats_dict: dict,
+    pixel_to_nm_scaling: float,
+) -> None:
+    """
+    Plot curvature intensity and defects of individual grains.
+
+    Parameters
+    ----------
+    cropped_images : dict
+        Dictionary of cropped images.
+    grains_curvature_stats_dict : dict
+        Dictionary of grain curvature statistics.
+    pixel_to_nm_scaling : float
+        Pixel to nanometre scaling factor for the image.
+    """
+    for grain_index in grains_curvature_stats_dict.keys():
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.imshow(cropped_images[grain_index])
+        grain_curvature_stats = grains_curvature_stats_dict[grain_index]
+        grain_trace_px = grain_curvature_stats["grain_trace_nm"] / pixel_to_nm_scaling
+        grain_curvature = grain_curvature_stats["grain_curvature"]
+        curvature_defects_binary_array = grain_curvature_stats["curvature_defects_binary_array"]
+
+        # Plot the grain curvature by plotting lines between the points, with the colour determined by the curvature
+        for i, is_defect in enumerate(curvature_defects_binary_array):
+            if is_defect:
+                ax.plot(
+                    grain_trace_px[i : i + 2, 1],
+                    grain_trace_px[i : i + 2, 0],
+                    color="red",
+                    linewidth=2,
+                    alpha=0.5,
+                )
+            else:
+                # Plot the line with the colour determined by the curvature, with the BrBG colourmap
+                ax.plot(
+                    grain_trace_px[i : i + 2, 1],
+                    grain_trace_px[i : i + 2, 0],
+                    color=mpl.cm.BrBG(grain_curvature[i], alpha=0.5),
+                    linewidth=2,
+                )
+
+        # Save the figure
+        plt.savefig(f"./grain_{grain_index}_curvature.png")
+        plt.close()
