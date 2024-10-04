@@ -290,3 +290,35 @@ def calculate_curvature_stats_single_grain_circular(
         "defect_gap_distances": defect_gap_distances,
         "number_of_defects": number_of_defects,
     }
+
+
+def calculate_curvature_stats_image(
+    grain_traces_dict_px: dict,
+    defect_threshold: float,
+    pixel_to_nm_scaling: float,
+) -> dict:
+    """
+    Perform curvature analysis for a whole image of grains.
+
+    Parameters
+    ----------
+    grain_traces_dict_px : dict
+        Dictionary of grain traces in pixel units.
+    defect_threshold : float
+        The threshold for the curvature defect.
+    pixel_to_nm_scaling : float
+        Pixel to nm scaling factor.
+
+    Returns
+    -------
+    dict
+        The curvature statistics for each grain. Indexes are grain indexes.
+    """
+    grain_curvature_stats = {}
+    for grain_id, grain_trace_px in grain_traces_dict_px.items():
+        # Here we assume that the grain trace is simple and circular
+        grain_curvature_stats[grain_id] = calculate_curvature_stats_single_grain_circular(
+            grain_trace_nm=grain_trace_px * pixel_to_nm_scaling, defect_threshold=defect_threshold
+        )
+
+    return grain_curvature_stats
