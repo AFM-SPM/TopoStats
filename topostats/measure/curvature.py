@@ -6,6 +6,7 @@ import logging
 
 import numpy as np
 import numpy.typing as npt
+from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -214,3 +215,34 @@ def calculate_distances_between_defects_circular(
         pass
 
     return np.array(defect_gap_distances).astype(np.float32)
+
+
+def calculate_number_of_defects(curvature_defects: npt.NDArray[np.bool_], circular: bool) -> int:
+    """
+    Calculate the number of continuous defects in the curvature of a trace.
+
+    Parameters
+    ----------
+    curvature_defects : npt.NDArray[np.bool_]
+        The boolean array indicating the defects.
+    circular : bool
+        Whether the trace is circular or not.
+
+    Returns
+    -------
+    int
+        The number of defects.
+    """
+    # Find the number of continuous 1 regions in the binary curvature defects array
+    labelled_defects = label(curvature_defects, connectivity=1, background=0)
+    defect_count = np.max(labelled_defects)
+
+    if circular:
+        if curvature_defects[0] and curvature_defects[-1]:
+            # If the first and last points are defects, then the last defect is the same as the first defect
+            # unless there is only one defect, ie the whole trace is a defect.
+            if defect_count > 1:
+                defect_count -= 1
+
+    return defect_count
+
