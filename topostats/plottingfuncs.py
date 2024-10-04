@@ -246,7 +246,9 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        self.interpolation = (
+            mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        )
         cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
@@ -454,3 +456,53 @@ def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
         ystep = (max(ylim) - min(ylim)) / (n_xy[1] - 1)
         yticks = np.arange(min(ylim), max(ylim) + ystep, ystep)
         ax.set_yticks(np.round(yticks))
+
+
+def plot_curvatures(
+    image: npt.NDArray,
+    grains_curvature_stats_dict: dict,
+    pixel_to_nm_scaling: float,
+) -> None:
+    """
+    Plot curvature intensity and defects of grains in an image.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Image to plot.
+    grains_curvature_stats_dict : dict
+        Dictionary of grain curvature statistics.
+    pixel_to_nm_scaling : float
+        Pixel to nanometre scaling factor for the image.
+    """
+    _, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(image)
+
+    # For each grain, plot the points with the colour determined by the curvature value
+    for grain_curvature_stats in grains_curvature_stats_dict.values():
+        grain_trace_px = grain_curvature_stats["grain_trace_nm"] / pixel_to_nm_scaling
+        grain_curvature = grain_curvature_stats["grain_curvature"]
+        curvature_defects_binary_array = grain_curvature_stats["curvature_defects_binary_array"]
+
+        # Plot the grain curvature by plotting lines between the points, with the colour determined by the curvature
+        for i, is_defect in enumerate(curvature_defects_binary_array):
+            if is_defect:
+                ax.plot(
+                    grain_trace_px[i : i + 2, 1],
+                    grain_trace_px[i : i + 2, 0],
+                    color="red",
+                    linewidth=2,
+                    alpha=0.5,
+                )
+            else:
+                # Plot the line with the colour determined by the curvature, with the BrBG colourmap
+                ax.plot(
+                    grain_trace_px[i : i + 2, 1],
+                    grain_trace_px[i : i + 2, 0],
+                    color=mpl.cm.BrBG(grain_curvature[i], alpha=0.5),
+                    linewidth=2,
+                )
+
+    # save the figure
+    plt.savefig("./curvature_plot.png")
+    plt.close()
