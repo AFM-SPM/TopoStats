@@ -988,13 +988,11 @@ def test_nodestats_image(
     # Save the results
 
     # Save the result_nodestats_data
-    # with Path(NODESTATS_RESOURCES / expected_nodestats_data_filename).open("wb") as f:
-    #     pickle.dump(result_nodestats_data, f)
+    with Path(NODESTATS_RESOURCES / expected_nodestats_data_filename).open("wb") as f:
+        pickle.dump(result_nodestats_data, f)
 
-    # # Save the result_stats_df as a csv
-    # result_nodestats_grainstats_df.to_csv(
-    #     NODESTATS_RESOURCES / expected_nodestats_grainstats_filename
-    # )
+    # Save the result_stats_df as a csv
+    # result_nodestats_grainstats.to_csv(NODESTATS_RESOURCES / expected_nodestats_grainstats_filename)
 
     # # Save the result_all_images
     # with Path(NODESTATS_RESOURCES / expected_nodestats_all_images_filename).open("wb") as f:
