@@ -11,13 +11,13 @@ from skimage import morphology
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.tracingfuncs import genTracingFuncs
+from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch
 from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.NDArray:
+def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> npt.NDArray:
     """
     Pruning skeletons using different pruning methods.
 
@@ -29,6 +29,8 @@ def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.N
         Original image as 2D numpy array.
     skeleton : npt.NDArray
         Skeleton to be pruned.
+    pixel_to_nm_scaling : float
+        The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the respective method.
 
@@ -39,10 +41,10 @@ def prune_skeleton(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.N
     """
     if image.shape != skeleton.shape:
         raise AttributeError("Error image and skeleton are not the same size.")
-    return _prune_method(image, skeleton, **kwargs)
+    return _prune_method(image, skeleton, pixel_to_nm_scaling, **kwargs)
 
 
-def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> Callable:
+def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> Callable:
     """
     Determine which skeletonize method to use.
 
@@ -52,6 +54,8 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> Callab
         Original image as 2D numpy array.
     skeleton : npt.NDArray
         Skeleton to be pruned.
+    pixel_to_nm_scaling : float
+        The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the respective method.
 
@@ -67,7 +71,7 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> Callab
     """
     method = kwargs.pop("method")
     if method == "topostats":
-        return _prune_topostats(image, skeleton, **kwargs)
+        return _prune_topostats(image, skeleton, pixel_to_nm_scaling, **kwargs)
     # @maxgamill-sheffield I've read about a "Discrete Skeleton Evolultion" (DSE) method that might be useful
     # @ns-rse (2024-06-04) : https://en.wikipedia.org/wiki/Discrete_skeleton_evolution
     #                        https://link.springer.com/chapter/10.1007/978-3-540-74198-5_28
@@ -76,7 +80,7 @@ def _prune_method(image: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> Callab
     raise ValueError(f"Invalid pruning method provided ({method}) please use one of 'topostats'.")
 
 
-def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.NDArray:
+def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float, **kwargs) -> npt.NDArray:
     """
     Prune using the original TopoStats method.
 
@@ -88,6 +92,8 @@ def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.N
         Image used to find skeleton, may be original heights or binary mask.
     skeleton : npt.NDArray
         Binary mask of the skeleton.
+    pixel_to_nm_scaling : float
+        The pixel to nm scaling for pruning by length.
     **kwargs
         Pruning options passed to the topostatsPrune class.
 
@@ -96,7 +102,7 @@ def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, **kwargs) -> npt.N
     npt.NDArray
         The skeleton with spurious branches removed.
     """
-    return topostatsPrune(img, skeleton, **kwargs).prune_skeleton()
+    return topostatsPrune(img, skeleton, pixel_to_nm_scaling, **kwargs).prune_skeleton()
 
 
 # class pruneSkeleton:  pylint: disable=too-few-public-methods
@@ -211,6 +217,8 @@ class topostatsPrune:
         Original image.
     skeleton : npt.NDArray
         Skeleton to be pruned.
+    pixel_to_nm_scaling : float
+        The pixel to nm scaling for pruning by length.
     max_length : float
         Maximum length of the branch to prune in nanometres (nm).
     height_threshold : float
@@ -223,10 +231,12 @@ class topostatsPrune:
         skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         img: npt.NDArray,
         skeleton: npt.NDArray,
+        pixel_to_nm_scaling: float,
         max_length: float = None,
         height_threshold: float = None,
         method_values: str = None,
@@ -241,6 +251,8 @@ class topostatsPrune:
             Original image.
         skeleton : npt.NDArray
             Skeleton to be pruned.
+        pixel_to_nm_scaling : float
+            The pixel to nm scaling for pruning by length.
         max_length : float
             Maximum length of the branch to prune in nanometres (nm).
         height_threshold : float
@@ -254,6 +266,7 @@ class topostatsPrune:
         """
         self.img = img
         self.skeleton = skeleton.copy()
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.max_length = max_length
         self.height_threshold = height_threshold
         self.method_values = method_values
@@ -279,10 +292,10 @@ class topostatsPrune:
         for i in range(1, labeled_skel.max() + 1):
             single_skeleton = np.where(labeled_skel == i, 1, 0)
             if self.max_length is not None:
-                LOGGER.info("[pruning] : Pruning by length.")
+                LOGGER.debug(f": pruning.py : Pruning by length < {self.max_length}.")
                 single_skeleton = self._prune_by_length(single_skeleton, max_length=self.max_length)
             if self.height_threshold is not None:
-                LOGGER.info("[pruning] : Pruning by height.")
+                LOGGER.debug(": pruning.py : Pruning by height.")
                 single_skeleton = heightPruning(
                     self.img,
                     single_skeleton,
@@ -301,7 +314,7 @@ class topostatsPrune:
         return pruned_skeleton_mask
 
     def _prune_by_length(  # pylint: disable=too-many-locals  # noqa: C901
-        self, single_skeleton: npt.NDArray, max_length: float | int = -1
+        self, single_skeleton: npt.NDArray, max_length: float
     ) -> npt.NDArray:
         """
         Remove hanging branches from a skeleton by their length.
@@ -312,71 +325,31 @@ class topostatsPrune:
         ----------
         single_skeleton : npt.NDArray
             Binary array of the skeleton.
-        max_length : float | int
-            Maximum length of the branch to prune in nanometers (nm). Default is -1 which calculates a value that is 15%
-            of the total skeleton length.
+        max_length : float
+            Maximum length of the branch to prune in nanometers (nm).
 
         Returns
         -------
         npt.NDArray
             Pruned skeleton as binary array.
         """
-        pruning = True
-        while pruning:
-            single_skeleton = rm_nibs(single_skeleton)
-            n_branches = 0
-            coordinates = np.argwhere(single_skeleton == 1).tolist()
+        # get segments via convolution and removing junctions
+        conv_skeleton = convolve_skeleton(single_skeleton)
+        conv_skeleton[conv_skeleton == 3] = 0
+        labeled_segments = morphology.label(conv_skeleton.astype(bool))
 
-            # The branches are typically short so if a branch is longer than
-            #  0.15 * total points, its assumed to be part of the real data
-            max_branch_length = max_length if max_length != -1 else int(len(coordinates) * 0.15)
-            LOGGER.info(f"[pruning] : Maximum branch length : {max_branch_length}")
-            # first check to find all the end coordinates in the trace
-            potential_branch_ends = self._find_branch_ends(coordinates)
+        for segment_idx in range(1, labeled_segments.max() + 1):
+            # get single segment with endpoints==2
+            segment = np.where(labeled_segments == segment_idx, conv_skeleton, 0)
+            # get segment length
+            ordered_coords = order_branch(np.where(segment != 0, 1, 0), [0, 0])
+            segment_length = coord_dist(ordered_coords, self.pixel_to_nm_scaling)[-1] / 1e-9
+            # check if endpoint
+            if 2 in segment and segment_length < max_length:
+                # prune
+                single_skeleton[labeled_segments == segment_idx] = 0
 
-            # Now check if its a branch - and if it is delete it
-            for branch_x, branch_y in potential_branch_ends:
-                branch_coordinates = [[branch_x, branch_y]]
-                branch_continues = True
-                temp_coordinates = coordinates[:]
-                temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
-
-                while branch_continues:
-                    n_neighbours, neighbours = genTracingFuncs.count_and_get_neighbours(
-                        branch_x, branch_y, temp_coordinates
-                    )
-
-                    # If branch continues
-                    if n_neighbours == 1:
-                        branch_x, branch_y = neighbours[0]
-                        branch_coordinates.append([branch_x, branch_y])
-                        temp_coordinates.pop(temp_coordinates.index([branch_x, branch_y]))
-
-                    # If the branch reaches the edge of the main trace
-                    elif n_neighbours > 1:
-                        branch_coordinates.pop(branch_coordinates.index([branch_x, branch_y]))
-                        branch_continues = False
-                        is_branch = True
-
-                    # Weird case that happens sometimes (would this be linear mols?)
-                    elif n_neighbours == 0:
-                        is_branch = True
-                        branch_continues = False
-
-                    # why not `and branch_continues`?
-                    if len(branch_coordinates) > max_branch_length:
-                        branch_continues = False
-                        is_branch = False
-                #
-                if is_branch:
-                    n_branches += 1
-                    for x, y in branch_coordinates:
-                        single_skeleton[x, y] = 0
-
-            if n_branches == 0:
-                pruning = False
-
-        return single_skeleton
+        return rm_nibs(single_skeleton)
 
     @staticmethod
     def _find_branch_ends(coordinates: list) -> list:

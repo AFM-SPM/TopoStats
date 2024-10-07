@@ -21,6 +21,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-instance-attributes
 class splineTrace:
+    # pylint: disable=too-many-instance-attributes
     """
     Smooth the ordered trace via an average of splines.
 
@@ -54,6 +55,7 @@ class splineTrace:
         spline_circular_smoothing: float,
         spline_degree: int,
     ) -> None:
+        # pylint: disable=too-many-arguments
         """
         Initialise the splineTrace class.
 
@@ -124,7 +126,7 @@ class splineTrace:
         # If the fitted trace is less than the degree plus one, then there is no
         # point in trying to spline it, just return the fitted trace
         if fitted_trace_length < self.spline_degree + 1:
-            LOGGER.warning(
+            LOGGER.debug(
                 f"Fitted trace for grain {step_size_px} too small ({fitted_trace_length}), returning fitted trace"
             )
 
@@ -527,7 +529,9 @@ def splining_image(
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
-) -> tuple[dict, pd.DataFrame]:
+) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-locals
     """
     Obtain smoothed traces of pixel-wise ordered traces for molecules in an image.
 
@@ -557,12 +561,18 @@ def splining_image(
 
     Returns
     -------
-    tuple[dict, pd.DataFrame]
-        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe.
+    tuple[dict, pd.DataFrame, pd.DataFrame]
+        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe and molecule
+        statistics dataframe.
     """
     grainstats_additions = {}
     molstats = {}
     all_splines_data = {}
+
+    mol_count = 0
+    for mol_trace_data in ordered_tracing_direction_data.values():
+        mol_count += len(mol_trace_data)
+    LOGGER.info(f"[{filename}] : Calculating Splining statistics for {mol_count} molecules...")
 
     # iterate through disordered_tracing_dict
     for grain_no, ordered_grain_data in ordered_tracing_direction_data.items():
@@ -571,7 +581,7 @@ def splining_image(
         mol_no = None
         for mol_no, mol_trace_data in ordered_grain_data.items():
             try:
-                LOGGER.info(f"[{filename}] : Splining {grain_no} - {mol_no}")
+                LOGGER.debug(f"[{filename}] : Splining {grain_no} - {mol_no}")
                 # check if want to do nodestats tracing or not
                 if method == "rolling_window":
                     splined_data, tracing_stats = windowTrace(
@@ -604,13 +614,17 @@ def splining_image(
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
                     "image": filename,
-                    "grain_number": grain_no.split("_")[-1],
+                    "grain_number": int(grain_no.split("_")[-1]),
+                    "molecule_number": int(mol_no.split("_")[-1]),
                 }
                 molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
-                LOGGER.info(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
+                LOGGER.debug(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
 
             except Exception as e:  # pylint: disable=broad-exception-caught
-                LOGGER.error(f"[{filename}] : Ordered tracing for {grain_no} failed with - {e}")
+                LOGGER.error(
+                    f"[{filename}] : Splining for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
+                    exc_info=e,
+                )
                 all_splines_data[grain_no] = {}
 
         if mol_no is None:

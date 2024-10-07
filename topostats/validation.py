@@ -243,7 +243,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "topostats",
                     error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
                 ),
-                "max_length": Or(int, float, None),
+                "max_length": lambda n: n >= 0,
                 "method_values": Or("min", "median", "mid"),
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
@@ -729,6 +729,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "labelled_regions_01": {
             "filename": str,
@@ -747,6 +748,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "tidied_border": {
             "filename": str,
@@ -764,6 +766,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "removed_noise": {
             "filename": str,
@@ -775,6 +778,7 @@ PLOTTING_SCHEMA = Schema(
                     "Invalid value in config 'removed_noise.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -793,6 +797,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -827,6 +832,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -845,6 +851,7 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -885,6 +892,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "mask_cmap": str,
         },
         "grain_image": {
             "image_type": Or(
@@ -977,6 +985,20 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+        },
+        "branch_indexes": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'branch_indexes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,

@@ -213,7 +213,7 @@ class dnaTrace:
                 mask=self.mask,
                 smoothed_mask=self.smoothed_mask,
                 skeleton=self.pruned_skeleton,
-                px_2_nm=self.pixel_to_nm_scaling,
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 n_grain=self.n_grain,
                 node_joining_length=self.joining_node_length,
             )

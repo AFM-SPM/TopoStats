@@ -36,14 +36,15 @@ keywords = [
 ]
 requires-python = ">=3.9, <3.12"
 dependencies = [
+  "AFMReader",
   "h5py",
   "igor2",
   "keras",
   "matplotlib",
   "numpy",
   "pandas",
-  "pySPM",
   "pyfiglet",
+  "pySPM",
   "pyyaml",
   "ruamel.yaml",
   "schema",
@@ -53,7 +54,7 @@ dependencies = [
   "skan",
   "snoop",
   "tifffile",
-  "AFMReader",
+  "topoly",
   "tqdm",
   "tensorflow",
 ]
