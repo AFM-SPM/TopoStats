@@ -200,14 +200,15 @@ def test_analyse_nodes(
 
     # Debugging
     # Save the results to overwrite expected results
-    # with Path(RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("wb") as f:
+    # with Path(GENERAL_RESOURCES / "nodestats_analyse_nodes_catenane_node_dict.pkl").open("wb") as f:
     #     pickle.dump(node_dict_result, f)
 
-    # with Path(RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("wb") as f:
+    # with Path(GENERAL_RESOURCES / "nodestats_analyse_nodes_catenane_image_dict.pkl").open("wb") as f:
     #     pickle.dump(image_dict_result, f)
 
     # np.save(
-    #     RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy", nodestats_catenane.all_connected_nodes
+    #     GENERAL_RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy",
+    #     nodestats_catenane.all_connected_nodes,
     # )
 
     # Load the nodestats catenane node dict from pickle
