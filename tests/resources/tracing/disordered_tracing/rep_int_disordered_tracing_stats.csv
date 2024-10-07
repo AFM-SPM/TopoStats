@@ -1,4 +1,4 @@
-,image,grain_number,branch-distance,branch-type,connected_segments,mean-pixel-value,stdev-pixel-value,min_value,median_value,mid_value
+,image,grain_number,branch_distance,branch_type,connected_segments,mean_pixel_value,stdev_pixel_value,min_value,median_value,middle_value
 0,test_image,0,172.69207377569276,2,"[1, 2, 3, 8]",2.147391874570661,0.18580255309380492,1.4117732114082249,2.147881683634531,2.193944711921703
 1,test_image,0,338.03541679389866,2,"[0, 2, 7, 11]",2.1261598928571943,0.1841696602430932,1.127883594233125,2.1329128300921694,2.236342991231205
 2,test_image,0,0.6901362184380704,2,"[0, 1, 3, 4]",3.5129004230159246,0.2441665496774352,3.2687338733384856,3.5129004230159246,3.5129004230159246
