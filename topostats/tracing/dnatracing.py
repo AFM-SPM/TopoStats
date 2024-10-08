@@ -173,7 +173,7 @@ class dnaTrace:
         self.topology2 = [None]
         self.contour_lengths = []
         self.end_to_end_distances = []
-        self.mol_is_circulars = []
+        self.mols_are_circular = []
         self.curvatures = []
         self.num_mols = 1
         # Traces
