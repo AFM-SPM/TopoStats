@@ -37,6 +37,7 @@ def network_array_representation_figure_8() -> npt.NDArray[np.int32]:
     )
 
 
+@pytest.fixture()
 def tiny_circle() -> npt.NDArray:
     """Tiny circle."""
     tiny_circle = np.zeros((3, 3), dtype=np.uint8)
@@ -126,6 +127,7 @@ def expected_network_array_representation_figure_8() -> npt.NDArray[np.int32]:
     )
 
 
+@pytest.fixture()
 def tiny_square() -> npt.NDArray:
     """Tiny square."""
     return np.asarray([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], dtype=np.uint8)
