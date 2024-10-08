@@ -312,7 +312,9 @@ style file.
 topostats process --savefig-dpi 400 --cmap rainbow --savefig-format svg
 ```
 
-[^1] When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
+### Absolute v Relative paths
+
+When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
 drive letter (e.g. `c:/`) on Linux and OSX systems they start with `/`. Relative paths are started either with a `./`
 which denotes the current directory or one or more `../` which means the higher level directory from the current
 directory. You can always find the current directory you are in using the `pwd` (`p`rint `w`orking `d`irectory). If
