@@ -1,6 +1,21 @@
 name: Tests (pytest)
 
-on: [pull_request]
+on:
+  pull_request:
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
+    paths:
+      - "**.csv"
+      - "**.npy"
+      - "**.out"
+      - "**.pkl"
+      - "**.png"
+      - "**.py"
+      - "**.toml"
+      - "**.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
