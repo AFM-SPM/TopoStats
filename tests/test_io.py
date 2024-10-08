@@ -1,6 +1,7 @@
 """Tests of IO."""
 
 import argparse
+import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +18,7 @@ from topostats.io import (
     convert_basename_to_relative_paths,
     dict_almost_equal,
     dict_to_hdf5,
+    dict_to_json,
     find_files,
     get_date_time,
     get_out_path,
@@ -271,18 +273,23 @@ def test_find_files() -> None:
     assert "minicircle.spm" in str(found_images[0])
 
 
-def test_read_null_terminated_string() -> None:
+@pytest.mark.parametrize(
+    ("string_start_position", "expected_string"),
+    [pytest.param(0, "test", id="utf8 string"), pytest.param(5, "µ ", id="ISO 8859-1 character")],
+)
+def test_read_null_terminated_string(string_start_position: int, expected_string: str) -> None:
     """Test reading a null terminated string from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
+        open_binary_file.seek(string_start_position)
         value = read_null_terminated_string(open_binary_file)
         assert isinstance(value, str)
-        assert value == "test"
+        assert value == expected_string
 
 
 def test_read_u32i() -> None:
     """Test reading an unsigned 32 bit integer from a binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(5)
+        open_binary_file.seek(6)
         value = read_u32i(open_binary_file)
         assert isinstance(value, int)
         assert value == 32
@@ -291,7 +298,7 @@ def test_read_u32i() -> None:
 def test_read_64d() -> None:
     """Test reading a 64-bit double from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(9)
+        open_binary_file.seek(10)
         value = read_64d(open_binary_file)
         assert isinstance(value, float)
         assert value == 3.141592653589793
@@ -300,7 +307,7 @@ def test_read_64d() -> None:
 def test_read_char() -> None:
     """Test reading a character from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(17)
+        open_binary_file.seek(18)
         value = read_char(open_binary_file)
         assert isinstance(value, str)
         assert value == "Z"
@@ -309,7 +316,7 @@ def test_read_char() -> None:
 def test_read_gwy_component_dtype() -> None:
     """Test reading a data type of a `.gwy` file component from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(18)
+        open_binary_file.seek(19)
         value = read_gwy_component_dtype(open_binary_file)
         assert isinstance(value, str)
         assert value == "D"
@@ -561,16 +568,72 @@ def test_gwy_read_object(load_scan_dummy: LoadScans) -> None:
 def test_gwy_read_component(load_scan_dummy: LoadScans) -> None:
     """Tests reading a component of a `.gwy` file object from an open binary file."""
     with Path.open(RESOURCES / "IO_binary_file.bin", "rb") as open_binary_file:  # pylint: disable=unspecified-encoding
-        open_binary_file.seek(55)
+        open_binary_file.seek(56)
         test_dict = {}
         byte_size = load_scan_dummy._gwy_read_component(
-            initial_byte_pos=55, open_file=open_binary_file, data_dict=test_dict
+            initial_byte_pos=56, open_file=open_binary_file, data_dict=test_dict
         )
-        print(test_dict.items())
-        print(test_dict.values())
         assert byte_size == 73
         assert list(test_dict.keys()) == ["test object component"]
         assert list(test_dict.values()) == [{"test nested component": 3}]
+
+
+@pytest.mark.parametrize(
+    ("gwy_file_data", "expected_channel_ids"),
+    [
+        pytest.param(
+            {
+                "/0/data": "Height Channel Data",
+                "/0/data/title": "Height",
+                "/0/data/meta": "Height Channel Metadata",
+                "/1/data": "Amplitude Channel Data",
+                "/1/data/title": "Amplitude",
+                "/1/data/meta": "Amplitude Channel Metadata",
+                "/2/data": "Phase Channel Data",
+                "/2/data/title": "Phase",
+                "/2/data/meta": "Phase Channel Metadata",
+                "/3/data": "Error Channel Data",
+                "/3/data/title": "Error",
+                "/3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="leading slash",
+        ),
+        pytest.param(
+            {
+                "0/data": "Height Channel Data",
+                "0/data/title": "Height",
+                "0/data/meta": "Height Channel Metadata",
+                "1/data": "Amplitude Channel Data",
+                "1/data/title": "Amplitude",
+                "1/data/meta": "Amplitude Channel Metadata",
+                "2/data": "Phase Channel Data",
+                "2/data/title": "Phase",
+                "2/data/meta": "Phase Channel Metadata",
+                "3/data": "Error Channel Data",
+                "3/data/title": "Error",
+                "3/data/meta": "Error Channel Metadata",
+            },
+            {
+                "Height": "0",
+                "Amplitude": "1",
+                "Phase": "2",
+                "Error": "3",
+            },
+            id="no leading slash",
+        ),
+    ],
+)
+def test_gwy_get_channels(load_scan_dummy: LoadScans, gwy_file_data: dict, expected_channel_ids: dict) -> None:
+    """Tests getting the channels of a `.gwy` file."""
+    channel_ids = load_scan_dummy._gwy_get_channels(gwy_file_structure=gwy_file_data)
+
+    assert channel_ids == expected_channel_ids
 
 
 @patch("pySPM.SPM.SPM_image.pxs")
@@ -603,12 +666,14 @@ def test__spm_pixel_to_nm_scaling(
 @pytest.mark.parametrize(
     ("load_scan_object", "length", "image_shape", "image_sum", "filename", "pixel_to_nm_scaling"),
     [
-        ("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875),
-        ("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625),
-        ("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876),
-        ("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975),
-        ("load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875),
-        ("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0),
+        pytest.param("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875, id="spm"),
+        pytest.param("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625, id="ibw"),
+        pytest.param("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876, id="jpk"),
+        pytest.param("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975, id="gwy"),
+        pytest.param(
+            "load_scan_topostats", 1, (1024, 1024), 184140.8593819073, "file", 0.4940029296875, id="topostats"
+        ),
+        pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
     ],
 )
 def test_load_scan_get_data(
@@ -735,7 +800,9 @@ def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> No
         assert list(f.keys()) == list(expected.keys())
         assert f["d"]["a"][()] == expected["d"]["a"]
         np.testing.assert_array_equal(f["d"]["b"][()], expected["d"]["b"])
-        assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]  # pylint: disable=no-member
+        # pylint thinks that f["c"] is a group but it is a bytes object that can be decoded
+        # pylint: disable=no-member
+        assert f["d"]["c"][()].decode("utf-8") == expected["d"]["c"]
         assert f["d"]["d"]["e"][()] == expected["d"]["d"]["e"]
         np.testing.assert_array_equal(f["d"]["d"]["f"][()], expected["d"]["d"]["f"])
         assert f["d"]["d"]["g"][()].decode("utf-8") == expected["d"]["d"]["g"]
@@ -1252,3 +1319,29 @@ def test_save_and_load_topostats_file(
         np.testing.assert_array_equal(grain_mask_below, topostats_data["grain_masks"]["below"])
     if grain_trace_data is not None:
         np.testing.assert_equal(grain_trace_data, topostats_data["grain_trace_data"])
+
+
+@pytest.mark.parametrize(
+    ("dictionary", "target"),
+    [
+        pytest.param(
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            id="dictionary and lists",
+        ),
+        pytest.param(
+            {"above": {"a": np.asarray([1, 2, 3]), "b": np.asarray([4, 5, 6])}},
+            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            id="dictionary and numpy arrays",
+        ),
+    ],
+)
+def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
+    """Test writing of dictionary to JSON file."""
+    dict_to_json(data=dictionary, output_dir=tmp_path, filename="test.json")
+
+    outfile = tmp_path / "test.json"
+    assert outfile.is_file()
+
+    with outfile.open("r", encoding="utf-8") as f:
+        assert target == json.load(f)

@@ -180,6 +180,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
+            "unet_config": {
+                "model_path": Or(None, str),
+                "grain_crop_padding": int,
+                "upper_norm_bound": float,
+                "lower_norm_bound": float,
+            },
         },
         "grainstats": {
             "run": Or(
@@ -194,6 +200,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "cropped_size": Or(
                 float,
                 int,
+            ),
+            "extract_height_profile": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grainstats.extract_height_profile',"
+                "valid values are 'True' or 'False'",
             ),
         },
         "disordered_tracing": {
@@ -1228,12 +1240,7 @@ SUMMARY_SCHEMA = Schema(
             "svg",
             "tiff",
             "tif",
-            error=("Invalid value in config 'savefig_format', valid values are 'png', 'pdf', 'svg' or 'tif'"),
-        ),
-        "pickle_plots": Or(
-            True,
-            False,
-            error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'",
+            error=("Invalid value in config 'savefig_format', valid values are 'png', 'pdf', 'svg', 'tiff' or 'tif'"),
         ),
         "var_to_label": Or(
             None,

@@ -4,11 +4,11 @@ Run TopoStats.
 This provides an entry point for running TopoStats as a command line programme.
 """
 
-import importlib.resources as pkg_resources
 import logging
 import sys
 from collections import defaultdict
 from functools import partial
+from importlib import resources
 from multiprocessing import Pool
 from pprint import pformat
 
@@ -16,13 +16,7 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
-from topostats.io import (
-    LoadScans,
-    find_files,
-    read_yaml,
-    save_folder_grainstats,
-    write_yaml,
-)
+from topostats.io import LoadScans, dict_to_json, find_files, read_yaml, save_folder_grainstats, write_yaml
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import check_run_steps, completion_message, process_scan
@@ -56,7 +50,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     if args.config_file is not None:
         config = read_yaml(args.config_file)
     else:
-        default_config = pkg_resources.open_text(__package__, "default_config.yaml").read()
+        default_config = (resources.files(__package__) / "default_config.yaml").read_text()
         config = yaml.safe_load(default_config)
     # Override the config with command line arguments passed in, eg --output_dir ./output/
     config = update_config(config, args)
@@ -77,8 +71,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     config["output_dir"].mkdir(parents=True, exist_ok=True)
 
     # Load plotting_dictionary and validate then update with command line options
-    plotting_dictionary = pkg_resources.open_text(__package__, "plotting_dictionary.yaml")
-    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+    plotting_dictionary = (resources.files(__package__) / "plotting_dictionary.yaml").read_text()
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary)
     validate_config(
         config["plotting"]["plot_dict"], schema=PLOTTING_SCHEMA, config_type="YAML plotting configuration file"
     )
@@ -137,11 +131,12 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         image_stats_all = defaultdict()
         mols_results = defaultdict()
         disordered_trace_results = defaultdict()
+        height_profile_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, individual_image_stats_df, disordered_trace_result, mols_result in pool.imap_unordered(
+            for img, result, height_profiles, individual_image_stats_df, disordered_trace_result, mols_result in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
@@ -153,6 +148,9 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
                 # Add the dataframe to the results dict
                 image_stats_all[str(img)] = individual_image_stats_df
 
+                # Combine all height profiles
+                height_profile_all[str(img)] = height_profiles
+                
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
@@ -171,14 +169,18 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     try:
         disordered_trace_results = pd.concat(disordered_trace_results.values())
     except ValueError as error:
-        LOGGER.error("No mols found in any images, consider adjusting disordered tracing parameters.")
+        LOGGER.error("No disordered traces found in any images, consider adjusting disordered tracing parameters.")
         LOGGER.error(error)
 
     try:
         mols_results = pd.concat(mols_results.values())
     except ValueError as error:
-        LOGGER.error("No mols found in any images, consider adjusting splining parameters.")
+        LOGGER.error("No mols found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
+    # If requested save height profiles
+    if config["grainstats"]["extract_height_profile"]:
+        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
+        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
 
     # Summary Statistics and Plots
     if config["summary_stats"]["run"]:
@@ -189,8 +191,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         elif config["summary_stats"]["config"] is not None:
             summary_config = read_yaml(config["summary_stats"]["config"])
         else:
-            summary_yaml = pkg_resources.open_text(__package__, "summary_config.yaml")
-            summary_config = yaml.safe_load(summary_yaml.read())
+            summary_yaml = (resources.files(__package__) / "summary_config.yaml").read_text()
+            summary_config = yaml.safe_load(summary_yaml)
 
         # Do not pass command line arguments to toposum as they clash with process command line arguments
         summary_config = update_config(summary_config, config["plotting"])
@@ -200,8 +202,8 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         summary_config.pop("csv_file")
 
         # Load variable to label mapping
-        plotting_yaml = pkg_resources.open_text(__package__, "var_to_label.yaml")
-        summary_config["var_to_label"] = yaml.safe_load(plotting_yaml.read())
+        plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
+        summary_config["var_to_label"] = yaml.safe_load(plotting_yaml)
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot

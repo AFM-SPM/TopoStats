@@ -42,6 +42,7 @@ dependencies = [
   "keras",
   "matplotlib",
   "numpy",
+  "numpyencoder",
   "pandas",
   "pyfiglet",
   "pySPM",
@@ -53,10 +54,10 @@ dependencies = [
   "seaborn",
   "skan",
   "snoop",
+  "tensorflow",
   "tifffile",
   "topoly",
   "tqdm",
-  "tensorflow",
 ]
 
 [project.optional-dependencies]
@@ -66,6 +67,7 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
   "pytest-regtest",
+  "pytest-testmon",
   "filetype",
 ]
 docs = [
@@ -73,7 +75,7 @@ docs = [
   "myst_parser",
   "numpydoc",
   "pydata_sphinx_theme",
-  "sphinx-autoapi",
+  "sphinx-autoapi==3.1.0b0",
   "sphinx-autodoc-typehints",
   "sphinx-multiversion",
   "sphinx_markdown_tables",
@@ -88,6 +90,7 @@ dev = [
   "pylint",
   "pyupgrade",
   "pytest-durations",
+  "pytest-icdiff",
   "pytest-xdist",
 ]
 pypi = [

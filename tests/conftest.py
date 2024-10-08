@@ -1,7 +1,10 @@
 """Fixtures for testing."""
 
+from __future__ import annotations
+
 import importlib.resources as pkg_resources
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import numpy as np
 import numpy.typing as npt
@@ -22,6 +25,7 @@ from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
+# pylint: disable=too-many-lines
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
@@ -82,7 +86,6 @@ def summary_config() -> dict:
     summary_config.pop("violin")
     summary_config.pop("csv_file")
     summary_config.pop("stats_to_sum")
-    summary_config.pop("pickle_plots")
     summary_config["figsize"] = (15, 12)
     summary_config["kde"] = True
     summary_config["hist"] = True
@@ -168,32 +171,32 @@ def plotting_config_with_plot_dict(default_config: dict) -> dict:
 
 
 @pytest.fixture()
-def image_random() -> np.ndarray:
+def image_random() -> npt.NDArray:
     """Random image as NumPy array."""
     rng = np.random.default_rng(seed=1000)
     return rng.random((1024, 1024))
 
 
 @pytest.fixture()
-def small_array() -> np.ndarray:
+def small_array() -> npt.NDArray:
     """Small (10x10) image array for testing."""
     return RNG.random(SMALL_ARRAY_SIZE)
 
 
 @pytest.fixture()
-def small_mask() -> np.ndarray:
+def small_mask() -> npt.NDArray:
     """Small (10x10) mask array for testing."""
     return RNG.uniform(low=0, high=1, size=SMALL_ARRAY_SIZE) > 0.5
 
 
 @pytest.fixture()
-def synthetic_scars_image() -> np.ndarray:
+def synthetic_scars_image() -> npt.NDArray:
     """Small synthetic image for testing scar removal."""
     return np.load(RESOURCES / "test_scars_synthetic_scar_image.npy")
 
 
 @pytest.fixture()
-def synthetic_marked_scars() -> np.ndarray:
+def synthetic_marked_scars() -> npt.NDArray:
     """Small synthetic boolean array of marked scar coordinates corresponding to synthetic_scars_image."""
     return np.load(RESOURCES / "test_scars_synthetic_mark_scars.npy")
 
@@ -400,7 +403,7 @@ def load_scan_jpk() -> LoadScans:
 @pytest.fixture()
 def load_scan_gwy() -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
-    return LoadScans([RESOURCES / "file.gwy"], channel="dummy_channel")
+    return LoadScans([RESOURCES / "file.gwy"], channel="ZSensor")
 
 
 @pytest.fixture()
@@ -761,6 +764,105 @@ def utils_skeleton_linear3() -> npt.NDArray:
     """Linear skeleton with several branches."""
     random_images, _ = draw.random_shapes(rng=7334281, **kwargs)
     return skeletonize(random_images != 255)
+def minicircle_dnatracing(
+    minicircle_grain_gaussian_filter: Filters,
+    minicircle_grain_coloured: Grains,
+    dnatracing_config: dict,
+) -> dnaTrace:
+    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
+    dnatracing_config.pop("pad_width")
+    dna_traces = dnaTrace(
+        image=minicircle_grain_coloured.image.T,
+        grain=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
+        filename=minicircle_grain_gaussian_filter.filename,
+        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        **dnatracing_config,
+    )
+    dna_traces.trace_dna()
+    return dna_traces
+
+
+# DNA Tracing Fixtures
+@pytest.fixture()
+def minicircle_all_statistics() -> pd.DataFrame:
+    """Expected statistics for minicricle."""
+    return pd.read_csv(RESOURCES / "minicircle_default_all_statistics.csv", header=0)
+
+
+# Skeletonizing Fixtures
+@pytest.fixture()
+def skeletonize_circular() -> npt.NDArray:
+    """A circular molecule for testing skeletonizing."""
+    return np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 2, 2, 2, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 1, 1, 1, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 1, 1, 1, 1, 1, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 2, 2, 2, 2, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+
+@pytest.fixture()
+def skeletonize_circular_bool_int(skeletonize_circular: np.ndarray) -> npt.NDArray:
+    """A circular molecule for testing skeletonizing as a boolean integer array."""
+    return np.array(skeletonize_circular, dtype="bool").astype(int)
+
+
+@pytest.fixture()
+def skeletonize_linear() -> npt.NDArray:
+    """A linear molecule for testing skeletonizing."""
+    return np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 3, 3, 4, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 3, 4, 4, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 4, 3, 3, 2, 1, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 3, 3, 2, 2, 1, 0, 0],
+            [0, 0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 3, 2, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 3, 3, 2, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 3, 3, 3, 2, 2, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 4, 3, 3, 2, 2, 2, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 3, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 2, 3, 4, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 2, 3, 4, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 3, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+
+
+@pytest.fixture()
+def skeletonize_linear_bool_int(skeletonize_linear) -> npt.NDArray:
+    """A linear molecule for testing skeletonizing as a boolean integer array."""
+    return np.array(skeletonize_linear, dtype="bool").astype(int)
 
 
 # Pruning and Height profile fixtures
@@ -770,8 +872,7 @@ def utils_skeleton_linear3() -> npt.NDArray:
 # 1. Generate random boolean images using scikit-image.
 # 2. Skeletonize these shapes (gives boolean skeletons), these are our targets
 # 3. Scale the skeletons by a factor (100)
-# 4. Apply Gaussian filter to blur the heights and give an example original im
-#    for.
+# 4. Apply Gaussian filter to blur the heights and give an example original image with heights
 
 
 def _generate_heights(skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0) -> npt.NDArray:
@@ -886,3 +987,132 @@ def pruning_skeleton() -> dict:
 # pruned_plot(pruning_skeleton_linear2())
 # pruned_plot(pruning_skeleton_linear3())
 # pruned_plot(pruning_skeleton())
+
+# U-Net fixtures
+@pytest.fixture()
+def mock_model_5_by_5_single_class() -> MagicMock:
+    """Create a mock model."""
+    model_mocker = MagicMock()
+
+    # Define a custom side effect function for the predict method
+    def side_effect_predict(input_array: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+        assert input_array.shape == (1, 5, 5, 1), "Input shape is not as expected"
+        assert input_array.dtype == np.float32, "Input data type is not as expected"
+
+        input_array_without_batch_and_channel = input_array[0, :, :, 0]
+        print(input_array_without_batch_and_channel)
+
+        # Different output for different input
+        if np.array_equal(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.1, 0.2, 0.2, 0.2, 0.1],
+                    [0.1, 1.0, 0.2, 1.0, 0.2],
+                    [0.2, 1.0, 0.1, 0.2, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.1, 0.1, 0.1, 0.2, 0.1],
+                ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 0, 1, 0],
+                        [0, 1, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        if np.array_equal(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.2, 1.0, 1.0, 1.0, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.1, 0.1, 0.2, 0.2, 0.1],
+                ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 0, 1, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        if np.allclose(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.20455678, 0.18093494, 0.13962264, 0.10629401, 0.08889285],
+                    [0.18093495, 0.3309646, 0.5164179, 0.28279683, 0.10629401],
+                    [0.13962264, 0.5164179, 1.0, 0.5164179, 0.13962264],
+                    [0.10629401, 0.28279683, 0.5164179, 0.3309646, 0.18093495],
+                    [0.08889285, 0.10629401, 0.13962264, 0.18093494, 0.20455678],
+                ]
+            ).astype(np.float32),
+            atol=1e-6,
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        if np.array_equal(
+            input_array_without_batch_and_channel,
+            np.array(
+                [
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                    [0.2, 0.1, 1.0, 0.1, 0.2],
+                    [0.1, 1.0, 1.0, 1.0, 0.1],
+                    [0.2, 0.1, 1.0, 0.1, 0.2],
+                    [0.1, 0.2, 0.1, 0.2, 0.1],
+                ]
+            ).astype(np.float32),
+        ):
+            return (
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ]
+                )
+                .reshape((1, 5, 5, 1))
+                .astype(np.float32)
+            )
+        raise ValueError(
+            "Input is not as expected. Check the image crop sent to the model and check the"
+            "mocked unet predict function has a case for that exact input."
+        )
+
+    # Assign the side effect to the mock's predict method
+    model_mocker.predict.side_effect = side_effect_predict
+    # Override the output of the input_shape property
+    model_mocker.input_shape = (1, 5, 5, 1)
+    model_mocker.output_shape = (1, 5, 5, 1)
+
+    return model_mocker

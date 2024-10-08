@@ -5,7 +5,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.tracing.dnatracing import crop_array, dnaTrace, grain_anchor, pad_bounding_box  # , trace_grain
+from topostats.tracing.dnatracing import (
+    crop_array,
+    dnaTrace,
+    grain_anchor,
+    pad_bounding_box,
+    trace_grain,
+)
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name

@@ -1,5 +1,6 @@
 """Test end-to-end running of topostats."""
 
+import pickle
 from pathlib import Path
 
 import filetype
@@ -33,7 +34,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -52,6 +53,39 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
+def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
+    """Regression test for checking the process_scan functions correctly."""
+    # Ensure there are below grains
+    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
+    process_scan_config["grains"]["direction"] = "below"
+    img_dic = load_scan_data.img_dict
+    _, _, _, height_profiles = process_scan(
+        topostats_object=img_dic["minicircle_small"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
+
+
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
@@ -59,7 +93,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -78,6 +112,37 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
 
+def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
+    """Regression test for checking the process_scan functions correctly."""
+    # Ensure there are below grains
+    process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
+    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
+
+    img_dic = load_scan_data.img_dict
+    _, _, _, height_profiles = process_scan(
+        topostats_object=img_dic["minicircle_small"],
+        base_dir=BASE_DIR,
+        filter_config=process_scan_config["filter"],
+        grains_config=process_scan_config["grains"],
+        grainstats_config=process_scan_config["grainstats"],
+        dnatracing_config=process_scan_config["dnatracing"],
+        plotting_config=process_scan_config["plotting"],
+        output_dir=tmp_path,
+    )
+
+    # Save height profiles dictionary to pickle
+    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "wb") as f:
+    #     pickle.dump(height_profiles, f)
+
+    # Load expected height profiles dictionary from pickle
+    # pylint wants an encoding but binary mode doesn't use one
+    # pylint: disable=unspecified-encoding
+    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "rb") as f:
+        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
+
+    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
+
+
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
@@ -87,7 +152,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -113,8 +178,11 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         saved_topostats = hdf5_to_dict(f, group_path="/")
 
     # Remove the image path as this differs on CI
-    expected_topostats.pop("img_path")
     saved_topostats.pop("img_path")
+
+    # Script for updating the regtest file
+    # with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "w") as f:
+    #     dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=saved_topostats)
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
@@ -138,7 +206,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["savefig_dpi"] = 50
 
     img_dic = load_scan_data.img_dict
-    _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -186,7 +254,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
-    _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -465,7 +533,7 @@ def test_check_run_steps(
             True,
             False,
             False,
-            "Calculation of grainstats disabled, returning empty dataframe.",
+            "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
             "minicircle_small_above_masked.png",
             id="Filtering and Grain enabled",
         ),
@@ -513,7 +581,7 @@ def test_process_stages(
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
     process_scan_config["disordered_tracing"]["run"] = dnatracing_run
-    _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -536,7 +604,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
-    _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -568,7 +636,7 @@ def test_process_scan_align_grainstats_dnatracing(
     process_scan_config["filter"]["remove_scars"]["run"] = False
     process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
     process_scan_config["dnatracing"]["min_skeleton_size"] = 50
-    _, results, _, _, _ = process_scan(
+    _, results, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -645,11 +713,43 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
+
+    mask_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
+    assert mask_above.shape == (256, 256, 2)
+
+    # Create inverted mask above
+    # mask_above_background = np.logical_not(mask_above)
+    # # Keep only the largest grain
+    # from skimage.measure import label, regionprops
+
+    # mask_above_labelled = label(mask_above)
+    # regions = regionprops(mask_above_labelled)
+    # areas = [region.area for region in regions]
+    # mask_above[mask_above_labelled != np.argmax(areas) + 1] = False
+    # # save the mask above
+    # np.save("./tests/resources/minicircle_cropped_masks_above_background.npy", mask_above_background)
+
+    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+
+    mask_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+    assert mask_below.shape == (256, 256, 2)
+
+    # Create inverted mask below
+    # mask_below_background = np.logical_not(mask_below)
+    # # Keep only the largest grain
+    # mask_below_labelled = label(mask_below)
+    # regions = regionprops(mask_below_labelled)
+    # areas = [region.area for region in regions]
+    # mask_below[mask_below_labelled != np.argmax(areas) + 1] = False
+    # # save the mask below
+    # np.save("./tests/resources/minicircle_cropped_masks_below_background.npy", mask_below_background)
+
     grain_masks = {"above": mask_above, "below": mask_below}
 
-    grainstats_df = run_grainstats(
+    grainstats_df, _ = run_grainstats(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         grain_masks=grain_masks,

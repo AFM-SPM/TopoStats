@@ -198,6 +198,9 @@ def run_grains(  # noqa: C901
                         grain_out_path_direction.mkdir(parents=True, exist_ok=True)
                         LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
                     for plot_name, array in image_arrays.items():
+                        if len(array.shape) == 3:
+                            # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
+                            array = array[:, :, 1]
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                         Images(
@@ -211,20 +214,23 @@ def run_grains(  # noqa: C901
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
+                    # hard code to class index 1, as this implementation is not yet generalised.
                     Images(
                         data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
-                        masked_array=grains.directions[direction]["labelled_regions_02"],
+                        masked_array=grains.directions[direction]["labelled_regions_02"][:, :, 1],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                    # hard code to class index 1, as this implementation is not yet generalised.
                     Images(
                         image,
                         filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"].astype(bool),
+                        masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1].astype(bool),
                         **plotting_config["plot_dict"][plot_name],
+                        region_properties=grains.region_properties[direction],
                     ).plot_and_save()
 
                 plotting_config["run"] = True
@@ -297,25 +303,35 @@ def run_grainstats(
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
             grainstats_dict = {}
+            height_profiles_dict = {}
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
+                # Get the DNA class mask from the tensor
+                LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
+                assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
+                dna_class_mask = grain_masks[direction][:, :, 1]
+                LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
+
                 # Check if there are grains
-                if np.max(grain_masks[direction]) == 0:
+                if np.max(dna_class_mask) == 0:
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
                     )
                     grainstats_dict[direction] = create_empty_dataframe()
                 else:
-                    grainstats_dict[direction], grains_plot_data = GrainStats(
+                    grainstats_calculator = GrainStats(
                         data=image,
-                        labelled_data=grain_masks[direction],
+                        labelled_data=dna_class_mask,
                         pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                         direction=direction,
                         base_output_dir=grain_out_path,
                         image_name=filename,
                         plot_opts=grain_plot_dict,
                         **grainstats_config,
-                    ).calculate_stats()
+                    )
+                    grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
+                        grainstats_calculator.calculate_stats()
+                    )
                     grainstats_dict[direction]["threshold"] = direction
 
                     # Plot grains if required
@@ -347,16 +363,18 @@ def run_grainstats(
                 )
             grainstats_df["basename"] = basename.parent
 
-            return grainstats_df
+            return grainstats_df, height_profiles_dict
 
         except Exception:
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            return create_empty_dataframe()
+            return create_empty_dataframe(), height_profiles_dict
     else:
-        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
-        return create_empty_dataframe()
+        LOGGER.info(
+            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
+        )
+        return create_empty_dataframe(), {}
 
 
 def run_disordered_trace(
@@ -413,7 +431,9 @@ def run_disordered_trace(
             # run image using directional grain masks
             for direction, _ in grain_masks.items():
                 # Check if there are grains
-                if np.max(grain_masks[direction]) == 0:
+                assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
+                dna_class_mask = grain_masks[direction][:, :, 1]
+                if np.max(dna_class_mask) == 0:
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
@@ -427,7 +447,7 @@ def run_disordered_trace(
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
                     image=image,
-                    grains_mask=grain_masks[direction],
+                    grains_mask=dna_class_mask,
                     filename=filename,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                     **disordered_tracing_config,
@@ -987,13 +1007,14 @@ def process_scan(
         plotting_config=plotting_config,
         grains_config=grains_config,
     )
+
     # Update grain masks if new grain masks are returned. Else keep old grain masks. Topostats object's "grain_masks"
     # defaults to an empty dictionary so this is safe.
     topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
 
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
-        grainstats_df = run_grainstats(
+        grainstats_df, height_profiles = run_grainstats(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
@@ -1003,6 +1024,7 @@ def process_scan(
             plotting_config=plotting_config,
             grain_out_path=grain_out_path,
         )
+        topostats_object["height_profiles"] = height_profiles
 
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_trace(
@@ -1068,6 +1090,7 @@ def process_scan(
         grainstats_df = create_empty_dataframe()
         molstats_df = create_empty_dataframe()
         disordered_tracing_stats = create_empty_dataframe()
+        height_profiles = {}
 
     # Get image statistics
     LOGGER.info(f"[{topostats_object['filename']}] : *** Image Statistics ***")
@@ -1089,7 +1112,7 @@ def process_scan(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
 
-    return topostats_object["img_path"], grainstats_df, image_stats, disordered_tracing_stats, molstats_df
+    return topostats_object["img_path"], grainstats_df, height_profiles, image_stats, disordered_tracing_stats, molstats_df
 
 
 def check_run_steps(  # noqa: C901

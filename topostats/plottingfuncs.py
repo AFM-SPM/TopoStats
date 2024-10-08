@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import importlib.resources as pkg_resources
 import logging
+from importlib import resources
 from pathlib import Path
 
 import matplotlib as mpl
@@ -84,7 +84,7 @@ def load_mplstyle(style: str | Path) -> None:
         Path to a Matplotlib Style file.
     """
     if style == "topostats.mplstyle":
-        plt.style.use(pkg_resources.files(topostats) / style)
+        plt.style.use(resources.files(topostats) / style)
     else:
         plt.style.use(style)
 

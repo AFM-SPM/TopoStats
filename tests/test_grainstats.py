@@ -285,22 +285,3 @@ def test_get_cropped_region(grainstats: GrainStats, length, centre, img_len, exp
     output = grainstats.get_cropped_region(image, length, centre)
     assert output.shape == (2 * length + 1, 2 * length + 1)
     assert output[expected[0], expected[1]] == 5
-
-
-@pytest.mark.parametrize(
-    ("base_point_1", "base_point_2", "top_point", "expected"),
-    [
-        (np.array([0, 0]), np.array([1, 0]), np.array([1, 1]), 1),
-        (np.array([0, 0]), np.array([5, 0]), np.array([2, 5]), 5),
-        (np.array([0, 0]), np.array([1, 0]), np.array([1, -1]), 1),
-    ],
-)
-def test_grainstats_get_triangle_height(base_point_1, base_point_2, top_point, expected) -> None:
-    """Tests the GrainStats.get_triangle_height method."""
-    assert GrainStats.get_triangle_height(base_point_1, base_point_2, top_point) == expected
-
-
-@pytest.mark.parametrize(("edge_points", "expected"), [([[0, 0], [0, 1], [1, 0], [1, 1]], (1.0, 1.4142135623730951))])
-def test_get_min_max_ferets(edge_points, expected) -> None:
-    """Tests the GrainStats.get_min_max_ferets method."""
-    assert GrainStats.get_max_min_ferets(edge_points) == expected

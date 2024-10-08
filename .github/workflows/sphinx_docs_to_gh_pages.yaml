@@ -2,7 +2,9 @@
 name: Sphinx docs to gh-pages
 
 on:
-  push:
+  pull_request:
+    branches:
+      - main
     # Uncomment if only tagged releases are to have documentation built
     # tags:
     #   - v*
@@ -13,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Sphinx docs to gh-pages
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v4.3.0
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
       - name: Installing the Documentation requirements

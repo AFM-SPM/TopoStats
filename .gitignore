@@ -51,6 +51,7 @@ _build/
 
 # Tests and docs
 .coverage
+.testmondata
 
 # Ignore topostats/_version.py as per setuptools_scm
 topostats/_version.py
@@ -62,3 +63,6 @@ output/
 !tests/**
 tests/resources/processed/
 __pycache__/
+
+# Debugging
+pytest-debug.ini
