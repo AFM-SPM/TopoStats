@@ -93,6 +93,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
+# -- Options for MyST-parser -------------------------------------------------
+myst_heading_anchors = 3
 
 # -- Options for HTML output -------------------------------------------------
 
