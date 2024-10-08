@@ -22,7 +22,7 @@ various stages of the processing as well as cropped images of each grain. The am
 configurable.
 
 An schematic overview of the classes and methods that are run in processing files can be found in the
-[workflows](workflows) page along with more detailed information on [installation](installation), [usage](usage),
+[workflow](workflow) page along with more detailed information on [installation](installation), [usage](usage),
 [configuration](configuration) and [contributing](contributing).
 
 If you have questions, please post them on the [discussion](https://github.com/AFM-SPM/TopoStats/discussions), if you

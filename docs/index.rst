@@ -25,10 +25,10 @@ listed below to find out more.
     :maxdepth: 1
     :caption: Advanced Documentation
 
-    advanced/disordered_tracing
-    advanced/nodestats
-    advanced/ordered_tracing
-    advanced/splining
+    disordered_tracing
+    nodestats
+    ordered_tracing
+    splining
 
 .. toctree::
    :maxdepth: 1

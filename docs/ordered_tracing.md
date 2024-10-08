@@ -69,10 +69,10 @@ such as DNA catenanes.
 #### 2.2. A Simple Trace
 
 While the above is happening, ordered trace segment coordinates are also being added to a simplified ordered trace to be
-used with the [Topoly](LINK) package to determine it's topological species. A pseudo Z (height) is used to distinguish
-between skeleton segments (Z=0) and crossing segments (Z=-1, 1, 2...). However, these traces (N, X, Y, Z) can be too
-long and cause Topoly to hang, so they are reduced to ~100 coordinates. Each reduced points of each segments ensure the
-points capture the start and end of each segment.
+used with the [Topoly](https://topoly.cent.uw.edu.pl/documentation.html)package to determine it's topological species. A
+pseudo Z (height) is used to distinguish between skeleton segments (Z=0) and crossing segments (Z=-1, 1, 2...). However,
+these traces (N, X, Y, Z) can be too long and cause Topoly to hang, so they are reduced to ~100 coordinates. Each
+reduced points of each segments ensure the points capture the start and end of each segment.
 
 ![3D simple trace](../_static/images/ordered_tracing/ns_3d.png)
 
