@@ -21,6 +21,7 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
+from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
