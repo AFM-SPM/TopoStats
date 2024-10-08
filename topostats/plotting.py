@@ -536,7 +536,7 @@ def plot_crossing_linetrace_halfmax(
     ax.set_title(title)
     ax.legend()
     return fig, ax
-  
+
 
 def plot_height_profiles(height_profiles: list | npt.NDArray) -> tuple:
     """

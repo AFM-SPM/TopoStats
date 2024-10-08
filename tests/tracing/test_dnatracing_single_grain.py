@@ -10,7 +10,6 @@ from topostats.tracing.dnatracing import (
     dnaTrace,
     grain_anchor,
     pad_bounding_box,
-    trace_grain,
 )
 
 # This is required because of the inheritance used throughout

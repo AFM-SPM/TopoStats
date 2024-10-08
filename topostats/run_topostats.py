@@ -136,7 +136,14 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, height_profiles, individual_image_stats_df, disordered_trace_result, mols_result in pool.imap_unordered(
+            for (
+                img,
+                result,
+                height_profiles,
+                individual_image_stats_df,
+                disordered_trace_result,
+                mols_result,
+            ) in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
@@ -150,7 +157,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
 
                 # Combine all height profiles
                 height_profile_all[str(img)] = height_profiles
-                
+
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 

@@ -764,6 +764,8 @@ def utils_skeleton_linear3() -> npt.NDArray:
     """Linear skeleton with several branches."""
     random_images, _ = draw.random_shapes(rng=7334281, **kwargs)
     return skeletonize(random_images != 255)
+
+
 def minicircle_dnatracing(
     minicircle_grain_gaussian_filter: Filters,
     minicircle_grain_coloured: Grains,
@@ -987,6 +989,7 @@ def pruning_skeleton() -> dict:
 # pruned_plot(pruning_skeleton_linear2())
 # pruned_plot(pruning_skeleton_linear3())
 # pruned_plot(pruning_skeleton())
+
 
 # U-Net fixtures
 @pytest.fixture()

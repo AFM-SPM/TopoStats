@@ -1112,7 +1112,14 @@ def process_scan(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
 
-    return topostats_object["img_path"], grainstats_df, height_profiles, image_stats, disordered_tracing_stats, molstats_df
+    return (
+        topostats_object["img_path"],
+        grainstats_df,
+        height_profiles,
+        image_stats,
+        disordered_tracing_stats,
+        molstats_df,
+    )
 
 
 def check_run_steps(  # noqa: C901
