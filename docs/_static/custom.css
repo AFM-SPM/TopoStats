@@ -1,0 +1,3 @@
+html[data-theme="dark"] .bd-content img:not(.only-dark, .dark-light) {
+  background-color: transparent !important;
+}

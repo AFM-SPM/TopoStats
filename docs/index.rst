@@ -22,6 +22,15 @@ listed below to find out more.
     faq
 
 .. toctree::
+    :maxdepth: 1
+    :caption: Advanced Documentation
+
+    advanced/disordered_tracing
+    advanced/nodestats
+    advanced/ordered_tracing
+    advanced/splining
+
+.. toctree::
    :maxdepth: 1
    :caption: API
 
