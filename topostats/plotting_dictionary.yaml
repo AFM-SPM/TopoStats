@@ -156,33 +156,40 @@ removed_small_objects:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+removed_objects_too_small_to_process:
+  filename: "22-objects_too_small_removed"
+  title: "Objects too small to process removed"
+  image_type: "binary"
+  mask_cmap: "rainbow"
+  savefig_dpi: 100
+  core_set: false
 mask_overlay:
   title: "Masked Objects"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: true
 labelled_regions_02:
-  filename: "22-labelled_regions"
+  filename: "23-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 coloured_regions:
-  filename: "23-coloured_regions"
+  filename: "24-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 bounding_boxes:
-  filename: "24-bounding_boxes"
+  filename: "25-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
 coloured_boxes:
-  filename: "25-labelled_image_bboxes"
+  filename: "26-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   mask_cmap: "rainbow"
