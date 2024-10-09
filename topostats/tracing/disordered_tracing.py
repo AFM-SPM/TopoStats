@@ -364,6 +364,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
             disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
 
+        # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
                 f"[{filename}] : Disordered tracing of grain"
