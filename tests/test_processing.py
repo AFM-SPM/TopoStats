@@ -62,13 +62,16 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
 
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
-    _, _, _, height_profiles = process_scan(
+    _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -119,13 +122,16 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
-    _, _, _, height_profiles = process_scan(
+    _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
