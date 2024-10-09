@@ -530,8 +530,8 @@ def test_check_run_steps(
             False,
             False,
             False,
-            "Detection of grains disabled, returning empty data frame.",
-            "minicircle_small.png",
+            "Detection of grains disabled, GrainStats will not be run.",
+            "",
             id="Only filtering enabled",
         ),
         pytest.param(
@@ -540,7 +540,7 @@ def test_check_run_steps(
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
-            "minicircle_small_above_masked.png",
+            "",
             id="Filtering and Grain enabled",
         ),
         pytest.param(
