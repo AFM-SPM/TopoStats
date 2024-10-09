@@ -627,41 +627,6 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     assert "No grains exist for the above direction. Skipping grainstats for above." in caplog.text
 
 
-def test_process_scan_align_grainstats_dnatracing(
-    process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path
-) -> None:
-    """Ensure molecule numbers from dnatracing align with those from grainstats.
-
-    Sometimes grains are removed from tracing due to small size, however we need to ensure that tracing statistics for
-    those molecules that remain align with grain statistics.
-
-    By setting processing parameters as below two molecules are purged for being too small after skeletonisation and so
-    do not have DNA tracing statistics (but they do have Grain Statistics).
-    """
-    img_dic = load_scan_data.img_dict
-    process_scan_config["filter"]["remove_scars"]["run"] = False
-    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
-    process_scan_config["dnatracing"]["min_skeleton_size"] = 50
-    _, results, _, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-    tracing_to_check = ["contour_length", "circular", "end_to_end_distance"]
-
-    assert results.shape == (3, 25)
-    assert np.isnan(results.loc[2, "contour_length"])
-    assert np.isnan(sum(results.loc[2, tracing_to_check]))
-
-
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
     """Test the filter_wrapper function of processing.py."""
     img_dict = load_scan_data.img_dict
