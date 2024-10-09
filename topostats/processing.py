@@ -216,7 +216,7 @@ def run_grains(  # noqa: C901
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     # hard code to class index 1, as this implementation is not yet generalised.
                     Images(
-                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
+                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"][:, :, 1]),
                         masked_array=grains.directions[direction]["labelled_regions_02"][:, :, 1],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
