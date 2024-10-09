@@ -278,7 +278,6 @@ exclude = [  # don't report on objects that match any of these regex
     "\\.__repr__$",
     "^test_",
     "^conftest",
-    "^nodestats",
     "^tracingfuncs",
     "^conf$",
     "^theme",
