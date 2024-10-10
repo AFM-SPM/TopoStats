@@ -33,6 +33,8 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
     process_scan_config["grains"]["direction"] = "below"
+    # Make sure the pruning won't remove our only grain
+    process_scan_config["disordered_tracing"]["pruning_params"]["max_length"] = None
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
