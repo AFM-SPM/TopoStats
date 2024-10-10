@@ -17,6 +17,7 @@ from topostats.tracing.disordered_tracing import crop_array, disordered_trace_gr
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
 # pylint: disable=unspecified-encoding
+# pylint: disable=too-many-positional-arguments
 
 BASE_DIR = Path.cwd()
 DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
@@ -235,7 +236,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -373,7 +374,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -556,7 +557,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -1129,7 +1130,7 @@ def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> No
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",

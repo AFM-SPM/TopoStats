@@ -21,6 +21,8 @@ from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-positional-arguments
+
 
 class disorderedTrace:  # pylint: disable=too-many-instance-attributes
     """
@@ -36,8 +38,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Filename being processed.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
-    convert_nm_to_m : bool
-        Convert nanometers to metres.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
     mask_smoothing_params : dict
@@ -59,7 +59,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         mask: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
-        convert_nm_to_m: bool = True,
         min_skeleton_size: int = 10,
         mask_smoothing_params: dict | None = None,
         skeletonisation_params: dict | None = None,
@@ -79,8 +78,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             Filename being processed.
         pixel_to_nm_scaling : float
             Pixel to nm scaling.
-        convert_nm_to_m : bool
-            Convert nanometers to metres.
         min_skeleton_size : int
             Minimum skeleton size below which tracing statistics are not calculated.
         mask_smoothing_params : dict
@@ -95,10 +92,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         n_grain : int
             Grain number being processed (only  used in logging).
         """
-        self.image = image * 1e-9 if convert_nm_to_m else image
+        self.image = image
         self.mask = mask
         self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling * 1e-9 if convert_nm_to_m else pixel_to_nm_scaling
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.min_skeleton_size = min_skeleton_size
         self.mask_smoothing_params = mask_smoothing_params
         self.skeletonisation_params = (
@@ -176,8 +173,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             holearea_min_max[none_index] = 0 if none_index == 0 else np.inf
 
         # obtain px holesizes
-        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
-        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling / 1e-9) ** 2)
+        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling) ** 2)
+        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling) ** 2)
 
         # obtain a hole mask
         holes = 1 - orig_mask
@@ -353,7 +350,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 "grain_number": cropped_image_index,
                 "grain_endpoints": (conv_pruned_skeleton == 2).sum(),
                 "grain_junctions": (conv_pruned_skeleton == 3).sum(),
-                "total_branch_lengths": skan_df["branch_distance"].sum(),
+                "total_branch_lengths": skan_df["branch_distance"].sum() * 1e-9,
             }
 
             # remap the cropped images back onto the original
@@ -366,7 +363,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(
+            LOGGER.error(  # pylint: disable=logging-not-lazy
                 f"[{filename}] : Disordered tracing of grain"
                 + f"{cropped_image_index} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
@@ -684,14 +681,17 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
     """
     branch_field_image = np.zeros_like(original_image)
     skeleton_image = np.where(pruned_skeleton == 1, original_image, 0)
-    skan_skeleton = skan.Skeleton(skeleton_image, spacing=1e-9, value_is_height=True)
-    res = skan.summarize(skan_skeleton)
 
-    for i, branch_field in enumerate(res[skan_column]):
-        path_coords = skan_skeleton.path_coordinates(i)
-        if skan_column == "node-id-src":
-            branch_field = i
-        branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
+    try:
+        skan_skeleton = skan.Skeleton(skeleton_image, spacing=1e-9, value_is_height=True)
+        res = skan.summarize(skan_skeleton)
+        for i, branch_field in enumerate(res[skan_column]):
+            path_coords = skan_skeleton.path_coordinates(i)
+            if skan_column == "node-id-src":
+                branch_field = i
+            branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
+    except ValueError:  # when no skeleton to skan
+        LOGGER.warning("Skeleton has been pruned out of existence.")
 
     return branch_field_image
 
