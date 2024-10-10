@@ -34,8 +34,8 @@ jobs:
           # defined as it defaults to 'main'.
           branch: main
           dir_docs: docs
-          sphinxapiexclude: "../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py"
-          sphinxapiopts: "--separate -o . ../"
-          sphinxopts: ""
+          sphinx-apidoc-exclude: "../*setup* ../*tests* ../*.ipynb ../demo.py ../make_baseline.py ../jupyter_notebook_config.py ../demo_ftrs.py"
+          sphinx-apidoc-opts: "--separate -o . ../"
+          sphinx-opts: ""
           multiversion: true
           multiversionopts: ""
