@@ -1,0 +1,2252 @@
+topostats.processing
+====================
+
+.. py:module:: topostats.processing
+
+.. autoapi-nested-parse::
+
+   Functions for processing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.processing.__version__
+   topostats.processing.LOGGER_NAME
+   topostats.processing.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.processing.Filters
+   topostats.processing.Grains
+   topostats.processing.GrainStats
+   topostats.processing.Images
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.processing.get_out_path
+   topostats.processing.save_topostats_file
+   topostats.processing.setup_logger
+   topostats.processing.add_pixel_to_nm_to_plotting_config
+   topostats.processing.image_statistics
+   topostats.processing.trace_image
+   topostats.processing.create_empty_dataframe
+   topostats.processing.run_filters
+   topostats.processing.run_grains
+   topostats.processing.run_grainstats
+   topostats.processing.run_dnatracing
+   topostats.processing.get_out_paths
+   topostats.processing.process_scan
+   topostats.processing.check_run_steps
+   topostats.processing.completion_message
+
+
+Module Contents
+---------------
+
+.. py:data:: __version__
+
+.. py:class:: Filters(image: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, row_alignment_quantile: float = 0.5, threshold_method: str = 'otsu', otsu_threshold_multiplier: float = 1.7, threshold_std_dev: dict = None, threshold_absolute: dict = None, gaussian_size: float = None, gaussian_mode: str = 'nearest', remove_scars: dict = None)
+
+   
+   Class for filtering scans.
+
+   :param image: The raw image from the Atomic Force Microscopy machine.
+   :type image: npt.NDArray
+   :param filename: The filename (used in logging only).
+   :type filename: str
+   :param pixel_to_nm_scaling: Value for converting pixels to nanometers.
+   :type pixel_to_nm_scaling: float
+   :param row_alignment_quantile: Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
+                                  flattening of large features.
+   :type row_alignment_quantile: float
+   :param threshold_method: Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Value for scaling the derived Otsu threshold.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: If using the 'std_dev' threshold method. Dictionary that contains above and below threshold values for the
+                             number of standard deviations from the mean to threshold.
+   :type threshold_std_dev: dict
+   :param threshold_absolute: If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+                              for flattening.
+   :type threshold_absolute: dict
+   :param gaussian_size: If using the 'absolute' threshold method. Dictionary that contains above and below absolute threshold values
+                         for flattening.
+   :type gaussian_size: float
+   :param gaussian_mode: Method passed to 'skimage.filters.gaussian(mode = gaussian_mode)'.
+   :type gaussian_mode: str
+   :param remove_scars: Dictionary containing configuration parameters for the scar removal function.
+   :type remove_scars: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: median_flatten(image: numpy.typing.NDArray, mask: numpy.typing.NDArray = None, row_alignment_quantile: float = 0.5) -> numpy.typing.NDArray
+
+      
+      Flatten images using median differences.
+
+      Flatten the rows of an image, aligning the rows and centering the median around zero. When used with a mask,
+      this has the effect of centering the background data on zero.
+
+      Note this function does not handle scars.
+
+      :param image: 2-D image of the data to align the rows of.
+      :type image: npt.NDArray
+      :param mask: Boolean array of points to mask (ignore).
+      :type mask: npt.NDArray
+      :param row_alignment_quantile: Quantile (in the range 0.0 to 1.0) used for defining the average background.
+      :type row_alignment_quantile: float
+
+      :returns: Copy of the input image with rows aligned.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_tilt(image: numpy.typing.NDArray, mask: numpy.typing.NDArray = None) -> numpy.typing.NDArray
+
+      
+      Remove the planar tilt from an image (linear in 2D spaces).
+
+      Uses a linear fit of the medians of the rows and columns to determine the linear slants in x and y directions
+      and then subtracts the fit from the columns.
+
+      :param image: 2-D image of the data to remove the planar tilt from.
+      :type image: npt.NDArray
+      :param mask: Boolean array of points to mask (ignore).
+      :type mask: npt.NDArray
+
+      :returns: Numpy array of image with tilt removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_nonlinear_polynomial(image: numpy.typing.NDArray, mask: numpy.typing.NDArray | None = None) -> numpy.typing.NDArray
+
+      
+      Fit and remove a "saddle" shaped nonlinear polynomial from the image.
+
+      "Saddles" with the form a + b * x * y - c * x - d * y from the supplied image. AFM images sometimes contain a
+      "saddle" shape trend to their background, and so to remove them we fit a nonlinear polynomial of x and y and
+      then subtract the fit from the image.
+
+      If these trends are not removed, then the image will not flatten properly and will leave opposite diagonal
+      corners raised or lowered.
+
+      :param image: 2-D numpy height-map array of floats with a polynomial trend to remove.
+      :type image: npt.NDArray
+      :param mask: 2-D Numpy boolean array used to mask any points in the image that are deemed not to be part of the
+                   height-map's background data.
+      :type mask: npt.NDArray, optional
+
+      :returns: Image with the polynomial trend subtracted.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_quadratic(image: numpy.typing.NDArray, mask: numpy.typing.NDArray = None) -> numpy.typing.NDArray
+
+      
+      Remove the quadratic bowing that can be seen in some large-scale AFM images.
+
+      Use a simple quadratic fit on the medians of the columns of the image and then subtracts the calculated
+      quadratic from the columns.
+
+      :param image: 2-D image of the data to remove the quadratic from.
+      :type image: npt.NDArray
+      :param mask: Boolean array of points to mask (ignore).
+      :type mask: npt.NDArray
+
+      :returns: Image with the quadratic bowing removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_diff(array: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the difference between the last and first rows of a 2-D array.
+
+      :param array: A Numpy array.
+      :type array: npt.NDArray
+
+      :returns: An array of the difference between the last and first rows of an array.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_gradient(array: numpy.typing.NDArray, shape: int) -> numpy.typing.NDArray
+
+      
+      Calculate the gradient of an array.
+
+      :param array: Array for gradient to be calculated.
+      :type array: npt.NDArray
+      :param shape: Shape of the array.
+      :type shape: int
+
+      :returns: Gradient across the array.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: average_background(image: numpy.typing.NDArray, mask: numpy.typing.NDArray = None) -> numpy.typing.NDArray
+
+      
+      Zero the background by subtracting the non-masked mean from all pixels.
+
+      :param image: Numpy array representing the image.
+      :type image: npt.NDArray
+      :param mask: Mask of the array, should have the same dimensions as image.
+      :type mask: npt.NDArray
+
+      :returns: Numpy array of image zero averaged.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gaussian_filter(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Apply Gaussian filter to an image.
+
+      :param image: Numpy array representing the image.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Keyword arguments passed on to the skimage.filters.gaussian() function.
+
+      :returns: Numpy array that represent the image after Gaussian filtering.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: filter_image() -> None
+
+      
+      Process a single image, filtering, finding grains and calculating their statistics.
+
+      :returns: Does not return anything.
+      :rtype: None
+
+      .. rubric:: Examples
+
+      from topostats.io import LoadScan
+      from topostats.topotracing import Filter, process_scan
+
+      filter = Filter(image=load_scan.image,
+      ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+      ...             filename=load_scan.filename,
+      ...             threshold_method='otsu')
+      filter.filter_image()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Grains(image: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None, threshold_method: str | None = None, otsu_threshold_multiplier: float | None = None, threshold_std_dev: dict | None = None, threshold_absolute: dict | None = None, absolute_area_threshold: dict | None = None, direction: str | None = None, smallest_grain_size_nm2: float | None = None, remove_edge_intersecting_grains: bool = True)
+
+   
+   Find grains in an image.
+
+   :param image: 2-D Numpy array of image.
+   :type image: npt.NDArray
+   :param filename: File being processed (used in logging).
+   :type filename: str
+   :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+   :param unet_config: Configuration for the UNet model.
+                       model_path: str
+                           Path to the UNet model.
+                       grain_crop_padding: int
+                           Padding to add to the bounding box of the grain before cropping.
+                       upper_norm_bound: float
+                           Upper bound for normalising the image.
+                       lower_norm_bound: float
+                           Lower bound for normalising the image.
+   :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+   :param threshold_method: Method for determining thershold to mask values, default is 'otsu'.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Factor by which the below threshold is to be scaled prior to masking.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+                             if threshold_method is 'std_dev'.
+   :type threshold_std_dev: dict
+   :param threshold_absolute: Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+   :type threshold_absolute: dict
+   :param absolute_area_threshold: Dictionary of above and below grain's area thresholds.
+   :type absolute_area_threshold: dict
+   :param direction: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type direction: str
+   :param smallest_grain_size_nm2: Whether or not to remove grains that intersect the edge of the image.
+   :type smallest_grain_size_nm2: float
+   :param remove_edge_intersecting_grains: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type remove_edge_intersecting_grains: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: tidy_border(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove grains touching the border.
+
+      :param image: 2-D Numpy array representing the image.
+      :type image: npt.NDarray
+      :param \*\*kwargs: Arguments passed to 'skimage.segmentation.clear_border(**kwargs)'.
+
+      :returns: 2-D Numpy array of image without objects touching the border.
+      :rtype: npt.NDarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: label_regions(image: numpy.typing.NDArray, background: int = 0) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Label regions.
+
+      This method is used twice, once prior to removal of small regions and again afterwards which is why an image
+      must be supplied rather than using 'self'.
+
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param background: Value used to indicate background of image. Default = 0.
+      :type background: int
+
+      :returns: 2-D Numpy array of image with regions numbered.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_minimum_grain_size(image: numpy.typing.NDArray) -> float
+
+      
+      Calculate the minimum grain size in pixels squared.
+
+      Very small objects are first removed via thresholding before calculating the below extreme.
+
+      :param image: 2-D Numpy image from which to calculate the minimum grain size.
+      :type image: npt.NDArray
+
+      :returns: Minimum grains size in pixels squared. If there are areas a value of -1 is returned.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_noise(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
+
+      This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+      :param image: 2-D Numpy array to be cleaned.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_small_objects(image: numpy.array, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove small objects from the input image.
+
+      Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
+
+      :param image: 2-D Numpy array to remove small objects from.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < minimumm_grain_size removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: area_thresholding(image: numpy.typing.NDArray, area_thresholds: tuple) -> numpy.typing.NDArray
+
+      
+      Remove objects larger and smaller than the specified thresholds.
+
+      :param image: Image array where the background == 0 and grains are labelled as integers >0.
+      :type image: npt.NDArray
+      :param area_thresholds: List of area thresholds (in nanometres squared, not pixels squared), first is the lower limit for size,
+                              second is the upper.
+      :type area_thresholds: tuple
+
+      :returns: Array with small and large objects removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: colour_regions(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Colour the regions.
+
+      :param image: 2-D array of labelled regions to be coloured.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.color.label2rgb(**kwargs)'.
+
+      :returns: Numpy array of image with objects coloured.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_region_properties(image: numpy.array, **kwargs) -> list
+      :staticmethod:
+
+
+      
+      Extract the properties of each region.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.measure.regionprops(**kwargs)'.
+
+      :returns: List of region property objects.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_bounding_boxes(direction: str) -> dict
+
+      
+      Derive a list of bounding boxes for each region from the derived region_properties.
+
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+
+      :returns: Dictionary of bounding boxes indexed by region area.
+      :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_grains()
+
+      
+      Find grains.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: improve_grain_segmentation_unet(filename: str, direction: str, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None], image: numpy.typing.NDArray, labelled_grain_regions: numpy.typing.NDArray) -> tuple[numpy.typing.NDArray, numpy.typing.NDArray]
+      :staticmethod:
+
+
+      
+      Use a UNet model to re-segment existing grains to improve their accuracy.
+
+      :param filename: File being processed (used in logging).
+      :type filename: str
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+      :param unet_config: Configuration for the UNet model.
+                          model_path: str
+                              Path to the UNet model.
+                          grain_crop_padding: int
+                              Padding to add to the bounding box of the grain before cropping.
+                          upper_norm_bound: float
+                              Upper bound for normalising the image.
+                          lower_norm_bound: float
+                              Lower bound for normalising the image.
+      :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param labelled_grain_regions: 2-D Numpy array of labelled grain regions.
+      :type labelled_grain_regions: npt.NDArray
+
+      :returns: * *npt.NDArray* -- NxNxC Numpy array of the UNet mask.
+                * *npt.NDArray* -- NxNxC Numpy array of the labelled regions from the UNet mask.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: keep_largest_labelled_region(labelled_image: numpy.typing.NDArray[numpy.int32]) -> numpy.typing.NDArray[numpy.bool_]
+      :staticmethod:
+
+
+      
+      Keep only the largest region in a labelled image.
+
+      :param labelled_image: 2-D Numpy array of labelled regions.
+      :type labelled_image: npt.NDArray
+
+      :returns: 2-D Numpy boolean array of labelled regions with only the largest region.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: GrainStats(data: numpy.typing.NDArray, labelled_data: numpy.typing.NDArray, pixel_to_nanometre_scaling: float, direction: str, base_output_dir: str | pathlib.Path, image_name: str = None, edge_detection_method: str = 'binary_erosion', extract_height_profile: bool = False, cropped_size: float = -1, plot_opts: dict = None, metre_scaling_factor: float = 1e-09)
+
+   
+   Class for calculating grain stats.
+
+   :param data: 2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
+   :type data: npt.NDArray
+   :param labelled_data: 2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
+   :type labelled_data: npt.NDArray
+   :param pixel_to_nanometre_scaling: Floating point value that defines the scaling factor between nanometres and pixels.
+   :type pixel_to_nanometre_scaling: float
+   :param direction: Direction for which grains have been detected ("above" or "below").
+   :type direction: str
+   :param base_output_dir: Path to the folder that will store the grain stats output images and data.
+   :type base_output_dir: Path
+   :param image_name: The name of the file being processed.
+   :type image_name: str
+   :param edge_detection_method: Method used for detecting the edges of grain masks before calculating statistics on them.
+                                 Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+   :type edge_detection_method: str
+   :param extract_height_profile: Extract the height profile.
+   :type extract_height_profile: bool
+   :param cropped_size: Length of square side (in nm) to crop grains to.
+   :type cropped_size: float
+   :param plot_opts: Plotting options dictionary for the cropped grains.
+   :type plot_opts: dict
+   :param metre_scaling_factor: Multiplier to convert the current length scale to metres. Default: 1e-9 for the
+                                usual AFM length scale of nanometres.
+   :type metre_scaling_factor: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: get_angle(point_1: tuple, point_2: tuple) -> float
+      :staticmethod:
+
+
+      
+      Calculate the angle in radians between two points.
+
+      :param point_1: Coordinate vectors for the first point to find the angle between.
+      :type point_1: tuple
+      :param point_2: Coordinate vectors for the second point to find the angle between.
+      :type point_2: tuple
+
+      :returns: The angle in radians between the two input vectors.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool
+      :staticmethod:
+
+
+      
+      Determine if three points make a clockwise or counter-clockwise turn.
+
+      :param p_1: First point to be used to calculate turn.
+      :type p_1: tuple
+      :param p_2: Second point to be used to calculate turn.
+      :type p_2: tuple
+      :param p_3: Third point to be used to calculate turn.
+      :type p_3: tuple
+
+      :returns: Indicator of whether turn is clockwise.
+      :rtype: boolean
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_stats() -> tuple(pd.DataFrame, dict)
+
+      
+      Calculate the stats of grains in the labelled image.
+
+      :returns: Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
+                and a list of dictionaries containing grain data to be plotted.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_points(grain_mask: numpy.typing.NDArray) -> list
+      :staticmethod:
+
+
+      
+      Convert a 2D boolean array to a list of coordinates.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: npt.NDArray
+
+      :returns: A python list containing the coordinates of the pixels in the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_edges(grain_mask: numpy.typing.NDArray, edge_detection_method: str) -> list
+      :staticmethod:
+
+
+      
+      Convert 2D boolean array to list of the coordinates of the edges of the grain.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: npt.NDArray
+      :param edge_detection_method: Method used for detecting the edges of grain masks before calculating statistics on them.
+                                    Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+      :type edge_detection_method: str
+
+      :returns: List containing the coordinates of the edges of the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_radius_stats(edges: list, points: list) -> tuple[float]
+
+      
+      Calculate the radius of grains.
+
+      The radius in this context is the distance from the centroid to points on the edge of the grain.
+
+      :param edges: A 2D python list containing the coordinates of the edges of a grain.
+      :type edges: list
+      :param points: A 2D python list containing the coordinates of the points in a grain.
+      :type points: list
+
+      :returns: A tuple of the minimum, maximum, mean and median radius of the grain.
+      :rtype: tuple[float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_centroid(points: numpy.array) -> tuple
+      :staticmethod:
+
+
+      
+      Calculate the centroid of a bounding box.
+
+      :param points: A 2D python list containing the coordinates of the points in a grain.
+      :type points: list
+
+      :returns: The coordinates of the centroid.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_displacement(edges: numpy.typing.NDArray, centroid: tuple) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the displacement between the edges and centroid.
+
+      :param edges: Coordinates of the edge points.
+      :type edges: npt.NDArray
+      :param centroid: Coordinates of the centroid.
+      :type centroid: tuple
+
+      :returns: Array of displacements.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_radius(displacements: list[list]) -> numpy.typing.NDarray
+      :staticmethod:
+
+
+      
+      Calculate the radius of each point from the centroid.
+
+      :param displacements: A list of displacements.
+      :type displacements: List[list]
+
+      :returns: Array of radii of each point from the centroid.
+      :rtype: npt.NDarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: convex_hull(edges: list, base_output_dir: pathlib.Path, debug: bool = False) -> tuple[list, list, list]
+
+      
+      Calculate a grain's convex hull.
+
+      Based off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
+
+      :param edges: A python list containing the coordinates of the edges of the grain.
+      :type edges: list
+      :param base_output_dir: Directory to save output to.
+      :type base_output_dir: Path
+      :param debug: Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls
+                    and edges will be saved.
+      :type debug: bool
+
+      :returns: A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+                from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+                of the convex hull, these are sorted in a counter-clockwise order.
+      :rtype: tuple[list, list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_squared_distance(point_2: tuple, point_1: tuple = None) -> float
+
+      
+      Calculate the squared distance between two points.
+
+      Used for distance sorting purposes and therefore does not perform a square root in the interests of efficiency.
+
+      :param point_2: The point to find the squared distance to.
+      :type point_2: tuple
+      :param point_1: Optional - defaults to the starting point defined in the graham_scan() function. The point to find the
+                      squared distance from.
+      :type point_1: tuple
+
+      :returns: The squared distance between the two points.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sort_points(points: list) -> list
+
+      
+      Sort points in counter-clockwise order of angle made with the starting point.
+
+      :param points: A python list of the coordinates to sort.
+      :type points: list
+
+      :returns: Points (coordinates) sorted counter-clockwise.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_start_point(edges: numpy.typing.NDArray) -> None
+
+      
+      Determine the index of the bottom most point of the hull when sorted by x-position.
+
+      :param edges: Array of coordinates.
+      :type edges: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: graham_scan(edges: list) -> tuple[list, list, list]
+
+      
+      Construct the convex hull using the  Graham Scan algorithm.
+
+      Ideally this algorithm will take O( n * log(n) ) time.
+
+      :param edges: A python list of coordinates that make up the edges of the grain.
+      :type edges: list
+
+      :returns: A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+                from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+                of the convex hull, these are sorted in a counter-clockwise order.
+      :rtype: tuple[list, list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot(edges: list, convex_hull: list = None, file_path: pathlib.Path = None) -> None
+      :staticmethod:
+
+
+      
+      Plot and save the coordinates of the edges in the grain and optionally the hull.
+
+      :param edges: A list of points to be plotted.
+      :type edges: list
+      :param convex_hull: Optional argument. A list of points that form the convex hull. Will be plotted with the coordinates if
+                          provided.
+      :type convex_hull: list
+      :param file_path: Path of the file to save the plot as.
+      :type file_path: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_aspect_ratio(edges: list, hull_simplices: numpy.typing.NDArray, path: pathlib.Path, debug: bool = False) -> tuple
+
+      
+      Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
+
+      :param edges: A python list of coordinates of the edge of the grain.
+      :type edges: list
+      :param hull_simplices: A 2D numpy array of simplices that the hull is comprised of.
+      :type hull_simplices: npt.NDArray
+      :param path: Path to the save folder for the grain.
+      :type path: Path
+      :param debug: If true, various plots will be saved for diagnostic purposes.
+      :type debug: bool
+
+      :returns: The smallest_bouning_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the
+                grain. The smallest_bounding_length (float) in pixels (not nanometres), of the smallest bounding rectangle
+                for the grain. And the aspect_ratio (float) the width divided by the length of the smallest bounding
+                rectangle for the grain. It will always be greater or equal to 1.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_cartesian_extremes(rotated_points: numpy.typing.NDArray) -> dict
+      :staticmethod:
+
+
+      
+      Find the limits of x and y of rotated points.
+
+      :param rotated_points: 2-D array of rotated points.
+      :type rotated_points: npt.NDArray
+
+      :returns: Dictionary of the x and y min and max.__annotations__.
+      :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_shift(coords: numpy.typing.NDArray, shape: numpy.typing.NDArray) -> int
+      :staticmethod:
+
+
+      
+      Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+
+      :param coords: Value representing integer coordinates which may be outside of the image.
+      :type coords: npt.NDArray
+      :param shape: Array of the shape of an image.
+      :type shape: npt.NDArray
+
+      :returns: Max value of the shift to reflect the croped region so it stays within the image.
+      :rtype: np.int64
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cropped_region(image: numpy.typing.NDArray, length: int, centre: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Crop the image with respect to a given pixel length around the centre coordinates.
+
+      :param image: The image array.
+      :type image: npt.NDArray
+      :param length: The length (in pixels) of the resultant cropped image.
+      :type length: int
+      :param centre: The centre of the object to crop.
+      :type centre: npt.NDArray
+
+      :returns: Cropped array of the image.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: get_out_path(image_path: str | pathlib.Path = None, base_dir: str | pathlib.Path = None, output_dir: str | pathlib.Path = None) -> pathlib.Path
+
+   
+   Add the image path relative to the base directory to the output directory.
+
+   :param image_path: The path of the current image.
+   :type image_path: Path
+   :param base_dir: Directory to recursively search for files.
+   :type base_dir: Path
+   :param output_dir: The output directory specified in the configuration file.
+   :type output_dir: Path
+
+   :returns: The output path that mirrors the input path structure.
+   :rtype: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: save_topostats_file(output_dir: pathlib.Path, filename: str, topostats_object: dict) -> None
+
+   
+   Save a topostats dictionary object to a .topostats (hdf5 format) file.
+
+   :param output_dir: Directory to save the .topostats file in.
+   :type output_dir: Path
+   :param filename: File name of the .topostats file.
+   :type filename: str
+   :param topostats_object: Dictionary of the topostats data to save. Must include a flattened image and pixel to nanometre scaling
+                            factor. May also include grain masks.
+   :type topostats_object: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER_NAME
+   :value: 'topostats'
+
+
+.. py:function:: setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger
+
+   
+   Logger setup.
+
+   The logger for the module is initialised when the module is loaded (as this functions is called from
+   __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted
+   differently (there is greater information in the error formatter). To use in modules import the 'LOGGER_NAME' and
+   create a logger as shown in the Examples, it will inherit the formatting and direction of messages to the correct
+   stream.
+
+   :param log_name: Name under which logging information occurs.
+   :type log_name: str
+
+   :returns: Logger object.
+   :rtype: logging.Logger
+
+   .. rubric:: Examples
+
+   To use the logger in (sub-)modules have the following.
+
+       import logging
+       from topostats.logs.logs import LOGGER_NAME
+
+       LOGGER = logging.getLogger(LOGGER_NAME)
+
+       LOGGER.info('This is a log message.')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: Images(data: numpy.array, output_dir: str | pathlib.Path, filename: str, style: str | pathlib.Path = None, pixel_to_nm_scaling: float = 1.0, masked_array: numpy.array = None, title: str = None, image_type: str = 'non-binary', image_set: str = 'core', core_set: bool = False, pixel_interpolation: str | None = None, cmap: str | None = None, mask_cmap: str = 'jet_r', region_properties: dict = None, zrange: list = None, colorbar: bool = True, axes: bool = True, num_ticks: tuple[int | None] = (None, None), save: bool = True, savefig_format: str | None = None, histogram_log_axis: bool = True, histogram_bins: int | None = None, savefig_dpi: str | float | None = None)
+
+   
+   Plots image arrays.
+
+   :param data: Numpy array to plot.
+   :type data: np.array
+   :param output_dir: Output directory to save the file to.
+   :type output_dir: Union[str, Path]
+   :param filename: Filename to save image as.
+   :type filename: Union[str, Path]
+   :param style: Filename of matploglibrc Params.
+   :type style: dict
+   :param pixel_to_nm_scaling: The scaling factor showing the real length of 1 pixel, in nm.
+   :type pixel_to_nm_scaling: float
+   :param masked_array: Optional mask array to overlay onto an image.
+   :type masked_array: npt.NDArray
+   :param title: Title for plot.
+   :type title: str
+   :param image_type: The image data type - binary or non-binary.
+   :type image_type: str
+   :param image_set: The set of images to process - core or all.
+   :type image_set: str
+   :param core_set: Flag to identify image as part of the core image set or not.
+   :type core_set: bool
+   :param pixel_interpolation: Interpolation to use (default: None).
+   :type pixel_interpolation: str | None
+   :param cmap: Colour map to use (default 'nanoscope', 'afmhot' also available).
+   :type cmap: str
+   :param mask_cmap: Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' proivides more contrast).
+   :type mask_cmap: str
+   :param region_properties: Dictionary of region properties, adds bounding boxes if specified.
+   :type region_properties: dict
+   :param zrange: Lower and upper bound to clip core images to.
+   :type zrange: list
+   :param colorbar: Optionally add a colorbar to plots, default is False.
+   :type colorbar: bool
+   :param axes: Optionally add/remove axes from the image.
+   :type axes: bool
+   :param num_ticks: The number of x and y ticks to display on the image.
+   :type num_ticks: tuple[int | None]
+   :param save: Whether to save the image.
+   :type save: bool
+   :param savefig_format: Format to save the image as.
+   :type savefig_format: str
+   :param histogram_log_axis: Optionally use a logarithmic y axis for the histogram plots.
+   :type histogram_log_axis: bool
+   :param histogram_bins: Number of bins for histograms to use.
+   :type histogram_bins: int
+   :param savefig_dpi: The resolution of the saved plot (default 'figure').
+   :type savefig_dpi: str | float | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: plot_histogram_and_save() -> tuple | None
+
+      
+      Plot and save a histogram of the height map.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot_and_save()
+
+      
+      Plot and save the image.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_figure()
+
+      
+      Save figures as plt.savefig objects.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict
+
+   
+   Add the pixel to nanometre scaling factor to plotting configs.
+
+   Ensures plots are in nanometres and not pixels.
+
+   :param plotting_config: TopoStats plotting configuration dictionary.
+   :type plotting_config: dict
+   :param pixel_to_nm_scaling: Pixel to nanometre scaling factor for the image.
+   :type pixel_to_nm_scaling: float
+
+   :returns: Updated plotting config with the pixel to nanometre scaling factor applied to all the image configurations.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: image_statistics(image: numpy.ndarray, filename: str, pixel_to_nm_scaling: float, results_df: pandas.DataFrame) -> pandas.DataFrame
+
+   
+   Calculate statistics pertaining to the whole image.
+
+   Calculates the size of the image in pixels and metres, the root-mean-squared roughness and the grains per metre
+   squared.
+
+   :param image: Numpy 2D image array of the image to calculate stats for.
+   :type image: np.ndarray
+   :param filename: The name of the file being processed.
+   :type filename: str
+   :param pixel_to_nm_scaling: Float of the scaling factor between pixels and nanometres.
+   :type pixel_to_nm_scaling: float
+   :param results_df: Pandas DataFrame of statistics pertaining to individual grains including from grainstats and
+                      dna tracing.
+   :type results_df: pd.DataFrame
+
+   :returns: Dictionary of image statistics.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: trace_image(image: numpy.typing.NDArray, grains_mask: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, min_skeleton_size: int, skeletonisation_method: str, spline_step_size: float = 7e-09, spline_linear_smoothing: float = 5.0, spline_circular_smoothing: float = 0.0, pad_width: int = 1, cores: int = 1) -> dict
+
+   
+   Processor function for tracing image.
+
+   :param image: Full image as Numpy Array.
+   :type image: npt.NDArray
+   :param grains_mask: Full image as Grains that are labelled.
+   :type grains_mask: npt.NDArray
+   :param filename: File being processed.
+   :type filename: str
+   :param pixel_to_nm_scaling: Pixel to nm scaling.
+   :type pixel_to_nm_scaling: float
+   :param min_skeleton_size: Minimum size of grain in pixels after skeletonisation.
+   :type min_skeleton_size: int
+   :param skeletonisation_method:  Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
+                                  'topostats' (original TopoStats method).
+   :type skeletonisation_method: str
+   :param spline_step_size: Step size for spline evaluation in metres.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Smoothness of linear splines.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Smoothness of circular splines.
+   :type spline_circular_smoothing: float
+   :param pad_width: Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
+   :type pad_width: int
+   :param cores: Number of cores to process with.
+   :type cores: int
+
+   :returns: Statistics from skeletonising and tracing the grains in the image.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = 'molecule_number') -> pandas.DataFrame
+
+   
+   Create an empty data frame for returning when no results are found.
+
+   :param columns: Columns of the empty dataframe.
+   :type columns: list
+   :param index: Column to set as index of empty dataframe.
+   :type index: str
+
+   :returns: Empty Pandas DataFrame.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER
+
+.. py:function:: run_filters(unprocessed_image: numpy.ndarray, pixel_to_nm_scaling: float, filename: str, filter_out_path: pathlib.Path, core_out_path: pathlib.Path, filter_config: dict, plotting_config: dict) -> numpy.ndarray | None
+
+   
+   Filter and flatten an image. Optionally plots the results, returning the flattened image.
+
+   :param unprocessed_image: Image to be flattened.
+   :type unprocessed_image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: File name for the image.
+   :type filename: str
+   :param filter_out_path: Output directory for step-by-step flattening plots.
+   :type filter_out_path: Path
+   :param core_out_path: General output directory for outputs such as the flattened image.
+   :type core_out_path: Path
+   :param filter_config: Dictionary of configuration for the Filters class to use when initialised.
+   :type filter_config: dict
+   :param plotting_config: Dictionary of configuration for plotting output images.
+   :type plotting_config: dict
+
+   :returns: Either a numpy array of the flattened image, or None if an error occurs or
+             flattening is disabled in the configuration.
+   :rtype: Union[np.ndarray, None]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grains(image: numpy.ndarray, pixel_to_nm_scaling: float, filename: str, grain_out_path: pathlib.Path, core_out_path: pathlib.Path, plotting_config: dict, grains_config: dict)
+
+   
+   Identify grains (molecules) and optionally plots the results.
+
+   :param image: 2d numpy array image to find grains in.
+   :type image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of file being processed (used in logging).
+   :type filename: str
+   :param grain_out_path: Output path for step-by-step grain finding plots.
+   :type grain_out_path: Path
+   :param core_out_path: General output directory for outputs such as the flattened image with grain masks overlaid.
+   :type core_out_path: Path
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+   :param grains_config: Dictionary of configuration for the Grains class to use when initialised.
+   :type grains_config: dict
+
+   :returns: Either None in the case of error or grain finding being disabled or a dictionary
+             with keys of "above" and or "below" containing binary masks depicting where grains
+             have been detected.
+   :rtype: Union[dict, None]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grainstats(image: numpy.ndarray, pixel_to_nm_scaling: float, grain_masks: dict, filename: str, grainstats_config: dict, plotting_config: dict, grain_out_path: pathlib.Path)
+
+   
+   Calculate grain statistics for an image and optionally plots the results.
+
+   :param image: 2D numpy array image for grain statistics calculations.
+   :type image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+                       boolean arrays indicating the pixels that have been masked as grains.
+   :type grain_masks: dict
+   :param filename: Name of the image.
+   :type filename: str
+   :param grainstats_config: Dictionary of configuration for the GrainStats class to be used when initialised.
+   :type grainstats_config: dict
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+   :param grain_out_path: Directory to save optional grain statistics visual information to.
+   :type grain_out_path: Path
+
+   :returns: A pandas DataFrame containing the statsistics for each grain. The index is the
+             filename and grain number.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_dnatracing(image: numpy.ndarray, grain_masks: dict, pixel_to_nm_scaling: float, image_path: pathlib.Path, filename: str, core_out_path: pathlib.Path, grain_out_path: pathlib.Path, dnatracing_config: dict, plotting_config: dict, results_df: pandas.DataFrame = None)
+
+   
+   Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
+
+   :param image: Image containing the DNA to pass to the dna tracing function.
+   :type image: np.ndarray
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+                       boolean arrays indicating the pixels that have been masked as grains.
+   :type grain_masks: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param image_path: Path to the image file. Used for DataFrame indexing.
+   :type image_path: Path
+   :param filename: Name of the image.
+   :type filename: str
+   :param core_out_path: General output directory for outputs such as the grain statistics
+                         DataFrame.
+   :type core_out_path: Path
+   :param grain_out_path: Directory to save optional dna tracing visual information to.
+   :type grain_out_path: Path
+   :param dnatracing_config: Dictionary configuration for the dna tracing function.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param results_df: Pandas DataFrame containing grain statistics.
+   :type results_df: pd.DataFrame
+
+   :returns: Pandas DataFrame containing grain statistics and dna tracing statistics.
+             Keys are file path and molecule number.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_out_paths(image_path: pathlib.Path, base_dir: pathlib.Path, output_dir: pathlib.Path, filename: str, plotting_config: dict)
+
+   
+   Determine components of output paths for a given image and plotting config.
+
+   :param image_path: Path of the image being processed.
+   :type image_path: Path
+   :param base_dir: Path of the data folder.
+   :type base_dir: Path
+   :param output_dir: Base output directory for output data.
+   :type output_dir: Path
+   :param filename: Name of the image being processed.
+   :type filename: str
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+
+   :returns: Core output path for general file outputs, filter output path for flattening related files and
+             grain output path for grain finding related files.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process_scan(topostats_object: dict, base_dir: str | pathlib.Path, filter_config: dict, grains_config: dict, grainstats_config: dict, dnatracing_config: dict, plotting_config: dict, output_dir: str | pathlib.Path = 'output') -> tuple[dict, pandas.DataFrame, dict]
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param topostats_object: A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
+                            pixel to namometre scaling value.
+   :type topostats_object: dict[str, Union[np.ndarray, Path, float]]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param dnatracing_config: Dictionary of configuration options for running the DNA Tracing stage.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: Union[str, Path]
+
+   :returns: TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+             and dictionary containing general image statistics.
+   :rtype: tuple[dict, pd.DataFrame, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None
+
+   
+   Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+   This checks that earlier steps required are enabled.
+
+   :param filter_run: Flag for running Filtering.
+   :type filter_run: bool
+   :param grains_run: Flag for running Grains.
+   :type grains_run: bool
+   :param grainstats_run: Flag for running GrainStats.
+   :type grainstats_run: bool
+   :param dnatracing_run: Flag for running DNA Tracing.
+   :type dnatracing_run: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None
+
+   
+   Print a completion message summarising images processed.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param img_files: List of found image paths.
+   :type img_files: list()
+   :param summary_config: Configuration for plotting summary statistics.
+   :type summary_config: dict(
+   :param images_processed: Pandas DataFrame of results.
+   :type images_processed: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

@@ -1,0 +1,742 @@
+topostats.grains
+================
+
+.. py:module:: topostats.grains
+
+.. autoapi-nested-parse::
+
+   Find grains in an image.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.grains.LOGGER_NAME
+   topostats.grains.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.grains.Grains
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.grains.threshold
+   topostats.grains.make_bounding_box_square
+   topostats.grains.mean_iou
+   topostats.grains.pad_bounding_box
+   topostats.grains.predict_unet
+   topostats.grains._get_mask
+   topostats.grains.get_thresholds
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER_NAME
+   :value: 'topostats'
+
+
+.. py:function:: threshold(image: numpy.typing.NDArray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float
+
+   
+   Thresholding for producing masks.
+
+   :param image: 2-D Numpy array of image for thresholding.
+   :type image: npt.NDArray
+   :param method: Method to use for thresholding, currently supported methods are otsu (default), mean and minimum.
+   :type method: str
+   :param otsu_threshold_multiplier: Factor for scaling the Otsu threshold.
+   :type otsu_threshold_multiplier: float
+   :param \*\*kwargs: Additional keyword arguments to pass to skimage methods.
+   :type \*\*kwargs: dict
+
+   :returns: Threshold of image using specified method.
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: make_bounding_box_square(crop_min_row: int, crop_min_col: int, crop_max_row: int, crop_max_col: int, image_shape: tuple[int, int]) -> tuple[int, int, int, int]
+
+   
+   Make a bounding box square.
+
+   :param crop_min_row: The minimum row index of the crop.
+   :type crop_min_row: int
+   :param crop_min_col: The minimum column index of the crop.
+   :type crop_min_col: int
+   :param crop_max_row: The maximum row index of the crop.
+   :type crop_max_row: int
+   :param crop_max_col: The maximum column index of the crop.
+   :type crop_max_col: int
+   :param image_shape: The shape of the image.
+   :type image_shape: tuple[int, int]
+
+   :returns: The new crop indices.
+   :rtype: tuple[int, int, int, int]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mean_iou(y_true: numpy.typing.NDArray[numpy.float32], y_pred: numpy.typing.NDArray[numpy.float32])
+
+   
+   Mean Intersection Over Union metric, ignoring the background class.
+
+   :param y_true: True values.
+   :type y_true: npt.NDArray[np.float32]
+   :param y_pred: Predicted values.
+   :type y_pred: npt.NDArray[np.float32]
+
+   :returns: The mean IoU.
+   :rtype: tf.Tensor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: pad_bounding_box(crop_min_row: int, crop_min_col: int, crop_max_row: int, crop_max_col: int, image_shape: tuple[int, int], padding: int) -> tuple[int, int, int, int]
+
+   
+   Pad a bounding box.
+
+   :param crop_min_row: The minimum row index of the crop.
+   :type crop_min_row: int
+   :param crop_min_col: The minimum column index of the crop.
+   :type crop_min_col: int
+   :param crop_max_row: The maximum row index of the crop.
+   :type crop_max_row: int
+   :param crop_max_col: The maximum column index of the crop.
+   :type crop_max_col: int
+   :param image_shape: The shape of the image.
+   :type image_shape: tuple[int, int]
+   :param padding: The padding to apply to the bounding box.
+   :type padding: int
+
+   :returns: The new crop indices.
+   :rtype: tuple[int, int, int, int]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: predict_unet(image: numpy.typing.NDArray[numpy.float32], model: keras.Model, confidence: float, model_input_shape: tuple[int | None, int, int, int], upper_norm_bound: float, lower_norm_bound: float) -> numpy.typing.NDArray[numpy.bool_]
+
+   
+   Predict cats segmentation from a flattened image.
+
+   :param image: The image to predict the mask for.
+   :type image: npt.NDArray[np.float32]
+   :param model: The U-Net model.
+   :type model: keras.Model
+   :param confidence: The confidence threshold for the mask.
+   :type confidence: float
+   :param model_input_shape: The shape of the model input, including the batch and channel dimensions.
+   :type model_input_shape: tuple[int | None, int, int, int]
+   :param upper_norm_bound: The upper bound for normalising the image.
+   :type upper_norm_bound: float
+   :param lower_norm_bound: The lower bound for normalising the image.
+   :type lower_norm_bound: float
+
+   :returns: The predicted mask.
+   :rtype: npt.NDArray[np.bool_]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _get_mask(image: numpy.typing.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> numpy.typing.NDArray
+
+   
+   Calculate a mask for pixels that exceed the threshold.
+
+   :param image: Numpy array representing image.
+   :type image: np.array
+   :param thresh: A float representing the threshold.
+   :type thresh: float
+   :param threshold_direction: A string representing the direction that should be thresholded. ("above", "below").
+   :type threshold_direction: str
+   :param img_name: Name of image being processed.
+   :type img_name: str
+
+   :returns: Numpy array of image with objects coloured.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_thresholds(image: numpy.typing.NDArray, threshold_method: str, otsu_threshold_multiplier: float = None, threshold_std_dev: dict = None, absolute: dict = None, **kwargs) -> dict
+
+   
+   Obtain thresholds for masking data points.
+
+   :param image: 2D Numpy array of image to be masked.
+   :type image: npt.NDArray
+   :param threshold_method: Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Scaling value for Otsu threshold.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: Dict of above and below thresholds for the standard deviation method.
+   :type threshold_std_dev: dict
+   :param absolute: Dict of below and above thresholds.
+   :type absolute: tuple
+   :param \*\*kwargs: Dictionary passed to 'topostats.threshold(**kwargs)'.
+
+   :returns: Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER
+
+.. py:class:: Grains(image: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None, threshold_method: str | None = None, otsu_threshold_multiplier: float | None = None, threshold_std_dev: dict | None = None, threshold_absolute: dict | None = None, absolute_area_threshold: dict | None = None, direction: str | None = None, smallest_grain_size_nm2: float | None = None, remove_edge_intersecting_grains: bool = True)
+
+   
+   Find grains in an image.
+
+   :param image: 2-D Numpy array of image.
+   :type image: npt.NDArray
+   :param filename: File being processed (used in logging).
+   :type filename: str
+   :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+   :param unet_config: Configuration for the UNet model.
+                       model_path: str
+                           Path to the UNet model.
+                       grain_crop_padding: int
+                           Padding to add to the bounding box of the grain before cropping.
+                       upper_norm_bound: float
+                           Upper bound for normalising the image.
+                       lower_norm_bound: float
+                           Lower bound for normalising the image.
+   :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+   :param threshold_method: Method for determining thershold to mask values, default is 'otsu'.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Factor by which the below threshold is to be scaled prior to masking.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+                             if threshold_method is 'std_dev'.
+   :type threshold_std_dev: dict
+   :param threshold_absolute: Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+   :type threshold_absolute: dict
+   :param absolute_area_threshold: Dictionary of above and below grain's area thresholds.
+   :type absolute_area_threshold: dict
+   :param direction: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type direction: str
+   :param smallest_grain_size_nm2: Whether or not to remove grains that intersect the edge of the image.
+   :type smallest_grain_size_nm2: float
+   :param remove_edge_intersecting_grains: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type remove_edge_intersecting_grains: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: tidy_border(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove grains touching the border.
+
+      :param image: 2-D Numpy array representing the image.
+      :type image: npt.NDarray
+      :param \*\*kwargs: Arguments passed to 'skimage.segmentation.clear_border(**kwargs)'.
+
+      :returns: 2-D Numpy array of image without objects touching the border.
+      :rtype: npt.NDarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: label_regions(image: numpy.typing.NDArray, background: int = 0) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Label regions.
+
+      This method is used twice, once prior to removal of small regions and again afterwards which is why an image
+      must be supplied rather than using 'self'.
+
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param background: Value used to indicate background of image. Default = 0.
+      :type background: int
+
+      :returns: 2-D Numpy array of image with regions numbered.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_minimum_grain_size(image: numpy.typing.NDArray) -> float
+
+      
+      Calculate the minimum grain size in pixels squared.
+
+      Very small objects are first removed via thresholding before calculating the below extreme.
+
+      :param image: 2-D Numpy image from which to calculate the minimum grain size.
+      :type image: npt.NDArray
+
+      :returns: Minimum grains size in pixels squared. If there are areas a value of -1 is returned.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_noise(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
+
+      This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+      :param image: 2-D Numpy array to be cleaned.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_small_objects(image: numpy.array, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove small objects from the input image.
+
+      Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
+
+      :param image: 2-D Numpy array to remove small objects from.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < minimumm_grain_size removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: area_thresholding(image: numpy.typing.NDArray, area_thresholds: tuple) -> numpy.typing.NDArray
+
+      
+      Remove objects larger and smaller than the specified thresholds.
+
+      :param image: Image array where the background == 0 and grains are labelled as integers >0.
+      :type image: npt.NDArray
+      :param area_thresholds: List of area thresholds (in nanometres squared, not pixels squared), first is the lower limit for size,
+                              second is the upper.
+      :type area_thresholds: tuple
+
+      :returns: Array with small and large objects removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: colour_regions(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Colour the regions.
+
+      :param image: 2-D array of labelled regions to be coloured.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.color.label2rgb(**kwargs)'.
+
+      :returns: Numpy array of image with objects coloured.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_region_properties(image: numpy.array, **kwargs) -> list
+      :staticmethod:
+
+
+      
+      Extract the properties of each region.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.measure.regionprops(**kwargs)'.
+
+      :returns: List of region property objects.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_bounding_boxes(direction: str) -> dict
+
+      
+      Derive a list of bounding boxes for each region from the derived region_properties.
+
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+
+      :returns: Dictionary of bounding boxes indexed by region area.
+      :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_grains()
+
+      
+      Find grains.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: improve_grain_segmentation_unet(filename: str, direction: str, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None], image: numpy.typing.NDArray, labelled_grain_regions: numpy.typing.NDArray) -> tuple[numpy.typing.NDArray, numpy.typing.NDArray]
+      :staticmethod:
+
+
+      
+      Use a UNet model to re-segment existing grains to improve their accuracy.
+
+      :param filename: File being processed (used in logging).
+      :type filename: str
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+      :param unet_config: Configuration for the UNet model.
+                          model_path: str
+                              Path to the UNet model.
+                          grain_crop_padding: int
+                              Padding to add to the bounding box of the grain before cropping.
+                          upper_norm_bound: float
+                              Upper bound for normalising the image.
+                          lower_norm_bound: float
+                              Lower bound for normalising the image.
+      :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param labelled_grain_regions: 2-D Numpy array of labelled grain regions.
+      :type labelled_grain_regions: npt.NDArray
+
+      :returns: * *npt.NDArray* -- NxNxC Numpy array of the UNet mask.
+                * *npt.NDArray* -- NxNxC Numpy array of the labelled regions from the UNet mask.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: keep_largest_labelled_region(labelled_image: numpy.typing.NDArray[numpy.int32]) -> numpy.typing.NDArray[numpy.bool_]
+      :staticmethod:
+
+
+      
+      Keep only the largest region in a labelled image.
+
+      :param labelled_image: 2-D Numpy array of labelled regions.
+      :type labelled_image: npt.NDArray
+
+      :returns: 2-D Numpy boolean array of labelled regions with only the largest region.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

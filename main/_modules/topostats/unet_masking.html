@@ -1,0 +1,905 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.unet_masking &#8212; TopoStats 2.2.2.dev823+g1e8f1a96 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=1e0a9f45"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/unet_masking';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.2.2.dev823+g1e8f1a96 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="unet_masking.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">topostats.un...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.unet_masking</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Segment grains using a U-Net model.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">keras</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+<span class="kn">from</span> <span class="nn">topostats.logs.logs</span> <span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+
+<span class="c1"># DICE Loss</span>
+<div class="viewcode-block" id="dice_loss">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.dice_loss">[docs]</a>
+<span class="k">def</span> <span class="nf">dice_loss</span><span class="p">(</span><span class="n">y_true</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span> <span class="n">smooth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DICE loss function.</span>
+
+<span class="sd">    Expects y_true and y_pred to be of shape (batch_size, height, width, 1).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : npt.NDArray[np.float32]</span>
+<span class="sd">        True values.</span>
+<span class="sd">    y_pred : npt.NDArray[np.float32]</span>
+<span class="sd">        Predicted values.</span>
+<span class="sd">    smooth : float</span>
+<span class="sd">        Smoothing factor to prevent division by zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tf.Tensor</span>
+<span class="sd">        The DICE loss.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure the tensors are of the same shape</span>
+    <span class="n">y_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">y_true</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">y_pred</span>
+    <span class="c1"># Ensure floats not bool</span>
+    <span class="n">y_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">intersection</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_true</span> <span class="o">*</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">sum_of_squares_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_pred</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">sum_of_squares_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_true</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">intersection</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">sum_of_squares_pred</span> <span class="o">+</span> <span class="n">sum_of_squares_true</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># IoU Loss</span>
+<div class="viewcode-block" id="iou_loss">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.iou_loss">[docs]</a>
+<span class="k">def</span> <span class="nf">iou_loss</span><span class="p">(</span><span class="n">y_true</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span> <span class="n">smooth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Intersection over Union loss function.</span>
+
+<span class="sd">    Expects y_true and y_pred to be of shape (batch_size, height, width, 1).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : npt.NDArray[np.float32]</span>
+<span class="sd">        True values.</span>
+<span class="sd">    y_pred : npt.NDArray[np.float32]</span>
+<span class="sd">        Predicted values.</span>
+<span class="sd">    smooth : float</span>
+<span class="sd">        Smoothing factor to prevent division by zero.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tf.Tensor</span>
+<span class="sd">        The IoU loss.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure the tensors are of the same shape</span>
+    <span class="n">y_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">y_true</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">y_pred</span>
+    <span class="c1"># Ensure floats not bool</span>
+    <span class="n">y_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">intersection</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_true</span> <span class="o">*</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">sum_of_squares_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_pred</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">sum_of_squares_true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_true</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">intersection</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">sum_of_squares_pred</span> <span class="o">+</span> <span class="n">sum_of_squares_true</span> <span class="o">-</span> <span class="n">intersection</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mean_iou">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.mean_iou">[docs]</a>
+<span class="k">def</span> <span class="nf">mean_iou</span><span class="p">(</span><span class="n">y_true</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mean Intersection Over Union metric, ignoring the background class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : npt.NDArray[np.float32]</span>
+<span class="sd">        True values.</span>
+<span class="sd">    y_pred : npt.NDArray[np.float32]</span>
+<span class="sd">        Predicted values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tf.Tensor</span>
+<span class="sd">        The mean IoU.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure the tensors are of the same shape, and ignore the background class</span>
+    <span class="c1"># The [-1] here is to flatten the tensor into a 1D array, allowing for the calculation of the IoU</span>
+    <span class="c1"># The 1: is to use all channels except channel 0. Since this would be the background class and if</span>
+    <span class="c1"># we include it, the IoU would be very low since it is going to be mostly zero and so highly accurate?</span>
+    <span class="n">y_true_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y_true</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># ignore background class</span>
+    <span class="n">y_pred_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y_pred</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>  <span class="c1"># ignore background class</span>
+
+    <span class="c1"># Calculate the IoU, using all channels except the background class</span>
+    <span class="n">intersect</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_true_f</span> <span class="o">*</span> <span class="n">y_pred_f</span><span class="p">)</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_true_f</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">y_pred_f</span><span class="p">)</span> <span class="o">-</span> <span class="n">intersect</span>
+    <span class="n">smooth</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">intersect</span><span class="p">))</span>  <span class="c1"># Smoothing factor to prevent division by zero</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">((</span><span class="n">intersect</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">union</span> <span class="o">-</span> <span class="n">intersect</span> <span class="o">+</span> <span class="n">smooth</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="predict_unet">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.predict_unet">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_unet</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">model_input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">upper_norm_bound</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">lower_norm_bound</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict cats segmentation from a flattened image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray[np.float32]</span>
+<span class="sd">        The image to predict the mask for.</span>
+<span class="sd">    model : keras.Model</span>
+<span class="sd">        The U-Net model.</span>
+<span class="sd">    confidence : float</span>
+<span class="sd">        The confidence threshold for the mask.</span>
+<span class="sd">    model_input_shape : tuple[int | None, int, int, int]</span>
+<span class="sd">        The shape of the model input, including the batch and channel dimensions.</span>
+<span class="sd">    upper_norm_bound : float</span>
+<span class="sd">        The upper bound for normalising the image.</span>
+<span class="sd">    lower_norm_bound : float</span>
+<span class="sd">        The lower bound for normalising the image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray[np.bool_]</span>
+<span class="sd">        The predicted mask.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Strip the batch dimension from the model input shape</span>
+    <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model input shape: </span><span class="si">{</span><span class="n">model_input_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make a copy of the original image</span>
+    <span class="n">original_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Run the model on a single image</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Preprocessing image for Unet prediction...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Normalise the image</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">lower_norm_bound</span><span class="p">,</span> <span class="n">upper_norm_bound</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">-</span> <span class="n">lower_norm_bound</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">/</span> <span class="p">(</span><span class="n">upper_norm_bound</span> <span class="o">-</span> <span class="n">lower_norm_bound</span><span class="p">)</span>
+
+    <span class="c1"># Resize the image to the model input shape</span>
+    <span class="n">image_resized</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image_resized</span> <span class="o">=</span> <span class="n">image_resized</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span>
+    <span class="n">image_resized_np</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">image_resized</span><span class="p">)</span>
+
+    <span class="c1"># Predict the mask</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running Unet &amp; predicting mask&quot;</span><span class="p">)</span>
+    <span class="n">prediction</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">image_resized_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unet finished predicted mask. Prediction shape: </span><span class="si">{</span><span class="n">prediction</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Threshold the predicted mask</span>
+    <span class="n">predicted_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span> <span class="o">=</span> <span class="n">prediction</span> <span class="o">&gt;</span> <span class="n">confidence</span>
+
+    <span class="c1"># Remove the batch dimension since we are predicting single images at a time</span>
+    <span class="n">predicted_mask</span> <span class="o">=</span> <span class="n">predicted_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Note that this predicted mask can have any number of channels, depending on the number of classes for the model</span>
+
+    <span class="c1"># Check if the output is a single channel mask and convert it to a two-channel mask since the output is</span>
+    <span class="c1"># designed to be categorical, where even the background has a channel</span>
+    <span class="k">if</span> <span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">predicted_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">predicted_mask</span><span class="p">,</span> <span class="n">predicted_mask</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Predicted mask shape is not 3D: </span><span class="si">{</span><span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Predicted mask has less than 2 channels: </span><span class="si">{</span><span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">, needs separate background channel&quot;</span>
+
+    <span class="c1"># Resize each channel of the predicted mask to the original image size, also remove the batch</span>
+    <span class="c1"># dimension but keep channel</span>
+    <span class="n">resized_predicted_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">original_image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">original_image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">channel_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">predicted_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="c1"># Note that uint8 is required to allow PIL to load the array into an image</span>
+        <span class="n">channel_mask</span> <span class="o">=</span> <span class="n">predicted_mask</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel_index</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">channel_mask_PIL</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">channel_mask</span><span class="p">)</span>
+        <span class="c1"># Resize the channel mask to the original image size, but we want boolean so use nearest neighbour</span>
+        <span class="c1"># Sylvia: Pylint incorrectly thinks that Image.NEAREST is not a member of Image. IDK why.</span>
+        <span class="c1"># pylint: disable=no-member</span>
+        <span class="n">channel_mask_PIL</span> <span class="o">=</span> <span class="n">channel_mask_PIL</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">original_image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">original_image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+        <span class="n">resized_predicted_mask</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel_mask_PIL</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">resized_predicted_mask</span></div>
+
+
+
+<div class="viewcode-block" id="make_bounding_box_square">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.make_bounding_box_square">[docs]</a>
+<span class="k">def</span> <span class="nf">make_bounding_box_square</span><span class="p">(</span>
+    <span class="n">crop_min_row</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">crop_min_col</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">crop_max_row</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">crop_max_col</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a bounding box square.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    crop_min_row : int</span>
+<span class="sd">        The minimum row index of the crop.</span>
+<span class="sd">    crop_min_col : int</span>
+<span class="sd">        The minimum column index of the crop.</span>
+<span class="sd">    crop_max_row : int</span>
+<span class="sd">        The maximum row index of the crop.</span>
+<span class="sd">    crop_max_col : int</span>
+<span class="sd">        The maximum column index of the crop.</span>
+<span class="sd">    image_shape : tuple[int, int]</span>
+<span class="sd">        The shape of the image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[int, int, int, int]</span>
+<span class="sd">        The new crop indices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">crop_height</span> <span class="o">=</span> <span class="n">crop_max_row</span> <span class="o">-</span> <span class="n">crop_min_row</span>
+    <span class="n">crop_width</span> <span class="o">=</span> <span class="n">crop_max_col</span> <span class="o">-</span> <span class="n">crop_min_col</span>
+
+    <span class="n">diff</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">new_crop_min_row</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">new_crop_min_col</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">new_crop_max_row</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">new_crop_max_col</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">if</span> <span class="n">crop_height</span> <span class="o">&gt;</span> <span class="n">crop_width</span><span class="p">:</span>
+        <span class="c1"># The crop is taller than it is wide</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">crop_height</span> <span class="o">-</span> <span class="n">crop_width</span>
+        <span class="c1"># Check if we can expand equally in each direction</span>
+        <span class="k">if</span> <span class="n">crop_min_col</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop_max_col</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">new_crop_min_col</span> <span class="o">=</span> <span class="n">crop_min_col</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">new_crop_max_col</span> <span class="o">=</span> <span class="n">crop_max_col</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="c1"># If we can&#39;t expand uniformly, expand in just one direction</span>
+        <span class="c1"># Check if we can expand right</span>
+        <span class="k">elif</span> <span class="n">crop_max_col</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1"># We can expand right</span>
+            <span class="n">new_crop_min_col</span> <span class="o">=</span> <span class="n">crop_min_col</span>
+            <span class="n">new_crop_max_col</span> <span class="o">=</span> <span class="n">crop_max_col</span> <span class="o">+</span> <span class="n">diff</span>
+        <span class="k">elif</span> <span class="n">crop_min_col</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># We can expand left</span>
+            <span class="n">new_crop_min_col</span> <span class="o">=</span> <span class="n">crop_min_col</span> <span class="o">-</span> <span class="n">diff</span>
+            <span class="n">new_crop_max_col</span> <span class="o">=</span> <span class="n">crop_max_col</span>
+        <span class="c1"># Set the new crop height to the original crop height since we are just updating the width</span>
+        <span class="n">new_crop_min_row</span> <span class="o">=</span> <span class="n">crop_min_row</span>
+        <span class="n">new_crop_max_row</span> <span class="o">=</span> <span class="n">crop_max_row</span>
+    <span class="k">elif</span> <span class="n">crop_width</span> <span class="o">&gt;</span> <span class="n">crop_height</span><span class="p">:</span>
+        <span class="c1"># The crop is wider than it is tall</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">crop_width</span> <span class="o">-</span> <span class="n">crop_height</span>
+        <span class="c1"># Check if we can expand equally in each direction</span>
+        <span class="k">if</span> <span class="n">crop_min_row</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop_max_row</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">new_crop_min_row</span> <span class="o">=</span> <span class="n">crop_min_row</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">new_crop_max_row</span> <span class="o">=</span> <span class="n">crop_max_row</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="c1"># If we can&#39;t expand uniformly, expand in just one direction</span>
+        <span class="c1"># Check if we can expand down</span>
+        <span class="k">elif</span> <span class="n">crop_max_row</span> <span class="o">+</span> <span class="n">diff</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># We can expand down</span>
+            <span class="n">new_crop_min_row</span> <span class="o">=</span> <span class="n">crop_min_row</span>
+            <span class="n">new_crop_max_row</span> <span class="o">=</span> <span class="n">crop_max_row</span> <span class="o">+</span> <span class="n">diff</span>
+        <span class="k">elif</span> <span class="n">crop_min_row</span> <span class="o">-</span> <span class="n">diff</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># We can expand up</span>
+            <span class="n">new_crop_min_row</span> <span class="o">=</span> <span class="n">crop_min_row</span> <span class="o">-</span> <span class="n">diff</span>
+            <span class="n">new_crop_max_row</span> <span class="o">=</span> <span class="n">crop_max_row</span>
+        <span class="c1"># Set the new crop width to the original crop width since we are just updating the height</span>
+        <span class="n">new_crop_min_col</span> <span class="o">=</span> <span class="n">crop_min_col</span>
+        <span class="n">new_crop_max_col</span> <span class="o">=</span> <span class="n">crop_max_col</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If the crop is already square, return the original crop</span>
+        <span class="n">new_crop_min_row</span> <span class="o">=</span> <span class="n">crop_min_row</span>
+        <span class="n">new_crop_min_col</span> <span class="o">=</span> <span class="n">crop_min_col</span>
+        <span class="n">new_crop_max_row</span> <span class="o">=</span> <span class="n">crop_max_row</span>
+        <span class="n">new_crop_max_col</span> <span class="o">=</span> <span class="n">crop_max_col</span>
+
+    <span class="k">return</span> <span class="n">new_crop_min_row</span><span class="p">,</span> <span class="n">new_crop_min_col</span><span class="p">,</span> <span class="n">new_crop_max_row</span><span class="p">,</span> <span class="n">new_crop_max_col</span></div>
+
+
+
+<div class="viewcode-block" id="pad_bounding_box">
+<a class="viewcode-back" href="../../autoapi/topostats/unet_masking/index.html#topostats.grains.pad_bounding_box">[docs]</a>
+<span class="k">def</span> <span class="nf">pad_bounding_box</span><span class="p">(</span>
+    <span class="n">crop_min_row</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">crop_min_col</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">crop_max_row</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">crop_max_col</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">image_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pad a bounding box.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    crop_min_row : int</span>
+<span class="sd">        The minimum row index of the crop.</span>
+<span class="sd">    crop_min_col : int</span>
+<span class="sd">        The minimum column index of the crop.</span>
+<span class="sd">    crop_max_row : int</span>
+<span class="sd">        The maximum row index of the crop.</span>
+<span class="sd">    crop_max_col : int</span>
+<span class="sd">        The maximum column index of the crop.</span>
+<span class="sd">    image_shape : tuple[int, int]</span>
+<span class="sd">        The shape of the image.</span>
+<span class="sd">    padding : int</span>
+<span class="sd">        The padding to apply to the bounding box.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[int, int, int, int]</span>
+<span class="sd">        The new crop indices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_crop_min_row</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">crop_min_row</span> <span class="o">-</span> <span class="n">padding</span><span class="p">)</span>
+    <span class="n">new_crop_min_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">crop_min_col</span> <span class="o">-</span> <span class="n">padding</span><span class="p">)</span>
+    <span class="n">new_crop_max_row</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">crop_max_row</span> <span class="o">+</span> <span class="n">padding</span><span class="p">)</span>
+    <span class="n">new_crop_max_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">crop_max_col</span> <span class="o">+</span> <span class="n">padding</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_crop_min_row</span><span class="p">,</span> <span class="n">new_crop_min_col</span><span class="p">,</span> <span class="n">new_crop_max_row</span><span class="p">,</span> <span class="n">new_crop_max_col</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

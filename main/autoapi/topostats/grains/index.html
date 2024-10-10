@@ -1,0 +1,1146 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.grains &#8212; TopoStats 2.2.2.dev823+g1e8f1a96 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=1e0a9f45"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/grains/index';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="topostats.grainstats" href="../grainstats/index.html" />
+    <link rel="prev" title="topostats.filters" href="../filters/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.2.2.dev823+g1e8f1a96 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">topostats.grains</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.grains">
+<span id="topostats-grains"></span><h1>topostats.grains<a class="headerlink" href="#module-topostats.grains" title="Link to this heading">#</a></h1>
+<p>Find grains in an image.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.LOGGER_NAME" title="topostats.grains.LOGGER_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER_NAME</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.grains.LOGGER" title="topostats.grains.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.Grains" title="topostats.grains.Grains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Grains</span></code></a></p></td>
+<td><p>Find grains in an image.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.threshold" title="topostats.grains.threshold"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threshold</span></code></a>(→ float)</p></td>
+<td><p>Thresholding for producing masks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.grains.make_bounding_box_square" title="topostats.grains.make_bounding_box_square"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_bounding_box_square</span></code></a>(→ tuple[int, int, int, int])</p></td>
+<td><p>Make a bounding box square.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.mean_iou" title="topostats.grains.mean_iou"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_iou</span></code></a>(y_true, y_pred)</p></td>
+<td><p>Mean Intersection Over Union metric, ignoring the background class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.grains.pad_bounding_box" title="topostats.grains.pad_bounding_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_bounding_box</span></code></a>(→ tuple[int, int, int, int])</p></td>
+<td><p>Pad a bounding box.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.predict_unet" title="topostats.grains.predict_unet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_unet</span></code></a>(→ numpy.typing.NDArray[numpy.bool_])</p></td>
+<td><p>Predict cats segmentation from a flattened image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.grains._get_mask" title="topostats.grains._get_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_get_mask</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Calculate a mask for pixels that exceed the threshold.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.grains.get_thresholds" title="topostats.grains.get_thresholds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_thresholds</span></code></a>(→ dict)</p></td>
+<td><p>Obtain thresholds for masking data points.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.grains.LOGGER_NAME">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">LOGGER_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'topostats'</span></em><a class="headerlink" href="#topostats.grains.LOGGER_NAME" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.threshold">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otsu_threshold_multiplier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../_modules/topostats/thresholds.html#threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.threshold" title="Link to this definition">#</a></dt>
+<dd><p>Thresholding for producing masks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of image for thresholding.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Method to use for thresholding, currently supported methods are otsu (default), mean and minimum.</p></li>
+<li><p><strong>otsu_threshold_multiplier</strong> (<em>float</em>) – Factor for scaling the Otsu threshold.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments to pass to skimage methods.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Threshold of image using specified method.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.make_bounding_box_square">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">make_bounding_box_square</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_min_row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_min_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_max_row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_max_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/unet_masking.html#make_bounding_box_square"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.make_bounding_box_square" title="Link to this definition">#</a></dt>
+<dd><p>Make a bounding box square.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crop_min_row</strong> (<em>int</em>) – The minimum row index of the crop.</p></li>
+<li><p><strong>crop_min_col</strong> (<em>int</em>) – The minimum column index of the crop.</p></li>
+<li><p><strong>crop_max_row</strong> (<em>int</em>) – The maximum row index of the crop.</p></li>
+<li><p><strong>crop_max_col</strong> (<em>int</em>) – The maximum column index of the crop.</p></li>
+<li><p><strong>image_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – The shape of the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The new crop indices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[int, int, int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.mean_iou">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">mean_iou</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float32</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/topostats/unet_masking.html#mean_iou"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.mean_iou" title="Link to this definition">#</a></dt>
+<dd><p>Mean Intersection Over Union metric, ignoring the background class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_true</strong> (<em>npt.NDArray</em><em>[</em><em>np.float32</em><em>]</em>) – True values.</p></li>
+<li><p><strong>y_pred</strong> (<em>npt.NDArray</em><em>[</em><em>np.float32</em><em>]</em>) – Predicted values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The mean IoU.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tf.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.pad_bounding_box">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">pad_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_min_row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_min_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_max_row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_max_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/unet_masking.html#pad_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.pad_bounding_box" title="Link to this definition">#</a></dt>
+<dd><p>Pad a bounding box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crop_min_row</strong> (<em>int</em>) – The minimum row index of the crop.</p></li>
+<li><p><strong>crop_min_col</strong> (<em>int</em>) – The minimum column index of the crop.</p></li>
+<li><p><strong>crop_max_row</strong> (<em>int</em>) – The maximum row index of the crop.</p></li>
+<li><p><strong>crop_max_col</strong> (<em>int</em>) – The maximum column index of the crop.</p></li>
+<li><p><strong>image_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – The shape of the image.</p></li>
+<li><p><strong>padding</strong> (<em>int</em>) – The padding to apply to the bounding box.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The new crop indices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[int, int, int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.predict_unet">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">predict_unet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_input_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_norm_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_norm_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.bool_</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/unet_masking.html#predict_unet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.predict_unet" title="Link to this definition">#</a></dt>
+<dd><p>Predict cats segmentation from a flattened image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em><em>[</em><em>np.float32</em><em>]</em>) – The image to predict the mask for.</p></li>
+<li><p><strong>model</strong> (<em>keras.Model</em>) – The U-Net model.</p></li>
+<li><p><strong>confidence</strong> (<em>float</em>) – The confidence threshold for the mask.</p></li>
+<li><p><strong>model_input_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em> | </em><em>None</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>) – The shape of the model input, including the batch and channel dimensions.</p></li>
+<li><p><strong>upper_norm_bound</strong> (<em>float</em>) – The upper bound for normalising the image.</p></li>
+<li><p><strong>lower_norm_bound</strong> (<em>float</em>) – The lower bound for normalising the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The predicted mask.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[<a href="#id13"><span class="problematic" id="id14">np.bool_</span></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains._get_mask">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">_get_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/utils.html#_get_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains._get_mask" title="Link to this definition">#</a></dt>
+<dd><p>Calculate a mask for pixels that exceed the threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em>) – Numpy array representing image.</p></li>
+<li><p><strong>thresh</strong> (<em>float</em>) – A float representing the threshold.</p></li>
+<li><p><strong>threshold_direction</strong> (<em>str</em>) – A string representing the direction that should be thresholded. (“above”, “below”).</p></li>
+<li><p><strong>img_name</strong> (<em>str</em>) – Name of image being processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array of image with objects coloured.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.grains.get_thresholds">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">get_thresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otsu_threshold_multiplier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_std_dev</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/topostats/utils.html#get_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.get_thresholds" title="Link to this definition">#</a></dt>
+<dd><p>Obtain thresholds for masking data points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2D Numpy array of image to be masked.</p></li>
+<li><p><strong>threshold_method</strong> (<em>str</em>) – Method for thresholding, ‘otsu’, ‘std_dev’ or ‘absolute’ are valid options.</p></li>
+<li><p><strong>otsu_threshold_multiplier</strong> (<em>float</em>) – Scaling value for Otsu threshold.</p></li>
+<li><p><strong>threshold_std_dev</strong> (<em>dict</em>) – Dict of above and below thresholds for the standard deviation method.</p></li>
+<li><p><strong>absolute</strong> (<em>tuple</em>) – Dict of below and above thresholds.</p></li>
+<li><p><strong>**kwargs</strong> – Dictionary passed to ‘topostats.threshold(<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of thresholds, contains keys ‘below’ and optionally ‘above’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.grains.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.grains.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.grains.Grains">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.grains.</span></span><span class="sig-name descname"><span class="pre">Grains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unet_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otsu_threshold_multiplier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_std_dev</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_absolute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute_area_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smallest_grain_size_nm2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_edge_intersecting_grains</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains" title="Link to this definition">#</a></dt>
+<dd><p>Find grains in an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of image.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed (used in logging).</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling of pixels to nanometres.</p></li>
+<li><p><strong>unet_config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>tuple</em><em>[</em><em>int</em><em> | </em><em>None</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>] </em><em>| </em><em>None</em><em>]</em>) – <p>Configuration for the UNet model.
+model_path: str</p>
+<blockquote>
+<div><p>Path to the UNet model.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>grain_crop_padding: int</dt><dd><p>Padding to add to the bounding box of the grain before cropping.</p>
+</dd>
+<dt>upper_norm_bound: float</dt><dd><p>Upper bound for normalising the image.</p>
+</dd>
+<dt>lower_norm_bound: float</dt><dd><p>Lower bound for normalising the image.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>threshold_method</strong> (<em>str</em>) – Method for determining thershold to mask values, default is ‘otsu’.</p></li>
+<li><p><strong>otsu_threshold_multiplier</strong> (<em>float</em>) – Factor by which the below threshold is to be scaled prior to masking.</p></li>
+<li><p><strong>threshold_std_dev</strong> (<em>dict</em>) – Dictionary of ‘below’ and ‘above’ factors by which standard deviation is multiplied to derive the threshold
+if threshold_method is ‘std_dev’.</p></li>
+<li><p><strong>threshold_absolute</strong> (<em>dict</em>) – Dictionary of absolute ‘below’ and ‘above’ thresholds for grain finding.</p></li>
+<li><p><strong>absolute_area_threshold</strong> (<em>dict</em>) – Dictionary of above and below grain’s area thresholds.</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – Direction for which grains are to be detected, valid values are ‘above’, ‘below’ and ‘both’.</p></li>
+<li><p><strong>smallest_grain_size_nm2</strong> (<em>float</em>) – Whether or not to remove grains that intersect the edge of the image.</p></li>
+<li><p><strong>remove_edge_intersecting_grains</strong> (<em>bool</em>) – Direction for which grains are to be detected, valid values are ‘above’, ‘below’ and ‘both’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.tidy_border">
+<span class="sig-name descname"><span class="pre">tidy_border</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.tidy_border"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.tidy_border" title="Link to this definition">#</a></dt>
+<dd><p>Remove grains touching the border.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDarray</em>) – 2-D Numpy array representing the image.</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.segmentation.clear_border(<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-D Numpy array of image without objects touching the border.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.label_regions">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">label_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.label_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.label_regions" title="Link to this definition">#</a></dt>
+<dd><p>Label regions.</p>
+<p>This method is used twice, once prior to removal of small regions and again afterwards which is why an image
+must be supplied rather than using ‘self’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of image.</p></li>
+<li><p><strong>background</strong> (<em>int</em>) – Value used to indicate background of image. Default = 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-D Numpy array of image with regions numbered.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.calc_minimum_grain_size">
+<span class="sig-name descname"><span class="pre">calc_minimum_grain_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.calc_minimum_grain_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.calc_minimum_grain_size" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the minimum grain size in pixels squared.</p>
+<p>Very small objects are first removed via thresholding before calculating the below extreme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy image from which to calculate the minimum grain size.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Minimum grains size in pixels squared. If there are areas a value of -1 is returned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.remove_noise">
+<span class="sig-name descname"><span class="pre">remove_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.remove_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.remove_noise" title="Link to this definition">#</a></dt>
+<dd><p>Remove noise which are objects smaller than the ‘smallest_grain_size_nm2’.</p>
+<p>This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array to be cleaned.</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.morphology.remove_small_objects(<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-D Numpy array of image with objects &lt; smallest_grain_size_nm2 removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.remove_small_objects">
+<span class="sig-name descname"><span class="pre">remove_small_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.array</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.remove_small_objects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.remove_small_objects" title="Link to this definition">#</a></dt>
+<dd><p>Remove small objects from the input image.</p>
+<p>Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em>) – 2-D Numpy array to remove small objects from.</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.morphology.remove_small_objects(<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-D Numpy array of image with objects &lt; minimumm_grain_size removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.area_thresholding">
+<span class="sig-name descname"><span class="pre">area_thresholding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_thresholds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.area_thresholding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.area_thresholding" title="Link to this definition">#</a></dt>
+<dd><p>Remove objects larger and smaller than the specified thresholds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Image array where the background == 0 and grains are labelled as integers &gt;0.</p></li>
+<li><p><strong>area_thresholds</strong> (<em>tuple</em>) – List of area thresholds (in nanometres squared, not pixels squared), first is the lower limit for size,
+second is the upper.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array with small and large objects removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.colour_regions">
+<span class="sig-name descname"><span class="pre">colour_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.colour_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.colour_regions" title="Link to this definition">#</a></dt>
+<dd><p>Colour the regions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D array of labelled regions to be coloured.</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.color.label2rgb(<a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array of image with objects coloured.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.get_region_properties">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_region_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.array</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.get_region_properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.get_region_properties" title="Link to this definition">#</a></dt>
+<dd><p>Extract the properties of each region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em>) – Numpy array representing image.</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.measure.regionprops(<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs)’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of region property objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.get_bounding_boxes">
+<span class="sig-name descname"><span class="pre">get_bounding_boxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.get_bounding_boxes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.get_bounding_boxes" title="Link to this definition">#</a></dt>
+<dd><p>Derive a list of bounding boxes for each region from the derived region_properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – Direction of threshold for which bounding boxes are being calculated.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of bounding boxes indexed by region area.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.find_grains">
+<span class="sig-name descname"><span class="pre">find_grains</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.find_grains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.find_grains" title="Link to this definition">#</a></dt>
+<dd><p>Find grains.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.improve_grain_segmentation_unet">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">improve_grain_segmentation_unet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unet_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labelled_grain_regions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.improve_grain_segmentation_unet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.improve_grain_segmentation_unet" title="Link to this definition">#</a></dt>
+<dd><p>Use a UNet model to re-segment existing grains to improve their accuracy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed (used in logging).</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – Direction of threshold for which bounding boxes are being calculated.</p></li>
+<li><p><strong>unet_config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>tuple</em><em>[</em><em>int</em><em> | </em><em>None</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>] </em><em>| </em><em>None</em><em>]</em>) – <p>Configuration for the UNet model.
+model_path: str</p>
+<blockquote>
+<div><p>Path to the UNet model.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>grain_crop_padding: int</dt><dd><p>Padding to add to the bounding box of the grain before cropping.</p>
+</dd>
+<dt>upper_norm_bound: float</dt><dd><p>Upper bound for normalising the image.</p>
+</dd>
+<dt>lower_norm_bound: float</dt><dd><p>Lower bound for normalising the image.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of image.</p></li>
+<li><p><strong>labelled_grain_regions</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of labelled grain regions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>npt.NDArray</em> – NxNxC Numpy array of the UNet mask.</p></li>
+<li><p><em>npt.NDArray</em> – NxNxC Numpy array of the labelled regions from the UNet mask.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.grains.Grains.keep_largest_labelled_region">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">keep_largest_labelled_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labelled_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.bool_</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/grains.html#Grains.keep_largest_labelled_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.grains.Grains.keep_largest_labelled_region" title="Link to this definition">#</a></dt>
+<dd><p>Keep only the largest region in a labelled image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>labelled_image</strong> (<em>npt.NDArray</em>) – 2-D Numpy array of labelled regions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-D Numpy boolean array of labelled regions with only the largest region.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../filters/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.filters</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../grainstats/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.grainstats</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.LOGGER_NAME"><code class="docutils literal notranslate"><span class="pre">LOGGER_NAME</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.threshold"><code class="docutils literal notranslate"><span class="pre">threshold()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.make_bounding_box_square"><code class="docutils literal notranslate"><span class="pre">make_bounding_box_square()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.mean_iou"><code class="docutils literal notranslate"><span class="pre">mean_iou()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.pad_bounding_box"><code class="docutils literal notranslate"><span class="pre">pad_bounding_box()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.predict_unet"><code class="docutils literal notranslate"><span class="pre">predict_unet()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains._get_mask"><code class="docutils literal notranslate"><span class="pre">_get_mask()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.get_thresholds"><code class="docutils literal notranslate"><span class="pre">get_thresholds()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains"><code class="docutils literal notranslate"><span class="pre">Grains</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.tidy_border"><code class="docutils literal notranslate"><span class="pre">Grains.tidy_border()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.label_regions"><code class="docutils literal notranslate"><span class="pre">Grains.label_regions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.calc_minimum_grain_size"><code class="docutils literal notranslate"><span class="pre">Grains.calc_minimum_grain_size()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.remove_noise"><code class="docutils literal notranslate"><span class="pre">Grains.remove_noise()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.remove_small_objects"><code class="docutils literal notranslate"><span class="pre">Grains.remove_small_objects()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.area_thresholding"><code class="docutils literal notranslate"><span class="pre">Grains.area_thresholding()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.colour_regions"><code class="docutils literal notranslate"><span class="pre">Grains.colour_regions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.get_region_properties"><code class="docutils literal notranslate"><span class="pre">Grains.get_region_properties()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.get_bounding_boxes"><code class="docutils literal notranslate"><span class="pre">Grains.get_bounding_boxes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.find_grains"><code class="docutils literal notranslate"><span class="pre">Grains.find_grains()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.improve_grain_segmentation_unet"><code class="docutils literal notranslate"><span class="pre">Grains.improve_grain_segmentation_unet()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.grains.Grains.keep_largest_labelled_region"><code class="docutils literal notranslate"><span class="pre">Grains.keep_largest_labelled_region()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../_sources/autoapi/topostats/grains/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

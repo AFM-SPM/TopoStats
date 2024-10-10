@@ -1,0 +1,1860 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.dnatracing &#8212; TopoStats 2.2.2.dev823+g1e8f1a96 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=1e0a9f45"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/dnatracing/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.tracing.skeletonize" href="../skeletonize/index.html" />
+    <link rel="prev" title="topostats.tracing.dnacurvature" href="../dnacurvature/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.2.2.dev823+g1e8f1a96 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><i class="fa-solid fa-ellipsis"></i></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">topostats.tr...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.dnatracing">
+<span id="topostats-tracing-dnatracing"></span><h1>topostats.tracing.dnatracing<a class="headerlink" href="#module-topostats.tracing.dnatracing" title="Link to this heading">#</a></h1>
+<p>Perform DNA Tracing.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.LOGGER_NAME" title="topostats.tracing.dnatracing.LOGGER_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER_NAME</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.LOGGER" title="topostats.tracing.dnatracing.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.genTracingFuncs" title="topostats.tracing.dnatracing.genTracingFuncs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genTracingFuncs</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.getSkeleton" title="topostats.tracing.dnatracing.getSkeleton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getSkeleton</span></code></a></p></td>
+<td><p>Skeltonisation : &quot;A Fast Parallel Algorithm for Thinning Digital Patterns&quot; by Zhang et al., 1984.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.reorderTrace" title="topostats.tracing.dnatracing.reorderTrace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reorderTrace</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.dnaTrace" title="topostats.tracing.dnatracing.dnaTrace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dnaTrace</span></code></a></p></td>
+<td><p>Calculates traces for a DNA molecule and calculates statistics from those traces.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.get_skeleton" title="topostats.tracing.dnatracing.get_skeleton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_skeleton</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Skeletonizing masked molecules.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.bound_padded_coordinates_to_image" title="topostats.tracing.dnatracing.bound_padded_coordinates_to_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bound_padded_coordinates_to_image</span></code></a>(→ tuple)</p></td>
+<td><p>Ensure the padding of coordinates points does not fall outside of the image shape.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.trace_image" title="topostats.tracing.dnatracing.trace_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_image</span></code></a>(→ dict)</p></td>
+<td><p>Processor function for tracing image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.round_splined_traces" title="topostats.tracing.dnatracing.round_splined_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round_splined_traces</span></code></a>(→ dict)</p></td>
+<td><p>Round a Dict of floating point coordinates to integer floating point coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.trim_array" title="topostats.tracing.dnatracing.trim_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_array</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Trim an array by the specified pad_width.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.adjust_coordinates" title="topostats.tracing.dnatracing.adjust_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjust_coordinates</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Adjust coordinates of a trace by the pad_width.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.trace_mask" title="topostats.tracing.dnatracing.trace_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_mask</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Place the traced skeletons into an array of the original image for plotting/overlaying.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.prep_arrays" title="topostats.tracing.dnatracing.prep_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prep_arrays</span></code></a>(→ tuple[dict[int, numpy.typing.NDArray], ...)</p></td>
+<td><p>Take an image and labelled mask and crops individual grains and original heights to a list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.grain_anchor" title="topostats.tracing.dnatracing.grain_anchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_anchor</span></code></a>(→ list)</p></td>
+<td><p>Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.trace_grain" title="topostats.tracing.dnatracing.trace_grain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_grain</span></code></a>(→ dict)</p></td>
+<td><p>Trace an individual grain.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.crop_array" title="topostats.tracing.dnatracing.crop_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crop_array</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Crop an array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.dnatracing.pad_bounding_box" title="topostats.tracing.dnatracing.pad_bounding_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_bounding_box</span></code></a>(→ list)</p></td>
+<td><p>Pad coordinates, if they extend beyond image boundaries stop at boundary.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.LOGGER_NAME">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">LOGGER_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'topostats'</span></em><a class="headerlink" href="#topostats.tracing.dnatracing.LOGGER_NAME" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.get_skeleton">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">get_skeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#get_skeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.get_skeleton" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonizing masked molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Image of molecule to be skeletonized.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Method to use, default is ‘zhang’ other options are ‘lee’, and ‘thin’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skeletonised version of the image.all($0).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is a thin wrapper to the methods provided
+by the <a class="reference external" href="https://scikit-image.org/docs/stable/api/skimage.morphology.html?highlight=skeletonize">skimage.morphology</a>
+module. See also the <a href="#id1"><span class="problematic" id="id2">`</span></a>examples
+&lt;<a class="reference external" href="https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html">https://scikit-image.org/docs/stable/auto_examples/edges/plot_skeleton.html</a>&gt;_</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">genTracingFuncs</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.getLocalPixelsBinary">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">getLocalPixelsBinary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.getLocalPixelsBinary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.getLocalPixelsBinary" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.countNeighbours">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">countNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.countNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.countNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Counts the number of neighbouring points for a given coordinate in
+a list of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.getNeighbours">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">getNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.getNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.getNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Returns an array containing the neighbouring points for a given
+coordinate in a list of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.countandGetNeighbours">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">countandGetNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.countandGetNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.countandGetNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Returns the number of neighbouring points for a coordinate and an
+array containing the those points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.returnPointsInArray">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">returnPointsInArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.returnPointsInArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.returnPointsInArray" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.makeGrid">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">makeGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.makeGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.makeGrid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.findBestNextPoint">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">findBestNextPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.findBestNextPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.findBestNextPoint" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.genTracingFuncs.checkVectorsCandidatePoints">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkVectorsCandidatePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.checkVectorsCandidatePoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.genTracingFuncs.checkVectorsCandidatePoints" title="Link to this definition">#</a></dt>
+<dd><p>Finds which neighbouring pixel incurs the smallest angular change
+with reference to a previous pixel in the ordered trace, and chooses that
+as the next point</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">getSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_rows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton" title="Link to this definition">#</a></dt>
+<dd><p>Skeltonisation : “A Fast Parallel Algorithm for Thinning Digital Patterns” by Zhang et al., 1984.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_data</strong> (<em>npt.NDArray</em>) – Image to be traced.</p></li>
+<li><p><strong>binary_map</strong> (<em>npt.NDArray</em>) – Image mask.</p></li>
+<li><p><strong>number_of_columns</strong> (<em>int</em>) – Number of columns.</p></li>
+<li><p><strong>number_of_rows</strong> (<em>int</em>) – Number of rows.</p></li>
+<li><p><strong>pixel_size</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton.getDNAmolHeightStats">
+<span class="sig-name descname"><span class="pre">getDNAmolHeightStats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.getDNAmolHeightStats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton.getDNAmolHeightStats" title="Link to this definition">#</a></dt>
+<dd><p>Get molecule heights.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton.doSkeletonising">
+<span class="sig-name descname"><span class="pre">doSkeletonising</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.doSkeletonising"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton.doSkeletonising" title="Link to this definition">#</a></dt>
+<dd><p>Check if the skeletonising is finished.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._doSkeletonisingIteration">
+<span class="sig-name descname"><span class="pre">_doSkeletonisingIteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._doSkeletonisingIteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._doSkeletonisingIteration" title="Link to this definition">#</a></dt>
+<dd><p>Do an iteration of skeletonisation.</p>
+<p>Check for the local binary pixel environment and assess the local height values to decide whether to delete a
+point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._deletePixelSubit1">
+<span class="sig-name descname"><span class="pre">_deletePixelSubit1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deletePixelSubit1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._deletePixelSubit1" title="Link to this definition">#</a></dt>
+<dd><p>Check whether a point should be deleted based on local binary environment and local height values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> (<em>npt.NDArray</em>) – Point to be checked.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the point should be deleted.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._deletePixelSubit2">
+<span class="sig-name descname"><span class="pre">_deletePixelSubit2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deletePixelSubit2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._deletePixelSubit2" title="Link to this definition">#</a></dt>
+<dd><p>Check whether a point should be deleted based on local binary environment and local height values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> (<em>npt.NDArray</em>) – Point to be checked.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the point should be deleted.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_a">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_a" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check A.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_b</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check B.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_c">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_c</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_c" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check C.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_d">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_d</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_d" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check D.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_csharp">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_csharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_csharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_csharp" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check C#.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_dsharp">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_dsharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_dsharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_dsharp" title="Link to this definition">#</a></dt>
+<dd><p>Binary thin check D#</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the condition is met.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._checkHeights">
+<span class="sig-name descname"><span class="pre">_checkHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._checkHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._checkHeights" title="Link to this definition">#</a></dt>
+<dd><p>Check heights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>candidate_points</strong> (<em>npt.NDArray</em><em>) </em><em>- &gt; npt.NDArra</em>) – Candidate points to be checked.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Candidate points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._checkWhichHeightPoints">
+<span class="sig-name descname"><span class="pre">_checkWhichHeightPoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._checkWhichHeightPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._checkWhichHeightPoints" title="Link to this definition">#</a></dt>
+<dd><p>Check which height points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._initialiseHeightFindingDict">
+<span class="sig-name descname"><span class="pre">_initialiseHeightFindingDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._initialiseHeightFindingDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._initialiseHeightFindingDict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getHorizontalLeftHeights">
+<span class="sig-name descname"><span class="pre">_getHorizontalLeftHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getHorizontalLeftHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getHorizontalLeftHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights left (west).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height left (west).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getHorizontalRightHeights">
+<span class="sig-name descname"><span class="pre">_getHorizontalRightHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getHorizontalRightHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getHorizontalRightHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights right (east).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height right (east).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getVerticalUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getVerticalUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getVerticalUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getVerticalUpwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights upwards (north).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height upwards (north).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getVerticalDonwardHeights">
+<span class="sig-name descname"><span class="pre">_getVerticalDonwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getVerticalDonwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getVerticalDonwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights downwards (south).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height downwards (south).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolLeftUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolLeftUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftUpwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights diagonal left upwards (north east).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height to diagonal left upwards (north east).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftDownwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolLeftDownwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolLeftDownwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftDownwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights diagonal left downwards (south west).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height diagonal left downwards (south west).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getDiaganolRightUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolRightUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolRightUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolRightUpwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights diagonal right upwards (north east).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height diagonal right upwards (north east).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._getDiaganolRightDownwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolRightDownwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolRightDownwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolRightDownwardHeights" title="Link to this definition">#</a></dt>
+<dd><p>Calculate heights diagonal right downwards (south east).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height heights diagonal right downwards (south east).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._condemnPoint">
+<span class="sig-name descname"><span class="pre">_condemnPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._condemnPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._condemnPoint" title="Link to this definition">#</a></dt>
+<dd><p>Condemn a point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Height to be condemned.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._identifyHighestPoint">
+<span class="sig-name descname"><span class="pre">_identifyHighestPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexed_heights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._identifyHighestPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._identifyHighestPoint" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton.finalSkeletonisationIteration">
+<span class="sig-name descname"><span class="pre">finalSkeletonisationIteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.finalSkeletonisationIteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton.finalSkeletonisationIteration" title="Link to this definition">#</a></dt>
+<dd><p>A final skeletonisation iteration that removes “hanging” pixels.</p>
+<p>Examples of such pixels are:</p>
+<blockquote>
+<div><blockquote>
+<div><p>[0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+[0, 1, 1]               [0, 1, 1]            [0, 1, 1]</p>
+</div></blockquote>
+<p>case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]</p>
+</div></blockquote>
+<p>This is useful for the future functions that rely on local pixel environment
+to make assessments about the overall shape/structure of traces</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_a">
+<span class="sig-name descname"><span class="pre">_binaryFinalThinCheck_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryFinalThinCheck_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_a" title="Link to this definition">#</a></dt>
+<dd><p>Binary final thin check A.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_b">
+<span class="sig-name descname"><span class="pre">_binaryFinalThinCheck_b</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryFinalThinCheck_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_b" title="Link to this definition">#</a></dt>
+<dd><p>Binary final thin check B.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b_returncount">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_b_returncount</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_b_returncount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b_returncount" title="Link to this definition">#</a></dt>
+<dd><p>Binary final thin check B return count.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton.pruneSkeleton">
+<span class="sig-name descname"><span class="pre">pruneSkeleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.pruneSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton.pruneSkeleton" title="Link to this definition">#</a></dt>
+<dd><p>Function to remove the hanging branches from the skeletons.</p>
+<p>These are a persistent problem in the overall tracing process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._findBranchEnds">
+<span class="sig-name descname"><span class="pre">_findBranchEnds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._findBranchEnds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._findBranchEnds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.getSkeleton._deleteSquareEnds">
+<span class="sig-name descname"><span class="pre">_deleteSquareEnds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deleteSquareEnds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.getSkeleton._deleteSquareEnds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">reorderTrace</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace.linearTrace">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">linearTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.linearTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace.linearTrace" title="Link to this definition">#</a></dt>
+<dd><p>My own function to order the points from a linear trace.</p>
+<p>This works by checking the local neighbours for a given pixel (starting
+at one of the ends). If this pixel has only one neighbour in the array
+of unordered points, this must be the next pixel in the trace – and it
+is added to the ordered points trace and removed from the
+remaining_unordered_coords array.</p>
+<p>If there is more than one neighbouring pixel, a fairly simple function
+(checkVectorsCandidatePoints) finds which pixel incurs the smallest
+change in angle compared with the rest of the trace and chooses that as
+the next point.</p>
+<p>This process is repeated until all the points are placed in the ordered
+trace array or the other end point is reached.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace.circularTrace">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circularTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.circularTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace.circularTrace" title="Link to this definition">#</a></dt>
+<dd><p>An alternative implementation of the linear tracing algorithm but
+with some adaptations to work with circular dna molecules</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace.circularTrace_old">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circularTrace_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.circularTrace_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace.circularTrace_old" title="Link to this definition">#</a></dt>
+<dd><p>Reorders the coordinates of a trace from a circular DNA molecule
+(with no loops) using a polar coordinate system with reference to the
+center of mass</p>
+<p>I think every step of this can be vectorised for speed up</p>
+<p>This is vulnerable to bugs if the dna molecule folds in on itself slightly</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace.loopedCircularTrace">
+<span class="sig-name descname"><span class="pre">loopedCircularTrace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.loopedCircularTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace.loopedCircularTrace" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.reorderTrace.loopedLinearTrace">
+<span class="sig-name descname"><span class="pre">loopedLinearTrace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.loopedLinearTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.reorderTrace.loopedLinearTrace" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.bound_padded_coordinates_to_image">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">bound_padded_coordinates_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../../_modules/topostats/utils.html#bound_padded_coordinates_to_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.bound_padded_coordinates_to_image" title="Link to this definition">#</a></dt>
+<dd><p>Ensure the padding of coordinates points does not fall outside of the image shape.</p>
+<p>This function is primarily used in the dnaTrace.get_fitted_traces() method which aims to adjust the points of a
+skeleton to sit on the highest points of a traced molecule. In order to do so it takes the ordered skeleton, which
+may not lie on the highest points as it is generated from a binary mask that is unaware of the heights, and then
+defines a padded boundary of 3nm profile perpendicular to the backbone of the DNA (which at this point is the
+skeleton based on a mask). Each point along the skeleton therefore needs padding by a minimum of 2 pixels (in this
+case each pixel equates to a cell in a NumPy array). If a point is within 2 pixels (i.e. 2 cells) of the border then
+we can not pad beyond this region, we have to stop at the edge of the image and so the coordinates is adjusted such
+that the padding will lie on the edge of the image/array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>npt.NDArray</em>) – Coordinates of a point on the mask based skeleton.</p></li>
+<li><p><strong>padding</strong> (<em>int</em>) – Number of pixels/cells to pad around the point.</p></li>
+<li><p><strong>image_shape</strong> (<em>tuple</em>) – The shape of the original image from which the pixel is obtained.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in
+subsequent calculations it will not be outside of the image shape.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.tracing.dnatracing.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">dnaTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_nm_to_m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'topostats'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_linear_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_circular_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_quiet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace" title="Link to this definition">#</a></dt>
+<dd><p>Calculates traces for a DNA molecule and calculates statistics from those traces.</p>
+<p>2023-06-09 : This class has undergone some refactoring so that it works with a single grain. The <cite>trace_grain()</cite>
+helper function runs the class and returns the expected statistics whilst the <cite>trace_image()</cite> function handles
+processing all detected grains within an image. The original methods of skeletonisation are available along with
+additional methods from scikit-image.</p>
+<p>Some bugs have been identified and corrected see commits for further details…</p>
+<p>236750b2
+2a79c4ff</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Cropped image, typically padded beyond the bounding box.</p></li>
+<li><p><strong>grain</strong> (<em>npt.NDArray</em>) – Labelled mask for the grain, typically padded beyond the bounding box.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Filename being processed.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum skeleton size below which tracing statistics are not calculated.</p></li>
+<li><p><strong>convert_nm_to_m</strong> (<em>bool</em>) – Convert nanometers to metres.</p></li>
+<li><p><strong>skeletonisation_method</strong> (<em>str</em>) – Method of skeletonisation to use ‘topostats’ is the original TopoStats method. Three methods from
+scikit-image are available ‘zhang’, ‘lee’ and ‘thin’.</p></li>
+<li><p><strong>n_grain</strong> (<em>int</em>) – Grain number being processed (only  used in logging).</p></li>
+<li><p><strong>spline_step_size</strong> (<em>float</em>) – Step size for spline evaluation in metres.</p></li>
+<li><p><strong>spline_linear_smoothing</strong> (<em>float</em>) – Smoothness of linear splines.</p></li>
+<li><p><strong>spline_circular_smoothing</strong> (<em>float</em>) – Smoothness of circular splines.</p></li>
+<li><p><strong>spline_quiet</strong> (<em>bool</em>) – Suppresses scipy splining warnings.</p></li>
+<li><p><strong>spline_degree</strong> (<em>int</em>) – Degree of the spline.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.trace_dna">
+<span class="sig-name descname"><span class="pre">trace_dna</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.trace_dna"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.trace_dna" title="Link to this definition">#</a></dt>
+<dd><p>Perform DNA tracing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.gaussian_filter">
+<span class="sig-name descname"><span class="pre">gaussian_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.array</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.gaussian_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.gaussian_filter" title="Link to this definition">#</a></dt>
+<dd><p>Apply Gaussian filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Arguments passed to ‘skimage.filter.gaussian(<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs)’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_heights">
+<span class="sig-name descname"><span class="pre">get_ordered_trace_heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_ordered_trace_heights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_heights" title="Link to this definition">#</a></dt>
+<dd><p>Derive the pixel heights from the ordered trace <cite>self.ordered_trace</cite> list.</p>
+<p>Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
+for the ordered trace are stored in the ordered trace list as part of the class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_cumulative_distances">
+<span class="sig-name descname"><span class="pre">get_ordered_trace_cumulative_distances</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_ordered_trace_cumulative_distances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_cumulative_distances" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the cumulative distances of each pixel in the <cite>self.ordered_trace</cite> list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.coord_dist">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coord_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">px_to_nm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.coord_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.coord_dist" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the cumulative real distances between each pixel in a trace.</p>
+<p>Take a Nx2 numpy array of (grid adjacent) coordinates and produce a list of cumulative distances in
+nanometres, travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [1, 1], [2, 2] cumulative
+distances: [0, 1, 2, 3.4142]. Counts diagonal connections as 1.4142 distance. Converts distances from
+pixels to nanometres using px_to_nm scaling factor.
+Note that the pixels have to be adjacent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>npt.NDArray</em>) – A Nx2 integer array of coordinates of the pixels of a trace from a binary trace image.</p></li>
+<li><p><strong>px_to_nm</strong> (<em>float</em>) – Pixel to nanometre scaling factor to allow for real length measurements of distances rather
+than pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array of length N containing the cumulative sum of distances (0 at the first entry,
+full molecule length at the last entry).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_disordered_trace">
+<span class="sig-name descname"><span class="pre">get_disordered_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_disordered_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_disordered_trace" title="Link to this definition">#</a></dt>
+<dd><p>Create a skeleton for each of the grains in the image.</p>
+<p>Uses my own skeletonisation function from tracingfuncs module. I (Joe) will eventually get round to editing this
+function to try to reduce the branching  and to try to better trace from looped molecules.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.linear_or_circular">
+<span class="sig-name descname"><span class="pre">linear_or_circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.linear_or_circular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.linear_or_circular" title="Link to this definition">#</a></dt>
+<dd><p>Determine whether molecule is circular or linear based on the local environment of each pixel from the trace.</p>
+<p>This function is sensitive to branches from the skeleton so might need to implement a function to remove them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>traces</strong> (<em>npt.NDArray</em>) – The array of coordinates to be assessed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_ordered_traces">
+<span class="sig-name descname"><span class="pre">get_ordered_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_ordered_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_traces" title="Link to this definition">#</a></dt>
+<dd><p>Order a trace.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_fitted_traces">
+<span class="sig-name descname"><span class="pre">get_fitted_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_fitted_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_fitted_traces" title="Link to this definition">#</a></dt>
+<dd><p>Create trace coordinates that are adjusted to lie along the highest points of each traced molecule.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.remove_duplicate_consecutive_tuples">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_duplicate_consecutive_tuples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tuple_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.remove_duplicate_consecutive_tuples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.remove_duplicate_consecutive_tuples" title="Link to this definition">#</a></dt>
+<dd><p>Remove duplicate consecutive tuples from a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tuple_list</strong> (<em>list</em><em>[</em><em>tuple</em><em> | </em><em>npt.NDArray</em><em>]</em>) – List of tuples or numpy ndarrays to remove consecutive duplicates from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of tuples with consecutive duplicates removed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[Tuple]</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>For the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
+[(1, 2), (2, 3), (3, 4)]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.get_splined_traces">
+<span class="sig-name descname"><span class="pre">get_splined_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.get_splined_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.get_splined_traces" title="Link to this definition">#</a></dt>
+<dd><p>Get a splined version of the fitted trace - useful for finding the radius of gyration etc.</p>
+<p>This function actually calculates the average of several splines which is important for getting a good fit on
+the lower resolution data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.show_traces">
+<span class="sig-name descname"><span class="pre">show_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.show_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.show_traces" title="Link to this definition">#</a></dt>
+<dd><p>Plot traces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.saveTraceFigures">
+<span class="sig-name descname"><span class="pre">saveTraceFigures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmaxval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vminval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.saveTraceFigures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.saveTraceFigures" title="Link to this definition">#</a></dt>
+<dd><p>Save the traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em> | </em><em>Path</em>) – Filename being processed.</p></li>
+<li><p><strong>channel_name</strong> (<em>str</em>) – Channel.</p></li>
+<li><p><strong>vmaxval</strong> (<em>float</em><em> | </em><em>int</em>) – Maximum value for height.</p></li>
+<li><p><strong>vminval</strong> (<em>float</em><em> | </em><em>int</em>) – Minimum value for height.</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em><em> | </em><em>Path</em>) – Output directory.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace._checkForSaveDirectory">
+<span class="sig-name descname"><span class="pre">_checkForSaveDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace._checkForSaveDirectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace._checkForSaveDirectory" title="Link to this definition">#</a></dt>
+<dd><p>Create output directory and updates filename to account for this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename.</p></li>
+<li><p><strong>new_output_dir</strong> (<em>str</em>) – Target directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated output directory.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.find_curvature">
+<span class="sig-name descname"><span class="pre">find_curvature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.find_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.find_curvature" title="Link to this definition">#</a></dt>
+<dd><p>Calculate curvature of the molecule.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.saveCurvature">
+<span class="sig-name descname"><span class="pre">saveCurvature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.saveCurvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.saveCurvature" title="Link to this definition">#</a></dt>
+<dd><p>Save curvature statistics.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.plotCurvature">
+<span class="sig-name descname"><span class="pre">plotCurvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.plotCurvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.plotCurvature" title="Link to this definition">#</a></dt>
+<dd><p>Plot the curvature of the chosen molecule as a function of the contour length (in metres).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dna_num</strong> (<em>int</em>) – Molecule to plot, used for indexing.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.measure_contour_length">
+<span class="sig-name descname"><span class="pre">measure_contour_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.measure_contour_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.measure_contour_length" title="Link to this definition">#</a></dt>
+<dd><p>Contour lengthof the splined trace taking into account whether the molecule is circular or linear.</p>
+<p>Contour length units are nm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.dnaTrace.measure_end_to_end_distance">
+<span class="sig-name descname"><span class="pre">measure_end_to_end_distance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#dnaTrace.measure_end_to_end_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.dnaTrace.measure_end_to_end_distance" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the Euclidean distance between the start and end of linear molecules.</p>
+<p>The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+molecules. If the molecule is circular then the distance is set to zero (0).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.trace_image">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">trace_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grains_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_linear_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_circular_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#trace_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.trace_image" title="Link to this definition">#</a></dt>
+<dd><p>Processor function for tracing image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Full image as Numpy Array.</p></li>
+<li><p><strong>grains_mask</strong> (<em>npt.NDArray</em>) – Full image as Grains that are labelled.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum size of grain in pixels after skeletonisation.</p></li>
+<li><p><strong>skeletonisation_method</strong> (<em>str</em>) – Method of skeletonisation, options are ‘zhang’ (scikit-image) / ‘lee’ (scikit-image) / ‘thin’ (scikitimage) or
+‘topostats’ (original TopoStats method).</p></li>
+<li><p><strong>spline_step_size</strong> (<em>float</em>) – Step size for spline evaluation in metres.</p></li>
+<li><p><strong>spline_linear_smoothing</strong> (<em>float</em>) – Smoothness of linear splines.</p></li>
+<li><p><strong>spline_circular_smoothing</strong> (<em>float</em>) – Smoothness of circular splines.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.</p></li>
+<li><p><strong>cores</strong> (<em>int</em>) – Number of cores to process with.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Statistics from skeletonising and tracing the grains in the image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.round_splined_traces">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">round_splined_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">splined_traces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#round_splined_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.round_splined_traces" title="Link to this definition">#</a></dt>
+<dd><p>Round a Dict of floating point coordinates to integer floating point coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>splined_traces</strong> (<em>dict</em>) – Floating point coordinates to be rounded.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of rounded integer coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.trim_array">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">trim_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#trim_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.trim_array" title="Link to this definition">#</a></dt>
+<dd><p>Trim an array by the specified pad_width.</p>
+<p>Removes a border from an array. Typically this is the second padding that is added to the image/masks for edge cases
+that are near image borders and means traces will be correctly aligned as a mask for the original image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>npt.NDArray</em>) – Numpy array to be trimmed.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Padding to be removed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Trimmed array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.adjust_coordinates">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">adjust_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#adjust_coordinates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.adjust_coordinates" title="Link to this definition">#</a></dt>
+<dd><p>Adjust coordinates of a trace by the pad_width.</p>
+<p>A second padding is made to allow for grains that are “edge cases” and close to the bounding box edge. This adds the
+pad_width to the cropped grain array. In order to realign the trace with the original image we need to remove this
+padding so that when the coordinates are combined with the “grain_anchor”, which isn’t padded twice, the
+coordinates correctly align with the original image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>npt.NDArray</em>) – An array of trace coordinates (typically ordered).</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – The amount of padding used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of trace coordinates adjusted for secondary padding.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.trace_mask">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">trace_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grain_anchors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_traces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#trace_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.trace_mask" title="Link to this definition">#</a></dt>
+<dd><p>Place the traced skeletons into an array of the original image for plotting/overlaying.</p>
+<p>Adjusts the coordinates back to the original position based on each grains anchor coordinates of the padded
+bounding box. Adjustments are made for the secondary padding that is made.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grain_anchors</strong> (<em>List</em><em>[</em><em>npt.NDArray</em><em>]</em>) – List of grain anchors for the padded bounding box.</p></li>
+<li><p><strong>ordered_traces</strong> (<em>Dict</em><em>[</em><em>npt.NDArray</em><em>]</em>) – Coordinates for each grain trace.
+Dict of coordinates for each grains trace.</p></li>
+<li><p><strong>image_shape</strong> (<em>tuple</em>) – Shape of original image.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – The amount of padding used on the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask of traces for all grains that can be overlaid on original image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.prep_arrays">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">prep_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labelled_grains_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#prep_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.prep_arrays" title="Link to this definition">#</a></dt>
+<dd><p>Take an image and labelled mask and crops individual grains and original heights to a list.</p>
+<p>A second padding is made after cropping to ensure for “edge cases” where grains are close to bounding box edges that
+they are traced correctly. This is accounted for when aligning traces to the whole image mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Gaussian filtered image. Typically filtered_image.images[“gaussian_filtered”].</p></li>
+<li><p><strong>labelled_grains_mask</strong> (<em>npt.NDArray</em>) – 2D Numpy array of labelled grain masks, with each mask being comprised solely of unique integer (not
+zero). Typically this will be output from ‘grains.directions[&lt;direction&gt;[“labelled_region_02]’.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Cells by which to pad cropped regions by.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns a tuple of two dictionaries, each consisting of cropped arrays.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.grain_anchor">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">grain_anchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#grain_anchor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.grain_anchor" title="Link to this definition">#</a></dt>
+<dd><p>Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array_shape</strong> (<em>tuple</em>) – Shape of original array.</p></li>
+<li><p><strong>bounding_box</strong> (<em>list</em>) – A list of region properties returned by ‘skimage.measure.regionprops()’.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Padding for image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of tuples of the min_row, min_col of each bounding box.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(Tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.trace_grain">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">trace_grain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cropped_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cropped_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'topostats'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_step_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_linear_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_circular_smoothing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#trace_grain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.trace_grain" title="Link to this definition">#</a></dt>
+<dd><p>Trace an individual grain.</p>
+<p>Tracing involves multiple steps…</p>
+<ol class="arabic simple">
+<li><p>Skeletonisation</p></li>
+<li><p>Pruning of side branch artefacts from skeletonisation.</p></li>
+<li><p>Ordering of the skeleton.</p></li>
+<li><p>Determination of molecule shape.</p></li>
+<li><p>Jiggling/Fitting</p></li>
+<li><p>Splining to improve resolution of image.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cropped_image</strong> (<em>npt.NDArray</em>) – Cropped array from the original image defined as the bounding box from the labelled mask.</p></li>
+<li><p><strong>cropped_mask</strong> (<em>npt.NDArray</em>) – Cropped array from the labelled image defined as the bounding box from the labelled mask. This should have been
+converted to a binary mask.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum size of grain in pixels after skeletonisation.</p></li>
+<li><p><strong>skeletonisation_method</strong> (<em>str</em>) – Method of skeletonisation, options are ‘zhang’ (scikit-image) / ‘lee’ (scikit-image) / ‘thin’ (scikitimage) or
+‘topostats’ (original TopoStats method).</p></li>
+<li><p><strong>spline_step_size</strong> (<em>float</em>) – Step size for spline evaluation in metres.</p></li>
+<li><p><strong>spline_linear_smoothing</strong> (<em>float</em>) – Smoothness of linear splines.</p></li>
+<li><p><strong>spline_circular_smoothing</strong> (<em>float</em>) – Smoothness of circular splines.</p></li>
+<li><p><strong>n_grain</strong> (<em>int</em>) – Grain number being processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array
+of coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.crop_array">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">crop_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#crop_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.crop_array" title="Link to this definition">#</a></dt>
+<dd><p>Crop an array.</p>
+<p>Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,
+in some cases, if an grain is near the edge of the image scan this results in requesting indexes outside of the
+existing image. In which case we get as much of the image padded as possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>npt.NDArray</em>) – 2D Numpy array to be cropped.</p></li>
+<li><p><strong>bounding_box</strong> (<em>Tuple</em>) – Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Padding to apply to bounding box.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cropped array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.dnatracing.pad_bounding_box">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.dnatracing.</span></span><span class="sig-name descname"><span class="pre">pad_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/dnatracing.html#pad_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.dnatracing.pad_bounding_box" title="Link to this definition">#</a></dt>
+<dd><p>Pad coordinates, if they extend beyond image boundaries stop at boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array_shape</strong> (<em>tuple</em>) – Shape of original image.</p></li>
+<li><p><strong>bounding_box</strong> (<em>list</em>) – List of coordinates ‘min_row’, ‘min_col’, ‘max_row’, ‘max_col’.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Cells to pad arrays by.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of padded coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../dnacurvature/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing.dnacurvature</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../skeletonize/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.tracing.skeletonize</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.LOGGER_NAME"><code class="docutils literal notranslate"><span class="pre">LOGGER_NAME</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.get_skeleton"><code class="docutils literal notranslate"><span class="pre">get_skeleton()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.getLocalPixelsBinary"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.getLocalPixelsBinary()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.countNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.countNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.getNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.getNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.countandGetNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.countandGetNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.returnPointsInArray"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.returnPointsInArray()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.makeGrid"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.makeGrid()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.findBestNextPoint"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.findBestNextPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.genTracingFuncs.checkVectorsCandidatePoints"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.checkVectorsCandidatePoints()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton.getDNAmolHeightStats"><code class="docutils literal notranslate"><span class="pre">getSkeleton.getDNAmolHeightStats()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton.doSkeletonising"><code class="docutils literal notranslate"><span class="pre">getSkeleton.doSkeletonising()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._doSkeletonisingIteration"><code class="docutils literal notranslate"><span class="pre">getSkeleton._doSkeletonisingIteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._deletePixelSubit1"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deletePixelSubit1()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._deletePixelSubit2"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deletePixelSubit2()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_a"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_b()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_c"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_c()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_d"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_d()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_csharp"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_csharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_dsharp"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_dsharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._checkHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._checkHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._checkWhichHeightPoints"><code class="docutils literal notranslate"><span class="pre">getSkeleton._checkWhichHeightPoints()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._initialiseHeightFindingDict"><code class="docutils literal notranslate"><span class="pre">getSkeleton._initialiseHeightFindingDict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getHorizontalLeftHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getHorizontalLeftHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getHorizontalRightHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getHorizontalRightHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getVerticalUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getVerticalUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getVerticalDonwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getVerticalDonwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolLeftUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolLeftDownwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolLeftDownwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolRightUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolRightUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._getDiaganolRightDownwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolRightDownwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._condemnPoint"><code class="docutils literal notranslate"><span class="pre">getSkeleton._condemnPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._identifyHighestPoint"><code class="docutils literal notranslate"><span class="pre">getSkeleton._identifyHighestPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton.finalSkeletonisationIteration"><code class="docutils literal notranslate"><span class="pre">getSkeleton.finalSkeletonisationIteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_a"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryFinalThinCheck_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryFinalThinCheck_b"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryFinalThinCheck_b()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._binaryThinCheck_b_returncount"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_b_returncount()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton.pruneSkeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton.pruneSkeleton()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._findBranchEnds"><code class="docutils literal notranslate"><span class="pre">getSkeleton._findBranchEnds()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.getSkeleton._deleteSquareEnds"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deleteSquareEnds()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace.linearTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.linearTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace.circularTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.circularTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace.circularTrace_old"><code class="docutils literal notranslate"><span class="pre">reorderTrace.circularTrace_old()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace.loopedCircularTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.loopedCircularTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.reorderTrace.loopedLinearTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.loopedLinearTrace()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.bound_padded_coordinates_to_image"><code class="docutils literal notranslate"><span class="pre">bound_padded_coordinates_to_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace"><code class="docutils literal notranslate"><span class="pre">dnaTrace</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.trace_dna"><code class="docutils literal notranslate"><span class="pre">dnaTrace.trace_dna()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.gaussian_filter"><code class="docutils literal notranslate"><span class="pre">dnaTrace.gaussian_filter()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_heights"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_ordered_trace_heights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_trace_cumulative_distances"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_ordered_trace_cumulative_distances()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.coord_dist"><code class="docutils literal notranslate"><span class="pre">dnaTrace.coord_dist()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_disordered_trace"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_disordered_trace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.linear_or_circular"><code class="docutils literal notranslate"><span class="pre">dnaTrace.linear_or_circular()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_ordered_traces"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_ordered_traces()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_fitted_traces"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_fitted_traces()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.remove_duplicate_consecutive_tuples"><code class="docutils literal notranslate"><span class="pre">dnaTrace.remove_duplicate_consecutive_tuples()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.get_splined_traces"><code class="docutils literal notranslate"><span class="pre">dnaTrace.get_splined_traces()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.show_traces"><code class="docutils literal notranslate"><span class="pre">dnaTrace.show_traces()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.saveTraceFigures"><code class="docutils literal notranslate"><span class="pre">dnaTrace.saveTraceFigures()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace._checkForSaveDirectory"><code class="docutils literal notranslate"><span class="pre">dnaTrace._checkForSaveDirectory()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.find_curvature"><code class="docutils literal notranslate"><span class="pre">dnaTrace.find_curvature()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.saveCurvature"><code class="docutils literal notranslate"><span class="pre">dnaTrace.saveCurvature()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.plotCurvature"><code class="docutils literal notranslate"><span class="pre">dnaTrace.plotCurvature()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.measure_contour_length"><code class="docutils literal notranslate"><span class="pre">dnaTrace.measure_contour_length()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.dnaTrace.measure_end_to_end_distance"><code class="docutils literal notranslate"><span class="pre">dnaTrace.measure_end_to_end_distance()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.trace_image"><code class="docutils literal notranslate"><span class="pre">trace_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.round_splined_traces"><code class="docutils literal notranslate"><span class="pre">round_splined_traces()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.trim_array"><code class="docutils literal notranslate"><span class="pre">trim_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.adjust_coordinates"><code class="docutils literal notranslate"><span class="pre">adjust_coordinates()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.trace_mask"><code class="docutils literal notranslate"><span class="pre">trace_mask()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.prep_arrays"><code class="docutils literal notranslate"><span class="pre">prep_arrays()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.grain_anchor"><code class="docutils literal notranslate"><span class="pre">grain_anchor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.trace_grain"><code class="docutils literal notranslate"><span class="pre">trace_grain()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.crop_array"><code class="docutils literal notranslate"><span class="pre">crop_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.dnatracing.pad_bounding_box"><code class="docutils literal notranslate"><span class="pre">pad_bounding_box()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../_sources/autoapi/topostats/tracing/dnatracing/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

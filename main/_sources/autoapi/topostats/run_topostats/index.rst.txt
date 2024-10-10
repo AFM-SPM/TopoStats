@@ -1,0 +1,1006 @@
+topostats.run_topostats
+=======================
+
+.. py:module:: topostats.run_topostats
+
+.. autoapi-nested-parse::
+
+   Run TopoStats.
+
+   This provides an entry point for running TopoStats as a command line programme.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.run_topostats.LOGGER_NAME
+   topostats.run_topostats.DEFAULT_CONFIG_SCHEMA
+   topostats.run_topostats.PLOTTING_SCHEMA
+   topostats.run_topostats.SUMMARY_SCHEMA
+   topostats.run_topostats.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.run_topostats.LoadScans
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.run_topostats.dict_to_json
+   topostats.run_topostats.find_files
+   topostats.run_topostats.read_yaml
+   topostats.run_topostats.save_folder_grainstats
+   topostats.run_topostats.write_yaml
+   topostats.run_topostats.toposum
+   topostats.run_topostats.check_run_steps
+   topostats.run_topostats.completion_message
+   topostats.run_topostats.process_scan
+   topostats.run_topostats.update_config
+   topostats.run_topostats.update_plotting_config
+   topostats.run_topostats.validate_config
+   topostats.run_topostats.run_topostats
+
+
+Module Contents
+---------------
+
+.. py:class:: LoadScans(img_paths: list[str | pathlib.Path], channel: str)
+
+   
+   Load the image and image parameters from a file path.
+
+   :param img_paths: Path to a valid AFM scan to load.
+   :type img_paths: list[str, Path]
+   :param channel: Image channel to extract from the scan.
+   :type channel: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: load_spm() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Extract image and pixel to nm scaling from the Bruker .spm file.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _spm_pixel_to_nm_scaling(channel_data: pySPM.SPM.SPM_image) -> float
+
+      
+      Extract pixel to nm scaling from the SPM image metadata.
+
+      :param channel_data: Channel data from PySPM.
+      :type channel_data: pySPM.SPM.SPM_image
+
+      :returns: Pixel to nm scaling factor.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_topostats() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Load a .topostats file (hdf5 format).
+
+      Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.
+
+      Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
+      all other file loading functions.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_asd() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Extract image and pixel to nm scaling from .asd files.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_ibw() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Load image from Asylum Research (Igor) .ibw files.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _ibw_pixel_to_nm_scaling(scan: dict) -> float
+
+      
+      Extract pixel to nm scaling from the IBW image metadata.
+
+      :param scan: The loaded binary wave object.
+      :type scan: dict
+
+      :returns: A value corresponding to the real length of a single pixel.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_jpk() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Load image from JPK Instruments .jpk files.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _jpk_pixel_to_nm_scaling(tiff_page: tifffile.tifffile.TiffPage) -> float
+      :staticmethod:
+
+
+      
+      Extract pixel to nm scaling from the JPK image metadata.
+
+      :param tiff_page: An image file directory (IFD) of .jpk files.
+      :type tiff_page: tifffile.tifffile.TiffPage
+
+      :returns: A value corresponding to the real length of a single pixel.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_read_object(open_file: io.TextIOWrapper, data_dict: dict) -> None
+      :staticmethod:
+
+
+      
+      Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+
+      :param open_file: An open file object.
+      :type open_file: io.TextIOWrapper
+      :param data_dict: Dictionary of `.gwy` file image properties.
+      :type data_dict: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int
+      :staticmethod:
+
+
+      
+      Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+
+      :param open_file: An open file object.
+      :type open_file: io.TextIOWrapper
+      :param initial_byte_pos: Initial position, as byte.
+      :type initial_byte_pos: int
+      :param data_dict: Dictionary of `.gwy` file image properties.
+      :type data_dict: dict
+
+      :returns: Size of the component in bytes.
+      :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_print_dict(gwy_file_dict: dict, pre_string: str) -> None
+      :staticmethod:
+
+
+      
+      Recursively print nested dictionary.
+
+      Can be used to find labels and values of objects / components in the `.gwy` file.
+
+      :param gwy_file_dict: Dictionary of the nested object / component structure of a `.gwy` file.
+      :type gwy_file_dict: dict
+      :param pre_string: Prefix to use when printing string.
+      :type pre_string: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_print_dict_wrapper(gwy_file_dict: dict) -> None
+      :staticmethod:
+
+
+      
+      Print dictionaries.
+
+      This is a wrapper for the _gwy_print_dict() method.
+
+      :param gwy_file_dict: Dictionary of the nested object / component structure of a `.gwy` file.
+      :type gwy_file_dict: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_get_channels(gwy_file_structure: dict) -> dict
+      :staticmethod:
+
+
+      
+      Extract a list of channels and their corresponding dictionary key ids from the `.gwy` file dictionary.
+
+      :param gwy_file_structure: Dictionary of the nested object / component structure of a `.gwy` file. Where the keys are object names
+                                 and the values are dictionaries of the object's components.
+      :type gwy_file_structure: dict
+
+      :returns: Dictionary where the keys are the channel names and the values are the dictionary key ids.
+      :rtype: dict
+
+      .. rubric:: Examples
+
+      # Using a loaded dictionary generated from a `.gwy` file:
+      LoadScans._gwy_get_channels(gwy_file_structure=loaded_gwy_file_dictionary)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_gwy() -> tuple[numpy.typing.NDArray, float]
+
+      
+      Extract image and pixel to nm scaling from the Gwyddion .gwy file.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple[npt.NDArray, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_data() -> None
+
+      
+      Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _check_image_size_and_add_to_dict(image: numpy.typing.NDArray, filename: str) -> None
+
+      
+      Check the image is above a minimum size in both dimensions.
+
+      Images that do not meet the minimum size are not included for processing.
+
+      :param image: An array of the extracted AFM image.
+      :type image: npt.NDArray
+      :param filename: The name of the file.
+      :type filename: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_to_dict(image: numpy.typing.NDArray, filename: str) -> None
+
+      
+      Add an image and metadata to the img_dict dictionary under the key filename.
+
+      Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+      scaling factor to the img_dict dictionary which is used as a place to store the image
+      information for processing.
+
+      :param image: An array of the extracted AFM image.
+      :type image: npt.NDArray
+      :param filename: The name of the file.
+      :type filename: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: dict_to_json(data: dict, output_dir: str | pathlib.Path, filename: str | pathlib.Path, indent: int = 4) -> None
+
+   
+   Write a dictionary to a JSON file at the specified location with the given name.
+
+   NB : The `NumpyEncoder` class is used as the default encoder to ensure Numpy dtypes are written as strings (they are
+        not serialisable to JSON using the default JSONEncoder).
+
+   :param data: Data as a dictionary that is to be written to file.
+   :type data: dict
+   :param output_dir: Directory the file is to be written to.
+   :type output_dir: str | Path
+   :param filename: Name of output file.
+   :type filename: str | Path
+   :param indent: Spaces to indent JSON with, default is 4.
+   :type indent: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_files(base_dir: str | pathlib.Path = None, file_ext: str = '.spm') -> list
+
+   
+   Recursively scan the specified directory for images with the given file extension.
+
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param file_ext: File extension to search for.
+   :type file_ext: str
+
+   :returns: List of files found with the extension in the given directory.
+   :rtype: List
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_yaml(filename: str | pathlib.Path) -> dict
+
+   
+   Read a YAML file.
+
+   :param filename: YAML file to read.
+   :type filename: Union[str, Path]
+
+   :returns: Dictionary of the file.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: save_folder_grainstats(output_dir: str | pathlib.Path, base_dir: str | pathlib.Path, all_stats_df: pandas.DataFrame) -> None
+
+   
+   Save a data frame of grain and tracing statistics at the folder level.
+
+   :param output_dir: Path of the output directory head.
+   :type output_dir: Union[str, Path]
+   :param base_dir: Path of the base directory where files were found.
+   :type base_dir: Union[str, Path]
+   :param all_stats_df: The dataframe containing all sample statistics run.
+   :type all_stats_df: pd.DataFrame
+
+   :returns: This only saves the dataframes and does not retain them.
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: write_yaml(config: dict, output_dir: str | pathlib.Path, config_file: str = 'config.yaml', header_message: str = None) -> None
+
+   
+   Write a configuration (stored as a dictionary) to a YAML file.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param output_dir: Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
+   :type output_dir: Union[str, Path]
+   :param config_file: Filename to write to.
+   :type config_file: str
+   :param header_message: String to write to the header message of the YAML file.
+   :type header_message: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER_NAME
+   :value: 'topostats'
+
+
+.. py:function:: toposum(config: dict) -> dict
+
+   
+   Process plotting and summarisation of data.
+
+   :param config: Dictionary of summarisation options.
+   :type config: dict
+
+   :returns:  Dictionary of nested dictionaries. Each variable has its own dictionary with keys 'dist' and 'violin' which
+              contain distribution like plots and violin plots respectively (if the later are required). Each 'dist' and
+             'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
+             'ax' for that plot.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None
+
+   
+   Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+   This checks that earlier steps required are enabled.
+
+   :param filter_run: Flag for running Filtering.
+   :type filter_run: bool
+   :param grains_run: Flag for running Grains.
+   :type grains_run: bool
+   :param grainstats_run: Flag for running GrainStats.
+   :type grainstats_run: bool
+   :param dnatracing_run: Flag for running DNA Tracing.
+   :type dnatracing_run: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None
+
+   
+   Print a completion message summarising images processed.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param img_files: List of found image paths.
+   :type img_files: list()
+   :param summary_config: Configuration for plotting summary statistics.
+   :type summary_config: dict(
+   :param images_processed: Pandas DataFrame of results.
+   :type images_processed: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process_scan(topostats_object: dict, base_dir: str | pathlib.Path, filter_config: dict, grains_config: dict, grainstats_config: dict, dnatracing_config: dict, plotting_config: dict, output_dir: str | pathlib.Path = 'output') -> tuple[dict, pandas.DataFrame, dict]
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param topostats_object: A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
+                            pixel to namometre scaling value.
+   :type topostats_object: dict[str, Union[np.ndarray, Path, float]]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param dnatracing_config: Dictionary of configuration options for running the DNA Tracing stage.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: Union[str, Path]
+
+   :returns: TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+             and dictionary containing general image statistics.
+   :rtype: tuple[dict, pd.DataFrame, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_config(config: dict, args: dict | argparse.Namespace) -> dict
+
+   
+   Update the configuration with any arguments.
+
+   :param config: Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>').
+   :type config: dict
+   :param args: Command line arguments.
+   :type args: Namespace
+
+   :returns: Dictionary updated with command arguments.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_plotting_config(plotting_config: dict) -> dict
+
+   
+   Update the plotting config for each of the plots in plot_dict.
+
+   Ensures that each entry has all the plotting configuration values that are needed.
+
+   :param plotting_config: Plotting configuration to be updated.
+   :type plotting_config: dict
+
+   :returns: Updated plotting configuration.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: DEFAULT_CONFIG_SCHEMA
+
+.. py:data:: PLOTTING_SCHEMA
+
+.. py:data:: SUMMARY_SCHEMA
+
+.. py:function:: validate_config(config: dict, schema: schema.Schema, config_type: str) -> None
+
+   
+   Validate configuration.
+
+   :param config: Config dictionary imported by read_yaml() and parsed through clean_config().
+   :type config: dict
+   :param schema: A schema against which the configuration is to be compared.
+   :type schema: Schema
+   :param config_type: Description of of configuration being validated.
+   :type config_type: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER
+
+.. py:function:: run_topostats(args: None = None) -> None
+
+   
+   Find and process all files.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
