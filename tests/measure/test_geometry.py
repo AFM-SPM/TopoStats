@@ -201,7 +201,7 @@ def test_calculate_shortest_branch_distances(
 ) -> None:
     """Test the calculate_shortest_branch_distances function."""
     # Load fixtures
-    nodes_with_branches_starting_coords = request.getfixturevalue(nodes_with_branches_starting_coords)
+    whole_skeleton_graph = request.getfixturevalue(whole_skeleton_graph)
 
     shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates = (
         calculate_shortest_branch_distances(nodes_with_branches_starting_coords, whole_skeleton_graph)
