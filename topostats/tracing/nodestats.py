@@ -1571,7 +1571,9 @@ class nodeStats:
             trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = nodeStats.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
-            dist, height_trace = nodeStats.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
+            dist, height_trace = nodeStats.average_uniques(
+                dist, height_trace
+            )  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point  # - 0
@@ -1812,9 +1814,7 @@ class nodeStats:
             return None
 
     def compile_metrics(self) -> None:
-        """
-        Add the number of crossings, average and minimum crossing confidence to the metrics dictionary.
-        """
+        """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
         self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
         self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dicts)
         self.metrics["min_crossing_confidence"] = nodeStats.minimum_crossing_confs(self.node_dicts)
