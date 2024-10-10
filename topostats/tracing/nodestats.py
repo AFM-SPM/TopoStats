@@ -1571,9 +1571,7 @@ class nodeStats:
             trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = nodeStats.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
-            dist, height_trace = nodeStats.average_uniques(
-                dist, height_trace
-            )  # needs to be paired with coord_dist_rad
+            dist, height_trace = nodeStats.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point  # - 0
