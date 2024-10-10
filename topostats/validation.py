@@ -817,6 +817,25 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
+        "removed_objects_too_small_to_process": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'removed_objects_too_small_to_process.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
         "mask_overlay": {
             "title": str,
             "image_type": Or(
