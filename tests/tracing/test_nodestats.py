@@ -9,7 +9,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import pytest
-from pytest_lazyfixture import lazy_fixture
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
@@ -333,7 +332,7 @@ def test_add_branches_to_labelled_image(
             np.array([np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])]),
             110.34720989566988,
             "catenane_node_0_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (np.int32(280), np.int32(353)),
             True,
@@ -374,8 +373,12 @@ def test_analyse_node_branches(
     expected_branch_under_over_order: npt.NDArray[np.int32],
     expected_conf: float,
     expected_singlet_branch_vectors: list[npt.NDArray[np.int32]],
+    request,
 ) -> None:
     """Test of analyse_node_branches() method of nodeStats class."""
+    # Load the fixtures
+    image = request.getfixturevalue(image)
+
     # Load the reduced node area
     reduced_node_area = np.load(GENERAL_RESOURCES / f"{reduced_node_area_filename}")
 
@@ -442,7 +445,7 @@ def test_analyse_node_branches(
             np.array([[1, 3], [2, 0]]),
             "catenane_node_0_ordered_branches.pkl",
             "catenane_node_0_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (280, 353),
             "catenane_test_image",
@@ -454,7 +457,7 @@ def test_analyse_node_branches(
             np.array([[0, 3], [2, 1]]),
             "catenane_node_1_ordered_branches.pkl",
             "catenane_node_1_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (312, 237),
             "catenane_test_image",
@@ -466,7 +469,7 @@ def test_analyse_node_branches(
             np.array([[3, 1], [0, 2]]),
             "catenane_node_2_ordered_branches.pkl",
             "catenane_node_2_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (407, 438),
             "catenane_test_image",
@@ -478,7 +481,7 @@ def test_analyse_node_branches(
             np.array([[1, 3], [2, 0]]),
             "catenane_node_3_ordered_branches.pkl",
             "catenane_node_3_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (451, 224),
             "catenane_test_image",
@@ -490,7 +493,7 @@ def test_analyse_node_branches(
             np.array([[1, 3], [2, 0]]),
             "catenane_node_4_ordered_branches.pkl",
             "catenane_node_4_reduced_skeleton_graph.pkl",
-            lazy_fixture("catenane_image"),
+            "catenane_image",
             True,
             (558, 194),
             "catenane_test_image",
@@ -510,8 +513,12 @@ def test_join_matching_branches_through_node(
     filename: str,
     expected_matched_branches_filename: str,
     expected_masked_image_filename: str,
+    request,
 ) -> None:
     """Test of join_matching_branches_through_node() method of nodeStats class."""
+    # Load the fixtures
+    image = request.getfixturevalue(image)
+
     # Load the ordered branches
     with Path(GENERAL_RESOURCES / f"{ordered_branches_filename}").open("rb") as f:
         ordered_branches = pickle.load(f)
