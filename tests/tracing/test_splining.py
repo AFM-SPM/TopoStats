@@ -11,7 +11,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.tracing.splining import splining_image, windowTrace
+from topostats.tracing.splining import splineTrace, splining_image, windowTrace
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
@@ -85,6 +85,27 @@ def plot_spline_debugging(
                 )
                 previous_point = point
     plt.show()
+
+
+@pytest.mark.parametrize(
+    ("tuple_list", "expected_result"),
+    [
+        (
+            [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
+            [(1, 2, 3)],
+        ),
+        (
+            [(1, 2, 3), (1, 2, 3), (4, 5, 6), (4, 5, 6), (7, 8, 9), (10, 11, 12), (10, 11, 12)],
+            [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12)],
+        ),
+        ([np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3))], [(1, 2, 3)]),
+    ],
+)
+def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_result: list[tuple]) -> None:
+    """Test the remove_duplicate_consecutive_tuples function of dnatracing.py."""
+    result = splineTrace.remove_duplicate_consecutive_tuples(tuple_list)
+
+    np.testing.assert_array_equal(result, expected_result)
 
 
 @pytest.mark.parametrize(
