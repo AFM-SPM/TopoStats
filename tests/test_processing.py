@@ -733,7 +733,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(grainstats_df, pd.DataFrame)
     assert grainstats_df.shape[0] == 13
-    assert len(grainstats_df.columns) == 21
+    assert len(grainstats_df.columns) == 22
 
 
 # ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to
