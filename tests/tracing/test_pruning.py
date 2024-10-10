@@ -2778,9 +2778,7 @@ def test_local_area_sum(
         ),
     ],
 )
-def test_local_area_sum_value_error(
-    img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError
-) -> None:
+def test_local_area_sum_value_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError) -> None:
     """Test local_area_sum() function raises error if non-binary array is passed."""
     with pytest.raises(exception):
         local_area_sum(img, point)
@@ -2827,9 +2825,7 @@ def test_local_area_sum_value_error(
         ),
     ],
 )
-def test_local_area_sum_index_error(
-    img: npt.NDArray, point: list | tuple | npt.NDArray, exception: IndexError
-) -> None:
+def test_local_area_sum_index_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: IndexError) -> None:
     """Test local_area_sum() function raises error if point is on edge of array."""
     with pytest.raises(exception):
         local_area_sum(img, point)
