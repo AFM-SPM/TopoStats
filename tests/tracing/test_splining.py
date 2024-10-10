@@ -102,7 +102,7 @@ def plot_spline_debugging(
     ],
 )
 def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_result: list[tuple]) -> None:
-    """Test the remove_duplicate_consecutive_tuples function of dnatracing.py."""
+    """Test the remove_duplicate_consecutive_tuples function of splining.py."""
     result = splineTrace.remove_duplicate_consecutive_tuples(tuple_list)
 
     np.testing.assert_array_equal(result, expected_result)
@@ -161,7 +161,7 @@ def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_r
         ),
     ],
 )
-def test_splining_image(
+def test_splining_image(  # pylint: disable=too-many-positional-arguments
     image_filename: str,
     ordered_tracing_direction_data_filename: str,
     pixel_to_nm_scaling: float,

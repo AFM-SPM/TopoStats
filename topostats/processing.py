@@ -182,7 +182,7 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping following steps.")
             LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():

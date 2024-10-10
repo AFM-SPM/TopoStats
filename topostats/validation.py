@@ -265,7 +265,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'nodestats.run', valid values are 'True' or 'False'",
             ),
             "node_joining_length": float,
             "node_extend_dist": float,

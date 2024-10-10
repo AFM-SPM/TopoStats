@@ -190,11 +190,7 @@ exclude = [
   "docs/conf.py",
   "node_modules",
   "tests/tracing/test_dnacurvature.py",
-  "tests/tracing/test_dnatracing.py",
-  "tests/tracing/test_tracing_dna.py",
   "topostats/plotting.py",
-  "topostats/tracing/dnatracing.py",
-  "topostats/tracing/tracing_dna.py",
   "topostats/tracing/tracingfuncs.py",
   "venv",
 ]
