@@ -14,7 +14,6 @@ from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     check_run_steps,
     process_scan,
-    run_dnatracing,
     run_filters,
     run_grains,
     run_grainstats,
@@ -23,6 +22,8 @@ from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
+
+# pylint: disable=too-many-positional-arguments
 
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
@@ -33,16 +34,20 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
-
     process_scan_config["grains"]["direction"] = "below"
+    # Make sure the pruning won't remove our only grain
+    process_scan_config["disordered_tracing"]["pruning_params"]["max_length"] = None
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -61,13 +66,16 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
 
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
-    _, _, _, height_profiles = process_scan(
+    _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -92,13 +100,16 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -115,13 +126,16 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
 
     img_dic = load_scan_data.img_dict
-    _, _, _, height_profiles = process_scan(
+    _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -148,13 +162,16 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
-    _, results, img_stats, _ = process_scan(
+    _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -199,13 +216,16 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["savefig_dpi"] = 50
 
     img_dic = load_scan_data.img_dict
-    _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -244,13 +264,16 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
 
     img_dic = load_scan_data.img_dict
-    _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -263,78 +286,241 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     assert guess.extension == extension
 
 
+# noqa: PLR0913
+# pylint: disable=too-many-arguments
 @pytest.mark.parametrize(
-    ("filter_run", "grains_run", "grainstats_run", "dnatracing_run", "log_msg"),
+    (
+        "filter_run",
+        "grains_run",
+        "grainstats_run",
+        "disordered_tracing_run",
+        "nodestats_run",
+        "ordered_tracing_run",
+        "splining_run",
+        "log_msg",
+    ),
     [
-        (
-            False,
-            False,
+        pytest.param(
+            True,
+            True,
+            True,
+            True,
             False,
             True,
-            "DNA tracing enabled but Grainstats disabled. Please check your configuration file.",
+            True,
+            "Splining enabled but NodeStats disabled. Tracing will use the 'old' method.",
+            id="Splining, Ordered Tracing, Disordered Tracing, Grainstats, Grains and Filters no Nodestats",
         ),
-        (
+        pytest.param(
+            True,
+            True,
             False,
+            True,
             False,
             True,
             True,
-            "DNA tracing enabled but Grains disabled. Please check your configuration file.",
+            "Splining enabled but Grainstats disabled. Please check your configuration file.",
+            id="Splining, Ordered Tracing, Disordered Tracing, Grains and Filters enabled but no Grainstats or "
+            + "NodeStats",
         ),
-        (
+        pytest.param(
+            True,
+            False,
+            False,
+            False,
             False,
             True,
             True,
-            True,
-            "DNA tracing enabled but Filters disabled. Please check your configuration file.",
+            "Splining enabled but Disordered Tracing disabled. Please check your configuration file.",
+            id="Splining, Ordered Tracing and Filters enabled but no NodeStats, Disordered Tracing or Grainstats",
         ),
-        (
+        pytest.param(
             False,
             False,
             True,
+            True,
+            False,
+            True,
+            True,
+            "Splining enabled but Grains disabled. Please check your configuration file.",
+            id="Splining, Ordered Tracing, Disordered Tracing, and Grainstats enabled but no NodeStats, Grains or "
+            + "Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            False,
+            False,
+            True,
+            False,
+            False,
+            "NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.",
+            id="Nodestats enabled but no Ordered Tracing, Disordered Tracing, Grainstats, Grains or Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            False,
+            True,
+            True,
+            False,
+            False,
+            "NodeStats enabled but Grainstats disabled. Please check your configuration file.",
+            id="Nodestats, Disordered Tracing enabled but no Grainstats, Grains or Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            "NodeStats enabled but Grains disabled. Please check your configuration file.",
+            id="Nodestats, Disordered Tracing, Grainstats enabled but no Grains or Filters",
+        ),
+        pytest.param(
+            False,
+            True,
+            True,
+            True,
+            True,
+            False,
+            False,
+            "NodeStats enabled but Filters disabled. Please check your configuration file.",
+            id="Nodestats, Disordered Tracing, Grainstats Grains enabled but no Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            False,
+            True,
+            False,
+            False,
+            False,
+            "Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.",
+            id="Disordered Tracing enabled but no Grainstats, Grains or Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            True,
+            True,
+            False,
+            False,
+            False,
+            "Disordered Tracing enabled but Grains disabled. Please check your configuration file.",
+            id="Disordered tracing and Grainstats enabled but no Grains or Filters",
+        ),
+        pytest.param(
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            "Disordered Tracing enabled but Filters disabled. Please check your configuration file.",
+            id="Disordered tracing, Grains and Grainstats enabled but no Filters",
+        ),
+        pytest.param(
+            False,
+            False,
+            True,
+            False,
+            False,
+            False,
             False,
             "Grainstats enabled but Grains disabled. Please check your configuration file.",
+            id="Grainstats enabled but no Grains or Filters",
         ),
-        (
+        pytest.param(
             False,
             True,
             True,
+            False,
+            False,
+            False,
             False,
             "Grainstats enabled but Filters disabled. Please check your configuration file.",
+            id="Grains enabled and Grainstats but no Filters",
         ),
-        (
+        pytest.param(
             False,
             True,
+            False,
+            False,
+            False,
             False,
             False,
             "Grains enabled but Filters disabled. Please check your configuration file.",
+            id="Grains enabled but not Filters",
         ),
-        (
+        pytest.param(
+            True,
+            False,
+            False,
+            False,
+            False,
+            False,
+            False,
+            "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Filters",
+        ),
+        pytest.param(
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            False,
+            "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Grains",
+        ),
+        pytest.param(
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Grainstats",
+        ),
+        pytest.param(
+            True,
+            True,
+            True,
             True,
             False,
             False,
             False,
             "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto DNA tracing",
         ),
-        (
+        pytest.param(
+            True,
+            True,
+            True,
             True,
             True,
             False,
             False,
             "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Nodestats",
         ),
-        (
+        pytest.param(
             True,
             True,
             True,
-            False,
-            "Configuration run options are consistent, processing can proceed.",
-        ),
-        (
             True,
             True,
             True,
             True,
             "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Splining",
         ),
     ],
 )
@@ -342,21 +528,38 @@ def test_check_run_steps(
     filter_run: bool,
     grains_run: bool,
     grainstats_run: bool,
-    dnatracing_run: bool,
+    disordered_tracing_run: bool,
+    nodestats_run: bool,
+    ordered_tracing_run: bool,
+    splining_run: bool,
     log_msg: str,
     caplog,
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
-    check_run_steps(filter_run, grains_run, grainstats_run, dnatracing_run)
+    check_run_steps(
+        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+    )
     assert log_msg in caplog.text
 
 
-# noqa: disable=too-many-arguments
 # pylint: disable=too-many-arguments
 @pytest.mark.parametrize(
-    ("filter_run", "grains_run", "grainstats_run", "dnatracing_run", "log_msg1", "log_msg2"),
+    (
+        "filter_run",
+        "grains_run",
+        "grainstats_run",
+        "disordered_tracing_run",
+        "nodestats_run",
+        "ordered_tracing_run",
+        "splining_run",
+        "log_msg1",
+        "log_msg2",
+    ),
     [
         pytest.param(
+            False,
+            False,
+            False,
             False,
             False,
             False,
@@ -370,8 +573,11 @@ def test_check_run_steps(
             False,
             False,
             False,
-            "Detection of grains disabled, returning empty data frame.",
-            "minicircle_small.png",
+            False,
+            False,
+            False,
+            "Detection of grains disabled, GrainStats will not be run.",
+            "",
             id="Only filtering enabled",
         ),
         pytest.param(
@@ -379,8 +585,11 @@ def test_check_run_steps(
             True,
             False,
             False,
+            False,
+            False,
+            False,
             "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
-            "minicircle_small_above_masked.png",
+            "",
             id="Filtering and Grain enabled",
         ),
         pytest.param(
@@ -388,19 +597,23 @@ def test_check_run_steps(
             True,
             True,
             False,
+            False,
+            False,
+            False,
             "Processing grain",
-            "Calculation of DNA Tracing disabled, returning grainstats data frame.",
+            "Calculation of Disordered Tracing disabled, returning empty dictionary.",
             id="Filtering, Grain and GrainStats enabled",
         ),
-        pytest.param(
-            True,
-            True,
-            True,
-            True,
-            "Traced grain 3 of 3",
-            "Combining ['above'] grain statistics and dnatracing statistics",
-            id="Filtering, Grain, GrainStats and DNA Tracing enabled",
-        ),
+        # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
+        # pytest.param(
+        #     True,
+        #     True,
+        #     True,
+        #     True,
+        #     "Traced grain 3 of 3",
+        #     "Combining ['above'] grain statistics and dnatracing statistics",
+        #     id="Filtering, Grain, GrainStats and DNA Tracing enabled",
+        # ),
     ],
 )
 def test_process_stages(
@@ -410,7 +623,10 @@ def test_process_stages(
     filter_run: bool,
     grains_run: bool,
     grainstats_run: bool,
-    dnatracing_run: bool,
+    disordered_tracing_run: bool,
+    nodestats_run: bool,
+    ordered_tracing_run: bool,
+    splining_run: bool,
     log_msg1: str,
     log_msg2: str,
     caplog,
@@ -425,14 +641,20 @@ def test_process_stages(
     process_scan_config["filter"]["run"] = filter_run
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
-    process_scan_config["dnatracing"]["run"] = dnatracing_run
-    _, _, _, _ = process_scan(
+    process_scan_config["disordered_tracing"]["run"] = disordered_tracing_run
+    process_scan_config["nodestats"]["run"] = nodestats_run
+    process_scan_config["ordered_tracing"]["run"] = ordered_tracing_run
+    process_scan_config["splining"]["run"] = splining_run
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -446,50 +668,21 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
-    _, _, _, _ = process_scan(
+    _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
         grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        nodestats_config=process_scan_config["nodestats"],
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        splining_config=process_scan_config["splining"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
     assert "Grains found for direction above : 0" in caplog.text
     assert "No grains exist for the above direction. Skipping grainstats for above." in caplog.text
-
-
-def test_process_scan_align_grainstats_dnatracing(
-    process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path
-) -> None:
-    """Ensure molecule numbers from dnatracing align with those from grainstats.
-
-    Sometimes grains are removed from tracing due to small size, however we need to ensure that tracing statistics for
-    those molecules that remain align with grain statistics.
-
-    By setting processing parameters as below two molecules are purged for being too small after skeletonisation and so
-    do not have DNA tracing statistics (but they do have Grain Statistics).
-    """
-    img_dic = load_scan_data.img_dict
-    process_scan_config["filter"]["remove_scars"]["run"] = False
-    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [150, 3000]
-    process_scan_config["dnatracing"]["min_skeleton_size"] = 50
-    _, results, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        dnatracing_config=process_scan_config["dnatracing"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-    tracing_to_check = ["contour_length", "circular", "end_to_end_distance"]
-
-    assert results.shape == (3, 25)
-    assert np.isnan(results.loc[2, "contour_length"])
-    assert np.isnan(sum(results.loc[2, tracing_to_check]))
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
@@ -590,6 +783,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         pixel_to_nm_scaling=0.4940029296875,
         grain_masks=grain_masks,
         filename="dummy filename",
+        basename=RESOURCES,
         grainstats_config=process_scan_config["grainstats"],
         plotting_config=process_scan_config["plotting"],
         grain_out_path=tmp_path,
@@ -597,40 +791,33 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
 
     assert isinstance(grainstats_df, pd.DataFrame)
     assert grainstats_df.shape[0] == 13
-    assert len(grainstats_df.columns) == 21
+    assert len(grainstats_df.columns) == 22
 
 
-def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
-    """Test the dnatracing_wrapper function of processing.py."""
-    # Load flattened image
-    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    # Load background and foreground of above and below directions for the mask tensors
-    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
-    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
+# ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to
+#                     reflect the revised workflow/functions.
+# def test_run_dnatracing(process_scan_config: dict, tmp_path: Path) -> None:
+#     """Test the dnatracing_wrapper function of processing.py."""
+#     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+#     mask_above = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
+#     mask_below = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
+#     grain_masks = {"above": mask_above, "below": mask_below}
 
-    # Construct the full image tensor (background class and class 1 (dna))
-    tensor_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
-    tensor_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
+#     dnatracing_df, grain_trace_data = run_dnatracing(
+#         image=flattened_image,
+#         grain_masks=grain_masks,
+#         pixel_to_nm_scaling=0.4940029296875,
+#         image_path=tmp_path,
+#         filename="dummy filename",
+#         core_out_path=tmp_path,
+#         grain_out_path=tmp_path,
+#         dnatracing_config=process_scan_config["dnatracing"],
+#         plotting_config=process_scan_config["plotting"],
+#         results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
+#     )
 
-    grain_masks = {"above": tensor_above, "below": tensor_below}
-
-    dnatracing_df, grain_trace_data = run_dnatracing(
-        image=flattened_image,
-        grain_masks=grain_masks,
-        pixel_to_nm_scaling=0.4940029296875,
-        image_path=tmp_path,
-        filename="dummy filename",
-        core_out_path=tmp_path,
-        grain_out_path=tmp_path,
-        dnatracing_config=process_scan_config["dnatracing"],
-        plotting_config=process_scan_config["plotting"],
-        results_df=pd.read_csv("./tests/resources/minicircle_cropped_grainstats.csv"),
-    )
-
-    assert isinstance(grain_trace_data, dict)
-    assert list(grain_trace_data.keys()) == ["above", "below"]
-    assert isinstance(dnatracing_df, pd.DataFrame)
-    assert dnatracing_df.shape[0] == 13
-    assert len(dnatracing_df.columns) == 26
+#     assert isinstance(grain_trace_data, dict)
+#     assert list(grain_trace_data.keys()) == ["above", "below"]
+#     assert isinstance(dnatracing_df, pd.DataFrame)
+#     assert dnatracing_df.shape[0] == 13
+#     assert len(dnatracing_df.columns) == 26

@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 import yaml
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -18,6 +19,7 @@ import seaborn as sns
 from topostats.io import read_yaml, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import update_config
+from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -77,7 +79,7 @@ class TopoSum:
         base_dir: str | Path = None,
         csv_file: str | Path = None,
         stat_to_sum: str = None,
-        molecule_id: str = "molecule_number",
+        molecule_id: str = "grain_number",
         image_id: str = "image",
         hist: bool = True,
         stat: str = "count",
@@ -305,7 +307,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         pd.DataFrame
             Data in long-format with descriptive variable names.
         """
-        melted_data = pd.melt(df.reset_index(), id_vars=["molecule_number", "basename"], value_vars=stat_to_summarize)
+        melted_data = pd.melt(df.reset_index(), id_vars=["grain_number", "basename"], value_vars=stat_to_summarize)
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
         LOGGER.info("[plotting] Data has been melted to long format for plotting.")
 
@@ -469,6 +471,71 @@ def run_toposum(args=None) -> None:
 
     # Plot statistics
     toposum(config)
+
+
+def plot_crossing_linetrace_halfmax(
+    branch_stats_dict: dict, mask_cmap: matplotlib.colors.Colormap, title: str
+) -> tuple:
+    """
+    Plot the height-map line traces of the branches found in the 'branch_stats' dictionary, and their meetings.
+
+    Parameters
+    ----------
+    branch_stats_dict : dict
+        Dictionary containing branch height, distance and fwhm info.
+    mask_cmap : matplotlib.colors.Colormap
+        Colormap for plotting.
+    title : str
+        Title for the plot.
+
+    Returns
+    -------
+    fig, ax
+       Matplotlib fig and ax objects.
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(7, 4))
+    cmp = Colormap(mask_cmap).get_cmap()
+    total_branches = len(branch_stats_dict)
+    # plot the highest first
+    fwhms = []
+    for branch_idx, values in branch_stats_dict.items():
+        fwhms.append(values["fwhm"]["fwhm"])
+    branch_idx_order = np.array(list(branch_stats_dict.keys()))[np.argsort(np.array(fwhms))]
+
+    for i, branch_idx in enumerate(branch_idx_order):
+        fwhm_dict = branch_stats_dict[branch_idx]["fwhm"]
+        if total_branches == 1:
+            cmap_ratio = 0
+        else:
+            cmap_ratio = i / (total_branches - 1)
+        heights = branch_stats_dict[branch_idx]["heights"]
+        x = branch_stats_dict[branch_idx]["distances"]
+        ax.plot(x, heights, c=cmp(cmap_ratio))  # label=f"Branch: {branch_idx}"
+
+        # plot the high point lines
+        plt.plot(
+            [-15, fwhm_dict["peaks"][1]],
+            [fwhm_dict["peaks"][2], fwhm_dict["peaks"][2]],
+            c=cmp(cmap_ratio),
+            label=f"FWHM: {fwhm_dict['fwhm']:.4f}",
+        )
+        # plot the half max lines
+        plt.plot(
+            [fwhm_dict["half_maxs"][0], fwhm_dict["half_maxs"][0]],
+            [fwhm_dict["half_maxs"][2], heights.min()],
+            c=cmp(cmap_ratio),
+        )
+        plt.plot(
+            [fwhm_dict["half_maxs"][1], fwhm_dict["half_maxs"][1]],
+            [fwhm_dict["half_maxs"][2], heights.min()],
+            c=cmp(cmap_ratio),
+        )
+
+    ax.set_xlabel("Distance from Node (nm)")
+    ax.set_ylabel("Height")
+    ax.set_title(title)
+    ax.legend()
+    return fig, ax
 
 
 def plot_height_profiles(height_profiles: list | npt.NDArray) -> tuple:

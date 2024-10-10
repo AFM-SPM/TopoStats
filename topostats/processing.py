@@ -6,6 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from topostats import __version__
@@ -14,38 +15,45 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
-from topostats.tracing.dnatracing import trace_image
+from topostats.tracing.disordered_tracing import trace_image_disordered
+from topostats.tracing.nodestats import nodestats_image
+from topostats.tracing.ordered_tracing import ordered_tracing_image
+from topostats.tracing.splining import splining_image
 from topostats.utils import create_empty_dataframe
 
 # pylint: disable=broad-except
 # pylint: disable=line-too-long
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-branches
+# pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
+# pylint: disable=too-many-lines
 
 LOGGER = setup_logger(LOGGER_NAME)
 
 
 def run_filters(
-    unprocessed_image: np.ndarray,
+    unprocessed_image: npt.NDArray,
     pixel_to_nm_scaling: float,
     filename: str,
     filter_out_path: Path,
     core_out_path: Path,
     filter_config: dict,
     plotting_config: dict,
-) -> np.ndarray | None:
+) -> npt.NDArray | None:
     """
     Filter and flatten an image. Optionally plots the results, returning the flattened image.
 
     Parameters
     ----------
-    unprocessed_image : np.ndarray
+    unprocessed_image : npt.NDArray
         Image to be flattened.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
@@ -63,7 +71,7 @@ def run_filters(
 
     Returns
     -------
-    Union[np.ndarray, None]
+    npt.NDArray | None
         Either a numpy array of the flattened image, or None if an error occurs or
         flattening is disabled in the configuration.
     """
@@ -120,20 +128,20 @@ def run_filters(
 
 
 def run_grains(  # noqa: C901
-    image: np.ndarray,
+    image: npt.NDArray,
     pixel_to_nm_scaling: float,
     filename: str,
     grain_out_path: Path,
     core_out_path: Path,
     plotting_config: dict,
     grains_config: dict,
-):
+) -> dict | None:
     """
     Identify grains (molecules) and optionally plots the results.
 
     Parameters
     ----------
-    image : np.ndarray
+    image : npt.NDArray
         2d numpy array image to find grains in.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
@@ -150,7 +158,7 @@ def run_grains(  # noqa: C901
 
     Returns
     -------
-    Union[dict, None]
+    dict | None
         Either None in the case of error or grain finding being disabled or a dictionary
         with keys of "above" and or "below" containing binary masks depicting where grains
         have been detected.
@@ -174,7 +182,7 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping following steps.")
             LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():
@@ -196,7 +204,9 @@ def run_grains(  # noqa: C901
                             array = array[:, :, 1]
                         LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                        Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
+                        Images(
+                            data=np.zeros_like(array), masked_array=array, **plotting_config["plot_dict"][plot_name]
+                        ).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
                     Images(
@@ -207,7 +217,8 @@ def run_grains(  # noqa: C901
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     # hard code to class index 1, as this implementation is not yet generalised.
                     Images(
-                        grains.directions[direction]["labelled_regions_02"][:, :, 1],
+                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"][:, :, 1]),
+                        masked_array=grains.directions[direction]["labelled_regions_02"][:, :, 1],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
@@ -218,7 +229,7 @@ def run_grains(  # noqa: C901
                     Images(
                         image,
                         filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1],
+                        masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1].astype(bool),
                         **plotting_config["plot_dict"][plot_name],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
@@ -236,16 +247,17 @@ def run_grains(  # noqa: C901
             return grain_masks
 
     # Otherwise, return None and warn grainstats is disabled
-    LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
+    LOGGER.info(f"[{filename}] Detection of grains disabled, GrainStats will not be run.")
 
     return None
 
 
 def run_grainstats(
-    image: np.ndarray,
+    image: npt.NDArray,
     pixel_to_nm_scaling: float,
     grain_masks: dict,
     filename: str,
+    basename: Path,
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
@@ -255,7 +267,7 @@ def run_grainstats(
 
     Parameters
     ----------
-    image : np.ndarray
+    image : npt.NDArray
         2D numpy array image for grain statistics calculations.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
@@ -265,6 +277,8 @@ def run_grainstats(
         boolean arrays indicating the pixels that have been masked as grains.
     filename : str
         Name of the image.
+    basename : Path
+        Path to directory containing the image.
     grainstats_config : dict
         Dictionary of configuration for the GrainStats class to be used when initialised.
     plotting_config : dict
@@ -348,6 +362,7 @@ def run_grainstats(
                 raise ValueError(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
+            grainstats_df["basename"] = basename.parent
 
             return grainstats_df, height_profiles_dict
 
@@ -363,157 +378,509 @@ def run_grainstats(
         return create_empty_dataframe(), {}
 
 
-def run_dnatracing(  # noqa: C901
-    image: np.ndarray,
+def run_disordered_trace(
+    image: npt.NDArray,
     grain_masks: dict,
     pixel_to_nm_scaling: float,
-    image_path: Path,
     filename: str,
+    basename: str,
     core_out_path: Path,
-    grain_out_path: Path,
-    dnatracing_config: dict,
+    tracing_out_path: Path,
+    disordered_tracing_config: dict,
     plotting_config: dict,
-    results_df: pd.DataFrame = None,
-):
+    grainstats_df: pd.DataFrame = None,
+) -> dict:
     """
-    Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
+    Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
 
     Parameters
     ----------
-    image : np.ndarray
-        Image containing the DNA to pass to the dna tracing function.
+    image : npt.ndarray
+        Image containing the grains to pass to the tracing function.
     grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
-        boolean arrays indicating the pixels that have been masked as grains.
+        Dictionary of grain masks, keys "above" or "below" with values of 2D Numpy boolean arrays indicating the pixels
+        that have been masked as grains.
     pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    image_path : Path
-        Path to the image file. Used for DataFrame indexing.
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
     filename : str
         Name of the image.
+    basename : Path
+        Path to directory containing the image.
     core_out_path : Path
-        General output directory for outputs such as the grain statistics
-        DataFrame.
-    grain_out_path : Path
-        Directory to save optional dna tracing visual information to.
-    dnatracing_config : dict
-        Dictionary configuration for the dna tracing function.
+        Path to save the core disordered trace image to.
+    tracing_out_path : Path
+        Path to save the optional, diagnostic disordered trace images to.
+    disordered_tracing_config : dict
+        Dictionary configuration for obtaining a disordered trace representation of the grains.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    results_df : pd.DataFrame
-        Pandas DataFrame containing grain statistics.
+    grainstats_df : pd.DataFrame, optional
+        The grain statistics dataframe to be added to. by default None.
 
     Returns
     -------
-    pd.DataFrame
-        Pandas DataFrame containing grain statistics and dna tracing statistics.
-        Keys are file path and molecule number.
+    dict
+        Dictionary of "grain_<index>" keys and Nx2 coordinate arrays of the disordered grain trace.
     """
-    # Create empty dataframe is none is passed
-    if results_df is None:
-        results_df = create_empty_dataframe()
-
-    # Run dnatracing
-    try:
-        grain_trace_data = None
-        if dnatracing_config["run"]:
-            dnatracing_config.pop("run")
-            LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-            tracing_stats = defaultdict()
-            grain_trace_data = defaultdict()
+    if disordered_tracing_config["run"]:
+        disordered_tracing_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
+        disordered_traces = defaultdict()
+        disordered_trace_grainstats = pd.DataFrame()
+        disordered_tracing_stats_image = pd.DataFrame()
+        try:
+            # run image using directional grain masks
             for direction, _ in grain_masks.items():
-                # Get the DNA class mask from the tensor
-                LOGGER.info(f"[{filename}] : Mask dimensions: {grain_masks[direction].shape}")
+                # Check if there are grains
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
                 dna_class_mask = grain_masks[direction][:, :, 1]
-                LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
+                if np.max(dna_class_mask) == 0:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                    )
+                    raise ValueError(f"No grains exist for the {direction} direction")
 
-                tracing_results = trace_image(
+                # if grains are found
+                (
+                    disordered_traces_cropped_data,
+                    _disordered_trace_grainstats,
+                    disordered_tracing_images,
+                    disordered_tracing_stats,
+                ) = trace_image_disordered(
                     image=image,
                     grains_mask=dna_class_mask,
                     filename=filename,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **dnatracing_config,
+                    **disordered_tracing_config,
                 )
-                tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["all_ordered_traces"]
-                cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
-                image_spline_trace = tracing_results["image_spline_trace"]
-                tracing_stats[direction]["threshold"] = direction
+                # save per image new grainstats stats
+                _disordered_trace_grainstats["threshold"] = direction
+                disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
 
-                grain_trace_data[direction] = {
-                    "ordered_traces": ordered_traces,
-                    "cropped_images": cropped_images,
-                    "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
-                    "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
-                    "splined_traces": tracing_results["all_splined_traces"],
-                }
+                disordered_tracing_stats["threshold"] = direction
+                disordered_tracing_stats["basename"] = basename.parent
+                disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
 
-                # Plot traces for the whole image
+                # append direction results to dict
+                disordered_traces[direction] = disordered_traces_cropped_data
+                # save plots
                 Images(
                     image,
+                    masked_array=disordered_tracing_images.pop("pruned_skeleton"),
                     output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_traced",
-                    masked_array=image_spline_trace,
-                    **plotting_config["plot_dict"]["all_molecule_traces"],
+                    filename=f"{filename}_{direction}_disordered_trace",
+                    **plotting_config["plot_dict"]["pruned_skeleton"],
                 ).plot_and_save()
+                for plot_name, image_value in disordered_tracing_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(grainstats_df, disordered_trace_grainstats, on=["image", "threshold", "grain_number"])
+                if grainstats_df is not None
+                else disordered_trace_grainstats
+            )
+
+            return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
+
+        except Exception as e:
+            LOGGER.info(
+                f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
+            return {}, grainstats_df, None
+
+    else:
+        LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
+        return {}, grainstats_df, None
+
+
+def run_nodestats(  # noqa: C901
+    image: npt.NDArray,
+    disordered_tracing_data: dict,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    core_out_path: Path,
+    tracing_out_path: Path,
+    nodestats_config: dict,
+    plotting_config: dict,
+    grainstats_df: pd.DataFrame = None,
+) -> tuple[dict, pd.DataFrame]:
+    """
+    Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core NodeStats image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic NodeStats images to.
+    nodestats_config : dict
+        Dictionary configuration for analysing the crossing points.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    grainstats_df : pd.DataFrame, optional
+        The grain statistics dataframe to bee added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
+    if nodestats_config["run"]:
+        nodestats_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Nodestats ***")
+        nodestats_whole_data = defaultdict()
+        nodestats_grainstats = pd.DataFrame()
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                (
+                    nodestats_data,
+                    _nodestats_grainstats,
+                    nodestats_full_images,
+                    nodestats_branch_images,
+                ) = nodestats_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **nodestats_config,
+                )
+
+                # save per image new grainstats stats
+                _nodestats_grainstats["threshold"] = direction
+                nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
+
+                # append direction results to dict
+                nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
+
+                # save whole image plots
+                Images(
+                    filename=f"{filename}_{direction}_nodes",
+                    data=image,
+                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["connected_nodes"],
+                ).plot_and_save()
+                for plot_name, image_value in nodestats_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                # plot single node images
+                for mol_no, mol_stats in nodestats_data.items():
+                    if mol_stats is not None:
+                        for node_no, single_node_stats in mol_stats.items():
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+
+                            # plot crossing height linetrace
+                            if plotting_config["image_set"] == "all":
+                                if not single_node_stats["error"]:
+                                    fig, _ = plot_crossing_linetrace_halfmax(
+                                        branch_stats_dict=single_node_stats["branch_stats"],
+                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    )
+                                    fig.savefig(
+                                        tracing_out_path
+                                        / direction
+                                        / "nodes"
+                                        / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                        format="svg",
+                                    )
+                LOGGER.info(f"[{filename}] : Finished Plotting NodeStats Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(grainstats_df, nodestats_grainstats, on=["image", "threshold", "grain_number"])
+                if grainstats_df is not None
+                else nodestats_grainstats
+            )
+
+            # merge all image dictionaries
+            return nodestats_whole_data, resultant_grainstats
+
+        except Exception as e:
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
+            return nodestats_whole_data, nodestats_grainstats
+
+    else:
+        LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+        return None, grainstats_df
+
+
+# need to add in the molstats here
+def run_ordered_tracing(
+    image: npt.NDArray,
+    disordered_tracing_data: dict,
+    nodestats_data: dict,
+    filename: str,
+    basename: Path,
+    core_out_path: Path,
+    tracing_out_path: Path,
+    ordered_tracing_config: dict,
+    plotting_config: dict,
+    grainstats_df: pd.DataFrame = None,
+) -> tuple:
+    """
+    Order coordinates of traces, adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.ndarray
+        Image containing the DNA to pass to the tracing function.
+    disordered_tracing_data : dict
+        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+    nodestats_data : dict
+        Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
+    filename : str
+        Name of the image.
+    basename : Path
+        The path of the files' parent directory.
+    core_out_path : Path
+        Path to save the core ordered tracing image to.
+    tracing_out_path : Path
+        Path to save optional, diagnostic ordered trace images to.
+    ordered_tracing_config : dict
+        Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    grainstats_df : pd.DataFrame, optional
+        The grain statistics dataframe to be added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A NodeStats analysis dictionary and grainstats metrics dataframe.
+    """
+    if ordered_tracing_config["run"]:
+        ordered_tracing_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
+        ordered_tracing_image_data = defaultdict()
+        ordered_tracing_molstats = pd.DataFrame()
+        ordered_tracing_grainstats = pd.DataFrame()
+
+        try:
+            # run image using directional grain masks
+            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                # Check if there are grains
+                if not disordered_tracing_direction_data:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+                    )
+                    raise ValueError(f"No grains exist for the {direction} direction")
+
+                # if grains are found
+                (
+                    ordered_tracing_data,
+                    _ordered_tracing_grainstats,
+                    _ordered_tracing_molstats,
+                    ordered_tracing_full_images,
+                ) = ordered_tracing_image(
+                    image=image,
+                    disordered_tracing_direction_data=disordered_tracing_direction_data,
+                    nodestats_direction_data=nodestats_data[direction],
+                    filename=filename,
+                    **ordered_tracing_config,
+                )
+
+                # save per image new grainstats stats
+                _ordered_tracing_grainstats["threshold"] = direction
+                ordered_tracing_grainstats = pd.concat([ordered_tracing_grainstats, _ordered_tracing_grainstats])
+                _ordered_tracing_molstats["threshold"] = direction
+                ordered_tracing_molstats = pd.concat([ordered_tracing_molstats, _ordered_tracing_molstats])
+
+                # append direction results to dict
+                ordered_tracing_image_data[direction] = ordered_tracing_data
+
+                # save whole image plots
+                plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
+                Images(
+                    filename=f"{filename}_{direction}_ordered_traces",
+                    data=image,
+                    masked_array=ordered_tracing_full_images.pop("ordered_traces"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["ordered_traces"],
+                ).plot_and_save()
+                # save optional diagnostic plots (those with core_set = False)
+                for plot_name, image_value in ordered_tracing_full_images.items():
+                    Images(
+                        image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
+                LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
+
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
+                if grainstats_df is not None
+                else ordered_tracing_grainstats
+            )
+
+            ordered_tracing_molstats["basename"] = basename.parent
+
+            # merge all image dictionaries
+            return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
+
+        except Exception as e:
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
+            return ordered_tracing_image_data, grainstats_df, None
+
+    return None, grainstats_df, None
+
+
+def run_splining(
+    image: npt.NDArray,
+    ordered_tracing_data: dict,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    core_out_path: Path,
+    splining_config: dict,
+    plotting_config: dict,
+    grainstats_df: pd.DataFrame = None,
+    molstats_df: pd.DataFrame = None,
+) -> tuple:
+    """
+    Smooth the ordered trace coordinates, adding results to statistics data frames and optionally plot results.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        Image containing the DNA to pass to the tracing function.
+    ordered_tracing_data : dict
+        Dictionary of ordered coordinates. Result from "run_ordered_tracing".
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core ordered tracing image to.
+    splining_config : dict
+        Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+    plotting_config : dict
+        Dictionary configuration for plotting images.
+    grainstats_df : pd.DataFrame, optional
+        The grain statistics dataframe to be added to. by default None.
+    molstats_df : pd.DataFrame, optional
+        The molecule statistics dataframe to be added to. by default None.
+
+    Returns
+    -------
+    tuple[dict, pd.DataFrame]
+        A smooth curve analysis dictionary and grainstats metrics dataframe.
+    """
+    if splining_config["run"]:
+        splining_config.pop("run")
+        LOGGER.info(f"[{filename}] : *** Splining ***")
+        splined_image_data = defaultdict()
+        splining_grainstats = pd.DataFrame()
+        splining_molstats = pd.DataFrame()
+
+        try:
+            # run image using directional grain masks
+            for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
+                if not ordered_tracing_direction_data:
+                    LOGGER.warning(
+                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                    )
+                    splining_grainstats = create_empty_dataframe()
+                    splining_molstats = create_empty_dataframe(columns=["image", "basename", "threshold"])
+                    raise ValueError(f"No grains exist for the {direction} direction")
+
+                # if grains are found
+                (
+                    splined_data,
+                    _splining_grainstats,
+                    _splining_molstats,
+                ) = splining_image(
+                    image=image,
+                    ordered_tracing_direction_data=ordered_tracing_direction_data,
+                    filename=filename,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    **splining_config,
+                )
+
+                # save per image new grainstats stats
+                _splining_grainstats["threshold"] = direction
+                splining_grainstats = pd.concat([splining_grainstats, _splining_grainstats])
+                _splining_molstats["threshold"] = direction
+                splining_molstats = pd.concat([splining_molstats, _splining_molstats])
+
+                # append direction results to dict
+                splined_image_data[direction] = splined_data
 
                 # Plot traces on each grain individually
-                if plotting_config["image_set"] == "all":
-                    for grain_index, grain_trace in ordered_traces.items():
-                        cropped_image = cropped_images[grain_index]
-                        grain_trace_mask = np.zeros(cropped_image.shape)
-                        # Grain traces can be None if they do not trace successfully. Eg if they are too small.
-                        if grain_trace is not None:
-                            for coordinate in grain_trace:
-                                grain_trace_mask[coordinate[0], coordinate[1]] = 1
-                        Images(
-                            cropped_image,
-                            output_dir=grain_out_path / direction,
-                            filename=f"{filename}_grain_trace_{grain_index}",
-                            masked_array=grain_trace_mask,
-                            **plotting_config["plot_dict"]["single_molecule_trace"],
-                        ).plot_and_save()
+                all_splines = []
+                for _, grain_dict in splined_data.items():
+                    for _, mol_dict in grain_dict.items():
+                        all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
+                Images(
+                    data=image,
+                    output_dir=core_out_path,
+                    filename=f"{filename}_{direction}_all_splines",
+                    plot_coords=all_splines,
+                    **plotting_config["plot_dict"]["splined_trace"],
+                ).plot_and_save()
+                LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
 
-            # Set create tracing_stats_df from above and below results
-            if "above" in tracing_stats and "below" in tracing_stats:
-                tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
-            elif "above" in tracing_stats:
-                tracing_stats_df = tracing_stats["above"]
-            elif "below" in tracing_stats:
-                tracing_stats_df = tracing_stats["below"]
-            else:
-                raise ValueError(
-                    "tracing_stats dictionary has neither 'above' nor 'below' keys. This should be impossible."
-                )
-            LOGGER.info(
-                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
+            # merge grainstats data with other dataframe
+            resultant_grainstats = (
+                pd.merge(grainstats_df, splining_grainstats, on=["image", "threshold", "grain_number"])
+                if grainstats_df is not None
+                else splining_grainstats
             )
-            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-            #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
-            results["basename"] = image_path.parent
+            # merge molstats data with other dataframe
+            resultant_molstats = (
+                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number", "molecule_number"])
+                if molstats_df is not None
+                else splining_molstats
+            )
 
-            return results, grain_trace_data
+            # merge all image dictionaries
+            return splined_image_data, resultant_grainstats, resultant_molstats
 
-        # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
-        results = results_df
-        results["basename"] = image_path.parent
+        except Exception as e:
+            LOGGER.error(
+                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
+            return splined_image_data, splining_grainstats, splining_molstats
 
-        return results, grain_trace_data
-
-    except Exception:
-        # If no results we need a dummy dataframe to return.
-        LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
-        )
-        results = results_df
-        results["basename"] = image_path.parent
-        grain_trace_data = None
-        return results, grain_trace_data
+    return None, grainstats_df, molstats_df
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -544,12 +911,17 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
+    tracing_out_path = core_out_path / filename / "dnatracing"
     if plotting_config["image_set"] == "all":
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
 
-    return core_out_path, filter_out_path, grain_out_path
+    return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
 def process_scan(
@@ -558,7 +930,10 @@ def process_scan(
     filter_config: dict,
     grains_config: dict,
     grainstats_config: dict,
-    dnatracing_config: dict,
+    disordered_tracing_config: dict,
+    nodestats_config: dict,
+    ordered_tracing_config: dict,
+    splining_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -567,10 +942,10 @@ def process_scan(
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[np.ndarray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's
+    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's path and it's
         pixel to namometre scaling value.
-    base_dir : Union[str, Path]
+    base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
         Dictionary of configuration options for running the Filter stage.
@@ -578,11 +953,17 @@ def process_scan(
         Dictionary of configuration options for running the Grain detection stage.
     grainstats_config : dict
         Dictionary of configuration options for running the Grain Statistics stage.
-    dnatracing_config : dict
-        Dictionary of configuration options for running the DNA Tracing stage.
+    disordered_tracing_config : dict
+        Dictionary configuration for obtaining a disordered trace representation of the grains.
+    nodestats_config : dict
+        Dictionary of configuration options for running the NodeStats stage.
+    ordered_tracing_config : dict
+        Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+    splining_config : dict
+        Dictionary of configuration options for running the splining stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
-    output_dir : Union[str, Path]
+    output_dir : str | Path
         Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
         that output will be over-written.
 
@@ -592,7 +973,7 @@ def process_scan(
         TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
         and dictionary containing general image statistics.
     """
-    core_out_path, filter_out_path, grain_out_path = get_out_paths(
+    core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
         image_path=topostats_object["img_path"],
         base_dir=base_dir,
         output_dir=output_dir,
@@ -634,36 +1015,82 @@ def process_scan(
 
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
-        results_df, height_profiles = run_grainstats(
+        grainstats_df, height_profiles = run_grainstats(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],
+            basename=topostats_object["img_path"],
             grainstats_config=grainstats_config,
             plotting_config=plotting_config,
             grain_out_path=grain_out_path,
         )
-
-        # DNAtracing
-        results_df, grain_trace_data = run_dnatracing(
-            image=topostats_object["image_flattened"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            grain_masks=topostats_object["grain_masks"],
-            filename=topostats_object["filename"],
-            core_out_path=core_out_path,
-            grain_out_path=grain_out_path,
-            image_path=topostats_object["img_path"],
-            plotting_config=plotting_config,
-            dnatracing_config=dnatracing_config,
-            results_df=results_df,
-        )
-
-        # Add grain trace data and height profiles to topostats object
-        topostats_object["grain_trace_data"] = grain_trace_data
         topostats_object["height_profiles"] = height_profiles
 
+        # Disordered Tracing
+        disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_trace(
+            image=topostats_object["image_flattened"],
+            grain_masks=topostats_object["grain_masks"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            basename=topostats_object["img_path"],
+            core_out_path=core_out_path,
+            tracing_out_path=tracing_out_path,
+            disordered_tracing_config=disordered_tracing_config,
+            grainstats_df=grainstats_df,
+            plotting_config=plotting_config,
+        )
+        topostats_object["disordered_traces"] = disordered_traces_data
+
+        # Nodestats
+        nodestats, grainstats_df = run_nodestats(
+            image=topostats_object["image_flattened"],
+            disordered_tracing_data=topostats_object["disordered_traces"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            tracing_out_path=tracing_out_path,
+            plotting_config=plotting_config,
+            nodestats_config=nodestats_config,
+            grainstats_df=grainstats_df,
+        )
+
+        # Ordered Tracing
+        ordered_tracing, grainstats_df, molstats_df = run_ordered_tracing(
+            image=topostats_object["image_flattened"],
+            disordered_tracing_data=topostats_object["disordered_traces"],
+            nodestats_data=nodestats,
+            filename=topostats_object["filename"],
+            basename=topostats_object["img_path"],
+            core_out_path=core_out_path,
+            tracing_out_path=tracing_out_path,
+            ordered_tracing_config=ordered_tracing_config,
+            plotting_config=plotting_config,
+            grainstats_df=grainstats_df,
+        )
+        topostats_object["ordered_traces"] = ordered_tracing
+        topostats_object["nodestats"] = nodestats  # looks weird but ordered adds an extra field
+
+        # splining
+        splined_data, grainstats_df, molstats_df = run_splining(
+            image=topostats_object["image_flattened"],
+            ordered_tracing_data=topostats_object["ordered_traces"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            plotting_config=plotting_config,
+            splining_config=splining_config,
+            grainstats_df=grainstats_df,
+            molstats_df=molstats_df,
+        )
+
+        # Add grain trace data to topostats object
+        topostats_object["splining"] = splined_data
+
     else:
-        results_df = create_empty_dataframe()
+        grainstats_df = create_empty_dataframe()
+        molstats_df = create_empty_dataframe()
+        disordered_tracing_stats = create_empty_dataframe()
         height_profiles = {}
 
     # Get image statistics
@@ -677,7 +1104,7 @@ def process_scan(
     image_stats = image_statistics(
         image=image_for_image_stats,
         filename=topostats_object["filename"],
-        results_df=results_df,
+        results_df=grainstats_df,
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
     )
 
@@ -686,10 +1113,25 @@ def process_scan(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
 
-    return topostats_object["img_path"], results_df, image_stats, height_profiles
+    return (
+        topostats_object["img_path"],
+        grainstats_df,
+        height_profiles,
+        image_stats,
+        disordered_tracing_stats,
+        molstats_df,
+    )
 
 
-def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None:
+def check_run_steps(  # noqa: C901
+    filter_run: bool,
+    grains_run: bool,
+    grainstats_run: bool,
+    disordered_tracing_run: bool,
+    nodestats_run: bool,
+    ordered_tracing_run: bool,
+    splining_run: bool,
+) -> None:
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
 
@@ -703,16 +1145,68 @@ def check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dn
         Flag for running Grains.
     grainstats_run : bool
         Flag for running GrainStats.
-    dnatracing_run : bool
+    disordered_tracing_run : bool
+        Flag for running Disordered Tracing.
+    nodestats_run : bool
+        Flag for running NodeStats.
+    ordered_tracing_run : bool
+        Flag for running Ordered Tracing.
+    splining_run : bool
         Flag for running DNA Tracing.
     """
-    if dnatracing_run:
-        if grainstats_run is False:
-            LOGGER.error("DNA tracing enabled but Grainstats disabled. Please check your configuration file.")
+    LOGGER.debug(f"{filter_run=}")
+    LOGGER.debug(f"{grains_run=}")
+    LOGGER.debug(f"{grainstats_run=}")
+    LOGGER.debug(f"{disordered_tracing_run=}")
+    LOGGER.debug(f"{nodestats_run=}")
+    LOGGER.debug(f"{ordered_tracing_run=}")
+    LOGGER.debug(f"{splining_run=}")
+    if splining_run:
+        if ordered_tracing_run is False:
+            LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
+        if nodestats_run is False:
+            LOGGER.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
+        if disordered_tracing_run is False:
+            LOGGER.error("Splining enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("DNA tracing enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
-            LOGGER.error("DNA tracing enabled but Filters disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif ordered_tracing_run:
+        if disordered_tracing_run is False:
+            LOGGER.error(
+                "Ordered Tracing enabled but Disordered Tracing disabled. Please check your configuration file."
+            )
+        elif grainstats_run is False:
+            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif nodestats_run:
+        if disordered_tracing_run is False:
+            LOGGER.error("NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif disordered_tracing_run:
+        if grainstats_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Disordered Tracing enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Disordered Tracing enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif grainstats_run:

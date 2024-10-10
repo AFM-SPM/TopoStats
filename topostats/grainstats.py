@@ -37,7 +37,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 GRAIN_STATS_COLUMNS = [
-    "molecule_number",
+    "grain_number",
     "centre_x",
     "centre_y",
     "radius_min",
@@ -344,7 +344,7 @@ class GrainStats:
             grainstats_df = pd.DataFrame(data=stats_array)
         else:
             grainstats_df = create_empty_dataframe()
-        grainstats_df.index.name = "molecule_number"
+        grainstats_df.index.name = "grain_number"
         grainstats_df["image"] = self.image_name
 
         return grainstats_df, grains_plot_data, all_height_profiles

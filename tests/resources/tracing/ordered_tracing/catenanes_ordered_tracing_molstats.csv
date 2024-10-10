@@ -1,0 +1,5 @@
+,image,grain_number,molecule_number,circular,topology,topology_flip,processing
+0,catenane,0,0,True,4^2_1,2^2_1,nodestats
+1,catenane,0,1,True,4^2_1,2^2_1,nodestats
+2,catenane,1,0,True,2^2_1,0_1U0_1,nodestats
+3,catenane,1,1,True,2^2_1,0_1U0_1,nodestats

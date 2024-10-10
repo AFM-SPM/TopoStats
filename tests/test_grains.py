@@ -119,6 +119,64 @@ def test_remove_small_objects():
 
 
 @pytest.mark.parametrize(
+    ("binary_image", "minimum_size_px", "minimum_bbox_size_px", "expected_image"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            8,
+            4,
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        )
+    ],
+)
+def test_remove_objects_too_small_to_process(
+    binary_image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int, expected_image: npt.NDArray
+) -> None:
+    """Test the remove_objects_too_small_to_process method of the Grains class."""
+    grains_object = Grains(
+        image=np.array([[0, 0], [0, 0]]),
+        filename="",
+        pixel_to_nm_scaling=1.0,
+    )
+
+    result = grains_object.remove_objects_too_small_to_process(
+        image=binary_image, minimum_size_px=minimum_size_px, minimum_bbox_size_px=minimum_bbox_size_px
+    )
+
+    np.testing.assert_array_equal(result, expected_image)
+
+
+@pytest.mark.parametrize(
     ("test_labelled_image", "area_thresholds", "expected"),
     [
         (
@@ -383,6 +441,10 @@ def test_find_grains(
         remove_edge_intersecting_grains=remove_edge_intersecting_grains,
     )
 
+    # Override grains' minimum grain size just for this test to allow for small grains in the test image
+    grains_object.minimum_grain_size_px = 1
+    grains_object.minimum_bbox_size_px = 1
+
     grains_object.find_grains()
 
     result_removed_small_objects = grains_object.directions[direction]["removed_small_objects"]
@@ -542,6 +604,10 @@ def test_find_grains_unet(
             smallest_grain_size_nm2=1,
             remove_edge_intersecting_grains=True,
         )
+
+        # Override grains' minimum grain size just for this test to allow for small grains in the test image
+        grains_object.minimum_grain_size_px = 1
+        grains_object.minimum_bbox_size_px = 1
 
         grains_object.find_grains()
 
