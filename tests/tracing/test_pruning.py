@@ -1,5 +1,7 @@
 """Test the skeletonize module."""
 
+from __future__ import annotations
+
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -423,7 +425,18 @@ from topostats.tracing.pruning import (
             "min",
             "abs",
             np.asarray(
-                [[2, 71], [5, 115], [10, 31], [12, 126], [14, 123], [22, 122], [29, 22], [45, 16], [88, 23], [112, 102]]
+                [
+                    [2, 71],
+                    [5, 115],
+                    [10, 31],
+                    [12, 126],
+                    [14, 123],
+                    [22, 122],
+                    [29, 22],
+                    [45, 16],
+                    [88, 23],
+                    [112, 102],
+                ]
             ),
             np.asarray(
                 [
@@ -2765,7 +2778,9 @@ def test_local_area_sum(
         ),
     ],
 )
-def test_local_area_sum_value_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError) -> None:
+def test_local_area_sum_value_error(
+    img: npt.NDArray, point: list | tuple | npt.NDArray, exception: ValueError
+) -> None:
     """Test local_area_sum() function raises error if non-binary array is passed."""
     with pytest.raises(exception):
         local_area_sum(img, point)
@@ -2812,7 +2827,9 @@ def test_local_area_sum_value_error(img: npt.NDArray, point: list | tuple | npt.
         ),
     ],
 )
-def test_local_area_sum_index_error(img: npt.NDArray, point: list | tuple | npt.NDArray, exception: IndexError) -> None:
+def test_local_area_sum_index_error(
+    img: npt.NDArray, point: list | tuple | npt.NDArray, exception: IndexError
+) -> None:
     """Test local_area_sum() function raises error if point is on edge of array."""
     with pytest.raises(exception):
         local_area_sum(img, point)
