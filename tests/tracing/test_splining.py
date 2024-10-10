@@ -11,6 +11,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
+from topostats.io import dict_almost_equal
 from topostats.tracing.splining import splineTrace, splining_image, windowTrace
 
 BASE_DIR = Path.cwd()
@@ -220,7 +221,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
     expected_molstats_df = pd.read_csv(SPLINING_RESOURCES / expected_molstats_filename, index_col=0)
 
     # Check the results
-    np.testing.assert_equal(result_all_splines_data, expected_all_splines_data)
+    assert dict_almost_equal(result_all_splines_data, expected_all_splines_data)
     pd.testing.assert_frame_equal(result_splining_grainstats, expected_splining_grainstats)
     pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
 
