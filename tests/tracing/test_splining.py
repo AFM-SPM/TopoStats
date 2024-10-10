@@ -21,6 +21,7 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 PIXEL_TRACE = np.array(
     [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]]

@@ -17,6 +17,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-positional-arguments
 
 
 # pylint: disable=too-many-instance-attributes
@@ -239,11 +240,11 @@ class splineTrace:
         # splined trace
         splined_trace = self.get_splined_traces(self.mol_ordered_trace)
         # compile CL & E2E distance
-        self.tracing_stats["contour_length"] = measure_contour_length(
-            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        self.tracing_stats["contour_length"] = (
+            measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
-        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(
-            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        self.tracing_stats["end_to_end_distance"] = (
+            measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
 
         return splined_trace, self.tracing_stats
@@ -423,11 +424,11 @@ class windowTrace:
                 self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
             )
         # compile CL & E2E distance
-        self.tracing_stats["contour_length"] = measure_contour_length(
-            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        self.tracing_stats["contour_length"] = (
+            measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
-        self.tracing_stats["end_to_end_distance"] = measure_end_to_end_distance(
-            splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling
+        self.tracing_stats["end_to_end_distance"] = (
+            measure_end_to_end_distance(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
 
         return splined_trace, self.tracing_stats
