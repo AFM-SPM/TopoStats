@@ -85,6 +85,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         grainstats_run=config["grainstats"]["run"],
         disordered_tracing_run=config["disordered_tracing"]["run"],
         nodestats_run=config["nodestats"]["run"],
+        ordered_tracing_run=config["ordered_tracing"]["run"],
         splining_run=config["splining"]["run"],
     )
     # Ensures each image has all plotting options which are passed as **kwargs

@@ -23,6 +23,8 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
+# pylint: disable=too-many-positional-arguments
+
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
@@ -293,6 +295,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         "grainstats_run",
         "disordered_tracing_run",
         "nodestats_run",
+        "ordered_tracing_run",
         "splining_run",
         "log_msg",
     ),
@@ -304,18 +307,21 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             True,
+            True,
             "Splining enabled but NodeStats disabled. Tracing will use the 'old' method.",
-            id="Splining, Disordered Tracing, Grainstats, Grains and Filters no Nodestats",
+            id="Splining, Ordered Tracing, Disordered Tracing, Grainstats, Grains and Filters no Nodestats",
         ),
         pytest.param(
             True,
             True,
             False,
+            True,
             False,
-            False,
+            True,
             True,
             "Splining enabled but Grainstats disabled. Please check your configuration file.",
-            id="Splining, Grains and Filters enabled but no Grainstats, Disordered Tracing or NodeStats",
+            id="Splining, Ordered Tracing, Disordered Tracing, Grains and Filters enabled but no Grainstats or "
+            + "NodeStats",
         ),
         pytest.param(
             True,
@@ -324,18 +330,21 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
-            "Splining enabled but Grainstats disabled. Please check your configuration file.",
-            id="Splining and Filters enabled but no NodeStats, Disordered Tracing or Grainstats",
+            True,
+            "Splining enabled but Disordered Tracing disabled. Please check your configuration file.",
+            id="Splining, Ordered Tracing and Filters enabled but no NodeStats, Disordered Tracing or Grainstats",
         ),
         pytest.param(
             False,
             False,
             True,
+            True,
             False,
-            False,
+            True,
             True,
             "Splining enabled but Grains disabled. Please check your configuration file.",
-            id="Splining and Grainstats enabled but no Grains or Filters",
+            id="Splining, Ordered Tracing, Disordered Tracing, and Grainstats enabled but no NodeStats, Grains or "
+            + "Filters",
         ),
         pytest.param(
             False,
@@ -343,9 +352,10 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             "NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.",
-            id="Nodestats enabled but no Disordered Tracing, Grainstats, Grains or Filters",
+            id="Nodestats enabled but no Ordered Tracing, Disordered Tracing, Grainstats, Grains or Filters",
         ),
         pytest.param(
             False,
@@ -353,6 +363,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            False,
             False,
             "NodeStats enabled but Grainstats disabled. Please check your configuration file.",
             id="Nodestats, Disordered Tracing enabled but no Grainstats, Grains or Filters",
@@ -364,6 +375,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             False,
+            False,
             "NodeStats enabled but Grains disabled. Please check your configuration file.",
             id="Nodestats, Disordered Tracing, Grainstats enabled but no Grains or Filters",
         ),
@@ -374,6 +386,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             False,
+            False,
             "NodeStats enabled but Filters disabled. Please check your configuration file.",
             id="Nodestats, Disordered Tracing, Grainstats Grains enabled but no Filters",
         ),
@@ -382,6 +395,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             False,
             "Disordered Tracing enabled but Grainstats disabled. Please check your configuration file.",
@@ -394,6 +408,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            False,
             "Disordered Tracing enabled but Grains disabled. Please check your configuration file.",
             id="Disordered tracing and Grainstats enabled but no Grains or Filters",
         ),
@@ -404,6 +419,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            False,
             "Disordered Tracing enabled but Filters disabled. Please check your configuration file.",
             id="Disordered tracing, Grains and Grainstats enabled but no Filters",
         ),
@@ -411,6 +427,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             False,
             False,
@@ -424,6 +441,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Grainstats enabled but Filters disabled. Please check your configuration file.",
             id="Grains enabled and Grainstats but no Filters",
         ),
@@ -434,11 +452,13 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Grains enabled but Filters disabled. Please check your configuration file.",
             id="Grains enabled but not Filters",
         ),
         pytest.param(
             True,
+            False,
             False,
             False,
             False,
@@ -454,6 +474,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto Grains",
         ),
@@ -461,6 +482,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            False,
             False,
             False,
             False,
@@ -474,6 +496,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto DNA tracing",
         ),
@@ -484,10 +507,12 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             False,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto Nodestats",
         ),
         pytest.param(
+            True,
             True,
             True,
             True,
@@ -505,20 +530,36 @@ def test_check_run_steps(
     grainstats_run: bool,
     disordered_tracing_run: bool,
     nodestats_run: bool,
+    ordered_tracing_run: bool,
     splining_run: bool,
     log_msg: str,
     caplog,
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
-    check_run_steps(filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, splining_run)
+    check_run_steps(
+        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+    )
     assert log_msg in caplog.text
 
 
 # pylint: disable=too-many-arguments
 @pytest.mark.parametrize(
-    ("filter_run", "grains_run", "grainstats_run", "dnatracing_run", "log_msg1", "log_msg2"),
+    (
+        "filter_run",
+        "grains_run",
+        "grainstats_run",
+        "disordered_tracing_run",
+        "nodestats_run",
+        "ordered_tracing_run",
+        "splining_run",
+        "log_msg1",
+        "log_msg2",
+    ),
     [
         pytest.param(
+            False,
+            False,
+            False,
             False,
             False,
             False,
@@ -532,6 +573,9 @@ def test_check_run_steps(
             False,
             False,
             False,
+            False,
+            False,
+            False,
             "Detection of grains disabled, GrainStats will not be run.",
             "",
             id="Only filtering enabled",
@@ -539,6 +583,9 @@ def test_check_run_steps(
         pytest.param(
             True,
             True,
+            False,
+            False,
+            False,
             False,
             False,
             "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
@@ -549,6 +596,9 @@ def test_check_run_steps(
             True,
             True,
             True,
+            False,
+            False,
+            False,
             False,
             "Processing grain",
             "Calculation of Disordered Tracing disabled, returning empty dictionary.",
@@ -573,7 +623,10 @@ def test_process_stages(
     filter_run: bool,
     grains_run: bool,
     grainstats_run: bool,
-    dnatracing_run: bool,
+    disordered_tracing_run: bool,
+    nodestats_run: bool,
+    ordered_tracing_run: bool,
+    splining_run: bool,
     log_msg1: str,
     log_msg2: str,
     caplog,
@@ -588,7 +641,10 @@ def test_process_stages(
     process_scan_config["filter"]["run"] = filter_run
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
-    process_scan_config["disordered_tracing"]["run"] = dnatracing_run
+    process_scan_config["disordered_tracing"]["run"] = disordered_tracing_run
+    process_scan_config["nodestats"]["run"] = nodestats_run
+    process_scan_config["ordered_tracing"]["run"] = ordered_tracing_run
+    process_scan_config["splining"]["run"] = splining_run
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
