@@ -4,9 +4,11 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
+from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
+
 # pylint: disable=unnecessary-pass
 # pytest: disable=import-error
-from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
+# pylint: disable=too-many-positional-arguments
 
 
 def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
