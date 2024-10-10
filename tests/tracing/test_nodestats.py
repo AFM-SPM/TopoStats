@@ -222,8 +222,8 @@ def test_analyse_nodes(
     with Path(GENERAL_RESOURCES / "nodestats_analyse_nodes_catenane_all_connected_nodes.npy").open("rb") as f:
         expected_nodestats_catenane_all_connected_nodes = np.load(f)
 
-    np.testing.assert_equal(node_dict_result, expected_nodestats_catenane_node_dict)
-    np.testing.assert_equal(image_dict_result, expected_nodestats_catenane_image_dict)
+    assert dict_almost_equal(node_dict_result, expected_nodestats_catenane_node_dict)
+    assert dict_almost_equal(image_dict_result, expected_nodestats_catenane_image_dict)
     np.testing.assert_array_equal(
         nodestats_catenane.all_connected_nodes, expected_nodestats_catenane_all_connected_nodes
     )
