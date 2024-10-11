@@ -924,9 +924,7 @@ def ordered_tracing_image(
                     )
                     LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(
-                        f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
-                    )
+                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
             # if not doing nodestats ordering, do original TS ordering
             else:
                 LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
