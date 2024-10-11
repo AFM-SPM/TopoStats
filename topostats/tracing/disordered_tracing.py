@@ -348,8 +348,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             grainstats_additions[cropped_image_index] = {
                 "image": filename,
                 "grain_number": cropped_image_index,
-                "grain_endpoints": (conv_pruned_skeleton == 2).sum(),
-                "grain_junctions": (conv_pruned_skeleton == 3).sum(),
+                "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
+                "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                 "total_branch_lengths": skan_df["branch_distance"].sum() * 1e-9,
             }
 
