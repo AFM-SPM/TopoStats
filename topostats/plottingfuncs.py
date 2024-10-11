@@ -6,6 +6,7 @@ import logging
 from importlib import resources
 from pathlib import Path
 
+import matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +23,9 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+
+# Needed so that windows can plot images on python 3.9
+matplotlib.use("QtAgg")
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 

@@ -45,6 +45,7 @@ dependencies = [
   "numpyencoder",
   "pandas",
   "pyfiglet",
+  "pyqt5",
   "pySPM",
   "pyyaml",
   "ruamel.yaml",
