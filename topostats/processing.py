@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -974,8 +973,6 @@ def process_scan(
         TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
         and dictionary containing general image statistics.
     """
-    # Needed so that windows can plot images on python 3.9
-    matplotlib.use("QtAgg")
     core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
         image_path=topostats_object["img_path"],
         base_dir=base_dir,

@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from importlib import resources
 import logging
-import matplotlib
 from pathlib import Path
 import sys
 import yaml
@@ -158,9 +157,6 @@ class TopoSum:
         self.melted_data = None
         self.summary_data = None
         self.label = None
-
-        # Needed so that windows can plot images on python 3.9
-        matplotlib.use("QtAgg")
 
         # melt the data given in the init method
         self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)

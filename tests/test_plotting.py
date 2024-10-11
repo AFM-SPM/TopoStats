@@ -5,7 +5,6 @@ from __future__ import annotations
 from importlib import resources
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -18,9 +17,6 @@ from topostats.entry_point import entry_point
 from topostats.plotting import TopoSum, _pad_array, plot_height_profiles, toposum
 
 # pylint: disable=protected-access
-
-# Needed so that windows can plot images on python 3.9
-matplotlib.use("QtAgg")
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
