@@ -1333,6 +1333,60 @@ class TopoFileHelper:
             LOGGER.info("| [search] No partial matches found.")
         LOGGER.info("└ [End of search]")
         return
+
+    def pretty_print_structure(self) -> None:
+        """Print the structure of the data in the data dictionary.
+
+        The structure is printed with the keys indented to show the hierarchy of the data.
+        """
+
+        def print_structure(data: dict, level=0, prefix=""):
+            """Recursive function to print the structure."""
+            for i, (key, value) in enumerate(data.items()):
+                is_last_item = i == len(data) - 1
+                current_prefix = prefix + ("└ " if is_last_item else "├ ")
+                LOGGER.info(current_prefix + key)
+
+                if isinstance(value, dict):
+                    # Check if all keys are able to be integers, they are strings but need to check if they can be
+                    # converted to integers without error
+                    all_keys_are_integers = True
+                    for k in value.keys():
+                        try:
+                            int(k)
+                        except ValueError:
+                            all_keys_are_integers = False
+                            break
+                    all_values_are_numpy_arrays = all(isinstance(v, np.ndarray) for v in value.values())
+                    # if dictionary has keys that are integers and values that are numpy arrays, print the number
+                    # of keys and the shape of the numpy arrays
+                    if all_keys_are_integers and all_values_are_numpy_arrays:
+                        LOGGER.info(
+                            prefix
+                            + ("    " if is_last_item else "│   ")
+                            + "└ "
+                            + f"{len(value)} keys with numpy arrays as values"
+                        )
+                    else:
+                        new_prefix = prefix + ("    " if is_last_item else "│   ")
+                        print_structure(value, level + 1, new_prefix)
+
+                elif isinstance(value, np.ndarray):
+                    # Don't print the array, just the shape
+                    LOGGER.info(
+                        prefix
+                        + ("    " if is_last_item else "│   ")
+                        + "└ "
+                        + f"Numpy array, shape: {str(value.shape)}, dtype: {value.dtype}"
+                    )
+                else:
+                    LOGGER.info(f"{prefix + ('    ' if is_last_item else '│   ') + '└ ' + str(value)}")
+
+        LOGGER.info(f"[{self.topofile}]")
+        print_structure(self.data)
+
+        return
+
     def get_data(self, location: str) -> int | float | str | np.ndarray | dict | None:
         """
         Retrieve data from the dictionary using a '/' separated string.
