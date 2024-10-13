@@ -1284,3 +1284,10 @@ def dict_to_json(data: dict, output_dir: str | Path, filename: str | Path, inden
     output_file = output_dir / filename
     with output_file.open("w") as f:
         json.dump(data, f, indent=indent, cls=NumpyEncoder)
+
+
+class TopoFileHelper:
+    def __init__(self, topofile: Path | str):
+        self.topofile: Path = Path(topofile)
+        with h5py.File(self.topofile, "r") as f:
+            self.data: dict = hdf5_to_dict(open_hdf5_file=f, group_path="/")
