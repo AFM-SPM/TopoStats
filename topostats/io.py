@@ -1291,6 +1291,91 @@ class TopoFileHelper:
         self.topofile: Path = Path(topofile)
         with h5py.File(self.topofile, "r") as f:
             self.data: dict = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+
+    def search_partial_matches(self, data: dict, keys: list, current_path: list | None = None):
+        """
+        Find partial matches to the keys in the dictionary.
+
+        Recursively search through nested dictionaries and keep only the paths that match the keys in the correct order,
+        allowing gaps between the keys.
+
+        Parameters
+        ----------
+        data : dict
+            The dictionary to search through.
+        keys : list
+            The list of keys to search for.
+        current_path : list, optional
+            The current path in the dictionary, by default [].
+
+        Returns
+        -------
+        list
+            A list of paths that match the keys in the correct order.
+        """
+        if current_path is None:
+            # Need to initialise the empty list here and not as a default argument since it is mutable
+            current_path = []
+
+        partial_matches = []
+
+        def recursive_partial_search(data, keys, current_path):
+            """
+            Recursively find partial matches to the keys in the dictionary.
+
+            Recursive function to search through the dictionary and keep only the paths
+            that match the keys in the correct order,
+            allowing gaps between the keys.
+
+            Parameters
+            ----------
+            data : dict
+                The dictionary to search through.
+            keys : list
+                The list of keys to search for.
+            current_path : list
+                The current path in the dictionary.
+
+            Returns
+            -------
+            None
+            """
+            # If have reached the end of the current dictionary, return
+            if not keys:
+                partial_matches.append(current_path)
+                return
+
+            current_key = keys[0]
+
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    new_path = current_path + [k]
+                    try:
+                        # Check if the current key can be converted to an integer
+                        current_key_int = int(current_key)
+                        k_int = int(k)
+                        # If the current key and the key in the dictionary can be converted to integers,
+                        # check if they are equal
+                        if current_key_int == k_int:
+                            # If the current key is in the key list of the dictionary, continue searching
+                            # but remove the current key from the list
+                            remaining_keys = keys[1:]
+                            recursive_partial_search(v, remaining_keys, new_path)
+                    except ValueError:
+                        # If the current key cannot be converted to an integer, allow for partial matches
+                        if current_key in k:
+                            # If the current key is in the key list of the dictionary, continue searching
+                            # but remove the current key from the list
+                            remaining_keys = keys[1:]
+                            recursive_partial_search(v, remaining_keys, new_path)
+                        else:
+                            # If the current key is not in the key list of the dictionary, continue searching
+                            # but don't remove the current key from the list as it might be deeper in the dictionary
+                            recursive_partial_search(v, keys, new_path)
+
+        recursive_partial_search(data, keys, current_path)
+        return partial_matches
+
     def find_data(self, search_keys: list) -> None:
         """
         Find the data in the dictionary that matches the list of keys.
