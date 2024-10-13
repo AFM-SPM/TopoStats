@@ -1287,12 +1287,115 @@ def dict_to_json(data: dict, output_dir: str | Path, filename: str | Path, inden
 
 
 class TopoFileHelper:
-    def __init__(self, topofile: Path | str):
+    """
+    Helper class for searching through the data in a .topostats (hdf5) file.
+
+    Parameters
+    ----------
+    topofile : Path
+        Path to the .topostats file.
+
+    Examples
+    --------
+    Creating a helper object.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    ```
+
+    Print the structure of the data in the file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    helper.pretty_print_structure()
+    ```
+    >>> [./tests/resources/file.topostats]
+    >>> ├ filename
+    >>> │   └ minicircle
+    >>> ├ grain_masks
+    >>> │   └ above
+    >>> │       └ Numpy array, shape: (1024, 1024), dtype: int64
+    >>> ├ grain_trace_data
+    >>> │   └ above
+    >>> │       ├ cropped_images
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_trace_cumulative_distances
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_trace_heights
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_traces
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       └ splined_traces
+    >>> │           └ 21 keys with numpy arrays as values
+    >>> ├ image
+    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+    >>> ├ image_original
+    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+    >>> ├ img_path
+    >>> │   └ /Users/sylvi/Documents/TopoStats/tests/resources/minicircle
+    >>> ├ pixel_to_nm_scaling
+    >>> │   └ 0.4940029296875
+    >>> └ topostats_file_version
+    >>>     └ 0.2
+
+    Finding data in a file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    helper.find_data(["ordered_trace_heights", "0"])
+    ```
+
+    >>>    [ Searching for ['ordered_trace_heights', '0'] in ./path/to/topostats_file.topostats ]
+    >>>    | [search] No direct match found.
+    >>>    | [search] Searching for partial matches.
+    >>>    | [search] !! [ 1 Partial matches found] !!
+    >>>    | [search] └ grain_trace_data/above/ordered_trace_heights/0
+    >>>    └ [End of search]
+
+    Get data from a file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+
+    data = helper.get_data("ordered_trace_heights/0")
+    ```
+    >>> [ Get data ] Data found at grain_trace_data/above/ordered_trace_heights/0, type: <class 'numpy.ndarray'>
+
+    Get data information
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+
+    helper.data_info("grain_trace_data/above/ordered_trace_heights/0")
+    ```
+    >>> [ Info ] Data at grain_trace_data/above/ordered_trace_heights/0 is a numpy array with shape: (95,),
+    >>> dtype: float64
+    """
+
+    def __init__(self, topofile: Path | str) -> None:
+        """
+        Initialise the TopoFileHelper object.
+
+        Parameters
+        ----------
+        topofile : Path | str
+            Path to the .topostats file.
+        """
         self.topofile: Path = Path(topofile)
         with h5py.File(self.topofile, "r") as f:
             self.data: dict = hdf5_to_dict(open_hdf5_file=f, group_path="/")
 
-    def search_partial_matches(self, data: dict, keys: list, current_path: list | None = None):
+    def search_partial_matches(self, data: dict, keys: list, current_path: list | None = None) -> list:
         """
         Find partial matches to the keys in the dictionary.
 
@@ -1319,7 +1422,7 @@ class TopoFileHelper:
 
         partial_matches = []
 
-        def recursive_partial_search(data, keys, current_path):
+        def recursive_partial_search(data, keys, current_path) -> None:
             """
             Recursively find partial matches to the keys in the dictionary.
 
@@ -1335,10 +1438,6 @@ class TopoFileHelper:
                 The list of keys to search for.
             current_path : list
                 The current path in the dictionary.
-
-            Returns
-            -------
-            None
             """
             # If have reached the end of the current dictionary, return
             if not keys:
@@ -1384,10 +1483,6 @@ class TopoFileHelper:
         ----------
         search_keys : list
             The list of keys to search for.
-
-        Returns
-        -------
-        None
         """
         # Find the best match for the list of keys
         # First check if there is a direct match
@@ -1417,16 +1512,27 @@ class TopoFileHelper:
         else:
             LOGGER.info("| [search] No partial matches found.")
         LOGGER.info("└ [End of search]")
-        return
 
     def pretty_print_structure(self) -> None:
-        """Print the structure of the data in the data dictionary.
+        """
+        Print the structure of the data in the data dictionary.
 
         The structure is printed with the keys indented to show the hierarchy of the data.
         """
 
         def print_structure(data: dict, level=0, prefix=""):
-            """Recursive function to print the structure."""
+            """
+            Recursive function to print the structure.
+
+            Parameters
+            ----------
+            data : dict
+                The dictionary to print the structure of.
+            level : int, optional
+                The current level of the dictionary, by default 0.
+            prefix : str, optional
+                The prefix to use when printing the dictionary, by default "".
+            """
             for i, (key, value) in enumerate(data.items()):
                 is_last_item = i == len(data) - 1
                 current_prefix = prefix + ("└ " if is_last_item else "├ ")
@@ -1470,8 +1576,6 @@ class TopoFileHelper:
         LOGGER.info(f"[{self.topofile}]")
         print_structure(self.data)
 
-        return
-
     def get_data(self, location: str) -> int | float | str | np.ndarray | dict | None:
         """
         Retrieve data from the dictionary using a '/' separated string.
@@ -1500,13 +1604,18 @@ class TopoFileHelper:
         except KeyError as e:
             LOGGER.error(f"[ Get data ] Key not found: {e}, please check the location string.")
             return None
+
     def data_info(self, location: str, verbose: bool = False) -> None:
-        """Get information about the data at a location.
+        """
+        Get information about the data at a location.
 
         Parameters
         ----------
         location : str
             The location of the data in the dictionary, separated by '/'.
+
+        verbose : bool, optional
+            Print more detailed information about the data, by default False.
         """
         # If there's a trailing '/', remove it
         if location[-1] == "/":
