@@ -1291,3 +1291,45 @@ class TopoFileHelper:
         self.topofile: Path = Path(topofile)
         with h5py.File(self.topofile, "r") as f:
             self.data: dict = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+    def find_data(self, search_keys: list) -> None:
+        """
+        Find the data in the dictionary that matches the list of keys.
+
+        Parameters
+        ----------
+        search_keys : list
+            The list of keys to search for.
+
+        Returns
+        -------
+        None
+        """
+        # Find the best match for the list of keys
+        # First check if there is a direct match
+        LOGGER.info(f"[ Searching for {search_keys} in {self.topofile} ]")
+
+        try:
+            current_data = self.data
+            for key in search_keys:
+                current_data = current_data[key]
+
+            LOGGER.info("| [search] Direct match found")
+        except KeyError:
+            LOGGER.info("| [search] No direct match found.")
+
+        # If no direct match is found, try to find a partial match
+        LOGGER.info("| [search] Searching for partial matches.")
+        partial_matches = self.search_partial_matches(data=self.data, keys=search_keys)
+        if partial_matches:
+            LOGGER.info(f"| [search] !! [ {len(partial_matches)} Partial matches found] !!")
+            for index, match in enumerate(partial_matches):
+                match_str = "/".join(match)
+                if index == len(partial_matches) - 1:
+                    prefix = "| [search] └"
+                else:
+                    prefix = "| [search] ├"
+                LOGGER.info(f"{prefix} {match_str}")
+        else:
+            LOGGER.info("| [search] No partial matches found.")
+        LOGGER.info("└ [End of search]")
+        return
