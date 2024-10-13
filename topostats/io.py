@@ -1333,3 +1333,44 @@ class TopoFileHelper:
             LOGGER.info("| [search] No partial matches found.")
         LOGGER.info("└ [End of search]")
         return
+    def data_info(self, location: str, verbose: bool = False) -> None:
+        """Get information about the data at a location.
+
+        Parameters
+        ----------
+        location : str
+            The location of the data in the dictionary, separated by '/'.
+        """
+        # If there's a trailing '/', remove it
+        if location[-1] == "/":
+            location = location[:-1]
+        keys = location.split("/")
+
+        try:
+            current_data = self.data
+            for key in keys:
+                current_data = current_data[key]
+        except KeyError as e:
+            LOGGER.error(f"[ Info ] Key not found: {e}, please check the location string.")
+            return
+
+        if isinstance(current_data, dict):
+            key_types = {type(k) for k in current_data.keys()}
+            value_types = {type(v) for v in current_data.values()}
+            LOGGER.info(
+                f"[ Info ] Data at {location} is a dictionary with {len(current_data)} "
+                f"keys of types {key_types} and values "
+                f"of types {value_types}"
+            )
+            if verbose:
+                for k, v in current_data.items():
+                    LOGGER.info(f"  {k}: {type(v)}")
+        elif isinstance(current_data, np.ndarray):
+            LOGGER.info(
+                f"[ Info ] Data at {location} is a numpy array with shape: {current_data.shape}, "
+                f"dtype: {current_data.dtype}"
+            )
+        else:
+            LOGGER.info(f"[ Info ] Data at {location} is {type(current_data)}")
+
+        return
