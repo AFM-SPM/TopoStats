@@ -1,5 +1,7 @@
 """Test the skeletonize module."""
 
+from __future__ import annotations
+
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -15,6 +17,7 @@ from topostats.tracing.pruning import (
 # pylint: disable=too-many-lines
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 
 @pytest.mark.parametrize(
@@ -30,13 +33,24 @@ from topostats.tracing.pruning import (
     [
         pytest.param(
             "skeleton_loop1",
-            -1,
+            49,
             90,
             "min",
             "abs",
             np.asarray([[6, 33], [34, 18], [89, 29], [104, 77], [109, 105]]),
             np.asarray(
                 [
+                    [43, 50],
+                    [43, 51],
+                    [43, 52],
+                    [43, 53],
+                    [43, 54],
+                    [44, 55],
+                    [45, 56],
+                    [46, 57],
+                    [47, 58],
+                    [48, 59],
+                    [49, 60],
                     [49, 61],
                     [49, 62],
                     [50, 60],
@@ -59,6 +73,7 @@ from topostats.tracing.pruning import (
                     [58, 71],
                     [59, 58],
                     [59, 72],
+                    [60, 58],
                     [60, 59],
                     [60, 73],
                     [61, 60],
@@ -166,6 +181,7 @@ from topostats.tracing.pruning import (
                     [102, 102],
                     [102, 103],
                     [102, 104],
+                    [102, 105],
                 ]
             ),
             id="skeleton loop 1",
@@ -173,7 +189,7 @@ from topostats.tracing.pruning import (
         ),
         pytest.param(
             "skeleton_loop2",
-            -1,
+            37.8,
             90,
             "min",
             "abs",
@@ -405,12 +421,23 @@ from topostats.tracing.pruning import (
         ),
         pytest.param(
             "skeleton_linear1",
-            -1,
+            42,
             90,
             "min",
             "abs",
             np.asarray(
-                [[2, 71], [5, 115], [10, 31], [12, 126], [14, 123], [22, 122], [29, 22], [45, 16], [88, 23], [112, 102]]
+                [
+                    [2, 71],
+                    [5, 115],
+                    [10, 31],
+                    [12, 126],
+                    [14, 123],
+                    [22, 122],
+                    [29, 22],
+                    [45, 16],
+                    [88, 23],
+                    [112, 102],
+                ]
             ),
             np.asarray(
                 [
@@ -421,7 +448,9 @@ from topostats.tracing.pruning import (
                     [10, 119],
                     [11, 114],
                     [11, 120],
+                    [11, 121],
                     [12, 114],
+                    [12, 121],
                     [13, 114],
                     [14, 113],
                     [15, 112],
@@ -432,6 +461,7 @@ from topostats.tracing.pruning import (
                     [20, 107],
                     [21, 107],
                     [22, 106],
+                    [22, 107],
                     [23, 105],
                     [24, 31],
                     [24, 104],
@@ -517,8 +547,10 @@ from topostats.tracing.pruning import (
                     [53, 70],
                     [53, 71],
                     [53, 78],
+                    [54, 36],
                     [54, 67],
                     [54, 79],
+                    [55, 35],
                     [55, 36],
                     [55, 66],
                     [55, 80],
@@ -558,6 +590,7 @@ from topostats.tracing.pruning import (
                     [64, 43],
                     [64, 50],
                     [64, 84],
+                    [65, 43],
                     [65, 44],
                     [65, 45],
                     [65, 46],
@@ -565,7 +598,20 @@ from topostats.tracing.pruning import (
                     [65, 48],
                     [65, 49],
                     [65, 84],
+                    [66, 31],
+                    [66, 32],
+                    [66, 33],
+                    [66, 34],
+                    [66, 35],
+                    [66, 36],
+                    [66, 37],
+                    [66, 38],
+                    [66, 39],
+                    [66, 40],
+                    [66, 41],
+                    [66, 42],
                     [66, 84],
+                    [67, 30],
                     [67, 84],
                     [68, 85],
                     [69, 85],
@@ -619,7 +665,7 @@ from topostats.tracing.pruning import (
         ),
         pytest.param(
             "skeleton_linear2",
-            -1,
+            10,
             90,
             "min",
             "abs",
@@ -717,7 +763,7 @@ from topostats.tracing.pruning import (
         ),
         pytest.param(
             "skeleton_linear3",
-            -1,
+            31,
             90,
             "min",
             "abs",
@@ -740,8 +786,12 @@ from topostats.tracing.pruning import (
             ),
             np.asarray(
                 [
+                    [15, 62],
+                    [15, 63],
                     [16, 63],
                     [17, 63],
+                    [17, 82],
+                    [17, 83],
                     [18, 62],
                     [18, 83],
                     [19, 62],
@@ -776,8 +826,10 @@ from topostats.tracing.pruning import (
                     [33, 82],
                     [34, 62],
                     [34, 81],
+                    [34, 109],
                     [35, 62],
                     [35, 80],
+                    [35, 109],
                     [36, 62],
                     [36, 79],
                     [37, 63],
@@ -912,7 +964,7 @@ from topostats.tracing.pruning import (
         ),
         pytest.param(
             "pruning_skeleton",
-            -1,
+            10,
             90,
             "min",
             "abs",
@@ -974,6 +1026,7 @@ class TestTopoStatsPrune:
         return topostatsPrune(
             img_skeleton["img"],
             img_skeleton["skeleton"],
+            1,
             max_length,
             height_threshold,
             method_values,
@@ -1100,50 +1153,6 @@ class TestTopoStatsPrune:
         ),
         pytest.param(
             "pruning_skeleton",
-            -1,
-            None,
-            "min",
-            "abs",
-            np.asarray(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-                dtype=np.uint8,
-            ),
-            id="Prune by default length pruning enabled (15% of overall length) removes branch",
-            # marks=pytest.mark.skip(),
-        ),
-        pytest.param(
-            "pruning_skeleton",
             25,
             90,
             "mid",
@@ -1153,8 +1162,8 @@ class TestTopoStatsPrune:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1183,7 +1192,7 @@ class TestTopoStatsPrune:
                 ],
                 dtype=np.uint8,
             ),
-            id="Length pruning enabled (25) removes everything!?!? Do we need a sanity check for this?",
+            id="Length pruning enabled (25) removes everything bar the branching node.",
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
@@ -1360,7 +1369,7 @@ class TestTopoStatsPrune:
                 dtype=np.uint8,
             ),
             id="Height pruning based on minimum, height threshold mean - threshold (1.0e-19) difference",
-            marks=pytest.mark.skip(),
+            # marks=pytest.mark.skip(),
         ),
         pytest.param(
             "pruning_skeleton",
@@ -1425,6 +1434,7 @@ class TestTopoStatsPruneMethods:
         return topostatsPrune(
             img_skeleton["img"],
             img_skeleton["skeleton"],
+            1,
             max_length,
             height_threshold,
             method_values,
@@ -1504,7 +1514,7 @@ class TestTopoStatsPruneMethods:
                     ]
                 ),
             },
-            -1,
+            10,
             9,
             "min",
             "abs",
@@ -1602,7 +1612,7 @@ class TestTopoStatsPruneMethods:
                     ]
                 ),
             },
-            -1,
+            10,
             9,
             "min",
             "abs",
@@ -1708,7 +1718,7 @@ class TestTopoStatsPruneMethods:
                     ]
                 ),
             },
-            -1,
+            10,
             9,
             "min",
             "abs",
@@ -1827,7 +1837,7 @@ class TestTopoStatsPruneMethods:
                     ]
                 ),
             },
-            -1,
+            10,
             10,
             "min",
             "abs",
@@ -1955,7 +1965,7 @@ class TestTopoStatsPruneMethods:
                     ]
                 ),
             },
-            -1,
+            10,
             9,
             "min",
             "abs",

@@ -265,7 +265,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'nodestats.run', valid values are 'True' or 'False'",
             ),
             "node_joining_length": float,
             "node_extend_dist": float,
@@ -806,6 +806,25 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'removed_small_objects.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "removed_objects_too_small_to_process": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'removed_objects_too_small_to_process.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),

@@ -99,6 +99,8 @@ class nodeStats:
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
         The distance over which to join nearby odd-branched nodes.
+    node_extend_dist : float
+        The distance under which to join odd-branched node regions.
     branch_pairing_length : float
         The length from the crossing point to pair and trace, obtaining FWHM's.
     pair_odd_branches : bool
@@ -142,6 +144,8 @@ class nodeStats:
             The length over which to join skeletal intersections to be counted as one crossing.
         node_joining_length : float
             The distance over which to join nearby odd-branched nodes.
+        node_extend_dist : float
+            The distance under which to join odd-branched node regions.
         branch_pairing_length : float
             The length from the crossing point to pair and trace, obtaining FWHM's.
         pair_odd_branches : bool
@@ -528,9 +532,6 @@ class nodeStats:
         ----------
         max_branch_length : float
             The side length of the box around the node to analyse (in nm).
-        test_run : bool, optional
-            Flag to determine whether to run in test mode, if enabled, it will pickle objects to
-            files, by default False.
         """
         # Get coordinates of nodes
         # This is a numpy array of coords, shape Nx2
@@ -687,24 +688,24 @@ class nodeStats:
         ----------
         branch_under_over_order : npt.NDArray[np.int32]
             The order of the branches.
-        matched_branches: dict[int, dict[str, MatchedBranch]]
+        matched_branches : dict[int, dict[str, MatchedBranch]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
             - "ordered_coords" : npt.NDArray[np.int32].
             - "heights" : npt.NDArray[np.number]. Heights of the branches.
             - "distances" :
             - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
-        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
+        masked_image : dict[int, dict[str, npt.NDArray[np.bool_]]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
-        branch_start_coords: npt.NDArray[np.int32]
+        branch_start_coords : npt.NDArray[np.int32]
             An Nx2 numpy array of the coordinates of the branches connected to the node.
-        ordered_branches: list[npt.NDArray[np.int32]]
+        ordered_branches : list[npt.NDArray[np.int32]]
             List of numpy arrays of ordered branch coordinates.
-        pairs: npt.NDArray[np.int32]
+        pairs : npt.NDArray[np.int32]
             Nx2 numpy array of pairs of branches that are matched through a node.
-        average_trace_advised: bool
+        average_trace_advised : bool
             Flag to determine whether to use the average trace.
         image_shape : tuple[int]
             The shape of the image, to create a mask from.
@@ -760,7 +761,8 @@ class nodeStats:
         npt.NDArray[np.int32],
         np.float64 | None,
     ]:
-        """Analyse the branches of a single node.
+        """
+        Analyse the branches of a single node.
 
         Parameters
         ----------
@@ -769,28 +771,24 @@ class nodeStats:
         reduced_node_area : npt.NDArray[np.int32]
             An NxM numpy array of the node in question and the branches connected to it.
             Node is marked by 3, and branches by 1.
-        branch_start_coords: npt.NDArray[np.int32]
+        branch_start_coords : npt.NDArray[np.int32]
             An Nx2 numpy array of the coordinates of the branches connected to the node.
         max_length_px : np.int32
             The maximum length in pixels to traverse along while ordering.
-        reduced_skeleton_graph: nx.classes.graph.Graph
+        reduced_skeleton_graph : nx.classes.graph.Graph
             The graph representation of the reduced node area.
-        image: npt.NDArray[np.number]
+        image : npt.NDArray[np.number]
             The full image of the grain.
-        average_trace_advised: bool
+        average_trace_advised : bool
             Flag to determine whether to use the average trace.
-        node_coord: tuple[np.int32, np.int32]
+        node_coord : tuple[np.int32, np.int32]
             The node coordinates.
-        filename: str
-            The filename of the image.
         pair_odd_branches : bool
             Whether to try and pair odd-branched nodes.
-        test_run: bool
-            Flag to determine whether to run in test mode, if enabled, it will pickle objects to files.
-        resolution_threshold: np.float64
+        filename : str
+            The filename of the image.
+        resolution_threshold : np.float64
             The resolution threshold below which to warn the user that the node is difficult to analyse.
-        node_number: int
-            The node number.
 
         Returns
         -------
@@ -885,19 +883,19 @@ class nodeStats:
 
         Parameters
         ----------
-        pairs: npt.NDArray[np.int32]
+        pairs : npt.NDArray[np.int32]
             Nx2 numpy array of pairs of branches that are matched through a node.
-        ordered_branches: list[npt.NDArray[np.int32]]
+        ordered_branches : list[npt.NDArray[np.int32]]
             List of numpy arrays of ordered branch coordinates.
-        reduced_skeleton_graph: nx.classes.graph.Graph
+        reduced_skeleton_graph : nx.classes.graph.Graph
             Graph representation of the skeleton.
-        image: npt.NDArray[np.number]
+        image : npt.NDArray[np.number]
             The full image of the grain.
-        average_trace_advised: bool
+        average_trace_advised : bool
             Flag to determine whether to use the average trace.
-        node_coords: tuple[np.int32, np.int32]
+        node_coords : tuple[np.int32, np.int32]
             The node coordinates.
-        filename: str
+        filename : str
             The filename of the image.
 
         Returns
@@ -1011,7 +1009,6 @@ class nodeStats:
         -------
         tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]
             A tuple containing a list of ordered branches and a list of vectors.
-
         """
         ordered_branches = []
         vectors = []
@@ -1232,7 +1229,8 @@ class nodeStats:
 
     @staticmethod
     def interpolate_between_yvalue(x: npt.NDArray, y: npt.NDArray, yvalue: float) -> float:
-        """Calculate the x value between the two points either side of yvalue in y.
+        """
+        Calculate the x value between the two points either side of yvalue in y.
 
         Parameters
         ----------
@@ -1814,20 +1812,14 @@ class nodeStats:
             return None
 
     def compile_metrics(self) -> None:
-        """
-        Add the number of crossings, average and minimum crossing confidence to the metrics dictionary.
-
-        Returns
-        -------
-        None
-        """
+        """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
         self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
         self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dicts)
         self.metrics["min_crossing_confidence"] = nodeStats.minimum_crossing_confs(self.node_dicts)
 
 
 def nodestats_image(
-    image: npt.NPArray,
+    image: npt.NDArray,
     disordered_tracing_direction_data: dict,
     filename: str,
     pixel_to_nm_scaling: float,
@@ -1854,11 +1846,13 @@ def nodestats_image(
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
         The distance over which to join nearby odd-branched nodes.
+    node_extend_dist : float
+        The distance under which to join odd-branched node regions.
     branch_pairing_length : float
         The length from the crossing point to pair and trace, obtaining FWHM's.
     pair_odd_branches : bool
         Whether to try and pair odd-branched nodes.
-    Pad width : int
+    pad_width : int
         The number of edge pixels to pad the image by.
 
     Returns

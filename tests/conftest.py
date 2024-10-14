@@ -21,7 +21,6 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
-from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
@@ -143,14 +142,6 @@ def grainstats_config(default_config: dict) -> dict:
     config["direction"] = "above"
     # Set cropped image size to 40nm
     config["cropped_size"] = 40.0
-    config.pop("run")
-    return config
-
-
-@pytest.fixture()
-def dnatracing_config(default_config: dict) -> dict:
-    """Configurations for dnatracing."""
-    config = default_config["dnatracing"]
     config.pop("run")
     return config
 
@@ -765,24 +756,6 @@ def utils_skeleton_linear3() -> npt.NDArray:
     """Linear skeleton with several branches."""
     random_images, _ = draw.random_shapes(rng=7334281, **kwargs)
     return skeletonize(random_images != 255)
-
-
-def minicircle_dnatracing(
-    minicircle_grain_gaussian_filter: Filters,
-    minicircle_grain_coloured: Grains,
-    dnatracing_config: dict,
-) -> dnaTrace:
-    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
-    dnatracing_config.pop("pad_width")
-    dna_traces = dnaTrace(
-        image=minicircle_grain_coloured.image.T,
-        grain=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
-        filename=minicircle_grain_gaussian_filter.filename,
-        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        **dnatracing_config,
-    )
-    dna_traces.trace_dna()
-    return dna_traces
 
 
 # DNA Tracing Fixtures

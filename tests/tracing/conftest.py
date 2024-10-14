@@ -7,9 +7,6 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.filters import Filters
-from topostats.grains import Grains
-from topostats.tracing.dnatracing import dnaTrace
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
@@ -36,31 +33,6 @@ GRAINS = np.array(
     ]
 )
 FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
-
-
-@pytest.fixture()
-def test_dnatracing() -> dnaTrace:
-    """Instantiate a dnaTrace object."""
-    return dnaTrace(image=FULL_IMAGE, mask=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
-
-
-@pytest.fixture()
-def minicircle_dnatracing(
-    minicircle_grain_gaussian_filter: Filters,
-    minicircle_grain_coloured: Grains,
-    dnatracing_config: dict,
-) -> dnaTrace:
-    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
-    dnatracing_config.pop("pad_width")
-    dna_traces = dnaTrace(
-        image=minicircle_grain_coloured.image.T,
-        grain=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
-        filename=minicircle_grain_gaussian_filter.filename,
-        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        **dnatracing_config,
-    )
-    dna_traces.trace_dna()
-    return dna_traces
 
 
 # DNA Tracing Fixtures

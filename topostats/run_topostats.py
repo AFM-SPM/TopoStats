@@ -85,6 +85,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         grainstats_run=config["grainstats"]["run"],
         disordered_tracing_run=config["disordered_tracing"]["run"],
         nodestats_run=config["nodestats"]["run"],
+        ordered_tracing_run=config["ordered_tracing"]["run"],
         splining_run=config["splining"]["run"],
     )
     # Ensures each image has all plotting options which are passed as **kwargs
@@ -233,11 +234,11 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         else:
             LOGGER.warning(
                 "There are no results to plot, either...\n\n"
-                "* you have disabled grains/grainstats/dnatracing.\n"
+                "* you have disabled grains/grainstats etc.\n"
                 "* no grains have been detected across all scans.\n"
                 "* there have been errors.\n\n"
                 "If you are not expecting to detect grains please consider disabling"
-                "grains/grainstats/dnatracing/plotting/summary_stats. If you are expecting to detect grains"
+                "grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
                 " please check log-files for further information."
             )
     else:

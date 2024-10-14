@@ -11,16 +11,166 @@ import pandas as pd
 import pytest
 
 from topostats.io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
-from topostats.tracing.disordered_tracing import disordered_trace_grain, trace_image_disordered
+from topostats.tracing.disordered_tracing import crop_array, disordered_trace_grain, trace_image_disordered
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
 # pylint: disable=unspecified-encoding
+# pylint: disable=too-many-positional-arguments
 
 BASE_DIR = Path.cwd()
 DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
+
+TEST_LABELLED = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2, 2, 2, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0],
+        [0, 3, 3, 3, 3, 3, 3, 0, 0, 2, 0, 0, 0, 2, 0],
+        [0, 0, 0, 0, 0, 0, 3, 0, 0, 2, 0, 0, 0, 2, 0],
+        [0, 0, 0, 0, 0, 0, 3, 0, 0, 2, 2, 2, 2, 2, 0],
+        [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 3, 0, 4, 4, 4, 4, 4, 4, 0],
+        [0, 0, 0, 0, 0, 0, 3, 0, 4, 4, 4, 4, 4, 4, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 5, 5, 5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+        [0, 5, 5, 0, 0, 6, 0, 0, 6, 0, 0, 6, 0, 0, 0],
+        [0, 5, 5, 5, 5, 6, 0, 0, 6, 6, 6, 6, 6, 6, 0],
+        [0, 0, 0, 5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+        [0, 5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+
+
+@pytest.mark.parametrize(
+    ("bounding_box", "target", "pad_width"),
+    [
+        pytest.param(
+            (1, 1, 2, 7),
+            np.asarray(
+                [
+                    [1, 1, 1, 1, 1, 1],
+                ]
+            ),
+            0,
+            id="Zero padding",
+        ),
+        pytest.param(
+            (1, 1, 2, 7),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            1,
+            id="Single pixel padding",
+        ),
+        pytest.param(
+            (1, 1, 2, 7),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 3, 3, 3, 3, 3, 3, 0, 0],
+                ]
+            ),
+            2,
+            id="Two pixel padding",
+        ),
+        pytest.param(
+            (1, 9, 6, 14),
+            np.asarray(
+                [
+                    [2, 2, 2, 2, 2],
+                    [2, 0, 0, 0, 2],
+                    [2, 0, 0, 0, 2],
+                    [2, 0, 0, 0, 2],
+                    [2, 2, 2, 2, 2],
+                ]
+            ),
+            0,
+            id="Ring with zero padding",
+        ),
+        pytest.param(
+            (3, 1, 9, 7),
+            np.asarray(
+                [
+                    [3, 3, 3, 3, 3, 3],
+                    [0, 0, 0, 0, 0, 3],
+                    [0, 0, 0, 0, 0, 3],
+                    [0, 0, 0, 0, 0, 3],
+                    [0, 0, 0, 0, 0, 3],
+                    [0, 0, 0, 0, 0, 3],
+                ]
+            ),
+            0,
+            id="L with zero padding",
+        ),
+        pytest.param(
+            (7, 8, 9, 14),
+            np.asarray(
+                [
+                    [4, 4, 4, 4, 4, 4],
+                    [4, 4, 4, 4, 4, 4],
+                ]
+            ),
+            0,
+            id="solid with zero padding",
+        ),
+        pytest.param(
+            (10, 1, 15, 5),
+            np.asarray(
+                [
+                    [5, 5, 5, 5],
+                    [5, 5, 0, 0],
+                    [5, 5, 5, 5],
+                    [0, 0, 5, 5],
+                    [5, 5, 5, 5],
+                ]
+            ),
+            0,
+            id="small area with zero padding",
+        ),
+        pytest.param(
+            (10, 5, 14, 14),
+            np.asarray(
+                [
+                    [6, 6, 6, 6, 0, 0, 6, 0, 0],
+                    [6, 0, 0, 6, 0, 0, 6, 0, 0],
+                    [6, 0, 0, 6, 6, 6, 6, 6, 6],
+                    [6, 6, 6, 6, 0, 0, 6, 0, 0],
+                ]
+            ),
+            0,
+            id="larger area with zero pixel padding",
+        ),
+        pytest.param(
+            (10, 5, 14, 14),
+            np.asarray(
+                [
+                    [0, 0, 0, 3, 0, 4, 4, 4, 4, 4, 4, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+                    [0, 0, 6, 0, 0, 6, 0, 0, 6, 0, 0, 0],
+                    [5, 5, 6, 0, 0, 6, 6, 6, 6, 6, 6, 0],
+                    [5, 5, 6, 6, 6, 6, 0, 0, 6, 0, 0, 0],
+                    [5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            2,
+            id="larger area with two pixel padding",
+        ),
+    ],
+)
+def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> None:
+    """Test the cropping of images."""
+    cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
+    np.testing.assert_array_equal(cropped, target)
 
 
 @pytest.mark.parametrize(
@@ -86,7 +236,7 @@ GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -224,7 +374,7 @@ GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -407,7 +557,7 @@ GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",
@@ -980,7 +1130,7 @@ GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
             # Pruning parameters
             {
                 "method": "topostats",
-                "max_length": -1,
+                "max_length": None,
                 "height_threshold": None,
                 "method_values": "mid",
                 "method_outlier": "mean_abs",

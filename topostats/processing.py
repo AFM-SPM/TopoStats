@@ -32,6 +32,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
@@ -181,7 +182,7 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
+            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping following steps.")
             LOGGER.error(f"[{filename}] : The error: {e}")
         else:
             for direction, region_props in grains.region_properties.items():
@@ -216,7 +217,7 @@ def run_grains(  # noqa: C901
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     # hard code to class index 1, as this implementation is not yet generalised.
                     Images(
-                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
+                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"][:, :, 1]),
                         masked_array=grains.directions[direction]["labelled_regions_02"][:, :, 1],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
@@ -1128,6 +1129,7 @@ def check_run_steps(  # noqa: C901
     grainstats_run: bool,
     disordered_tracing_run: bool,
     nodestats_run: bool,
+    ordered_tracing_run: bool,
     splining_run: bool,
 ) -> None:
     """
@@ -1147,6 +1149,8 @@ def check_run_steps(  # noqa: C901
         Flag for running Disordered Tracing.
     nodestats_run : bool
         Flag for running NodeStats.
+    ordered_tracing_run : bool
+        Flag for running Ordered Tracing.
     splining_run : bool
         Flag for running DNA Tracing.
     """
@@ -1155,28 +1159,34 @@ def check_run_steps(  # noqa: C901
     LOGGER.debug(f"{grainstats_run=}")
     LOGGER.debug(f"{disordered_tracing_run=}")
     LOGGER.debug(f"{nodestats_run=}")
+    LOGGER.debug(f"{ordered_tracing_run=}")
     LOGGER.debug(f"{splining_run=}")
     if splining_run:
+        if ordered_tracing_run is False:
+            LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:
             LOGGER.error("Splining enabled but NodeStats disabled. Tracing will use the 'old' method.")
-            if grainstats_run is False:
-                LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
-            elif grains_run is False:
-                LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
-            elif grains_run is False:
-                LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
-            else:
-                LOGGER.info("Configuration run options are consistent, processing can proceed.")
-        elif disordered_tracing_run is False:
-            LOGGER.error(
-                "Splining is enabled but Disordered Tracing is disabled. Please check your configuration file."
-            )
+        if disordered_tracing_run is False:
+            LOGGER.error("Splining enabled but Disordered Tracing disabled. Please check your configuration file.")
         elif grainstats_run is False:
-            LOGGER.error("Splining is enabled but Grainstats is disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Grainstats disabled. Please check your configuration file.")
         elif grains_run is False:
-            LOGGER.error("Splining is enabled but Grains disabled. Please check your configuration file.")
+            LOGGER.error("Splining enabled but Grains disabled. Please check your configuration file.")
         elif filter_run is False:
             LOGGER.error("Splining enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif ordered_tracing_run:
+        if disordered_tracing_run is False:
+            LOGGER.error(
+                "Ordered Tracing enabled but Disordered Tracing disabled. Please check your configuration file."
+            )
+        elif grainstats_run is False:
+            LOGGER.error("NodeStats enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("NodeStats enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("NodeStats enabled but Filters disabled. Please check your configuration file.")
         else:
             LOGGER.info("Configuration run options are consistent, processing can proceed.")
     elif nodestats_run:

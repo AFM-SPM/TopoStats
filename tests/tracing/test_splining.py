@@ -11,7 +11,8 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.tracing.splining import splining_image, windowTrace
+from topostats.io import dict_almost_equal
+from topostats.tracing.splining import splineTrace, splining_image, windowTrace
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
@@ -21,6 +22,7 @@ ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "orde
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 PIXEL_TRACE = np.array(
     [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]]
@@ -88,6 +90,27 @@ def plot_spline_debugging(
 
 
 @pytest.mark.parametrize(
+    ("tuple_list", "expected_result"),
+    [
+        (
+            [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
+            [(1, 2, 3)],
+        ),
+        (
+            [(1, 2, 3), (1, 2, 3), (4, 5, 6), (4, 5, 6), (7, 8, 9), (10, 11, 12), (10, 11, 12)],
+            [(1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12)],
+        ),
+        ([np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3)), np.array((1, 2, 3))], [(1, 2, 3)]),
+    ],
+)
+def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_result: list[tuple]) -> None:
+    """Test the remove_duplicate_consecutive_tuples function of splining.py."""
+    result = splineTrace.remove_duplicate_consecutive_tuples(tuple_list)
+
+    np.testing.assert_array_equal(result, expected_result)
+
+
+@pytest.mark.parametrize(
     (
         "image_filename",
         "ordered_tracing_direction_data_filename",
@@ -140,7 +163,7 @@ def plot_spline_debugging(
         ),
     ],
 )
-def test_splining_image(
+def test_splining_image(  # pylint: disable=too-many-positional-arguments
     image_filename: str,
     ordered_tracing_direction_data_filename: str,
     pixel_to_nm_scaling: float,
@@ -198,7 +221,7 @@ def test_splining_image(
     expected_molstats_df = pd.read_csv(SPLINING_RESOURCES / expected_molstats_filename, index_col=0)
 
     # Check the results
-    np.testing.assert_equal(result_all_splines_data, expected_all_splines_data)
+    assert dict_almost_equal(result_all_splines_data, expected_all_splines_data)
     pd.testing.assert_frame_equal(result_splining_grainstats, expected_splining_grainstats)
     pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
 

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.tracing.ordered_tracing import ordered_tracing_image
+from topostats.tracing.ordered_tracing import linear_or_circular, ordered_tracing_image
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
@@ -20,6 +20,220 @@ DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "d
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
+
+GRAINS = {}
+GRAINS["vertical"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["horizontal"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["diagonal1"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["diagonal2"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["diagonal3"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["circle"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["blob"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["cross"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["single_L"] = np.asarray(
+    [
+        [0, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 1, 0],
+        [0, 0, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+    ]
+)
+GRAINS["double_L"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["diagonal_end_single_L"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["diagonal_end_straight"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["figure8"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["three_ends"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+GRAINS["six_ends"] = np.asarray(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
+)
+
+
+@pytest.mark.parametrize(
+    ("grain", "mol_is_circular"),
+    [
+        pytest.param(GRAINS["vertical"], False, id="vertical"),
+        pytest.param(GRAINS["horizontal"], False, id="horizontal"),
+        pytest.param(GRAINS["diagonal1"], True, id="diagonal1"),  # This is wrong, this IS a linear molecule
+        pytest.param(GRAINS["diagonal2"], False, id="diagonal2"),
+        pytest.param(GRAINS["diagonal3"], False, id="diagonal3"),
+        pytest.param(GRAINS["circle"], True, id="circle"),
+        pytest.param(GRAINS["blob"], True, id="blob"),
+        pytest.param(GRAINS["cross"], False, id="cross"),
+        pytest.param(GRAINS["single_L"], False, id="singl_L"),
+        pytest.param(GRAINS["double_L"], True, id="double_L"),  # This is wrong, this IS a linear molecule
+        pytest.param(GRAINS["diagonal_end_single_L"], False, id="diagonal_end_single_L"),
+        pytest.param(GRAINS["diagonal_end_straight"], False, id="diagonal_end_straight"),
+        pytest.param(GRAINS["figure8"], True, id="figure8"),
+        pytest.param(GRAINS["three_ends"], False, id="three_ends"),
+        pytest.param(GRAINS["six_ends"], False, id="six_ends"),
+    ],
+)
+def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
+    """Test the linear_or_circular method with a range of different structures."""
+    linear_coordinates = np.argwhere(grain == 1)
+    result = linear_or_circular(linear_coordinates)
+    assert result == mol_is_circular
 
 
 @pytest.mark.parametrize(

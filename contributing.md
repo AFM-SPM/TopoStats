@@ -22,9 +22,17 @@ not currently considered core elements of `topostats` apart from `Plotting.py`.
 Currently the `topostats` module consists of:
 
 - `default_config.ini` The default config file.
-- `dnatracing.py` Applies tracing functions to each molecule.
-- `pygwytracing.py` The "main" routine.
-- `tracingfuncs.py` Skeletonises and generates backbone traces from masks.
+- `run_topostats.py` The main script for running `topostats` and handles multiprocessing.
+- `entry_point.py` Handles the entry point commandline commands.
+- `processing.py` Handles processing a single AFM file.
+- `filters.py` Handles flattening and pre-processing images.
+- `grains.py` Handles grain segmentation.
+- `grainstats.py` Calculates statistics for each grain.
+- `disordered_tracing.py` Initial tracing of molecules.
+- `nodestats.py` Handles any crossings / branches in DNA grains.
+- `ordered_tracing.py` Proper tracing of molecules.
+- `splining.py` Smooths / splines the traces for a more representative trace.
+- `plotting.py` Handles plotting of the data.
 
 The current working plan is to move to a more modular architecture with new (and existing) functionality being grouped
 by theme within files. We expect to add such files as:

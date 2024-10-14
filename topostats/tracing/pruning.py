@@ -1,5 +1,7 @@
 """Prune branches from skeletons."""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Callable
 
@@ -343,7 +345,7 @@ class topostatsPrune:
             segment = np.where(labeled_segments == segment_idx, conv_skeleton, 0)
             # get segment length
             ordered_coords = order_branch(np.where(segment != 0, 1, 0), [0, 0])
-            segment_length = coord_dist(ordered_coords, self.pixel_to_nm_scaling)[-1] / 1e-9
+            segment_length = coord_dist(ordered_coords, self.pixel_to_nm_scaling)[-1]
             # check if endpoint
             if 2 in segment and segment_length < max_length:
                 # prune
@@ -649,7 +651,6 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             height_values = self._get_branch_medians(segments)
         elif self.method_values == "mid":
             height_values = self._get_branch_middles(segments)
-        print(f"{height_values=}")
         # threshold heights to obtain indexes of branches to be removed
         if self.method_outlier == "abs":
             idxs = self._get_abs_thresh_idx(height_values, self.height_threshold)

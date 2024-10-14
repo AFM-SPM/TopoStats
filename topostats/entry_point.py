@@ -255,20 +255,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Path to a YAML configuration file.",
     )
 
-    dnatracing_parser = subparsers.add_parser(
-        "dnatracing",
-        description="Load images with grains from '.topostats' files and trace DNA molecules.",
-        help="Load images with grains from '.topostats' files and trace DNA molecules.",
-    )
-    dnatracing_parser.add_argument(
-        "-c",
-        "--config-file",
-        dest="config_file",
-        type=Path,
-        required=False,
-        help="Path to a YAML configuration file.",
-    )
-
     tracingstats_parser = subparsers.add_parser(
         "tracingstats",
         description="Load images with grains from '.topostats' files and trace DNA molecules.",

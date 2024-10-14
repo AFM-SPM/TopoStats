@@ -4,7 +4,6 @@ import networkx
 import numpy as np
 import numpy.typing as npt
 import pytest
-from pytest_lazyfixture import lazy_fixture
 
 # pylint: disable=too-many-arguments
 from topostats.measure.geometry import (
@@ -125,8 +124,8 @@ def test_do_points_in_arrays_touch(
     ),
     [
         pytest.param(
-            lazy_fixture("network_array_representation_figure_8"),
-            lazy_fixture("whole_skeleton_graph_figure_8"),
+            "network_array_representation_figure_8",
+            "whole_skeleton_graph_figure_8",
             np.array([[1, 0]]),
             np.array([[0.0, 6.0], [6.0, 0.0]]),
             np.array([[[0, 0], [1, 1]], [[1, 1], [0, 0]]]),
@@ -135,7 +134,7 @@ def test_do_points_in_arrays_touch(
                 1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
             },
             8.0,
-            lazy_fixture("expected_network_array_representation_figure_8"),
+            "expected_network_array_representation_figure_8",
             id="figure 8",
         )
     ],
@@ -149,8 +148,14 @@ def test_connect_best_matches(
     emanating_branch_starts_by_node: npt.NDArray[np.int32],
     extend_distance: float,
     expected_network_array_representation: npt.NDArray[np.int32],
+    request,
 ) -> None:
     """Test the connect_best_matches function."""
+    # Load fixtures
+    network_array_representation = request.getfixturevalue(network_array_representation)
+    whole_skeleton_graph = request.getfixturevalue(whole_skeleton_graph)
+    expected_network_array_representation = request.getfixturevalue(expected_network_array_representation)
+
     result = connect_best_matches(
         network_array_representation,
         whole_skeleton_graph,
@@ -178,7 +183,7 @@ def test_connect_best_matches(
                 0: [np.array([6, 1]), np.array([7, 3]), np.array([8, 1])],
                 1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
             },
-            lazy_fixture("whole_skeleton_graph_figure_8"),
+            "whole_skeleton_graph_figure_8",
             np.array([[0, 6.0], [6.0, 0.0]]),
             np.array([[[0, 0], [1, 1]], [[1, 1], [0, 0]]]),
             np.array([[[[0, 0], [0, 0]], [[7, 3], [7, 9]]], [[[7, 9], [7, 3]], [[0, 0], [0, 0]]]]),
@@ -192,8 +197,12 @@ def test_calculate_shortest_branch_distances(
     expected_shortest_node_distances: dict[int, float],
     expected_shortest_distances_branch_indexes: dict[int, npt.NDArray[np.int32]],
     expected_shortest_distances_branch_coordinates: dict[int, npt.NDArray[np.number]],
+    request,
 ) -> None:
     """Test the calculate_shortest_branch_distances function."""
+    # Load fixtures
+    whole_skeleton_graph = request.getfixturevalue(whole_skeleton_graph)
+
     shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates = (
         calculate_shortest_branch_distances(nodes_with_branches_starting_coords, whole_skeleton_graph)
     )

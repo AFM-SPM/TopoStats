@@ -505,7 +505,6 @@ def local_area_sum(binary_map: npt.NDArray, point: list | tuple | npt.NDArray) -
     return local_pixels, local_pixels.sum()
 
 
-@staticmethod
 def coord_dist(coords: npt.NDArray, pixel_to_nm_scaling: float = 1) -> npt.NDArray:
     """
     Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
