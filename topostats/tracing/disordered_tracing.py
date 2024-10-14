@@ -292,7 +292,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     Returns
     -------
-    tuple[dict, dict]
+    tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
