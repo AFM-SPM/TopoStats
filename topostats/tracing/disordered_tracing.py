@@ -263,7 +263,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     skeletonisation_params: dict,
     pruning_params: dict,
     pad_width: int = 1,
-) -> dict:
+) -> tuple[dict, pd.DataFrame, dict, pd.DataFrame]:
     """
     Processor function for tracing image.
 
