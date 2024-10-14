@@ -913,9 +913,9 @@ class nodeStats:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         """
         matched_branches: dict[int, MatchedBranch] = {}
-        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = (
-            {}
-        )  # Masked image is a dictionary of pairs of branches
+        masked_image: dict[
+            int, dict[str, npt.NDArray[np.bool_]]
+        ] = {}  # Masked image is a dictionary of pairs of branches
         for i, (branch_1, branch_2) in enumerate(pairs):
             matched_branches[i] = MatchedBranch(
                 ordered_coords=np.array([], dtype=np.int32),
@@ -1814,8 +1814,8 @@ class nodeStats:
     def compile_metrics(self) -> None:
         """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
         self.metrics["num_crossings"] = np.int64((self.node_centre_mask == 3).sum())
-        self.metrics["avg_crossing_confidence"] = np.int64(nodeStats.average_crossing_confs(self.node_dicts))
-        self.metrics["min_crossing_confidence"] = np.int64(nodeStats.minimum_crossing_confs(self.node_dicts))
+        self.metrics["avg_crossing_confidence"] = np.float64(nodeStats.average_crossing_confs(self.node_dicts))
+        self.metrics["min_crossing_confidence"] = np.float64(nodeStats.minimum_crossing_confs(self.node_dicts))
 
 
 def nodestats_image(
