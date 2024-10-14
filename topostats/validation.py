@@ -272,6 +272,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "afmhot",
                 "nanoscope",
                 "gwyddion",
+                "white",
                 error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
             ),
             "mask_cmap": str,
