@@ -913,9 +913,9 @@ class nodeStats:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         """
         matched_branches: dict[int, MatchedBranch] = {}
-        masked_image: dict[
-            int, dict[str, npt.NDArray[np.bool_]]
-        ] = {}  # Masked image is a dictionary of pairs of branches
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = (
+            {}
+        )  # Masked image is a dictionary of pairs of branches
         for i, (branch_1, branch_2) in enumerate(pairs):
             matched_branches[i] = MatchedBranch(
                 ordered_coords=np.array([], dtype=np.int32),
