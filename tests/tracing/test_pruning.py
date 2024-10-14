@@ -17,7 +17,6 @@ from topostats.tracing.pruning import (
 # pylint: disable=too-many-lines
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
 
 
 @pytest.mark.parametrize(
@@ -1042,7 +1041,7 @@ class TestTopoStatsPrune:
         method_outliers: str,
         target_ends: npt.NDArray,
         target_pruned_coords: npt.NDArray,  # pylint: disable=unused-argument
-        request,
+        request: pytest.FixtureRequest,
     ) -> None:
         """
         Test of topostats_find_branch_ends() method of topostatsPrune class.
@@ -1074,7 +1073,7 @@ class TestTopoStatsPrune:
         method_outliers: str,
         target_ends: npt.NDArray,  # pylint: disable=unused-argument
         target_pruned_coords: npt.NDArray,
-        request,
+        request: pytest.FixtureRequest,
     ) -> None:
         """
         Test of topostats_prune_by_length() method of topostatsPrune class.
@@ -1198,7 +1197,7 @@ class TestTopoStatsPrune:
         pytest.param(
             "pruning_skeleton",
             None,
-            5.0e-19,
+            5.0,
             "min",
             "abs",
             np.asarray(
@@ -1242,7 +1241,7 @@ class TestTopoStatsPrune:
         pytest.param(
             "pruning_skeleton",
             None,
-            8.0e-19,
+            7.3,
             "median",
             "abs",
             np.asarray(
@@ -1280,13 +1279,13 @@ class TestTopoStatsPrune:
                 ],
                 dtype=np.uint8,
             ),
-            id="Height pruning based on median, height threshold 8.0e-19",
+            id="Height pruning based on median, height threshold 7.3",
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
             "pruning_skeleton",
             None,
-            7.7e-19,
+            7.1,
             "mid",
             "abs",
             np.asarray(
@@ -1324,13 +1323,13 @@ class TestTopoStatsPrune:
                 ],
                 dtype=np.uint8,
             ),
-            id="Height pruning based on mid(dle), height threshold 7.7e-19",
+            id="Height pruning based on mid(dle), height threshold 7.1",
             # marks=pytest.mark.skip(),
         ),
         pytest.param(
             "pruning_skeleton",
             None,
-            1.0e-19,
+            1.0,
             "min",
             "mean_abs",
             np.asarray(
@@ -1374,7 +1373,7 @@ class TestTopoStatsPrune:
         pytest.param(
             "pruning_skeleton",
             None,
-            1.0e-19,
+            10000,  # can assume any not-None value as the threshold is found via the IQR
             "min",
             "iqr",
             np.asarray(
@@ -1449,7 +1448,7 @@ class TestTopoStatsPruneMethods:
         method_values: str,
         method_outliers: str,
         target_skeleton: npt.NDArray,
-        request,
+        request: pytest.FixtureRequest,
     ) -> None:
         """Test of topostats_prune_all_skeletons() method of topostatsPrune class."""
         pruner = self.topostats_pruner(

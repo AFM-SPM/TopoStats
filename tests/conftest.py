@@ -885,7 +885,7 @@ def _generate_random_skeleton(**extra_kwargs):
         "allow_overlap": True,
     }
     # kwargs.update
-    heights = {"scale": 100, "sigma": 5.0, "cval": 20.0}
+    heights = {"scale": 1e2, "sigma": 5.0, "cval": 20.0}
     kwargs = {**kwargs, **extra_kwargs}
     random_image, _ = draw.random_shapes(**kwargs)
     mask = random_image != 255
