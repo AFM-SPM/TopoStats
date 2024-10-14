@@ -401,20 +401,16 @@ def compile_skan_stats(
         mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.
     """
     skan_df["image"] = filename
+    skan_df["branch-type"] = np.int64(skan_df["branch-type"])
     skan_df["grain_number"] = grain_number
     skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
     skan_df["min_value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
     skan_df["median_value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
     skan_df["middle_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
 
-    skan_df = skan_df.rename(
-        columns={  # remove with Skan new release
-            "branch-distance": "branch_distance",
-            "branch-type": "branch_type",
-            "mean-pixel-value": "mean_pixel_value",
-            "stdev-pixel-value": "stdev_pixel_value",
-        }
-    )
+    # Skan-0.11.1 uses dashes in variables names which prevents dot-notation being used to refer to variable names
+    # this has been addressed (see https://github.com/jni/skan/pull/215) for now manually convert.
+    skan_df.columns = skan_df.columns.str.replace("-", "_")
 
     # remove unused skan columns
     return skan_df[
