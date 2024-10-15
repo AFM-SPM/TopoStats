@@ -72,15 +72,13 @@ class reorderTrace:
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(neighbour_array[0]))
                 continue
             elif no_of_neighbours > 1:
-                best_next_pixel = genTracingFuncs.check_vectors_candidate_points(
-                    x_n, y_n, ordered_points, neighbour_array
-                )
+                best_next_pixel = genTracingFuncs.check_vectors_candidate_points(ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
             elif no_of_neighbours == 0:
                 # nn, neighbour_array_all_coords = genTracingFuncs.count_and_get_neighbours(x_n, y_n, trace_coordinates)
-                # best_next_pixel = genTracingFuncs.check_vectors_candidate_points(x_n, y_n, ordered_points, neighbour_array_all_coords)
+                # best_next_pixel = genTracingFuncs.check_vectors_candidate_points(ordered_points, neighbour_array_all_coords)
                 best_next_pixel = genTracingFuncs.find_best_next_point(
                     x_n, y_n, ordered_points, remaining_unordered_coords
                 )
@@ -152,9 +150,7 @@ class reorderTrace:
                 continue
 
             elif no_of_neighbours > 1:
-                best_next_pixel = genTracingFuncs.check_vectors_candidate_points(
-                    x_n, y_n, ordered_points, neighbour_array
-                )
+                best_next_pixel = genTracingFuncs.check_vectors_candidate_points(ordered_points, neighbour_array)
                 ordered_points.append(best_next_pixel)
                 remaining_unordered_coords.pop(remaining_unordered_coords.index(best_next_pixel))
                 continue
@@ -184,7 +180,7 @@ class reorderTrace:
 
                 # Maybe at a crossing with all neighbours deleted - this is crucially a point where errors often occur
                 else:
-                    # best_next_pixel = genTracingFuncs.check_vectors_candidate_points(x_n, y_n, ordered_points, remaining_unordered_coords)
+                    # best_next_pixel = genTracingFuncs.check_vectors_candidate_points(ordered_points, remaining_unordered_coords)
                     best_next_pixel = genTracingFuncs.find_best_next_point(
                         x_n, y_n, ordered_points, remaining_unordered_coords
                     )
@@ -369,25 +365,22 @@ class genTracingFuncs:
                 best_next_point = points_in_array[0]
                 return best_next_point
             else:
-                best_next_point = genTracingFuncs.check_vectors_candidate_points(x, y, ordered_points, points_in_array)
+                best_next_point = genTracingFuncs.check_vectors_candidate_points(ordered_points, points_in_array)
                 return best_next_point
         return None
 
     @staticmethod
     def check_vectors_candidate_points(
-        x: int, y: int, ordered_points: list | npt.NDArray, candidate_points: list | npt.NDArray
+        ordered_points: list | npt.NDArray,
+        candidate_points: list | npt.NDArray,
     ) -> list:
         """
-        Find which neighbouring pixel incurs the smallest angular change.
+        Find which neighbouring pixels incur the smallest angular change.
 
         This is done with reference to a previous pixel in the ordered trace, and chooses that as the next point.
 
         Parameters
         ----------
-        x : int
-            The x coordinate.
-        y : int
-            They y coordinate.
         ordered_points : list | npt.NDArray
             Ordered points.
         candidate_points : list | npt.NDArray
