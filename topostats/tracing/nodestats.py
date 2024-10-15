@@ -1107,6 +1107,7 @@ class nodeStats:
         dot = vectors @ vectors.T
         norm = np.diag(dot) ** 0.5
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
+        np.fill_diagonal(cos_angles, 1)  # ensures vector_x • vector_x angles are 0
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
     @staticmethod
@@ -1126,8 +1127,6 @@ class nodeStats:
         """
         # calculate cosine of angle
         angles = nodeStats.calc_angles(vectors)
-        # find highest values
-        np.fill_diagonal(angles, 0)  # ensures not paired with itself
         # match angles
         return nodeStats.best_matches(angles)
 
