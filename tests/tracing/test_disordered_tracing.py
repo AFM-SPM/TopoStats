@@ -11,13 +11,12 @@ import pandas as pd
 import pytest
 
 from topostats.io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
-from topostats.tracing.disordered_tracing import crop_array, disordered_trace_grain, trace_image_disordered
+from topostats.tracing import disordered_tracing
 
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
 # pylint: disable=unspecified-encoding
-# pylint: disable=too-many-positional-arguments
 
 BASE_DIR = Path.cwd()
 DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
@@ -169,7 +168,7 @@ TEST_LABELLED = np.asarray(
 )
 def test_crop_array(bounding_box: tuple, target: np.array, pad_width: int) -> None:
     """Test the cropping of images."""
-    cropped = crop_array(TEST_LABELLED, bounding_box, pad_width)
+    cropped = disordered_tracing.crop_array(TEST_LABELLED, bounding_box, pad_width)
     np.testing.assert_array_equal(cropped, target)
 
 
@@ -1263,7 +1262,7 @@ def test_disordered_trace_grain(
     expected_branch_types: npt.NDArray[np.int32],
 ) -> None:
     """Test the disorderedTrace() method."""
-    result_dict = disordered_trace_grain(
+    result_dict = disordered_tracing.disordered_trace_grain(
         cropped_image=cropped_image,
         cropped_mask=cropped_mask,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -1389,7 +1388,7 @@ def test_trace_image_disordered(
         result_disordered_tracing_grainstats,
         result_all_images,
         result_disordered_tracing_stats,
-    ) = trace_image_disordered(
+    ) = disordered_tracing.trace_image_disordered(
         image=image,
         grains_mask=mask,
         filename="test_image",
@@ -1444,3 +1443,43 @@ def test_trace_image_disordered(
     pd.testing.assert_frame_equal(result_disordered_tracing_grainstats, expected_disordered_tracing_grainstats)
     assert dict_almost_equal(result_all_images, expected_all_images, abs_tol=1e-11)
     pd.testing.assert_frame_equal(result_disordered_tracing_stats, expected_disordered_tracing_stats)
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_compile_skan_stats() -> None:
+    """Test of prep_compile_skan_stats()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_segment_heights() -> None:
+    """Test of prep_segment_heights()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_segment_middles() -> None:
+    """Test of prep_segment_middles()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_find_connections() -> None:
+    """Test of prep_find_connections()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_prep_arrays() -> None:
+    """Test of prep_arrays()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_grain_anchor() -> None:
+    """Test of grain_anchor()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_get_skan_image() -> None:
+    """Test of grain_anchor()."""
+
+
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
+def test_pad_bounding_box() -> None:
+    """Test of pad_bounding_box()."""

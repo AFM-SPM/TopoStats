@@ -170,7 +170,7 @@ class nodeStats:
         self.node_centre_mask = np.zeros_like(self.skeleton)
 
         self.metrics = {
-            "num_crossings": 0,
+            "num_crossings": np.int64(0),
             "avg_crossing_confidence": None,
             "min_crossing_confidence": None,
         }
@@ -1813,9 +1813,9 @@ class nodeStats:
 
     def compile_metrics(self) -> None:
         """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
-        self.metrics["num_crossings"] = (self.node_centre_mask == 3).sum()
-        self.metrics["avg_crossing_confidence"] = nodeStats.average_crossing_confs(self.node_dicts)
-        self.metrics["min_crossing_confidence"] = nodeStats.minimum_crossing_confs(self.node_dicts)
+        self.metrics["num_crossings"] = np.int64((self.node_centre_mask == 3).sum())
+        self.metrics["avg_crossing_confidence"] = np.float64(nodeStats.average_crossing_confs(self.node_dicts))
+        self.metrics["min_crossing_confidence"] = np.float64(nodeStats.minimum_crossing_confs(self.node_dicts))
 
 
 def nodestats_image(
