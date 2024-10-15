@@ -6,9 +6,7 @@ import pytest
 
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
-# pylint: disable=unnecessary-pass
 # pytest: disable=import-error
-# pylint: disable=too-many-positional-arguments
 
 
 def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
@@ -545,95 +543,95 @@ def test_get_skeleton(  # pylint: disable=too-many-arguments
 
 
 # Tests for topopstatsSkeletonize class
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_do_skeletonising_iteration() -> None:
     """Test of do skeletonising iteration."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_delete_pixel_subit1() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_delete_pixel_subit2() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_a() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_b_returncount() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_c() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_d() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_csharp() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_dsharp() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_final_skeletonisation_iteration() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_final_thin_check_a() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_final_thin_check_b() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_binary_thin_check_diag() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_get_local_pixels_binary() -> None:
     """Test of  method."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_do_skeletonising() -> None:
     """Test of  method."""
-    pass
 
 
 # Miscellaneous functions
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_order_branch_from_start() -> None:
     """Test of order_branch_from_start()."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_rm_nibs() -> None:
     """Test of rm_nibs()."""
-    pass
 
 
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
 def test_local_area_sum() -> None:
     """Test local_area_sum()."""
-    pass
 
 
 @pytest.mark.parametrize(

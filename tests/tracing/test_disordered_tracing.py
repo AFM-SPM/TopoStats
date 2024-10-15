@@ -17,7 +17,6 @@ from topostats.tracing import disordered_tracing
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
 # pylint: disable=unspecified-encoding
-# pylint: disable=too-many-positional-arguments
 
 BASE_DIR = Path.cwd()
 DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
@@ -1446,41 +1445,41 @@ def test_trace_image_disordered(
     pd.testing.assert_frame_equal(result_disordered_tracing_stats, expected_disordered_tracing_stats)
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_compile_skan_stats() -> None:
     """Test of prep_compile_skan_stats()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_segment_heights() -> None:
     """Test of prep_segment_heights()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_segment_middles() -> None:
     """Test of prep_segment_middles()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_find_connections() -> None:
     """Test of prep_find_connections()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_prep_arrays() -> None:
     """Test of prep_arrays()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_grain_anchor() -> None:
     """Test of grain_anchor()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_get_skan_image() -> None:
     """Test of grain_anchor()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written.")
+@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_pad_bounding_box() -> None:
     """Test of pad_bounding_box()."""
