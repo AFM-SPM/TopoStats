@@ -15,20 +15,12 @@ listed below to find out more.
     configuration
     contributing
     notebooks
+    advanced
     workflow
     data_dictionary
     related_software
     glossary
     faq
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Advanced Documentation
-    advanced/disordered_tracing
-    advanced/nodestats
-    advanced/ordered_tracing
-    advanced/splining
-
 
 .. toctree::
    :maxdepth: 1
