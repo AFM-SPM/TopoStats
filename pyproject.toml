@@ -70,10 +70,11 @@ tests = [
 ]
 docs = [
   "Sphinx",
+  "docutils<0.21",
   "myst_parser",
   "numpydoc",
   "pydata_sphinx_theme",
-  "sphinx-autoapi==3.1.0b0",
+  "sphinx-autoapi",
   "sphinx-autodoc-typehints",
   "sphinx-multiversion",
   "sphinx_markdown_tables",
