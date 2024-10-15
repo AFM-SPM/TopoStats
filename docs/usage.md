@@ -322,7 +322,7 @@ and generate the plots you want there. A sample notebook is included to show how
 ### Configuring Summary Plots
 
 Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
-[configuration](configuration#summary-configuration) page. You can generate a sample configuration by invoking the
+[configuration](configuration.md#summary-configuration) page. You can generate a sample configuration by invoking the
 `--create-config-file` option to `toposum`
 
 ```bash

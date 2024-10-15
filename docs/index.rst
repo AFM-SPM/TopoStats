@@ -15,6 +15,7 @@ listed below to find out more.
     configuration
     contributing
     notebooks
+    advanced
     workflow
     data_dictionary
     related_software

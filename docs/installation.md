@@ -95,8 +95,8 @@ e.g. `@another_branch` would install the `another_branch` (if it existed).
 
 #### Cloning the Repository and installing
 
-If you do not have Git already installed please see [Git](installation#git). If you intend to contribute to the
-development of TopoStats please read through the [contributing](contributing) section.
+If you do not have Git already installed please see [Git Installation](https://github.com/git-guides/install-git). If
+you intend to contribute to the development of TopoStats please read through the [contributing](contributing) section.
 
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
 your virtual environment. By installing in editable mode (with the `-e` flag) switching branches will make the branch
