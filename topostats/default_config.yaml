@@ -4,7 +4,7 @@
 base_dir: ./ # Directory in which to search for data files
 output_dir: ./output # Directory to output results to
 log_level: info # Verbosity of output. Options: warning, error, info, debug
-cores: 1 # Number of CPU cores to utilise for processing multiple files simultaneously.
+cores: 2 # Number of CPU cores to utilise for processing multiple files simultaneously.
 file_ext: .spm # File extension of the data files.
 loading:
   channel: Height # Channel to pull data from in the data files.

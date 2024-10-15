@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.metadata
 import logging
 from itertools import combinations
 
@@ -889,8 +888,6 @@ def ordered_tracing_image(
         Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
         dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.
     """
-    topoly_version = importlib.metadata.version("topoly")
-    print(f"Topoly version: {topoly_version}")
     ordered_trace_full_images = {
         "ordered_traces": np.zeros_like(image),
         "all_molecules": np.zeros_like(image),
