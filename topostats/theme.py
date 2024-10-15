@@ -171,13 +171,20 @@ class Colormap:
         Returns
         -------
         ListedColormap
-            The 'blu' colormap.
+            The 'blue' colormap.
         """
         return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blue", N=256)
 
     @staticmethod
-    def blue_purple_green():
-        """RGBA colour map of just the colour blue."""
+    def blue_purple_green() -> ListedColormap:
+        """
+        RGBA colour map of just the colour blue/purple/green.
+
+        Returns
+        -------
+        ListedColormap
+            The 'blue/purple/green' colormap.
+        """
         return ListedColormap(
             [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
             "blue_purple_green",
