@@ -274,7 +274,6 @@ exclude = [  # don't report on objects that match any of these regex
     "\\.__repr__$",
     "^test_",
     "^conftest",
-    "^tracingfuncs",
     "^conf$",
 ]
 override_SS05 = [  # override SS05 to allow docstrings starting with these words
