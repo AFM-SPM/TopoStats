@@ -190,34 +190,38 @@ class nodeStats:
         self.visuals = {}
         self.all_visuals_img = None
 
-    def get_node_stats(self) -> tuple:
+    def get_node_stats(self) -> tuple[dict, dict]:
         """
         Run the workflow to obtain the node statistics.
 
+        .. code-block:: RST
+
+            node_dict key structure:  <grain_number>
+                                        └-> <node_number>
+                                            |-> 'error'
+                                            └-> 'node_coords'
+                                            └-> 'branch_stats'
+                                                └-> <branch_number>
+                                                    |-> 'ordered_coords'
+                                                    |-> 'heights'
+                                                    |-> 'gaussian_fit'
+                                                    |-> 'fwhm'
+                                                    └-> 'angles'
+
+            image_dict key structure:  'nodes'
+                                            <node_number>
+                                                |-> 'node_area_skeleton'
+                                                |-> 'node_branch_mask'
+                                                └-> 'node_avg_mask
+                                        'grain'
+                                            |-> 'grain_image'
+                                            |-> 'grain_mask'
+                                            └-> 'grain_skeleton'
+
         Returns
         -------
-        dict
-            Key structure:  <grain_number>
-                            |-> <node_number>
-                                |-> 'error'
-                                └-> 'node_coords'
-                                └-> 'branch_stats'
-                                    └-> <branch_number>
-                                        |-> 'ordered_coords'
-                                        |-> 'heights'
-                                        |-> 'gaussian_fit'
-                                        |-> 'fwhm'
-                                        └-> 'angles'
-        dict
-            Key structure:  'nodes'
-                                <node_number>
-                                    |-> 'node_area_skeleton'
-                                    |-> 'node_branch_mask'
-                                    └-> 'node_avg_mask
-                            'grain'
-                                |-> 'grain_image'
-                                |-> 'grain_mask'
-                                └-> 'grain_skeleton'
+        tuple[dict, dict]
+            Dictionaries of the node_information and images.
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skelly = convolve_skeleton(self.skeleton)
@@ -1092,7 +1096,11 @@ class nodeStats:
         """
         Calculate the angles between vectors in an array.
 
-        Uses the formula: cos(theta) = |a|•|b|/|a||b|
+        Uses the formula:
+
+        .. code-block:: RST
+
+            cos(theta) = |a|•|b|/|a||b|
 
         Parameters
         ----------
