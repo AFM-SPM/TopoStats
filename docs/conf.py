@@ -206,8 +206,8 @@ autoapi_dirs = ["../topostats"]
 # sphinx-multiversion https://holzhaus.github.io/sphinx-multiversion/master/configuration.html
 smv_tag_whitelist = r"^v\d+.*$"  # Tags beginning with v#
 smv_branch_whitelist = r"^main$"  # main branch
-# If testing changes locally comment out the above and the smv_branch_whitelist below instead. Replace the branch name
-# you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
+# If testing changes locally comment out the above and use the smv_branch_whitelist below instead. Replace the branch
+# name you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
 #
 # cd docs
 # sphinx-multiversion . _build/html
