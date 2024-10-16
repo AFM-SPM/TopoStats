@@ -6,5 +6,5 @@ You can read more detailed information about the methods implemented in TopoStat
 
 - [Disordered Tracing](advanced/disordered_tracing.md)
 - [Nodestats](advanced/nodestats.md)
-- [Ordered Tracing](advanced/Ordered_tracing.md)
+- [Ordered Tracing](advanced/ordered_tracing.md)
 - [Splining](advanced/splining.md)
