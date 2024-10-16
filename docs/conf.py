@@ -45,7 +45,6 @@ version = ".".join(release.split(".")[:2])
 extensions = [
     "autoapi.extension",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.coverage",
