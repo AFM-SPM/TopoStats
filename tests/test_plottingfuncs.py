@@ -71,7 +71,6 @@ def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_
 def test_dilate_binary_image(binary_image: np.ndarray, dilation_iterations: int, expected: np.ndarray) -> None:
     """Test the dilate binary images function of plottingfuncs.py."""
     result = dilate_binary_image(binary_image=binary_image, dilation_iterations=dilation_iterations)
-
     np.testing.assert_array_equal(result, expected)
 
 
@@ -253,7 +252,7 @@ def test_plot_and_save_non_square_bounding_box(
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
     """Test the plotting of a mask with a different colourmap (blu)."""
-    plotting_config["mask_cmap"] = "blu"
+    plotting_config["mask_cmap"] = "blue"
     fig, _ = Images(
         data=ARRAY,
         output_dir=tmp_path,

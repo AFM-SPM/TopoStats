@@ -34,7 +34,7 @@ keywords = [
   "afm",
   "image processing"
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.9, <3.12"
 dependencies = [
   "AFMReader",
   "h5py",
@@ -44,18 +44,20 @@ dependencies = [
   "numpy",
   "numpyencoder",
   "pandas",
-  "pySPM",
   "pyfiglet",
+  "pySPM",
   "pyyaml",
   "ruamel.yaml",
   "schema",
   "scikit-image",
   "scipy",
   "seaborn",
+  "skan",
   "snoop",
-  "tifffile",
-  "tqdm",
   "tensorflow",
+  "tifffile",
+  "topoly==1.0.2",
+  "tqdm",
 ]
 
 [project.optional-dependencies]
@@ -126,8 +128,10 @@ write_to = "topostats/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = ["--mpl", "-ra", "--strict-config", "--strict-markers"]
-log_cli_level = "Info"
+addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
+log_level = "INFO"
+log_cli = true
+log_cli_level = "INFO"
 testpaths = [
     "tests",
 ]
@@ -184,13 +188,8 @@ exclude = [
   "dist",
   "docs/conf.py",
   "node_modules",
-  "pygwytracing.py",
   "tests/tracing/test_dnacurvature.py",
-  "tests/tracing/test_dnatracing.py",
-  "tests/tracing/test_tracing_dna.py",
   "topostats/plotting.py",
-  "topostats/tracing/dnatracing.py",
-  "topostats/tracing/tracing_dna.py",
   "topostats/tracing/tracingfuncs.py",
   "venv",
 ]
@@ -257,7 +256,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle'
+skip = '*.spm*,*.mplstyle,*.svg'
 count = ''
 quiet-level = 3
 
@@ -274,8 +273,6 @@ exclude = [  # don't report on objects that match any of these regex
     "\\.__repr__$",
     "^test_",
     "^conftest",
-    "^dnatrcing",
-    "^tracingfuncs",
     "^conf$",
 ]
 override_SS05 = [  # override SS05 to allow docstrings starting with these words

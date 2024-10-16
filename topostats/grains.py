@@ -166,6 +166,11 @@ class Grains:
         self.grainstats = None
         self.unet_config = unet_config
 
+        # Hardcoded minimum pixel size for grains. This should not be able to be changed by the user as this is
+        # determined by what is processable by the rest of the pipeline.
+        self.minimum_grain_size_px = 10
+        self.minimum_bbox_size_px = 5
+
     def tidy_border(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
         Remove grains touching the border.
@@ -294,6 +299,41 @@ class Grains:
             )
             return small_objects_removed > 0.0
         return image
+
+    def remove_objects_too_small_to_process(
+        self, image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int
+    ) -> npt.NDArray[np.bool_]:
+        """
+        Remove objects whose dimensions in pixels are too small to process.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            2-D Numpy array of image.
+        minimum_size_px : int
+            Minimum number of pixels for an object.
+        minimum_bbox_size_px : int
+            Limit for the minimum dimension of an object in pixels. Eg: 5 means the object's bounding box must be at
+            least 5x5.
+
+        Returns
+        -------
+        npt.NDArray
+            2-D Numpy array of image with objects removed that are too small to process.
+        """
+        labelled_image = label(image)
+        region_properties = self.get_region_properties(labelled_image)
+        for region in region_properties:
+            # If the number of true pixels in the region is less than the minimum number of pixels, remove the region
+            if region.area < minimum_size_px:
+                labelled_image[labelled_image == region.label] = 0
+            bbox_width = region.bbox[2] - region.bbox[0]
+            bbox_height = region.bbox[3] - region.bbox[1]
+            # If the minimum dimension of the bounding box is less than the minimum dimension, remove the region
+            if min(bbox_width, bbox_height) < minimum_bbox_size_px:
+                labelled_image[labelled_image == region.label] = 0
+
+        return labelled_image.astype(bool)
 
     def area_thresholding(self, image: npt.NDArray, area_thresholds: tuple) -> npt.NDArray:
         """
@@ -440,8 +480,15 @@ class Grains:
                     self.directions[direction]["removed_noise"],
                     self.absolute_area_threshold[direction],
                 )
+            self.directions[direction]["removed_objects_too_small_to_process"] = (
+                self.remove_objects_too_small_to_process(
+                    image=self.directions[direction]["removed_small_objects"],
+                    minimum_size_px=self.minimum_grain_size_px,
+                    minimum_bbox_size_px=self.minimum_bbox_size_px,
+                )
+            )
             self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                self.directions[direction]["removed_small_objects"]
+                self.directions[direction]["removed_objects_too_small_to_process"]
             )
 
             self.region_properties[direction] = self.get_region_properties(

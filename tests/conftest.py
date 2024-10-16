@@ -21,7 +21,6 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
-from topostats.tracing.dnatracing import dnaTrace
 from topostats.utils import _get_mask, get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
@@ -141,14 +140,8 @@ def grainstats_config(default_config: dict) -> dict:
     """Configurations for grainstats."""
     config = default_config["grainstats"]
     config["direction"] = "above"
-    config.pop("run")
-    return config
-
-
-@pytest.fixture()
-def dnatracing_config(default_config: dict) -> dict:
-    """Configurations for dnatracing."""
-    config = default_config["dnatracing"]
+    # Set cropped image size to 40nm
+    config["cropped_size"] = 40.0
     config.pop("run")
     return config
 
@@ -732,46 +725,37 @@ def minicircle_grainstats(
     )
 
 
-# Derive fixtures for DNA Tracing
-GRAINS = np.array(
-    [
-        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2],
-        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
-        [0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 2],
-        [0, 0, 3, 3, 3, 3, 3, 0, 0, 0, 2],
-        [0, 0, 4, 4, 4, 4, 4, 0, 0, 0, 2],
-    ]
-)
-FULL_IMAGE = RNG.random((GRAINS.shape[0], GRAINS.shape[1]))
+# Random shapes
+# Generate a random skeletons, first is a skeleton with a closed loop with side branches
+kwargs = {
+    "image_shape": (60, 32),
+    "max_shapes": 10,
+    "channel_axis": None,
+    "shape": None,
+    "allow_overlap": True,
+    "min_size": 20,
+}
 
 
 @pytest.fixture()
-def test_dnatracing() -> dnaTrace:
-    """Instantiate a dnaTrace object."""
-    return dnaTrace(image=FULL_IMAGE, grain=GRAINS, filename="Test", pixel_to_nm_scaling=1.0)
+def utils_skeleton_linear1() -> npt.NDArray:
+    """Linear skeleton."""
+    random_images, _ = draw.random_shapes(rng=1, **kwargs)
+    return skeletonize(random_images != 255)
 
 
 @pytest.fixture()
-def minicircle_dnatracing(
-    minicircle_grain_gaussian_filter: Filters,
-    minicircle_grain_coloured: Grains,
-    dnatracing_config: dict,
-) -> dnaTrace:
-    """DnaTrace object instantiated with minicircle data."""  # noqa: D403
-    dnatracing_config.pop("pad_width")
-    dna_traces = dnaTrace(
-        image=minicircle_grain_coloured.image.T,
-        grain=minicircle_grain_coloured.directions["above"]["labelled_regions_02"],
-        filename=minicircle_grain_gaussian_filter.filename,
-        pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
-        **dnatracing_config,
-    )
-    dna_traces.trace_dna()
-    return dna_traces
+def utils_skeleton_linear2() -> npt.NDArray:
+    """Linear skeleton T-junction and side-branch."""
+    random_images, _ = draw.random_shapes(rng=165103, **kwargs)
+    return skeletonize(random_images != 255)
+
+
+@pytest.fixture()
+def utils_skeleton_linear3() -> npt.NDArray:
+    """Linear skeleton with several branches."""
+    random_images, _ = draw.random_shapes(rng=7334281, **kwargs)
+    return skeletonize(random_images != 255)
 
 
 # DNA Tracing Fixtures
@@ -900,11 +884,13 @@ def _generate_random_skeleton(**extra_kwargs):
         "shape": None,
         "allow_overlap": True,
     }
-    heights = {"scale": 100, "sigma": 5.0, "cval": 20.0}
-    random_image, _ = draw.random_shapes(**kwargs, **extra_kwargs)
+    # kwargs.update
+    heights = {"scale": 1e2, "sigma": 5.0, "cval": 20.0}
+    kwargs = {**kwargs, **extra_kwargs}
+    random_image, _ = draw.random_shapes(**kwargs)
     mask = random_image != 255
     skeleton = skeletonize(mask)
-    return {"img": _generate_heights(skeleton, **heights), "skeleton": skeleton}
+    return {"original": mask, "img": _generate_heights(skeleton, **heights), "skeleton": skeleton}
 
 
 @pytest.fixture()
@@ -937,13 +923,21 @@ def skeleton_linear3() -> dict:
     return _generate_random_skeleton(rng=894632511, min_size=20)
 
 
-# Helper functions for visualising skeletons and heights
-#
+@pytest.fixture()
+def pruning_skeleton() -> dict:
+    """Smaller skeleton for testing parameters of prune_all_skeletons(). Has a T-junction."""
+    return _generate_random_skeleton(rng=69432138, min_size=15, image_shape=(30, 30))
+
+
+## Helper function visualising for generating skeletons and heights
+
+
+# import matplotlib.pyplot as plt
 # def pruned_plot(gen_shape: dict) -> None:
 #     """Plot the original skeleton, its derived height and the pruned skeleton."""
-#     img_skeleton = gen_shape()
+#     img_skeleton = gen_shape
 #     pruned = topostatsPrune(
-#         img_skeleton["heights"],
+#         img_skeleton["img"],
 #         img_skeleton["skeleton"],
 #         max_length=-1,
 #         height_threshold=90,
@@ -952,17 +946,23 @@ def skeleton_linear3() -> dict:
 #     )
 #     pruned_skeleton = pruned._prune_by_length(pruned.skeleton, pruned.max_length)
 #     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-#     ax1.imshow(img_skeleton["skeleton"])
-#     ax2.imshow(img_skeleton["heights"])
-#     ax3.imshow(pruned_skeleton)
+#     ax1.imshow(img_skeleton["original"])
+#     ax1.set_title("Original mask")
+#     ax2.imshow(img_skeleton["skeleton"])
+#     ax2.set_title("Skeleton")
+#     ax3.imshow(img_skeleton["img"])
+#     ax3.set_title("Gaussian Blurring")
+#     ax4.imshow(pruned_skeleton)
+#     ax4.set_title("Pruned Skeleton")
 #     plt.show()
 
 
-# pruned_plot(skeleton_loop1)
-# pruned_plot(skeleton_loop2)
-# pruned_plot(skeleton_linear1)
-# pruned_plot(skeleton_linear2)
-# pruned_plot(skeleton_linear3)
+# pruned_plot(pruning_skeleton_loop1())
+# pruned_plot(pruning_skeleton_loop2())
+# pruned_plot(pruning_skeleton_linear1())
+# pruned_plot(pruning_skeleton_linear2())
+# pruned_plot(pruning_skeleton_linear3())
+# pruned_plot(pruning_skeleton())
 
 
 # U-Net fixtures

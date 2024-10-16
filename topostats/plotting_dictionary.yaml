@@ -11,6 +11,8 @@
 # | image_type   | String  | Whether the plot includes the height (non-binary) or the outline (binary)    |
 # | savefig_dpi  | int     | Dots Per Inch for plotting                                                   |
 # | core_set     | Boolean | Whether a plot is considered part of the core set of images that are plotted.|
+
+# Flattening Troubleshooting Images
 extracted_channel:
   filename: "00-raw_heightmap"
   title: "Raw Height"
@@ -118,34 +120,47 @@ z_threshed:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: true
+# Grainfinding Troubleshooting Images
 mask_grains:
   filename: "17-mask_grains"
   title: "Mask for Grains"
   image_type: "binary"
+  mask_cmap: "binary"
   savefig_dpi: 100
   core_set: false
 labelled_regions_01:
   filename: "18-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 tidied_border:
   filename: "19-tidy_borders"
   title: "Tidied Borders"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 removed_noise:
   filename: "20-noise_removed"
   title: "Noise removed"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 removed_small_objects:
   filename: "21-small_objects_removed"
   title: "Small Objects Removed"
   image_type: "binary"
+  mask_cmap: "rainbow"
+  savefig_dpi: 100
+  core_set: false
+removed_objects_too_small_to_process:
+  filename: "22-objects_too_small_removed"
+  title: "Objects too small to process removed"
+  image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 mask_overlay:
@@ -154,34 +169,32 @@ mask_overlay:
   savefig_dpi: 100
   core_set: true
 labelled_regions_02:
-  filename: "22-labelled_regions"
+  filename: "23-labelled_regions"
   title: "Labelled Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 coloured_regions:
-  filename: "23-coloured_regions"
+  filename: "24-coloured_regions"
   title: "Coloured Regions"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
 bounding_boxes:
-  filename: "24-bounding_boxes"
+  filename: "25-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
 coloured_boxes:
-  filename: "25-labelled_image_bboxes"
+  filename: "26-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
+  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
-all_molecule_traces:
-  title: "Molecule Traces"
-  image_type: "non-binary"
-  savefig_dpi: 800
-  core_set: true
 grain_image:
   image_type: "non-binary"
   savefig_dpi: 100
@@ -194,7 +207,127 @@ grain_mask_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
-single_molecule_trace:
+# Disordered Tracing Troubleshooting Images
+orig_grain:
+  filename: "20-original_grains"
+  title: "Image with Threshold Mask"
   image_type: "non-binary"
-  savefig_dpi: 100
+  mask_cmap: "blue"
   core_set: false
+smoothed_grain:
+  filename: "21-smoothed_grains"
+  title: "Image with Gaussian-Smoothed Threshold Mask"
+  image_type: "non-binary"
+  mask_cmap: "blue"
+  core_set: false
+skeleton:
+  filename: "22-original_skeletons"
+  title: "Original Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "blue"
+  core_set: false
+  savefig_dpi: 600
+pruned_skeleton:
+  title: "Pruned Skeletons"
+  image_type: "non-binary"
+  mask_cmap: "blue"
+  core_set: false
+  savefig_dpi: 600
+branch_indexes:
+  filename: "23-segment_indexes"
+  title: "Skeleton Segment Indexes"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  core_set: false
+  savefig_dpi: 600
+branch_types:
+  filename: "24-segment_types"
+  title: "Skeleton Segment Types"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  core_set: false
+  savefig_dpi: 600
+# Nodestats troubleshooting images
+convolved_skeletons:
+  filename: "25-convolved_skeleton"
+  title: "Skeletons and Nodes"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
+node_centres:
+  filename: "26-node_centres"
+  title: "Skeletons and Highlighted Nodes"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
+connected_nodes:
+  title: "Skeletons and Nodes"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: true
+  savefig_dpi: 600
+node_area_skeleton:
+  title: "Zoom of Node Skeleton"
+  image_type: "non-binary"
+  core_set: false
+  mask_cmap: "blue_purple_green"
+  savefig_dpi: 200
+node_branch_mask:
+  title: "Crossing and Skeleton Branches"
+  image_type: "non-binary"
+  core_set: false
+  mask_cmap: "blue_purple_green"
+  savefig_dpi: 200
+node_avg_mask:
+  title: "Main and Parallel Traces"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+node_line_trace:
+  title: "Heights of Crossing"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+# Ordered tracing troubleshooting images
+ordered_traces:
+  title: "Ordered Traces"
+  image_type: "non-binary"
+  mask_cmap: "viridis"
+  core_set: false
+  savefig_dpi: 600
+trace_segments:
+  filename: "27-trace_segments"
+  title: "Trace Segments"
+  image_type: "non-binary"
+  mask_cmap: "gist_rainbow"
+  savefig_dpi: 600
+  core_set: false
+over_under:
+  filename: "28-molecule_crossings"
+  title: "Visualised Molecule Crossings"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
+all_molecules:
+  filename: "29-all_molecules"
+  title: "Individual Molecules"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  savefig_dpi: 600
+  core_set: false
+# Splining
+fitted_trace:
+  filename: "30-fitted-traces"
+  title: "Fitted Trace"
+  image_type: "non-binary"
+  mask_cmap: "blue_purple_green"
+  core_set: false
+  savefig_dpi: 600
+splined_trace:
+  title: "Smoothed Traces"
+  image_type: "non-binary"
+  savefig_dpi: 300
+  core_set: true

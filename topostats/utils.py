@@ -11,6 +11,7 @@ from pprint import pformat
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from scipy.ndimage import convolve
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
@@ -21,7 +22,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 ALL_STATISTICS_COLUMNS = (
     "image",
     "basename",
-    "molecule_number",
+    "grain_number",
     "area",
     "area_cartesian_bbox",
     "aspect_ratio",
@@ -123,13 +124,20 @@ def update_plotting_config(plotting_config: dict) -> dict:
         f"Main plotting options that need updating/adding to plotting dict :\n{pformat(main_config, indent=4)}"
     )
     for image, options in plotting_config["plot_dict"].items():
+        main_config_temp = main_config.copy()
         LOGGER.debug(f"Dictionary for image : {image}")
         LOGGER.debug(f"{pformat(options, indent=4)}")
         # First update options with values that exist in main_config
-        plotting_config["plot_dict"][image] = update_config(options, main_config)
+        # We must however be careful not to update the colourmap for diagnostic traces
+        if (
+            not plotting_config["plot_dict"][image]["core_set"]
+            and "mask_cmap" in plotting_config["plot_dict"][image].keys()
+        ):
+            main_config_temp.pop("mask_cmap")
+        plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
         LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
         # Then combine the remaining key/values we need from main_config that don't already exist
-        for key_main, value_main in main_config.items():
+        for key_main, value_main in main_config_temp.items():
             if key_main not in plotting_config["plot_dict"][image]:
                 plotting_config["plot_dict"][image][key_main] = value_main
         LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
@@ -230,7 +238,7 @@ def get_thresholds(  # noqa: C901
 
     Returns
     -------
-    Dict
+    dict
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
@@ -261,7 +269,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "molecule_number") -> pd.DataFrame:
+def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "grain_number") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 
@@ -339,3 +347,62 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
         return coord
 
     return check(row_coord, max_row, padding), check(col_coord, max_col, padding)
+
+
+def convolve_skeleton(skeleton: npt.NDArray) -> npt.NDArray:
+    """
+    Convolve skeleton with a 3x3 kernel.
+
+    This produces an array where the branches of the skeleton are denoted with '1', endpoints are denoted as '2', and
+    pixels at nodes as '3'.
+
+    Parameters
+    ----------
+    skeleton : npt.NDArray
+        Single pixel thick binary trace(s) within an array.
+
+    Returns
+    -------
+    npt.NDArray
+        The skeleton (=1) with endpoints (=2), and crossings (=3) highlighted.
+    """
+    conv = convolve(skeleton.astype(np.int32), np.ones((3, 3)))
+    conv[skeleton == 0] = 0  # remove non-skeleton points
+    conv[conv == 3] = 1  # skelly = 1
+    conv[conv > 3] = 3  # nodes = 3
+    return conv
+
+
+class ResolutionError(Exception):
+    """Raised when the image resolution is too small for accuurate tracing."""
+
+    pass  # pylint: disable=unnecessary-pass
+
+
+def coords_2_img(coords, image, ordered=False) -> np.ndarray:
+    """
+    Convert coordinates to a binary image.
+
+    Parameters
+    ----------
+    coords : np.ndarray
+        An array of 2xN integer coordinates.
+    image : np.ndarray
+        An MxL array to assign the above coordinates onto.
+    ordered : bool, optional
+        If True, incremements the value of each coord to show order.
+
+    Returns
+    -------
+    np.ndarray
+        An array the same shape as 'image' with the coordinates highlighted.
+    """
+    comb = np.zeros_like(image)
+    if ordered:
+        comb[coords[:, 0].astype(np.int32), coords[:, 1].astype(np.int32)] = np.arange(1, len(coords) + 1)
+    else:
+        coords = coords[
+            (coords[:, 0] < image.shape[0]) & (coords[:, 1] < image.shape[1]) & (coords[:, 0] > 0) & (coords[:, 1] > 0)
+        ]
+        comb[np.floor(coords[:, 0]).astype(np.int32), np.floor(coords[:, 1]).astype(np.int32)] = 1
+    return comb
