@@ -815,16 +815,37 @@ if __name__ == '__main__':
 
     # Sample type specific section
     print("\nSample specific options: ")
-    minarea = float(config.get(sample_type, "minarea"))
-    print("Min area: " + str(minarea))
-    maxdeviation = float(config.get(sample_type, "maxdeviation"))
-    print("Max deviation: " + str(maxdeviation))
-    mindeviation = float(config.get(sample_type, "mindeviation"))
-    print("Min deviation: " + str(mindeviation))
     gaussian = float(config.get(sample_type, "gaussian"))
     print("Gaussian: " + str(gaussian))
-    thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
-    print("Thresholding criteria: " + str(thresholdingcriteria))
+
+    # minarea = float(config.get(sample_type, "minarea"))
+    # print("Min area: " + str(minarea))
+    minarea_min = float(config.get(sample_type, "minarea_min"))
+    print("Min area minimal value: " + str(minarea_min))
+    minarea_max = float(config.get(sample_type, "minarea_max"))
+    print("Min area maximal value: " + str(minarea_max))
+
+    # thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
+    # print("Thresholding criteria: " + str(thresholdingcriteria))
+    thresholdingcriteria_min = float(config.get(sample_type, "thresholdingcriteria_min"))
+    print("Thresholding criteria minimal value: " + str(thresholdingcriteria_min))
+    thresholdingcriteria_max = float(config.get(sample_type, "thresholdingcriteria_max"))
+    print("Thresholding criteria maximal value: " + str(thresholdingcriteria_max))
+
+
+    maxdeviation = float(config.get(sample_type, "maxdeviation"))
+    print("Max deviation: " + str(maxdeviation))
+    # maxdeviation_min = float(config.get(sample_type, "maxdeviation_min"))
+    # print("Max deviation minimal value: " + str(maxdeviation_min))
+    # maxdeviation_max = float(config.get(sample_type, "maxdeviation_max"))
+    # print("Max deviation maximal value: " + str(maxdeviation_max))
+    mindeviation = float(config.get(sample_type, "mindeviation"))
+    print("Min deviation: " + str(mindeviation))
+    # mindeviation_min = float(config.get(sample_type, "mindeviation_min"))
+    # print("Min deviation minimal value: " + str(mindeviation_min))
+    # mindeviation_max = float(config.get(sample_type, "mindeviation_max"))
+    # print("Min deviation maximal value: " + str(mindeviation_max))
+
 
     # Image output configs
     print("\nImage Output options")
@@ -882,123 +903,62 @@ if __name__ == '__main__':
             data = editfile(data, k)
             data_edit_end = time.time()
             mol_find_start = time.time()
+            parameter_sweep_df = pd.DataFrame(columns=['number_of_grains'])
+            row = 0
+            for minarea in np.linspace(minarea_min, minarea_max, 20):
+                for thresholdingcriteria in np.linspace(thresholdingcriteria_min, thresholdingcriteria_max, 20):
 
-            # Perform basic image processing, to align rows, flatten and set the mean value to zero
-            # Find all grains in the mask which are both above a height threshold
-            # and bigger than the min size set in the main codegrain_mean_rad
-            # 1.2 works well for DNA minicircle images
-            data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
-            # # Flattening based on masked data and subsequent grain finding
-            # # Used for analysing data e.g. peptide induced bilayer degradation
-            # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
+                    # Perform basic image processing, to align rows, flatten and set the mean value to zero
+                    # Find all grains in the mask which are both above a height threshold
+                    # and bigger than the min size set in the main codegrain_mean_rad
+                    # 1.2 works well for DNA minicircle images
+                    data, mask, datafield, grains = grainfinding(data, minarea, k, thresholdingcriteria, gaussian, dx)
+                    # # Flattening based on masked data and subsequent grain finding
+                    # # Used for analysing data e.g. peptide induced bilayer degradation
+                    # data, mask, datafield, grains = heightthresholding.otsuthresholdgrainfinding(data, k)
 
-            # Calculate the median pixel area for all grains to use for renmoving small and large objects from the mask
-            median_pixel_area = find_median_pixel_area(datafield, grains)
-            # mean_pixel_area = find_mean_pixel_area(datafield, grains)
-            # std_pixel_area = find_std_pixel_area(datafield, grains)
-            # Remove all large objects defined as 1.2* the median grain size (in pixel area)
-            mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria,
-                                              dx)
-            # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
-            mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation,
-                                                                thresholdingcriteria, dx)
+                    # Calculate the median pixel area for all grains to use for renmoving small and large objects from the mask
+                    median_pixel_area = find_median_pixel_area(datafield, grains)
+                    # mean_pixel_area = find_mean_pixel_area(datafield, grains)
+                    # std_pixel_area = find_std_pixel_area(datafield, grains)
+                    # Remove all large objects defined as 1.2* the median grain size (in pixel area)
+                    mask, grains = removelargeobjects(datafield, mask, median_pixel_area, maxdeviation, thresholdingcriteria,
+                                                      dx)
+                    # Remove all small objects defined as less than 0.5x the median grain size (in pixel area
+                    mask, grains, number_of_grains = removesmallobjects(datafield, mask, median_pixel_area, mindeviation,
+                                                                        thresholdingcriteria, dx)
 
-            # mask, grains = removelargeobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, maxdeviation,
-            #                                         thresholdingcriteria, dx)
-            #
-            # mask, grains, number_of_grains = removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area,
-            #                                                           mindeviation, thresholdingcriteria, dx)
-            # if there's no grains skip this image
-            if number_of_grains == 0:
-                continue
-
-            # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
-            # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
-            grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
-
-            # Create cropped datafields for every grain of size set in the main directory
-            bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
-                                                                                     dy, xreal, yreal, xres, yres)
-            # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
-
-            mol_find_end = time.time()
-
-            print('Image correction took %f seconds' % (data_edit_end - data_edit_start))
-            print('Molecule identification took %f seconds' % (mol_find_end - mol_find_start))
-
-            if (saveTraceFigures_option):
-                print("Tracing identified molecules")
-                trace_start = time.time()
-
-                # Export the channels data and mask as numpy arrays
-                npdata, npmask = exportasnparray(datafield, mask)
-
-                try:
-                    channel_name = channels[k] + str(k + 1)
-                except IndexError:
-                    channel_name = 'ZSensor'
-
-                # bbox, orig_ids, crop_ids, cropped_grains = boundbox(cropwidth, grains, grains, dx, dy, xreal, yreal, xres, yres)
-                # saving plots of individual grains/traces
-                # for grain_num, data_num in enumerate(range(len(orig_ids), len(crop_ids), 1)):
-                #     gwy.gwy_app_data_browser_select_data_field(data, data_num)
-                #     datafield = gwy.gwy_app_data_browser_get_current(gwy.APP_DATA_FIELD)
-
-                #     np_data_array = gwyutils.data_field_data_as_array(datafield)
-
-                #     dna_traces = dnatracing.dnaTrace(np_data_array, cropped_grains[grain_num], filename, dx, cropwidth_pix*2, cropwidth_pix*2)
-                #     # dna_traces.showTraces()
-                #     dna_traces.saveTraceFigures(filename, channel_name+str(grain_num), minheightscale, maxheightscale, 'cropped')
-
-                # trace the DNA molecules - can compute stats etc as needed
-                dna_traces = dnatracing.dnaTrace(npdata, grains, filename, dx, yres, xres)
-                trace_end = time.time()
-                # #dna_traces.showTraces()
-                print("Saving trace figures")
-                try:
-                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
-                except MemoryError:
-                    print('Unable to save trace figures')
-
-                # dna_traces.writeContourLengths(filename, channel_name)
-
-                # Update the pandas Dataframe used to monitor stats
-                try:
-                    tracing_stats.updateTraceStats(dna_traces)
-                except NameError:
-                    tracing_stats = dnatracing.traceStats(dna_traces)
-
-                print('Tracing took %f seconds' % (trace_end - trace_start))
-                tracing_stats.saveTraceStats(path)
-
-                try:
-                    curvature_stats.updateCurvature(dna_traces)
-                except NameError:
-                    curvature_stats = dnatracing.curvatureStats(dna_traces)
-                except MemoryError:
-                    print('Unable to save curvature stats')
-
-                curvature_stats.saveCurvatureStats(path)
-
-
-                # dna_traces.plotCurvature(0)
-                # dna_traces.writeCoordinates(0)
-                for num in range(1, number_of_grains + 1):
-                    try:
-                        dna_traces.plotCurvature(num)
-                        dna_traces.writeCoordinates(num)
-                    except KeyError:
+                    # mask, grains = removelargeobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, maxdeviation,
+                    #                                         thresholdingcriteria, dx)
+                    #
+                    # mask, grains, number_of_grains = removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area,
+                    #                                                           mindeviation, thresholdingcriteria, dx)
+                    # if there's no grains skip this image
+                    if number_of_grains == 0:
                         continue
 
-            else:
-                print("Not tracing identified molecules")
+                    # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
+                    # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
+                    grainstatsarguments, grainstats, appended_data = grainanalysis(appended_data, filename, datafield, grains)
 
-            if (saveCroppedFiles_option):
-                print("Saving cropped files")
-                # Save out cropped files as images with no scales to a subfolder
-                savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
-            else:
-                print("Not saving cropped files")
+                    # Create cropped datafields for every grain of size set in the main directory
+                    # bbox, orig_ids, crop_ids, data, cropped_grains, cropwidth_pix = boundbox(cropwidth, datafield, grains, dx,
+                    #                                                                          dy, xreal, yreal, xres, yres)
+                    # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
+
+                    parameter_sweep_df.loc[row, 'minarea'] = minarea
+                    parameter_sweep_df.loc[row, 'thresholdingcriteria'] = thresholdingcriteria
+                    parameter_sweep_df.loc[row, 'number_of_grains'] = number_of_grains
+                    row = row + 1
+                    mol_find_end = time.time()
+
+
+            # if (saveCroppedFiles_option):
+            #     print("Saving cropped files")
+            #     # Save out cropped files as images with no scales to a subfolder
+            #     savecroppedfiles(path, data, filename, extension, orig_ids, crop_ids, minheightscale, maxheightscale)
+            # else:
+            #     print("Not saving cropped files")
 
             # Skeletonise data after performing an aggressive gaussian to improve skeletonisation
             # data, mask = grainthinning(data, mask, dx)
@@ -1006,17 +966,6 @@ if __name__ == '__main__':
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
 
-            directory = os.path.basename(os.path.dirname(filename))
-            if directory == 'DNA_pure':
-                try:
-                    dna_pure_all = np.append(dna_pure_all, npdata)
-                except NameError:
-                    dna_pure_all = npdata
-            elif directory == 'DNA_NDP':
-                try:
-                    dna_ndp_all = np.append(dna_ndp_all, npdata)
-                except NameError:
-                    dna_ndp_all = npdata
 
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
@@ -1034,7 +983,10 @@ if __name__ == '__main__':
     # grainstats_searched = searchgrainstats(grainstats_df, 'filename', '339', 'nothing')
 
     # Saving stats to text and JSON files named by master path
-    savestats(path, grainstats_df)
+    # savestats(path, grainstats_df)
+    # print(parameter_sweep_df)
+    savestats(path, parameter_sweep_df)
+    # parameter_sweep_df.to_csv()
 
     # plt.hist(dna_pure_all, bins=np.linspace(-1, 4, 100)*1e-9, color='b', edgecolor='k', density=True, alpha=0.9)
     # plt.hist(dna_ndp_all, bins=np.linspace(-1, 4, 100)*1e-9, color='orange', edgecolor='k', density=True, stacked=False, alpha=0.5)
