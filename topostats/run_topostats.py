@@ -148,13 +148,13 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result
-                disordered_trace_results[str(img)] = disordered_trace_result
-                mols_results[str(img)] = mols_result
+                results[str(img)] = result.dropna(axis=1, how="all")
+                disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
+                mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
                 pbar.update()
 
                 # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats_df
+                image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
 
                 # Combine all height profiles
                 height_profile_all[str(img)] = height_profiles
