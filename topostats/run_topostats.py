@@ -249,7 +249,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         results.reset_index(inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
     else:
@@ -260,7 +260,9 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         disordered_trace_results.reset_index(inplace=True)
         disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
         disordered_trace_results.to_csv(config["output_dir"] / "all_disordered_segment_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        save_folder_grainstats(
+            config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
+        )
         disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
     else:
         LOGGER.warning("There are no grainstats or disordered tracing statistics to write to CSV.")
@@ -269,7 +271,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         mols_results.reset_index(drop=True, inplace=True)
         mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
         mols_results.to_csv(config["output_dir"] / "all_mol_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
         mols_results.reset_index(inplace=True)  # So we can access unique image names
     else:
         LOGGER.warning("There are no grainstats or molecule tracing statistics to write to CSV.")
