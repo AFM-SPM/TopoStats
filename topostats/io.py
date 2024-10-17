@@ -323,7 +323,9 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
     return list(base_dir.glob("**/*" + file_ext))
 
 
-def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame) -> None:
+def save_folder_grainstats(
+    output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame, stats_filename: str
+) -> None:
     """
     Save a data frame of grain and tracing statistics at the folder level.
 
@@ -335,6 +337,8 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
         Path of the base directory where files were found.
     all_stats_df : pd.DataFrame
         The dataframe containing all sample statistics run.
+    stats_filename : str
+        The name of the type of statistics dataframe to be saved.
 
     Returns
     -------
@@ -352,9 +356,9 @@ def save_folder_grainstats(output_dir: str | Path, base_dir: str | Path, all_sta
                 out_path_processed = out_path / "processed"
                 out_path_processed.mkdir(parents=True, exist_ok=True)
             all_stats_df[all_stats_df["basename"] == _dir].to_csv(
-                out_path / "processed" / "folder_grainstats.csv", index=True
+                out_path / "processed" / f"folder_{stats_filename}.csv", index=True
             )
-            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_grainstats.csv")
+            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_{stats_filename}.csv")
         except TypeError:
             LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
 

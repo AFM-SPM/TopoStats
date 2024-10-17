@@ -32,7 +32,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
@@ -495,9 +494,8 @@ def run_disordered_trace(
             )
             return {}, grainstats_df, None
 
-    else:
-        LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-        return {}, grainstats_df, None
+    LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
+    return None, grainstats_df, None
 
 
 def run_nodestats(  # noqa: C901
@@ -631,11 +629,10 @@ def run_nodestats(  # noqa: C901
             LOGGER.info(
                 f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
             )
-            return nodestats_whole_data, nodestats_grainstats
+            return nodestats_whole_data, grainstats_df
 
-    else:
-        LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
-        return None, grainstats_df
+    LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+    return None, grainstats_df
 
 
 # need to add in the molstats here
@@ -878,9 +875,9 @@ def run_splining(
             LOGGER.error(
                 f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
             )
-            return splined_image_data, splining_grainstats, splining_molstats
+            return splined_image_data, grainstats_df, splining_molstats
 
-    return None, grainstats_df, molstats_df
+    return None, grainstats_df, None
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
