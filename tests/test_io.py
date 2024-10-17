@@ -15,6 +15,7 @@ import pytest
 
 from topostats.io import (
     LoadScans,
+    TopoFileHelper,
     convert_basename_to_relative_paths,
     dict_to_hdf5,
     dict_to_json,
@@ -1379,3 +1380,41 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
 
     with outfile.open("r", encoding="utf-8") as f:
         assert target == json.load(f)
+
+
+class TestTopoFileHelper:
+    """Test the TopoFileHelper class."""
+
+    @pytest.mark.parametrize(
+        ("file_path_or_string"),
+        [
+            pytest.param(
+                "tests/resources/file.topostats",
+                id="String file path",
+            ),
+            pytest.param(
+                Path("tests/resources/file.topostats"),
+                id="Path object path",
+            ),
+        ],
+    )
+    def test_init(self, file_path_or_string: Path | str) -> None:
+        """Test the __init__ method of the TopoFileHelper class."""
+        topo_file_helper = TopoFileHelper(file_path_or_string)
+        assert isinstance(topo_file_helper, TopoFileHelper)
+        assert isinstance(topo_file_helper.data, dict)
+
+    def test_get_data(self) -> None:
+        """Test the get_data method of the TopoFileHelper class."""
+        topo_file_helper = TopoFileHelper("tests/resources/file.topostats")
+        cropped_image = topo_file_helper.get_data("grain_trace_data/above/cropped_images/2")
+        assert isinstance(cropped_image, np.ndarray)
+
+
+# This test only works when not part of the TestTopoFileHelper class
+def test_pretty_print_structure(caplog) -> None:
+    """Test the pretty_print_structure method of the TopoFileHelper class."""
+    topo_file_helper = TopoFileHelper("tests/resources/file.topostats")
+    topo_file_helper.pretty_print_structure()
+    assert "filename" in caplog.text
+    assert "keys with numpy arrays as values" in caplog.text
