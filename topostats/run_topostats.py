@@ -148,13 +148,13 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result
-                disordered_trace_results[str(img)] = disordered_trace_result
-                mols_results[str(img)] = mols_result
+                results[str(img)] = result.dropna(axis=1, how="all")
+                disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
+                mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
                 pbar.update()
 
                 # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats_df
+                image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
 
                 # Combine all height profiles
                 height_profile_all[str(img)] = height_profiles
@@ -177,7 +177,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     try:
         disordered_trace_results = pd.concat(disordered_trace_results.values())
     except ValueError as error:
-        LOGGER.error("No disordered traces found in any images, consider adjusting disordered tracing parameters.")
+        LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
         LOGGER.error(error)
 
     try:
@@ -249,30 +249,32 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         results.reset_index(inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], results)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
     else:
         images_processed = 0
-        LOGGER.warning("There are no grainstats or dnatracing statistics to write to CSV.")
+        LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
     if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
         disordered_trace_results.reset_index(inplace=True)
         disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
         disordered_trace_results.to_csv(config["output_dir"] / "all_disordered_segment_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        save_folder_grainstats(
+            config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
+        )
         disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
     else:
-        LOGGER.warning("There are no grainstats or disordered tracing statistics to write to CSV.")
+        LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
     if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
         mols_results.reset_index(drop=True, inplace=True)
         mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
         mols_results.to_csv(config["output_dir"] / "all_mol_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
         mols_results.reset_index(inplace=True)  # So we can access unique image names
     else:
-        LOGGER.warning("There are no grainstats or molecule tracing statistics to write to CSV.")
+        LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])

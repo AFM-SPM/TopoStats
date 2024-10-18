@@ -461,7 +461,7 @@ def test_save_folder_grainstats(tmp_path: Path) -> None:
     test_df["basename"] = input_path
     out_path = tmp_path / "subfolder"
     Path.mkdir(out_path, parents=True)
-    save_folder_grainstats(out_path, input_path, test_df)
+    save_folder_grainstats(out_path, input_path, test_df, "grainstats")
     assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
 
 
