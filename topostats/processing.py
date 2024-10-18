@@ -629,6 +629,9 @@ def run_nodestats(  # noqa: C901
             # merge all image dictionaries
             return nodestats_whole_data, resultant_grainstats
 
+        except KeyError as e:
+            LOGGER.info(f"[{filename}] : NodeStats failed {e} - no skeletons found from the Disordered Tracing step.")
+
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
@@ -754,6 +757,16 @@ def run_ordered_tracing(
 
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
+
+        except KeyError as e:
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed {e} - no skeletons found from the Disordered Tracing step."
+            )
+            return (
+                ordered_tracing_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+            )
 
         except Exception as e:
             LOGGER.info(
