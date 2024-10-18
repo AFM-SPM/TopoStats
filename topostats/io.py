@@ -1336,3 +1336,369 @@ def dict_to_json(data: dict, output_dir: str | Path, filename: str | Path, inden
     output_file = output_dir / filename
     with output_file.open("w") as f:
         json.dump(data, f, indent=indent, cls=NumpyEncoder)
+
+
+class TopoFileHelper:
+    """
+    Helper class for searching through the data in a .topostats (hdf5) file.
+
+    Parameters
+    ----------
+    topofile : Path
+        Path to the .topostats file.
+
+    Examples
+    --------
+    Creating a helper object.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    ```
+
+    Print the structure of the data in the file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    helper.pretty_print_structure()
+    ```
+    >>> [./tests/resources/file.topostats]
+    >>> ├ filename
+    >>> │   └ minicircle
+    >>> ├ grain_masks
+    >>> │   └ above
+    >>> │       └ Numpy array, shape: (1024, 1024), dtype: int64
+    >>> ├ grain_trace_data
+    >>> │   └ above
+    >>> │       ├ cropped_images
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_trace_cumulative_distances
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_trace_heights
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       ├ ordered_traces
+    >>> │       │   └ 21 keys with numpy arrays as values
+    >>> │       └ splined_traces
+    >>> │           └ 21 keys with numpy arrays as values
+    >>> ├ image
+    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+    >>> ├ image_original
+    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+    >>> ├ img_path
+    >>> │   └ /Users/sylvi/Documents/TopoStats/tests/resources/minicircle
+    >>> ├ pixel_to_nm_scaling
+    >>> │   └ 0.4940029296875
+    >>> └ topostats_file_version
+    >>>     └ 0.2
+
+    Finding data in a file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+    helper.find_data(["ordered_trace_heights", "0"])
+    ```
+
+    >>>    [ Searching for ['ordered_trace_heights', '0'] in ./path/to/topostats_file.topostats ]
+    >>>    | [search] No direct match found.
+    >>>    | [search] Searching for partial matches.
+    >>>    | [search] !! [ 1 Partial matches found] !!
+    >>>    | [search] └ grain_trace_data/above/ordered_trace_heights/0
+    >>>    └ [End of search]
+
+    Get data from a file.
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+
+    data = helper.get_data("ordered_trace_heights/0")
+    ```
+    >>> [ Get data ] Data found at grain_trace_data/above/ordered_trace_heights/0, type: <class 'numpy.ndarray'>
+
+    Get data information
+    ```python
+    from topostats.io import TopoFileHelper
+
+    topofile = "path/to/topostats_file.topostats"
+    helper = TopoFileHelper(topofile)
+
+    helper.data_info("grain_trace_data/above/ordered_trace_heights/0")
+    ```
+    >>> [ Info ] Data at grain_trace_data/above/ordered_trace_heights/0 is a numpy array with shape: (95,),
+    >>> dtype: float64
+    """
+
+    def __init__(self, topofile: Path | str) -> None:
+        """
+        Initialise the TopoFileHelper object.
+
+        Parameters
+        ----------
+        topofile : Path | str
+            Path to the .topostats file.
+        """
+        self.topofile: Path = Path(topofile)
+        with h5py.File(self.topofile, "r") as f:
+            self.data: dict = hdf5_to_dict(open_hdf5_file=f, group_path="/")
+
+    def search_partial_matches(self, data: dict, keys: list, current_path: list | None = None) -> list:
+        """
+        Find partial matches to the keys in the dictionary.
+
+        Recursively search through nested dictionaries and keep only the paths that match the keys in the correct order,
+        allowing gaps between the keys.
+
+        Parameters
+        ----------
+        data : dict
+            The dictionary to search through.
+        keys : list
+            The list of keys to search for.
+        current_path : list, optional
+            The current path in the dictionary, by default [].
+
+        Returns
+        -------
+        list
+            A list of paths that match the keys in the correct order.
+        """
+        if current_path is None:
+            # Need to initialise the empty list here and not as a default argument since it is mutable
+            current_path = []
+
+        partial_matches = []
+
+        def recursive_partial_search(data, keys, current_path) -> None:
+            """
+            Recursively find partial matches to the keys in the dictionary.
+
+            Recursive function to search through the dictionary and keep only the paths
+            that match the keys in the correct order,
+            allowing gaps between the keys.
+
+            Parameters
+            ----------
+            data : dict
+                The dictionary to search through.
+            keys : list
+                The list of keys to search for.
+            current_path : list
+                The current path in the dictionary.
+            """
+            # If have reached the end of the current dictionary, return
+            if not keys:
+                partial_matches.append(current_path)
+                return
+
+            current_key = keys[0]
+
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    new_path = current_path + [k]
+                    try:
+                        # Check if the current key can be converted to an integer
+                        current_key_int = int(current_key)
+                        k_int = int(k)
+                        # If the current key and the key in the dictionary can be converted to integers,
+                        # check if they are equal
+                        if current_key_int == k_int:
+                            # If the current key is in the key list of the dictionary, continue searching
+                            # but remove the current key from the list
+                            remaining_keys = keys[1:]
+                            recursive_partial_search(v, remaining_keys, new_path)
+                    except ValueError:
+                        # If the current key cannot be converted to an integer, allow for partial matches
+                        if current_key in k:
+                            # If the current key is in the key list of the dictionary, continue searching
+                            # but remove the current key from the list
+                            remaining_keys = keys[1:]
+                            recursive_partial_search(v, remaining_keys, new_path)
+                        else:
+                            # If the current key is not in the key list of the dictionary, continue searching
+                            # but don't remove the current key from the list as it might be deeper in the dictionary
+                            recursive_partial_search(v, keys, new_path)
+
+        recursive_partial_search(data, keys, current_path)
+        return partial_matches
+
+    def find_data(self, search_keys: list) -> None:
+        """
+        Find the data in the dictionary that matches the list of keys.
+
+        Parameters
+        ----------
+        search_keys : list
+            The list of keys to search for.
+        """
+        # Find the best match for the list of keys
+        # First check if there is a direct match
+        LOGGER.info(f"[ Searching for {search_keys} in {self.topofile} ]")
+
+        try:
+            current_data = self.data
+            for key in search_keys:
+                current_data = current_data[key]
+
+            LOGGER.info("| [search] Direct match found")
+        except KeyError:
+            LOGGER.info("| [search] No direct match found.")
+
+        # If no direct match is found, try to find a partial match
+        LOGGER.info("| [search] Searching for partial matches.")
+        partial_matches = self.search_partial_matches(data=self.data, keys=search_keys)
+        if partial_matches:
+            LOGGER.info(f"| [search] !! [ {len(partial_matches)} Partial matches found] !!")
+            for index, match in enumerate(partial_matches):
+                match_str = "/".join(match)
+                if index == len(partial_matches) - 1:
+                    prefix = "| [search] └"
+                else:
+                    prefix = "| [search] ├"
+                LOGGER.info(f"{prefix} {match_str}")
+        else:
+            LOGGER.info("| [search] No partial matches found.")
+        LOGGER.info("└ [End of search]")
+
+    def pretty_print_structure(self) -> None:
+        """
+        Print the structure of the data in the data dictionary.
+
+        The structure is printed with the keys indented to show the hierarchy of the data.
+        """
+
+        def print_structure(data: dict, level=0, prefix=""):
+            """
+            Recursive function to print the structure.
+
+            Parameters
+            ----------
+            data : dict
+                The dictionary to print the structure of.
+            level : int, optional
+                The current level of the dictionary, by default 0.
+            prefix : str, optional
+                The prefix to use when printing the dictionary, by default "".
+            """
+            for i, (key, value) in enumerate(data.items()):
+                is_last_item = i == len(data) - 1
+                current_prefix = prefix + ("└ " if is_last_item else "├ ")
+                LOGGER.info(current_prefix + key)
+
+                if isinstance(value, dict):
+                    # Check if all keys are able to be integers, they are strings but need to check if they can be
+                    # converted to integers without error
+                    all_keys_are_integers = True
+                    for k in value.keys():
+                        try:
+                            int(k)
+                        except ValueError:
+                            all_keys_are_integers = False
+                            break
+                    all_values_are_numpy_arrays = all(isinstance(v, np.ndarray) for v in value.values())
+                    # if dictionary has keys that are integers and values that are numpy arrays, print the number
+                    # of keys and the shape of the numpy arrays
+                    if all_keys_are_integers and all_values_are_numpy_arrays:
+                        LOGGER.info(
+                            prefix
+                            + ("    " if is_last_item else "│   ")
+                            + "└ "
+                            + f"{len(value)} keys with numpy arrays as values"
+                        )
+                    else:
+                        new_prefix = prefix + ("    " if is_last_item else "│   ")
+                        print_structure(value, level + 1, new_prefix)
+
+                elif isinstance(value, np.ndarray):
+                    # Don't print the array, just the shape
+                    LOGGER.info(
+                        prefix
+                        + ("    " if is_last_item else "│   ")
+                        + "└ "
+                        + f"Numpy array, shape: {str(value.shape)}, dtype: {value.dtype}"
+                    )
+                else:
+                    LOGGER.info(f"{prefix + ('    ' if is_last_item else '│   ') + '└ ' + str(value)}")
+
+        LOGGER.info(f"[{self.topofile}]")
+        print_structure(self.data)
+
+    def get_data(self, location: str) -> int | float | str | np.ndarray | dict | None:
+        """
+        Retrieve data from the dictionary using a '/' separated string.
+
+        Parameters
+        ----------
+        location : str
+            The location of the data in the dictionary, separated by '/'.
+
+        Returns
+        -------
+        int | float | str | np.ndarray | dict
+            The data at the location.
+        """
+        # If there's a trailing '/', remove it
+        if location[-1] == "/":
+            location = location[:-1]
+        keys = location.split("/")
+
+        try:
+            current_data = self.data
+            for key in keys:
+                current_data = current_data[key]
+            LOGGER.info(f"[ Get data ] Data found at {location}, type: {type(current_data)}")
+            return current_data
+        except KeyError as e:
+            LOGGER.error(f"[ Get data ] Key not found: {e}, please check the location string.")
+            return None
+
+    def data_info(self, location: str, verbose: bool = False) -> None:
+        """
+        Get information about the data at a location.
+
+        Parameters
+        ----------
+        location : str
+            The location of the data in the dictionary, separated by '/'.
+
+        verbose : bool, optional
+            Print more detailed information about the data, by default False.
+        """
+        # If there's a trailing '/', remove it
+        if location[-1] == "/":
+            location = location[:-1]
+        keys = location.split("/")
+
+        try:
+            current_data = self.data
+            for key in keys:
+                current_data = current_data[key]
+        except KeyError as e:
+            LOGGER.error(f"[ Info ] Key not found: {e}, please check the location string.")
+            return
+
+        if isinstance(current_data, dict):
+            key_types = {type(k) for k in current_data.keys()}
+            value_types = {type(v) for v in current_data.values()}
+            LOGGER.info(
+                f"[ Info ] Data at {location} is a dictionary with {len(current_data)} "
+                f"keys of types {key_types} and values "
+                f"of types {value_types}"
+            )
+            if verbose:
+                for k, v in current_data.items():
+                    LOGGER.info(f"  {k}: {type(v)}")
+        elif isinstance(current_data, np.ndarray):
+            LOGGER.info(
+                f"[ Info ] Data at {location} is a numpy array with shape: {current_data.shape}, "
+                f"dtype: {current_data.dtype}"
+            )
+        else:
+            LOGGER.info(f"[ Info ] Data at {location} is {type(current_data)}")
+
+        return
