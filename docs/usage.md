@@ -254,10 +254,16 @@ The output from running TopoStats is saved in the location defined in the config
 default is the directory `output` within the directory from which `topostats process`. This may differ if you have
 used your own customised configuration file (specifically if you have modified the `output_dir:` option).
 
-At the top level of the output directory are two files `config.yaml` and `all_statistics.csv`
+At the top level of the output directory are a few files produced:
 
 - `config.yaml` : a copy of the configuration used to process the images.
-- `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain and DNA tracing statistics.
+- `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
+- `all_disordered_segment_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+  statistics.
+- `all_mol_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
+
+**Note:** - If all grains / branch segments of a column have a `None` or `NaN` value, the column will not be present in
+the output `.csv` file.
 
 The remaining directories of results is contingent on the structure of files within the `base_dir` that is specified in
 the configuration. If all files are in the top-level directory (i.e. no nesting) then you will have just a `Processed`
@@ -281,7 +287,10 @@ one under `level1/a`...
 ```bash
 [4.0K Nov 15 14:06]  output
 |-- [ 381 Nov 15 14:06]  output/all_statistics.csv
+|-- [ 733 Nov 15 14:06]  output/all_disordered_tracing_statistics.csv
+|-- [ 254 Nov 15 14:06]  output/all_mol_statistics.csv
 |-- [7.4K Nov 15 14:06]  output/config.yaml
+|-- [ 222 Nov 15 14:06]  output/image_stats.csv
 |-- [4.0K Nov 15 14:06]  output/level1
 |   |-- [4.0K Nov 15 14:06]  output/level1/a
 |   |   |-- [4.0K Nov 15 14:06]  output/level1/a/Processed
