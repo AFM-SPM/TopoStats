@@ -492,10 +492,14 @@ def run_disordered_trace(
                 f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return {}, grainstats_df, None
+            return (
+                disordered_traces,
+                grainstats_df,
+                create_empty_dataframe(column_set="disordered_tracing_statistics", index="index"),
+            )
 
     LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-    return None, grainstats_df, None
+    return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics", index="index")
 
 
 def run_nodestats(  # noqa: C901
@@ -625,6 +629,9 @@ def run_nodestats(  # noqa: C901
             # merge all image dictionaries
             return nodestats_whole_data, resultant_grainstats
 
+        except KeyError as e:
+            LOGGER.info(f"[{filename}] : NodeStats failed {e} - no skeletons found from the Disordered Tracing step.")
+
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
@@ -751,14 +758,28 @@ def run_ordered_tracing(
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
 
+        except KeyError as e:
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed {e} - no skeletons found from the Disordered Tracing step."
+            )
+            return (
+                ordered_tracing_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+            )
+
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return ordered_tracing_image_data, grainstats_df, None
+            return (
+                ordered_tracing_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+            )
 
-    return None, grainstats_df, None
+    return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics", index="molecule_number")
 
 
 def run_splining(
@@ -816,7 +837,7 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe()
-                    splining_molstats = create_empty_dataframe(columns=["image", "basename", "threshold"])
+                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index="molecule_number")
                     raise ValueError(f"No grains exist for the {direction} direction")
 
                 # if grains are found
@@ -877,7 +898,7 @@ def run_splining(
             )
             return splined_image_data, grainstats_df, splining_molstats
 
-    return None, grainstats_df, None
+    return None, grainstats_df, molstats_df
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
