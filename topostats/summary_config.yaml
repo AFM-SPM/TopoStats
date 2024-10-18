@@ -21,8 +21,8 @@ stats_to_sum: # A list of variables (key) to plot uncomment those that are requi
   - area_cartesian_bbox
   #  - aspect_ratio
   #  - bending_angle
-  - contour_length
-  - end_to_end_distance
+  - total_contour_length
+  - average_end_to_end_distance
   #  - height_max
   #  - height_mean
   #  - height_median
