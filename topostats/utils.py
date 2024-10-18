@@ -19,35 +19,62 @@ from topostats.thresholds import threshold
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-ALL_STATISTICS_COLUMNS = (
-    "image",
-    "basename",
-    "grain_number",
-    "area",
-    "area_cartesian_bbox",
-    "aspect_ratio",
-    "bending_angle",
-    "centre_x",
-    "centre_y",
-    "circular",
-    "contour_length",
-    "end_to_end_distance",
-    "height_max",
-    "height_mean",
-    "height_median",
-    "height_min",
-    "max_feret",
-    "min_feret",
-    "radius_max",
-    "radius_mean",
-    "radius_median",
-    "radius_min",
-    "smallest_bounding_area",
-    "smallest_bounding_length",
-    "smallest_bounding_width",
-    "threshold",
-    "volume",
-)
+COLUMN_SETS = {
+    "grainstats": (
+        "image",
+        "basename",
+        "grain_number",
+        "area",
+        "area_cartesian_bbox",
+        "aspect_ratio",
+        "bending_angle",
+        "centre_x",
+        "centre_y",
+        "circular",
+        "contour_length",
+        "end_to_end_distance",
+        "height_max",
+        "height_mean",
+        "height_median",
+        "height_min",
+        "max_feret",
+        "min_feret",
+        "radius_max",
+        "radius_mean",
+        "radius_median",
+        "radius_min",
+        "smallest_bounding_area",
+        "smallest_bounding_length",
+        "smallest_bounding_width",
+        "threshold",
+        "volume",
+    ),
+    "disordered_tracing_statistics": (
+        "image",
+        "basename",
+        "threshold",
+        "grain_number",
+        "index",
+        "branch_distance",
+        "branch_type",
+        "connected_segments",
+        "mean_pixel_value",
+        "stdev_pixel_value",
+        "min_value",
+        "median_value",
+        "middle_value",
+    ),
+    "mol_statistics": (
+        "image",
+        "threshold",
+        "basename",
+        "grain_number",
+        "molecule_number",
+        "circular",
+        "topology",
+        "processing",
+    ),
+}
 
 
 def convert_path(path: str | Path) -> Path:
@@ -269,14 +296,14 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "grain_number") -> pd.DataFrame:
+def create_empty_dataframe(column_set: str = "grainstats", index: str = "grain_number") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 
     Parameters
     ----------
-    columns : list
-        Columns of the empty dataframe.
+    column_set : str
+        The name of the set of columns for the empty dataframe.
     index : str
         Column to set as index of empty dataframe.
 
@@ -285,7 +312,7 @@ def create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS, index: str = "
     pd.DataFrame
         Empty Pandas DataFrame.
     """
-    empty_df = pd.DataFrame(columns=columns)
+    empty_df = pd.DataFrame(columns=COLUMN_SETS[column_set])
     return empty_df.set_index(index)
 
 
