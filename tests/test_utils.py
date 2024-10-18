@@ -7,7 +7,6 @@ import numpy.typing as npt
 import pytest
 
 from topostats.utils import (
-    ALL_STATISTICS_COLUMNS,
     bound_padded_coordinates_to_image,
     convert_path,
     convolve_skeleton,
@@ -184,7 +183,7 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
 
 def test_create_empty_dataframe() -> None:
     """Test the empty dataframe is created correctly."""
-    empty_df = create_empty_dataframe(ALL_STATISTICS_COLUMNS)
+    empty_df = create_empty_dataframe()
 
     assert empty_df.index.name == "grain_number"
     assert "grain_number" not in empty_df.columns
