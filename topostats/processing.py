@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from pathlib import Path
 
@@ -14,7 +15,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
-from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
@@ -35,7 +36,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
-LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def run_filters(
