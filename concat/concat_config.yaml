@@ -1,0 +1,114 @@
+# Config file generated 2024-07-29 11:11:05
+# # For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html
+base_dir: ./concat # Directory in which to search for data files
+output_dir: ./concat # Directory to output results to
+log_level: info # Verbosity of output. Options: warning, error, info, debug
+cores: 2 # Number of CPU cores to utilise for processing multiple files simultaneously.
+file_ext: .spm # File extension of the data files.
+loading:
+  channel: Height # Channel to pull data from in the data files.
+filter:
+  run: true # Options : true, false
+  row_alignment_quantile: 0.5 # lower values may improve flattening of larger features
+  threshold_method: std_dev # Options : otsu, std_dev, absolute
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    below: 10.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
+  gaussian_mode: nearest
+  # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
+  # result in ruining legitimate data.
+  remove_scars:
+    run: false
+    removal_iterations: 2 # Number of times to run scar removal.
+    threshold_low: 0.250 # lower values make scar removal more sensitive
+    threshold_high: 0.666 # lower values make scar removal more sensitive
+    max_scar_width: 4 # Maximum thichness of scars in pixels.
+    min_scar_length: 16 # Minimum length of scars in pixels.
+grains:
+  run: true # Options : true, false
+  # Thresholding by height
+  threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
+  otsu_threshold_multiplier: 1.0
+  threshold_std_dev:
+    below: 10.0 # Threshold for grains below the image background
+    above: 1.0 # Threshold for grains above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for grains below the image background
+    above: 1.0 # Threshold for grains above the image background
+  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
+  # Thresholding by area
+  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
+  absolute_area_threshold:
+    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
+    below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
+  remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
+  unet_config:
+    model_path: null # Path to a trained U-Net model
+    grain_crop_padding: 2 # Padding to apply to the grain crop bounding box
+    upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
+    lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
+grainstats:
+  run: true # Options : true, false
+  edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
+  cropped_size: -1 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
+  extract_height_profile: true # Extract height profiles along maximum feret of molecules
+disordered_tracing:
+  run: true # Options : true, false
+  min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
+  pad_width: 1 # Pixels to pad grains by when tracing
+  mask_smoothing_params:
+    gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
+    dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
+    holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refil in the smoothed masks.
+  skeletonisation_params:
+    method: topostats # Options : zhang | lee | thin | topostats
+    height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+  pruning_params:
+    method: topostats # Method to clean branches of the skeleton. Options : topostats
+    max_length: 10.0 # Maximum length in nm to remove a branch containing an endpoint.
+    height_threshold: # The height to remove branches below.
+    method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid.
+    method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
+nodestats:
+  run: true # Options : true, false
+  node_joining_length: 7.0 # The distance over which to join nearby crossing points.
+  node_extend_dist: 14.0 # The distance over which to join nearby odd-branched nodes.
+  branch_pairing_length: 20.0 # The length from the crossing point to pair and trace, obtaining FWHM's.
+  pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
+  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
+ordered_tracing:
+  run: true
+  ordering_method: nodestats # The method of ordering the disordered traces.
+  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
+splining:
+  run: true # Options : true, false
+  method: "rolling_window" # Options : "spline", "rolling_window"
+  rolling_window_size: 20.0e-9 # size in nm of the rolling window.
+  spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
+  spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
+  spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular splines.
+  spline_degree: 3 # The polynomial degree of the spline.
+#  cores: 1 # Number of cores to use for parallel processing
+plotting:
+  run: true # Options : true, false
+  style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
+  savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_dpi: 100 # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
+  image_set: core # Options : all, core
+  zrange: [null, null] # low and high height range for core images (can take [null, null]). low <= high
+  colorbar: true # Options : true, false
+  axes: true # Options : true, false (due to off being a bool when parsed)
+  num_ticks: [null, null] # Number of ticks to have along the x and y axes. Options : null (auto) or integer > 1
+  cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
+  mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
+  histogram_log_axis: false # Options : true, false
+summary_stats:
+  run: true # Whether to make summary plots for output data
+  config: null
