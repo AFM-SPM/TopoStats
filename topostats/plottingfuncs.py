@@ -246,9 +246,7 @@ class Images:
         self.image_type = image_type
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = (
-            mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
-        )
+        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
         cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
@@ -460,8 +458,9 @@ def set_n_ticks(ax: plt.Axes.axes, n_xy: list[int | None, int | None]) -> None:
 
 def plot_curvatures(
     image: npt.NDArray,
+    cropped_images: dict,
     grains_curvature_stats_dict: dict,
-    pixel_to_nm_scaling: float,
+    all_grain_smoothed_data: dict,
 ) -> None:
     """
     Plot curvature intensity and defects of grains in an image.
@@ -470,37 +469,47 @@ def plot_curvatures(
     ----------
     image : npt.NDArray
         Image to plot.
+    cropped_images : dict
+        Dictionary containing cropped images of grains and the bounding boxes and padding.
     grains_curvature_stats_dict : dict
         Dictionary of grain curvature statistics.
-    pixel_to_nm_scaling : float
-        Pixel to nanometre scaling factor for the image.
+    all_grain_smoothed_data : dict
+        Dictionary containing smoothed grain traces.
     """
     _, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(image)
 
     # For each grain, plot the points with the colour determined by the curvature value
-    for grain_curvature_stats in grains_curvature_stats_dict.values():
-        grain_trace_px = grain_curvature_stats["grain_trace_nm"] / pixel_to_nm_scaling
-        grain_curvature = grain_curvature_stats["grain_curvature"]
-        curvature_defects_binary_array = grain_curvature_stats["curvature_defects_binary_array"]
+    # Iterate over the grains
+    for (_, grain_data_curvature), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
+        grains_curvature_stats_dict.items(), all_grain_smoothed_data.items(), cropped_images.items()
+    ):
 
-        # Plot the grain curvature by plotting lines between the points, with the colour determined by the curvature
-        for i, is_defect in enumerate(curvature_defects_binary_array):
-            if is_defect:
+        # Get the coordinate for the grain to accurately position the points
+        min_row = grain_image_container["bbox"][0]
+        min_col = grain_image_container["bbox"][1]
+
+        pad_width = grain_image_container["pad_width"]
+
+        # Iterate over molecules
+        for (_, molecule_data_curvature), (
+            _,
+            molecule_data_smoothed_trace,
+        ) in zip(grain_data_curvature.items(), grain_data_smoothed_trace.items()):
+
+            molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
+            norm = plt.Normalize(min(molecule_data_curvature), max(molecule_data_curvature))
+            # pylint cannot see that mpl.cm.viridis is a valid attribute
+            # pylint: disable=no-member
+            cmap = mpl.cm.viridis
+            for curvature, point in zip(molecule_data_curvature, molecule_trace_coords):
+                color = cmap(norm(curvature))
                 ax.plot(
-                    grain_trace_px[i : i + 2, 1],
-                    grain_trace_px[i : i + 2, 0],
-                    color="red",
-                    linewidth=2,
-                    alpha=0.5,
-                )
-            else:
-                # Plot the line with the colour determined by the curvature, with the BrBG colourmap
-                ax.plot(
-                    grain_trace_px[i : i + 2, 1],
-                    grain_trace_px[i : i + 2, 0],
-                    color=mpl.cm.BrBG(grain_curvature[i], alpha=0.5),
-                    linewidth=2,
+                    min_col - pad_width + point[1],
+                    min_row - pad_width + point[0],
+                    marker=".",
+                    markersize=5,
+                    color=color,
                 )
 
     # save the figure
@@ -511,7 +520,7 @@ def plot_curvatures(
 def plot_curvatures_individual_grains(
     cropped_images: dict,
     grains_curvature_stats_dict: dict,
-    pixel_to_nm_scaling: float,
+    all_grains_smoothed_data: dict,
 ) -> None:
     """
     Plot curvature intensity and defects of individual grains.
@@ -522,34 +531,37 @@ def plot_curvatures_individual_grains(
         Dictionary of cropped images.
     grains_curvature_stats_dict : dict
         Dictionary of grain curvature statistics.
-    pixel_to_nm_scaling : float
-        Pixel to nanometre scaling factor for the image.
+    all_grains_smoothed_data : dict
+        Dictionary containing smoothed grain traces.
     """
-    for grain_index in grains_curvature_stats_dict.keys():
-        fig, ax = plt.subplots(figsize=(10, 10))
-        ax.imshow(cropped_images[grain_index])
-        grain_curvature_stats = grains_curvature_stats_dict[grain_index]
-        grain_trace_px = grain_curvature_stats["grain_trace_nm"] / pixel_to_nm_scaling
-        grain_curvature = grain_curvature_stats["grain_curvature"]
-        curvature_defects_binary_array = grain_curvature_stats["curvature_defects_binary_array"]
+    # Iterate over grains
+    for (grain_index, grain_data_curvature), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
+        grains_curvature_stats_dict.items(), all_grains_smoothed_data.items(), cropped_images.items()
+    ):
 
-        # Plot the grain curvature by plotting lines between the points, with the colour determined by the curvature
-        for i, is_defect in enumerate(curvature_defects_binary_array):
-            if is_defect:
+        grain_image = grain_image_container["original_image"]
+        _, ax = plt.subplots(figsize=(10, 10))
+        ax.imshow(grain_image)
+
+        # Iterate over molecules
+        for (_, molecule_data_curvature), (_, molecule_data_smoothed_trace) in zip(
+            grain_data_curvature.items(), grain_data_smoothed_trace.items()
+        ):
+
+            molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
+            norm = plt.Normalize(min(molecule_data_curvature), max(molecule_data_curvature))
+            # pylint cannot see that mpl.cm.viridis is a valid attribute
+            # pylint: disable=no-member
+            cmap = mpl.cm.viridis
+
+            for curvature, point in zip(molecule_data_curvature, molecule_trace_coords):
+                color = cmap(norm(curvature))
                 ax.plot(
-                    grain_trace_px[i : i + 2, 1],
-                    grain_trace_px[i : i + 2, 0],
-                    color="red",
-                    linewidth=2,
-                    alpha=0.5,
-                )
-            else:
-                # Plot the line with the colour determined by the curvature, with the BrBG colourmap
-                ax.plot(
-                    grain_trace_px[i : i + 2, 1],
-                    grain_trace_px[i : i + 2, 0],
-                    color=mpl.cm.BrBG(grain_curvature[i], alpha=0.5),
-                    linewidth=2,
+                    point[1],
+                    point[0],
+                    marker=".",
+                    markersize=5,
+                    color=color,
                 )
 
         # Save the figure
