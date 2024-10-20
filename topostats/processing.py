@@ -15,8 +15,14 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.measure.curvature import calculate_curvature_stats_image
 from topostats.plotting import plot_crossing_linetrace_halfmax
-from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
+from topostats.plottingfuncs import (
+    Images,
+    add_pixel_to_nm_to_plotting_config,
+    plot_curvatures,
+    plot_curvatures_individual_grains,
+)
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
 from topostats.tracing.nodestats import nodestats_image
@@ -885,9 +891,11 @@ def run_splining(
 
 def run_curvature_stats(
     image: np.ndarray,
+    cropped_image_data: dict,
     grain_trace_data: dict,
-    defect_threshold: float,
     pixel_to_nm_scaling: float,
+    filename: str,
+    curvature_config: dict,
 ) -> dict:
     """
     Calculate curvature statistics for the traced DNA molecules.
@@ -898,43 +906,56 @@ def run_curvature_stats(
     ----------
     image : np.ndarray
         AFM image, for plotting purposes.
+    cropped_image_data : dict
+        Dictionary containing cropped images.
     grain_trace_data : dict
         Dictionary of grain trace data.
-    defect_threshold : float
-        Threshold for curvature defect detection.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometres.
         ie the number of pixels per nanometre.
+    filename : str
+        Name of the image.
+    curvature_config : dict
+        Dictionary of configuration for running the curvature stats.
 
     Returns
     -------
     dict
         Dictionary containing curvature statistics.
     """
-    for direction in grain_trace_data.keys():
-        # Pass the traces to the curvature stats function
-        grains_curvature_stats_dict = calculate_curvature_stats_image(
-            grain_traces_dict_px=grain_trace_data[direction]["ordered_traces"],
-            defect_threshold=defect_threshold,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-        )
+    if curvature_config["run"]:
+        try:
+            curvature_config.pop("run")
+            LOGGER.info("*** Curvature Stats ***")
+            all_directions_grains_curvature_stats_dict: dict = {}
+            for direction in grain_trace_data.keys():
+                # Pass the traces to the curvature stats function
+                grains_curvature_stats_dict = calculate_curvature_stats_image(
+                    all_grain_smoothed_data=grain_trace_data[direction],
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                )
 
-        # Plot the curvatures
-        # BROKEN SINCE WE DON"T HAVE THE ORIGIN POINTS OF THE TRACES SO CAN"T PLOT WITH RIGHT
-        # POSITIONING
-        plot_curvatures(
-            image=image,
-            grains_curvature_stats_dict=grains_curvature_stats_dict,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-        )
+                plot_curvatures(
+                    image=image,
+                    cropped_images=cropped_image_data[direction],
+                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grain_smoothed_data=grain_trace_data[direction],
+                )
+                plot_curvatures_individual_grains(
+                    cropped_images=cropped_image_data[direction],
+                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grains_smoothed_data=grain_trace_data[direction],
+                )
 
-        plot_curvatures_individual_grains(
-            cropped_images=grain_trace_data[direction]["cropped_images"],
-            grains_curvature_stats_dict=grains_curvature_stats_dict,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-        )
+                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
 
-    return {}
+            return all_directions_grains_curvature_stats_dict
+        except Exception as e:
+            LOGGER.error(
+                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
+            return None
+    return None
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -988,6 +1009,7 @@ def process_scan(
     nodestats_config: dict,
     ordered_tracing_config: dict,
     splining_config: dict,
+    curvature_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -1015,6 +1037,8 @@ def process_scan(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     splining_config : dict
         Dictionary of configuration options for running the splining stage.
+    curvature_config : dict
+        Dictionary of configuration options for running the curvature stats stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
     output_dir : str | Path
@@ -1140,6 +1164,18 @@ def process_scan(
 
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
+
+        # Curvature Stats
+        grain_curvature_stats_dict = run_curvature_stats(
+            image=topostats_object["image_flattened"],
+            cropped_image_data=topostats_object["disordered_traces"],
+            grain_trace_data=topostats_object["splining"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            curvature_config=curvature_config,
+        )
+
+        topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
 
     else:
         grainstats_df = create_empty_dataframe()
