@@ -48,6 +48,7 @@ def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_s
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -76,6 +77,7 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -110,6 +112,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -136,6 +139,7 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -172,6 +176,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -226,6 +231,7 @@ def test_save_cropped_grains(
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -274,6 +280,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -537,7 +544,13 @@ def test_check_run_steps(
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
     check_run_steps(
-        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+        filter_run,
+        grains_run,
+        grainstats_run,
+        disordered_tracing_run,
+        nodestats_run,
+        ordered_tracing_run,
+        splining_run,
     )
     assert log_msg in caplog.text
 
@@ -552,54 +565,59 @@ def test_check_run_steps(
         "nodestats_run",
         "ordered_tracing_run",
         "splining_run",
+        "curvature_run",
         "log_msg1",
         "log_msg2",
     ),
     [
         pytest.param(
-            False,
-            False,
-            False,
-            False,
-            False,
-            False,
-            False,
+            False,  # Filters
+            False,  # Grains
+            False,  # Grainstats
+            False,  # Disordered tracing
+            False,  # Nodestats
+            False,  # Ordered tracing
+            False,  # Splining
+            False,  # Curvature
             "You have not included running the initial filter stage.",
             "Please check your configuration file.",
             id="All stages are disabled",
         ),
         pytest.param(
-            True,
-            False,
-            False,
-            False,
-            False,
-            False,
-            False,
+            True,  # Filters
+            False,  # Grains
+            False,  # Grainstats
+            False,  # Disordered tracing
+            False,  # Nodestats
+            False,  # Ordered tracing
+            False,  # Splining
+            False,  # Curvature
             "Detection of grains disabled, GrainStats will not be run.",
             "",
             id="Only filtering enabled",
         ),
         pytest.param(
-            True,
-            True,
-            False,
-            False,
-            False,
-            False,
-            False,
+            True,  # Filters
+            True,  # Grains
+            False,  # Grainstats
+            False,  # Disordered tracing
+            False,  # Nodestats
+            False,  # Ordered tracing
+            False,  # Splining
+            False,  # Curvature
             "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
             "",
             id="Filtering and Grain enabled",
         ),
         pytest.param(
-            True,
-            True,
-            True,
-            False,
-            False,
-            False,
-            False,
+            True,  # Filter
+            True,  # Grains
+            True,  # Grainstats
+            False,  # Disordered Tracing
+            False,  # Nodestats
+            False,  # Ordered tracing
+            False,  # Splining
+            False,  # Curvature
             "Processing grain",
             "Calculation of Disordered Tracing disabled, returning empty dictionary.",
             id="Filtering, Grain and GrainStats enabled",
@@ -627,6 +645,7 @@ def test_process_stages(
     nodestats_run: bool,
     ordered_tracing_run: bool,
     splining_run: bool,
+    curvature_run: bool,
     log_msg1: str,
     log_msg2: str,
     caplog,
@@ -645,6 +664,7 @@ def test_process_stages(
     process_scan_config["nodestats"]["run"] = nodestats_run
     process_scan_config["ordered_tracing"]["run"] = ordered_tracing_run
     process_scan_config["splining"]["run"] = splining_run
+    process_scan_config["curvature"]["run"] = curvature_run
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
@@ -655,6 +675,7 @@ def test_process_stages(
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
@@ -678,6 +699,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         nodestats_config=process_scan_config["nodestats"],
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         splining_config=process_scan_config["splining"],
+        curvature_config=process_scan_config["curvature"],
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
