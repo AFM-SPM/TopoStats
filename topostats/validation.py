@@ -304,6 +304,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "spline_degree": int,
             # "cores": lambda n: n > 0.0,
         },
+        "curvature": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
+            ),
+        },
         "plotting": {
             "run": Or(
                 True,
