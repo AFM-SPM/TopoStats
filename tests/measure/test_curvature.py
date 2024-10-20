@@ -21,7 +21,7 @@ from topostats.measure.curvature import (
         pytest.param(np.array([1, 0]), np.array([1, 0]), 0, id="same vectors"),
         pytest.param(np.array([1, 0]), np.array([0, 1]), np.pi / 2, id="up & right 90 deg"),
         pytest.param(np.array([0, 1]), np.array([1, 0]), -np.pi / 2, id="right & up -90 deg"),
-        pytest.param(np.array([-1, 0]), np.array([0, 1]), np.pi / 2, id="down & right 90 deg"),
+        pytest.param(np.array([-1, 0]), np.array([0, 1]), -np.pi / 2, id="down & right 90 deg"),
         pytest.param(np.array([0, -1]), np.array([-1, 0]), -np.pi / 2, id="left & down -90 deg"),
         pytest.param(np.array([1, 0]), np.array([0, -1]), -np.pi / 2, id="up & left -90 deg"),
         pytest.param(np.array([0, 1]), np.array([-1, 0]), np.pi / 2, id="left & up 90 deg"),
