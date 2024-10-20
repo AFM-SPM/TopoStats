@@ -116,6 +116,7 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
         nodestats_config=config["nodestats"],
         ordered_tracing_config=config["ordered_tracing"],
         splining_config=config["splining"],
+        curvature_config=config["curvature"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )

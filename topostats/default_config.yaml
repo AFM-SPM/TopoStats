@@ -94,7 +94,8 @@ splining:
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
   spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular splines.
   spline_degree: 3 # The polynomial degree of the spline.
-#  cores: 1 # Number of cores to use for parallel processing
+curvature:
+  run: true # Options : true, false
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
