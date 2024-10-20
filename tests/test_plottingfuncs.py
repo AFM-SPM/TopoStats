@@ -16,7 +16,6 @@ from topostats.plottingfuncs import (
     add_pixel_to_nm_to_plotting_config,
     dilate_binary_image,
     load_mplstyle,
-    plot_curvatures,
     set_n_ticks,
 )
 
