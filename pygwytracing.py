@@ -936,9 +936,6 @@ if __name__ == '__main__':
                     #
                     # mask, grains, number_of_grains = removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area,
                     #                                                           mindeviation, thresholdingcriteria, dx)
-                    # if there's no grains skip this image
-                    if number_of_grains == 0:
-                        continue
 
                     # Compute all grain statistics in in the 'values to compute' dictionary for grains in the file
                     # Append data for each file (grainstats) to a list (appended_data) to obtain data in all files
