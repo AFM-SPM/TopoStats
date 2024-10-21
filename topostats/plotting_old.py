@@ -14,7 +14,7 @@ from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
 
-plotting_config = read_yaml(Path("../config/jean_plotting_config.yml"))
+plotting_config = read_yaml(Path("../config/parameter_sweep_plotting_config.yml"))
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
@@ -63,6 +63,7 @@ colname2label = {
     "smallest_bounding_area": "Smallest Bounding Area / $\mathregular{nm^2}$",
     "aspect_ratio": "Aspect Ratio",
     "bending_angle": "Bending Angle / degrees",
+    "minarea": "minarea / $\mathregular{%s^2}$"
 }
 
 
@@ -544,8 +545,51 @@ def plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=Fal
     return fig
 
 
-def plotLinearVsCircular(contour_lengths_df):
-    pass
+def plot3v(df, arg1, arg2, arg3, nm=False, specpath=None):
+
+    # Set  the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + arg1 + '_' + arg2 + '_' + arg3 + '_3D' + extension)
+
+    # Convert the unit of the data to nm if specified by the user
+    # dfnew1 = df.copy()
+    # dfnew2 = df.copy()
+    # dfnew1[arg1] = dataunitconversion(df[arg1], arg1, nm)
+    # dfnew2[arg2] = dataunitconversion(df[arg2], arg2, nm)
+
+    xdata = np.array(dataunitconversion(df[arg1], arg1, nm))
+    xdata = np.unique(xdata)
+    ydata = np.array(dataunitconversion(df[arg2], arg2, nm))
+    ydata = np.unique(ydata)
+
+    zdata = np.array(df[arg3])
+    print(zdata)
+    zdata = np.reshape(zdata, (len(ydata), len(xdata)))
+    vmaxval = zdata.max()
+    vminval = zdata.min()
+
+    fig, ax = plt.subplots(figsize=(15, 12))
+    plt.contourf(xdata, ydata, zdata, vmax=vmaxval, vmin=vminval, levels=np.unique(zdata))
+    plt.colorbar(label='Number of grains')
+    plt.xlim(xdata.min(), xdata.max())
+    plt.ylim(ydata.min(), ydata.max())
+    plt.xlabel(labelunitconversion(arg1, nm), alpha=1)
+    plt.ylabel(labelunitconversion(arg2, nm), alpha=1)
+
+    # fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    #
+    # X = dfnew1[arg1]
+    # Y = dfnew2[arg2]
+    # X, Y = np.meshgrid(X, Y)
+    # Z = df[arg3]
+    # surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+    #                        linewidth=0, antialiased=False)
+    # fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    # plt.show()
+    plt.savefig(savename)
+
 
 
 def computeStats(data, columns, min, max):
@@ -614,13 +658,13 @@ if __name__ == "__main__":
     df = importfromfile(path)
     # df = df[df['Basename'] == 'Ni']
     # df = df[df['Basename'] == 'PLO']
-    df = df[df['Basename'] == 'Without NDP52']
+    # df = df[df['Basename'] == 'Without NDP52']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
     if path2 is not None:
         df2 = importfromfile(path2)
-        df2 = df2[df2['Basename'] == 'With NDP52']
+        # df2 = df2[df2['Basename'] == 'With NDP52']
         # df2 = df2[df2['Basename'] == 'Mg-Ni exchange']
         # df2 = df2[df2['Basename'] == 'PLO']
         # df2 = df2[df2['bending_angle'] != 0]
@@ -628,7 +672,7 @@ if __name__ == "__main__":
         df2 = None
     if path3 is not None:
         df3 = importfromfile(path3)
-        df3 = df3[df3['Basename'] == 'PLO']
+        # df3 = df3[df3['Basename'] == 'PLO']
         # df3 = df3[df3['bending_angle'] != 0]
     else:
         df3 = None
@@ -638,6 +682,7 @@ if __name__ == "__main__":
         plottype = plotting_config["plots"][plot]["plottype"]
         parameter = plotting_config["plots"][plot]["parameter"]
         parameter2 = plotting_config["plots"][plot]["parameter2"]
+        parameter3 = plotting_config["plots"][plot]["parameter3"]
         nm = plotting_config["plots"][plot]["nm"]
         grouparg = plotting_config["plots"][plot]["group"]
         xmin = plotting_config["plots"][plot]["xmin"]
@@ -684,6 +729,8 @@ if __name__ == "__main__":
                          c1=color1, c2=color2, c3=color3)
         elif plottype == "joint":
             plotjoint(df, parameter, nm=nm)
+        elif plottype == "3v":
+            plot3v(df, parameter, parameter2, parameter3, nm=nm)
 
     if compute_stats:
         computeStats(stats_to_compute, column_names, compute_stats_min, compute_stats_max)
