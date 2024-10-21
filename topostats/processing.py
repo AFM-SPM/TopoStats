@@ -323,7 +323,9 @@ def run_grainstats(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
                     )
-                    grainstats_dict[direction] = create_empty_dataframe()
+                    grainstats_dict[direction] = create_empty_dataframe(
+                        column_set="grainstats", index_col="grain_number"
+                    )
                 else:
                     grainstats_calculator = GrainStats(
                         data=image,
@@ -356,7 +358,7 @@ def run_grainstats(
 
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
-            grainstats_df = create_empty_dataframe()
+            grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
             if "above" in grainstats_dict and "below" in grainstats_dict:
                 grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
             elif "above" in grainstats_dict:
@@ -377,12 +379,12 @@ def run_grainstats(
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            return create_empty_dataframe(), height_profiles_dict
+            return create_empty_dataframe(column_set="grainstats", index_col="grain_number"), height_profiles_dict
     else:
         LOGGER.info(
             f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
         )
-        return create_empty_dataframe(), {}
+        return create_empty_dataframe(column_set="grainstats", index_col="grain_number"), {}
 
 
 def run_disordered_trace(
@@ -511,7 +513,7 @@ def run_disordered_trace(
         )
 
     LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-    return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics", index="index")
+    return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
 
 
 def run_nodestats(  # noqa: C901
@@ -795,7 +797,7 @@ def run_ordered_tracing(
             return (
                 ordered_tracing_image_data,
                 grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
             )
 
         except Exception as e:
@@ -806,10 +808,10 @@ def run_ordered_tracing(
             return (
                 ordered_tracing_image_data,
                 grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
             )
 
-    return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics", index="molecule_number")
+    return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
 
 
 def run_splining(
@@ -866,8 +868,8 @@ def run_splining(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
-                    splining_grainstats = create_empty_dataframe()
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index="molecule_number")
+                    splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
                     raise ValueError(f"No grains exist for the {direction} direction")
 
                 # if grains are found
@@ -1142,14 +1144,13 @@ def process_scan(
             grainstats_df=grainstats_df,
             molstats_df=molstats_df,
         )
-
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
 
     else:
-        grainstats_df = create_empty_dataframe()
-        molstats_df = create_empty_dataframe()
-        disordered_tracing_stats = create_empty_dataframe()
+        grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+        molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
         height_profiles = {}
 
     # Get image statistics
