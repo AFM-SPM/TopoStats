@@ -296,7 +296,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(column_set: str = "grainstats", index: str = "grain_number") -> pd.DataFrame:
+def create_empty_dataframe(column_set: str = "grainstats", index_col: str = "grain_number") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 
@@ -304,7 +304,7 @@ def create_empty_dataframe(column_set: str = "grainstats", index: str = "grain_n
     ----------
     column_set : str
         The name of the set of columns for the empty dataframe.
-    index : str
+    index_col : str
         Column to set as index of empty dataframe.
 
     Returns
@@ -313,7 +313,7 @@ def create_empty_dataframe(column_set: str = "grainstats", index: str = "grain_n
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame(columns=COLUMN_SETS[column_set])
-    return empty_df.set_index(index)
+    return empty_df.set_index(index_col)
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
