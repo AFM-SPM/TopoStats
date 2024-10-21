@@ -10,22 +10,35 @@ disordered_tracing:
     holearea_min_max: [0, null]
   min_skeleton_size: 10
   pad_width: 1
-  pruning_params: {height_threshold: null, max_length: 10.0, method: topostats, method_outlier: mean_abs,
-    method_values: mid}
+  pruning_params:
+    {
+      height_threshold: null,
+      max_length: 10.0,
+      method: topostats,
+      method_outlier: mean_abs,
+      method_values: mid,
+    }
   run: true
-  skeletonisation_params: {height_bias: 0.6, method: topostats}
+  skeletonisation_params: { height_bias: 0.6, method: topostats }
 file_ext: .spm
 filter:
   gaussian_mode: nearest
   gaussian_size: 1.0121397464510862
   otsu_threshold_multiplier: 1.0
-  remove_scars: {max_scar_width: 4, min_scar_length: 16, removal_iterations: 2, run: false,
-    threshold_high: 0.666, threshold_low: 0.25}
+  remove_scars:
+    {
+      max_scar_width: 4,
+      min_scar_length: 16,
+      removal_iterations: 2,
+      run: false,
+      threshold_high: 0.666,
+      threshold_low: 0.25,
+    }
   row_alignment_quantile: 0.5
   run: true
-  threshold_absolute: {above: 1.0, below: -1.0}
+  threshold_absolute: { above: 1.0, below: -1.0 }
   threshold_method: std_dev
-  threshold_std_dev: {above: 1.0, below: 10.0}
+  threshold_std_dev: { above: 1.0, below: 10.0 }
 grains:
   absolute_area_threshold:
     above: [300, 3000]
@@ -35,17 +48,35 @@ grains:
   remove_edge_intersecting_grains: true
   run: true
   smallest_grain_size_nm2: 50
-  threshold_absolute: {above: 1.0, below: -1.0}
+  threshold_absolute: { above: 1.0, below: -1.0 }
   threshold_method: std_dev
-  threshold_std_dev: {above: 1.0, below: 10.0}
-  unet_config: {grain_crop_padding: 2, lower_norm_bound: -1.0, model_path: null, upper_norm_bound: 5.0}
-grainstats: {cropped_size: -1, edge_detection_method: binary_erosion, extract_height_profile: true,
-  run: true}
-loading: {channel: Height}
+  threshold_std_dev: { above: 1.0, below: 10.0 }
+  unet_config:
+    {
+      grain_crop_padding: 2,
+      lower_norm_bound: -1.0,
+      model_path: null,
+      upper_norm_bound: 5.0,
+    }
+grainstats:
+  {
+    cropped_size: -1,
+    edge_detection_method: binary_erosion,
+    extract_height_profile: true,
+    run: true,
+  }
+loading: { channel: Height }
 log_level: info
-nodestats: {branch_pairing_length: 20.0, node_extend_dist: 14.0, node_joining_length: 7.0,
-  pad_width: 1, pair_odd_branches: false, run: true}
-ordered_tracing: {ordering_method: nodestats, pad_width: 1, run: true}
+nodestats:
+  {
+    branch_pairing_length: 20.0,
+    node_extend_dist: 14.0,
+    node_joining_length: 7.0,
+    pad_width: 1,
+    pair_odd_branches: false,
+    run: true,
+  }
+ordered_tracing: { ordering_method: nodestats, pad_width: 1, run: true }
 output_dir: concat
 plotting:
   axes: true
@@ -61,6 +92,14 @@ plotting:
   savefig_format: null
   style: topostats.mplstyle
   zrange: [null, null]
-splining: {method: rolling_window, rolling_window_size: 2e-08, run: true, spline_circular_smoothing: 5.0,
-  spline_degree: 3, spline_linear_smoothing: 5.0, spline_step_size: 7e-09}
-summary_stats: {config: null, run: true}
+splining:
+  {
+    method: rolling_window,
+    rolling_window_size: 2e-08,
+    run: true,
+    spline_circular_smoothing: 5.0,
+    spline_degree: 3,
+    spline_linear_smoothing: 5.0,
+    spline_step_size: 7e-09,
+  }
+summary_stats: { config: null, run: true }
