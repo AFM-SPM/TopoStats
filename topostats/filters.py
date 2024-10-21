@@ -172,10 +172,10 @@ class Filters:
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{self.filename}] : Median flattening with mask")
+            LOGGER.debug(f"[{self.filename}] : Median flattening with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{self.filename}] : Median flattening without mask")
+            LOGGER.debug(f"[{self.filename}] : Median flattening without mask")
 
         for row in range(image.shape[0]):
             # Get the median of the row
@@ -185,7 +185,7 @@ class Filters:
             else:
                 LOGGER.warning(
                     """f[{self.filename}] Large grain detected image can not be
-processed, please refer to <url to page where we document common problems> for more information."""
+processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information."""
                 )
 
         return image
@@ -212,10 +212,10 @@ processed, please refer to <url to page where we document common problems> for m
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{self.filename}] : Plane tilt removal with mask")
+            LOGGER.debug(f"[{self.filename}] : Plane tilt removal with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{self.filename}] : Plane tilt removal without mask")
+            LOGGER.debug(f"[{self.filename}] : Plane tilt removal without mask")
 
         # Line of best fit
         # Calculate medians
@@ -226,31 +226,31 @@ processed, please refer to <url to page where we document common problems> for m
 
         # Fit linear x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 1)
-        LOGGER.info(f"[{self.filename}] : x-polyfit 1st order: {px}")
+        LOGGER.debug(f"[{self.filename}] : x-polyfit 1st order: {px}")
         py = np.polyfit(range(0, len(medians_y)), medians_y, 1)
-        LOGGER.info(f"[{self.filename}] : y-polyfit 1st order: {py}")
+        LOGGER.debug(f"[{self.filename}] : y-polyfit 1st order: {py}")
 
         if px[0] != 0:
             if not np.isnan(px[0]):
-                LOGGER.info(f"[{self.filename}] : Removing x plane tilt")
+                LOGGER.debug(f"[{self.filename}] : Removing x plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col)
             else:
-                LOGGER.info(f"[{self.filename}] : x gradient is nan, skipping plane tilt x removal")
+                LOGGER.debug(f"[{self.filename}] : x gradient is nan, skipping plane tilt x removal")
         else:
-            LOGGER.info("[{self.filename}] : x gradient is zero, skipping plane tilt x removal")
+            LOGGER.debug("[{self.filename}] : x gradient is zero, skipping plane tilt x removal")
 
         if py[0] != 0:
             if not np.isnan(py[0]):
-                LOGGER.info(f"[{self.filename}] : removing y plane tilt")
+                LOGGER.debug(f"[{self.filename}] : removing y plane tilt")
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
                         image[row, col] -= py[0] * (row)
             else:
-                LOGGER.info("[{self.filename}] : y gradient is nan, skipping plane tilt y removal")
+                LOGGER.debug("[{self.filename}] : y gradient is nan, skipping plane tilt y removal")
         else:
-            LOGGER.info("[{self.filename}] : y gradient is zero, skipping plane tilt y removal")
+            LOGGER.debug("[{self.filename}] : y gradient is zero, skipping plane tilt y removal")
 
         return image
 
@@ -344,7 +344,7 @@ processed, please refer to <url to page where we document common problems> for m
 
         # Unpack the optimised parameters
         a, b, c, d = popt
-        LOGGER.info(
+        LOGGER.debug(
             f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
         )
 
@@ -377,17 +377,17 @@ processed, please refer to <url to page where we document common problems> for m
         image = image.copy()
         if mask is not None:
             read_matrix = np.ma.masked_array(image, mask=mask, fill_value=np.nan).filled()
-            LOGGER.info(f"[{self.filename}] : Remove quadratic bow with mask")
+            LOGGER.debug(f"[{self.filename}] : Remove quadratic bow with mask")
         else:
             read_matrix = image
-            LOGGER.info(f"[{self.filename}] : Remove quadratic bow without mask")
+            LOGGER.debug(f"[{self.filename}] : Remove quadratic bow without mask")
 
         # Calculate medians
         medians_x = [np.nanmedian(read_matrix[:, i]) for i in range(read_matrix.shape[1])]
 
         # Fit quadratic x
         px = np.polyfit(range(0, len(medians_x)), medians_x, 2)
-        LOGGER.info(f"[{self.filename}] : x polyfit 2nd order: {px}")
+        LOGGER.debug(f"[{self.filename}] : x polyfit 2nd order: {px}")
 
         # Handle divide by zero
         if px[0] != 0:
@@ -398,9 +398,9 @@ processed, please refer to <url to page where we document common problems> for m
                     for col in range(0, image.shape[1]):
                         image[row, col] -= px[0] * (col - cx) ** 2
             else:
-                LOGGER.info(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
+                LOGGER.debug(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
         else:
-            LOGGER.info(f"[{self.filename}] : Quadratic polyfit returns zero, skipping quadratic removal")
+            LOGGER.debug(f"[{self.filename}] : Quadratic polyfit returns zero, skipping quadratic removal")
 
         return image
 
@@ -458,7 +458,7 @@ processed, please refer to <url to page where we document common problems> for m
         if mask is None:
             mask = np.zeros_like(image)
         mean = np.mean(image[mask == 0])
-        LOGGER.info(f"[{self.filename}] : Zero averaging background : {mean} nm")
+        LOGGER.debug(f"[{self.filename}] : Zero averaging background : {mean} nm")
         return image - mean
 
     def gaussian_filter(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
@@ -477,7 +477,7 @@ processed, please refer to <url to page where we document common problems> for m
         npt.NDArray
             Numpy array that represent the image after Gaussian filtering.
         """
-        LOGGER.info(
+        LOGGER.debug(
             f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
             f" Gaussian blur (px) : {self.gaussian_size})."
         )
@@ -520,14 +520,14 @@ processed, please refer to <url to page where we document common problems> for m
         # Remove scars
         run_scar_removal = self.remove_scars_config.pop("run")
         if run_scar_removal:
-            LOGGER.info(f"[{self.filename}] : Initial scar removal")
+            LOGGER.debug(f"[{self.filename}] : Initial scar removal")
             self.images["initial_scar_removal"], _ = scars.remove_scars(
                 self.images["initial_nonlinear_polynomial_removal"],
                 filename=self.filename,
                 **self.remove_scars_config,
             )
         else:
-            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
+            LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
@@ -565,7 +565,7 @@ processed, please refer to <url to page where we document common problems> for m
         )
         # Remove scars
         if run_scar_removal:
-            LOGGER.info(f"[{self.filename}] : Secondary scar removal")
+            LOGGER.debug(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
                 self.images["masked_nonlinear_polynomial_removal"],
                 filename=self.filename,
@@ -573,7 +573,7 @@ processed, please refer to <url to page where we document common problems> for m
             )
             self.images["scar_mask"] = scar_mask
         else:
-            LOGGER.info(f"[{self.filename}] : Skipping scar removal as requested from config")
+            LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
         self.images["final_zero_average_background"] = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]

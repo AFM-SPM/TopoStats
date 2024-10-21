@@ -710,6 +710,7 @@ def test_load_scan_get_data_check_image_size_and_add_to_dict(
     load_scan_spm: LoadScans, x: int, y: int, log_msg: str, caplog, tmp_path
 ) -> None:
     """Test errors are raised when images that are too small are passed."""
+    caplog.set_level(logging.DEBUG, LOGGER_NAME)
     load_scan_spm.filename = "minicircle"
     load_scan_spm.img_path = tmp_path
     load_scan_spm.image = np.ndarray((x, y))

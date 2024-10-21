@@ -187,7 +187,7 @@ class Grains:
         npt.NDarray
             2-D Numpy array of image without objects touching the border.
         """
-        LOGGER.info(f"[{self.filename}] : Tidying borders")
+        LOGGER.debug(f"[{self.filename}] : Tidying borders")
         return clear_border(image, **kwargs)
 
     @staticmethod
@@ -259,7 +259,7 @@ class Grains:
         npt.NDArray
             2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
         """
-        LOGGER.info(
+        LOGGER.debug(
             f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
             "{self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2):.2f} px^2)"
         )
@@ -293,7 +293,7 @@ class Grains:
                 min_size=self.minimum_grain_size,  # minimum_grain_size is in pixels squared
                 **kwargs,
             )
-            LOGGER.info(
+            LOGGER.debug(
                 f"[{self.filename}] : Removed small objects (< \
 {self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
             )
@@ -362,7 +362,7 @@ class Grains:
         # Get array of grain numbers (discounting zero)
         uniq = np.delete(np.unique(image), 0)
         grain_count = 0
-        LOGGER.info(
+        LOGGER.debug(
             f"[{self.filename}] : Area thresholding grains | Thresholds: L: {(lower_size_limit / self.pixel_to_nm_scaling**2):.2f},"
             f"U: {(upper_size_limit / self.pixel_to_nm_scaling**2):.2f} px^2, L: {lower_size_limit:.2f}, U: {upper_size_limit:.2f} nm^2."
         )
@@ -393,7 +393,7 @@ class Grains:
             Numpy array of image with objects coloured.
         """
         coloured_regions = label2rgb(image, **kwargs)
-        LOGGER.info(f"[{self.filename}] : Coloured regions")
+        LOGGER.debug(f"[{self.filename}] : Coloured regions")
         return coloured_regions
 
     @staticmethod
@@ -433,7 +433,7 @@ class Grains:
 
     def find_grains(self):
         """Find grains."""
-        LOGGER.info(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
+        LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         self.thresholds = get_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
@@ -443,7 +443,7 @@ class Grains:
         )
 
         for direction in self.direction:
-            LOGGER.info(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.directions[direction] = {}
             self.directions[direction]["mask_grains"] = _get_mask(
                 self.image,
@@ -462,13 +462,13 @@ class Grains:
             else:
                 self.directions[direction]["tidied_border"] = self.directions[direction]["labelled_regions_01"]
 
-            LOGGER.info(f"[{self.filename}] : Removing noise ({direction})")
+            LOGGER.debug(f"[{self.filename}] : Removing noise ({direction})")
             self.directions[direction]["removed_noise"] = self.area_thresholding(
                 self.directions[direction]["tidied_border"],
                 [self.smallest_grain_size_nm2, None],
             )
 
-            LOGGER.info(f"[{self.filename}] : Removing small / large grains ({direction})")
+            LOGGER.debug(f"[{self.filename}] : Removing small / large grains ({direction})")
             # if no area thresholds specified, use otsu
             if self.absolute_area_threshold[direction].count(None) == 2:
                 self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
@@ -494,12 +494,13 @@ class Grains:
             self.region_properties[direction] = self.get_region_properties(
                 self.directions[direction]["labelled_regions_02"]
             )
-            LOGGER.info(f"[{self.filename}] : Region properties calculated ({direction})")
+            LOGGER.debug(f"[{self.filename}] : Region properties calculated ({direction})")
             self.directions[direction]["coloured_regions"] = self.colour_regions(
                 self.directions[direction]["labelled_regions_02"]
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
-            LOGGER.info(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+            LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+            thresholding_grain_count = self.directions[direction]["labelled_regions_02"].max()
 
             # Force labelled_regions_02 to be of shape NxNx2, where the two classes are a binary background mask and the second is a binary grain mask.
             # This is because we want to support multiple classes, and so we standardise so that the first layer is background mask, then feature mask 1, then feature mask 2 etc.
@@ -551,7 +552,12 @@ class Grains:
                 self.directions[direction]["removed_small_objects"] = unet_mask
                 self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
 
-                LOGGER.info(f"[{self.filename}] : Overridden grains with UNet predictions ({direction})")
+                class_counts = [
+                    unet_labelled_regions[class_idx].max() for class_idx in range(unet_labelled_regions.shape[2])
+                ]
+                LOGGER.info(
+                    f"[{self.filename}] : Overridden {thresholding_grain_count} grains with {class_counts} UNet predictions ({direction})"
+                )
 
     # pylint: disable=too-many-locals
     @staticmethod
@@ -593,7 +599,7 @@ class Grains:
         npt.NDArray
             NxNxC Numpy array of the labelled regions from the UNet mask.
         """
-        LOGGER.info(f"[{filename}] : Running UNet model on {direction} grains")
+        LOGGER.debug(f"[{filename}] : Running UNet model on {direction} grains")
 
         # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
         # for its loss during training and so this will need to be changed a lot.
@@ -605,7 +611,7 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
         unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-        LOGGER.info(f"Output shape of UNet model: {unet_model.output_shape}")
+        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
         # the loaded model's output shape
@@ -623,7 +629,7 @@ class Grains:
         # on that image to segment it
         grain_region_properties = regionprops(labelled_grain_regions)
         for grain_number, region in enumerate(grain_region_properties):
-            LOGGER.info(f"Unet predicting mask for grain {grain_number} of {len(grain_region_properties)}")
+            LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(grain_region_properties)}")
 
             # Get the bounding box for the region
             bounding_box: tuple[int, int, int, int] = tuple(region.bbox)  # min_row, min_col, max_row, max_col
@@ -668,7 +674,7 @@ class Grains:
             )
 
             assert len(predicted_mask.shape) == 3
-            LOGGER.info(f"Predicted mask shape: {predicted_mask.shape}")
+            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
             # Add each class of the predicted mask to the overall full image mask
             for class_index in range(unet_mask.shape[2]):

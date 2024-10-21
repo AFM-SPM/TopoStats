@@ -328,7 +328,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         remaining = both_img.copy().astype(np.int32)
         endpoints = np.unique(remaining[convolve_skeleton(remaining.astype(bool)) == 2])  # unique in case of whole mol
         prev_segment = None
-        n_points_p_seg = (n - 2 * remaining.max()) // remaining.max()
+        n_points_p_seg = (
+            2 if ((n - 2 * remaining.max()) // remaining.max()) < 2 else (n - 2 * remaining.max()) // remaining.max()
+        )
 
         while remaining.max() != 0:
             # select endpoint to start if there is one
