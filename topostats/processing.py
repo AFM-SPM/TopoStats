@@ -416,7 +416,7 @@ def run_disordered_trace(
     plotting_config : dict
         Dictionary configuration for plotting images.
     grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default None.
+        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
 
     Returns
     -------
@@ -426,6 +426,10 @@ def run_disordered_trace(
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
+
+        if grainstats_df is None:
+            grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+
         disordered_traces = defaultdict()
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
@@ -537,7 +541,7 @@ def run_nodestats(  # noqa: C901
     plotting_config : dict
         Dictionary configuration for plotting images.
     grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to bee added to. by default None.
+        The grain statistics dataframe to bee added to. by default an empty grainstats dataframe.
 
     Returns
     -------
@@ -547,6 +551,10 @@ def run_nodestats(  # noqa: C901
     if nodestats_config["run"]:
         nodestats_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
+
+        if grainstats_df is None:
+            grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+
         nodestats_whole_data = defaultdict()
         nodestats_grainstats = pd.DataFrame()
         try:
@@ -681,7 +689,7 @@ def run_ordered_tracing(
     plotting_config : dict
         Dictionary configuration for plotting images.
     grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default None.
+        The grain statistics dataframe to be added to. by default empty grainstats dataframe.
 
     Returns
     -------
@@ -691,6 +699,10 @@ def run_ordered_tracing(
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
+
+        if grainstats_df is None:
+            grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+
         ordered_tracing_image_data = defaultdict()
         ordered_tracing_molstats = pd.DataFrame()
         ordered_tracing_grainstats = pd.DataFrame()
@@ -815,9 +827,9 @@ def run_splining(
     plotting_config : dict
         Dictionary configuration for plotting images.
     grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default None.
+        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
     molstats_df : pd.DataFrame, optional
-        The molecule statistics dataframe to be added to. by default None.
+        The molecule statistics dataframe to be added to. by default an empty molstats dataframe.
 
     Returns
     -------
@@ -827,6 +839,12 @@ def run_splining(
     if splining_config["run"]:
         splining_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Splining ***")
+
+        if grainstats_df is None:
+            grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
+        if molstats_df is None:
+            molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+
         splined_image_data = defaultdict()
         splining_grainstats = pd.DataFrame()
         splining_molstats = pd.DataFrame()
