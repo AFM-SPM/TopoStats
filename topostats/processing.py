@@ -182,8 +182,9 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping following steps.")
-            LOGGER.error(f"[{filename}] : The error: {e}")
+            LOGGER.error(
+                f"[{filename}] : An error occurred during grain finding, skipping following steps.", exc_info=e
+            )
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -488,16 +489,19 @@ def run_disordered_trace(
 
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
 
+        except ValueError as e:
+            LOGGER.info(f"[{filename}] : Disordered tracing failed with ValueError {e}")
+
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return (
-                disordered_traces,
-                grainstats_df,
-                create_empty_dataframe(column_set="disordered_tracing_statistics", index="index"),
-            )
+        return (
+            disordered_traces,
+            grainstats_df,
+            create_empty_dataframe(column_set="disordered_tracing_statistics", index="index"),
+        )
 
     LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
     return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics", index="index")
@@ -630,14 +634,22 @@ def run_nodestats(  # noqa: C901
             # merge all image dictionaries
             return nodestats_whole_data, resultant_grainstats
 
+        except UnboundLocalError as e:
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed with UnboundLocalError {e} - all skeletons pruned in the Disordered Tracing step."
+            )
+
         except KeyError as e:
-            LOGGER.info(f"[{filename}] : NodeStats failed {e} - no skeletons found from the Disordered Tracing step.")
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+            )
 
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
             )
-            return nodestats_whole_data, grainstats_df
+
+        return nodestats_whole_data, grainstats_df
 
     LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
     return None, grainstats_df
@@ -700,9 +712,9 @@ def run_ordered_tracing(
                 # Check if there are grains
                 if not disordered_tracing_direction_data:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+                        f"[{filename}] : No skeletons exist for the {direction} direction. Skipping ordered_tracing for {direction}."
                     )
-                    raise ValueError(f"No grains exist for the {direction} direction")
+                    raise ValueError(f"No skeletons exist for the {direction} direction")
 
                 # if grains are found
                 (
@@ -759,9 +771,19 @@ def run_ordered_tracing(
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
 
+        except ValueError as e:
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
+            )
+            return (
+                ordered_tracing_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+            )
+
         except KeyError as e:
             LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed {e} - no skeletons found from the Disordered Tracing step."
+                f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
             )
             return (
                 ordered_tracing_image_data,
@@ -892,6 +914,16 @@ def run_splining(
 
             # merge all image dictionaries
             return splined_image_data, resultant_grainstats, resultant_molstats
+
+        except KeyError as e:
+            LOGGER.info(
+                f"[{filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
+            )
+            return (
+                splined_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+            )
 
         except Exception as e:
             LOGGER.error(
