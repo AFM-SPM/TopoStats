@@ -1,5 +1,6 @@
 """Test the utils module."""
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ import numpy.typing as npt
 import pytest
 
 from topostats.utils import (
+    LOGGER_NAME,
     bound_padded_coordinates_to_image,
     convert_path,
     convolve_skeleton,
@@ -34,6 +36,7 @@ def test_convert_path(tmp_path: Path) -> None:
 
 def test_update_config(caplog) -> None:
     """Test updating configuration."""
+    caplog.set_level(logging.DEBUG, LOGGER_NAME)
     sample_config = {"a": 1, "b": 2, "c": "something", "base_dir": "here", "output_dir": "there"}
     new_values = {"c": "something new"}
     updated_config = update_config(sample_config, new_values)
@@ -138,6 +141,7 @@ def test_update_plotting_config(
 )
 def test_udpate_plotting_config_adding_required_options(plotting_config: dict, target_config: dict, caplog) -> None:
     """Only updates plotting_dict parameters from parent plotting config if value is not None."""
+    caplog.set_level(logging.DEBUG, LOGGER_NAME)
     update_plotting_config(plotting_config)
     assert plotting_config == target_config
     if plotting_config["savefig_dpi"] == 600:

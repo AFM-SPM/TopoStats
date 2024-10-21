@@ -204,7 +204,7 @@ class GrainStats:
         grains_plot_data = []
         all_height_profiles = {}
         if self.labelled_data is None:
-            LOGGER.info(
+            LOGGER.warning(
                 f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
             )
             return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
@@ -217,12 +217,12 @@ class GrainStats:
         # List to hold all the plot data for all the grains. Each entry is a dictionary of plotting data.
         # There are multiple entries for each grain.
         for index, region in enumerate(region_properties):
-            LOGGER.info(f"[{self.image_name}] : Processing grain: {index}")
+            LOGGER.debug(f"[{self.image_name}] : Processing grain: {index}")
 
             # Skip grain if too small to calculate stats for
             LOGGER.debug(f"[{self.image_name}] : Grain size: {region.image.size}")
             if min(region.image.shape) < 5:
-                LOGGER.info(
+                LOGGER.debug(
                     f"[{self.image_name}] : Skipping grain due to being too small (size: {region.image.shape}) to calculate stats for."
                 )
                 continue
@@ -308,7 +308,7 @@ class GrainStats:
                 all_height_profiles[index] = height_profiles.interpolate_height_profile(
                     img=grain_image, mask=grain_mask
                 )
-                LOGGER.info(f"[{self.image_name}] : Height profiles extracted.")
+                LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
 
             # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
             # from pixel units to nanometres.
@@ -530,10 +530,10 @@ class GrainStats:
         if debug:
             base_output_dir.mkdir(parents=True, exist_ok=True)
             self.plot(edges, hull, base_output_dir / "_points_hull.png")
-            LOGGER.info(f"points: {edges}")
-            LOGGER.info(f"hull: {hull}")
-            LOGGER.info(f"hull indexes: {hull_indices}")
-            LOGGER.info(f"simplexes: {simplexes}")
+            LOGGER.debug(f"points: {edges}")
+            LOGGER.debug(f"hull: {hull}")
+            LOGGER.debug(f"hull indexes: {hull_indices}")
+            LOGGER.debug(f"simplexes: {simplexes}")
 
         return hull, hull_indices, simplexes
 
@@ -791,7 +791,7 @@ class GrainStats:
                     "k-",
                     linewidth=5,
                 )
-                LOGGER.info(rotated_points[simplex, 0], rotated_points[simplex, 1])
+                LOGGER.debug(rotated_points[simplex, 0], rotated_points[simplex, 1])
 
                 # Draw the convex hulls
                 for _simplex in hull_simplices:
