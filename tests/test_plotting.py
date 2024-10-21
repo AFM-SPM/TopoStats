@@ -105,8 +105,8 @@ def test_var_to_label_config(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("var", "expected_label"),
     [
-        ("total_contour_length", "Contour Length"),
-        ("avg_end_to_end_distance", "End to End Distance"),
+        ("total_contour_length", "Total Contour Length"),
+        ("average_end_to_end_distance", "Average End to End Distance"),
         ("grain_bound_len", "Circumference"),
         ("grain_curvature1", "Smaller Curvature"),
     ],

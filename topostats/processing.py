@@ -77,7 +77,7 @@ def run_filters(
     """
     if filter_config["run"]:
         filter_config.pop("run")
-        LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
+        LOGGER.debug(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
         LOGGER.info(f"[{filename}] : *** Filtering ***")
         filters = Filters(
             image=unprocessed_image,
@@ -115,6 +115,8 @@ def run_filters(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
+
+        LOGGER.info(f"[{filename}] : Filters stage completed successfully.")
 
         return filters.images["gaussian_filtered"]
 
@@ -194,7 +196,7 @@ def run_grains(  # noqa: C901
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.directions.items():
-                    LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
+                    LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     if plotting_config["image_set"] == "all":
                         grain_out_path_direction.mkdir(parents=True, exist_ok=True)
@@ -203,7 +205,7 @@ def run_grains(  # noqa: C901
                         if len(array.shape) == 3:
                             # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
                             array = array[:, :, 1]
-                        LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
+                        LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                         Images(
                             data=np.zeros_like(array), masked_array=array, **plotting_config["plot_dict"][plot_name]
@@ -244,6 +246,8 @@ def run_grains(  # noqa: C901
             grain_masks = {}
             for direction in grains.directions:
                 grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+
+            LOGGER.info(f"[{filename}] : Grain Finding stage completed successfully.")
 
             return grain_masks
 
@@ -309,10 +313,10 @@ def run_grainstats(
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
                 # Get the DNA class mask from the tensor
-                LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
+                LOGGER.debug(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
                 dna_class_mask = grain_masks[direction][:, :, 1]
-                LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
+                LOGGER.debug(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 # Check if there are grains
                 if np.max(dna_class_mask) == 0:
@@ -342,7 +346,7 @@ def run_grainstats(
                     if plotting_config["image_set"] == "all":
                         LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
                         for plot_data in grains_plot_data:
-                            LOGGER.info(
+                            LOGGER.debug(
                                 f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
                             )
                             Images(
@@ -366,6 +370,8 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
             grainstats_df["basename"] = basename.parent
+            LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
+            LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
 
             return grainstats_df, height_profiles_dict
 
@@ -492,6 +498,7 @@ def run_disordered_trace(
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
+            LOGGER.info(f"[{filename}] : Disordered Tracing stage completed successfully.")
 
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
 
@@ -632,7 +639,6 @@ def run_nodestats(  # noqa: C901
                                         / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
-                LOGGER.info(f"[{filename}] : Finished Plotting NodeStats Images")
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
@@ -640,6 +646,8 @@ def run_nodestats(  # noqa: C901
                 if grainstats_df is not None
                 else nodestats_grainstats
             )
+
+            LOGGER.info(f"[{filename}] : NodeStats stage completed successfully.")
 
             # merge all image dictionaries
             return nodestats_whole_data, resultant_grainstats
@@ -771,8 +779,6 @@ def run_ordered_tracing(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-                LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
-
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
@@ -781,6 +787,7 @@ def run_ordered_tracing(
             )
 
             ordered_tracing_molstats["basename"] = basename.parent
+            LOGGER.info(f"[{filename}] : Ordered Tracing stage completed successfully.")
 
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
@@ -917,7 +924,6 @@ def run_splining(
                     plot_coords=all_splines,
                     **plotting_config["plot_dict"]["splined_trace"],
                 ).plot_and_save()
-                LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
@@ -931,6 +937,8 @@ def run_splining(
                 if molstats_df is not None
                 else splining_molstats
             )
+
+            LOGGER.info(f"[{filename}] : Splining stage completed successfully.")
 
             # merge all image dictionaries
             return splined_image_data, resultant_grainstats, resultant_molstats
