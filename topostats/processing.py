@@ -796,20 +796,10 @@ def run_ordered_tracing(
             LOGGER.info(
                 f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
             )
-            return (
-                ordered_tracing_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
-            )
 
         except KeyError as e:
             LOGGER.info(
                 f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
-            )
-            return (
-                ordered_tracing_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
             )
 
         except Exception as e:
@@ -817,11 +807,11 @@ def run_ordered_tracing(
                 f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return (
-                ordered_tracing_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
-            )
+        return (
+            ordered_tracing_image_data,
+            grainstats_df,
+            create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
+        )
 
     return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
 
@@ -950,7 +940,7 @@ def run_splining(
             return (
                 splined_image_data,
                 grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index="molecule_number"),
+                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
             )
 
         except Exception as e:
