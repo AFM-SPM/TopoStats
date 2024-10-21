@@ -818,33 +818,34 @@ if __name__ == '__main__':
     gaussian = float(config.get(sample_type, "gaussian"))
     print("Gaussian: " + str(gaussian))
 
-    # minarea = float(config.get(sample_type, "minarea"))
-    # print("Min area: " + str(minarea))
-    minarea_min = float(config.get(sample_type, "minarea_min"))
-    print("Min area minimal value: " + str(minarea_min))
-    minarea_max = float(config.get(sample_type, "minarea_max"))
-    print("Min area maximal value: " + str(minarea_max))
+    minarea = float(config.get(sample_type, "minarea"))
+    print("Min area: " + str(minarea))
+    # minarea_min = float(config.get(sample_type, "minarea_min"))
+    # print("Min area minimal value: " + str(minarea_min))
+    # minarea_max = float(config.get(sample_type, "minarea_max"))
+    # print("Min area maximal value: " + str(minarea_max))
 
-    # thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
-    # print("Thresholding criteria: " + str(thresholdingcriteria))
-    thresholdingcriteria_min = float(config.get(sample_type, "thresholdingcriteria_min"))
-    print("Thresholding criteria minimal value: " + str(thresholdingcriteria_min))
-    thresholdingcriteria_max = float(config.get(sample_type, "thresholdingcriteria_max"))
-    print("Thresholding criteria maximal value: " + str(thresholdingcriteria_max))
+    thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
+    print("Thresholding criteria: " + str(thresholdingcriteria))
+    # thresholdingcriteria_min = float(config.get(sample_type, "thresholdingcriteria_min"))
+    # print("Thresholding criteria minimal value: " + str(thresholdingcriteria_min))
+    # thresholdingcriteria_max = float(config.get(sample_type, "thresholdingcriteria_max"))
+    # print("Thresholding criteria maximal value: " + str(thresholdingcriteria_max))
 
 
-    maxdeviation = float(config.get(sample_type, "maxdeviation"))
-    print("Max deviation: " + str(maxdeviation))
-    # maxdeviation_min = float(config.get(sample_type, "maxdeviation_min"))
-    # print("Max deviation minimal value: " + str(maxdeviation_min))
-    # maxdeviation_max = float(config.get(sample_type, "maxdeviation_max"))
-    # print("Max deviation maximal value: " + str(maxdeviation_max))
-    mindeviation = float(config.get(sample_type, "mindeviation"))
-    print("Min deviation: " + str(mindeviation))
-    # mindeviation_min = float(config.get(sample_type, "mindeviation_min"))
-    # print("Min deviation minimal value: " + str(mindeviation_min))
-    # mindeviation_max = float(config.get(sample_type, "mindeviation_max"))
-    # print("Min deviation maximal value: " + str(mindeviation_max))
+    # maxdeviation = float(config.get(sample_type, "maxdeviation"))
+    # print("Max deviation: " + str(maxdeviation))
+    maxdeviation_min = float(config.get(sample_type, "maxdeviation_min"))
+    print("Max deviation minimal value: " + str(maxdeviation_min))
+    maxdeviation_max = float(config.get(sample_type, "maxdeviation_max"))
+    print("Max deviation maximal value: " + str(maxdeviation_max))
+
+    # mindeviation = float(config.get(sample_type, "mindeviation"))
+    # print("Min deviation: " + str(mindeviation))
+    mindeviation_min = float(config.get(sample_type, "mindeviation_min"))
+    print("Min deviation minimal value: " + str(mindeviation_min))
+    mindeviation_max = float(config.get(sample_type, "mindeviation_max"))
+    print("Min deviation maximal value: " + str(mindeviation_max))
 
 
     # Image output configs
@@ -905,8 +906,10 @@ if __name__ == '__main__':
             mol_find_start = time.time()
             parameter_sweep_df = pd.DataFrame(columns=['number_of_grains'])
             row = 0
-            for minarea in np.linspace(minarea_min, minarea_max, 20):
-                for thresholdingcriteria in np.linspace(thresholdingcriteria_min, thresholdingcriteria_max, 20):
+            # for minarea in np.linspace(minarea_min, minarea_max, 20):
+            for maxdeviation in np.linspace(maxdeviation_min, maxdeviation_max, 20):
+                # for thresholdingcriteria in np.linspace(thresholdingcriteria_min, thresholdingcriteria_max, 20):
+                for mindeviation in np.linspace(mindeviation_min, mindeviation_max, 20):
 
                     # Perform basic image processing, to align rows, flatten and set the mean value to zero
                     # Find all grains in the mask which are both above a height threshold
@@ -946,8 +949,12 @@ if __name__ == '__main__':
                     #                                                                          dy, xreal, yreal, xres, yres)
                     # orig_ids, crop_ids, data = splitimage(data, splitwidth, datafield, xreal, yreal, xres, yres)
 
-                    parameter_sweep_df.loc[row, 'minarea'] = minarea
-                    parameter_sweep_df.loc[row, 'thresholdingcriteria'] = thresholdingcriteria
+                    # parameter_sweep_df.loc[row, 'minarea'] = minarea
+                    # parameter_sweep_df.loc[row, 'thresholdingcriteria'] = thresholdingcriteria
+
+                    parameter_sweep_df.loc[row, 'mindeviation'] = mindeviation
+                    parameter_sweep_df.loc[row, 'maxdeviation'] = maxdeviation
+
                     parameter_sweep_df.loc[row, 'number_of_grains'] = number_of_grains
                     row = row + 1
                     mol_find_end = time.time()
