@@ -564,7 +564,6 @@ def plot3v(df, arg1, arg2, arg3, nm=False, specpath=None):
     ydata = np.unique(ydata)
 
     zdata = np.array(df[arg3])
-    print(zdata)
     zdata = np.reshape(zdata, (len(ydata), len(xdata)))
     vmaxval = zdata.max()
     vminval = zdata.min()
