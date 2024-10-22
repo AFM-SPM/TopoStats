@@ -1452,12 +1452,12 @@ def test_compile_skan_stats() -> None:
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_segment_heights() -> None:
-    """Test of prep_segment_heights()."""
+    """Test of segment_heights()."""
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_segment_middles() -> None:
-    """Test of prep_segment_middles()."""
+    """Test of segment_middles()."""
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
@@ -1470,16 +1470,40 @@ def test_prep_arrays() -> None:
     """Test of prep_arrays()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
-def test_grain_anchor() -> None:
+@pytest.mark.parametrize(
+    ("array_shape", "bounding_box", "pad_width", "target"),
+    [
+        pytest.param((3, 3), [1, 1, 2, 2], 1, (0, 0), id="Simple square padded by 1 to edges"),
+        pytest.param((3, 3), [1, 1, 2, 2], 2, (0, 0), id="Simple square padded by 2 beyond both edges"),
+        pytest.param((3, 10), [1, 1, 2, 2], 4, (0, 0), id="Simple square padded by 4 beyond rows but within columns"),
+        pytest.param((10, 10), [7, 7, 9, 9], 4, (3, 3), id="Simple square padded by 4 beyond bottom and right edges"),
+    ],
+)
+def test_grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int, target: npt.NDArray) -> None:
     """Test of grain_anchor()."""
+    grain_anchor = disordered_tracing.grain_anchor(array_shape, bounding_box, pad_width)
+    assert grain_anchor == target
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_get_skan_image() -> None:
-    """Test of grain_anchor()."""
+    """Test of get_skan_image()."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
-def test_pad_bounding_box() -> None:
+@pytest.mark.parametrize(
+    ("array_shape", "bounding_box", "pad_width", "target"),
+    [
+        pytest.param((3, 3), [1, 1, 2, 2], 1, [0, 0, 3, 3], id="Simple square padded by 1 to edges"),
+        pytest.param((3, 3), [1, 1, 2, 2], 2, [0, 0, 3, 3], id="Simple square padded by 2 all edges"),
+        pytest.param(
+            (3, 10), [1, 1, 2, 2], 4, [0, 0, 3, 6], id="Simple square padded by 4 beyond rows but within columns"
+        ),
+        pytest.param(
+            (10, 10), [7, 7, 9, 9], 4, [3, 3, 10, 10], id="Simple square padded by 4 beyond bottom and right edges"
+        ),
+    ],
+)
+def test_pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int, target: npt.NDArray) -> None:
     """Test of pad_bounding_box()."""
+    padded_box = disordered_tracing.pad_bounding_box(array_shape, bounding_box, pad_width)
+    assert padded_box == target
