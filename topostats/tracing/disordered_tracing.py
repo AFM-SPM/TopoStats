@@ -374,7 +374,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(  # pylint: disable=logging-not-lazy
                 f"[{filename}] : Disordered tracing of grain "
-                + f"{cropped_image_index} failed. Consider raising an issue on GitHub. Error: ",
+                f"{cropped_image_index} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
 
