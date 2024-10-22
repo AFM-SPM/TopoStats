@@ -423,8 +423,8 @@ def run_disordered_trace(
         Dictionary configuration for obtaining a disordered trace representation of the grains.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -552,8 +552,8 @@ def run_nodestats(  # noqa: C901
         Dictionary configuration for analysing the crossing points.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to bee added to. by default an empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to bee added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -709,8 +709,8 @@ def run_ordered_tracing(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -846,10 +846,10 @@ def run_splining(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
-    molstats_df : pd.DataFrame, optional
-        The molecule statistics dataframe to be added to. by default an empty molstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+    molstats_df : pd.DataFrame | None
+        The molecule statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
