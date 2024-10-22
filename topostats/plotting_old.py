@@ -62,8 +62,11 @@ colname2label = {
     "smallest_bounding_length": "Smallest Bounding Length / nm",
     "smallest_bounding_area": "Smallest Bounding Area / $\mathregular{nm^2}$",
     "aspect_ratio": "Aspect Ratio",
-    "bending_angle": "Bending Angle / degrees",
-    "minarea": "minarea / $\mathregular{%s^2}$"
+    "bending_angle": "Bending Angle / Degrees",
+    "thresholdingcriteria": "Initial Height Threshold / Multiples of Standard Deviation",
+    "minarea": "Initial Area Threshold / $\mathregular{%s^2}$",
+    "mindeviation": "Lower Area Limit / Multiples of Median Area",
+    "maxdeviation": "Higher Area Limit / Multiples of Median Area"
 }
 
 
@@ -569,8 +572,13 @@ def plot3v(df, arg1, arg2, arg3, nm=False, specpath=None):
     vminval = zdata.min()
 
     fig, ax = plt.subplots(figsize=(15, 12))
-    plt.contourf(xdata, ydata, zdata, vmax=vmaxval, vmin=vminval, levels=np.unique(zdata))
-    plt.colorbar(label='Number of grains')
+    plt.contourf(xdata, ydata, zdata, vmax=vmaxval, vmin=vminval,
+                 levels=np.arange(np.min(zdata) - 0.5, np.max(zdata) + 1, 1))
+    datarange = np.arange(np.min(zdata), np.max(zdata) + 2, 1)
+    spacing = np.ceil(len(datarange)/12).astype('int')
+    colorbarticks = datarange[0::spacing]
+    plt.colorbar(label='Number of Grains', ticks=colorbarticks)
+
     plt.xlim(xdata.min(), xdata.max())
     plt.ylim(ydata.min(), ydata.max())
     plt.xlabel(labelunitconversion(arg1, nm), alpha=1)
