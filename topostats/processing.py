@@ -20,8 +20,6 @@ from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import (
     Images,
     add_pixel_to_nm_to_plotting_config,
-    plot_curvatures,
-    plot_curvatures_individual_grains,
 )
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
@@ -38,7 +36,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
@@ -895,8 +892,11 @@ def run_curvature_stats(
     grain_trace_data: dict,
     pixel_to_nm_scaling: float,
     filename: str,
+    core_out_path: Path,
+    grain_out_path: Path,
     curvature_config: dict,
-) -> dict:
+    plotting_config: dict,
+) -> dict | None:
     """
     Calculate curvature statistics for the traced DNA molecules.
 
@@ -915,8 +915,14 @@ def run_curvature_stats(
         ie the number of pixels per nanometre.
     filename : str
         Name of the image.
+    core_out_path : Path
+        Path to save the core curvature image to.
+    grain_out_path : Path
+        Path to save the optional, diagnostic curvature images to.
     curvature_config : dict
         Dictionary of configuration for running the curvature stats.
+    plotting_config : dict
+        Dictionary of configuration for plotting images.
 
     Returns
     -------
@@ -926,7 +932,7 @@ def run_curvature_stats(
     if curvature_config["run"]:
         try:
             curvature_config.pop("run")
-            LOGGER.info("*** Curvature Stats ***")
+            LOGGER.info(f"[{filename}] : *** Curvature Stats ***")
             all_directions_grains_curvature_stats_dict: dict = {}
             for direction in grain_trace_data.keys():
                 # Pass the traces to the curvature stats function
@@ -935,16 +941,27 @@ def run_curvature_stats(
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                 )
 
-                plot_curvatures(
+                Images(
+                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["curvature"],
+                ).plot_curvatures(
                     image=image,
                     cropped_images=cropped_image_data[direction],
                     grains_curvature_stats_dict=grains_curvature_stats_dict,
                     all_grain_smoothed_data=grain_trace_data[direction],
+                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
                 )
-                plot_curvatures_individual_grains(
+
+                Images(
+                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    output_dir=grain_out_path,
+                    **plotting_config["plot_dict"]["curvature_individual_grains"],
+                ).plot_curvatures_individual_grains(
                     cropped_images=cropped_image_data[direction],
                     grains_curvature_stats_dict=grains_curvature_stats_dict,
                     all_grains_smoothed_data=grain_trace_data[direction],
+                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
                 )
 
                 all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
@@ -1172,7 +1189,10 @@ def process_scan(
             grain_trace_data=topostats_object["splining"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            grain_out_path=grain_out_path,
             curvature_config=curvature_config,
+            plotting_config=plotting_config,
         )
 
         topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
