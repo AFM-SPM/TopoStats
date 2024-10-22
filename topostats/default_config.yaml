@@ -96,6 +96,7 @@ splining:
   spline_degree: 3 # The polynomial degree of the spline.
 curvature:
   run: true # Options : true, false
+  colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
