@@ -1,5 +1,5 @@
 """
-Run TopoStats.
+Run TopoStats modules.
 
 This provides an entry point for running TopoStats as a command line programme.
 """
@@ -19,7 +19,18 @@ from tqdm import tqdm
 from topostats.io import LoadScans, dict_to_json, find_files, read_yaml, save_folder_grainstats, write_yaml
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
-from topostats.processing import check_run_steps, completion_message, process_scan
+from topostats.processing import (
+    check_run_steps,
+    completion_message,
+    process_scan,
+    run_disordered_tracing,
+    run_filters,
+    run_grains,
+    run_grainstats,
+    run_nodestats,
+    run_ordered_tracing,
+    run_splining,
+)
 from topostats.utils import update_config, update_plotting_config
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
@@ -37,7 +48,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 
 
-def run_topostats(args: None = None) -> None:  # noqa: C901
+def process(args: None = None) -> None:  # noqa: C901
     """
     Find and process all files.
 
@@ -281,3 +292,92 @@ def run_topostats(args: None = None) -> None:  # noqa: C901
     LOGGER.debug(f"Images processed : {images_processed}")
     # Update config with plotting defaults for printing
     completion_message(config, img_files, summary_config, images_processed)
+
+
+# WIP these will be added from args once the dictionary keys have been wrangled
+# pylint: disable=no-value-for-parameter
+# pylint: disable=unused-argument
+
+
+def filters(args: None = None) -> None:
+    """
+    Load files from disk and run filtering.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_filters()
+
+
+def grains(args: None = None) -> None:
+    """
+    Load files from disk and run grain finding.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_grains()
+
+
+def grainstats(args: None = None) -> None:
+    """
+    Load files from disk and run grainstats.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_grainstats()
+
+
+def disordered_tracing(args: None = None) -> None:
+    """
+    Load files from disk and run grainstats.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_disordered_tracing()
+
+
+def nodestats(args: None = None) -> None:
+    """
+    Load files from disk and run grainstats.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_nodestats()
+
+
+def ordered_tracing(args: None = None) -> None:
+    """
+    Load files from disk and run grainstats.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_ordered_tracing()
+
+
+def splining(args: None = None) -> None:
+    """
+    Load files from disk and run grainstats.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    run_splining()

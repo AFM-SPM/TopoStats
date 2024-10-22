@@ -20,7 +20,7 @@ filter:
     below: -1.0 # Threshold for data below the image background
     above: 1.0 # Threshold for data above the image background
   gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
-  gaussian_mode: nearest
+  gaussian_mode: nearest # Mode for Gaussian blurring. Options : nearest, reflect, constant, mirror, wrap
   # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
   # result in ruining legitimate data.
   remove_scars:
@@ -28,7 +28,7 @@ filter:
     removal_iterations: 2 # Number of times to run scar removal.
     threshold_low: 0.250 # lower values make scar removal more sensitive
     threshold_high: 0.666 # lower values make scar removal more sensitive
-    max_scar_width: 4 # Maximum thichness of scars in pixels.
+    max_scar_width: 4 # Maximum thickness of scars in pixels.
     min_scar_length: 16 # Minimum length of scars in pixels.
 grains:
   run: true # Options : true, false
@@ -78,7 +78,7 @@ disordered_tracing:
 nodestats:
   run: true # Options : true, false
   node_joining_length: 7.0 # The distance over which to join nearby crossing points.
-  node_extend_dist: 14.0 # The distance over which to join nearby odd-branched nodes.
+  node_extend_dist: 14.0 # The distance in ?? over which to join nearby odd-branched nodes.
   branch_pairing_length: 20.0 # The length from the crossing point to pair and trace, obtaining FWHM's.
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
   pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
@@ -91,10 +91,9 @@ splining:
   method: "rolling_window" # Options : "spline", "rolling_window"
   rolling_window_size: 20.0e-9 # size in nm of the rolling window.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
-  spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear splines.
-  spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular splines.
+  spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear features.
+  spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular features.
   spline_degree: 3 # The polynomial degree of the spline.
-#  cores: 1 # Number of cores to use for parallel processing
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file

@@ -29,13 +29,13 @@ def test_run_topostats_process_all(caplog) -> None:
     # pytest was invoked with (see thread on StackOverflow at https://stackoverflow.com/a/55260580/1444043)
     entry_point(
         manually_provided_args=[
-            "process",
             "--config",
             f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
             "--base-dir",
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "process",
         ]
     )
     assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
@@ -48,7 +48,6 @@ def test_run_topostats_process_debug(caplog) -> None:
     with caplog.at_level(logging.DEBUG, logger=LOGGER_NAME):
         entry_point(
             manually_provided_args=[
-                "process",
                 "--config",
                 f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
                 "-l",
@@ -57,6 +56,7 @@ def test_run_topostats_process_debug(caplog) -> None:
                 "./tests/resources/test_image/",
                 "--file-ext",
                 ".topostats",
+                "process",
             ]
         )
         assert "Configuration after update         :" in caplog.text
