@@ -4,6 +4,8 @@ Run TopoStats.
 This provides an entry point for running TopoStats as a command line programme.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
