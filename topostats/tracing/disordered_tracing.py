@@ -21,6 +21,9 @@ from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# too-many-positional-arguments
+# pylint: disable=R0917
+
 
 class disorderedTrace:  # pylint: disable=too-many-instance-attributes
     """
@@ -535,7 +538,7 @@ def prep_arrays(
     Returns
     -------
     Tuple
-        Returns a tuple of two dictionaries, each consisting of cropped arrays.
+        Returns a tuple of three dictionaries, the cropped images, cropped masks and bounding boxes.
     """
     # Get bounding boxes for each grain
     region_properties = skimage_measure.regionprops(labelled_grains_mask)
@@ -741,7 +744,7 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
     Parameters
     ----------
     array_shape : tuple
-        Shape of original image.
+        Shape of original image (row, columns).
     bounding_box : list
         List of coordinates 'min_row', 'min_col', 'max_row', 'max_col'.
     pad_width : int

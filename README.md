@@ -13,6 +13,7 @@ Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astr
 [![pre-commit.ci
 status](https://results.pre-commit.ci/badge/github/AFM-SPM/TopoStats/main.svg)](https://results.pre-commit.ci/latest/github/AFM-SPM/TopoStats/main)
 [![ORDA](https://img.shields.io/badge/ORDA--DOI-10.15131%2Fshef.data.22633528.v.1-lightgrey)](https://figshare.shef.ac.uk/articles/software/TopoStats/22633528/1)
+[![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)
 
 </div>
 <div align="center">
