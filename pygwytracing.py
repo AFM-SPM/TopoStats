@@ -772,16 +772,16 @@ if __name__ == '__main__':
 
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
-    if (not os.path.isfile("config.ini")):
+    if (not os.path.isfile("config/config.ini")):
         # Copy default_config.ini to config.ini
         print("No config file found named 'config.ini'")
         print("Copying default_config.ini to config.ini")
-        copyfile('default_config.ini', 'config.ini')
+        copyfile('default_config.ini', 'config/config.ini')
 
     # Read the config file
     print("Reading config file")
     config = configparser.ConfigParser()
-    config.read("config.ini")
+    config.read("config/config.ini")
     print("Config loaded: ")
     print(" ")
 
@@ -820,32 +820,31 @@ if __name__ == '__main__':
 
     minarea = float(config.get(sample_type, "minarea"))
     print("Min area: " + str(minarea))
-    # minarea_min = float(config.get(sample_type, "minarea_min"))
-    # print("Min area minimal value: " + str(minarea_min))
-    # minarea_max = float(config.get(sample_type, "minarea_max"))
-    # print("Min area maximal value: " + str(minarea_max))
-
     thresholdingcriteria = float(config.get(sample_type, "thresholdingcriteria"))
     print("Thresholding criteria: " + str(thresholdingcriteria))
-    # thresholdingcriteria_min = float(config.get(sample_type, "thresholdingcriteria_min"))
-    # print("Thresholding criteria minimal value: " + str(thresholdingcriteria_min))
-    # thresholdingcriteria_max = float(config.get(sample_type, "thresholdingcriteria_max"))
-    # print("Thresholding criteria maximal value: " + str(thresholdingcriteria_max))
-
-
-    # maxdeviation = float(config.get(sample_type, "maxdeviation"))
-    # print("Max deviation: " + str(maxdeviation))
     maxdeviation_min = float(config.get(sample_type, "maxdeviation_min"))
     print("Max deviation minimal value: " + str(maxdeviation_min))
     maxdeviation_max = float(config.get(sample_type, "maxdeviation_max"))
     print("Max deviation maximal value: " + str(maxdeviation_max))
-
-    # mindeviation = float(config.get(sample_type, "mindeviation"))
-    # print("Min deviation: " + str(mindeviation))
     mindeviation_min = float(config.get(sample_type, "mindeviation_min"))
     print("Min deviation minimal value: " + str(mindeviation_min))
     mindeviation_max = float(config.get(sample_type, "mindeviation_max"))
     print("Min deviation maximal value: " + str(mindeviation_max))
+
+
+    # minarea_min = float(config.get(sample_type, "minarea_min"))
+    # print("Min area minimal value: " + str(minarea_min))
+    # minarea_max = float(config.get(sample_type, "minarea_max"))
+    # print("Min area maximal value: " + str(minarea_max))
+    # thresholdingcriteria_min = float(config.get(sample_type, "thresholdingcriteria_min"))
+    # print("Thresholding criteria minimal value: " + str(thresholdingcriteria_min))
+    # thresholdingcriteria_max = float(config.get(sample_type, "thresholdingcriteria_max"))
+    # print("Thresholding criteria maximal value: " + str(thresholdingcriteria_max))
+    # maxdeviation = float(config.get(sample_type, "maxdeviation"))
+    # print("Max deviation: " + str(maxdeviation))
+    # mindeviation = float(config.get(sample_type, "mindeviation"))
+    # print("Min deviation: " + str(mindeviation))
+
 
 
     # Image output configs
@@ -907,8 +906,8 @@ if __name__ == '__main__':
             parameter_sweep_df = pd.DataFrame(columns=['number_of_grains'])
             row = 0
             # for minarea in np.linspace(minarea_min, minarea_max, 20):
+            #     for thresholdingcriteria in np.linspace(thresholdingcriteria_min, thresholdingcriteria_max, 20):
             for maxdeviation in np.linspace(maxdeviation_min, maxdeviation_max, 20):
-                # for thresholdingcriteria in np.linspace(thresholdingcriteria_min, thresholdingcriteria_max, 20):
                 for mindeviation in np.linspace(mindeviation_min, mindeviation_max, 20):
 
                     # Perform basic image processing, to align rows, flatten and set the mean value to zero

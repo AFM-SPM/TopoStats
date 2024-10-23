@@ -14,7 +14,7 @@ from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
 
-plotting_config = read_yaml(Path("../config/parameter_sweep_plotting_config.yml"))
+plotting_config = read_yaml(Path("config/parameter_sweep_plotting_config.yml"))
 
 # Set seaborn to override matplotlib for plot output
 sns.set()

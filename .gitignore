@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # User-Specific config file
-config.ini
+config/config.ini
 
 # Source / output data
 .dropbox
