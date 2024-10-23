@@ -6,6 +6,7 @@ import logging
 from collections import defaultdict
 from pathlib import Path
 
+from art import tprint
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
