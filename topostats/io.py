@@ -9,10 +9,11 @@ import os
 import pickle as pkl
 import re
 import struct
+from collections.abc import MutableMapping
 from datetime import datetime
 from importlib import resources
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import h5py
 import numpy as np
@@ -35,6 +36,39 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
+
+MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
+
+
+def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> MutableMappingType:
+    """
+    Merge two mappings (dictionaries), with priority given to the second mapping.
+
+    Note: Using a Mapping should make this robust to any mapping type, not just dictionaries. MutableMapping was needed
+    as Mapping is not a mutable type, and this function needs to be able to change the dictionaries.
+
+    Parameters
+    ----------
+    map1 : MutableMapping
+        First mapping to merge, with secondary priority.
+    map2 : MutableMapping
+        Second mapping to merge, with primary priority.
+
+    Returns
+    -------
+    dict
+        Merged dictionary.
+    """
+    # Iterate over the second mapping
+    for key, value in map2.items():
+        # If the value is another mapping, then recurse
+        if isinstance(value, MutableMapping):
+            # If the key is not in the first mapping, add it as an empty dictionary before recursing
+            map1[key] = merge_mappings(map1.get(key, {}), value)
+        else:
+            # Else simply add / override the key value pair
+            map1[key] = value
+    return map1
 
 
 # Sylvia: Ruff says too complex but I think breaking this out would be more complex.
