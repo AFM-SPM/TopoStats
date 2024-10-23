@@ -772,16 +772,16 @@ if __name__ == '__main__':
 
     # Test if config file exists
     # If it doesn't, create a new config file with default parameters
-    if (not os.path.isfile("config.ini")):
+    if (not os.path.isfile("config/config.ini")):
         # Copy default_config.ini to config.ini
         print("No config file found named 'config.ini'")
         print("Copying default_config.ini to config.ini")
-        copyfile('default_config.ini', 'config.ini')
+        copyfile('default_config.ini', 'config/config.ini')
 
     # Read the config file
     print("Reading config file")
     config = configparser.ConfigParser()
-    config.read("config.ini")
+    config.read("config/config.ini")
     print("Config loaded: ")
     print(" ")
 
