@@ -6,10 +6,10 @@ import logging
 from collections import defaultdict
 from pathlib import Path
 
-from art import tprint
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import pyqrcode
 from art import tprint
 
 from topostats import __version__
@@ -1336,9 +1336,10 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  Citation File Format        : https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff\n\n"
         f"  ^1 Successful processing of an image is detection of grains and calculation of at least\n"
         f"     grain statistics. If these have been disabled the percentage will be 0.\n\n"
-        f"  If you encounter bugs/issues or have feature requests please report them at the above URL\n"
-        f"  or email us.\n\n"
+        f"  If you encounter bugs/issues or have feature requests please report them at the above URL,\n"
+        f"  email us or scan the QRcode below.\n\n"
         f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
         f"  linked above and available from the Source Code page.\n"
         f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
+    print(pyqrcode.create("https://github.com/AFM-SPM/TopoStats/issues/new/choose").terminal())

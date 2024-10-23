@@ -45,6 +45,7 @@ dependencies = [
   "numpyencoder",
   "pandas",
   "pySPM",
+  "pyqrcode",
   "pyyaml",
   "ruamel.yaml",
   "schema",
