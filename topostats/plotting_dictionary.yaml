@@ -331,3 +331,15 @@ splined_trace:
   image_type: "non-binary"
   savefig_dpi: 300
   core_set: true
+curvature:
+  filename: "31-curvature"
+  title: "Curvature"
+  image_type: "non-binary"
+  savefig_dpi: 600
+  core_set: true
+curvature_individual_grains:
+  filename: "32-individual_grain_curvature"
+  title: "Curvature"
+  image_type: "non-binary"
+  savefig_dpi: 600
+  core_set: false
