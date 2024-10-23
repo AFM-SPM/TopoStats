@@ -298,7 +298,7 @@ class Images:
         grains_curvature_stats_dict: dict,
         all_grain_smoothed_data: dict,
         colourmap_normalisation_bounds: tuple[float, float],
-    ) -> None:
+    ) -> tuple[plt.Figure | None, plt.Axes | None]:
         """
         Plot curvature intensity and defects of grains in an image.
 
@@ -314,6 +314,11 @@ class Images:
             Dictionary containing smoothed grain traces.
         colourmap_normalisation_bounds : tuple[float, float]
             Tuple of the colour map normalisation bounds.
+
+        Returns
+        -------
+        tuple[plt.Figure | None, plt.Axes | None]
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         fig, ax = None, None
 
@@ -393,6 +398,8 @@ class Images:
                 dpi=self.savefig_dpi,
             )
             plt.close()
+
+        return fig, ax
 
     def plot_curvatures_individual_grains(
         self,
