@@ -1,5 +1,6 @@
 """Topostats."""
 
+import os
 from importlib.metadata import version
 
 import snoop
@@ -12,6 +13,8 @@ LOGGER = setup_logger()
 
 release = version("topostats")
 __version__ = ".".join(release.split("."[:2]))
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 colormaps.register(cmap=Colormap("nanoscope").get_cmap())
 colormaps.register(cmap=Colormap("gwyddion").get_cmap())
