@@ -7,7 +7,6 @@ import numpy.typing as npt
 import pytest
 
 from topostats.utils import (
-    ALL_STATISTICS_COLUMNS,
     bound_padded_coordinates_to_image,
     convert_path,
     convolve_skeleton,
@@ -182,14 +181,30 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
         get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
-def test_create_empty_dataframe() -> None:
-    """Test the empty dataframe is created correctly."""
-    empty_df = create_empty_dataframe(ALL_STATISTICS_COLUMNS)
+@pytest.mark.parametrize(
+    ("column_set", "index_col", "n_columns", "columns_check"),
+    [
+        pytest.param("grainstats", "grain_number", 26, {"image", "basename", "area"}, id="Empty grainstats dataframe"),
+        pytest.param(
+            "disordered_tracing_statistics",
+            "index",
+            12,
+            {"connected_segments", "mean_pixel_value", "stdev_pixel_value"},
+            id="Empty disordered_tracing_statistics dataframe",
+        ),
+        pytest.param(
+            "mol_statistics", "molecule_number", 7, {"image", "basename", "area"}, id="Empty mol_statistics dataframe"
+        ),
+    ],
+)
+def test_create_empty_dataframe(column_set: str, index_col: str, n_columns: int, columns_check: set) -> None:
+    """Test the empty dataframes are created correctly."""
+    empty_df = create_empty_dataframe(column_set, index_col)
 
-    assert empty_df.index.name == "grain_number"
-    assert "grain_number" not in empty_df.columns
-    assert empty_df.shape == (0, 26)
-    assert {"image", "basename", "area"}.intersection(empty_df.columns)
+    assert empty_df.index.name == index_col
+    assert index_col not in empty_df.columns
+    assert empty_df.shape == (0, n_columns)
+    assert columns_check.intersection(empty_df.columns)
 
 
 @pytest.mark.parametrize(
