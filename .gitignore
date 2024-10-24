@@ -39,6 +39,7 @@ pytest-debug.ini
 
 # Documentation
 _build/
+!docs/_static/images/**
 
 # MacOS
 .DS_Store
