@@ -48,7 +48,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 
 
-def handle_config_file(args: argparse.Namespace | None) -> dict:
+def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     """
     Handle the config file argument.
 
