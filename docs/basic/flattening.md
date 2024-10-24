@@ -4,7 +4,11 @@ Flattening is the process of taking a raw AFM image, and removing the artefacts 
 resulting in an image where the background mica is flat and the sample is clearly visible resting on the surface.
 
 Here is a raw, unprocessed AFM image:
-![Non-flattened, raw AFM image](../_static/images/flattening/flattening_raw_afm_image.png)
+
+![raw AFM image](../_static/images/flattening/flattening_raw_afm_image.png)
+
+<!-- <img src="../_static/images/flattening/flattening_raw_afm_image.png" style="width: 50%;" alt="raw AFM image"> -->
+
 You can see there is a heavy tilt in the image, as well as a lot of horizontal banding. These artefacts are removed
 during the flattening process in TopoStats.
 
@@ -16,12 +20,16 @@ banding. This leaves an image where the rows are aligned, but the image still ha
 
 ![row alignment](../_static/images/flattening/flattening_align_rows.png)
 
+<!-- <img src="../_static/images/flattening/flattening_align_rows.png" style="width: 50%;" alt="row alignment"> -->
+
 ## Tilt removal
 
 After row alignment, tilt removal is applied. This is a simple process of fitting a plane to the image and subtracting
 it, resulting in a mostly flat image, however as you can see in the following image, it's not perfect.
 
 ![tilt removal](../_static/images/flattening/flattening_tilt_removal.png)
+
+<!-- <img src="../_static/images/flattening/flattening_tilt_removal.png" style="width: 50%;" alt="tilt removal"> -->
 
 ## Polynomial removal
 
@@ -38,13 +46,20 @@ data, caused by physical problems in the AFM process). We are using a different 
 minicircles.spm image doesn’t have any scars.
 
 ![scarred image](../_static/images/flattening/flattening_scarred_image.png)
+
+<!-- <img src="../_static/images/flattening/flattening_scarred_image.png" style="width: 50%;" alt="scarred image"> -->
+
 ![scar removed](../_static/images/flattening/flattening_scar_removed.png)
+
+<!-- <img src="../_static/images/flattening/flattening_scar_removed.png" style="width: 50%;" alt="scar removed"> -->
 
 **Note that scar removal can distort data, and it’s best to take data without scars if you can.**
 
 ## Zero the average height
 
 ![height zeroing](../_static/images/flattening/flattening_height_zeroing.png)
+
+<!-- <img src="../_static/images/flattening/flattening_height_zeroing.png" style="width: 50%;" alt="height zeroing"> -->
 
 We then lower the image by its median height which causes the background of the image to be roughly centred at zero nm.
 This is important since both the AFM and these processing steps can cause your background height to not be zero, which
@@ -65,9 +80,18 @@ The threshold is set by the config file (have a look!). Any pixels that are belo
 background (sample surface). Any pixels that are above the threshold are considered to be data (useful sample objects).
 This binary classification allows us to make a binary mask of where is foreground data, and where is background.
 
+For more information on thresholding and how to set it, see the [thresholding](thresholding.md) page.
+
 Here is the binary mask for minicircle.spm:
+
 ![processed image so far](../_static/images/flattening/flattening_tilt_removal.png)
+
+<!-- <img src="../_static/images/flattening/flattening_tilt_removal.png" style="width: 50%;" alt="processed
+image so far"> -->
+
 ![binary mask](../_static/images/flattening/flattening_binary_mask.png)
+
+<!-- <img src="../_static/images/flattening/flattening_binary_mask.png" style="width: 50%;" alt="binary mask"> -->
 
 So you can see how all the interesting high up parts are now masked in white, and the background is in black.
 
@@ -82,4 +106,7 @@ flattened image.
 
 From here, we can go on to do things like finding our objects of interest (grains) and get stats about them.
 
-![final flattened image](../_static/images/flattening/flattening_final_flattened_image.png)
+![secondary flattening](../_static/images/flattening/flattening_final_flattened_image.png)
+
+<!-- <img src="../_static/images/flattening/flattening_final_flattened_image.png" style="width: 50%;"
+alt="secondary flattening"> -->
