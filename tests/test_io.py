@@ -26,6 +26,7 @@ from topostats.io import (
     hdf5_to_dict,
     load_array,
     load_pkl,
+    merge_mappings,
     path_to_str,
     read_64d,
     read_char,
@@ -60,6 +61,36 @@ CONFIG = {
 
 # pylint: disable=protected-access
 # pylint: disable=too-many-lines
+
+
+@pytest.mark.parametrize(
+    ("dict1", "dict2", "expected_merged_dict"),
+    [
+        pytest.param(
+            {"a": 1, "b": 2},
+            {"c": 3, "d": 4},
+            {"a": 1, "b": 2, "c": 3, "d": 4},
+            id="two dicts, no common keys",
+        ),
+        pytest.param(
+            {"a": 1, "b": 2},
+            {"b": 3, "c": 4},
+            {"a": 1, "b": 3, "c": 4},
+            id="two dicts, one common key, testing priority of second dict",
+        ),
+        # Nested dictionaries
+        pytest.param(
+            {"a": 1, "b": {"c": 2, "d": 3}},
+            {"b": {"c": 4, "e": 5}},
+            {"a": 1, "b": {"c": 4, "d": 3, "e": 5}},
+            id="nested dictionaries, one common key in nested dict, testing priority of second dict",
+        ),
+    ],
+)
+def test_merge_mappings(dict1: dict, dict2: dict, expected_merged_dict: dict) -> None:
+    """Test merging of mappings."""
+    merged_dict = merge_mappings(dict1, dict2)
+    assert merged_dict == expected_merged_dict
 
 
 def test_get_date_time() -> None:
