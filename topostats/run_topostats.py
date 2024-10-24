@@ -51,9 +51,9 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     """
     Reconcile command line arguments with the default configuration.
-    
+
     Command line arguments take precedence over the default configuration. If a partial configuration file is specified (with '-c' or '--config-file') the defaults are over-ridden by these values (internally the configuration dictionary is updated with these values). Any other command line arguments take precedence over both the default and those supplied in a configuration file (again the dictionary is updated).
-    
+
     The final configuration is validated before processing begins.
 
     Parameters
