@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from art import tprint
 
 from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
-from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
 from topostats.statistics import image_statistics
@@ -32,10 +34,11 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
-LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def run_filters(
@@ -76,7 +79,7 @@ def run_filters(
     """
     if filter_config["run"]:
         filter_config.pop("run")
-        LOGGER.info(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
+        LOGGER.debug(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
         LOGGER.info(f"[{filename}] : *** Filtering ***")
         filters = Filters(
             image=unprocessed_image,
@@ -114,6 +117,8 @@ def run_filters(
             filename=filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
+
+        LOGGER.info(f"[{filename}] : Filters stage completed successfully.")
 
         return filters.images["gaussian_filtered"]
 
@@ -181,8 +186,9 @@ def run_grains(  # noqa: C901
                 if len(grains.region_properties[direction]) == 0:
                     LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
         except Exception as e:
-            LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping following steps.")
-            LOGGER.error(f"[{filename}] : The error: {e}")
+            LOGGER.error(
+                f"[{filename}] : An error occurred during grain finding, skipping following steps.", exc_info=e
+            )
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -192,7 +198,7 @@ def run_grains(  # noqa: C901
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.directions.items():
-                    LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
+                    LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     if plotting_config["image_set"] == "all":
                         grain_out_path_direction.mkdir(parents=True, exist_ok=True)
@@ -201,7 +207,7 @@ def run_grains(  # noqa: C901
                         if len(array.shape) == 3:
                             # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
                             array = array[:, :, 1]
-                        LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
+                        LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                         Images(
                             data=np.zeros_like(array), masked_array=array, **plotting_config["plot_dict"][plot_name]
@@ -242,6 +248,8 @@ def run_grains(  # noqa: C901
             grain_masks = {}
             for direction in grains.directions:
                 grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+
+            LOGGER.info(f"[{filename}] : Grain Finding stage completed successfully.")
 
             return grain_masks
 
@@ -307,10 +315,10 @@ def run_grainstats(
             # There are two layers to process those above the given threshold and those below
             for direction, _ in grain_masks.items():
                 # Get the DNA class mask from the tensor
-                LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
+                LOGGER.debug(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
                 dna_class_mask = grain_masks[direction][:, :, 1]
-                LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
+                LOGGER.debug(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 # Check if there are grains
                 if np.max(dna_class_mask) == 0:
@@ -340,7 +348,7 @@ def run_grainstats(
                     if plotting_config["image_set"] == "all":
                         LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
                         for plot_data in grains_plot_data:
-                            LOGGER.info(
+                            LOGGER.debug(
                                 f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
                             )
                             Images(
@@ -364,6 +372,8 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
             grainstats_df["basename"] = basename.parent
+            LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
+            LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
 
             return grainstats_df, height_profiles_dict
 
@@ -415,8 +425,8 @@ def run_disordered_trace(
         Dictionary configuration for obtaining a disordered trace representation of the grains.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -490,19 +500,23 @@ def run_disordered_trace(
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
+            LOGGER.info(f"[{filename}] : Disordered Tracing stage completed successfully.")
 
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
+
+        except ValueError as e:
+            LOGGER.info(f"[{filename}] : Disordered tracing failed with ValueError {e}")
 
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return (
-                disordered_traces,
-                grainstats_df,
-                create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index"),
-            )
+        return (
+            disordered_traces,
+            grainstats_df,
+            create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index"),
+        )
 
     LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
     return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
@@ -540,8 +554,8 @@ def run_nodestats(  # noqa: C901
         Dictionary configuration for analysing the crossing points.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to bee added to. by default an empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to bee added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -627,7 +641,6 @@ def run_nodestats(  # noqa: C901
                                         / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                         format="svg",
                                     )
-                LOGGER.info(f"[{filename}] : Finished Plotting NodeStats Images")
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
@@ -636,17 +649,27 @@ def run_nodestats(  # noqa: C901
                 else nodestats_grainstats
             )
 
+            LOGGER.info(f"[{filename}] : NodeStats stage completed successfully.")
+
             # merge all image dictionaries
             return nodestats_whole_data, resultant_grainstats
 
+        except UnboundLocalError as e:
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed with UnboundLocalError {e} - all skeletons pruned in the Disordered Tracing step."
+            )
+
         except KeyError as e:
-            LOGGER.info(f"[{filename}] : NodeStats failed {e} - no skeletons found from the Disordered Tracing step.")
+            LOGGER.info(
+                f"[{filename}] : NodeStats failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+            )
 
         except Exception as e:
             LOGGER.info(
                 f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
             )
-            return nodestats_whole_data, grainstats_df
+
+        return nodestats_whole_data, grainstats_df
 
     LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
     return None, grainstats_df
@@ -688,8 +711,8 @@ def run_ordered_tracing(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default empty grainstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -713,9 +736,9 @@ def run_ordered_tracing(
                 # Check if there are grains
                 if not disordered_tracing_direction_data:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+                        f"[{filename}] : No skeletons exist for the {direction} direction. Skipping ordered_tracing for {direction}."
                     )
-                    raise ValueError(f"No grains exist for the {direction} direction")
+                    raise ValueError(f"No skeletons exist for the {direction} direction")
 
                 # if grains are found
                 (
@@ -758,8 +781,6 @@ def run_ordered_tracing(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
-                LOGGER.info(f"[{filename}] : Finished Plotting Ordered Tracing Images")
-
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
@@ -768,18 +789,19 @@ def run_ordered_tracing(
             )
 
             ordered_tracing_molstats["basename"] = basename.parent
+            LOGGER.info(f"[{filename}] : Ordered Tracing stage completed successfully.")
 
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
 
+        except ValueError as e:
+            LOGGER.info(
+                f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
+            )
+
         except KeyError as e:
             LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed {e} - no skeletons found from the Disordered Tracing step."
-            )
-            return (
-                ordered_tracing_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
+                f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
             )
 
         except Exception as e:
@@ -787,11 +809,11 @@ def run_ordered_tracing(
                 f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return (
-                ordered_tracing_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
-            )
+        return (
+            ordered_tracing_image_data,
+            grainstats_df,
+            create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
+        )
 
     return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
 
@@ -826,10 +848,10 @@ def run_splining(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
-    grainstats_df : pd.DataFrame, optional
-        The grain statistics dataframe to be added to. by default an empty grainstats dataframe.
-    molstats_df : pd.DataFrame, optional
-        The molecule statistics dataframe to be added to. by default an empty molstats dataframe.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+    molstats_df : pd.DataFrame | None
+        The molecule statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
 
     Returns
     -------
@@ -894,7 +916,6 @@ def run_splining(
                     plot_coords=all_splines,
                     **plotting_config["plot_dict"]["splined_trace"],
                 ).plot_and_save()
-                LOGGER.info(f"[{filename}] : Finished Plotting Splining Images")
 
             # merge grainstats data with other dataframe
             resultant_grainstats = (
@@ -909,8 +930,20 @@ def run_splining(
                 else splining_molstats
             )
 
+            LOGGER.info(f"[{filename}] : Splining stage completed successfully.")
+
             # merge all image dictionaries
             return splined_image_data, resultant_grainstats, resultant_molstats
+
+        except KeyError as e:
+            LOGGER.info(
+                f"[{filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
+            )
+            return (
+                splined_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number"),
+            )
 
         except Exception as e:
             LOGGER.error(
@@ -1270,9 +1303,9 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
     ----------
     config : dict
         Configuration dictionary.
-    img_files : list()
+    img_files : list
         List of found image paths.
-    summary_config : dict(
+    summary_config : dict
         Configuration for plotting summary statistics.
     images_processed : int
         Pandas DataFrame of results.
@@ -1281,8 +1314,12 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         distribution_plots_message = str(summary_config["output_dir"])
     else:
         distribution_plots_message = "Disabled. Enable in config 'summary_stats/run' if needed."
+    print(
+        "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+    )
+    tprint("TopoStats", font="twisted")
     LOGGER.info(
-        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         f"  TopoStats Version           : {__version__}\n"
         f"  Base Directory              : {config['base_dir']}\n"
         f"  File Extension              : {config['file_ext']}\n"
@@ -1302,5 +1339,5 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  or email us.\n\n"
         f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
         f"  linked above and available from the Source Code page.\n"
-        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )

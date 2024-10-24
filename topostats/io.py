@@ -59,27 +59,27 @@ def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa:
     if dict1.keys() != dict2.keys():
         return False
 
-    LOGGER.info("Comparing dictionaries")
+    LOGGER.debug("Comparing dictionaries")
 
     for key in dict1:
-        LOGGER.info(f"Comparing key {key}")
+        LOGGER.debug(f"Comparing key {key}")
         if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
             if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
                 return False
         elif isinstance(dict1[key], np.ndarray) and isinstance(dict2[key], np.ndarray):
             if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
-                LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                 return False
         elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
             # Skip if both values are NaN
             if not (np.isnan(dict1[key]) and np.isnan(dict2[key])):
                 # Check if both values are close
                 if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
-                    LOGGER.info(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
+                    LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                     return False
 
         elif dict1[key] != dict2[key]:
-            LOGGER.info(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
+            LOGGER.debug(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
             return False
 
     return True
@@ -600,15 +600,15 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.info(f"Loading image from : {self.img_path}")
+        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
             scan = pySPM.Bruker(self.img_path)
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
             self.channel_data = scan.get_channel(self.channel)
-            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
+            LOGGER.debug(f"[{self.filename}] : Extracted channel {self.channel}")
             image = np.flipud(np.array(self.channel_data.pixels))
         except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
             raise
         except Exception as e:
             # trying to return the error with options of possible channel values
@@ -650,7 +650,7 @@ class LoadScans:
         if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
             pixel_to_nm_scaling = 1
             LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
-        LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
+        LOGGER.debug(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
     def load_topostats(self) -> tuple[npt.NDArray, float]:
@@ -667,7 +667,7 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.info(f"Loading image from : {self.img_path}")
+        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
             with h5py.File(self.img_path, "r") as f:
                 # Load the hdf5 data to dictionary
@@ -675,24 +675,24 @@ class LoadScans:
                 main_keys = topodata.keys()
 
                 file_version = topodata["topostats_file_version"]
-                LOGGER.info(f"TopoStats file version: {file_version}")
+                LOGGER.debug(f"TopoStats file version: {file_version}")
                 image = topodata["image"]
                 pixel_to_nm_scaling = topodata["pixel_to_nm_scaling"]
                 if "grain_masks" in main_keys:
                     grain_masks_keys = topodata["grain_masks"].keys()
                     if "above" in grain_masks_keys:
-                        LOGGER.info(f"[{self.filename}] : Found grain mask for above direction")
+                        LOGGER.debug(f"[{self.filename}] : Found grain mask for above direction")
                         self.grain_masks["above"] = topodata["grain_masks"]["above"]
                     if "below" in grain_masks_keys:
-                        LOGGER.info(f"[{self.filename}] : Found grain mask for below direction")
+                        LOGGER.debug(f"[{self.filename}] : Found grain mask for below direction")
                         self.grain_masks["below"] = topodata["grain_masks"]["below"]
                 if "grain_trace_data" in main_keys:
-                    LOGGER.info(f"[{self.filename}] : Found grain trace data")
+                    LOGGER.debug(f"[{self.filename}] : Found grain trace data")
                     self.grain_trace_data = topodata["grain_trace_data"]
 
         except OSError as e:
             if "Unable to open file" in str(e):
-                LOGGER.info(f"[{self.filename}] File not found: {self.img_path}")
+                LOGGER.error(f"[{self.filename}] File not found: {self.img_path}")
             raise e
 
         return (image, pixel_to_nm_scaling)
@@ -711,9 +711,9 @@ class LoadScans:
             pixel_to_nm_scaling: float
             _: dict
             frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            LOGGER.error(f"[{self.filename}] : File not found. Path: {self.img_path}")
             raise
 
         return (frames, pixel_to_nm_scaling)
@@ -727,10 +727,10 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.info(f"Loading image from : {self.img_path}")
+        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
             scan = binarywave.load(self.img_path)
-            LOGGER.info(f"[{self.filename}] : Loaded image from : {self.img_path}")
+            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
 
             labels = []
             for label_list in scan["wave"]["labels"]:
@@ -740,9 +740,9 @@ class LoadScans:
             channel_idx = labels.index(self.channel)
             image = scan["wave"]["wData"][:, :, channel_idx].T * 1e9  # Looks to be in m
             image = np.flipud(image)
-            LOGGER.info(f"[{self.filename}] : Extracted channel {self.channel}")
+            LOGGER.debug(f"[{self.filename}] : Extracted channel {self.channel}")
         except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
         except ValueError:
             LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
             raise
@@ -776,7 +776,7 @@ class LoadScans:
             float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
             float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
         )[0]
-        LOGGER.info(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
+        LOGGER.debug(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
         return pixel_to_nm_scaling
 
     def load_jpk(self) -> tuple[npt.NDArray, float]:
@@ -793,7 +793,7 @@ class LoadScans:
         try:
             tif = tifffile.TiffFile(img_path)
         except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
             raise
         # Obtain channel list for all channels in file
         channel_list = {}
@@ -847,7 +847,7 @@ class LoadScans:
 
         px_to_nm = (length / length_px, width / width_px)[0]
 
-        LOGGER.info(px_to_nm)
+        LOGGER.debug(px_to_nm)
 
         return px_to_nm * 1e9
 
@@ -1011,7 +1011,7 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.info(f"Loading image from : {self.img_path}")
+        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
             image_data_dict = {}
             with Path.open(self.img_path, "rb") as open_file:  # pylint: disable=unspecified-encoding
@@ -1051,7 +1051,7 @@ class LoadScans:
                 )
 
         except FileNotFoundError:
-            LOGGER.info(f"[{self.filename}] File not found : {self.img_path}")
+            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
             raise
 
         return (image, px_to_nm)
@@ -1114,7 +1114,7 @@ class LoadScans:
             LOGGER.warning(f"[{filename}] Skipping, image too small: {image.shape}")
         else:
             self.add_to_dict(image=image, filename=filename)
-            LOGGER.info(f"[{filename}] Image added to processing.")
+            LOGGER.debug(f"[{filename}] Image added to processing.")
 
     def add_to_dict(self, image: npt.NDArray, filename: str) -> None:
         """
@@ -1159,7 +1159,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         # LOGGER.info(f"Saving key: {key}")
 
         if item is None:
-            LOGGER.warning(f"Item '{key}' is None. Skipping.")
+            LOGGER.debug(f"Item '{key}' is None. Skipping.")
         # Make sure the key is a string
         key = str(key)
 
@@ -1187,7 +1187,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             try:
                 open_hdf5_file[group_path + key] = item
             except Exception as e:
-                LOGGER.warning(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
+                LOGGER.debug(f"Cannot save key '{key}' to HDF5. Item type: {type(item)}. Skipping. {e}")
 
 
 def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
@@ -1208,9 +1208,9 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     """
     data_dict = {}
     for key, item in open_hdf5_file[group_path].items():
-        LOGGER.info(f"Loading hdf5 key: {key}")
+        LOGGER.debug(f"Loading hdf5 key: {key}")
         if isinstance(item, h5py.Group):
-            LOGGER.info(f" {key} is a group")
+            LOGGER.debug(f" {key} is a group")
             data_dict[key] = hdf5_to_dict(open_hdf5_file, group_path + key + "/")
         # Decode byte strings to utf-8. The data type "O" is a byte string.
         elif isinstance(item, h5py.Dataset) and item.dtype == "O":

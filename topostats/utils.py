@@ -120,7 +120,7 @@ def update_config(config: dict, args: dict | Namespace) -> dict:
             if arg_key in config_keys and arg_value is not None:
                 original_value = config[arg_key]
                 config[arg_key] = arg_value
-                LOGGER.info(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
+                LOGGER.debug(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
     if "base_dir" in config.keys():
         config["base_dir"] = convert_path(config["base_dir"])
     if "output_dir" in config.keys():
@@ -197,9 +197,9 @@ def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_n
         Numpy array of image with objects coloured.
     """
     if threshold_direction == "above":
-        LOGGER.info(f"[{img_name}] : Masking (above) Threshold: {thresh}")
+        LOGGER.debug(f"[{img_name}] : Masking (above) Threshold: {thresh}")
         return image > thresh
-    LOGGER.info(f"[{img_name}] : Masking (below) Threshold: {thresh}")
+    LOGGER.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
     return image < thresh
     # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
 
