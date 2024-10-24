@@ -1,4 +1,3 @@
-# Config file generated 2024-07-29 11:11:05
 # # For more information on configuration and how to use it:
 # https://afm-spm.github.io/TopoStats/main/configuration.html
 base_dir: ./ # Directory in which to search for data files
