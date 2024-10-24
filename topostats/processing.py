@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from art import tprint
 
 from topostats import __version__
 from topostats.filters import Filters
@@ -33,6 +34,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
@@ -1301,9 +1303,9 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
     ----------
     config : dict
         Configuration dictionary.
-    img_files : list()
+    img_files : list
         List of found image paths.
-    summary_config : dict(
+    summary_config : dict
         Configuration for plotting summary statistics.
     images_processed : int
         Pandas DataFrame of results.
@@ -1312,8 +1314,12 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         distribution_plots_message = str(summary_config["output_dir"])
     else:
         distribution_plots_message = "Disabled. Enable in config 'summary_stats/run' if needed."
+    print(
+        "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+    )
+    tprint("TopoStats", font="twisted")
     LOGGER.info(
-        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
         f"  TopoStats Version           : {__version__}\n"
         f"  Base Directory              : {config['base_dir']}\n"
         f"  File Extension              : {config['file_ext']}\n"
@@ -1333,5 +1339,5 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
         f"  or email us.\n\n"
         f"  If you have found TopoStats useful please consider citing it. A Citation File Format is\n"
         f"  linked above and available from the Source Code page.\n"
-        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
     )
