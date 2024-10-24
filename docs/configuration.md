@@ -19,6 +19,35 @@ create-config --help` for further details).
 topostats create-config
 ```
 
+## Partial configurations
+
+TopoStats supports using a partial configuration, where you specify only the fields you wish to override. This is
+useful if you only want to change a few parameters from the default configuration or would like to use a configuration
+file that is smaller and easier to read.
+
+To create a partial configuration file, simply create a new config file and delete anything you don't want to override.
+
+TopoStats will take the partial configuration file and merge it with the default configuration file, with the partial
+configuration taking precedence. This means that any fields you specify in the partial configuration will override the
+default configuration, while any fields you don't specify will be taken from the default configuration. Command-line
+arguments will override both the default and partial configurations.
+
+For example, you could use a configuration as simple as:
+
+```yaml
+base_dir: ./mydata/
+output_dir: ./myoutput/
+filter:
+  remove_scars:
+    run: true
+grains:
+  threshold_method: absolute
+  threshold_absolute:
+    above: 1.2
+  absolute_area_threshold:
+    above: [400, 1000]
+```
+
 ## Using a custom configuration
 
 If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
