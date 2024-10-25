@@ -824,3 +824,67 @@ class Grains:
         # Update the background class
         image_tensor[:, :, 0] = new_background
         return image_tensor
+
+    @staticmethod
+    def vet_class_sizes(
+        image_tensor: npt.NDArray,
+        pixel_to_nm_scaling: float,
+        class_size_thresholds: dict[int, tuple[int, int]],
+    ) -> npt.NDArray:
+        """
+        Vet the sizes of the classes in an image tensor.
+
+        Parameters
+        ----------
+        image_tensor : npt.NDArray
+            3-D Numpy array of image tensor.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        class_size_thresholds : dict
+            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of image tensor with grains removed based on size thresholds.
+        """
+        # Get the bounding boxes for each grain
+        bounding_boxes = Grains.get_multi_class_grain_bounding_boxes(image_tensor)
+
+        # Iterate over the grains
+        for _, bounding_box in bounding_boxes.items():
+            # Get the grain from the image tensor
+            grain = image_tensor[
+                bounding_box[0] : bounding_box[2],
+                bounding_box[1] : bounding_box[3],
+                :,
+            ]
+            # Get the sizes of each class
+            class_sizes = {
+                class_index: np.sum(grain[:, :, class_index]) * pixel_to_nm_scaling**2
+                for class_index in range(grain.shape[2])
+            }
+            # Check the sizes of each class against the thresholds
+            for class_index, (lower_threshold, upper_threshold) in class_size_thresholds.items():
+                if lower_threshold is not None:
+                    if class_sizes[class_index] < lower_threshold:
+                        # Remove the grain
+                        image_tensor[
+                            bounding_box[0] : bounding_box[2],
+                            bounding_box[1] : bounding_box[3],
+                            1:,
+                        ] = 0
+                        break
+                if upper_threshold is not None:
+                    if class_sizes[class_index] > upper_threshold:
+                        # Remove the grain
+                        image_tensor[
+                            bounding_box[0] : bounding_box[2],
+                            bounding_box[1] : bounding_box[3],
+                            1:,
+                        ] = 0
+                        break
+
+            # Update the background class to reflect any removed grains
+            image_tensor = Grains.update_background_class(image_tensor)
+        return image_tensor
