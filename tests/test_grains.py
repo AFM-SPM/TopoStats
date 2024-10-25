@@ -10,10 +10,12 @@ import numpy.typing as npt
 import pytest
 
 from topostats.grains import Grains
+from topostats.io import dict_almost_equal
 
 # Pylint returns this error for from skimage.filters import gaussian
 # pylint: disable=no-name-in-module
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-lines
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.propagate = True
@@ -971,3 +973,64 @@ def test_flatten_multi_class_tensor(
     """Test the flatten_multi_class_image method of the Grains class."""
     result = Grains.flatten_multi_class_tensor(multi_class_image)
     np.testing.assert_array_equal(result, expected_flattened_mask)
+
+
+@pytest.mark.parametrize(
+    ("image_tensor", "expected_bounding_boxes"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 0, 1, 1, 0, 1, 1],
+                            [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            {0: (0, 0, 3, 3), 1: (0, 2, 4, 6), 2: (0, 5, 5, 10)},
+        )
+    ],
+)
+def test_get_multi_class_grain_bounding_boxes(image_tensor: npt.NDArray, expected_bounding_boxes: dict) -> None:
+    """Test the get_multi_class_grain_bounding_boxes method of the Grains class."""
+    result = Grains.get_multi_class_grain_bounding_boxes(image_tensor)
+    assert dict_almost_equal(result, expected_bounding_boxes, abs_tol=1e-12)
