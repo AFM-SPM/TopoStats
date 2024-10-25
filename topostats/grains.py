@@ -761,3 +761,42 @@ class Grains:
         assert len(image_tensor.shape) == 3, f"Tensor not 3D: {image_tensor.shape}"
         assert image_tensor.shape[0] == image_tensor.shape[1], f"Tensor not square: {image_tensor.shape}"
         return np.sum(image_tensor[:, :, 1:], axis=-1)
+
+    @staticmethod
+    def get_multi_class_grain_bounding_boxes(image_tensor: npt.NDArray) -> dict:
+        """
+        Get the bounding boxes for each grain in a multi-class image tensor.
+
+        Finds the bounding boxes for each grain in a multi-class image tensor. Grains can span multiple classes, so the
+        bounding boxes are found for the combined binary mask of contiguous grains across all classes.
+
+        Parameters
+        ----------
+        image_tensor : npt.NDArray
+            3-D Numpy array of image tensor.
+
+        Returns
+        -------
+        dict
+            Dictionary of bounding boxes indexed by grain number.
+        """
+        # Get the flattened mask
+        flattened_mask = Grains.flatten_multi_class_tensor(image_tensor)
+        # Label the regions
+        labelled_regions = Grains.label_regions(flattened_mask)
+        # Get the region properties
+        region_properties = Grains.get_region_properties(labelled_regions)
+        # Get the bounding boxes
+        bounding_boxes = {index: region.bbox for index, region in enumerate(region_properties)}
+        # Pad the bounding boxes
+        return {
+            index: pad_bounding_box(
+                crop_min_row=bbox[0],
+                crop_min_col=bbox[1],
+                crop_max_row=bbox[2],
+                crop_max_col=bbox[3],
+                image_shape=(image_tensor.shape[0], image_tensor.shape[1]),
+                padding=1,
+            )
+            for index, bbox in bounding_boxes.items()
+        }
