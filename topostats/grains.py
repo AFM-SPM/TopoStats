@@ -742,3 +742,22 @@ class Grains:
         sizes = np.array([(labelled_image == label).sum() for label in range(1, labelled_image.max() + 1)])
         # Keep only the largest region
         return np.where(labelled_image == sizes.argmax() + 1, labelled_image, 0).astype(bool)
+
+    @staticmethod
+    def flatten_multi_class_tensor(image_tensor: npt.NDArray) -> npt.NDArray:
+        """
+        Flatten a multi-class image tensor to a single binary mask.
+
+        Parameters
+        ----------
+        image_tensor : npt.NDArray
+            Multi class image tensor of shape (N, N, C).
+
+        Returns
+        -------
+        npt.NDArray
+            Combined binary mask of all but the background class (:, :, 0).
+        """
+        assert len(image_tensor.shape) == 3, f"Tensor not 3D: {image_tensor.shape}"
+        assert image_tensor.shape[0] == image_tensor.shape[1], f"Tensor not square: {image_tensor.shape}"
+        return np.sum(image_tensor[:, :, 1:], axis=-1)
