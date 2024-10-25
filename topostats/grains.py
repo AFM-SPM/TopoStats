@@ -800,3 +800,27 @@ class Grains:
             )
             for index, bbox in bounding_boxes.items()
         }
+
+    @staticmethod
+    def update_background_class(
+        image_tensor: npt.NDArray,
+    ) -> npt.NDArray:
+        """
+        Update the background class to reflect the other classes.
+
+        Parameters
+        ----------
+        image_tensor : npt.NDArray
+            3-D Numpy array of image tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of image tensor with updated background class.
+        """
+        # Get the flattened mask and invert it
+        flattened_mask = Grains.flatten_multi_class_tensor(image_tensor)
+        new_background = np.where(flattened_mask == 0, 1, 0)
+        # Update the background class
+        image_tensor[:, :, 0] = new_background
+        return image_tensor
