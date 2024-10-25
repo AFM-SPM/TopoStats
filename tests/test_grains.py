@@ -914,3 +914,60 @@ def test_keep_largest_labelled_region(
     result = Grains.keep_largest_labelled_region(labelled_image)
 
     np.testing.assert_array_equal(result, expected_labelled_image)
+
+
+@pytest.mark.parametrize(
+    ("multi_class_image", "expected_flattened_mask"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 1, 0, 1, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            id="two class plus background",
+        )
+    ],
+)
+def test_flatten_multi_class_tensor(
+    multi_class_image: npt.NDArray[np.int32], expected_flattened_mask: npt.NDArray[np.int32]
+) -> None:
+    """Test the flatten_multi_class_image method of the Grains class."""
+    result = Grains.flatten_multi_class_tensor(multi_class_image)
+    np.testing.assert_array_equal(result, expected_flattened_mask)
