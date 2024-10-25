@@ -366,7 +366,7 @@ class Grains:
             f"[{self.filename}] : Area thresholding grains | Thresholds: L: {(lower_size_limit / self.pixel_to_nm_scaling**2):.2f},"
             f"U: {(upper_size_limit / self.pixel_to_nm_scaling**2):.2f} px^2, L: {lower_size_limit:.2f}, U: {upper_size_limit:.2f} nm^2."
         )
-        
+
         grain_counts = np.bincount(image_cp.ravel())
         grain_counts = grain_counts[1:]
         # Calculate areas in nm^2
@@ -377,8 +377,8 @@ class Grains:
 
         # Create a new mapping for valid grain numbers
         new_indices = np.arange(1, valid_grains.sum() + 1)  # New indices for valid grains
-        valid_grain_numbers = np.where(valid_grains)[0]+1  # Original grain numbers that are valid
-        
+        valid_grain_numbers = np.where(valid_grains)[0] + 1  # Original grain numbers that are valid
+
         # Step 1: Create a boolean mask for valid grains
         valid_mask = np.isin(image_cp, valid_grain_numbers)
         # Step 2: Set invalid values to 0
@@ -388,6 +388,7 @@ class Grains:
             image_cp[image_cp == old_idx] = new_indices[new_idx]
 
         return image_cp
+
     def colour_regions(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
         Colour the regions.
