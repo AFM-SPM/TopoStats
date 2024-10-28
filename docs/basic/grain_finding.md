@@ -2,20 +2,20 @@
 
 ## Height thresholding
 
-Grain finding is the process of detecting useful objects in your AFM images. This might be DNA, proteins, holes in a
+Grain finding is the process of detecting objects of interest in your AFM images. This might be DNA, proteins, holes in a
 surface or ridges on a surface.
 In the standard operation of TopoStats, the way we find objects is based on a height threshold. This means that we
 detect where things are based on how high up they are.
 
 For example, with our minicircles.spm image, we have DNA that is poking up from the sample surface, represented by
-bright regions in the image:
+higher intensity regions in the image:
 
 ![minicircles image](../_static/images/grain_finding/grain_finding_minicircles.png)
 
 <!-- <img src="../_static/images/grain_finding/grain_finding_minicircles.png" style="width: 50%;"
 alt="minicircles image"> -->
 
-If we want to select the DNA, then we can take only the regions of the image that are above a certain height
+If we want to select the DNA, then we can select only the regions of the image that are above a certain height
 (threshold).
 
 Here are several thresholds to show you what happens as we increase the threshold:
@@ -44,10 +44,10 @@ any grains that intersect the image border.
 
 In our thresholded image, you will notice that we have a lot of small grains that we do not want to analyse in our
 image. We can get rid of those with size thresholding. This is where TopoStats will remove grains based on their area,
-leaving only the right size of molecules. You will need to play around with the thresholds to get the right results.
+leaving only molecules of an expected size. You will need to play around with the thresholds to get the right results.
 
 You can set the size threshold using the `absolute_area_threshold` in the config file. This sets the minimum and
-maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
+maximum area of the grains that you want to keep, in nanometers squared. E.g. if you want to keep grains that are between
 10nm^2 and 100nm^2, you would set `absolute_area_threshold` to `[10, 100]`.
 
 ![size thresholding before](../_static/images/grain_finding/grain_finding_size_thresholding_before.png)
@@ -65,15 +65,13 @@ alt="size thresholding after"> -->
 As an additional optional step, each grain that reaches this stage can be improved by using a U-Net to mask the grain
 again. This requires a U-Net model path to be supplied in the config file.
 
-The U-Net model will take the bounding box of each grain, and predict a better mask for it, which then replaces
-the original mask.
+The U-Net model will take the bounding box of each grain and use this region for model inference, the resulting mask then replaces
+the original mask for more refined segmentation.
 
 ### Multi-class masking
 
-TopoStats supports masking with multiple classes. This means that you could use a U-Net to mask DNA and proteins
-separately.
-
-This requires a U-Net that has been trained on multiple classes.
+TopoStats supports masking with multiple classes. This means that you could use a U-Net to mask and analyse DNA and proteins
+separately. This requires a U-Net that has been trained on multiple classes, but can be initiated by supplying the U-Net model path within the config file.
 
 ## Technical details
 
