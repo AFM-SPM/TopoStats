@@ -46,6 +46,8 @@ ALL_STATISTICS_COLUMNS = (
     "smallest_bounding_width",
     "threshold",
     "volume",
+    "class",
+    "object_number"
 )
 
 

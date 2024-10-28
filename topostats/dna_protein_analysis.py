@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Tuple
 from skimage.measure import label, regionprops
 
-class dnaProteinComplex:
+class multiClassObjects:
     def __init__(
             self,
             image: np.ndarray,

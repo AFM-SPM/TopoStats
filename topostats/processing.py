@@ -12,7 +12,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
-from topostats.dna_protein_analysis import dnaProteinComplex
+from topostats.dna_protein_analysis import multiClassObjects
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME, setup_logger
 from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
@@ -120,7 +120,7 @@ def run_filters(
     return None
 
 
-def run_grains(  # noqa: C901
+def run_grains(
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
@@ -131,35 +131,10 @@ def run_grains(  # noqa: C901
 ):
     """
     Identify grains (molecules) and optionally plots the results.
-
-    Parameters
-    ----------
-    image : np.ndarray
-        2d numpy array image to find grains in.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
-    filename : str
-        Name of file being processed (used in logging).
-    grain_out_path : Path
-        Output path for step-by-step grain finding plots.
-    core_out_path : Path
-        General output directory for outputs such as the flattened image with grain masks overlaid.
-    plotting_config : dict
-        Dictionary of configuration for plotting images.
-    grains_config : dict
-        Dictionary of configuration for the Grains class to use when initialised.
-
-    Returns
-    -------
-    Union[dict, None]
-        Either None in the case of error or grain finding being disabled or a dictionary
-        with keys of "above" and or "below" containing binary masks depicting where grains
-        have been detected.
     """
-    if grains_config["run"]:
+    if grains_config.get("run"):
         grains_config.pop("run")
 
-        # try:
         LOGGER.info(f"[{filename}] : *** Grain Finding ***")
         grains = Grains(
             image=image,
@@ -168,77 +143,80 @@ def run_grains(  # noqa: C901
             **grains_config,
         )
         grains.find_grains()
-        for direction, _ in grains.region_properties.items():
-            LOGGER.info(
-                f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
-            )
-            if len(grains.region_properties[direction]) == 0:
-                LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
-        # except Exception as e:
-        #     LOGGER.error(f"[{filename}] : An error occurred during grain finding, skipping grainstats and dnatracing.")
-        #     LOGGER.error(f"[{filename}] : The error: {e}")
-        # else:
+
         for direction, region_props in grains.region_properties.items():
-            if len(region_props) == 0:
-                LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
-        # Optionally plot grain finding stage if we have found grains and plotting is required
-        if plotting_config["run"]:
-            plotting_config.pop("run")
-            LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
-            for direction, image_arrays in grains.directions.items():
-                LOGGER.info(f"[{filename}] : Plotting {direction} Grain Finding Images")
-                grain_out_path_direction = grain_out_path / f"{direction}"
-                if plotting_config["image_set"] == "all":
-                    grain_out_path_direction.mkdir(parents=True, exist_ok=True)
-                    LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
-                for plot_name, array in image_arrays.items():
-                    if len(array.shape) == 3:
-                        # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
-                        array = array[:, :, 1]
+            num_grains = len(region_props)
+            LOGGER.info(f"[{filename}] : Grains found for direction {direction} : {num_grains}")
+
+            if num_grains == 0:
+                LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
+
+            # Plotting logic if grains were found
+            if plotting_config.get("run"):
+                LOGGER.info(f"[{filename}] : Plotting Grain Finding Images for direction {direction}")
+                grain_out_path_direction = grain_out_path / direction
+                grain_out_path_direction.mkdir(parents=True, exist_ok=True)
+                LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
+
+                for plot_name, array in grains.directions[direction].items():
+                    if len(array.shape) == 3 and "mask" not in plot_name:  # Skip masks for individual plotting
+                        array = array[:, :, 1]  # Assuming this selects the correct layer
                     LOGGER.info(f"[{filename}] : Plotting {plot_name} image")
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                    Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
-                # Make a plot of coloured regions with bounding boxes
-                plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
+                    
+                    # Ensure output_dir is set before plotting
+                    plot_dict = plotting_config["plot_dict"][plot_name]
+                    plot_dict["output_dir"] = grain_out_path_direction
+                    
+                    Images(array, **plot_dict).plot_and_save()
+
+                # Plot bounding boxes and colored regions
+                bounding_box_dict = plotting_config["plot_dict"]["bounding_boxes"]
+                bounding_box_dict["output_dir"] = grain_out_path_direction
                 Images(
                     grains.directions[direction]["coloured_regions"],
-                    **plotting_config["plot_dict"]["bounding_boxes"],
+                    **bounding_box_dict,
                     region_properties=grains.region_properties[direction],
                 ).plot_and_save()
-                plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
-                # hard code to class index 1, as this implementation is not yet generalised.
-                Images(
-                    grains.directions[direction]["labelled_regions_02"][:, :, 3],
-                    **plotting_config["plot_dict"]["coloured_boxes"],
-                    region_properties=grains.region_properties[direction],
-                ).plot_and_save()
-                # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                plot_name = "mask_overlay"
-                plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                # hard code to class index 1, as this implementation is not yet generalised.
-                Images(
-                    image,
-                    filename=f"{filename}_{direction}_masked",
-                    masked_array=grains.directions[direction]["removed_small_objects"][:, :, 3],
-                    **plotting_config["plot_dict"][plot_name],
-                ).plot_and_save()
 
-            plotting_config["run"] = True
+                # Iterate over all classes for the labeled regions
+                for unet_class in range(1, grains.directions[direction]["labelled_regions_02"].shape[2]):
+                    class_mask = grains.directions[direction]["labelled_regions_02"][:, :, unet_class]
+                    class_mask = class_mask.astype(np.float32)  # Ensure correct data type
+                    LOGGER.debug(f"[{filename}] : Class mask shape: {class_mask.shape}, dtype: {class_mask.dtype}")
 
-        else:
-            # Otherwise, return None and warn that plotting is disabled for grain finding images
-            LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
+                    class_box_dict = plotting_config["plot_dict"]["coloured_boxes"]
+                    class_box_dict["output_dir"] = grain_out_path_direction
+                    LOGGER.info(f"[{filename}] : Plotting class {unet_class} image")
+                    
+                    Images(
+                        class_mask,
+                        **class_box_dict,
+                        region_properties=grains.region_properties[direction],
+                    ).plot_and_save()
 
-        grain_masks = {}
-        for direction in grains.directions:
-            grain_masks[direction] = grains.directions[direction]["labelled_regions_02"]
+                # Overlay the mask in core_out_path with a unique filename for each class
+                for unet_class in range(1, grains.directions[direction]["labelled_regions_02"].shape[2]):
+                    mask_overlay_dict = plotting_config["plot_dict"]["mask_overlay"]
+                    mask_overlay_dict["output_dir"] = core_out_path
+                    masked_array = grains.directions[direction]["removed_small_objects"][:, :, unet_class].astype(np.float32)
+                    
+                    Images(
+                        image,
+                        filename=f"{filename}_{direction}_class_{unet_class}_masked",
+                        masked_array=masked_array,
+                        **mask_overlay_dict,
+                    ).plot_and_save()
+
+        # Prepare grain masks for return
+        grain_masks = {direction: grains.directions[direction]["labelled_regions_02"] for direction in grains.directions}
         return grain_masks
 
-    # Otherwise, return None and warn grainstats is disabled
     LOGGER.info(f"[{filename}] Detection of grains disabled, returning empty data frame.")
-
     return None
 
+
+
+"""
 def run_dna_protein_analysis(
     image: np.ndarray,
     grain_masks: np.ndarray,
@@ -247,7 +225,7 @@ def run_dna_protein_analysis(
 ) -> pd.DataFrame:
     
     for direction, _ in grain_masks.items():
-        dna_protein = dnaProteinComplex(
+        dna_protein = multiClassObjects(
             image=image,
             grain=grain_masks[direction],
             filename=filename,
@@ -267,6 +245,7 @@ def run_dna_protein_analysis(
             np.save(protein_filename, protein_only_mask)
 
     return None
+"""
 
 def run_grainstats(
     image: np.ndarray,
@@ -278,37 +257,10 @@ def run_grainstats(
     grain_out_path: Path,
 ):
     """
-    Calculate grain statistics for an image and optionally plots the results.
-
-    Parameters
-    ----------
-    image : np.ndarray
-        2D numpy array image for grain statistics calculations.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
-        boolean arrays indicating the pixels that have been masked as grains.
-    filename : str
-        Name of the image.
-    grainstats_config : dict
-        Dictionary of configuration for the GrainStats class to be used when initialised.
-    plotting_config : dict
-        Dictionary of configuration for plotting images.
-    grain_out_path : Path
-        Directory to save optional grain statistics visual information to.
-
-    Returns
-    -------
-    pd.DataFrame
-        A pandas DataFrame containing the statsistics for each grain. The index is the
-        filename and grain number.
+    Calculate grain statistics for an image and optionally plot the results.
     """
-    # Calculate statistics if required
-    if grainstats_config["run"]:
+    if grainstats_config.get("run"):
         grainstats_config.pop("run")
-        # Grain Statistics :
         try:
             LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
             grain_plot_dict = {
@@ -318,78 +270,126 @@ def run_grainstats(
             }
             grainstats_dict = {}
             height_profiles_dict = {}
-            # There are two layers to process those above the given threshold and those below
-            for direction, _ in grain_masks.items():
 
-                # Get the DNA class mask from the tensor
+            for direction in grain_masks.keys():
                 LOGGER.info(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
-                assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 3]
+                assert len(grain_masks[direction].shape) == 3
+                dna_class_mask = grain_masks[direction][:, :, grain_masks[direction].shape[2]-1]
                 LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
-                # Check if there are grains
                 if np.max(dna_class_mask) == 0:
-                    LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
-                    )
+                    LOGGER.warning(f"[{filename}] : No grains exist for {direction}. Skipping.")
                     grainstats_dict[direction] = create_empty_dataframe()
-                else:
-                    grainstats_calculator = GrainStats(
-                        data=image,
-                        labelled_data=dna_class_mask,
-                        pixel_to_nanometre_scaling=pixel_to_nm_scaling,
-                        direction=direction,
-                        base_output_dir=grain_out_path,
-                        image_name=filename,
-                        plot_opts=grain_plot_dict,
-                        **grainstats_config,
-                    )
-                    grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
-                        grainstats_calculator.calculate_stats()
-                    )
-                    grainstats_dict[direction]["threshold"] = direction
+                    continue
 
-                    # Plot grains if required
-                    if plotting_config["image_set"] == "all":
-                        LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
-                        for plot_data in grains_plot_data:
-                            LOGGER.info(
-                                f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
+                unique_molecules = np.unique(dna_class_mask)[1:]  # Skip background (0)
+                molecule_map = {molecule: idx + 1 for idx, molecule in enumerate(unique_molecules)}
+
+                grainstats_dfs = []
+
+                for unet_class in range(1, grain_masks[direction].shape[2]):
+                    class_mask = grain_masks[direction][:, :, unet_class]
+                    overlap_mask = np.where(class_mask, dna_class_mask, 0)
+
+                    grains_plot_data = []  # Initialize for this class
+
+
+                    for molecule, molecule_number in molecule_map.items():
+                        relabeled_mask = np.where(overlap_mask == molecule, molecule_number, 0)
+                        relabeled_mask = relabeled_mask.astype(np.uint8)
+                        labeled_array, num_features = label(relabeled_mask)
+                        LOGGER.info(f"[{filename}] : Found {num_features} distinct regions for molecule {molecule_number} in direction {direction}, class {unet_class}.")
+
+                        for region_idx in range(1, num_features + 1):
+
+                            component_mask = np.where(labeled_array == region_idx, molecule_number, 0)
+
+                            if np.max(component_mask) == 0:
+                                LOGGER.warning(f"[{filename}] : Skipping empty region {region_idx} for molecule {molecule_number}.")
+                                continue
+
+                            LOGGER.info(f"[{filename}] : Processing region {region_idx} for molecule {molecule_number} in direction {direction}, class {unet_class}.")
+
+                            grainstats_calculator = GrainStats(
+                                data=image,
+                                labelled_data=component_mask,
+                                pixel_to_nanometre_scaling=pixel_to_nm_scaling,
+                                direction=direction,
+                                base_output_dir=grain_out_path,
+                                image_name=filename,
+                                plot_opts=grain_plot_dict,
+                                **grainstats_config,
                             )
+                            grainstats, grains_plot_data_part, height_profiles_dict[direction] = (
+                                grainstats_calculator.calculate_stats()
+                            )
+
+                            grainstats["threshold"] = direction
+                            grainstats["class"] = unet_class
+                            grainstats["molecule_number"] = molecule_number
+                            grainstats["object_number"] = region_idx  # Unique region identifier
+
+                            grainstats_dfs.append(grainstats)
+
+                            # Ensure molecule_number and object_number are part of the plot data
+                            for plot_data in grains_plot_data_part:
+                                plot_data["molecule_number"] = molecule_number
+                                plot_data["object_number"] = region_idx
+
+                            grains_plot_data.extend(grains_plot_data_part)
+
+                    # Plot grains for this class if required
+                    if plotting_config["image_set"] == "all":
+                        LOGGER.info(f"[{filename}] : Plotting grain images for class: {unet_class}, direction: {direction}.")
+                        for plot_data in grains_plot_data:
+                            class_label = unet_class
+                            molecule_label = plot_data.get("molecule_number", "unknown_molecule")
+                            object_label = plot_data.get("object_number", "unknown_object")
+                            plot_filename = f"{filename}_{plot_data['name']}_molecule{molecule_label}_class{class_label}_object{object_label}"
+
+                            LOGGER.info(
+                                f"[{filename}] : Plotting grain image {plot_filename} for direction: {direction}."
+                            )
+
                             Images(
                                 data=plot_data["data"],
                                 output_dir=plot_data["output_dir"],
-                                filename=plot_data["filename"],
+                                filename=plot_filename,
                                 **plotting_config["plot_dict"][plot_data["name"]],
                             ).plot_and_save()
 
-            # Create results dataframe from above and below results
-            # Appease pylint and ensure that grainstats_df is always created
+                # Combine stats for current direction
+                if grainstats_dfs:
+                    grainstats_dict[direction] = pd.concat(
+                        [df for df in grainstats_dfs if not df.empty],
+                        ignore_index=True
+                    )
+                else:
+                    grainstats_dict[direction] = create_empty_dataframe()
+
+            # Combine results from both directions
             grainstats_df = create_empty_dataframe()
             if "above" in grainstats_dict and "below" in grainstats_dict:
-                grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
+                grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]], ignore_index=True)
             elif "above" in grainstats_dict:
                 grainstats_df = grainstats_dict["above"]
             elif "below" in grainstats_dict:
                 grainstats_df = grainstats_dict["below"]
-            else:
-                raise ValueError(
-                    "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
-                )
+
+            # Reset index to avoid keeping the old index
+            grainstats_df = grainstats_df.reset_index(drop=True)
 
             return grainstats_df, height_profiles_dict
 
-        except Exception:
-            LOGGER.info(
-                f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
-            )
-            return create_empty_dataframe(), height_profiles_dict
+        except Exception as e:
+            LOGGER.error(f"[{filename}] : Errors occurred whilst calculating grain statistics: {e}")
+            return create_empty_dataframe(), {}
+
     else:
-        LOGGER.info(
-            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
-        )
+        LOGGER.info(f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe.")
         return create_empty_dataframe(), {}
 
+from scipy.ndimage import label
 
 def run_dnatracing(  # noqa: C901
     image: np.ndarray,
@@ -404,107 +404,131 @@ def run_dnatracing(  # noqa: C901
     results_df: pd.DataFrame = None,
 ):
     """
-    Trace DNA molecule for the supplied grains adding results to statistics data frames and optionally plot results.
-
-    Parameters
-    ----------
-    image : np.ndarray
-        Image containing the DNA to pass to the dna tracing function.
-    grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
-        boolean arrays indicating the pixels that have been masked as grains.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    image_path : Path
-        Path to the image file. Used for DataFrame indexing.
-    filename : str
-        Name of the image.
-    core_out_path : Path
-        General output directory for outputs such as the grain statistics
-        DataFrame.
-    grain_out_path : Path
-        Directory to save optional dna tracing visual information to.
-    dnatracing_config : dict
-        Dictionary configuration for the dna tracing function.
-    plotting_config : dict
-        Dictionary configuration for plotting images.
-    results_df : pd.DataFrame
-        Pandas DataFrame containing grain statistics.
-
-    Returns
-    -------
-    pd.DataFrame
-        Pandas DataFrame containing grain statistics and dna tracing statistics.
-        Keys are file path and molecule number.
+    Trace DNA molecule for the supplied grains, adding results to statistics DataFrames and optionally plot results.
     """
-    # Create empty dataframe is none is passed
+    # Create empty dataframe if none is passed
     if results_df is None:
         results_df = create_empty_dataframe()
 
-    # Run dnatracing
     try:
         grain_trace_data = None
-        if dnatracing_config["run"]:
+        if dnatracing_config.get("run"):
             dnatracing_config.pop("run")
             LOGGER.info(f"[{filename}] : *** DNA Tracing ***")
-            tracing_stats = defaultdict()
+            tracing_stats = defaultdict(list)  # Store stats per direction
             grain_trace_data = defaultdict()
-            for direction, _ in grain_masks.items():
-                # Get the DNA class mask from the tensor
+
+            # Iterate over directions in grain_masks
+            for direction in grain_masks.keys():
                 LOGGER.info(f"[{filename}] : Mask dimensions: {grain_masks[direction].shape}")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 3]
-                LOGGER.info(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
-                tracing_results = trace_image(
-                    image=image,
-                    grains_mask=dna_class_mask,
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **dnatracing_config,
-                )
-                tracing_stats[direction] = tracing_results["statistics"]
-                ordered_traces = tracing_results["all_ordered_traces"]
-                cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
-                image_spline_trace = tracing_results["image_spline_trace"]
-                tracing_stats[direction]["threshold"] = direction
+                # Extract the dna_class_mask and create molecule map
+                dna_class_mask = grain_masks[direction][:, :, grain_masks[direction].shape[2]-1]  # Assuming UNET class 3 is relevant here
+                unique_molecules = np.unique(dna_class_mask)[1:]  # Skip background (0)
+                molecule_map = {molecule: idx + 1 for idx, molecule in enumerate(unique_molecules)}
 
-                grain_trace_data[direction] = {
-                    "ordered_traces": ordered_traces,
-                    "cropped_images": cropped_images,
-                    "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
-                    "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
-                    "splined_traces": tracing_results["all_splined_traces"],
-                }
+                tracing_stats_dfs = []
 
-                # Plot traces for the whole image
-                Images(
-                    image,
-                    output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_traced",
-                    masked_array=image_spline_trace,
-                    **plotting_config["plot_dict"]["all_molecule_traces"],
-                ).plot_and_save()
+                # Iterate over the UNET classes and process each
+                for unet_class in range(1, grain_masks[direction].shape[2]):
+                    class_mask = grain_masks[direction][:, :, unet_class]
+                    overlap_mask = np.where(class_mask, dna_class_mask, 0)
 
-                # Plot traces on each grain individually
-                if plotting_config["image_set"] == "all":
-                    for grain_index, grain_trace in ordered_traces.items():
-                        cropped_image = cropped_images[grain_index]
-                        grain_trace_mask = np.zeros(cropped_image.shape)
-                        # Grain traces can be None if they do not trace successfully. Eg if they are too small.
-                        if grain_trace is not None:
-                            for coordinate in grain_trace:
-                                grain_trace_mask[coordinate[0], coordinate[1]] = 1
+                    # Initialize empty arrays to accumulate traces for the class
+                    combined_spline_trace = np.zeros_like(image)
+
+                    # Iterate over molecules
+                    for molecule, molecule_number in molecule_map.items():
+                        # Relabeling based on overlap with the molecule
+                        relabeled_mask = np.where(overlap_mask == molecule, molecule_number, 0)
+
+                        # Use the label function to identify distinct connected components (grains)
+                        labeled_array, num_features = label(relabeled_mask)
+
+                        for region_idx in range(1, num_features + 1):
+                            # Create a mask for each connected component (region)
+                            component_mask = np.where(labeled_array == region_idx, molecule_number, 0)
+
+                            if np.max(component_mask) == 0:
+                                LOGGER.warning(f"[{filename}] : Skipping empty region {region_idx} for molecule {molecule_number}.")
+                                continue
+
+                            LOGGER.info(f"[{filename}] : Processing region {region_idx} for molecule {molecule_number}")
+
+                            # Trace the DNA in this component (grain)
+                            tracing_results = trace_image(
+                                image=image,
+                                grains_mask=component_mask,
+                                filename=filename,
+                                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                **dnatracing_config,
+                            )
+
+                            # Assign object numbers and other metadata
+                            tracing_results["statistics"]["threshold"] = direction
+                            tracing_results["statistics"]["class"] = unet_class
+                            tracing_results["statistics"]["object_number"] = region_idx
+                            tracing_results["statistics"]["molecule_number"] = molecule_number
+                            tracing_results["statistics"]["image"] = filename  # Ensure image name is stored
+
+                            # Accumulate traces for the class
+                            combined_spline_trace += tracing_results["image_spline_trace"]
+
+                            ordered_traces = tracing_results["all_ordered_traces"]
+                            cropped_images: dict[int, np.ndarray] = tracing_results["all_cropped_images"]
+
+                            grain_trace_data[direction] = {
+                                "ordered_traces": ordered_traces,
+                                "cropped_images": cropped_images,
+                                "ordered_trace_heights": tracing_results["all_ordered_trace_heights"],
+                                "ordered_trace_cumulative_distances": tracing_results["all_ordered_trace_cumulative_distances"],
+                                "splined_traces": tracing_results["all_splined_traces"],
+                            }
+
+                            # Append the statistics for this region
+                            tracing_stats_dfs.append(tracing_results["statistics"])
+
+                    # Once all regions in the class have been processed, generate a single image per class
+                    class_trace_filename = f"{filename}_class_{unet_class}_combined_traces"
+
+                    # Plot combined trace for the whole class
+                    Images(
+                        image,
+                        output_dir=core_out_path,
+                        filename=class_trace_filename,
+                        masked_array=combined_spline_trace,
+                        **plotting_config["plot_dict"]["all_molecule_traces"],
+                    ).plot_and_save()
+
+                    # Plot traces for each unique molecule-class combo
+                    if plotting_config["image_set"] == "all":
+                        combined_trace_mask = np.zeros_like(cropped_images[0])  # Initialize a mask for the combined traces
+
+                        for grain_index, grain_trace in ordered_traces.items():
+                            cropped_image = cropped_images[grain_index]
+                            
+                            # Check if the grain_trace is valid
+                            if grain_trace is not None:
+                                for coordinate in grain_trace:
+                                    combined_trace_mask[coordinate[0], coordinate[1]] = 1  # Aggregate traces into the combined mask
+
+                        # Use the naming convention for the combined image
+                        plot_filename = f"{filename}_trace_molecule{molecule_number}_class{unet_class}"
+
                         Images(
-                            cropped_image,
+                            data=cropped_image,
                             output_dir=grain_out_path / direction,
-                            filename=f"{filename}_grain_trace_{grain_index}",
-                            masked_array=grain_trace_mask,
+                            filename=plot_filename,
+                            masked_array=combined_trace_mask,
                             **plotting_config["plot_dict"]["single_molecule_trace"],
                         ).plot_and_save()
 
-            # Set create tracing_stats_df from above and below results
+                # Concatenate the tracing stats DataFrames for the current direction
+                if len(tracing_stats_dfs) > 0:
+                    tracing_stats[direction] = pd.concat(tracing_stats_dfs)
+
+            # Combine tracing stats for 'above' and 'below' thresholds
             if "above" in tracing_stats and "below" in tracing_stats:
                 tracing_stats_df = pd.concat([tracing_stats["below"], tracing_stats["above"]])
             elif "above" in tracing_stats:
@@ -512,36 +536,32 @@ def run_dnatracing(  # noqa: C901
             elif "below" in tracing_stats:
                 tracing_stats_df = tracing_stats["below"]
             else:
-                raise ValueError(
-                    "tracing_stats dictionary has neither 'above' nor 'below' keys. This should be impossible."
-                )
-            LOGGER.info(
-                f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and dnatracing statistics"
-            )
-            # NB - Merge on image, molecule and threshold because we may have above and below molecules which
-            #      gives duplicate molecule numbers as they are processed separately, if tracing stats
-            #      are not available (because skeleton was too small), grainstats are still retained.
-            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "molecule_number"], how="left")
+                tracing_stats_df = create_empty_dataframe()
+
+            # Reset index and merge with the original results dataframe
+            tracing_stats_df = tracing_stats_df.reset_index(drop=True)
+            LOGGER.info(f"[{filename}] : Combining {list(tracing_stats.keys())} grain statistics and DNA tracing statistics")
+            results = results_df.merge(tracing_stats_df, on=["image", "threshold", "class", "object_number", "molecule_number"], how="left")
             results["basename"] = image_path.parent
 
             return results, grain_trace_data
 
-        # Otherwise, return the passed in dataframe and warn that tracing is disabled
-        LOGGER.info(f"[{filename}] Calculation of DNA Tracing disabled, returning grainstats data frame.")
+        # If DNA tracing is disabled, return the original DataFrame
+        LOGGER.info(f"[{filename}] : DNA Tracing is disabled. Returning grainstats data frame.")
         results = results_df
         results["basename"] = image_path.parent
 
         return results, grain_trace_data
 
-    except Exception:
-        # If no results we need a dummy dataframe to return.
-        LOGGER.warning(
-            f"[{filename}] : Errors occurred whilst calculating DNA tracing statistics, " "returning grain statistics"
-        )
+    except Exception as e:
+        # Handle errors and return the original DataFrame if something goes wrong
+        LOGGER.warning(f"[{filename}] : Errors occurred while calculating DNA tracing statistics: {e}. Returning grain statistics.")
         results = results_df
         results["basename"] = image_path.parent
         grain_trace_data = None
         return results, grain_trace_data
+
+
 
 
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
@@ -686,12 +706,14 @@ def process_scan(
             results_df=results_df,
         )
 
+        """
         # DNAprotein analysis
         run_dna_protein_analysis(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],)
+        """
         
 
         # Add grain trace data and height profiles to topostats object
