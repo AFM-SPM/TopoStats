@@ -51,7 +51,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "seaborn",
-  "skan",
+  "skan~=0.11.0",
   "snoop",
   "tensorflow",
   "tifffile",
