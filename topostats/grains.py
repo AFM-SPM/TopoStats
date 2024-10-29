@@ -888,3 +888,75 @@ class Grains:
             # Update the background class to reflect any removed grains
             grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
         return grain_mask_tensor
+
+    @staticmethod
+    def get_individual_grain_crops(
+        grain_mask_tensor: npt.NDArray,
+        padding: int = 1,
+    ) -> list:
+        """
+        Get individual grain crops from an image tensor.
+
+        Fetches individual grain crops from an image tensor, but zeros any non-connected grains
+        in the crop region. This is to ensure that other grains do not affect further processing
+        steps.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of image tensor.
+
+        Returns
+        -------
+        list
+            List of individual grain crops.
+        """
+        grain_crops = []
+
+        # Label the regions
+        labelled_regions = Grains.label_regions(Grains.flatten_multi_class_tensor(grain_mask_tensor))
+
+        # Iterate over the regions and return the crop, but zero any non-connected grains
+        for region in Grains.get_region_properties(labelled_regions):
+
+            binary_labelled_regions = labelled_regions == region.label
+
+            # Zero any non-connected grains
+            # For each class, set all pixels to zero that are not in the current region
+            this_region_only_grain_tensor = np.copy(grain_mask_tensor)
+            # Iterate over the non-background classes
+            for class_index in range(1, grain_mask_tensor.shape[2]):
+                # Set all pixels to zero that are not in the current region
+                this_region_only_grain_tensor[:, :, class_index] = (
+                    binary_labelled_regions * grain_mask_tensor[:, :, class_index]
+                )
+
+            # Update background class to reflect the removal of any non-connected grains
+            this_region_only_grain_tensor = Grains.update_background_class(
+                grain_mask_tensor=this_region_only_grain_tensor
+            )
+
+            # Get the bounding box
+            bounding_box = region.bbox
+
+            # Pad the bounding box
+            bounding_box = pad_bounding_box(
+                crop_min_row=bounding_box[0],
+                crop_min_col=bounding_box[1],
+                crop_max_row=bounding_box[2],
+                crop_max_col=bounding_box[3],
+                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
+                padding=padding,
+            )
+
+            # Crop the grain
+            grain_crop = this_region_only_grain_tensor[
+                bounding_box[0] : bounding_box[2],
+                bounding_box[1] : bounding_box[3],
+                :,
+            ]
+
+            # Add the crop to the list
+            grain_crops.append(grain_crop)
+
+        return grain_crops
