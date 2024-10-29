@@ -32,6 +32,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
+# pylint: disable=too-many-lines
 
 
 class Grains:
@@ -905,6 +906,8 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of image tensor.
+        padding : int
+            Padding to add to the bounding box of the grain before cropping. Default is 1.
 
         Returns
         -------
@@ -960,3 +963,51 @@ class Grains:
             grain_crops.append(grain_crop)
 
         return grain_crops
+
+    @staticmethod
+    def vet_numbers_of_regions_single_grain(
+        grain_mask_tensor: npt.NDArray,
+        class_region_number_thresholds: dict[int, tuple[int, int]],
+    ) -> npt.NDArray:
+        """
+        Vet the number of regions in a grain mask tensor of a single grain, ignoring the background class.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor, should be of only one grain.
+        class_region_number_thresholds : dict
+            Dictionary of class region number thresholds. Structure is {class_number: (lower, upper)}.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with grains removed based on region number thresholds.
+        """
+        # Iterate over the classes and check the number of regions
+        for class_index in range(1, grain_mask_tensor.shape[2]):
+            # Get the number of regions
+            class_labelled_regions = Grains.label_regions(grain_mask_tensor[:, :, class_index])
+            number_of_regions = np.unique(class_labelled_regions).shape[0] - 1
+            # Check the number of regions against the thresholds, skip if no thresholds provided
+            if class_index not in class_region_number_thresholds:
+                continue
+            lower_threshold, upper_threshold = class_region_number_thresholds[class_index]
+
+            # Check the number of regions against the thresholds
+            if lower_threshold is not None:
+                if number_of_regions < lower_threshold:
+                    # Return empty tensor
+                    empty_crop_tensor = np.zeros_like(grain_mask_tensor)
+                    # Fill the background class with 1s
+                    empty_crop_tensor[:, :, 0] = 1
+                    return empty_crop_tensor
+            if upper_threshold is not None:
+                if number_of_regions > upper_threshold:
+                    # Return empty tensor
+                    empty_crop_tensor = np.zeros_like(grain_mask_tensor)
+                    # Fill the background class with 1s
+                    empty_crop_tensor[:, :, 0] = 1
+                    return empty_crop_tensor
+
+        return grain_mask_tensor
