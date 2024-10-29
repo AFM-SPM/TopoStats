@@ -744,26 +744,26 @@ class Grains:
         return np.where(labelled_image == sizes.argmax() + 1, labelled_image, 0).astype(bool)
 
     @staticmethod
-    def flatten_multi_class_tensor(image_tensor: npt.NDArray) -> npt.NDArray:
+    def flatten_multi_class_tensor(grain_mask_tensor: npt.NDArray) -> npt.NDArray:
         """
         Flatten a multi-class image tensor to a single binary mask.
 
         Parameters
         ----------
-        image_tensor : npt.NDArray
-            Multi class image tensor of shape (N, N, C).
+        grain_mask_tensor : npt.NDArray
+            Multi class grain mask tensor tensor of shape (N, N, C).
 
         Returns
         -------
         npt.NDArray
             Combined binary mask of all but the background class (:, :, 0).
         """
-        assert len(image_tensor.shape) == 3, f"Tensor not 3D: {image_tensor.shape}"
-        assert image_tensor.shape[0] == image_tensor.shape[1], f"Tensor not square: {image_tensor.shape}"
-        return np.sum(image_tensor[:, :, 1:], axis=-1)
+        assert len(grain_mask_tensor.shape) == 3, f"Tensor not 3D: {grain_mask_tensor.shape}"
+        assert grain_mask_tensor.shape[0] == grain_mask_tensor.shape[1], f"Tensor not square: {grain_mask_tensor.shape}"
+        return np.sum(grain_mask_tensor[:, :, 1:], axis=-1)
 
     @staticmethod
-    def get_multi_class_grain_bounding_boxes(image_tensor: npt.NDArray) -> dict:
+    def get_multi_class_grain_bounding_boxes(grain_mask_tensor: npt.NDArray) -> dict:
         """
         Get the bounding boxes for each grain in a multi-class image tensor.
 
@@ -772,8 +772,8 @@ class Grains:
 
         Parameters
         ----------
-        image_tensor : npt.NDArray
-            3-D Numpy array of image tensor.
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of grain mask tensor.
 
         Returns
         -------
@@ -781,7 +781,7 @@ class Grains:
             Dictionary of bounding boxes indexed by grain number.
         """
         # Get the flattened mask
-        flattened_mask = Grains.flatten_multi_class_tensor(image_tensor)
+        flattened_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
         # Label the regions
         labelled_regions = Grains.label_regions(flattened_mask)
         # Get the region properties
@@ -795,7 +795,7 @@ class Grains:
                 crop_min_col=bbox[1],
                 crop_max_row=bbox[2],
                 crop_max_col=bbox[3],
-                image_shape=(image_tensor.shape[0], image_tensor.shape[1]),
+                image_shape=(grain_mask_tensor.shape[0], grain_mask_tensor.shape[1]),
                 padding=1,
             )
             for index, bbox in bounding_boxes.items()
@@ -803,15 +803,15 @@ class Grains:
 
     @staticmethod
     def update_background_class(
-        image_tensor: npt.NDArray,
+        grain_mask_tensor: npt.NDArray,
     ) -> npt.NDArray:
         """
         Update the background class to reflect the other classes.
 
         Parameters
         ----------
-        image_tensor : npt.NDArray
-            3-D Numpy array of image tensor.
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
 
         Returns
         -------
@@ -819,15 +819,15 @@ class Grains:
             3-D Numpy array of image tensor with updated background class.
         """
         # Get the flattened mask and invert it
-        flattened_mask = Grains.flatten_multi_class_tensor(image_tensor)
+        flattened_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
         new_background = np.where(flattened_mask == 0, 1, 0)
         # Update the background class
-        image_tensor[:, :, 0] = new_background
-        return image_tensor
+        grain_mask_tensor[:, :, 0] = new_background
+        return grain_mask_tensor
 
     @staticmethod
     def vet_class_sizes(
-        image_tensor: npt.NDArray,
+        grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
         class_size_thresholds: dict[int, tuple[int, int]],
     ) -> npt.NDArray:
@@ -836,8 +836,8 @@ class Grains:
 
         Parameters
         ----------
-        image_tensor : npt.NDArray
-            3-D Numpy array of image tensor.
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
         class_size_thresholds : dict
@@ -846,15 +846,15 @@ class Grains:
         Returns
         -------
         npt.NDArray
-            3-D Numpy array of image tensor with grains removed based on size thresholds.
+            3-D Numpy array of the mask tensor with grains removed based on size thresholds.
         """
         # Get the bounding boxes for each grain
-        bounding_boxes = Grains.get_multi_class_grain_bounding_boxes(image_tensor)
+        bounding_boxes = Grains.get_multi_class_grain_bounding_boxes(grain_mask_tensor)
 
         # Iterate over the grains
         for _, bounding_box in bounding_boxes.items():
             # Get the grain from the image tensor
-            grain = image_tensor[
+            grain = grain_mask_tensor[
                 bounding_box[0] : bounding_box[2],
                 bounding_box[1] : bounding_box[3],
                 :,
@@ -869,7 +869,7 @@ class Grains:
                 if lower_threshold is not None:
                     if class_sizes[class_index] < lower_threshold:
                         # Remove the grain
-                        image_tensor[
+                        grain_mask_tensor[
                             bounding_box[0] : bounding_box[2],
                             bounding_box[1] : bounding_box[3],
                             1:,
@@ -878,7 +878,7 @@ class Grains:
                 if upper_threshold is not None:
                     if class_sizes[class_index] > upper_threshold:
                         # Remove the grain
-                        image_tensor[
+                        grain_mask_tensor[
                             bounding_box[0] : bounding_box[2],
                             bounding_box[1] : bounding_box[3],
                             1:,
@@ -886,5 +886,5 @@ class Grains:
                         break
 
             # Update the background class to reflect any removed grains
-            image_tensor = Grains.update_background_class(image_tensor)
-        return image_tensor
+            grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
+        return grain_mask_tensor

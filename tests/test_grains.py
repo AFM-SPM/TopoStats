@@ -976,7 +976,7 @@ def test_flatten_multi_class_tensor(
 
 
 @pytest.mark.parametrize(
-    ("image_tensor", "expected_bounding_boxes"),
+    ("grain_mask_tensor", "expected_bounding_boxes"),
     [
         pytest.param(
             np.stack(
@@ -1030,14 +1030,14 @@ def test_flatten_multi_class_tensor(
         )
     ],
 )
-def test_get_multi_class_grain_bounding_boxes(image_tensor: npt.NDArray, expected_bounding_boxes: dict) -> None:
+def test_get_multi_class_grain_bounding_boxes(grain_mask_tensor: npt.NDArray, expected_bounding_boxes: dict) -> None:
     """Test the get_multi_class_grain_bounding_boxes method of the Grains class."""
-    result = Grains.get_multi_class_grain_bounding_boxes(image_tensor)
+    result = Grains.get_multi_class_grain_bounding_boxes(grain_mask_tensor)
     assert dict_almost_equal(result, expected_bounding_boxes, abs_tol=1e-12)
 
 
 @pytest.mark.parametrize(
-    ("image_tensor", "expected_updated_background_class_image_tensor"),
+    ("grain_mask_tensor", "expected_updated_background_class_image_tensor"),
     [
         pytest.param(
             np.stack(
@@ -1138,15 +1138,15 @@ def test_get_multi_class_grain_bounding_boxes(image_tensor: npt.NDArray, expecte
     ],
 )
 def test_update_background_class(
-    image_tensor: npt.NDArray[np.int32], expected_updated_background_class_image_tensor: npt.NDArray[np.int32]
+    grain_mask_tensor: npt.NDArray[np.int32], expected_updated_background_class_image_tensor: npt.NDArray[np.int32]
 ) -> None:
     """Test the update_background_class method of the Grains class."""
-    result = Grains.update_background_class(image_tensor)
+    result = Grains.update_background_class(grain_mask_tensor)
     np.testing.assert_array_equal(result, expected_updated_background_class_image_tensor)
 
 
 @pytest.mark.parametrize(
-    ("image_tensor", "pixel_to_nm_scaling", "class_size_thresholds", "expected_result_image_tensor"),
+    ("grain_mask_tensor", "pixel_to_nm_scaling", "class_size_thresholds", "expected_result_image_tensor"),
     [
         pytest.param(
             np.stack(
@@ -1252,12 +1252,12 @@ def test_update_background_class(
     ],
 )
 def test_vet_class_sizes(
-    image_tensor: npt.NDArray[np.int32],
+    grain_mask_tensor: npt.NDArray[np.int32],
     pixel_to_nm_scaling: float,
     class_size_thresholds: dict,
     expected_result_image_tensor: npt.NDArray[np.int32],
 ) -> None:
     """Test the vet_class_sizes method of the Grains class."""
-    result = Grains.vet_class_sizes(image_tensor, pixel_to_nm_scaling, class_size_thresholds)
+    result = Grains.vet_class_sizes(grain_mask_tensor, pixel_to_nm_scaling, class_size_thresholds)
 
     np.testing.assert_array_equal(result, expected_result_image_tensor)
