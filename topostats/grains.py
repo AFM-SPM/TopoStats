@@ -968,7 +968,7 @@ class Grains:
     def vet_numbers_of_regions_single_grain(
         grain_mask_tensor: npt.NDArray,
         class_region_number_thresholds: dict[int, tuple[int, int]],
-    ) -> npt.NDArray:
+    ) -> tuple[npt.NDArray, bool]:
         """
         Vet the number of regions in a grain mask tensor of a single grain, ignoring the background class.
 
@@ -983,6 +983,8 @@ class Grains:
         -------
         npt.NDArray
             3-D Numpy array of the grain mask tensor with grains removed based on region number thresholds.
+        bool
+            True if the grain passes the vetting, False if it fails.
         """
         # Iterate over the classes and check the number of regions
         for class_index in range(1, grain_mask_tensor.shape[2]):
@@ -1001,13 +1003,13 @@ class Grains:
                     empty_crop_tensor = np.zeros_like(grain_mask_tensor)
                     # Fill the background class with 1s
                     empty_crop_tensor[:, :, 0] = 1
-                    return empty_crop_tensor
+                    return empty_crop_tensor, False
             if upper_threshold is not None:
                 if number_of_regions > upper_threshold:
                     # Return empty tensor
                     empty_crop_tensor = np.zeros_like(grain_mask_tensor)
                     # Fill the background class with 1s
                     empty_crop_tensor[:, :, 0] = 1
-                    return empty_crop_tensor
+                    return empty_crop_tensor, False
 
-        return grain_mask_tensor
+        return grain_mask_tensor, True
