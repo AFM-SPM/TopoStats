@@ -19,6 +19,7 @@ from topostats.thresholds import threshold
 from topostats.unet_masking import (
     make_bounding_box_square,
     mean_iou,
+    iou_loss,
     pad_bounding_box,
     predict_unet,
 )
@@ -559,14 +560,13 @@ class Grains:
                     f"[{self.filename}] : Overridden {thresholding_grain_count} grains with {class_counts} UNet predictions ({direction})"
                 )
 
-    # pylint: disable=too-many-locals
     @staticmethod
     def improve_grain_segmentation_unet(
-        filename: str,
-        direction: str,
-        unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
-        image: npt.NDArray,
-        labelled_grain_regions: npt.NDArray,
+    filename: str,
+    direction: str,
+    unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
+    image: npt.NDArray,
+    labelled_grain_regions: npt.NDArray,
     ) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Use a UNet model to re-segment existing grains to improve their accuracy.
@@ -595,46 +595,30 @@ class Grains:
         Returns
         -------
         npt.NDArray
-            NxNxC Numpy array of the UNet mask.
+            NxNxC Numpy array of the UNet mask with combined class.
         npt.NDArray
-            NxNxC Numpy array of the labelled regions from the UNet mask.
+            NxNxC Numpy array of the labelled regions from the UNet mask, with combined class.
         """
-        LOGGER.debug(f"[{filename}] : Running UNet model on {direction} grains")
+        LOGGER.info(f"[{filename}] : Running UNet model on {direction} grains")
 
-        # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
-        # for its loss during training and so this will need to be changed a lot.
-        # Once the group has gotten used to training models, this can be made configurable, but currently it's too changeable.
-        # unet_model = keras.models.load_model(
-        #     self.unet_config["model_path"], custom_objects={"dice_loss": dice_loss, "iou_loss": iou_loss}
-        # )
-        # You may also get an error referencing a "group_1" parameter, this is discussed in this issue:
-        # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
-        # I haven't tested it yet.
-        unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
-        LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
+        unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss})
+        LOGGER.info(f"Output shape of UNet model: {unet_model.output_shape}")
 
-        # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
-        # the loaded model's output shape
-        # Note that the minimum number of classes is 2, as even for binary outputs, we will force categorical type
-        # data, so we have a class for background.
-        unet_mask = np.zeros((image.shape[0], image.shape[1], np.max([2, unet_model.output_shape[-1]]))).astype(
-            np.bool_
-        )
-        # Set the background class to be all 1s by default since not all of the image will be covered by the
-        # u-net predictions.
-        unet_mask[:, :, 0] = 1
-        # Labelled regions will be the same by default, but will be overwritten if there are any grains present.
+        # Initialize an empty mask for each class (including background)
+        unet_mask = np.zeros((image.shape[0], image.shape[1], np.max([2, unet_model.output_shape[-1]]))).astype(np.bool_)
+        unet_mask[:, :, 0] = 1  # Set the background to 1 by default
+        
+        # Labelled regions initialized as the same shape
         unet_labelled_regions = np.zeros_like(unet_mask).astype(np.int32)
-        # For each detected molecule, create an image of just that molecule and run the UNet
-        # on that image to segment it
+        
         grain_region_properties = regionprops(labelled_grain_regions)
+        
         for grain_number, region in enumerate(grain_region_properties):
-            LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(grain_region_properties)}")
+            LOGGER.info(f"Unet predicting mask for grain {grain_number} of {len(grain_region_properties)}")
+            
+            bounding_box: tuple[int, int, int, int] = tuple(region.bbox)
 
-            # Get the bounding box for the region
-            bounding_box: tuple[int, int, int, int] = tuple(region.bbox)  # min_row, min_col, max_row, max_col
-
-            # Pad the bounding box
+            # Pad and square the bounding box
             bounding_box = pad_bounding_box(
                 crop_min_row=bounding_box[0],
                 crop_min_col=bounding_box[1],
@@ -643,8 +627,6 @@ class Grains:
                 image_shape=(image.shape[0], image.shape[1]),
                 padding=unet_config["grain_crop_padding"],
             )
-
-            # Make the bounding box square within the confines of the image
             bounding_box = make_bounding_box_square(
                 crop_min_row=bounding_box[0],
                 crop_min_col=bounding_box[1],
@@ -653,17 +635,12 @@ class Grains:
                 image_shape=(image.shape[0], image.shape[1]),
             )
 
-            # Grab the cropped image. Using slice since the bounding box from skimage is
-            # half-open, so the max_row and max_col are not included in the region.
+            # Crop the region
             region_image = image[
                 bounding_box[0] : bounding_box[2],
                 bounding_box[1] : bounding_box[3],
             ]
 
-            # Run the UNet on the region. This is allowed to be a single channel
-            # as we can add a background channel afterwards if needed.
-            # Remember that this region is cropped from the original image, so it's not
-            # the same size as the original image.
             predicted_mask = predict_unet(
                 image=region_image,
                 model=unet_model,
@@ -673,48 +650,55 @@ class Grains:
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
 
-            assert len(predicted_mask.shape) == 3
-            LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
-
-            # Add each class of the predicted mask to the overall full image mask
+            # Add predicted masks to full mask
             for class_index in range(unet_mask.shape[2]):
-
-                # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
-                # Keep only the largest object in the grain crop (needs to be configurable in future)
-                unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
 
-                # Directly set the background to be equal instead of logical or since they are by default
-                # 1, and should be turned off if any other class is on
                 if class_index == 0:
                     unet_mask[
-                        bounding_box[0] : bounding_box[2],
-                        bounding_box[1] : bounding_box[3],
-                        class_index,
+                        bounding_box[0]:bounding_box[2],
+                        bounding_box[1]:bounding_box[3],
+                        class_index
                     ] = unet_predicted_mask_labelled
                 else:
                     unet_mask[
-                        bounding_box[0] : bounding_box[2],
-                        bounding_box[1] : bounding_box[3],
-                        class_index,
+                        bounding_box[0]:bounding_box[2],
+                        bounding_box[1]:bounding_box[3],
+                        class_index
                     ] = np.logical_or(
                         unet_mask[
-                            bounding_box[0] : bounding_box[2],
-                            bounding_box[1] : bounding_box[3],
-                            class_index,
+                            bounding_box[0]:bounding_box[2],
+                            bounding_box[1]:bounding_box[3],
+                            class_index
                         ],
-                        unet_predicted_mask_labelled,
+                        unet_predicted_mask_labelled
                     )
 
-            assert len(unet_mask.shape) == 3, f"Unet mask shape: {unet_mask.shape}"
-            assert unet_mask.shape[-1] >= 2, f"Unet mask shape: {unet_mask.shape}"
+        # Label regions in unet_labelled_regions
+        for class_index in range(unet_mask.shape[2]):
+            unet_labelled_regions[:, :, class_index] = Grains.label_regions(unet_mask[:, :, class_index])
 
-            # For each class in the unet mask tensor, label the mask and add to unet_labelled_regions
-            # The labelled background class will be identical to the binary one from the unet mask.
-            unet_labelled_regions[:, :, 0] = unet_mask[:, :, 0]
-            # Iterate over each class and label the regions
-            for class_index in range(unet_mask.shape[2]):
-                unet_labelled_regions[:, :, class_index] = Grains.label_regions(unet_mask[:, :, class_index])
+        # Create combined mask (across all classes except background)
+        combined_mask = np.zeros_like(unet_mask[:, :, 0])
+        for class_index in range(1, unet_mask.shape[2]):
+            combined_mask = np.logical_or(combined_mask, unet_mask[:, :, class_index])
+
+        # Label the combined mask
+        combined_labelled = Grains.label_regions(combined_mask)
+
+        # Add the combined mask as a new class in both unet_mask and unet_labelled_regions
+        unet_mask = np.concatenate(
+            (unet_mask, np.expand_dims(combined_mask, axis=2)),
+            axis=2
+        )
+        unet_labelled_regions = np.concatenate(
+            (unet_labelled_regions, np.expand_dims(combined_labelled, axis=2)),
+            axis=2
+        )
+
+        # Ensure shapes match expectations
+        assert unet_mask.shape[-1] == np.max([2, unet_model.output_shape[-1]]) + 1, "Unet mask shape mismatch with combined class"
+        assert unet_labelled_regions.shape[-1] == unet_mask.shape[-1], "Unet labelled regions shape mismatch with combined class"
 
         return unet_mask, unet_labelled_regions
 
