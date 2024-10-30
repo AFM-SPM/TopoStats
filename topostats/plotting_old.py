@@ -14,7 +14,7 @@ from cycler import cycler
 from pathlib import Path
 from topostats.io import read_yaml
 
-plotting_config = read_yaml(Path("../config/parameter_sweep_plotting_config.yml"))
+plotting_config = read_yaml(Path("../config/jean_plotting_config.yml"))
 
 # Set seaborn to override matplotlib for plot output
 sns.set()
@@ -458,14 +458,14 @@ def plotdist2var(
 
     # Plot figure
     fig, ax = plt.subplots(figsize=(15, 12))
-    sns.distplot(dfnew[plotarg], ax=ax, bins=bins, color=c1)
-    sns.distplot(dfnew2[plotarg2], ax=ax, bins=bins, color=c2)
+    sns.distplot(dfnew[plotarg], ax=ax, bins=bins, color=c1, norm_hist=True)
+    sns.distplot(dfnew2[plotarg2], ax=ax, bins=bins, color=c2, norm_hist=True)
 
     # For the third set of data
     if df3 is not None:
         dfnew3 = df3.copy()
         dfnew3[plotarg3] = dataunitconversion(df3[plotarg3], plotarg3, nm)
-        sns.distplot(dfnew3[plotarg3], ax=ax, bins=bins, color=c3)
+        sns.distplot(dfnew3[plotarg3], ax=ax, bins=bins, color=c3, norm_hist=True)
 
     # Label plot and save figure
     plt.xlim(xmin, xmax)
