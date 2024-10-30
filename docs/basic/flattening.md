@@ -110,3 +110,13 @@ From here, we can go on to do things like finding our objects of interest (grain
 
 <!-- <img src="../_static/images/flattening/flattening_final_flattened_image.png" style="width: 50%;"
 alt="secondary flattening"> -->
+
+<!-- Feedback
+
+- Need a TLDR for the steps
+- Add the pipeline figure I added in my CR presentation
+- Show height scale bar throughout?
+- Wherever there are parameters, mention that they are in the config file (eg this is what the row_quantile setting does?)
+- Examples of gaussian strengths for smoothing
+
+ -->

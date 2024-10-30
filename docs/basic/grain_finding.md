@@ -84,3 +84,21 @@ and C is the number of classes. Each class is a binary mask, where 1 is the clas
 The first channel is background, where 1 is background, and 0 is not background. The rest of the channels
 are arbitrary, and defined by how the U-Net was trained, however we conventially recommend that the first class
 be for DNA (if applicable) and the next classes for other objects.
+
+<!-- 
+
+Feedback
+
+- Mention that you can remove objects from the height threshold mask in subsequent steps
+
+- Show that the edge grains have been removed in the image
+
+- Mention why there are blobs with the grains
+
+- Show a labelled image of the grains
+
+- Show that grains in labelled images line up with the grainstats in the csv file.
+
+- TLDR what goes in, what comes out (at the top)
+
+ -->
