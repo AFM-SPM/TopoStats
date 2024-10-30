@@ -1407,7 +1407,7 @@ def test_get_individual_grain_crops(
 
 
 @pytest.mark.parametrize(
-    ("single_grain_mask_tensor", "class_region_number_thresholds", "expected_result"),
+    ("single_grain_mask_tensor", "class_region_number_thresholds", "expected_grain_mask_tensor", "expected_passed"),
     [
         pytest.param(
             np.stack(
@@ -1477,6 +1477,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
+            False,
             id="too few regions in class 1",
         ),
         pytest.param(
@@ -1545,6 +1546,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
+            False,
             id="too many regions in class 1",
         ),
         pytest.param(
@@ -1616,6 +1618,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
+            True,
             id="correct number of regions in all classes",
         ),
         pytest.param(
@@ -1687,6 +1690,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
+            True,
             id="none bounds",
         ),
         pytest.param(
@@ -1755,6 +1759,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
+            True,
             id="no thresholds provided",
         ),
     ],
@@ -1762,11 +1767,17 @@ def test_get_individual_grain_crops(
 def test_vet_numbers_of_regions_single_grain(
     single_grain_mask_tensor: npt.NDArray[np.int32],
     class_region_number_thresholds: dict,
-    expected_result: npt.NDArray[np.int32],
+    expected_grain_mask_tensor: npt.NDArray[np.int32],
+    expected_passed: bool,
 ) -> None:
     """Test the vet_numbers_of_regions method of the Grains class."""
-    result = Grains.vet_numbers_of_regions_single_grain(single_grain_mask_tensor, class_region_number_thresholds)
-    np.testing.assert_array_equal(result, expected_result)
+    result_crop, result_passed = Grains.vet_numbers_of_regions_single_grain(
+        single_grain_mask_tensor, class_region_number_thresholds
+    )
+    np.testing.assert_array_equal(result_crop, expected_grain_mask_tensor)
+    assert result_passed == expected_passed
+
+
 @pytest.mark.parametrize(
     ("grain_mask_tensor", "classes_to_convert", "class_touching_threshold", "expected_result_grain_mask_tensor"),
     [
