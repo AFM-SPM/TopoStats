@@ -1120,3 +1120,42 @@ class Grains:
         intersection_points = {region.label: region.coords for region in intersection_regions}
 
         return num_connection_regions, intersection_labels, intersection_points
+
+    @staticmethod
+    def vet_class_connection_points(
+        grain_mask_tensor: npt.NDArray,
+        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]],
+    ) -> bool:
+        """
+        Vet the number of connection points between regions in specific classes.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        class_connection_point_thresholds : dict
+            Dictionary of required number of connection points between classes, indexed by class pair.
+            Structure is {(class_a, class_b): (lower, upper)}.
+
+        Returns
+        -------
+        bool
+            True if the grain passes the vetting, False if it fails.
+        """
+        # Iterate over the class pairs
+        for class_pair, connection_point_thresholds in class_connection_point_thresholds.items():
+            # Get the connection regions
+            num_connection_regions, _, _ = Grains.calculate_region_connection_regions(
+                grain_mask_tensor=grain_mask_tensor,
+                classes=class_pair,
+            )
+            # Check the number of connection regions against the thresholds
+            lower_threshold, upper_threshold = connection_point_thresholds
+            if lower_threshold is not None:
+                if num_connection_regions < lower_threshold:
+                    return False
+            if upper_threshold is not None:
+                if num_connection_regions > upper_threshold:
+                    return False
+
+        return True
