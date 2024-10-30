@@ -7,8 +7,6 @@ import pytest
 
 from topostats.entry_point import (
     entry_point,
-    legacy_run_topostats_entry_point,
-    legacy_toposum_entry_point,
 )
 from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
@@ -135,56 +133,3 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
         ]
     )
     assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
-
-
-# Test that the right functions are returned with the right arguments
-@pytest.mark.parametrize(
-    ("options", "expected_arg_name", "expected_arg_value"),
-    [
-        pytest.param(
-            [
-                "-c",
-                "dummy/config/dir/config.yaml",
-            ],
-            "config_file",
-            Path("dummy/config/dir/config.yaml"),
-            id="Test using -c flag for config file",
-        ),
-        pytest.param(
-            [
-                "--config",
-                "dummy/config/dir/config.yaml",
-            ],
-            "config_file",
-            Path("dummy/config/dir/config.yaml"),
-            id="Test using --config flag for config file",
-        ),
-    ],
-)
-def test_legacy_run_topostats_entry_point(options: list, expected_arg_name: str, expected_arg_value: str) -> None:
-    """Ensure the arguments are parsed and carried through correctly to legacy entry point."""
-    returned_args = legacy_run_topostats_entry_point(options, testing=True)
-    # Convert argparse's Namespace object to dictionary
-    returned_args_dict = vars(returned_args)
-
-    assert returned_args_dict[expected_arg_name] == expected_arg_value
-
-
-def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
-    """Ensure the toposum legacy entry point is able to produce a default config file."""
-    with pytest.raises(SystemExit):
-        legacy_toposum_entry_point(
-            args=["--create-config-file", f"{tmp_path}/test_legacy_toposum_create_config_file.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_toposum_create_config_file.yaml").is_file()
-
-
-def test_legacy_toposum_entry_point_create_label_file(tmp_path: Path) -> None:
-    """Ensure the toposum legacy entry point is able to produce a default label file."""
-    with pytest.raises(SystemExit):
-        legacy_toposum_entry_point(
-            args=["--create-label-file", f"{tmp_path}/test_legacy_toposum_create_label_file.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_toposum_create_label_file.yaml").is_file()
