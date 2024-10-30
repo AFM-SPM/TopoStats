@@ -12,6 +12,7 @@ import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
 from skimage.measure import label, regionprops
+from skimage.morphology import binary_dilation
 from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
@@ -1013,3 +1014,67 @@ class Grains:
                     return empty_crop_tensor, False
 
         return grain_mask_tensor, True
+    @staticmethod
+    def convert_classes_to_nearby_classes(
+        grain_mask_tensor: npt.NDArray,
+        classes_to_convert: list[tuple[int, int]],
+        class_touching_threshold: int = 1,
+    ) -> npt.NDArray:
+        """
+        Convert all but the largest regions of class A into class B provided that the class A region touches class B.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        classes_to_convert : list
+            List of tuples of classes to convert. Structure is [(class_a, class_b)].
+        class_touching_threshold : int
+            Number of dilation passes to do to determine class A connectivity with class B.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with classes converted.
+        """
+        # If no classes to convert, return the original tensor
+        if not classes_to_convert:
+            return grain_mask_tensor
+
+        # Iterate over class pairs
+        for class_a, class_b in classes_to_convert:
+            # Get the binary mask for class A
+            class_a_mask = grain_mask_tensor[:, :, class_a]
+            # Get the binary mask for class B
+            class_b_mask = grain_mask_tensor[:, :, class_b]
+
+            # Find the largest region of class A
+            class_a_labelled_regions = Grains.label_regions(class_a_mask)
+            class_a_region_properties = Grains.get_region_properties(class_a_labelled_regions)
+            class_a_areas = [region.area for region in class_a_region_properties]
+            largest_class_a_region = class_a_region_properties[np.argmax(class_a_areas)]
+
+            # For all other regions, check if they touch the class B region
+            for region in class_a_region_properties:
+                if region.label == largest_class_a_region.label:
+                    continue
+                # Get only the pixels in the region
+                region_mask = class_a_labelled_regions == region.label
+                # Dilate the region
+                dilated_region_mask = region_mask
+                for _ in range(class_touching_threshold):
+                    dilated_region_mask = binary_dilation(dilated_region_mask)
+                # Get the intersection with the class B mask
+                intersection = dilated_region_mask & class_b_mask
+                # If there is any intersection, turn the region into class B
+                if np.any(intersection):
+                    # Add to the class B mask
+                    class_b_mask = np.where(region_mask, class_b, class_b_mask)
+                    # Remove from the class A mask
+                    class_a_mask = np.where(region_mask, 0, class_a_mask)
+
+            # Update the tensor
+            grain_mask_tensor[:, :, class_a] = class_a_mask
+            grain_mask_tensor[:, :, class_b] = class_b_mask
+
+        return grain_mask_tensor.astype(bool)
