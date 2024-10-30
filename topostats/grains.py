@@ -34,6 +34,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-public-methods
 
 
 class Grains:
@@ -1078,3 +1079,44 @@ class Grains:
             grain_mask_tensor[:, :, class_b] = class_b_mask
 
         return grain_mask_tensor.astype(bool)
+    @staticmethod
+    def calculate_region_connection_regions(
+        grain_mask_tensor: npt.NDArray,
+        classes: tuple[int, int],
+    ) -> tuple[int, npt.NDArray, dict[int, npt.NDArray[int]]]:
+        """
+        Get a list of connection regions between two classes.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        classes : tuple[int, int]
+            Tuple pair of classes to calculate the connection regions.
+
+        Returns
+        -------
+        int
+            Number of connection regions.
+        npt.NDArray
+            2-D Numpy array of the intersection labels.
+        dict
+            Dictionary of connection points indexed by region label.
+        """
+        # Get the binary masks for the classes
+        class_a_mask = grain_mask_tensor[:, :, classes[0]]
+        class_b_mask = grain_mask_tensor[:, :, classes[1]]
+
+        # Dilate class A mask
+        dilated_class_a_mask = binary_dilation(class_a_mask)
+        # Get the intersection with the class B mask
+        intersection = dilated_class_a_mask & class_b_mask
+
+        # Get number of separate intersection regions
+        intersection_labels = label(intersection)
+        intersection_regions = regionprops(intersection_labels)
+        num_connection_regions = len(intersection_regions)
+        # Create a dictionary of the connection points
+        intersection_points = {region.label: region.coords for region in intersection_regions}
+
+        return num_connection_regions, intersection_labels, intersection_points
