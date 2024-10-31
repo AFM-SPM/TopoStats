@@ -893,6 +893,55 @@ class Grains:
         return grain_mask_tensor
 
     @staticmethod
+    def vet_class_sizes_single_grain(
+        single_grain_mask_tensor: npt.NDArray,
+        pixel_to_nm_scaling: float,
+        class_size_thresholds: dict[int, tuple[int, int]],
+    ) -> tuple[npt.NDArray, bool]:
+        """
+        Vet the sizes of the classes in a single grain mask tensor.
+
+        Parameters
+        ----------
+        single_grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the mask tensor.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        class_size_thresholds : dict
+            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the mask tensor with grains removed based on size thresholds.
+        bool
+            True if the grain passes the vetting, False if it fails.
+        """
+        # Iterate over the classes and check the sizes
+        for class_index in range(1, single_grain_mask_tensor.shape[2]):
+            class_size = np.sum(single_grain_mask_tensor[:, :, class_index]) * pixel_to_nm_scaling**2
+            # Check the size against the thresholds
+            if class_index not in class_size_thresholds:
+                continue
+            lower_threshold, upper_threshold = class_size_thresholds[class_index]
+            if lower_threshold is not None:
+                if class_size < lower_threshold:
+                    # Return empty tensor
+                    empty_crop_tensor = np.zeros_like(single_grain_mask_tensor)
+                    # Fill the background class with 1s
+                    empty_crop_tensor[:, :, 0] = 1
+                    return empty_crop_tensor, False
+            if upper_threshold is not None:
+                if class_size > upper_threshold:
+                    # Return empty tensor
+                    empty_crop_tensor = np.zeros_like(single_grain_mask_tensor)
+                    # Fill the background class with 1s
+                    empty_crop_tensor[:, :, 0] = 1
+                    return empty_crop_tensor, False
+
+        return single_grain_mask_tensor, True
+
+    @staticmethod
     def get_individual_grain_crops(
         grain_mask_tensor: npt.NDArray,
         padding: int = 1,
