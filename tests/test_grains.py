@@ -1264,6 +1264,98 @@ def test_vet_class_sizes(
 
 
 @pytest.mark.parametrize(
+    ("single_grain_mask_tensor", "keep_largest_labelled_regions_classes", "expected_result_grain_tensor"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 1, 0, 1, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 1, 0],
+                            [0, 1, 0, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0],
+                            [0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [1],
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [1, 1, 0, 0, 0, 1],
+                            [1, 1, 0, 0, 0, 1],
+                            [1, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0],
+                            [0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+        )
+    ],
+)
+def test_keep_largest_labelled_region_classes(
+    single_grain_mask_tensor: npt.NDArray[np.int32],
+    keep_largest_labelled_regions_classes: list,
+    expected_result_grain_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the keep_largest_labelled_regions method of the Grains class."""
+    result = Grains.keep_largest_labelled_region_classes(
+        single_grain_mask_tensor=single_grain_mask_tensor,
+        keep_largest_labelled_regions_classes=keep_largest_labelled_regions_classes,
+    )
+
+    np.testing.assert_array_equal(result, expected_result_grain_tensor)
+
+
+@pytest.mark.parametrize(
     ("grain_mask_tensor", "expected_result_grain_crops"),
     [
         pytest.param(
