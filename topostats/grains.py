@@ -1159,3 +1159,56 @@ class Grains:
                     return False
 
         return True
+
+    @staticmethod
+    def assemble_grain_mask_tensor_from_crops(
+        grain_mask_tensor_shape: tuple[int, int, int],
+        grain_crops_and_bounding_boxes: list[dict[str, npt.NDArray]],
+    ) -> npt.NDArray:
+        """
+        Combine individual grain crops into a single grain mask tensor.
+
+        Parameters
+        ----------
+        grain_mask_tensor_shape : tuple
+            Shape of the grain mask tensor.
+        grain_crops_and_bounding_boxes : list
+            List of dictionaries containing the grain crops and bounding boxes.
+            Structure: [{"grain_tensor": npt.NDArray, "bounding_box": tuple, "padding": int}].
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        """
+        # Initialise the grain mask tensor
+        grain_mask_tensor = np.zeros(grain_mask_tensor_shape).astype(np.int32)
+
+        # Iterate over the grain crops
+        for grain_crop_and_bounding_box in grain_crops_and_bounding_boxes:
+            # Get the grain crop and bounding box
+            grain_crop = grain_crop_and_bounding_box["grain_tensor"]
+            bounding_box = grain_crop_and_bounding_box["bounding_box"]
+            padding = grain_crop_and_bounding_box["padding"]
+
+            # Get the bounding box coordinates
+            min_row, min_col, max_row, max_col = bounding_box
+
+            # Crop the grain
+            cropped_grain = grain_crop[
+                padding:-padding,
+                padding:-padding,
+                :,
+            ]
+
+            # Update the grain mask tensor
+            grain_mask_tensor[
+                min_row:max_row,
+                min_col:max_col,
+                :,
+            ] = cropped_grain
+
+        # Update the background class
+        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
+
+        return grain_mask_tensor.astype(bool)
