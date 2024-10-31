@@ -562,6 +562,22 @@ class Grains:
                     f"[{self.filename}] : Overridden {thresholding_grain_count} grains with {class_counts} UNet predictions ({direction})"
                 )
 
+            # Vet the grains
+            vetted_grains = Grains.vet_grains(
+                grain_mask_tensor=self.directions[direction]["labelled_regions_02"].astype(bool),
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                class_size_thresholds={},
+                class_region_number_thresholds={},
+                nearby_conversion_classes_to_convert=[],
+                class_touching_threshold=1,
+                keep_largest_labelled_regions_classes=[],
+                class_connection_point_thresholds={},
+            )
+
+            labelled_vetted_grains = Grains.label_regions(vetted_grains)
+            self.directions[direction]["removed_small_objects"] = vetted_grains
+            self.directions[direction]["labelled_regions_02"] = labelled_vetted_grains
+
     # pylint: disable=too-many-locals
     @staticmethod
     def improve_grain_segmentation_unet(
