@@ -701,7 +701,7 @@ class Grains:
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
                 # Keep only the largest object in the grain crop (needs to be configurable in future)
-                unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
+                # unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
 
                 # Directly set the background to be equal instead of logical or since they are by default
                 # 1, and should be turned off if any other class is on
