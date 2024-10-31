@@ -2163,3 +2163,149 @@ def test_vet_class_connection_points(
     result_pass = Grains.vet_class_connection_points(grain_mask_tensor, class_connection_point_thresholds)
 
     assert result_pass == expected_pass
+
+
+@pytest.mark.parametrize(
+    ("grain_mask_tensor_shape", "grain_crops_dicts", "expected_grain_mask_tensor"),
+    [
+        pytest.param(
+            np.array([12, 12, 3]),
+            [
+                {
+                    "grain_tensor": np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 0, 1],
+                                    [1, 0, 0, 0, 0, 1],
+                                    [1, 0, 0, 0, 0, 1],
+                                    [1, 0, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 1, 0, 0, 1, 0],
+                                    [0, 1, 0, 0, 1, 0],
+                                    [0, 1, 1, 1, 1, 0],
+                                    [0, 1, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 1, 1, 0, 0],
+                                    [0, 0, 1, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ).astype(bool),
+                    "bounding_box": (1, 1, 5, 5),
+                    "padding": 1,
+                },
+                {
+                    "grain_tensor": np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1],
+                                    [1, 0, 0, 1],
+                                    [1, 0, 0, 1],
+                                    [1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 1, 1, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 1, 1, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ).astype(bool),
+                    "bounding_box": (7, 7, 9, 9),
+                    "padding": 1,
+                },
+            ],
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(bool),
+        )
+    ],
+)
+def test_assemble_grain_mask_tensor_from_crops(
+    grain_mask_tensor_shape: npt.NDArray[np.int32],
+    grain_crops_dicts: list[dict[str, np.ndarray]],
+    expected_grain_mask_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the assemble_grain_mask_tensor_from_crops method of the Grains class."""
+    result_grain_mask_tensor = Grains.assemble_grain_mask_tensor_from_crops(grain_mask_tensor_shape, grain_crops_dicts)
+
+    np.testing.assert_array_equal(result_grain_mask_tensor, expected_grain_mask_tensor)
