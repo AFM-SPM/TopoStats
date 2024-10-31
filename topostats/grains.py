@@ -1128,6 +1128,46 @@ class Grains:
             grain_mask_tensor[:, :, class_b] = class_b_mask
 
         return grain_mask_tensor.astype(bool)
+
+    @staticmethod
+    def keep_largest_labelled_region_classes(
+        single_grain_mask_tensor: npt.NDArray,
+        keep_largest_labelled_regions_classes: list[int],
+    ) -> npt.NDArray:
+        """
+        Keep only the largest region in specific classes.
+
+        Parameters
+        ----------
+        single_grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        keep_largest_labelled_regions_classes : list
+            List of classes to keep only the largest region.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with only the largest regions in specific classes.
+        """
+        # Iterate over the classes
+        for class_index in keep_largest_labelled_regions_classes:
+            # Get the binary mask for the class
+            class_mask = single_grain_mask_tensor[:, :, class_index]
+            # Label the regions
+            labelled_regions = Grains.label_regions(class_mask)
+            # Get the region properties
+            region_properties = Grains.get_region_properties(labelled_regions)
+            # Get the region areas
+            region_areas = [region.area for region in region_properties]
+            # Keep only the largest region
+            largest_region = region_properties[np.argmax(region_areas)]
+            class_mask_largest_only = np.where(labelled_regions == largest_region.label, labelled_regions, 0)
+            # Update the tensor
+            single_grain_mask_tensor[:, :, class_index] = class_mask_largest_only.astype(bool)
+
+        # Update the background class
+        return Grains.update_background_class(single_grain_mask_tensor)
+
     @staticmethod
     def calculate_region_connection_regions(
         grain_mask_tensor: npt.NDArray,
