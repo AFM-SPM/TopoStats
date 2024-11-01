@@ -1431,3 +1431,36 @@ class Grains:
             grain_mask_tensor_shape=grain_mask_tensor.shape,
             grain_crops_and_bounding_boxes=passed_grain_crops_and_bounding_boxes,
         )
+
+    @staticmethod
+    def merge_classes(
+        grain_mask_tensor: npt.NDArray,
+        classes_to_merge: list[tuple[int, int]],
+    ) -> npt.NDArray:
+        """
+        Merge classes in a grain mask tensor.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        classes_to_merge : list
+            List of tuples of classes to merge. Structure is [(class_a, class_b)].
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with classes merged.
+        """
+        # Iterate over the class pairs
+        for class_a, class_b in classes_to_merge:
+            # Get the binary masks for the classes
+            class_a_mask = grain_mask_tensor[:, :, class_a]
+            class_b_mask = grain_mask_tensor[:, :, class_b]
+            # Merge the classes
+            merged_mask = np.logical_or(class_a_mask, class_b_mask)
+            # Update the tensor
+            grain_mask_tensor[:, :, class_a] = merged_mask
+            grain_mask_tensor[:, :, class_b] = merged_mask
+
+        return grain_mask_tensor.astype(bool)
