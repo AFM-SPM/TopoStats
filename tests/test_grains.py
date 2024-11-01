@@ -1400,7 +1400,7 @@ def test_keep_largest_labelled_region_classes(
 
 
 @pytest.mark.parametrize(
-    ("grain_mask_tensor", "expected_result_grain_crops"),
+    ("grain_mask_tensor", "padding", "expected_result_grain_crops", "expected_bounding_boxes", "expected_padding"),
     [
         pytest.param(
             np.stack(
@@ -1450,6 +1450,7 @@ def test_keep_largest_labelled_region_classes(
                 ],
                 axis=-1,
             ),
+            1,
             [
                 np.stack(
                     [
@@ -1531,15 +1532,25 @@ def test_keep_largest_labelled_region_classes(
                     axis=-1,
                 ),
             ],
+            [np.array([0, 0, 6, 7]), np.array([3, 1, 9, 9])],
+            1,
         ),
     ],
 )
 def test_get_individual_grain_crops(
-    grain_mask_tensor: npt.NDArray[np.int32], expected_result_grain_crops: list[npt.NDArray[np.int32]]
+    grain_mask_tensor: npt.NDArray[np.int32],
+    padding: int,
+    expected_result_grain_crops: list[npt.NDArray[np.int32]],
+    expected_bounding_boxes: list[npt.NDArray[np.int32]],
+    expected_padding: int,
 ) -> None:
     """Test the get_individual_grain_crops method of the Grains class."""
-    result = Grains.get_individual_grain_crops(grain_mask_tensor)
-    np.testing.assert_equal(result, expected_result_grain_crops)
+    result_grain_crops, result_bounding_boxes, result_padding = Grains.get_individual_grain_crops(
+        grain_mask_tensor, padding
+    )
+    np.testing.assert_equal(result_grain_crops, expected_result_grain_crops)
+    np.testing.assert_equal(result_bounding_boxes, expected_bounding_boxes)
+    np.testing.assert_equal(result_padding, expected_padding)
 
 
 @pytest.mark.parametrize(

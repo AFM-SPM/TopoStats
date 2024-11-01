@@ -968,7 +968,7 @@ class Grains:
     def get_individual_grain_crops(
         grain_mask_tensor: npt.NDArray,
         padding: int = 1,
-    ) -> list:
+    ) -> tuple[list[npt.NDArray], list[npt.NDArray], int]:
         """
         Get individual grain crops from an image tensor.
 
@@ -985,13 +985,19 @@ class Grains:
 
         Returns
         -------
-        list
+        list[npt.NDArray]
             List of individual grain crops.
+        list[npt.NDArray]
+            List of bounding boxes for each grain.
+        int
+            Padding used for the bounding boxes.
         """
         grain_crops = []
+        bounding_boxes = []
 
         # Label the regions
-        labelled_regions = Grains.label_regions(Grains.flatten_multi_class_tensor(grain_mask_tensor))
+        flattened_multi_class_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
+        labelled_regions = Grains.label_regions(flattened_multi_class_mask)
 
         # Iterate over the regions and return the crop, but zero any non-connected grains
         for region in Grains.get_region_properties(labelled_regions):
@@ -1035,8 +1041,9 @@ class Grains:
 
             # Add the crop to the list
             grain_crops.append(grain_crop)
+            bounding_boxes.append(bounding_box)
 
-        return grain_crops
+        return grain_crops, bounding_boxes, padding
 
     @staticmethod
     def vet_numbers_of_regions_single_grain(
@@ -1087,6 +1094,7 @@ class Grains:
                     return empty_crop_tensor, False
 
         return grain_mask_tensor, True
+
     @staticmethod
     def convert_classes_to_nearby_classes(
         grain_mask_tensor: npt.NDArray,
