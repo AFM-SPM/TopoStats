@@ -566,12 +566,15 @@ class Grains:
             vetted_grains = Grains.vet_grains(
                 grain_mask_tensor=self.directions[direction]["labelled_regions_02"].astype(bool),
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                class_size_thresholds={},
-                class_region_number_thresholds={},
-                nearby_conversion_classes_to_convert=[],
-                class_touching_threshold=1,
-                keep_largest_labelled_regions_classes=[],
-                class_connection_point_thresholds={},
+                class_size_thresholds={
+                    1: [40 * self.pixel_to_nm_scaling**2, None],
+                    2: [40 * self.pixel_to_nm_scaling**2, None],
+                },
+                class_region_number_thresholds={1: [1, None], 2: [1, None]},
+                nearby_conversion_classes_to_convert=[(2, 1)],
+                class_touching_threshold=5,
+                keep_largest_labelled_regions_classes=[1],
+                class_connection_point_thresholds={(1, 2): [2, 2]},
             )
 
             labelled_vetted_grains = Grains.label_regions(vetted_grains)
@@ -629,7 +632,10 @@ class Grains:
         # You may also get an error referencing a "group_1" parameter, this is discussed in this issue:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
-        unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
+
+        unet_model = keras.models.load_model(unet_config["model_path"])
+
+        # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
