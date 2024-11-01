@@ -8,11 +8,11 @@ config.read("config/config.ini")
 imagepath1 = config.get("MainSection", "imagepath1")
 imagepath2 = config.get("MainSection", "imagepath2")
 image_manual = Image.open(imagepath1)
-image_automatic = Image.open(imagepath2)
+array_automatic = np.load(imagepath2).astype(int)
 
 # Convert images to numpy arrays
 array_manual = np.array(image_manual)[:, :, 0]
-array_automatic = np.array(image_automatic)[:, :, 0]
+array_automatic = np.transpose(array_automatic)
 # Convert arrays to binary
 array_manual[array_manual != 0] = 1
 array_automatic[array_automatic != 0] = 1

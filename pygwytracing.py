@@ -351,7 +351,6 @@ def removesmallobjectsbymean(datafield, mask, mean_pixel_area, std_pixel_area, m
     return mask, grains, number_of_grains
 
 
-
 def grainanalysis(appended_data, filename, datafield, grains):
     # Calculating grain statistics using numbered grains file
     # Statistics to be computed should be specified here as a dictionary
@@ -980,7 +979,6 @@ if __name__ == '__main__':
 
                 curvature_stats.saveCurvatureStats(path)
 
-
                 # dna_traces.plotCurvature(0)
                 # dna_traces.writeCoordinates(0)
                 for num in range(1, number_of_grains + 1):
@@ -1021,6 +1019,8 @@ if __name__ == '__main__':
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)
             # saveunknownfiles(data, filename, extension)
+            np.save(os.path.join(path, 'Automatic mask'), npmask)
+            print(np.shape(npmask))
 
             # Saving stats to text and JSON files named by master path
             # saveindividualstats(filename, grainstats, k)
