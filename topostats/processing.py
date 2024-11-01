@@ -220,24 +220,41 @@ def run_grains(  # noqa: C901
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
-                    # hard code to class index 1, as this implementation is not yet generalised.
-                    Images(
-                        data=np.zeros_like(grains.directions[direction]["labelled_regions_02"][:, :, 1]),
-                        masked_array=grains.directions[direction]["labelled_regions_02"][:, :, 1],
-                        **plotting_config["plot_dict"]["coloured_boxes"],
-                        region_properties=grains.region_properties[direction],
-                    ).plot_and_save()
-                    # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                    plot_name = "mask_overlay"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    # hard code to class index 1, as this implementation is not yet generalised.
-                    Images(
-                        image,
-                        filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"][:, :, 1].astype(bool),
-                        **plotting_config["plot_dict"][plot_name],
-                        region_properties=grains.region_properties[direction],
-                    ).plot_and_save()
+                    
+                    for mask in range(1, grains.directions[direction]["labelled_regions_02"].shape[2]):
+                        class_mask = grains.directions[direction]["labelled_regions_02"][:, :, mask]
+                        class_mask = class_mask.astype(np.float32)
+                        LOGGER.debug(f"[{filename}] : Class mask shape: {class_mask.shape}, dtype: {class_mask.dtype}")
+
+                        class_box_dict = plotting_config["plot_dict"]["coloured_boxes"]
+                        class_box_dict["output_dir"] = grain_out_path_direction
+                        LOGGER.info(f"[{filename}] : Plotting class {mask} image")
+                        
+                        Images(
+                            class_mask,
+                            **class_box_dict,
+                            region_properties=grains.region_properties[direction],
+                        ).plot_and_save()
+                        
+                    for mask in range(1, grains.directions[direction]["labelled_regions_02"].shape[2]):
+                        # Generate and save the mask overlay for each class
+                        plot_name = f"mask_overlay_class_{mask}"
+                        plotting_config["plot_dict"][plot_name] = plotting_config["plot_dict"].get("mask_overlay", {}).copy()
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+
+                        LOGGER.info(f"[{filename}] : Plotting mask overlay for class {mask}")
+                        
+                        # Extract the mask for the current class
+                        masked_array = grains.directions[direction]["removed_small_objects"][:, :, mask].astype(bool)
+
+                        # Plot and save the masked image
+                        Images(
+                            image,
+                            filename=f"{filename}_{direction}_masked_class_{mask}",
+                            masked_array=masked_array,
+                            **plotting_config["plot_dict"][plot_name],
+                            region_properties=grains.region_properties[direction],
+                        ).plot_and_save()
 
                 plotting_config["run"] = True
 
