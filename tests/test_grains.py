@@ -2456,3 +2456,91 @@ def test_assemble_grain_mask_tensor_from_crops(
     result_grain_mask_tensor = Grains.assemble_grain_mask_tensor_from_crops(grain_mask_tensor_shape, grain_crops_dicts)
 
     np.testing.assert_array_equal(result_grain_mask_tensor, expected_grain_mask_tensor)
+
+@pytest.mark.parametrize(
+    ("grain_mask_tensor", "classes_to_merge", "expected_result_grain_mask_tensor"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 0, 1, 0],
+                            [0, 1, 0, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 1, 0, 0],
+                            [0, 0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [(1, 2)],
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+        )
+    ],
+)
+def test_merge_classes(
+    grain_mask_tensor: npt.NDArray[np.int32],
+    classes_to_merge: list[tuple[int, int]],
+    expected_result_grain_mask_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the merge_classes method of the Grains class."""
+    result_grain_mask_tensor = Grains.merge_classes(grain_mask_tensor, classes_to_merge)
+
+    np.testing.assert_array_equal(result_grain_mask_tensor, expected_result_grain_mask_tensor)
