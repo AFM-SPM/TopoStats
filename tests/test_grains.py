@@ -2299,7 +2299,7 @@ def test_vet_class_connection_points(
                         ],
                         axis=-1,
                     ).astype(bool),
-                    "bounding_box": (1, 1, 5, 5),
+                    "bounding_box": (0, 0, 6, 6),
                     "padding": 1,
                 },
                 {
@@ -2332,7 +2332,7 @@ def test_vet_class_connection_points(
                         ],
                         axis=-1,
                     ).astype(bool),
-                    "bounding_box": (7, 7, 9, 9),
+                    "bounding_box": (6, 6, 10, 10),
                     "padding": 1,
                 },
             ],

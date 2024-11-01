@@ -1308,8 +1308,8 @@ class Grains:
 
             # Update the grain mask tensor
             grain_mask_tensor[
-                min_row:max_row,
-                min_col:max_col,
+                min_row + padding : max_row - padding,
+                min_col + padding : max_col - padding,
                 :,
             ] = cropped_grain
 
