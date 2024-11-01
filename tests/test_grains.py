@@ -963,8 +963,52 @@ def test_keep_largest_labelled_region(
                     [0, 0, 0, 0, 0],
                 ]
             ),
-            id="two class plus background",
-        )
+            id="two class plus background, no overlap in classes",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 1, 1, 1, 0],
+                            [0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ]
+            ),
+            id="two class plus background, overlap in class 1 and 2",
+        ),
     ],
 )
 def test_flatten_multi_class_tensor(

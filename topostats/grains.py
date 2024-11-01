@@ -778,8 +778,9 @@ class Grains:
             Combined binary mask of all but the background class (:, :, 0).
         """
         assert len(grain_mask_tensor.shape) == 3, f"Tensor not 3D: {grain_mask_tensor.shape}"
-        assert grain_mask_tensor.shape[0] == grain_mask_tensor.shape[1], f"Tensor not square: {grain_mask_tensor.shape}"
-        return np.sum(grain_mask_tensor[:, :, 1:], axis=-1)
+        # Convert to binary in case there are multiple hits in the same pixel. We dont want to have 2s, 3s etc
+        # because this would cause issues in labelling and cause grains in grains.
+        return np.sum(grain_mask_tensor[:, :, 1:], axis=-1).astype(bool)
 
     @staticmethod
     def get_multi_class_grain_bounding_boxes(grain_mask_tensor: npt.NDArray) -> dict:
