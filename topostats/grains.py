@@ -19,7 +19,6 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.unet_masking import (
     make_bounding_box_square,
-    mean_iou,
     pad_bounding_box,
     predict_unet,
 )
@@ -1332,3 +1331,103 @@ class Grains:
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
 
         return grain_mask_tensor.astype(bool)
+
+    @staticmethod
+    def vet_grains(
+        grain_mask_tensor: npt.NDArray,
+        pixel_to_nm_scaling: float,
+        class_size_thresholds: dict[int, tuple[int, int]],
+        class_region_number_thresholds: dict[int, tuple[int, int]],
+        nearby_conversion_classes_to_convert: list[tuple[int, int]],
+        class_touching_threshold: int,
+        keep_largest_labelled_regions_classes: list[int],
+        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]],
+    ) -> npt.NDArray:
+        """
+        Vet grains in a grain mask tensor based on a variety of criteria.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        class_size_thresholds : dict
+            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
+        class_region_number_thresholds : dict
+            Dictionary of class region number thresholds. Structure is {class_number: (lower, upper)}.
+        nearby_conversion_classes_to_convert : list
+            List of tuples of classes to convert. Structure is [(class_a, class_b)].
+        class_touching_threshold : int
+            Number of dilation passes to do to determine class A connectivity with class B.
+        keep_largest_labelled_regions_classes : list
+            List of classes to keep only the largest region.
+        class_connection_point_thresholds : dict
+            Dictionary of required number of connection points between classes, indexed by class pair.
+            Structure is {(class_a, class_b): (lower, upper)}.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the vetted grain mask tensor.
+        """
+        # Get individual grain crops
+        grain_tensor_crops, bounding_boxes, padding = Grains.get_individual_grain_crops(grain_mask_tensor)
+
+        passed_grain_crops_and_bounding_boxes = []
+
+        # Iterate over the grain crops
+        for _, (single_grain_mask_tensor, bounding_box) in enumerate(zip(grain_tensor_crops, bounding_boxes)):
+
+            # Vet number of regions (foreground and background)
+            _, passed = Grains.vet_numbers_of_regions_single_grain(
+                grain_mask_tensor=single_grain_mask_tensor,
+                class_region_number_thresholds=class_region_number_thresholds,
+            )
+            if not passed:
+                continue
+
+            # Vet size of regions (foreground and background)
+            _, passed = Grains.vet_class_sizes_single_grain(
+                single_grain_mask_tensor=single_grain_mask_tensor,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                class_size_thresholds=class_size_thresholds,
+            )
+            if not passed:
+                continue
+
+            # Turn all but largest region of class A into class B provided that the class A region touched a class B
+            # region
+            converted_single_grain_mask_tensor = Grains.convert_classes_to_nearby_classes(
+                grain_mask_tensor=single_grain_mask_tensor,
+                classes_to_convert=nearby_conversion_classes_to_convert,
+                class_touching_threshold=class_touching_threshold,
+            )
+
+            # Remove all but largest region in specific classes
+            largest_only_single_grain_mask_tensor = Grains.keep_largest_labelled_region_classes(
+                single_grain_mask_tensor=converted_single_grain_mask_tensor,
+                keep_largest_labelled_regions_classes=keep_largest_labelled_regions_classes,
+            )
+
+            # Vet number of connection points between regions in specific classes
+            if not Grains.vet_class_connection_points(
+                grain_mask_tensor=largest_only_single_grain_mask_tensor,
+                class_connection_point_thresholds=class_connection_point_thresholds,
+            ):
+                continue
+
+            # If passed all vetting steps, add to the list of passed grain crops
+            passed_grain_crops_and_bounding_boxes.append(
+                {
+                    "grain_tensor": largest_only_single_grain_mask_tensor,
+                    "bounding_box": bounding_box,
+                    "padding": padding,
+                }
+            )
+
+        # Construct a new grain mask tensor from the passed grains
+        return Grains.assemble_grain_mask_tensor_from_crops(
+            grain_mask_tensor_shape=grain_mask_tensor.shape,
+            grain_crops_and_bounding_boxes=passed_grain_crops_and_bounding_boxes,
+        )
