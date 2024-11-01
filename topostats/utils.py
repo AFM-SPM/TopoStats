@@ -48,6 +48,8 @@ COLUMN_SETS = {
         "smallest_bounding_width",
         "threshold",
         "volume",
+        "class",
+        "object_number"
     ),
     "disordered_tracing_statistics": (
         "image",
