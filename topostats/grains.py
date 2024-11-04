@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections import defaultdict
 
 import keras
@@ -291,7 +292,7 @@ class Grains:
         # there were no grains to calculate the minimum grian size from.
         if self.minimum_grain_size != -1:
             small_objects_removed = morphology.remove_small_objects(
-                image,
+                image.astype(bool),
                 min_size=self.minimum_grain_size,  # minimum_grain_size is in pixels squared
                 **kwargs,
             )
@@ -646,7 +647,12 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
 
-        unet_model = keras.models.load_model(unet_config["model_path"])
+        # Important for when loading the model inievitably fails on users' machines.
+        LOGGER.info(f"Python executable: {os.sys.executable}")
+        LOGGER.info(f"Keras version: {keras.__version__}")
+        LOGGER.info(f"Model path: {unet_config['model_path']}")
+
+        unet_model = keras.models.load_model(unet_config["model_path"], compile=False)
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
