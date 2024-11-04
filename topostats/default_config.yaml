@@ -55,6 +55,7 @@ grains:
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
 grainstats:
   run: true # Options : true, false
+  class_to_measure: 1 # The class of grain to measure statistics for. Default is 1. Relevant for multi-class segmentation.
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
   cropped_size: -1 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
   extract_height_profile: true # Extract height profiles along maximum feret of molecules

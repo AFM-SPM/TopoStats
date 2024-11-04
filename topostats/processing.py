@@ -34,7 +34,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
@@ -316,8 +315,15 @@ def run_grainstats(
             for direction, _ in grain_masks.items():
                 # Get the DNA class mask from the tensor
                 LOGGER.debug(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
+                class_to_measure = grainstats_config["class_to_measure"]
+                grainstats_config.pop("class_to_measure")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 1]
+                assert class_to_measure < grain_masks[direction].shape[2], (
+                    f"[{filename}] : Class to measure out of bounds. Class to measure: {class_to_measure}, Number of"
+                    f" classes: {grain_masks[direction].shape[2]}"
+                )
+                dna_class_mask = grain_masks[direction][:, :, class_to_measure]
+
                 LOGGER.debug(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 # Check if there are grains
