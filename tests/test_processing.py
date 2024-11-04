@@ -33,20 +33,23 @@ def test_process_hariborings(process_scan_config: dict) -> None:
     """Test the process_hariborings."""
     process_scan_config["cores"] = 1
     process_scan_config["threshold_method"] = "absolute"
+    process_scan_config["grains"]["run"] = True
     process_scan_config["grains"]["unet_config"][
         "model_path"
     ] = "/Volumes/shared/pyne_group/Shared/AFM_Data/Cas9_Minicircles/deep_learning/saved_models/haribonet_multiclass_improved_norm_big_95_bridging_v1_2024-01-17_10-58-46_fixed.keras"
-    process_scan_config["grains"]["unet_config"]["grain_crop_padding"] = 5
+    process_scan_config["grains"]["unet_config"]["grain_crop_padding"] = 10
     process_scan_config["filter"]["remove_scars"]["run"] = False
-    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [None, None]
+    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [1, 10000000000]
     process_scan_config["disordered_tracing"]["run"] = False
     process_scan_config["nodestats"]["run"] = False
     process_scan_config["ordered_tracing"]["run"] = False
     process_scan_config["splining"]["run"] = False
-    process_scan_config["plotting"]["run"] = False
+    process_scan_config["plotting"]["run"] = True
+    process_scan_config["grainstats"]["class_to_measure"] = 3
 
     data_dir = Path("/Users/sylvi/topo_data/hariborings/test_cas9_main/data_bound_on/")
-    filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00027.spm"
+    # filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00027.spm"
+    filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00029.spm"
     data_path = data_dir / filename
 
     # Load the image
@@ -582,7 +585,13 @@ def test_check_run_steps(
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
     check_run_steps(
-        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+        filter_run,
+        grains_run,
+        grainstats_run,
+        disordered_tracing_run,
+        nodestats_run,
+        ordered_tracing_run,
+        splining_run,
     )
     assert log_msg in caplog.text
 
