@@ -576,9 +576,23 @@ class Grains:
                 class_connection_point_thresholds={(1, 2): [2, 2]},
             )
 
-            labelled_vetted_grains = Grains.label_regions(vetted_grains)
-            self.directions[direction]["removed_small_objects"] = vetted_grains
-            self.directions[direction]["labelled_regions_02"] = labelled_vetted_grains
+            # Merge classes if necessary
+            classes_to_merge = [(1, 2)]
+            merged_classes = Grains.merge_classes(
+                vetted_grains,
+                classes_to_merge,
+            )
+
+            # Label each class in the tensor
+            labelled_final_grains = np.zeros_like(merged_classes).astype(int)
+            # The background class will be the same as the binary mask
+            labelled_final_grains[:, :, 0] = merged_classes[:, :, 0]
+            # Iterate over each class and label the regions
+            for class_index in range(merged_classes.shape[2]):
+                labelled_final_grains[:, :, class_index] = Grains.label_regions(merged_classes[:, :, class_index])
+
+            self.directions[direction]["removed_small_objects"] = labelled_final_grains.astype(bool)
+            self.directions[direction]["labelled_regions_02"] = labelled_final_grains
 
     # pylint: disable=too-many-locals
     @staticmethod
