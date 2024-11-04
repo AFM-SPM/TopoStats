@@ -193,6 +193,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grainstats.run', valid values are 'True' or 'False'",
             ),
+            "class_to_measure": lambda n: n > 0,
             "edge_detection_method": Or(
                 "binary_erosion",
                 "canny",
