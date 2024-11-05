@@ -207,7 +207,7 @@ def run_grains(  # noqa: C901
                     for plot_name, array in image_arrays.items():
                         if len(array.shape) == 3:
                             # Use the DNA class mask from the tensor. Hardcoded to 1 as this implementation is not yet generalised.
-                            array = array[:, :, 2]
+                            array = array[:, :, 1]
                         LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
                         plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                         Images(
@@ -348,15 +348,16 @@ def run_grainstats(
                     grainstats_dict[direction] = create_empty_dataframe(
                         column_set="grainstats", index_col="grain_number"
                     )
-                    continue  # Use continue instead of skipping the rest of the code for this direction
+                    continue
 
                 grainstats_dfs = []  # Store dataframes for each molecule in this direction
 
                 for unet_class in range(1, grain_masks[direction].shape[2]):
                     class_mask = grain_masks[direction][:, :, unet_class]
+                    np.save(f"/Users/laura/Desktop/mask_{unet_class}", class_mask)
                     overlap_mask = np.where(class_mask, dna_class_mask, 0)
 
-                    grains_plot_data = []  # Initialize for this class
+                    grains_plot_data = []
 
                     for molecule, molecule_number in molecule_map.items():
                         relabeled_mask = np.where(overlap_mask == molecule, molecule_number, 0)
@@ -406,9 +407,9 @@ def run_grainstats(
                         LOGGER.info(f"[{filename}] : Plotting grain images for class: {unet_class}, direction: {direction}.")
                         for plot_data in grains_plot_data:
                             class_label = unet_class
-                            molecule_label = plot_data.get("molecule_number", "unknown_molecule")
+                            molecule_label = plot_data.get("grain_number", "unknown_molecule")
                             object_label = plot_data.get("object_number", "unknown_object")
-                            plot_filename = f"{filename}_{plot_data['name']}_molecule{molecule_label}_class{class_label}_object{object_label}"
+                            plot_filename = f"{filename}_{plot_data['name']}_grain{molecule_label}_class{class_label}_object{object_label}"
 
                             LOGGER.info(
                                 f"[{filename}] : Plotting grain image {plot_filename} for direction: {direction}."
@@ -517,7 +518,7 @@ def run_disordered_trace(
             for direction, _ in grain_masks.items():
                 # Check if there are grains
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 2]
+                dna_class_mask = grain_masks[direction][:, :, 1]
                 if np.max(dna_class_mask) == 0:
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
