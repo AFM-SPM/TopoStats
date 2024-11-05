@@ -1068,7 +1068,7 @@ class Grains:
             ]
 
             # Add the crop to the list
-            grain_crops.append(grain_crop)
+            grain_crops.append(grain_crop.astype(bool))
             bounding_boxes.append(bounding_box)
 
         return grain_crops, bounding_boxes, padding
@@ -1160,6 +1160,10 @@ class Grains:
             # Get the binary mask for class B
             class_b_mask = grain_mask_tensor[:, :, class_b]
 
+            # Skip if no regions of class A
+            if np.max(class_a_mask) == 0:
+                continue
+
             # Find the largest region of class A
             class_a_labelled_regions = Grains.label_regions(class_a_mask)
             class_a_region_properties = Grains.get_region_properties(class_a_labelled_regions)
@@ -1203,7 +1207,7 @@ class Grains:
         ----------
         single_grain_mask_tensor : npt.NDArray
             3-D Numpy array of the grain mask tensor.
-        keep_largest_labelled_regions_classes : list
+        keep_largest_labelled_regions_classes : list[int]
             List of classes to keep only the largest region.
 
         Returns
@@ -1215,6 +1219,11 @@ class Grains:
         for class_index in keep_largest_labelled_regions_classes:
             # Get the binary mask for the class
             class_mask = single_grain_mask_tensor[:, :, class_index]
+
+            # Skip if no regions
+            if np.max(class_mask) == 0:
+                continue
+
             # Label the regions
             labelled_regions = Grains.label_regions(class_mask)
             # Get the region properties
