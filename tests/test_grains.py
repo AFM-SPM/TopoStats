@@ -2457,6 +2457,7 @@ def test_assemble_grain_mask_tensor_from_crops(
 
     np.testing.assert_array_equal(result_grain_mask_tensor, expected_grain_mask_tensor)
 
+
 @pytest.mark.parametrize(
     ("grain_mask_tensor", "classes_to_merge", "expected_result_grain_mask_tensor"),
     [

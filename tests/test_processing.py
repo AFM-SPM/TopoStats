@@ -26,9 +26,6 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
 
-from topostats.io import LoadScans
-
-
 def test_process_hariborings(process_scan_config: dict) -> None:
     """Test the process_hariborings."""
     process_scan_config["cores"] = 1
