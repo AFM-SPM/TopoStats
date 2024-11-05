@@ -207,6 +207,45 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'grainstats.extract_height_profile',"
                 "valid values are 'True' or 'False'",
             ),
+            "vetting": {
+                "class_region_number_thresholds": Or(
+                    None,
+                    # Dictionary of integers and tuples of two values
+                    {int: [int, int]},
+                    error="Invalid value in config for 'grainstats.vetting.class_region_number_thresholds', this needs"
+                    "to be a dictionary of integers and tuples of two values",
+                ),
+                "class_size_thresholds": Or(
+                    None,
+                    # Dictionary of integers and tuples of two values
+                    {int: [int, int]},
+                    error="Invalid value in config for 'grainstats.vetting.class_size_thresholds', this needs"
+                    "to be a dictionary of integers and tuples of two values",
+                ),
+                "nearby_conversion_classes_to_convert": Or(
+                    None,
+                    # List of tuples of two integers
+                    [[int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.nearby_conversion_classes_to_convert', this"
+                    "needs to be a list of tuples of two integers",
+                ),
+                "class_touching_threshold": lambda n: n >= 0,
+                "keep_largest_labelled_regions_classes": Or(
+                    None,
+                    # List of integers
+                    [int],
+                    error="Invalid value in config for 'grainstats.vetting.keep_largest_labelled_regions_classes', this"
+                    "needs to be a list of integers",
+                ),
+                "class_connection_point_thresholds": Or(
+                    None,
+                    # Dictionary with keys being tuples of two integers and values being tuples of two integers
+                    {(int, int): (int, int)},
+                    error="Invalid value in config for 'grainstats.vetting.class_connection_point_thresholds', this"
+                    "needs to be a dictionary with keys being tuples of two integers and values being tuples of two"
+                    "integers",
+                ),
+            },
         },
         "disordered_tracing": {
             "run": Or(

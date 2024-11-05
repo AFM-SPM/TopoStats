@@ -56,7 +56,7 @@ grains:
   vetting:
     class_region_number_thresholds: null # Class region number thresholds eg 1: [2, 4], 2: [1, 1]
     class_size_thresholds: null # Class size thresholds eg 1: [100, 1000], 2: [500, 5000]
-    nearby_conversion_labelled_regions_classes: null # Class conversion for nearby regions eg [(1, 2), (3, 4)] to convert class 1 to 2 and 3 to 4 for small touching regions
+    nearby_conversion_classes_to_convert: null # Class conversion for nearby regions eg [(1, 2), (3, 4)] to convert class 1 to 2 and 3 to 4 for small touching regions
     class_touching_threshold: 5 # Number of dilation steps to use for detecting touching regions
     keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for eg [1, 2]
     class_connection_point_thresholds: null # Thresholds for number of connection points between classes. (class1, class2): (min_regions, max_regions) eg (1, 2): (2, 2), (3, 4): (1, 2)
