@@ -315,15 +315,8 @@ def run_grainstats(
             for direction, _ in grain_masks.items():
                 # Get the DNA class mask from the tensor
                 LOGGER.debug(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
-                class_to_measure = grainstats_config["class_to_measure"]
-                grainstats_config.pop("class_to_measure")
                 assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                assert class_to_measure < grain_masks[direction].shape[2], (
-                    f"[{filename}] : Class to measure out of bounds. Class to measure: {class_to_measure}, Number of"
-                    f" classes: {grain_masks[direction].shape[2]}"
-                )
-                dna_class_mask = grain_masks[direction][:, :, class_to_measure]
-
+                dna_class_mask = grain_masks[direction][:, :, 1]
                 LOGGER.debug(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
 
                 # Check if there are grains
@@ -885,7 +878,9 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+                    splining_molstats = create_empty_dataframe(
+                        column_set="mol_statistics", index_col="molecule_number"
+                    )
                     raise ValueError(f"No grains exist for the {direction} direction")
 
                 # if grains are found
@@ -1166,7 +1161,9 @@ def process_scan(
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
         molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
-        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
+        disordered_tracing_stats = create_empty_dataframe(
+            column_set="disordered_tracing_statistics", index_col="index"
+        )
         height_profiles = {}
 
     # Get image statistics
