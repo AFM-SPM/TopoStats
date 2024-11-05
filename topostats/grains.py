@@ -76,6 +76,10 @@ class Grains:
         Whether or not to remove grains that intersect the edge of the image.
     remove_edge_intersecting_grains : bool
         Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+    classes_to_merge : list[tuple[int, int]] | None
+        List of tuples of classes to merge.
+    vetting : dict | None
+        Dictionary of vetting parameters.
     """
 
     def __init__(
@@ -92,6 +96,8 @@ class Grains:
         direction: str | None = None,
         smallest_grain_size_nm2: float | None = None,
         remove_edge_intersecting_grains: bool = True,
+        classes_to_merge: list[tuple[int, int]] | None = None,
+        vetting: dict | None = None,
     ):
         """
         Initialise the class.
@@ -131,6 +137,10 @@ class Grains:
             Whether or not to remove grains that intersect the edge of the image.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+        classes_to_merge : list[tuple[int, int]] | None
+            List of tuples of classes to merge.
+        vetting : dict | None
+            Dictionary of vetting parameters.
         """
         if unet_config is None:
             unet_config = {
@@ -168,6 +178,8 @@ class Grains:
         self.bounding_boxes = defaultdict()
         self.grainstats = None
         self.unet_config = unet_config
+        self.vetting = vetting
+        self.classes_to_merge = classes_to_merge
 
         # Hardcoded minimum pixel size for grains. This should not be able to be changed by the user as this is
         # determined by what is processable by the rest of the pipeline.
@@ -563,25 +575,19 @@ class Grains:
                 )
 
             # Vet the grains
-            vetted_grains = Grains.vet_grains(
-                grain_mask_tensor=self.directions[direction]["labelled_regions_02"].astype(bool),
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                class_size_thresholds={
-                    1: [40 * self.pixel_to_nm_scaling**2, None],
-                    2: [40 * self.pixel_to_nm_scaling**2, None],
-                },
-                class_region_number_thresholds={1: [1, None], 2: [1, None]},
-                nearby_conversion_classes_to_convert=[(2, 1)],
-                class_touching_threshold=5,
-                keep_largest_labelled_regions_classes=[1],
-                class_connection_point_thresholds={(1, 2): [2, 2]},
-            )
+            if self.vetting is not None:
+                vetted_grains = Grains.vet_grains(
+                    grain_mask_tensor=self.directions[direction]["labelled_regions_02"].astype(bool),
+                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                    **self.vetting,
+                )
+            else:
+                vetted_grains = self.directions[direction]["labelled_regions_02"].astype(bool)
 
             # Merge classes if necessary
-            classes_to_merge = [(1, 2)]
             merged_classes = Grains.merge_classes(
                 vetted_grains,
-                classes_to_merge,
+                self.classes_to_merge,
             )
 
             # Label each class in the tensor
@@ -938,7 +944,7 @@ class Grains:
     def vet_class_sizes_single_grain(
         single_grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: dict[int, tuple[int, int]],
+        class_size_thresholds: dict[int, tuple[int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
         Vet the sizes of the classes in a single grain mask tensor.
@@ -959,6 +965,9 @@ class Grains:
         bool
             True if the grain passes the vetting, False if it fails.
         """
+        if class_size_thresholds is None:
+            return single_grain_mask_tensor, True
+
         # Iterate over the classes and check the sizes
         for class_index in range(1, single_grain_mask_tensor.shape[2]):
             class_size = np.sum(single_grain_mask_tensor[:, :, class_index]) * pixel_to_nm_scaling**2
@@ -1067,7 +1076,7 @@ class Grains:
     @staticmethod
     def vet_numbers_of_regions_single_grain(
         grain_mask_tensor: npt.NDArray,
-        class_region_number_thresholds: dict[int, tuple[int, int]],
+        class_region_number_thresholds: dict[int, tuple[int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
         Vet the number of regions in a grain mask tensor of a single grain, ignoring the background class.
@@ -1076,7 +1085,7 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the grain mask tensor, should be of only one grain.
-        class_region_number_thresholds : dict
+        class_region_number_thresholds : dict | None
             Dictionary of class region number thresholds. Structure is {class_number: (lower, upper)}.
 
         Returns
@@ -1086,6 +1095,9 @@ class Grains:
         bool
             True if the grain passes the vetting, False if it fails.
         """
+        if class_region_number_thresholds is None:
+            return grain_mask_tensor, True
+
         # Iterate over the classes and check the number of regions
         for class_index in range(1, grain_mask_tensor.shape[2]):
             # Get the number of regions
@@ -1356,12 +1368,12 @@ class Grains:
     def vet_grains(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: dict[int, tuple[int, int]],
-        class_region_number_thresholds: dict[int, tuple[int, int]],
-        nearby_conversion_classes_to_convert: list[tuple[int, int]],
+        class_size_thresholds: dict[int, tuple[int, int]] | None,
+        class_region_number_thresholds: dict[int, tuple[int, int]] | None,
+        nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
         class_touching_threshold: int,
-        keep_largest_labelled_regions_classes: list[int],
-        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]],
+        keep_largest_labelled_regions_classes: list[int] | None,
+        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]] | None,
     ) -> npt.NDArray:
         """
         Vet grains in a grain mask tensor based on a variety of criteria.
@@ -1455,7 +1467,7 @@ class Grains:
     @staticmethod
     def merge_classes(
         grain_mask_tensor: npt.NDArray,
-        classes_to_merge: list[tuple[int]],
+        classes_to_merge: list[tuple[int]] | None,
     ) -> npt.NDArray:
         """
         Merge classes in a grain mask tensor and add them to the grain tensor.
@@ -1464,7 +1476,7 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the grain mask tensor.
-        classes_to_merge : list
+        classes_to_merge : list | None
             List of tuples for classes to merge, can be any number of classes.
 
         Returns
@@ -1472,6 +1484,8 @@ class Grains:
         npt.NDArray
             3-D Numpy array of the grain mask tensor with classes merged.
         """
+        if classes_to_merge is None:
+            return grain_mask_tensor
         # For each set of classes to merge:
         for classes in classes_to_merge:
             # Get the binary masks for all the classes

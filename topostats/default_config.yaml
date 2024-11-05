@@ -53,6 +53,13 @@ grains:
     grain_crop_padding: 2 # Padding to apply to the grain crop bounding box
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
+  vetting:
+    class_region_number_thresholds: null # Class region number thresholds eg 1: [2, 4], 2: [1, 1]
+    class_size_thresholds: null # Class size thresholds eg 1: [100, 1000], 2: [500, 5000]
+    nearby_conversion_labelled_regions_classes: null # Class conversion for nearby regions eg [(1, 2), (3, 4)] to convert class 1 to 2 and 3 to 4 for small touching regions
+    class_touching_threshold: 5 # Number of dilation steps to use for detecting touching regions
+    keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for eg [1, 2]
+    class_connection_point_thresholds: null # Thresholds for number of connection points between classes. (class1, class2): (min_regions, max_regions) eg (1, 2): (2, 2), (3, 4): (1, 2)
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
