@@ -44,6 +44,12 @@ def test_process_hariborings(process_scan_config: dict) -> None:
     process_scan_config["plotting"]["run"] = True
     process_scan_config["grainstats"]["class_to_measure"] = 3
 
+    process_scan_config["grains"]["vetting"]["class_region_number_thresholds"] = {1: [1, None], 2: [1, None]}
+    process_scan_config["grains"]["vetting"]["nearby_conversion_classes_to_convert"] = [(2, 1)]
+    process_scan_config["grains"]["vetting"]["keep_largest_labelled_regions_classes"] = [1]
+    process_scan_config["grains"]["vetting"]["class_connection_point_thresholds"] = {(1, 2): (2, 2)}
+    process_scan_config["grains"]["vetting"]["class_touching_threshold"] = 5
+
     data_dir = Path("/Users/sylvi/topo_data/hariborings/test_cas9_main/data_bound_on/")
     # filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00027.spm"
     filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00029.spm"
