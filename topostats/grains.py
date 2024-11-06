@@ -1215,6 +1215,9 @@ class Grains:
         npt.NDArray
             3-D Numpy array of the grain mask tensor with only the largest regions in specific classes.
         """
+        if keep_largest_labelled_regions_classes is None:
+            return single_grain_mask_tensor
+
         # Iterate over the classes
         for class_index in keep_largest_labelled_regions_classes:
             # Get the binary mask for the class
@@ -1284,7 +1287,7 @@ class Grains:
     @staticmethod
     def vet_class_connection_points(
         grain_mask_tensor: npt.NDArray,
-        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]],
+        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]] | None,
     ) -> bool:
         """
         Vet the number of connection points between regions in specific classes.
@@ -1302,6 +1305,9 @@ class Grains:
         bool
             True if the grain passes the vetting, False if it fails.
         """
+        if class_connection_point_thresholds is None:
+            return True
+
         # Iterate over the class pairs
         for class_pair, connection_point_thresholds in class_connection_point_thresholds.items():
             # Get the connection regions
