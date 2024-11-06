@@ -26,57 +26,6 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
 
-def test_process_hariborings(process_scan_config: dict) -> None:
-    """Test the process_hariborings."""
-    process_scan_config["cores"] = 1
-    process_scan_config["threshold_method"] = "absolute"
-    process_scan_config["grains"]["run"] = True
-    process_scan_config["grains"]["unet_config"][
-        "model_path"
-    ] = "/Volumes/shared/pyne_group/Shared/AFM_Data/Cas9_Minicircles/deep_learning/saved_models/haribonet_multiclass_improved_norm_big_95_bridging_v1_2024-01-17_10-58-46_fixed.keras"
-    process_scan_config["grains"]["unet_config"]["grain_crop_padding"] = 10
-    process_scan_config["filter"]["remove_scars"]["run"] = False
-    process_scan_config["grains"]["absolute_area_threshold"]["above"] = [1, 10000000000]
-    process_scan_config["disordered_tracing"]["run"] = False
-    process_scan_config["nodestats"]["run"] = False
-    process_scan_config["ordered_tracing"]["run"] = False
-    process_scan_config["splining"]["run"] = False
-    process_scan_config["plotting"]["run"] = True
-    process_scan_config["grainstats"]["class_to_measure"] = 3
-
-    process_scan_config["grains"]["vetting"]["class_region_number_thresholds"] = {1: [1, None], 2: [1, None]}
-    process_scan_config["grains"]["vetting"]["nearby_conversion_classes_to_convert"] = [(2, 1)]
-    process_scan_config["grains"]["vetting"]["keep_largest_labelled_regions_classes"] = [1]
-    process_scan_config["grains"]["vetting"]["class_connection_point_thresholds"] = {(1, 2): (2, 2)}
-    process_scan_config["grains"]["vetting"]["class_touching_threshold"] = 5
-
-    data_dir = Path("/Users/sylvi/topo_data/hariborings/test_cas9_main/data_bound_on/")
-    # filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00027.spm"
-    filename = "20230413_Cas9_RNA_complex_DNA_MCON_4ng_NiCl2_3mM_HEPES_20mM.0_00029.spm"
-    data_path = data_dir / filename
-
-    # Load the image
-    loadscans = LoadScans(img_paths=[data_path], channel="Height")
-    loadscans.get_data()
-    img_dic = loadscans.img_dict
-
-    topostats_object = img_dic[data_path.stem]
-
-    _, _, _, _, _, _ = process_scan(
-        topostats_object=topostats_object,
-        base_dir="/Users/sylvi/topo_data/hariborings/test_cas9_main/",
-        output_dir="/Users/sylvi/topo_data/hariborings/test_cas9_main/output_bound_on",
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        plotting_config=process_scan_config["plotting"],
-    )
-
-
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
