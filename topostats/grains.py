@@ -590,13 +590,16 @@ class Grains:
                 self.classes_to_merge,
             )
 
+            # Update the background class
+            final_grains = Grains.update_background_class(grain_mask_tensor=merged_classes)
+
             # Label each class in the tensor
-            labelled_final_grains = np.zeros_like(merged_classes).astype(int)
+            labelled_final_grains = np.zeros_like(final_grains).astype(int)
             # The background class will be the same as the binary mask
-            labelled_final_grains[:, :, 0] = merged_classes[:, :, 0]
+            labelled_final_grains[:, :, 0] = final_grains[:, :, 0]
             # Iterate over each class and label the regions
-            for class_index in range(merged_classes.shape[2]):
-                labelled_final_grains[:, :, class_index] = Grains.label_regions(merged_classes[:, :, class_index])
+            for class_index in range(final_grains.shape[2]):
+                labelled_final_grains[:, :, class_index] = Grains.label_regions(final_grains[:, :, class_index])
 
             self.directions[direction]["removed_small_objects"] = labelled_final_grains.astype(bool)
             self.directions[direction]["labelled_regions_02"] = labelled_final_grains
@@ -874,7 +877,7 @@ class Grains:
         new_background = np.where(flattened_mask == 0, 1, 0)
         # Update the background class
         grain_mask_tensor[:, :, 0] = new_background
-        return grain_mask_tensor
+        return grain_mask_tensor.astype(bool)
 
     @staticmethod
     def vet_class_sizes(

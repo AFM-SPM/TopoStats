@@ -482,7 +482,7 @@ def test_find_grains(
                         [
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 1, 1],
                             [1, 0, 0, 0, 1, 0, 0, 0, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -506,7 +506,7 @@ def test_find_grains(
                     ),
                 ],
                 axis=-1,
-            ),
+            ).astype(bool),
             # Expected labelled regions tensor
             np.stack(
                 [
@@ -514,7 +514,7 @@ def test_find_grains(
                         [
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                            [1, 0, 0, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 2, 0, 1, 0, 1, 1, 1],
                             [1, 0, 0, 0, 1, 0, 0, 0, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -538,7 +538,7 @@ def test_find_grains(
                     ),
                 ],
                 axis=-1,
-            ),
+            ).astype(int),
             id="unet, 5x5, multi class, 3 grains",
         ),
         pytest.param(
@@ -563,11 +563,11 @@ def test_find_grains(
                     np.zeros((9, 9)),
                 ],
                 axis=-1,
-            ),
+            ).astype(bool),
             # Expected labelled regions tensor
             np.stack(
                 [
-                    np.zeros((9, 9)),
+                    np.ones((9, 9)),
                     np.zeros((9, 9)),
                 ],
                 axis=-1,
