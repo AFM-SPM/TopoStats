@@ -1523,7 +1523,7 @@ def test_keep_largest_labelled_region_classes(
                     ),
                 ],
                 axis=-1,
-            ),
+            ).astype(bool),
             1,
             [
                 np.stack(
@@ -1560,7 +1560,7 @@ def test_keep_largest_labelled_region_classes(
                         ),
                     ],
                     axis=-1,
-                ),
+                ).astype(bool),
                 np.stack(
                     [
                         np.array(
@@ -1604,9 +1604,9 @@ def test_keep_largest_labelled_region_classes(
                         ),
                     ],
                     axis=-1,
-                ),
+                ).astype(bool),
             ],
-            [np.array([0, 0, 6, 7]), np.array([3, 1, 9, 9])],
+            [np.array([0, 0, 6, 7]), np.array([1, 3, 10, 10])],
             1,
         ),
     ],
