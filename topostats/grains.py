@@ -883,7 +883,7 @@ class Grains:
     def vet_class_sizes(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: dict[int, tuple[int, int]],
+        class_size_thresholds: list[list[int, int, int]],
     ) -> npt.NDArray:
         """
         Vet the sizes of the classes in an image tensor.
@@ -894,8 +894,8 @@ class Grains:
             3-D Numpy array of the mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        class_size_thresholds : dict
-            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
+        class_size_thresholds : list[list[int, int, int]]
+            List of class size thresholds. Structure is [(class_index, lower, upper)].
 
         Returns
         -------
@@ -919,7 +919,11 @@ class Grains:
                 for class_index in range(grain.shape[2])
             }
             # Check the sizes of each class against the thresholds
-            for class_index, (lower_threshold, upper_threshold) in class_size_thresholds.items():
+            for threshold_criteria in class_size_thresholds:
+                class_index = threshold_criteria[0]
+                lower_threshold = threshold_criteria[1]
+                upper_threshold = threshold_criteria[2]
+
                 if lower_threshold is not None:
                     if class_sizes[class_index] < lower_threshold:
                         # Remove the grain
@@ -947,7 +951,7 @@ class Grains:
     def vet_class_sizes_single_grain(
         single_grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: dict[int, tuple[int, int]] | None,
+        class_size_thresholds: list[list[int, int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
         Vet the sizes of the classes in a single grain mask tensor.
@@ -958,8 +962,8 @@ class Grains:
             3-D Numpy array of the mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        class_size_thresholds : dict
-            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
+        class_size_thresholds : list[list[int, int, int]] | None
+            List of class size thresholds. Structure is [(class_index, lower, upper)].
 
         Returns
         -------
@@ -975,9 +979,16 @@ class Grains:
         for class_index in range(1, single_grain_mask_tensor.shape[2]):
             class_size = np.sum(single_grain_mask_tensor[:, :, class_index]) * pixel_to_nm_scaling**2
             # Check the size against the thresholds
-            if class_index not in class_size_thresholds:
+
+            classes_to_vet = [vetting_criteria[0] for vetting_criteria in class_size_thresholds]
+
+            if class_index not in classes_to_vet:
                 continue
-            lower_threshold, upper_threshold = class_size_thresholds[class_index]
+
+            lower_threshold, upper_threshold = [
+                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+            ][0]
+
             if lower_threshold is not None:
                 if class_size < lower_threshold:
                     # Return empty tensor
@@ -1079,7 +1090,7 @@ class Grains:
     @staticmethod
     def vet_numbers_of_regions_single_grain(
         grain_mask_tensor: npt.NDArray,
-        class_region_number_thresholds: dict[int, tuple[int, int]] | None,
+        class_region_number_thresholds: list[list[int, int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
         Vet the number of regions in a grain mask tensor of a single grain, ignoring the background class.
@@ -1088,8 +1099,8 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the grain mask tensor, should be of only one grain.
-        class_region_number_thresholds : dict | None
-            Dictionary of class region number thresholds. Structure is {class_number: (lower, upper)}.
+        class_region_number_thresholds : list[list[int, int, int]]
+            List of class region number thresholds. Structure is [(class_index, lower, upper)].
 
         Returns
         -------
@@ -1107,9 +1118,17 @@ class Grains:
             class_labelled_regions = Grains.label_regions(grain_mask_tensor[:, :, class_index])
             number_of_regions = np.unique(class_labelled_regions).shape[0] - 1
             # Check the number of regions against the thresholds, skip if no thresholds provided
-            if class_index not in class_region_number_thresholds:
+            # Get the classes we are trying to vet (the first element of each tuple)
+            classes_to_vet = [vetting_criteria[0] for vetting_criteria in class_region_number_thresholds]
+
+            if class_index not in classes_to_vet:
                 continue
-            lower_threshold, upper_threshold = class_region_number_thresholds[class_index]
+
+            lower_threshold, upper_threshold = [
+                vetting_criteria[1:]
+                for vetting_criteria in class_region_number_thresholds
+                if vetting_criteria[0] == class_index
+            ][0]
 
             # Check the number of regions against the thresholds
             if lower_threshold is not None:
@@ -1290,7 +1309,7 @@ class Grains:
     @staticmethod
     def vet_class_connection_points(
         grain_mask_tensor: npt.NDArray,
-        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]] | None,
+        class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None,
     ) -> bool:
         """
         Vet the number of connection points between regions in specific classes.
@@ -1299,9 +1318,8 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the grain mask tensor.
-        class_connection_point_thresholds : dict
-            Dictionary of required number of connection points between classes, indexed by class pair.
-            Structure is {(class_a, class_b): (lower, upper)}.
+        class_connection_point_thresholds : list[tuple[tuple[int, int], tuple[int, int]]] | None
+            List of tuples of classes and connection point thresholds. Structure is [(class_pair, (lower, upper))].
 
         Returns
         -------
@@ -1312,7 +1330,7 @@ class Grains:
             return True
 
         # Iterate over the class pairs
-        for class_pair, connection_point_thresholds in class_connection_point_thresholds.items():
+        for class_pair, connection_point_thresholds in class_connection_point_thresholds:
             # Get the connection regions
             num_connection_regions, _, _ = Grains.calculate_region_connection_regions(
                 grain_mask_tensor=grain_mask_tensor,

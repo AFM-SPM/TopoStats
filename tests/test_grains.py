@@ -1314,10 +1314,7 @@ def test_update_background_class(
                 axis=-1,
             ),
             1.0,
-            {
-                1: [3, 4],
-                2: [2, 3],
-            },
+            [[1, 3, 4], [2, 2, 3]],
             np.stack(
                 [
                     np.array(
@@ -1736,9 +1733,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
-            {
-                1: (2, None),
-            },
+            [[1, 2, None]],
             np.stack(
                 [
                     np.array(
@@ -1807,7 +1802,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
-            {1: (None, 1), 2: (1, 1)},
+            [[1, None, 1], [2, 1, 1]],
             np.stack(
                 [
                     np.array(
@@ -1876,10 +1871,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
-            {
-                1: (2, 2),
-                2: (1, 1),
-            },
+            [[1, 2, 2], [2, 1, 1]],
             np.stack(
                 [
                     np.array(
@@ -1948,10 +1940,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
-            {
-                1: (None, None),
-                2: (None, None),
-            },
+            [[1, None, None], [2, None, None]],
             np.stack(
                 [
                     np.array(
@@ -2020,7 +2009,7 @@ def test_get_individual_grain_crops(
                 ],
                 axis=-1,
             ),
-            {},
+            [],
             np.stack(
                 [
                     np.array(
@@ -2437,7 +2426,7 @@ def test_calculate_region_connection_regions(
                 ],
                 axis=-1,
             ),
-            {(1, 2): (4, 5)},
+            [((1, 2), (4, 5))],
             False,
             id="not enough connection regions",
         ),
@@ -2489,7 +2478,7 @@ def test_calculate_region_connection_regions(
                 ],
                 axis=-1,
             ),
-            {(1, 2): (1, 2)},
+            [((1, 2), (1, 2))],
             False,
             id="too many connection regions",
         ),
@@ -2541,7 +2530,7 @@ def test_calculate_region_connection_regions(
                 ],
                 axis=-1,
             ),
-            {(1, 2): (2, 4)},
+            [((1, 2), (2, 4))],
             True,
             id="correct number of connection regions",
         ),
@@ -2920,9 +2909,9 @@ def test_merge_classes(
             ).astype(bool),
             1.0,
             # Class size thresholds
-            {1: (3, 1000000)},
+            [[1, 3, 1000000]],
             # Class region number thresholds
-            {1: (1, 100)},
+            [[1, 1, 100]],
             # Nearby conversion classes to convert
             [(2, 3)],
             # Class touching threshold
@@ -2930,7 +2919,7 @@ def test_merge_classes(
             # Keep largest labelled regions classes
             [1, 2, 3],
             # Class connection point thresholds
-            {(1, 2): (1, 1), (1, 3): (1, 1), (2, 3): (1, 1)},
+            [[[1, 2], [1, 1]], [[1, 3], [1, 1]], [[2, 3], [1, 1]]],
             np.stack(
                 [
                     np.array(
@@ -3257,12 +3246,12 @@ def test_merge_classes(
 def test_vet_grains(
     grain_mask_tensor: npt.NDArray[np.int32],
     pixel_to_nm_scaling: float,
-    class_size_thresholds: dict[int, tuple[int, int]] | None,
-    class_region_number_thresholds: dict[int, tuple[int, int]] | None,
+    class_size_thresholds: list[list[int, int, int]] | None,
+    class_region_number_thresholds: list[list[int, int, int]] | None,
     nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
     class_touching_threshold: int,
     keep_largest_labelled_regions_classes: list[int] | None,
-    class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]] | None,
+    class_connection_point_thresholds: list[list[int, int, int, int]] | None,
     expected_grain_mask_tensor: npt.NDArray[np.int32],
 ) -> None:
     """Test the vet_grains function."""
