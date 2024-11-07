@@ -16,7 +16,7 @@ from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
-from topostats.logs.logs import LOGGER_NAME, setup_logger
+from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
 from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import (
