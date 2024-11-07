@@ -89,9 +89,6 @@ def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     if args is not None:
         config = update_config(config, args)
 
-    # Validate configuration
-    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
-
     return config
 
 
@@ -106,6 +103,9 @@ def run_topostats(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     """
     # Parse command line options, load config (or default) and update with command line options
     config = reconcile_config_args(args=args)
+
+    # Validate configuration
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Set logging level
     if config["log_level"] == "warning":
