@@ -128,6 +128,7 @@ def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, 
     args.filename = filename
     args.output_dir = tmp_path
     args.config = config
+    args.simple = False
 
     # Write default config with comments to file
     write_config_with_comments(args)
