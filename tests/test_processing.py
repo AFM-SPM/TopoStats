@@ -1,5 +1,6 @@
 """Test end-to-end running of topostats."""
 
+import logging
 import pickle
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from test_io import dict_almost_equal
 
 from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
+    LOGGER_NAME,
     check_run_steps,
     process_scan,
     run_filters,
@@ -22,8 +24,6 @@ from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
-
-# pylint: disable=too-many-positional-arguments
 
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
@@ -637,6 +637,7 @@ def test_process_stages(
     Grainstats are disabled. Whislt possible it is expected that users understand the need to run earlier stages before
     later stages can run and do not disable earlier stages.
     """
+    caplog.set_level(logging.DEBUG, LOGGER_NAME)
     img_dic = load_scan_data.img_dict
     process_scan_config["filter"]["run"] = filter_run
     process_scan_config["grains"]["run"] = grains_run

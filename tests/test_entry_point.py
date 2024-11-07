@@ -7,8 +7,6 @@ import pytest
 
 from topostats.entry_point import (
     entry_point,
-    legacy_run_topostats_entry_point,
-    legacy_toposum_entry_point,
 )
 from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum

@@ -8,8 +8,8 @@ area: Area / $\mathregular{nm^2}$
 area_cartesian_bbox: Cartesian Bounding Box Area / $\mathregular{nm^2}$
 aspect_ratio: Aspect Ratio
 bending_angle: Bending Angle / degrees
-contour_length: Contour Length
-end_to_end_distance: End to End Distance
+total_contour_length: Total Contour Length
+average_end_to_end_distance: Average End to End Distance
 grain_bound_len: Circumference
 grain_curvature1: Smaller Curvature
 grain_curvature2: Larger Curvature

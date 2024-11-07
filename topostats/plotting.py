@@ -221,7 +221,7 @@ class TopoSum:
             try:
                 sns.kdeplot(data=self.melted_data, x="value", hue=self.hue)
             except np.linalg.LinAlgError:
-                LOGGER.info(
+                LOGGER.warning(
                     "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
 for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
                 )
@@ -239,7 +239,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
                     kde_kws={"cut": self.cut},
                 )
             except np.linalg.LinAlgError:
-                LOGGER.info(
+                LOGGER.warning(
                     "[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values \
 for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping."
                 )
@@ -309,7 +309,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         """
         melted_data = pd.melt(df.reset_index(), id_vars=["grain_number", "basename"], value_vars=stat_to_summarize)
         melted_data["variable"] = melted_data["variable"].map(var_to_label)
-        LOGGER.info("[plotting] Data has been melted to long format for plotting.")
+        LOGGER.debug("[plotting] Data has been melted to long format for plotting.")
 
         return melted_data
 
@@ -327,12 +327,12 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         range_min = self.melted_data["value"].min()
         range_max = self.melted_data["value"].max()
         plt.xlim(range_min - range_percent, range_max + range_percent)
-        LOGGER.info(f"[plotting] Setting x-axis range       : {range_min} - {range_max}")
+        LOGGER.debug(f"[plotting] Setting x-axis range       : {range_min} - {range_max}")
 
     def set_palette(self):
         """Set the color palette."""
         sns.set_palette(self.palette)
-        LOGGER.info(f"[plotting] Seaborn color palette : {self.palette}")
+        LOGGER.debug(f"[plotting] Seaborn color palette : {self.palette}")
 
     def save_plot(self, outfile: Path) -> None:
         """
@@ -344,7 +344,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
             Output file name to save figure to.
         """
         plt.savefig(self.output_dir / f"{outfile}.{self.savefig_format}")
-        LOGGER.info(
+        LOGGER.debug(
             f"[plotting] Plotted {self.stat_to_sum} to : "
             f"{str(self.output_dir / f'{outfile}.{self.savefig_format}')}"
         )
@@ -382,7 +382,7 @@ def toposum(config: dict) -> dict:
     if "df" not in config.keys():
         config["df"] = pd.read_csv(config["csv_file"])
     if config["df"].isna().values.all():
-        LOGGER.info("[plotting] No statistics in DataFrame. Exiting...")
+        LOGGER.warning("[plotting] No statistics in DataFrame. Exiting...")
         return None
     violin = config.pop("violin")
     all_stats_to_sum = config.pop("stats_to_sum")
@@ -406,7 +406,7 @@ def toposum(config: dict) -> dict:
                     figures[var]["violin"]["axes"],
                 ) = topo_sum.sns_violinplot()
         else:
-            LOGGER.info(f"[plotting] Statistic is not in dataframe : {var}")
+            LOGGER.error(f"[plotting] Statistic is not in dataframe : {var}")
 
     return figures
 
@@ -431,11 +431,11 @@ def run_toposum(args=None) -> None:
     config = update_config(config, args)
     if args.var_to_label is not None:
         config["var_to_label"] = read_yaml(args.var_to_label)
-        LOGGER.info("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
+        LOGGER.debug("[plotting] Variable to labels mapping loaded from : {args.var_to_label}")
     else:
         plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
         config["var_to_label"] = yaml.safe_load(plotting_yaml)
-        LOGGER.info("[plotting] Default variable to labels mapping loaded.")
+        LOGGER.debug("[plotting] Default variable to labels mapping loaded.")
     if args.csv_file is not None:
         config["csv_file"] = args.csv_file
 
