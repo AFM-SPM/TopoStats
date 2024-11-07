@@ -26,6 +26,47 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
 
+def test_k_molecules():
+    """Test k molecules."""
+    from topostats.io import read_yaml
+    from topostats.validation import DEFAULT_CONFIG_SCHEMA, validate_config
+    from argparse import Namespace
+    import importlib.resources as pkg_resources
+    from topostats.utils import update_config
+    import yaml
+    import topostats
+
+    dir = Path("/Users/sylvi/topo_data/Bradley/main_merge/")
+
+    # Load config
+    config_file = Path("/Users/sylvi/topo_data/Bradley/main_merge/k_config.yaml")
+    config = read_yaml(config_file)
+    empty_namespace = Namespace()
+    config = update_config(config, empty_namespace)
+    validate_config(config, DEFAULT_CONFIG_SCHEMA, config_type="yaml")
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+
+    data_file = Path("/Users/sylvi/topo_data/Bradley/main_merge/data/20230126_KPN005.0_00004.spm")
+    loadscans = LoadScans([data_file], "Height")
+    loadscans.get_data()
+    topostats_object = loadscans.img_dict[data_file.stem]
+
+    _, _, _, _, _, _ = process_scan(
+        topostats_object=topostats_object,
+        base_dir=BASE_DIR,
+        output_dir=dir / "output",
+        filter_config=config["filter"],
+        grains_config=config["grains"],
+        grainstats_config=config["grainstats"],
+        disordered_tracing_config=config["disordered_tracing"],
+        nodestats_config=config["nodestats"],
+        ordered_tracing_config=config["ordered_tracing"],
+        splining_config=config["splining"],
+        plotting_config=config["plotting"],
+    )
+
+
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
 def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
@@ -537,7 +578,13 @@ def test_check_run_steps(
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
     check_run_steps(
-        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+        filter_run,
+        grains_run,
+        grainstats_run,
+        disordered_tracing_run,
+        nodestats_run,
+        ordered_tracing_run,
+        splining_run,
     )
     assert log_msg in caplog.text
 
