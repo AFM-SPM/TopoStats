@@ -211,7 +211,11 @@ def write_config_with_comments(args=None) -> None:
     logger_msg = "A sample configuration has been written to"
     # If no config or default is requested we load the default_config.yaml
     if args.config is None or args.config == "default":
-        config = (resources.files(__package__) / "default_config.yaml").read_text()
+        if args.simple:
+            config_path = resources.files(__package__) / "simple_config.yaml"
+        else:
+            config_path = resources.files(__package__) / "default_config.yaml"
+        config = config_path.read_text()
     elif args.config == "topostats.mplstyle":
         config = (resources.files(__package__) / "topostats.mplstyle").read_text()
         logger_msg = "A sample matplotlibrc parameters file has been written to"
