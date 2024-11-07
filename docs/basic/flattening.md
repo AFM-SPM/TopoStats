@@ -7,10 +7,22 @@ Here is a raw, unprocessed AFM image:
 
 ![raw AFM image](../_static/images/flattening/flattening_raw_afm_image.png)
 
-<!-- <img src="../_static/images/flattening/flattening_raw_afm_image.png" style="width: 50%;" alt="raw AFM image"> -->
-
 You can see there is a heavy tilt in the image, as well as a lot of horizontal banding. These artefacts are removed
 during the flattening process in TopoStats.
+
+## TL;DR
+
+Images are processed by:
+
+- Row alignment (make each row median the same height)
+- Tilt & polynomial removal (fit a plane and quadratic polynomial to the image and subtract)
+- Scar removal (remove long, thin, bright streaks in the data)
+- Zero the average height (lower the image by its median height) to make the background roughly centred at zero nm
+- Masking (detect objects on the surface and flatten the image again, ignoring the data on the surface)
+- Secondary flattening (re-process the data using the mask to tell us where the background is)
+- Gaussian filter (to remove jitteryness / noise)
+
+![flattening pipeline](../_static/images/flattening/flattening_pipeline.png)
 
 ## Row alignment
 
@@ -20,16 +32,16 @@ banding. This leaves an image where the rows are aligned, but the image still ha
 
 ![row alignment](../_static/images/flattening/flattening_align_rows.png)
 
-<!-- <img src="../_static/images/flattening/flattening_align_rows.png" style="width: 50%;" alt="row alignment"> -->
-
 ## Tilt removal
 
 After row alignment, tilt removal is applied. This is a simple process of fitting a plane to the image and subtracting
 it, resulting in a mostly flat image, however as you can see in the following image, it's not perfect.
+Two images are provided here, one with the full z-range and one with an adjusted z-range to show the remaining
+artefacts better.
 
-![tilt removal](../_static/images/flattening/flattening_tilt_removal.png)
+![tilt_removal_full_zrange](../_static/images/flattening/flattening_tilt_removal_full_zrange.png)
 
-<!-- <img src="../_static/images/flattening/flattening_tilt_removal.png" style="width: 50%;" alt="tilt removal"> -->
+![tilt removal_better_viewing](../_static/images/flattening/flattening_tilt_removal.png)
 
 ## Polynomial removal
 
@@ -47,19 +59,13 @@ minicircles.spm image doesn’t have any scars.
 
 ![scarred image](../_static/images/flattening/flattening_scarred_image.png)
 
-<!-- <img src="../_static/images/flattening/flattening_scarred_image.png" style="width: 50%;" alt="scarred image"> -->
-
 ![scar removed](../_static/images/flattening/flattening_scar_removed.png)
-
-<!-- <img src="../_static/images/flattening/flattening_scar_removed.png" style="width: 50%;" alt="scar removed"> -->
 
 **Note that scar removal can distort data, and it’s best to take data without scars if you can.**
 
 ## Zero the average height
 
 ![height zeroing](../_static/images/flattening/flattening_height_zeroing.png)
-
-<!-- <img src="../_static/images/flattening/flattening_height_zeroing.png" style="width: 50%;" alt="height zeroing"> -->
 
 We then lower the image by its median height which causes the background of the image to be roughly centred at zero nm.
 This is important since both the AFM and these processing steps can cause your background height to not be zero, which
@@ -86,12 +92,7 @@ Here is the binary mask for minicircle.spm:
 
 ![processed image so far](../_static/images/flattening/flattening_tilt_removal.png)
 
-<!-- <img src="../_static/images/flattening/flattening_tilt_removal.png" style="width: 50%;" alt="processed
-image so far"> -->
-
 ![binary mask](../_static/images/flattening/flattening_binary_mask.png)
-
-<!-- <img src="../_static/images/flattening/flattening_binary_mask.png" style="width: 50%;" alt="binary mask"> -->
 
 So you can see how all the interesting high up parts are now masked in white, and the background is in black.
 
@@ -108,15 +109,26 @@ From here, we can go on to do things like finding our objects of interest (grain
 
 ![secondary flattening](../_static/images/flattening/flattening_final_flattened_image.png)
 
-<!-- <img src="../_static/images/flattening/flattening_final_flattened_image.png" style="width: 50%;"
-alt="secondary flattening"> -->
+## Gaussian filter
 
-<!-- Feedback
+Finally, we apply a Gaussian filter to the image to remove jitteriness and noise. This allows you to get smoother data
+but will start to blur out important features if you apply it too strongly. The default strength is a sigma of 1.0, but
+you can adjust this in the config file under `filter/gaussian_size`.
 
-- Need a TLDR for the steps
-- Add the pipeline figure I added in my CR presentation
-- Show height scale bar throughout?
-- Wherever there are parameters, mention that they are in the config file (eg this is what the row_quantile setting does?)
-- Examples of gaussian strengths for smoothing
+Here are some examples of different gaussian sizes:
 
- -->
+### Strength: 0.01
+
+![gaussian_filter_0](../_static/images/flattening/flattening_gaussian_filtered_0.png)
+
+### Strength: 1.0
+
+![gaussian_filter_01](../_static/images/flattening/flattening_gaussian_filtered_01.png)
+
+### Strength: 2.0
+
+![gaussian_filter_02](../_static/images/flattening/flattening_gaussian_filtered_02.png)
+
+### Strength: 8.0
+
+![gaussian_filter_08](../_static/images/flattening/flattening_gaussian_filtered_08.png)

@@ -1,5 +1,14 @@
 # Grain finding
 
+## TL;DR
+
+TopoStats automatically tries to find grains (objects of interest) in your AFM images. There are several steps to this.
+
+- **Height thresholding**: We find grains based on their height in the image.
+- **Remove edge grains**: We remove grains that intersect the image border.
+- **Size thresholding**: We remove grains that are too small or too large.
+- **Optional: U-Net mask improvement**: We can use a U-Net to improve the mask of each grain.
+
 ## Height thresholding
 
 Grain finding is the process of detecting useful objects in your AFM images. This might be DNA, proteins, holes in a
@@ -12,9 +21,6 @@ bright regions in the image:
 
 ![minicircles image](../_static/images/grain_finding/grain_finding_minicircles.png)
 
-<!-- <img src="../_static/images/grain_finding/grain_finding_minicircles.png" style="width: 50%;"
-alt="minicircles image"> -->
-
 If we want to select the DNA, then we can take only the regions of the image that are above a certain height
 (threshold).
 
@@ -22,14 +28,15 @@ Here are several thresholds to show you what happens as we increase the threshol
 
 ![height thresholds](../_static/images/grain_finding/grain_finding_grain_thresholds.png)
 
-<!-- <img src="../_static/images/grain_finding/grain_finding_grain_thresholds.png" style="width: 100%;"
-alt="height thresholds"> -->
-
 Notice that the amount of data decreases, until we are only left with the very highest points.
 
 The aim is to choose a threshold that keeps the data you want, while removing the background and other low objects
 that you don’t want including.
 So in this example, a threshold of 0.5 would be best, since it keeps the DNA while removing the background.
+
+There are lots of objects in this mask that we don't want to analyse, but we can remove those using area thresholds in
+the next steps. These objects have been detectd because while they are small, they are still high up and above the
+background.
 
 For more information on the types of thresholding, and how to set them, see the [thresholding](thresholding.md) page.
 
@@ -39,6 +46,12 @@ Some grains may intersect the image border. In these cases, the grain will not b
 calculated for it, since it is not fully in the image. Because of this, we have the option of removing grains that
 intersect the image border with the `remove_edge_intersecting_grains` flag in the config file. This simply removes
 any grains that intersect the image border.
+
+Here is a before and after example of removing edge grains:
+
+![edge grains before](../_static/images/grain_finding/grain_finding_remove_edge_grains_before.png)
+
+![edge grains after](../_static/images/grain_finding/grain_finding_remove_edge_grains_after.png)
 
 ## Size thresholding
 
@@ -52,13 +65,7 @@ maximum area of the grains that you want to keep, in nanometers squared. Eg if y
 
 ![size thresholding before](../_static/images/grain_finding/grain_finding_size_thresholding_before.png)
 
-<!-- <img src="../_static/images/grain_finding/grain_finding_size_thresholding_before.png" style="width: 50%;"
-alt="size thresholding before"> -->
-
 ![size thresholding after](../_static/images/grain_finding/grain_finding_size_thresholding_after.png)
-
-<!-- <img src="../_static/images/grain_finding/grain_finding_size_thresholding_after.png" style="width: 50%;"
-alt="size thresholding after"> -->
 
 ## Optional: U-Net mask improvement
 
@@ -84,21 +91,3 @@ and C is the number of classes. Each class is a binary mask, where 1 is the clas
 The first channel is background, where 1 is background, and 0 is not background. The rest of the channels
 are arbitrary, and defined by how the U-Net was trained, however we conventially recommend that the first class
 be for DNA (if applicable) and the next classes for other objects.
-
-<!-- 
-
-Feedback
-
-- Mention that you can remove objects from the height threshold mask in subsequent steps
-
-- Show that the edge grains have been removed in the image
-
-- Mention why there are blobs with the grains
-
-- Show a labelled image of the grains
-
-- Show that grains in labelled images line up with the grainstats in the csv file.
-
-- TLDR what goes in, what comes out (at the top)
-
- -->
