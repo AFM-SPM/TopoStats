@@ -300,6 +300,13 @@ def create_parser() -> arg.ArgumentParser:
         default=None,
         help="Configuration to use, currently only one is supported, the 'default'.",
     )
+    create_config_parser.add_argument(
+        "-s",
+        "--simple",
+        dest="simple",
+        action="store_true",
+        help="Create a simple configuration file with only the most common options.",
+    )
     create_config_parser.set_defaults(func=write_config_with_comments)
 
     create_matplotlibrc_parser = subparsers.add_parser(
