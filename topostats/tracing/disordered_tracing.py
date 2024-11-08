@@ -131,6 +131,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
 
+        disorderedTrace.calculate_dna_width(trace=self.disordered_trace, mask=self.smoothed_mask)
+
         if self.disordered_trace is None:
             LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
             self.disordered_trace = None
@@ -253,6 +255,22 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             return self.re_add_holes(grain, gauss, holearea_min_max)
         LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
         return self.re_add_holes(grain, dilation, holearea_min_max)
+    
+    @staticmethod
+    def calculate_dna_width(trace: npt.NDArray, mask: npt.NDArray) -> float:
+        """
+        Calculate the average width in metres of the DNA using the trace and mask.
+        """
+
+        import matplotlib.pyplot as plt
+        from scipy.ndimage import distance_transform_edt
+        # Code will go here
+
+        average_dna_width = 5
+
+        print(f"@@@@@@@@@@@@ CALCULATING DNA WIDTH")
+
+        return average_dna_width * 1e-9
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
