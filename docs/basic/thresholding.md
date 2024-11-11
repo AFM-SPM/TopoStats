@@ -45,7 +45,7 @@ $$
 Where `otsu` is the threshold value calculated by the Otsu method, and `factor` is a user-defined value that allows you
 to adjust the threshold value.
 
-This method is useful when you want to automatically find the threshold value, and when you have a clear separation
+This method is useful when you want to automatically find the threshold value, and when you have a clear binomial distribution of pixels (heights). I.e. separation
 between the foreground and background pixels in your image with little noise.
 
 ### Absolute thresholding
