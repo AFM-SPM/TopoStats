@@ -93,7 +93,7 @@ Here is the binary mask for minicircle.spm:
 
 ![binary mask](../_static/images/flattening/flattening_binary_mask.png)
 
-So you can see how all the interesting high up parts are now masked in white, and the background is in black.
+So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in black.
 
 TopoStats can use this to only use the black regions in its calculations for slope removal, row alignment etc.
 
