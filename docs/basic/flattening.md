@@ -59,9 +59,9 @@ differences.
 
 ## Scar removal
 
-We then run scar removal on the image. This is a special function that detects scars (long, thin, bright streaks in the
-data, caused by physical problems in the AFM process). We are using a different image here since our lovely
-minicircles.spm image doesn’t have any scars.
+We then run scar removal on the image. This is a special function that detects scars (long, thin, bright / dark
+streaks in the data, caused by physical problems in the AFM process). We are using a different image here as an
+example since our lovely minicircles.spm image doesn’t have any scars.
 
 ![scarred image](../_static/images/flattening/flattening_scarred_image.png)
 
@@ -99,9 +99,7 @@ For more information on thresholding and how to set it, see the [thresholding](t
 
 Here is the binary mask for minicircle.spm:
 
-![processed image so far](../_static/images/flattening/flattening_tilt_removal.png)
-
-![binary mask](../_static/images/flattening/flattening_binary_mask.png)
+![tilt_removed_with_mask](../_static/images/flattening/tilt_removed_with_mask.png)
 
 So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in
 black.
@@ -129,18 +127,4 @@ you can adjust this in the config file under `filter/gaussian_size`.
 
 Here are some examples of different gaussian sizes:
 
-### Strength: 0.01
-
-![gaussian_filter_0](../_static/images/flattening/flattening_gaussian_filtered_0.png)
-
-### Strength: 1.0
-
-![gaussian_filter_01](../_static/images/flattening/flattening_gaussian_filtered_01.png)
-
-### Strength: 2.0
-
-![gaussian_filter_02](../_static/images/flattening/flattening_gaussian_filtered_02.png)
-
-### Strength: 8.0
-
-![gaussian_filter_08](../_static/images/flattening/flattening_gaussian_filtered_08.png)
+![gaussian_sizes](../_static/images/flattening/gaussian_sizes.png)
