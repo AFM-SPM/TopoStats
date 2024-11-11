@@ -1,7 +1,7 @@
 # Flattening
 
-Flattening is the process of taking a raw AFM image, and removing the artefacts that are present in the image,
-resulting in an image where the background mica is flat and the sample is clearly visible resting on the surface.
+Flattening is the process of taking a raw AFM image, and removing the image artefacts that are present due to the scanning probe microscopy (SPM) and AFM imaging. These encompass, but are not limited to; row alignment from the raster scanning motion, and polynomial flattening of a surface from piezoelectric bowing.
+For surface based samples, such as DNA on Mica, this results in an image where the background mica is flat and the sample is clearly visible resting on the surface.
 
 Here is a raw, unprocessed AFM image:
 
