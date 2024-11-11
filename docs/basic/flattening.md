@@ -102,7 +102,7 @@ So we re-do all the previous processing, but with this new useful binary mask to
 ## Secondary flattening
 
 After re-processing the data using the mask to tell us where the background is, we get a better, more accurately
-flattened image.
+flattened image. We can see the "shadows" on rows with lots of data have now been flattened correctly.
 
 From here, we can go on to do things like finding our objects of interest (grains) and get stats about them.
 
