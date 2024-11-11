@@ -10,7 +10,7 @@ Here is a raw, unprocessed AFM image:
 You can see there is a large tilt in the image from the bottom right to the top left, as well as lots of horizontal banding throughout the rows in the image. These artefacts are removed
 during the flattening process in TopoStats knows as `Filters`.
 
-## TL;DR
+## At a Glance - Removing AFM Imaging Artefacts
 
 Images are processed by:
 
