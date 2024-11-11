@@ -25,7 +25,7 @@ bright regions in the image, alongside impurities and proteins, also above the s
 If we want to select the DNA, then we can take only the regions of the image that are above a certain height
 threshold (standard deviation - `std_dev`, absolute - `absolute`, otsu - `otsu`).
 
-Here are several thresholds to show you what happens as we increase the threshold:
+Here are several thresholds to show you what happens as we increase the absolute height threshold:
 
 ![height thresholds](../_static/images/grain_finding/grain_finding_grain_thresholds.png)
 
