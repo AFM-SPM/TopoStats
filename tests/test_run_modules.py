@@ -1,5 +1,6 @@
 """Test end-to-end running of topostats."""
 
+import argparse
 import logging
 from pathlib import Path
 
@@ -7,8 +8,77 @@ import pytest
 
 from topostats.entry_point import entry_point
 from topostats.logs.logs import LOGGER_NAME
+from topostats.run_modules import reconcile_config_args
+from topostats.validation import DEFAULT_CONFIG_SCHEMA, validate_config
 
 BASE_DIR = Path.cwd()
+
+
+def test_reconcile_config_args_no_config() -> None:
+    """Test the handle config file function with no config."""
+    args = argparse.Namespace(
+        program="process",
+        config_file=None,
+    )
+    config = reconcile_config_args(args=args)
+
+    # Check that the config passes the schema
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
+
+
+def test_reconcile_config_args_no_config_with_overrides() -> None:
+    """Test the handle config file function with no config and overrides."""
+    args = argparse.Namespace(
+        program="process",
+        config_file=None,
+        output_dir="./dummy_output_dir",
+    )
+    config = reconcile_config_args(args=args)
+
+    # Check that the overrides have been applied
+    assert config["output_dir"] == Path("./dummy_output_dir")
+    # Check that the config still passes the schema
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
+
+
+def test_reconcile_config_args_full_config() -> None:
+    """Test the handle config file function with a full config."""
+    args = argparse.Namespace(program="process", config_file=f"{BASE_DIR / 'topostats' / 'default_config.yaml'}")
+
+    config = reconcile_config_args(args=args)
+
+    # Check that the config passes the schema
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
+
+
+def test_reconcile_config_args_partial_config() -> None:
+    """Test the reconcile_config_args function with a partial config."""
+    args = argparse.Namespace(
+        program="process", config_file=f"{BASE_DIR / 'tests' / 'resources' / 'test_partial_config.yaml'}"
+    )
+    config = reconcile_config_args(args=args)
+
+    # Check that the partial config has overridden the default config
+    assert config["filter"]["threshold_method"] == "absolute"
+    # Check that the config still passes the schema
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
+
+
+def test_reconcile_config_args_partial_config_with_overrides() -> None:
+    """Test the reconcile_config_args function with a partial config and overrides."""
+    args = argparse.Namespace(
+        program="process",
+        config_file=f"{BASE_DIR / 'tests' / 'resources' / 'test_partial_config.yaml'}",
+        output_dir="./dummy_output_dir",
+    )
+    config = reconcile_config_args(args=args)
+
+    # Check that the partial config has overridden the default config
+    assert config["filter"]["threshold_method"] == "absolute"
+    # Check that the overrides have been applied
+    assert config["output_dir"] == Path("./dummy_output_dir")
+    # Check that the config still passes the schema
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
 
 @pytest.mark.parametrize("option", [("-h"), ("--help")])

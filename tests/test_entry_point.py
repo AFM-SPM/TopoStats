@@ -695,3 +695,18 @@ def test_entry_point_create_config_file(tmp_path: Path) -> None:
         ]
     )
     assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
+
+
+def test_entry_point_create_simple_config_file(tmp_path: Path) -> None:
+    """Test that the entry point is able to produce a simple config file when asked to."""
+    entry_point(
+        manually_provided_args=[
+            "create-config",
+            "--filename",
+            "test_create_simple_config.yaml",
+            "--output-dir",
+            f"{tmp_path}",
+            "--simple",
+        ]
+    )
+    assert Path(f"{tmp_path}/test_create_simple_config.yaml").is_file()

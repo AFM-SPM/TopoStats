@@ -4,6 +4,9 @@ Run TopoStats modules.
 This provides an entry point for running TopoStats as a command line programme.
 """
 
+from __future__ import annotations
+
+import argparse
 import logging
 import sys
 from collections import defaultdict
@@ -16,7 +19,15 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
-from topostats.io import LoadScans, dict_to_json, find_files, read_yaml, save_folder_grainstats, write_yaml
+from topostats.io import (
+    LoadScans,
+    dict_to_json,
+    find_files,
+    merge_mappings,
+    read_yaml,
+    save_folder_grainstats,
+    write_yaml,
+)
 from topostats.logs.logs import LOGGER_NAME
 from topostats.plotting import toposum
 from topostats.processing import (
@@ -48,7 +59,51 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 
 
-def process(args: None = None) -> None:  # noqa: C901
+def reconcile_config_args(args: argparse.Namespace | None) -> dict:
+    """
+    Reconcile command line arguments with the default configuration.
+
+    Command line arguments take precedence over the default configuration. If a partial configuration file is specified
+    (with '-c' or '--config-file') the defaults are over-ridden by these values (internally the configuration
+    dictionary is updated with these values). Any other command line arguments take precedence over both the default
+    and those supplied in a configuration file (again the dictionary is updated).
+
+    The final configuration is validated before processing begins.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments passed into TopoStats.
+
+    Returns
+    -------
+    dict
+        The configuration dictionary.
+    """
+    default_config_raw = (resources.files(__package__) / "default_config.yaml").read_text()
+    default_config = yaml.safe_load(default_config_raw)
+    if args is not None:
+        config_file_arg: str | None = args.config_file
+        if config_file_arg is not None:
+            config = read_yaml(config_file_arg)
+            # Merge the loaded config with the default config to fill in any defaults that are missing
+            # Make sure to prioritise the loaded config, so it overrides the default
+            config = merge_mappings(map1=default_config, map2=config)
+        else:
+            # If no config file is provided, use the default config
+            config = default_config
+    else:
+        # If no args are provided, use the default config
+        config = default_config
+
+    # Override the config with command line arguments passed in, eg --output_dir ./output/
+    if args is not None:
+        config = update_config(config, args)
+
+    return config
+
+
+def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     """
     Find and process all files.
 
@@ -58,13 +113,10 @@ def process(args: None = None) -> None:  # noqa: C901
         Arguments.
     """
     # Parse command line options, load config (or default) and update with command line options
-    if args.config_file is not None:
-        config = read_yaml(args.config_file)
-    else:
-        default_config = (resources.files(__package__) / "default_config.yaml").read_text()
-        config = yaml.safe_load(default_config)
-    # Override the config with command line arguments passed in, eg --output_dir ./output/
-    config = update_config(config, args)
+    config = reconcile_config_args(args=args)
+
+    # Validate configuration
+    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Set logging level
     if config["log_level"] == "warning":
@@ -75,8 +127,6 @@ def process(args: None = None) -> None:  # noqa: C901
         LOGGER.setLevel("DEBUG")
     else:
         LOGGER.setLevel("INFO")
-    # Validate configuration
-    validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
