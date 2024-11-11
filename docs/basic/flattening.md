@@ -7,8 +7,8 @@ Here is a raw, unprocessed AFM image:
 
 ![raw AFM image](../_static/images/flattening/flattening_raw_afm_image.png)
 
-You can see there is a heavy tilt in the image, as well as a lot of horizontal banding. These artefacts are removed
-during the flattening process in TopoStats.
+You can see there is a large tilt in the image from the bottom right to the top left, as well as lots of horizontal banding throughout the rows in the image. These artefacts are removed
+during the flattening process in TopoStats knows as `Filters`.
 
 ## TL;DR
 
