@@ -34,8 +34,7 @@ banding. This leaves an image where the rows are aligned, but the image still ha
 
 ## Tilt removal
 
-After row alignment, tilt removal is applied. This is a simple process of fitting a plane to the image and subtracting
-it, resulting in a mostly flat image, however as you can see in the following image, it's not perfect.
+After row alignment, tilt removal is applied. This is a simple process of fitting and subtracting a plane to the image, resulting in a mostly flat image. However as you can see in the following image, it's not perfect and there still exists "shadows" on rows with lots of non-background data.
 Two images are provided here, one with the full z-range and one with an adjusted z-range to show the remaining
 artefacts better.
 
