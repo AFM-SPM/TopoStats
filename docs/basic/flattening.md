@@ -81,7 +81,7 @@ image again! But this time, ignoring the data on the surface, and only consideri
 
 How do we do that?
 Well first, we need to find the data on the surface. We do this by thresholding.
-The threshold is set by the config file (have a look!). Any pixels that are below the threshold, are considered
+The type of threshold (standard deviation - `std_dev`, absolute - `absolute`, otsu - `otsu`), and the threshold values are set by the config file (have a look!). Any pixels that are below the threshold, are considered
 background (sample surface). Any pixels that are above the threshold are considered to be data (useful sample objects).
 This binary classification allows us to make a binary mask of where is foreground data, and where is background.
 
