@@ -20,7 +20,7 @@ Images are processed by:
 - Zero the average height (lower the image by the mean height) to make the background roughly centred at zero nm
 - Masking (detect objects on the surface and flatten the image again, ignoring the data on the surface)
 - Secondary flattening (re-process the data using the mask to tell us where the background is, and zero the data using the mean of the background mask)
-- Gaussian filter (to remove jitteryness / noise)
+- Gaussian filter (to smooth pixel differences / high-gain noise)
 
 ![flattening pipeline](../_static/images/flattening/flattening_pipeline.png)
 
