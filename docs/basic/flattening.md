@@ -1,13 +1,17 @@
 # Flattening
 
-Flattening is the process of taking a raw AFM image, and removing the image artefacts that are present due to the scanning probe microscopy (SPM) and AFM imaging. These encompass, but are not limited to; row alignment from the raster scanning motion, and polynomial flattening of a surface from piezoelectric bowing.
-For surface based samples, such as DNA on Mica, this results in an image where the background mica is flat and the sample is clearly visible resting on the surface.
+Flattening is the process of taking a raw AFM image, and removing the image artefacts that are present due to the
+scanning probe microscopy (SPM) and AFM imaging. These encompass, but are not limited to; row alignment from the raster
+scanning motion, and polynomial flattening of a surface from piezoelectric bowing.
+For surface based samples, such as DNA on Mica, this results in an image where the background mica is flat and the
+sample is clearly visible resting on the surface.
 
 Here is a raw, unprocessed AFM image:
 
 ![raw AFM image](../_static/images/flattening/flattening_raw_afm_image.png)
 
-You can see there is a large tilt in the image from the bottom right to the top left, as well as lots of horizontal banding throughout the rows in the image. These artefacts are removed
+You can see there is a large tilt in the image from the bottom right to the top left, as well as lots of horizontal
+banding throughout the rows in the image. These artefacts are removed
 during the flattening process in TopoStats knows as `Filters`.
 
 ## At a Glance - Removing AFM Imaging Artefacts
@@ -19,7 +23,8 @@ Images are processed by:
 - Scar removal (remove long, thin, bright streaks in the data)
 - Zero the average height (lower the image by the mean height) to make the background roughly centred at zero nm
 - Masking (detect objects on the surface and flatten the image again, ignoring the data on the surface)
-- Secondary flattening (re-process the data using the mask to tell us where the background is, and zero the data using the mean of the background mask)
+- Secondary flattening (re-process the data using the mask to tell us where the background is, and zero the data using
+  the mean of the background mask)
 - Gaussian filter (to smooth pixel differences / high-gain noise)
 
 ![flattening pipeline](../_static/images/flattening/flattening_pipeline.png)
@@ -34,7 +39,9 @@ banding. This leaves an image where the rows are aligned, but the image still ha
 
 ## Tilt removal
 
-After row alignment, tilt removal is applied. This is a simple process of fitting and subtracting a plane to the image, resulting in a mostly flat image. However as you can see in the following image, it's not perfect and there still exists "shadows" on rows with lots of non-background data.
+After row alignment, tilt removal is applied. This is a simple process of fitting and subtracting a plane to the image,
+resulting in a mostly flat image. However as you can see in the following image, it's not perfect and there still
+exists "shadows" on rows with lots of non-background data.
 Two images are provided here, one with the full z-range and one with an adjusted height range (z-range) to show
 the remaining artefacts better, such as the low regions or "shadows" on rows with lots of non-background data.
 
@@ -67,8 +74,10 @@ minicircles.spm image doesn’t have any scars.
 ![height zeroing](../_static/images/flattening/flattening_height_zeroing.png)
 
 We then lower the image by its mean height which causes the background of the image to be roughly centred at zero nm.
-If this function is provided a foreground mask such as in the second iteration of flattening, this function zeros the data only on the background data.
-Data zeroing is important since the raw AFM heights are relative, and these processing steps can shift the background height away from zero, so this makes it easier to obtain comparative height metrics.
+If this function is provided a foreground mask such as in the second iteration of flattening, this function zeros the
+data only on the background data.
+Data zeroing is important since the raw AFM heights are relative, and these processing steps can shift the background
+height away from zero, so this makes it easier to obtain comparative height metrics.
 
 ## Masking
 
@@ -81,7 +90,8 @@ image again! But this time, ignoring the data on the surface, and only consideri
 
 How do we do that?
 Well first, we need to find the data on the surface. We do this by thresholding.
-The type of threshold (standard deviation - `std_dev`, absolute - `absolute`, otsu - `otsu`), and the threshold values are set by the config file (have a look!). Any pixels that are below the threshold, are considered
+The type of threshold (standard deviation - `std_dev`, absolute - `absolute`, otsu - `otsu`), and the threshold values
+are set by the config file (have a look!). Any pixels that are below the threshold, are considered
 background (sample surface). Any pixels that are above the threshold are considered to be data (useful sample objects).
 This binary classification allows us to make a binary mask of where is foreground data, and where is background.
 
@@ -93,9 +103,11 @@ Here is the binary mask for minicircle.spm:
 
 ![binary mask](../_static/images/flattening/flattening_binary_mask.png)
 
-So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in black.
+So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in
+black.
 
-This allows TopoStats to use only the background (black pixels) in its calculations for slope removal, row alignment etc.
+This allows TopoStats to use only the background (black pixels) in its calculations for slope removal, row alignment
+etc.
 
 So we re-do all the previous processing, but with this new useful binary mask to guide us.
 
@@ -110,7 +122,8 @@ From here, we can go on to do things like finding our objects of interest (grain
 
 ## Gaussian filter
 
-Finally, we apply a Gaussian filter to the image to smooth height differences and remove high-gain noise. This allows you to get smoother data
+Finally, we apply a Gaussian filter to the image to smooth height differences and remove high-gain noise. This allows
+you to get smoother data
 but will start to blur out important features if you apply it too strongly. The default strength is a sigma of 1.0, but
 you can adjust this in the config file under `filter/gaussian_size`.
 

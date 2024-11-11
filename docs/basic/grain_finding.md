@@ -16,7 +16,8 @@ surface or ridges on a surface.
 In the standard operation of TopoStats, the way we find objects is based on a height threshold. This means that we
 detect where things are based on how high up they are.
 
-For example, with our example minicircles.spm image, we have DNA that is poking up from the sample surface, represented by
+For example, with our example minicircles.spm image, we have DNA that is poking up from the sample surface, represented
+by
 bright regions in the image, alongside impurities and proteins, also above the surface:
 
 ![minicircles image](../_static/images/grain_finding/grain_finding_minicircles.png)
