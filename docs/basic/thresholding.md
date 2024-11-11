@@ -6,6 +6,14 @@ and all pixels below this value as background.
 
 There are several different types of thresholding that can be used, and each has its own advantages and disadvantages.
 
+Below is a histogram showing the heights of the pixels in minicircle.spm after flattening. You can see that most of the
+pixels are at a height of 0nm, which is the background. There is a second peak at 2.5nm which is around the height that
+we expect DNA to be. The rest of the pixels are noise.
+
+A threshold will select all pixels above a certain height, and ignore the rest, ie the pixels in the orange area.
+
+![threshold_histogram](../_static/images/thresholding/thresholding_histogram.png)
+
 ## Note: Thresholding above and below the surface
 
 TopoStats has the ability to threshold both above the sample surface and below it. This allows finding grains on the

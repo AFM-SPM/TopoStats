@@ -50,9 +50,7 @@ any grains that intersect the image border.
 
 Here is a before and after example of removing edge grains:
 
-![edge grains before](../_static/images/grain_finding/grain_finding_remove_edge_grains_before.png)
-
-![edge grains after](../_static/images/grain_finding/grain_finding_remove_edge_grains_after.png)
+![size_thresholding](../_static/images/grain_finding/grain_finding_tidy_borders.png)
 
 ## Size thresholding
 
@@ -64,17 +62,20 @@ You can set the size threshold using the `absolute_area_threshold` in the config
 maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
 10nm^2 and 100nm^2, you would set `absolute_area_threshold` to `[10, 100]`.
 
-![size thresholding before](../_static/images/grain_finding/grain_finding_size_thresholding_before.png)
-
-![size thresholding after](../_static/images/grain_finding/grain_finding_size_thresholding_after.png)
+![size_thresholding](../_static/images/grain_finding/grain_finding_size_thresholding.png)
 
 ## Optional: U-Net mask improvement
 
 As an additional optional step, each grain that reaches this stage can be improved by using a U-Net to mask the grain
 again. This requires a U-Net model path to be supplied in the config file.
 
-The U-Net model will take the bounding box of each grain, and predict a better mask for it, which then replaces
-the original mask.
+The U-Net model will take the bounding box of each grain, makes it square, and passees it to a trained U-Net model
+which makes a prediction for a better mask, which then replaces the original mask.
+
+Here is an example comparing absolute height thresholding to U-Net masking for one of our projects. The white boxes
+indicate regions where the height threhsold performs poorly and is improved by the U-Net mask.
+
+![unet_example](../_static/images/grain_finding/grain_finding_unet_example.png)
 
 ### Multi-class masking
 
@@ -82,6 +83,10 @@ TopoStats supports masking with multiple classes. This means that you could use 
 separately.
 
 This requires a U-Net that has been trained on multiple classes.
+
+Here is an example of multi-class masking using a U-Net which was used for one of our projects.
+
+![multi_class_unet_example](../_static/images/grain_finding/grain_finding_unet_multi_class_example.png)
 
 ## Technical details
 
