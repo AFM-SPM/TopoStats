@@ -1,6 +1,6 @@
 # Grain finding
 
-## TL;DR
+## At a Glance - Identifying Objects of Interest
 
 TopoStats automatically tries to find grains (objects of interest) in your AFM images. There are several steps to this.
 
