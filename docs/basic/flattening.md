@@ -95,7 +95,7 @@ Here is the binary mask for minicircle.spm:
 
 So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in black.
 
-TopoStats can use this to only use the black regions in its calculations for slope removal, row alignment etc.
+This allows TopoStats to use only the background (black pixels) in its calculations for slope removal, row alignment etc.
 
 So we re-do all the previous processing, but with this new useful binary mask to guide us.
 
