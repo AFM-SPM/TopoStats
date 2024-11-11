@@ -110,7 +110,7 @@ From here, we can go on to do things like finding our objects of interest (grain
 
 ## Gaussian filter
 
-Finally, we apply a Gaussian filter to the image to remove jitteriness and noise. This allows you to get smoother data
+Finally, we apply a Gaussian filter to the image to smooth height differences and remove high-gain noise. This allows you to get smoother data
 but will start to blur out important features if you apply it too strongly. The default strength is a sigma of 1.0, but
 you can adjust this in the config file under `filter/gaussian_size`.
 
