@@ -17,7 +17,7 @@ Images are processed by:
 - Row alignment (make each row median the same height)
 - Tilt & polynomial removal (fit a plane and quadratic polynomial to the image and subtract)
 - Scar removal (remove long, thin, bright streaks in the data)
-- Zero the average height (lower the image by its median height) to make the background roughly centred at zero nm
+- Zero the average height (lower the image by the mean height) to make the background roughly centred at zero nm
 - Masking (detect objects on the surface and flatten the image again, ignoring the data on the surface)
 - Secondary flattening (re-process the data using the mask to tell us where the background is)
 - Gaussian filter (to remove jitteryness / noise)
