@@ -66,9 +66,9 @@ minicircles.spm image doesn’t have any scars.
 
 ![height zeroing](../_static/images/flattening/flattening_height_zeroing.png)
 
-We then lower the image by its median height which causes the background of the image to be roughly centred at zero nm.
-This is important since both the AFM and these processing steps can cause your background height to not be zero, which
-would mean you would get the wrong heights for your data.
+We then lower the image by its mean height which causes the background of the image to be roughly centred at zero nm.
+If this function is provided a foreground mask such as in the second iteration of flattening, this function zeros the data only on the background data.
+Data zeroing is important since the raw AFM heights are relative, and these processing steps can shift the background height away from zero, so this makes it easier to obtain comparative height metrics.
 
 ## Masking
 
