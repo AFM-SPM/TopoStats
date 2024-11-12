@@ -602,7 +602,7 @@ class Grains:
                 labelled_final_grains[:, :, class_index] = Grains.label_regions(final_grains[:, :, class_index])
 
             self.directions[direction]["removed_small_objects"] = labelled_final_grains.astype(bool)
-            self.directions[direction]["labelled_regions_02"] = labelled_final_grains
+            self.directions[direction]["labelled_regions_02"] = labelled_final_grains.astype(np.int32)
 
     # pylint: disable=too-many-locals
     @staticmethod

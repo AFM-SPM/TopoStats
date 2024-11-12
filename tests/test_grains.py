@@ -383,7 +383,7 @@ def test_remove_edge_intersecting_grains(
                     ),
                 ],
                 axis=-1,
-            ).astype(np.int64),
+            ).astype(np.int32),
             id="absolute, above 0.9, remove edge, smallest grain 1",
         ),
         pytest.param(
@@ -475,7 +475,7 @@ def test_remove_edge_intersecting_grains(
                     ),
                 ],
                 axis=-1,
-            ).astype(np.int64),
+            ).astype(np.int32),
             id="absolute, above 0.9, no remove edge, smallest grain 2",
         ),
     ],
