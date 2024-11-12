@@ -80,8 +80,7 @@ def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     dict
         The configuration dictionary.
     """
-    default_config_raw = (resources.files(__package__) / "default_config.yaml").read_text()
-    default_config = yaml.safe_load(default_config_raw)
+    default_config = read_yaml(resources.files(__package__) / "default_config.yaml")
     if args is not None:
         config_file_arg: str | None = args.config_file
         if config_file_arg is not None:
@@ -103,14 +102,67 @@ def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     return config
 
 
-def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
+def _set_logging(log_level: str | None) -> None:
     """
-    Find and process all files.
+    Set the logging level.
+
+    Parameters
+    ----------
+    log_level : str
+        String for the desired log-level.
+    """
+    if log_level == "warning":
+        LOGGER.setLevel("WARNING")
+    elif log_level == "error":
+        LOGGER.setLevel("ERROR")
+    elif log_level == "debug":
+        LOGGER.setLevel("DEBUG")
+    else:
+        LOGGER.setLevel("INFO")
+
+
+def _log_setup(config: dict, args: argparse.Namespace | None, img_files: dict) -> None:
+    """
+    Log the current configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Dictionary of configuration options.
+    args : argparse.Namespace | None
+        Arguments function was invoked with.
+    img_files : dict
+        Dictionary of image files that have been found.
+    """
+    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
+
+    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
+    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
+    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
+    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        sys.exit()
+    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
+    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
+
+
+def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, dict]:
+    """
+    Load configurations, validate and check run steps are consistent.
 
     Parameters
     ----------
     args : None
         Arguments.
+
+    Returns
+    -------
+    tuple[dict, dict]
+        Returns the dictionary of configuration options and a dictionary of image files found on the input path.
     """
     # Parse command line options, load config (or default) and update with command line options
     config = reconcile_config_args(args=args)
@@ -119,14 +171,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Set logging level
-    if config["log_level"] == "warning":
-        LOGGER.setLevel("WARNING")
-    elif config["log_level"] == "error":
-        LOGGER.setLevel("ERROR")
-    elif config["log_level"] == "debug":
-        LOGGER.setLevel("DEBUG")
-    else:
-        LOGGER.setLevel("INFO")
+    _set_logging(config["log_level"])
 
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
@@ -151,21 +196,21 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     )
     # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
-    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
-
-    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
-    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
-    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
-    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
     img_files = find_files(config["base_dir"], file_ext=config["file_ext"])
-    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
-    if len(img_files) == 0:
-        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
-        LOGGER.error("Please check your configuration and directories.")
-        sys.exit()
-    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
-    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
-    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
+    _log_setup(config, args, img_files)
+    return config, img_files
+
+
+def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
+    """
+    Find and process all files.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    config, img_files = _parse_configuration(args)
 
     processing_function = partial(
         process_scan,
@@ -349,7 +394,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 # pylint: disable=unused-argument
 
 
-def filters(args: None = None) -> None:
+def filters(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run filtering.
 
@@ -358,10 +403,11 @@ def filters(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_filters()
 
 
-def grains(args: None = None) -> None:
+def grains(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grain finding.
 
@@ -370,10 +416,11 @@ def grains(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_grains()
 
 
-def grainstats(args: None = None) -> None:
+def grainstats(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -382,10 +429,11 @@ def grainstats(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_grainstats()
 
 
-def disordered_tracing(args: None = None) -> None:
+def disordered_tracing(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -394,10 +442,11 @@ def disordered_tracing(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_disordered_tracing()
 
 
-def nodestats(args: None = None) -> None:
+def nodestats(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -406,10 +455,11 @@ def nodestats(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_nodestats()
 
 
-def ordered_tracing(args: None = None) -> None:
+def ordered_tracing(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -418,10 +468,11 @@ def ordered_tracing(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_ordered_tracing()
 
 
-def splining(args: None = None) -> None:
+def splining(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -430,4 +481,5 @@ def splining(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)
     run_splining()
