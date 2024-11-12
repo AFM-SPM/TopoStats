@@ -88,7 +88,7 @@ def test_var_to_label_config(tmp_path: Path) -> None:
                 "summary",
                 "--create-label-file",
                 f"{tmp_path / 'var_to_label_config.yaml'}",
-                "--input_csv",
+                "--input-csv",
                 f"{str(RESOURCES / 'minicircle_default_all_statistics.csv')}",
             ]
         )
