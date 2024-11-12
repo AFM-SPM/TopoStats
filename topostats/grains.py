@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-import os
+import sys
 from collections import defaultdict
 
 import keras
@@ -656,12 +656,13 @@ class Grains:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
 
-        # Important for when loading the model inievitably fails on users' machines.
-        LOGGER.info(f"Python executable: {os.sys.executable}")
-        LOGGER.info(f"Keras version: {keras.__version__}")
-        LOGGER.info(f"Model path: {unet_config['model_path']}")
-
-        unet_model = keras.models.load_model(unet_config["model_path"], compile=False)
+        try:
+            unet_model = keras.models.load_model(unet_config["model_path"], compile=False)
+        except Exception as e:
+            LOGGER.info(f"Python executable: {sys.executable}")
+            LOGGER.info(f"Keras version: {keras.__version__}")
+            LOGGER.info(f"Model path: {unet_config['model_path']}")
+            raise e
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
@@ -734,8 +735,6 @@ class Grains:
 
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
-                # Keep only the largest object in the grain crop (needs to be configurable in future)
-                # unet_predicted_mask_labelled = Grains.keep_largest_labelled_region(unet_predicted_mask_labelled)
 
                 # Directly set the background to be equal instead of logical or since they are by default
                 # 1, and should be turned off if any other class is on
