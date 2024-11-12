@@ -266,11 +266,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         from scipy.ndimage import distance_transform_edt
         # Code will go here
 
-        
-
         average_dna_width = 5
-
-        print(average_dna_width)
 
         return average_dna_width * 1e-9
 
