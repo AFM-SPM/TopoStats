@@ -876,7 +876,7 @@ class Grains:
     def vet_class_sizes_single_grain(
         single_grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: list[list[int, int, int]] | None,
+        class_size_thresholds: list[tuple[int, int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
         Remove regions of particular classes based on size thresholds.
@@ -1019,10 +1019,10 @@ class Grains:
     @staticmethod
     def vet_numbers_of_regions_single_grain(
         grain_mask_tensor: npt.NDArray,
-        class_region_number_thresholds: list[list[int, int, int]] | None,
+        class_region_number_thresholds: list[tuple[int, int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
-        Vet the number of regions in a grain mask tensor of a single grain, ignoring the background class.
+        Check if the number of regions of different classes for a single grain is within thresholds.
 
         Parameters
         ----------
@@ -1080,11 +1080,19 @@ class Grains:
     @staticmethod
     def convert_classes_to_nearby_classes(
         grain_mask_tensor: npt.NDArray,
-        classes_to_convert: list[tuple[int, int]],
+        classes_to_convert: list[tuple[int, int]] | None,
         class_touching_threshold: int = 1,
     ) -> npt.NDArray:
         """
-        Convert all but the largest regions of class A into class B provided that the class A region touches class B.
+        Convert all but the largest regions of one class into another class provided the former touches the latter.
+
+        Specifically, it takes a list of tuples of two integers (dubbed class A and class B). For each class A, class B
+        pair, it will find the largest region of class A and flag it to be ignored. Then for each non-largest region of
+        class A, it will check if it touches any class B region (within the class_touching_threshold distance). If it
+        does, it will convert the region to class B.
+
+        This is useful for situations where you want just one region of class A and the model has a habit of producing
+        small regions of class A interspersed in the class B regions, which should be class B instead.
 
         Parameters
         ----------
@@ -1106,9 +1114,8 @@ class Grains:
 
         # Iterate over class pairs
         for class_a, class_b in classes_to_convert:
-            # Get the binary mask for class A
+            # Get the binary mask for class A and class B
             class_a_mask = grain_mask_tensor[:, :, class_a]
-            # Get the binary mask for class B
             class_b_mask = grain_mask_tensor[:, :, class_b]
 
             # Skip if no regions of class A
@@ -1149,7 +1156,7 @@ class Grains:
     @staticmethod
     def keep_largest_labelled_region_classes(
         single_grain_mask_tensor: npt.NDArray,
-        keep_largest_labelled_regions_classes: list[int],
+        keep_largest_labelled_regions_classes: list[int] | None,
     ) -> npt.NDArray:
         """
         Keep only the largest region in specific classes.
@@ -1333,12 +1340,12 @@ class Grains:
     def vet_grains(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_size_thresholds: dict[int, tuple[int, int]] | None,
-        class_region_number_thresholds: dict[int, tuple[int, int]] | None,
+        class_size_thresholds: list[tuple[int, int, int]] | None,
+        class_region_number_thresholds: list[tuple[int, int, int]] | None,
         nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
         class_touching_threshold: int,
         keep_largest_labelled_regions_classes: list[int] | None,
-        class_connection_point_thresholds: dict[tuple[int, int], tuple[int, int]] | None,
+        class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None,
     ) -> npt.NDArray:
         """
         Vet grains in a grain mask tensor based on a variety of criteria.
@@ -1349,19 +1356,18 @@ class Grains:
             3-D Numpy array of the grain mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        class_size_thresholds : dict
-            Dictionary of class size thresholds. Structure is {class_number: (lower, upper)}.
-        class_region_number_thresholds : dict
-            Dictionary of class region number thresholds. Structure is {class_number: (lower, upper)}.
+        class_size_thresholds : list
+            List of class size thresholds. Structure is [(class_index, lower, upper)].
+        class_region_number_thresholds : list
+            List of class region number thresholds. Structure is [(class_index, lower, upper)].
         nearby_conversion_classes_to_convert : list
             List of tuples of classes to convert. Structure is [(class_a, class_b)].
         class_touching_threshold : int
             Number of dilation passes to do to determine class A connectivity with class B.
         keep_largest_labelled_regions_classes : list
             List of classes to keep only the largest region.
-        class_connection_point_thresholds : dict
-            Dictionary of required number of connection points between classes, indexed by class pair.
-            Structure is {(class_a, class_b): (lower, upper)}.
+        class_connection_point_thresholds : list
+            List of tuples of classes and connection point thresholds. Structure is [(class_pair, (lower, upper))].
 
         Returns
         -------
@@ -1425,7 +1431,11 @@ class Grains:
 
         # Construct a new grain mask tensor from the passed grains
         return Grains.assemble_grain_mask_tensor_from_crops(
-            grain_mask_tensor_shape=grain_mask_tensor.shape,
+            grain_mask_tensor_shape=(
+                grain_mask_tensor.shape[0],
+                grain_mask_tensor.shape[1],
+                grain_mask_tensor.shape[2],
+            ),
             grain_crops_and_bounding_boxes=passed_grain_crops_and_bounding_boxes,
         )
 
