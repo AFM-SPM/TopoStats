@@ -879,7 +879,11 @@ class Grains:
         class_size_thresholds: list[list[int, int, int]] | None,
     ) -> tuple[npt.NDArray, bool]:
         """
-        Vet the sizes of the classes in a single grain mask tensor.
+        Remove regions of particular classes based on size thresholds.
+
+        Regions of classes that are too large or small may need to be removed for many reasons (eg removing noise
+        erroneously detected by the model or larger-than-expected molecules that are obviously erroneous), this method
+        allows for the removal of these regions based on size thresholds.
 
         Parameters
         ----------
