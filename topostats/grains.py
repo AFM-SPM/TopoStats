@@ -800,6 +800,9 @@ class Grains:
         """
         Flatten a multi-class image tensor to a single binary mask.
 
+        The returned tensor is of boolean type in case there are multiple hits in the same pixel. We dont want to have
+        2s, 3s etc because this would cause issues in labelling and cause erroneous grains within grains.
+
         Parameters
         ----------
         grain_mask_tensor : npt.NDArray
@@ -811,8 +814,6 @@ class Grains:
             Combined binary mask of all but the background class (:, :, 0).
         """
         assert len(grain_mask_tensor.shape) == 3, f"Tensor not 3D: {grain_mask_tensor.shape}"
-        # Convert to binary in case there are multiple hits in the same pixel. We dont want to have 2s, 3s etc
-        # because this would cause issues in labelling and cause grains in grains.
         return np.sum(grain_mask_tensor[:, :, 1:], axis=-1).astype(bool)
 
     @staticmethod
@@ -833,15 +834,10 @@ class Grains:
         dict
             Dictionary of bounding boxes indexed by grain number.
         """
-        # Get the flattened mask
         flattened_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
-        # Label the regions
         labelled_regions = Grains.label_regions(flattened_mask)
-        # Get the region properties
         region_properties = Grains.get_region_properties(labelled_regions)
-        # Get the bounding boxes
         bounding_boxes = {index: region.bbox for index, region in enumerate(region_properties)}
-        # Pad the bounding boxes
         return {
             index: pad_bounding_box(
                 crop_min_row=bbox[0],
@@ -871,80 +867,10 @@ class Grains:
         npt.NDArray
             3-D Numpy array of image tensor with updated background class.
         """
-        # Get the flattened mask and invert it
         flattened_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
         new_background = np.where(flattened_mask == 0, 1, 0)
-        # Update the background class
         grain_mask_tensor[:, :, 0] = new_background
         return grain_mask_tensor.astype(bool)
-
-    @staticmethod
-    def vet_class_sizes(
-        grain_mask_tensor: npt.NDArray,
-        pixel_to_nm_scaling: float,
-        class_size_thresholds: list[list[int, int, int]],
-    ) -> npt.NDArray:
-        """
-        Vet the sizes of the classes in an image tensor.
-
-        Parameters
-        ----------
-        grain_mask_tensor : npt.NDArray
-            3-D Numpy array of the mask tensor.
-        pixel_to_nm_scaling : float
-            Scaling of pixels to nanometres.
-        class_size_thresholds : list[list[int, int, int]]
-            List of class size thresholds. Structure is [(class_index, lower, upper)].
-
-        Returns
-        -------
-        npt.NDArray
-            3-D Numpy array of the mask tensor with grains removed based on size thresholds.
-        """
-        # Get the bounding boxes for each grain
-        bounding_boxes = Grains.get_multi_class_grain_bounding_boxes(grain_mask_tensor)
-
-        # Iterate over the grains
-        for _, bounding_box in bounding_boxes.items():
-            # Get the grain from the image tensor
-            grain = grain_mask_tensor[
-                bounding_box[0] : bounding_box[2],
-                bounding_box[1] : bounding_box[3],
-                :,
-            ]
-            # Get the sizes of each class
-            class_sizes = {
-                class_index: np.sum(grain[:, :, class_index]) * pixel_to_nm_scaling**2
-                for class_index in range(grain.shape[2])
-            }
-            # Check the sizes of each class against the thresholds
-            for threshold_criteria in class_size_thresholds:
-                class_index = threshold_criteria[0]
-                lower_threshold = threshold_criteria[1]
-                upper_threshold = threshold_criteria[2]
-
-                if lower_threshold is not None:
-                    if class_sizes[class_index] < lower_threshold:
-                        # Remove the grain
-                        grain_mask_tensor[
-                            bounding_box[0] : bounding_box[2],
-                            bounding_box[1] : bounding_box[3],
-                            1:,
-                        ] = 0
-                        break
-                if upper_threshold is not None:
-                    if class_sizes[class_index] > upper_threshold:
-                        # Remove the grain
-                        grain_mask_tensor[
-                            bounding_box[0] : bounding_box[2],
-                            bounding_box[1] : bounding_box[3],
-                            1:,
-                        ] = 0
-                        break
-
-            # Update the background class to reflect any removed grains
-            grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-        return grain_mask_tensor
 
     @staticmethod
     def vet_class_sizes_single_grain(
