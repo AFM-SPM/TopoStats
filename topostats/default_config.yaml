@@ -62,7 +62,7 @@ disordered_tracing:
   mask_smoothing_params:
     gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
-    holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refil in the smoothed masks.
+    holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refill in the smoothed masks.
   skeletonisation_params:
     method: topostats # Options : zhang | lee | thin | topostats
     height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
