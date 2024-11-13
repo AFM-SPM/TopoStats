@@ -64,7 +64,7 @@ topostats process
 If you have your own YAML configuration file (see [Usage : Configuring
 TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
 and use the argument for `--config <config_file>.yaml` that points to your file with an associated module of
-TopoStats i.e. `process`.
+TopoStats e.g. `process`.
 
 ```bash
 # Edit and save my_config.yaml then run TopoStats with this configuration file
