@@ -130,31 +130,18 @@ using the `-h` or `--help` flag.
 
 ```bash
  ❱ topostats process --help
-usage: topostats process [-h] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
+usage: topostats process [-h] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
 
 Process AFM images. Additional arguments over-ride those in the configuration file.
 
 options:
-  -h, --help            show this help message and exit
-  -c CONFIG_FILE, --config-file CONFIG_FILE
-                        Path to a YAML configuration file.
-  -s SUMMARY_CONFIG, --summary-config SUMMARY_CONFIG
-                        Path to a YAML configuration file for summary plots and statistics.
-  --matplotlibrc MATPLOTLIBRC
-                        Path to a matplotlibrc file.
-  -b BASE_DIR, --base-dir BASE_DIR
-                        Base directory to scan for images.
-  -j CORES, --cores CORES
-                        Number of CPU cores to use when processing.
-  -l LOG_LEVEL, --log-level LOG_LEVEL
-                        Logging level to use, default is 'info' for verbose output use 'debug'.
-  -f FILE_EXT, --file-ext FILE_EXT
-                        File extension to scan for.
-  --channel CHANNEL     Channel to extract.
-  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
-                        Output directory to write results to.
   --save-plots SAVE_PLOTS
                         Whether to save plots.
+  --savefig-format SAVEFIG_FORMAT
+                        Format for saving figures to, options are 'png', 'svg', or other valid Matplotlib supported formats.
+  --savefig-dpi SAVEFIG_DPI
+                        Dots Per Inch for plots, should be integer for dots per inch.
+  --cmap CMAP           Colormap to use, options include 'nanoscope', 'afmhot' or any valid Matplotlib colormap.
   -m MASK, --mask MASK  Mask the image.
   -w WARNINGS, --warnings WARNINGS
                         Whether to ignore warnings.
@@ -233,7 +220,7 @@ you edited. That doesn't _have_ to be the case but it makes life easier for if y
 and relative paths.
 
 ```bash
-topostats process --config my_config.yaml
+topostats --config my_config.yaml process
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
