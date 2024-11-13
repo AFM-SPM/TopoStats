@@ -32,8 +32,10 @@ Images are processed by:
 ## Row alignment
 
 The first step in the flattening process is **row alignment**. Row alignment is a process that adjusts the height of
-each row of the image so that they all share the same median height value. This gets rid of some of the horizontal
-banding. This leaves an image where the rows are aligned, but the image still has a clear tilt.
+each row of the image so that they all share the same median height value. This "median" value is set by the
+`row_alignment_quartile` where the default of 0.5 is the median value, but can be adjusted depending on how much data
+is considered background. This gets rid of some of the horizontal
+banding and produces an image where the rows are aligned, but the image still has a clear tilt.
 
 ![row alignment](../_static/images/flattening/flattening_align_rows.png)
 
@@ -57,11 +59,13 @@ direction), and subtracting it from the image. We then do the same for a nonline
 “saddle” trends in the data. We could do all of these at the same time, but we like to be able to see the iterative
 differences.
 
-## Scar removal
+## Scar removal (optional)
 
-We then run scar removal on the image. This is a special function that detects scars (long, thin, bright / dark
-streaks in the data, caused by physical problems in the AFM process). We are using a different image here as an
-example since our lovely minicircles.spm image doesn’t have any scars.
+We then optionally run scar removal on the image. This is a special function that detects scars - long, thin, bright / dark
+streaks in the data, caused by physical problems in the AFM process. They are found by the parameters; `threshold_low`
+and `threshold_high` identifying great height changes between rows, and filtered for scars via `max_scar_width`
+and `min_scar_length` in pixel lengths. We are using a different image here as an example since our lovely
+minicircles.spm image doesn’t have any scars.
 
 ![scarred image](../_static/images/flattening/flattening_scarred_image.png)
 
@@ -123,7 +127,10 @@ From here, we can go on to do things like finding our objects of interest (grain
 Finally, we apply a Gaussian filter to the image to smooth height differences and remove high-gain noise. This allows
 you to get smoother data
 but will start to blur out important features if you apply it too strongly. The default strength is a sigma of 1.0, but
-you can adjust this in the config file under `filter/gaussian_size`.
+you can adjust this in the config file under `gaussian_size`. The `gaussian_mode` parameter suggests how values at
+the border should be handled, see
+[skimage.filters.gaussian](https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.gaussian)
+for more details.
 
 Here are some examples of different gaussian sizes:
 
