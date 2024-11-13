@@ -1088,7 +1088,7 @@ class Grains:
 
         Specifically, it takes a list of tuples of two integers (dubbed class A and class B). For each class A, class B
         pair, it will find the largest region of class A and flag it to be ignored. Then for each non-largest region of
-        class A, it will check if it touches any class B region (within the class_touching_threshold distance). If it
+        class A, it will check if it touches any class B region (within the ``class_touching_threshold`` distance). If it
         does, it will convert the region to class B.
 
         This is useful for situations where you want just one region of class A and the model has a habit of producing
