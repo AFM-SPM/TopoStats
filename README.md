@@ -62,12 +62,13 @@ topostats process
 ```
 
 If you have your own YAML configuration file (see [Usage : Configuring
-TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats process`
-and use the argument for `--config <config_file>.yaml` that points to your file.
+TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
+and use the argument for `--config <config_file>.yaml` that points to your file with an associated module of
+TopoStats i.e. `process`.
 
 ```bash
 # Edit and save my_config.yaml then run TopoStats with this configuration file
-topostats process --config my_config.yaml
+topostats --config my_config.yaml process
 ```
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
@@ -80,7 +81,7 @@ configuration to the file `./config.yaml` (i.e. in the current directory). This 
 version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config` option.
 
 ```bash
-run_topostats --create-config-file config.yaml
+run_topostats --create-config -f config.yaml
 ```
 
 ### Notebooks
