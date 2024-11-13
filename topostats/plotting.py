@@ -27,6 +27,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-positional-arguments
 
 
 class TopoSum:
@@ -248,7 +249,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         plt.ticklabel_format(axis="both", style="sci", scilimits=(-3, 3))
         plt.title(self.label)
         self.set_xlim()
-        self.save_plot(outfile)
+        self.save_plot(outfile)  # pylint: disable=possibly-used-before-assignment
 
         return fig, ax
 
@@ -420,7 +421,6 @@ def run_toposum(args=None) -> None:
     args : None
         Arguments to pass and update configuration.
     """
-
     if args.config_file is not None:
         config = read_yaml(args.config_file)
         LOGGER.info(f"[plotting] Configuration file loaded from : {args.config_file}")
@@ -436,8 +436,8 @@ def run_toposum(args=None) -> None:
         plotting_yaml = (resources.files(__package__) / "var_to_label.yaml").read_text()
         config["var_to_label"] = yaml.safe_load(plotting_yaml)
         LOGGER.debug("[plotting] Default variable to labels mapping loaded.")
-    if args.csv_file is not None:
-        config["csv_file"] = args.csv_file
+    if args.input_csv is not None:
+        config["input_csv"] = args.input_csv
 
     # Write sample configuration if asked to do so and exit
     if args.create_config_file:
