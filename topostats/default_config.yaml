@@ -55,10 +55,10 @@ grains:
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
   vetting:
     class_region_number_thresholds: null # Class region number thresholds, list of lists, ie [[class, low, high],] eg [[1, 2, 4], [2, 1, 1]] for class 1 to have 2-4 regions and class 2 to have 1 region. Can use None to not set an upper/lower bound.
-    class_size_thresholds: null # Class size thresholds (nm^2), list of lists, ie [[class, low, high],] eg [[1, 100, 1000], [2, 1000, None]] for class 1 to have 100-1000 nm^2 and class 2 to have 1000-any nm^2. Can use None to not set an upper/lower bound.
-    nearby_conversion_classes_to_convert: null # Class conversion for nearby regions, list of two-integer tuples, eg [[1, 2], [3, 4]] to convert class 1 to 2 and 3 to 4 for small touching regions
+    class_size_thresholds: null # Class size thresholds (nm^2), list of tuples of 3 integers, ie [[class, low, high],] eg [[1, 100, 1000], [2, 1000, None]] for class 1 to have 100-1000 nm^2 and class 2 to have 1000-any nm^2. Can use None to not set an upper/lower bound.
+    nearby_conversion_classes_to_convert: null # Class conversion for nearby regions, list of tuples of two-integer tuples, eg [[[1, 2], [3, 4]]] to convert class 1 to 2 and 3 to 4 for small touching regions
     class_touching_threshold: 5 # Number of dilation steps to use for detecting touching regions
-    keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for eg [1, 2]
+    keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for, list of integers eg [1, 2] to keep only the largest regions of class 1 and 2
     class_connection_point_thresholds: null # Class connection point thresholds, [[[class_1, class_2], [min, max]]] eg [[[1, 2], [1, 1]]] for class 1 to have 1 connection point with class 2
 grainstats:
   run: true # Options : true, false
