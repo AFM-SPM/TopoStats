@@ -77,13 +77,6 @@ are hopefully useful in resolving the error(s) in your modified configuration.
 You can generate a sample configuration file using the `topostats create-config` argument which writes the default
 configuration to the file `./config.yaml` (i.e. in the current directory). This will _not_ run any analyses.
 
-**NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released. In older
-version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config` option.
-
-```bash
-run_topostats --create-config -f config.yaml
-```
-
 ### Notebooks
 
 Example Jupyter Notebooks have been developed that show how to use TopoStats package interactively which is useful when
