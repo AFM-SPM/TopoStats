@@ -187,6 +187,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "lower_norm_bound": float,
             },
             "vetting": {
+                "class_conversion_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers and 2 integers
+                    [[[int, int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_conversion_size_thresholds', this"
+                    "needs to be a list of lists of 3 integers and 2 integers - [class number, class to convert to"
+                    "if too small, class to convert to if too big] and [minimum size, maximum size]",
+                ),
                 "class_region_number_thresholds": Or(
                     None,
                     # List of lists of 3 integers
