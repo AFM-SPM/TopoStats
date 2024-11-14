@@ -2261,7 +2261,7 @@ def test_calculate_region_connection_regions(
 
 
 @pytest.mark.parametrize(
-    ("grain_mask_tensor", "pixel_to_nm_scaling", "class_conversion_and_size_thresholds", "expected_grain_mask_tensor"),
+    ("grain_mask_tensor", "pixel_to_nm_scaling", "class_conversion_size_thresholds", "expected_grain_mask_tensor"),
     [
         pytest.param(
             np.stack(
@@ -2367,12 +2367,12 @@ def test_calculate_region_connection_regions(
 def test_convert_classes_when_too_big_or_small(
     grain_mask_tensor: npt.NDArray[np.int32],
     pixel_to_nm_scaling: float,
-    class_conversion_and_size_thresholds: list[tuple[tuple[int, int], tuple[int, int]]],
+    class_conversion_size_thresholds: list[tuple[tuple[int, int], tuple[int, int]]],
     expected_grain_mask_tensor: npt.NDArray[np.int32],
 ) -> None:
     """Test the convert_classes_when_too_big_or_small method of the Grains class."""
     result_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
-        grain_mask_tensor, pixel_to_nm_scaling, class_conversion_and_size_thresholds
+        grain_mask_tensor, pixel_to_nm_scaling, class_conversion_size_thresholds
     )
 
     np.testing.assert_array_equal(result_grain_mask_tensor, expected_grain_mask_tensor)
@@ -2911,6 +2911,8 @@ def test_merge_classes(
                 axis=-1,
             ).astype(bool),
             1.0,
+            # Class conversion size thresholds - coulndn't come up with a set of params would propagate through
+            None,
             # Class size thresholds
             [[1, 3, 1000000]],
             # Class region number thresholds
@@ -3129,6 +3131,8 @@ def test_merge_classes(
                 axis=-1,
             ).astype(bool),
             1.0,
+            # Class conversion size thresholds
+            None,
             # Class size thresholds
             None,
             # Class region number thresholds
@@ -3249,6 +3253,7 @@ def test_merge_classes(
 def test_vet_grains(
     grain_mask_tensor: npt.NDArray[np.int32],
     pixel_to_nm_scaling: float,
+    class_conversion_size_thresholds: list[list[int, int, int]] | None,
     class_size_thresholds: list[list[int, int, int]] | None,
     class_region_number_thresholds: list[list[int, int, int]] | None,
     nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
@@ -3261,6 +3266,7 @@ def test_vet_grains(
     grain_mask_tensor = Grains.vet_grains(
         grain_mask_tensor=grain_mask_tensor,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
+        class_conversion_size_thresholds=class_conversion_size_thresholds,
         class_size_thresholds=class_size_thresholds,
         class_region_number_thresholds=class_region_number_thresholds,
         nearby_conversion_classes_to_convert=nearby_conversion_classes_to_convert,

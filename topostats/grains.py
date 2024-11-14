@@ -915,9 +915,7 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:]
-                for vetting_criteria in class_size_thresholds
-                if vetting_criteria[0] == class_index
+                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1344,7 +1342,7 @@ class Grains:
     def convert_classes_when_too_big_or_small(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        class_conversion_and_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
+        class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
     ) -> npt.NDArray:
         """
         Convert classes when they are too big or too small based on size thresholds.
@@ -1355,8 +1353,8 @@ class Grains:
             3-D Numpy array of the grain mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
-        class_conversion_and_size_thresholds : list
-            List of class conversion and size thresholds.
+        class_conversion_size_thresholds : list
+            List of class conversion size thresholds.
             Structure is [(class_index, class_to_convert_to_if_to_small, class_to_convert_to_if_too_big),
             (lower_threshold, upper_threshold)].
 
@@ -1365,24 +1363,24 @@ class Grains:
         npt.NDArray
             3-D Numpy array of the grain mask tensor with classes converted based on size thresholds.
         """
-        if class_conversion_and_size_thresholds is None:
+        if class_conversion_size_thresholds is None:
             return grain_mask_tensor
 
         new_grain_mask_tensor = np.copy(grain_mask_tensor)
-        classes_to_vet = [vetting_criteria[0][0] for vetting_criteria in class_conversion_and_size_thresholds]
+        classes_to_vet = [vetting_criteria[0][0] for vetting_criteria in class_conversion_size_thresholds]
         for class_index in range(1, grain_mask_tensor.shape[2]):
             if class_index not in classes_to_vet:
                 continue
 
             lower_threshold, upper_threshold = [
                 vetting_criteria[1]
-                for vetting_criteria in class_conversion_and_size_thresholds
+                for vetting_criteria in class_conversion_size_thresholds
                 if vetting_criteria[0][0] == class_index
             ][0]
 
             class_to_convert_to_if_too_small, class_to_convert_to_if_too_big = [
                 vetting_criteria[0][1:]
-                for vetting_criteria in class_conversion_and_size_thresholds
+                for vetting_criteria in class_conversion_size_thresholds
                 if vetting_criteria[0][0] == class_index
             ][0]
 
@@ -1432,6 +1430,7 @@ class Grains:
     def vet_grains(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
+        class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
         class_size_thresholds: list[tuple[int, int, int]] | None,
         class_region_number_thresholds: list[tuple[int, int, int]] | None,
         nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
@@ -1448,6 +1447,9 @@ class Grains:
             3-D Numpy array of the grain mask tensor.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
+        class_conversion_size_thresholds : list
+            List of class conversion size thresholds. Structure is [(class_index, class_to_convert_to_if_too_small,
+            class_to_convert_to_if_too_big), (lower_threshold, upper_threshold)].
         class_size_thresholds : list
             List of class size thresholds. Structure is [(class_index, lower, upper)].
         class_region_number_thresholds : list
@@ -1473,6 +1475,13 @@ class Grains:
 
         # Iterate over the grain crops
         for _, (single_grain_mask_tensor, bounding_box) in enumerate(zip(grain_tensor_crops, bounding_boxes)):
+
+            # Convert small / big areas to other classes
+            single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
+                grain_mask_tensor=single_grain_mask_tensor,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                class_conversion_size_thresholds=class_conversion_size_thresholds,
+            )
 
             # Vet number of regions (foreground and background)
             _, passed = Grains.vet_numbers_of_regions_single_grain(
