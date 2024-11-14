@@ -915,9 +915,7 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:]
-                for vetting_criteria in class_size_thresholds
-                if vetting_criteria[0] == class_index
+                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
