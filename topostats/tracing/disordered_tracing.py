@@ -11,6 +11,7 @@ import pandas as pd
 import skan
 import skimage.measure as skimage_measure
 from scipy import ndimage
+from scipy.ndimage import distance_transform_edt
 from skimage import filters
 from skimage.morphology import label
 
@@ -18,7 +19,6 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
-from scipy.ndimage import distance_transform_edt
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -254,18 +254,17 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             return self.re_add_holes(grain, gauss, holearea_min_max)
         LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
         return self.re_add_holes(grain, dilation, holearea_min_max)
-    
+
     @staticmethod
     def calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, px2nm: float = 1) -> float:
         """
         Calculate the average width in metres of the DNA using the trace and mask.
         """
-
         # Code will go here
         dist_trans = distance_transform_edt(smoothed_mask)
-        comb = np.where(pruned_skeleton==1,dist_trans,0)
+        comb = np.where(pruned_skeleton == 1, dist_trans, 0)
 
-        return comb[comb!=0].mean() * 2 * px2nm
+        return comb[comb != 0].mean() * 2 * px2nm
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
@@ -376,7 +375,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length,
-                    "grain_width": disorderedTrace.calculate_dna_width(disordered_trace_images["smoothed_grain"], disordered_trace_images["pruned_skeleton"], pixel_to_nm_scaling) * 1e-9
+                    "grain_width": disorderedTrace.calculate_dna_width(
+                        disordered_trace_images["smoothed_grain"],
+                        disordered_trace_images["pruned_skeleton"],
+                        pixel_to_nm_scaling,
+                    )
+                    * 1e-9,
                 }
 
                 # remap the cropped images back onto the original
