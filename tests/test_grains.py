@@ -2261,6 +2261,124 @@ def test_calculate_region_connection_regions(
 
 
 @pytest.mark.parametrize(
+    ("grain_mask_tensor", "pixel_to_nm_scaling", "class_conversion_and_size_thresholds", "expected_grain_mask_tensor"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(bool),
+            1.0,
+            [[(1, None, 2), (2, 3)], [(2, None, 1), (2, 3)]],
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ).astype(bool),
+            id="switch classes 1 and 2",
+        ),
+    ],
+)
+def test_convert_classes_when_too_big_or_small(
+    grain_mask_tensor: npt.NDArray[np.int32],
+    pixel_to_nm_scaling: float,
+    class_conversion_and_size_thresholds: list[tuple[tuple[int, int], tuple[int, int]]],
+    expected_grain_mask_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the convert_classes_when_too_big_or_small method of the Grains class."""
+    result_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
+        grain_mask_tensor, pixel_to_nm_scaling, class_conversion_and_size_thresholds
+    )
+
+    np.testing.assert_array_equal(result_grain_mask_tensor, expected_grain_mask_tensor)
+
+
+@pytest.mark.parametrize(
     ("grain_mask_tensor", "class_connection_point_thresholds", "expected_pass"),
     [
         pytest.param(
