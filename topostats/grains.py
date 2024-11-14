@@ -915,7 +915,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1335,6 +1337,96 @@ class Grains:
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
 
         return grain_mask_tensor.astype(bool)
+
+    # Ignore too complex, to break the function down into smaller functions would make it more complex.
+    # ruff: noqa: C901
+    @staticmethod
+    def convert_classes_when_too_big_or_small(
+        grain_mask_tensor: npt.NDArray,
+        pixel_to_nm_scaling: float,
+        class_conversion_and_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
+    ) -> npt.NDArray:
+        """
+        Convert classes when they are too big or too small based on size thresholds.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        class_conversion_and_size_thresholds : list
+            List of class conversion and size thresholds.
+            Structure is [(class_index, class_to_convert_to_if_to_small, class_to_convert_to_if_too_big),
+            (lower_threshold, upper_threshold)].
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with classes converted based on size thresholds.
+        """
+        if class_conversion_and_size_thresholds is None:
+            return grain_mask_tensor
+
+        new_grain_mask_tensor = np.copy(grain_mask_tensor)
+        classes_to_vet = [vetting_criteria[0][0] for vetting_criteria in class_conversion_and_size_thresholds]
+        for class_index in range(1, grain_mask_tensor.shape[2]):
+            if class_index not in classes_to_vet:
+                continue
+
+            lower_threshold, upper_threshold = [
+                vetting_criteria[1]
+                for vetting_criteria in class_conversion_and_size_thresholds
+                if vetting_criteria[0][0] == class_index
+            ][0]
+
+            class_to_convert_to_if_too_small, class_to_convert_to_if_too_big = [
+                vetting_criteria[0][1:]
+                for vetting_criteria in class_conversion_and_size_thresholds
+                if vetting_criteria[0][0] == class_index
+            ][0]
+
+            # For each region in the class, check its size and convert if needed
+            labelled_regions = Grains.label_regions(grain_mask_tensor[:, :, class_index])
+            region_properties = Grains.get_region_properties(labelled_regions)
+            for region in region_properties:
+                region_mask = labelled_regions == region.label
+                region_size = np.sum(region_mask) * pixel_to_nm_scaling**2
+                if lower_threshold is not None:
+                    if region_size < lower_threshold:
+                        if class_to_convert_to_if_too_small is not None:
+                            # Add the region to the class to convert to in the new tensor
+                            new_grain_mask_tensor[:, :, class_to_convert_to_if_too_small] = np.where(
+                                region_mask,
+                                class_to_convert_to_if_too_small,
+                                new_grain_mask_tensor[:, :, class_to_convert_to_if_too_small],
+                            )
+                        # Remove the region from the original class
+                        new_grain_mask_tensor[:, :, class_index] = np.where(
+                            region_mask,
+                            0,
+                            new_grain_mask_tensor[:, :, class_index],
+                        )
+                if upper_threshold is not None:
+                    if region_size > upper_threshold:
+                        if class_to_convert_to_if_too_big is not None:
+                            # Add the region to the class to convert to in the new tensor
+                            new_grain_mask_tensor[:, :, class_to_convert_to_if_too_big] = np.where(
+                                region_mask,
+                                class_to_convert_to_if_too_big,
+                                new_grain_mask_tensor[:, :, class_to_convert_to_if_too_big],
+                            )
+                        # Remove the region from the original class
+                        new_grain_mask_tensor[:, :, class_index] = np.where(
+                            region_mask,
+                            0,
+                            new_grain_mask_tensor[:, :, class_index],
+                        )
+
+        # Update the background class
+        new_grain_mask_tensor = Grains.update_background_class(new_grain_mask_tensor)
+
+        return new_grain_mask_tensor.astype(bool)
 
     @staticmethod
     def vet_grains(
