@@ -19,6 +19,35 @@ create-config --help` for further details).
 topostats create-config
 ```
 
+## Partial configurations
+
+TopoStats supports using a partial configuration, where you specify only the fields you wish to override. This is
+useful if you only want to change a few parameters from the default configuration or would like to use a configuration
+file that is smaller and easier to read.
+
+To create a partial configuration file, simply create a new config file and delete anything you don't want to override.
+
+TopoStats will take the partial configuration file and merge it with the default configuration file, with the partial
+configuration taking precedence. This means that any fields you specify in the partial configuration will override the
+default configuration, while any fields you don't specify will be taken from the default configuration. Command-line
+arguments will override both the default and partial configurations.
+
+For example, you could use a configuration as simple as:
+
+```yaml
+base_dir: ./mydata/
+output_dir: ./myoutput/
+filter:
+  remove_scars:
+    run: true
+grains:
+  threshold_method: absolute
+  threshold_absolute:
+    above: 1.2
+  absolute_area_threshold:
+    above: [400, 1000]
+```
+
 ## Using a custom configuration
 
 If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
@@ -69,6 +98,7 @@ Aside from the comments in YAML file itself the fields are described below.
 |                           | `threshold_absolute`                    | dictionary                                      | `-1.0, 1.0`                                                                                                           | Below (first) and above (second) absolute threshold for separating data from the image background.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 |                           | `gaussian_size`                         | float                                           | `0.5`                                                                                                                 | The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See [skimage.filters.gaussian](https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian) and `sigma` for more information.                                                                                                                                                                                                                                                                                                                                                                           |
 |                           | `gaussian_mode`                         | string                                          | `nearest`                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|                           | `remove_scars`                          | dictionary                                      | `run:true`<br>`removal_iterations:2`<br>`threshold_low:0.250`<br>`threshold_high:0.666`<br>`max_scar_width:4`<br>`min_scar_length:16` | Parameters to remove image scars. First, whether to run scar removal. The threshold to identify large row height changes for low or high scars. The filtering conditions in pixels to identify long and wide scars.                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `grains`                  | `run`                                   | boolean                                         | `true`                                                                                                                | Whether to run grain finding. Options `true`, `false`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 |                           | `row_alignment_quantile`                | float                                           | `0.5`                                                                                                                 | Quantile (0.0 to 1.0) to be used to determine the average background for the image. below values may improve flattening of large features.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 |                           | `smallest_grain_size_nm2`               | int                                             | `100`                                                                                                                 | The smallest size of grains to be included (in nm^2), anything smaller than this is considered noise and removed. **NB** must be `> 0.0`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

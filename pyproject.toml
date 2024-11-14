@@ -51,7 +51,7 @@ dependencies = [
   "scikit-image",
   "scipy",
   "seaborn",
-  "skan",
+  "skan~=0.11.0",
   "snoop",
   "tensorflow",
   "tifffile",
@@ -65,7 +65,7 @@ tests = [
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
-  "pytest-regtest",
+  "pytest-regtest==2.3.1",
   "pytest-testmon",
   "filetype",
 ]
@@ -282,5 +282,3 @@ override_SS05 = [  # override SS05 to allow docstrings starting with these words
 
 [project.scripts]
 topostats = "topostats.entry_point:entry_point"
-run_topostats = "topostats.entry_point:legacy_run_topostats_entry_point"
-toposum = "topostats.entry_point:legacy_toposum_entry_point"
