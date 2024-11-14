@@ -54,7 +54,7 @@ If you have generated a configuration file you can modify and edit a configurati
 fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.
 
 ```bash
-topostats process --config my_config.yaml
+topostats --config my_config.yaml process
 ```
 
 On completion a copy of the configuration that was used is written to the output directory so you have a record of the
@@ -200,7 +200,7 @@ this custom file using the following command (substituting `my_custom_topostats.
 your file as).
 
 ```bash
-topostats process --matplotlibrc my_custom_topostats.mplstyle
+topostats --matplotlibrc my_custom_topostats.mplstyle process
 ```
 
 **NB** Plotting with Matplotlib is highly configurable and there are a plethora of options that you may wish to

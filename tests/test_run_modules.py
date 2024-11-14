@@ -8,7 +8,7 @@ import pytest
 
 from topostats.entry_point import entry_point
 from topostats.logs.logs import LOGGER_NAME
-from topostats.run_modules import reconcile_config_args
+from topostats.run_modules import _set_logging, reconcile_config_args
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, validate_config
 
 BASE_DIR = Path.cwd()
@@ -79,6 +79,22 @@ def test_reconcile_config_args_partial_config_with_overrides() -> None:
     assert config["output_dir"] == Path("./dummy_output_dir")
     # Check that the config still passes the schema
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
+
+
+@pytest.mark.parametrize(
+    ("log_level", "effective_level"),
+    [
+        pytest.param("debug", 10, id="log level debug"),
+        pytest.param("info", 20, id="log level warning"),
+        pytest.param("warning", 30, id="log level warning"),
+        pytest.param("error", 40, id="log level error"),
+    ],
+)
+def test_set_logging(log_level: str, effective_level: int) -> None:
+    """Test setting log-level."""
+    LOGGER = logging.getLogger(LOGGER_NAME)
+    _set_logging(log_level)
+    assert LOGGER.getEffectiveLevel() == effective_level
 
 
 @pytest.mark.parametrize("option", [("-h"), ("--help")])
