@@ -13,7 +13,8 @@ description of why a particular item is not relevant.
 Before submitting a Pull Request please check the following.
 
 - [ ] Existing tests pass.
-- [ ] Documentation has been updated and builds.
+- [ ] Documentation has been updated and builds. Remember to update `configuration.md`, `usage.md`, and relevant
+      processing sections under `advanced.md`.
 - [ ] Pre-commit checks pass.
 - [ ] New functions/methods have typehints and docstrings.
 - [ ] New functions/methods have tests which check the intended behaviour is correct.
