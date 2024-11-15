@@ -258,7 +258,21 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, px2nm: float = 1) -> float:
         """
-        Calculate the average width in metres of the DNA using the trace and mask.
+        Calculate the mean width in metres of the DNA using the trace and mask.
+
+        Parameters
+        ----------
+        smoothed_mask : npt.NDArray
+            Smoothed mask to be measured.
+        pruned_skeleton : npt.NDArray
+            Pruned skeleton.
+        px2nm : float
+            Scaling of pixels to nanometres.
+
+        Returns
+        -------
+        float
+            Width of grain in metres.
         """
         # Code will go here
         dist_trans = distance_transform_edt(smoothed_mask)
@@ -375,7 +389,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length,
-                    "grain_width": disorderedTrace.calculate_dna_width(
+                    "grain_width_mean": disorderedTrace.calculate_dna_width(
                         disordered_trace_images["smoothed_grain"],
                         disordered_trace_images["pruned_skeleton"],
                         pixel_to_nm_scaling,
