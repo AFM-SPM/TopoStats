@@ -101,7 +101,21 @@ On a successful completion you should see a message similar to the following whi
 along with information about how to give feedback, report bugs and cite the software.
 
 ```bash
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  _______      _____      __ __       _____     ______    _______      _____      _______    ______
+/\_______)\   ) ___ (    /_/\__/\    ) ___ (   / ____/\ /\_______)\   /\___/\   /\_______)\ / ____/\
+\(___  __\/  / /\_/\ \   ) ) ) ) )  / /\_/\ \  ) ) __\/ \(___  __\/  / / _ \ \  \(___  __\/ ) ) __\/
+  / / /     / /_/ (_\ \ /_/ /_/ /  / /_/ (_\ \  \ \ \     / / /      \ \(_)/ /    / / /      \ \ \
+ ( ( (      \ \ )_/ / / \ \ \_\/   \ \ )_/ / /  _\ \ \   ( ( (       / / _ \ \   ( ( (       _\ \ \
+  \ \ \      \ \/_\/ /   )_) )      \ \/_\/ /  )____) )   \ \ \     ( (_( )_) )   \ \ \     )____) )
+  /_/_/       )_____(    \_\/        )_____(   \____\/    /_/_/      \/_/ \_\/    /_/_/     \____\/
+
+
+[Thu, 14 Nov 2024 09:40:56] [INFO    ] [topostats]
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Base Directory              : /home/neil/work/projects/topostats/TopoStats
   File Extension              : .spm
@@ -125,17 +139,20 @@ along with information about how to give feedback, report bugs and cite the soft
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-The command `topostats process` has a number of additional flags for passing different options. These can be viewed
-using the `-h` or `--help` flag.
+## Help Options
+
+The main `topostats` programme has a number of flags which can be specified to change the behaviour of how the programme
+runs. You can view the possible options by supplying the `-h` or `--help` flag.
 
 ```bash
- ❱ topostats process --help
-usage: topostats process [-h] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-j CORES] [-l LOG_LEVEL] [-f FILE_EXT] [--channel CHANNEL] [-o OUTPUT_DIR] [--save-plots SAVE_PLOTS] [-m MASK] [-w WARNINGS]
+❱ topostats --help
+usage: topostats [-h] [-v] [-c CONFIG_FILE] [-s SUMMARY_CONFIG] [--matplotlibrc MATPLOTLIBRC] [-b BASE_DIR] [-o OUTPUT_DIR] [-l LOG_LEVEL] [-j CORES] [-f FILE_EXT] [--channel CHANNEL] {process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc} ...
 
-Process AFM images. Additional arguments over-ride those in the configuration file.
+Run various programs relating to AFM data. Add the name of the program you wish to run.
 
 options:
   -h, --help            show this help message and exit
+  -v, --version         Report the current version of TopoStats that is installed
   -c CONFIG_FILE, --config-file CONFIG_FILE
                         Path to a YAML configuration file.
   -s SUMMARY_CONFIG, --summary-config SUMMARY_CONFIG
@@ -144,21 +161,60 @@ options:
                         Path to a matplotlibrc file.
   -b BASE_DIR, --base-dir BASE_DIR
                         Base directory to scan for images.
-  -j CORES, --cores CORES
-                        Number of CPU cores to use when processing.
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Output directory to write results to.
   -l LOG_LEVEL, --log-level LOG_LEVEL
                         Logging level to use, default is 'info' for verbose output use 'debug'.
+  -j CORES, --cores CORES
+                        Number of CPU cores to use when processing.
   -f FILE_EXT, --file-ext FILE_EXT
                         File extension to scan for.
   --channel CHANNEL     Channel to extract.
-  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
-                        Output directory to write results to.
-  --save-plots SAVE_PLOTS
-                        Whether to save plots.
-  -m MASK, --mask MASK  Mask the image.
-  -w WARNINGS, --warnings WARNINGS
-                        Whether to ignore warnings.
+
+program:
+  Available programs, listed below:
+
+  {process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc}
+    process             Process AFM images. Additional arguments over-ride defaults or those in the configuration file.
+    load                Load and save all images as .topostats files for subsequent processing.
+    filter              WIP DO NOT USE - Load and filter images, saving as .topostats files for subsequent processing.
+    grains              WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.
+    grainstats          WIP DO NOT USE - Load images with grains from '.topostats' files and calculate statistics.
+    disordered-tracing  WIP DO NOT USE - Skeletonise and prune objects to disordered traces.
+    nodestats           WIP DO NOT USE - Calculate node statistics and disentangle molecules.
+    ordered-tracing     WIP DO NOT USE - Ordered traces of pruned skeletons.
+    splining            WIP DO NOT USE - Splining of traced molecules to produce smooth curves.
+    summary             Plotting and summary of TopoStats output statistics.
+    create-config       Create a configuration file using the defaults.
+    create-matplotlibrc
+                        Create a Matplotlibrc parameters file using the defaults.
 ```
+
+The global flags/options for modifying behaviour are listed. You then need to provide the name of the programme you wish
+to run which are listed at the bottom of the output along with a description.
+
+Each sub-programme has its own specific set of options too which can be specified to override the settings in the
+configuration file that is loaded (either the default or the user specified configuration). To view these again use the
+`-h` or `--help` flag. For a more detailed description of the options see the [configuration](configuration) page.
+
+```bash
+ ❱ topostats create-config --help
+usage: topostats create-config [-h] [-f FILENAME] [-o OUTPUT_DIR] [-c CONFIG] [-s]
+
+Create a configuration file using the defaults.
+
+options:
+  -h, --help            show this help message and exit
+  -f FILENAME, --filename FILENAME
+                        Name of YAML file to save configuration to (default 'config.yaml').
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Path to where the YAML file should be saved (default './' the current directory).
+  -c CONFIG, --config CONFIG
+                        Configuration to use, currently only one is supported, the 'default'.
+  -s, --simple          Create a simple configuration file with only the most common options.
+```
+
+**NB** The `process` programme has a _lot_ of options as it runs the processing pipeline in full.
 
 ### Reducing Output
 
@@ -233,7 +289,7 @@ you edited. That doesn't _have_ to be the case but it makes life easier for if y
 and relative paths.
 
 ```bash
-topostats process --config my_config.yaml
+topostats --config my_config.yaml process
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Plotting configuration is valid.
 [Tue, 15 Nov 2022 12:39:48] [INFO    ] [topostats] Configuration file loaded from      : None
