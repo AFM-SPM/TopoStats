@@ -55,7 +55,7 @@ dependencies = [
   "snoop",
   "tensorflow",
   "tifffile",
-  "topoly==1.0.2",
+  "topoly",
   "tqdm",
 ]
 
