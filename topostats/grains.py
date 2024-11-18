@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 import sys
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 import keras
 import numpy as np
@@ -21,6 +22,8 @@ from topostats.thresholds import threshold
 from topostats.unet_masking import (
     make_bounding_box_square,
     pad_bounding_box,
+    pad_crop,
+    make_crop_square,
     predict_unet,
 )
 from topostats.utils import _get_mask, get_thresholds
@@ -35,6 +38,102 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=dangerous-default-value
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-public-methods
+
+
+@dataclass
+class GrainCrop:
+    """
+    Dataclass for storing the crops of grains.
+
+    Attributes
+    ----------
+    image : npt.NDArray[np.float32]
+        2-D Numpy array of the cropped image.
+    mask : npt.NDArray[np.bool_]
+        2-D Numpy array of the cropped mask.
+    padding : int
+        Padding added to the bounding box of the grain during cropping.
+    bbox: tuple[int, int, int, int]
+        Bounding box of the crop including padding.
+    """
+
+    image: npt.NDArray[np.float32]
+    mask: npt.NDArray[np.bool_]
+    padding: int
+    bbox: tuple[int, int, int, int]
+
+
+def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
+    """
+    Validate the shape of the full mask tensor.
+
+    Parameters
+    ----------
+    array : npt.NDArray
+        Numpy array to validate.
+
+    Returns
+    -------
+    npt.NDArray
+        Numpy array if valid.
+    """
+    if len(array.shape) != 3 or array.shape[2] != 3 or array.shape[1] != array.shape[0]:
+        raise ValueError(f"Full mask tensor must be NxNx3 but has shape {array.shape}")
+    return array
+
+
+@dataclass
+class GrainCropsDirection:
+    """
+    Dataclass for storing the crops of grains in a particular imaging direction.
+
+    Attributes
+    ----------
+    full_mask_tensor : npt.NDArray[np.bool_]
+        Boolean NxNx3 array of the full mask tensor.
+    crops : GrainCrops
+        Grain crops.
+    """
+
+    full_mask_tensor: npt.NDArray[np.bool_]
+    crops: dict[int, GrainCrop]
+
+    def __post_init__(self):
+        """
+        Validate the full mask tensor shape.
+
+        Raises
+        ------
+        ValueError
+            If the full mask tensor shape is invalid.
+        """
+        self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
+
+    @property
+    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
+        """Return the full mask tensor."""
+        return self._full_mask_tensor
+
+    @full_mask_tensor.setter
+    def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
+        self._full_mask_tensor = validate_full_mask_tensor_shape(value)
+
+
+@dataclass
+class ImageGrainCrops:
+    """
+    Dataclass for storing the crops of grains in an image.
+
+    Attributes
+    ----------
+    above : GrainCropDirection | None
+        Grains in the above direction.
+    below : GrainCropDirection | None
+        Grains in the below direction.
+    """
+
+    above: GrainCropsDirection | None
+    below: GrainCropsDirection | None
 
 
 class Grains:
@@ -98,6 +197,7 @@ class Grains:
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[tuple[int, int]] | None = None,
         vetting: dict | None = None,
+        grain_crop_padding: int = 1,
     ):
         """
         Initialise the class.
@@ -177,6 +277,7 @@ class Grains:
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
         self.grainstats = None
+        self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
         self.vetting = vetting
         self.classes_to_merge = classes_to_merge
@@ -550,28 +651,31 @@ class Grains:
                 np.int32
             )  # Will produce an NxNx2 array
 
+            full_mask_tensor = self.directions[direction]["labelled_regions_02"]
+
+            graincrops = self.extract_grains_from_full_image_mask(
+                image=self.image,
+                labelled_full_mask_tensor=self.directions[direction]["labelled_regions_02"],
+                padding=self.grain_crop_padding,
+            )
+
             # Check whether to run the UNet model
             if self.unet_config["model_path"] is not None:
 
                 # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
                 # later on along with all the other hardcoded class 1s.
-                unet_mask, unet_labelled_regions = Grains.improve_grain_segmentation_unet(
+                graincrops = Grains.improve_grain_segmentation_unet(
                     filename=self.filename,
                     direction=direction,
                     unet_config=self.unet_config,
                     image=self.image,
-                    labelled_grain_regions=self.directions[direction]["labelled_regions_02"][:, :, 1],
+                    graincrops=graincrops,
                 )
 
-                # Update the image masks to be the unet masks instead
-                self.directions[direction]["removed_small_objects"] = unet_mask
-                self.directions[direction]["labelled_regions_02"] = unet_labelled_regions
-
-                class_counts = [
-                    unet_labelled_regions[class_idx].max() for class_idx in range(unet_labelled_regions.shape[2])
-                ]
-                LOGGER.info(
-                    f"[{self.filename}] : Overridden {thresholding_grain_count} grains with {class_counts} UNet predictions ({direction})"
+                # Construct full mask from the crops
+                full_mask_tensor = Grains.construct_full_mask_from_crops(
+                    graincrops=graincrops,
+                    image_shape=self.image.shape,
                 )
 
             # Vet the grains
@@ -604,6 +708,28 @@ class Grains:
             self.directions[direction]["removed_small_objects"] = labelled_final_grains.astype(bool)
             self.directions[direction]["labelled_regions_02"] = labelled_final_grains.astype(np.int32)
 
+            self.directions[direction]["grain_crops_direction"] = GrainCropsDirection(
+                full_mask_tensor=full_mask_tensor,
+                crops=graincrops,
+            )
+
+        if "above" in self.directions and "below" in self.directions:
+            return ImageGrainCrops(
+                above=self.directions["above"]["grain_crops_direction"],
+                below=self.directions["below"]["grain_crops_direction"],
+            )
+        if "above" in self.directions:
+            return ImageGrainCrops(
+                above=self.directions["above"]["grain_crops_direction"],
+                below=None,
+            )
+        if "below" in self.directions:
+            return ImageGrainCrops(
+                above=None,
+                below=self.directions["below"]["grain_crops_direction"],
+            )
+        raise ValueError("No grains found in either direction")
+
     # pylint: disable=too-many-locals
     @staticmethod
     def improve_grain_segmentation_unet(
@@ -611,8 +737,8 @@ class Grains:
         direction: str,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
         image: npt.NDArray,
-        labelled_grain_regions: npt.NDArray,
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+        graincrops: dict[int, GrainCrop],
+    ) -> dict[int, GrainCrop]:
         """
         Use a UNet model to re-segment existing grains to improve their accuracy.
 
@@ -667,59 +793,16 @@ class Grains:
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
-        # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
-        # the loaded model's output shape
-        # Note that the minimum number of classes is 2, as even for binary outputs, we will force categorical type
-        # data, so we have a class for background.
-        unet_mask = np.zeros((image.shape[0], image.shape[1], np.max([2, unet_model.output_shape[-1]]))).astype(
-            np.bool_
-        )
-        # Set the background class to be all 1s by default since not all of the image will be covered by the
-        # u-net predictions.
-        unet_mask[:, :, 0] = 1
-        # Labelled regions will be the same by default, but will be overwritten if there are any grains present.
-        unet_labelled_regions = np.zeros_like(unet_mask).astype(np.int32)
-        # For each detected molecule, create an image of just that molecule and run the UNet
-        # on that image to segment it
-        grain_region_properties = regionprops(labelled_grain_regions)
-        for grain_number, region in enumerate(grain_region_properties):
-            LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(grain_region_properties)}")
-
-            # Get the bounding box for the region
-            bounding_box: tuple[int, int, int, int] = tuple(region.bbox)  # min_row, min_col, max_row, max_col
-
-            # Pad the bounding box
-            bounding_box = pad_bounding_box(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(image.shape[0], image.shape[1]),
-                padding=unet_config["grain_crop_padding"],
-            )
-
-            # Make the bounding box square within the confines of the image
-            bounding_box = make_bounding_box_square(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(image.shape[0], image.shape[1]),
-            )
-
-            # Grab the cropped image. Using slice since the bounding box from skimage is
-            # half-open, so the max_row and max_col are not included in the region.
-            region_image = image[
-                bounding_box[0] : bounding_box[2],
-                bounding_box[1] : bounding_box[3],
-            ]
+        new_graincrops = {}
+        for grain_number, graincrop in graincrops.items():
+            LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
 
             # Run the UNet on the region. This is allowed to be a single channel
             # as we can add a background channel afterwards if needed.
             # Remember that this region is cropped from the original image, so it's not
             # the same size as the original image.
             predicted_mask = predict_unet(
-                image=region_image,
+                image=graincrop.image,
                 model=unet_model,
                 confidence=0.1,
                 model_input_shape=unet_model.input_shape,
@@ -730,45 +813,16 @@ class Grains:
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
-            # Add each class of the predicted mask to the overall full image mask
-            for class_index in range(unet_mask.shape[2]):
+            new_graincrops[grain_number] = GrainCrop(
+                image=graincrop.image,
+                mask=predicted_mask,
+                padding=graincrop.padding,
+                bbox=graincrop.bbox,
+            )
 
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
-
-                # Directly set the background to be equal instead of logical or since they are by default
-                # 1, and should be turned off if any other class is on
-                if class_index == 0:
-                    unet_mask[
-                        bounding_box[0] : bounding_box[2],
-                        bounding_box[1] : bounding_box[3],
-                        class_index,
-                    ] = unet_predicted_mask_labelled
-                else:
-                    unet_mask[
-                        bounding_box[0] : bounding_box[2],
-                        bounding_box[1] : bounding_box[3],
-                        class_index,
-                    ] = np.logical_or(
-                        unet_mask[
-                            bounding_box[0] : bounding_box[2],
-                            bounding_box[1] : bounding_box[3],
-                            class_index,
-                        ],
-                        unet_predicted_mask_labelled,
-                    )
-
-            assert len(unet_mask.shape) == 3, f"Unet mask shape: {unet_mask.shape}"
-            assert unet_mask.shape[-1] >= 2, f"Unet mask shape: {unet_mask.shape}"
-
-            # For each class in the unet mask tensor, label the mask and add to unet_labelled_regions
-            # The labelled background class will be identical to the binary one from the unet mask.
-            unet_labelled_regions[:, :, 0] = unet_mask[:, :, 0]
-            # Iterate over each class and label the regions
-            for class_index in range(unet_mask.shape[2]):
-                unet_labelled_regions[:, :, class_index] = Grains.label_regions(unet_mask[:, :, class_index])
-
-        return unet_mask, unet_labelled_regions
+        return graincrops
 
     @staticmethod
     def keep_largest_labelled_region(
@@ -1573,3 +1627,99 @@ class Grains:
             grain_mask_tensor = np.dstack([grain_mask_tensor, combined_mask])
 
         return grain_mask_tensor.astype(bool)
+
+    @staticmethod
+    def construct_full_mask_from_crops(graincrops: dict[int, GrainCrop], image_shape: tuple[int, int]) -> npt.NDArray:
+        """
+        Construct a full mask tensor from the grain crops.
+
+        Parameters
+        ----------
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
+        image_shape : tuple[int, int]
+            Shape of the original image.
+
+        Returns
+        -------
+        npt.NDArray
+            NxNx3 Numpy array of the full mask tensor.
+        """
+        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], 3), dtype=np.bool_)
+        for grain_number, graincrop in graincrops.items():
+            bounding_box = graincrop.bbox
+            crop = graincrop.mask
+            padding = graincrop.padding
+
+            # Add the crop to the full mask tensor without overriding anything else, for all classes
+            for class_index in range(crop.shape[2]):
+                full_mask_tensor[
+                    bounding_box[0] + padding : bounding_box[2] - padding,
+                    bounding_box[1] + padding : bounding_box[3] - padding,
+                    class_index,
+                ] += crop[:, :, class_index]
+
+        return full_mask_tensor
+
+    @staticmethod
+    def extract_grains_from_full_image_mask(
+        image: npt.NDArray[np.float32],
+        labelled_full_mask_tensor: npt.NDArray[np.bool_],
+        padding: int,
+    ) -> dict[int, GrainCrop]:
+        """
+        Extract grains from the full image mask tensor.
+
+        Parameters
+        ----------
+        image : npt.NDArray[np.float32]
+            2-D Numpy array of the image.
+        labelled_full_mask_tensor : npt.NDArray[np.bool_]
+            Labelled 3-D Numpy array of the full mask tensor.
+        padding : int
+            Padding added to the bounding box of the grain before cropping.
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            Dictionary of grain crops.
+        """
+        grain_region_properties = regionprops(labelled_full_mask_tensor)
+        graincrops = {}
+        for grain_number, region in enumerate(grain_region_properties):
+            # Get the bounding box for the region
+            bounding_box: tuple[int, int, int, int] = tuple(region.bbox)  # min_row, min_col, max_row, max_col
+            mask_crop = labelled_full_mask_tensor[
+                bounding_box[0] : bounding_box[2],
+                bounding_box[1] : bounding_box[3],
+            ]
+
+            # Pad the mask
+            padded_mask, bounding_box = pad_crop(
+                crop=mask_crop,
+                bbox=bounding_box,
+                image_shape=(image.shape[0], image.shape[1]),
+                padding=padding,
+            )
+
+            square_padded_mask, bounding_box = make_crop_square(
+                crop=padded_mask,
+                bbox=bounding_box,
+                image_shape=(image.shape[0], image.shape[1]),
+            )
+
+            # Grab the cropped image. Using slice since the bounding box from skimage is
+            # half-open, so the max_row and max_col are not included in the region.
+            region_image = image[
+                bounding_box[0] : bounding_box[2],
+                bounding_box[1] : bounding_box[3],
+            ]
+
+            graincrops[grain_number] = GrainCrop(
+                image=region_image,
+                mask=square_padded_mask,
+                padding=padding,
+                bbox=bounding_box,
+            )
+
+        return graincrops

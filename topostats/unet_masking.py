@@ -325,3 +325,87 @@ def pad_bounding_box(
     new_crop_max_col: int = min(image_shape[1], crop_max_col + padding)
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
+
+
+def pad_crop(
+    crop: npt.NDArray,
+    bbox: tuple[int, int, int, int],
+    image_shape: tuple[int, int],
+    padding: int,
+) -> np.NDArray:
+    """
+    Pad a crop.
+
+    Parameters
+    ----------
+    crop : npt.NDArray
+        The crop to pad.
+    bbox : tuple[int, int, int, int]
+        The bounding box of the crop.
+    image_shape : tuple[int, int]
+        The shape of the image.
+    padding : int
+        The padding to apply to the crop.
+
+    Returns
+    -------
+    np.NDArray
+        The padded crop.
+    """
+    new_bounding_box = pad_bounding_box(
+        crop_min_row=bbox[0],
+        crop_min_col=bbox[1],
+        crop_max_row=bbox[2],
+        crop_max_col=bbox[3],
+        image_shape=image_shape,
+        padding=padding,
+    )
+
+    # Pad the crop with the new bounding box
+    padded_crop = np.zeros((new_bounding_box[2] - new_bounding_box[0], new_bounding_box[3] - new_bounding_box[1]))
+    padded_crop[
+        bbox[0] - new_bounding_box[0] : bbox[2] - new_bounding_box[0],
+        bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
+    ] = crop
+
+    return padded_crop, new_bounding_box
+
+
+def make_crop_square(
+    crop: npt.NDArray,
+    bbox: tuple[int, int, int, int],
+    image_shape: tuple[int, int],
+) -> np.NDArray:
+    """
+    Make a crop square.
+
+    Parameters
+    ----------
+    crop : npt.NDArray
+        The crop to make square.
+    bbox : tuple[int, int, int, int]
+        The bounding box of the crop.
+    image_shape : tuple[int, int]
+        The shape of the image.
+
+    Returns
+    -------
+    np.NDArray
+        The square crop.
+    """
+    new_bounding_box = make_bounding_box_square(
+        crop_min_row=bbox[0],
+        crop_min_col=bbox[1],
+        crop_max_row=bbox[2],
+        crop_max_col=bbox[3],
+        image_shape=image_shape,
+    )
+
+    # Make the crop square
+    square_crop = np.zeros((new_bounding_box[2] - new_bounding_box[0], new_bounding_box[3] - new_bounding_box[1]))
+    square_crop[
+        bbox[0] - new_bounding_box[0] : bbox[2] - new_bounding_box[0],
+        bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
+    ] = crop
+
+    return square_crop, new_bounding_box

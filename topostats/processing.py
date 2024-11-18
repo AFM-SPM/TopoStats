@@ -833,7 +833,9 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+                    splining_molstats = create_empty_dataframe(
+                        column_set="mol_statistics", index_col="molecule_number"
+                    )
                     raise ValueError(f"No grains exist for the {direction} direction")
                 # if grains are found
                 (
@@ -1014,7 +1016,7 @@ def process_scan(
     )
 
     # Find Grains :
-    grain_masks = run_grains(
+    grain_dict = run_grains(
         image=topostats_object["image_flattened"],
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
         filename=topostats_object["filename"],
@@ -1024,16 +1026,12 @@ def process_scan(
         grains_config=grains_config,
     )
 
-    # Update grain masks if new grain masks are returned. Else keep old grain masks. Topostats object's "grain_masks"
-    # defaults to an empty dictionary so this is safe.
-    topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
-
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
         grainstats_df, height_profiles = run_grainstats(
             image=topostats_object["image_flattened"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            grain_masks=topostats_object["grain_masks"],
+            grain_dict=grain_dict,
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
             grainstats_config=grainstats_config,
@@ -1045,7 +1043,7 @@ def process_scan(
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
             image=topostats_object["image_flattened"],
-            grain_masks=topostats_object["grain_masks"],
+            grain_dict=grain_dict,
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
@@ -1104,7 +1102,9 @@ def process_scan(
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
         molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
-        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
+        disordered_tracing_stats = create_empty_dataframe(
+            column_set="disordered_tracing_statistics", index_col="index"
+        )
         height_profiles = {}
 
     # Get image statistics
