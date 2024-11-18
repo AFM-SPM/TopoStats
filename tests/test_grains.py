@@ -2799,6 +2799,7 @@ def test_merge_classes(
     (
         "grain_mask_tensor",
         "pixel_to_nm_scaling",
+        "class_conversion_size_thresholds",
         "class_size_thresholds",
         "class_region_number_thresholds",
         "nearby_conversion_classes_to_convert",
