@@ -186,6 +186,52 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
             },
+            "vetting": {
+                "class_conversion_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers and 2 integers
+                    [[[int, int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_conversion_size_thresholds', this "
+                    "needs to be a list of lists of 3 integers and 2 integers - [class number, class to convert to "
+                    "if too small, class to convert to if too big] and [minimum size, maximum size]",
+                ),
+                "class_region_number_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_region_number_thresholds', this needs"
+                    "to be a list of lists of 3 integers - class number, minimum region number, maximum region number",
+                ),
+                "class_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_size_thresholds', this needs to be a"
+                    "list of lists of 3 integers - class number, minimum size, maximum size",
+                ),
+                "nearby_conversion_classes_to_convert": Or(
+                    None,
+                    # List of tuples of two integers
+                    [[int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.nearby_conversion_classes_to_convert', this"
+                    "needs to be a list of tuples of two integers",
+                ),
+                "class_touching_threshold": lambda n: n >= 0,
+                "keep_largest_labelled_regions_classes": Or(
+                    None,
+                    # List of integers
+                    [int],
+                    error="Invalid value in config for 'grainstats.vetting.keep_largest_labelled_regions_classes', this"
+                    "needs to be a list of integers",
+                ),
+                "class_connection_point_thresholds": Or(
+                    None,
+                    # List of tuples: list[tuple[[tuple[int, int], tuple[int, int]]]
+                    [[[int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_connection_point_thresholds', this"
+                    "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
+                ),
+            },
         },
         "grainstats": {
             "run": Or(

@@ -537,7 +537,13 @@ def test_check_run_steps(
 ) -> None:
     """Test the logic which checks whether enabled processing options are consistent."""
     check_run_steps(
-        filter_run, grains_run, grainstats_run, disordered_tracing_run, nodestats_run, ordered_tracing_run, splining_run
+        filter_run,
+        grains_run,
+        grainstats_run,
+        disordered_tracing_run,
+        nodestats_run,
+        ordered_tracing_run,
+        splining_run,
     )
     assert log_msg in caplog.text
 
