@@ -35,7 +35,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
 
