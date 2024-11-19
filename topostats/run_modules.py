@@ -147,7 +147,7 @@ def _log_setup(config: dict, args: argparse.Namespace | None, img_files: dict) -
         sys.exit()
     LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
     LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
-    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa: T203
 
 
 def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, dict]:
