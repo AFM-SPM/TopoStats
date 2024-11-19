@@ -13,7 +13,7 @@ from art import tprint
 
 from topostats import __version__
 from topostats.filters import Filters
-from topostats.grains import Grains
+from topostats.grains import Grains, ImageGrainCrops, GrainCropsDirection
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
@@ -135,7 +135,7 @@ def run_grains(  # noqa: C901
     core_out_path: Path,
     plotting_config: dict,
     grains_config: dict,
-) -> dict | None:
+) -> ImageGrainCrops | None:
     """
     Identify grains (molecules) and optionally plots the results.
 
@@ -250,7 +250,7 @@ def run_grains(  # noqa: C901
 def run_grainstats(
     image: npt.NDArray,
     pixel_to_nm_scaling: float,
-    grain_masks: dict,
+    image_grain_crops: ImageGrainCrops,
     filename: str,
     basename: Path,
     grainstats_config: dict,
@@ -300,49 +300,40 @@ def run_grainstats(
             }
             grainstats_dict = {}
             height_profiles_dict = {}
+
             # There are two layers to process those above the given threshold and those below
-            for direction, _ in grain_masks.items():
-                # Get the DNA class mask from the tensor
-                LOGGER.debug(f"[{filename}] : Full Mask dimensions: {grain_masks[direction].shape}")
-                assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 1]
-                LOGGER.debug(f"[{filename}] : DNA Mask dimensions: {dna_class_mask.shape}")
-                # Check if there are grains
-                if np.max(dna_class_mask) == 0:
-                    LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping grainstats for {direction}."
-                    )
-                    grainstats_dict[direction] = create_empty_dataframe(
-                        column_set="grainstats", index_col="grain_number"
-                    )
-                else:
-                    grainstats_calculator = GrainStats(
-                        data=image,
-                        labelled_data=dna_class_mask,
-                        pixel_to_nanometre_scaling=pixel_to_nm_scaling,
-                        direction=direction,
-                        base_output_dir=grain_out_path,
-                        image_name=filename,
-                        plot_opts=grain_plot_dict,
-                        **grainstats_config,
-                    )
-                    grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
-                        grainstats_calculator.calculate_stats()
-                    )
-                    grainstats_dict[direction]["threshold"] = direction
-                    # Plot grains if required
-                    if plotting_config["image_set"] == "all":
-                        LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
-                        for plot_data in grains_plot_data:
-                            LOGGER.debug(
-                                f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
-                            )
-                            Images(
-                                data=plot_data["data"],
-                                output_dir=plot_data["output_dir"],
-                                filename=plot_data["filename"],
-                                **plotting_config["plot_dict"][plot_data["name"]],
-                            ).plot_and_save()
+            grain_crops_direction: GrainCropsDirection
+            for direction, grain_crops_direction in image_grain_crops.__dict__.items():
+                if grain_crops_direction is None:
+                    continue
+                grain_crops = grain_crops_direction.crops
+
+                grainstats_calculator = GrainStats(
+                    grain_crops=grain_crops,
+                    pixel_to_nanometre_scaling=pixel_to_nm_scaling,
+                    direction=direction,
+                    base_output_dir=grain_out_path,
+                    image_name=filename,
+                    plot_opts=grain_plot_dict,
+                    **grainstats_config,
+                )
+                grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
+                    grainstats_calculator.calculate_stats()
+                )
+                grainstats_dict[direction]["threshold"] = direction
+                # Plot grains if required
+                if plotting_config["image_set"] == "all":
+                    LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
+                    for plot_data in grains_plot_data:
+                        LOGGER.debug(
+                            f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
+                        )
+                        Images(
+                            data=plot_data["data"],
+                            output_dir=plot_data["output_dir"],
+                            filename=plot_data["filename"],
+                            **plotting_config["plot_dict"][plot_data["name"]],
+                        ).plot_and_save()
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
             grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
