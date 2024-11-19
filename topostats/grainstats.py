@@ -18,6 +18,7 @@ import skimage.morphology as skimage_morphology
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
+from topostats.grains import GrainCrop
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -92,8 +93,7 @@ class GrainStats:
 
     def __init__(
         self,
-        data: npt.NDArray,
-        labelled_data: npt.NDArray,
+        grain_crops: dict[int, GrainCrop],
         pixel_to_nanometre_scaling: float,
         direction: str,
         base_output_dir: str | Path,
@@ -134,8 +134,7 @@ class GrainStats:
             Multiplier to convert the current length scale to metres. Default: 1e-9 for the
             usual AFM length scale of nanometres.
         """
-        self.data = data
-        self.labelled_data = labelled_data
+        self.grain_crops = grain_crops
         self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
@@ -203,14 +202,35 @@ class GrainStats:
         """
         grains_plot_data = []
         all_height_profiles = {}
-        if self.labelled_data is None:
+        if len(self.grain_crops) == 0:
             LOGGER.warning(
-                f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
+                f"[{self.image_name}] : No grain crops for this image, grain statistics can not be calculated."
             )
             return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
 
-        # Calculate region properties
-        region_properties = skimage_measure.regionprops(self.labelled_data)
+
+        # Iterate over each grain
+        for grain_crop in self.grain_crops.values():
+            image = grain_crop.image
+            mask = grain_crop.mask
+
+            # Iterate over all the classes except background
+
+                # Split the class into connected components
+
+                # Iterate over all the sub_grains in the class
+
+                    # Skip subgrain if too small to calculate stats for
+
+                    # Create directory for each subgrain's plots
+
+                    # Obtain cropped grain mask and image
+
+                    # Get cropped image and mask
+
+                    # Calculate all the stats
+
+                    # Construct the dictionary of stats for the grain and subgrain
 
         # Iterate over all the grains in the image
         stats_array = []
@@ -598,7 +618,9 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
+        return (
+            self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
+        )
         # Return sorted array where equal angle points are sorted by distance
 
     def get_start_point(self, edges: npt.NDArray) -> None:
