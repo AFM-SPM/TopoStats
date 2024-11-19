@@ -1587,7 +1587,7 @@ def test_pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int
 
 
 @pytest.mark.parametrize(
-    ("smoothed_mask", "pruned_skeleton", "px2nm", "result"),
+    ("smoothed_mask", "pruned_skeleton", "px2nm", "expected"),
     [
         pytest.param(
             np.array(
@@ -1756,7 +1756,7 @@ def test_pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int
         ),
     ],
 )
-def test_calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, px2nm: float, result: float):
+def test_calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, px2nm: float, expected: float):
     """Test of calculate_dna_width()."""
     width = disordered_tracing.disorderedTrace.calculate_dna_width(smoothed_mask, pruned_skeleton, px2nm)
-    assert width == result
+    assert width == expected
