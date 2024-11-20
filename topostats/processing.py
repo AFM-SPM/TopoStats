@@ -36,7 +36,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
@@ -988,6 +987,7 @@ def run_curvature_stats(
                 f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
             )
             return None
+    LOGGER.info(f"[{filename}] : Calculation of Curvature Stats disabled, returning None.")
     return None
 
 

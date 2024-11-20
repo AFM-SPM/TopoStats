@@ -622,6 +622,19 @@ def test_check_run_steps(
             "Calculation of Disordered Tracing disabled, returning empty dictionary.",
             id="Filtering, Grain and GrainStats enabled",
         ),
+        pytest.param(
+            True,  # Filter
+            True,  # Grains
+            True,  # Grainstats
+            True,  # Disordered Tracing
+            True,  # Nodestats
+            True,  # Ordered tracing
+            True,  # Splining
+            False,  # Curvature
+            "Processing grain",
+            "Calculation of Curvature Stats disabled, returning None.",
+            id="All stages enabled",
+        ),
         # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
         # pytest.param(
         #     True,
