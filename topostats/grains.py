@@ -1696,13 +1696,13 @@ class Grains:
             flattened_grain_binary_mask = labelled_flat_full_mask == flat_region.label
 
             # For each class, set all pixels to zero that are not in the current region
+            grain_tensor_full_mask = np.zeros_like(full_mask_tensor).astype(bool)
             for class_index in range(1, full_mask_tensor.shape[2]):
                 # Set all pixels to zero that are not in the current region's pixels by multiplying by a binary mask
                 # for the whole flattened grain mask
-                grain_tensor_full_mask = np.zeros_like(full_mask_tensor)
                 grain_tensor_full_mask[:, :, class_index] = (
                     flattened_grain_binary_mask * full_mask_tensor[:, :, class_index]
-                )
+                ).astype(bool)
 
             # Crop the tensor
             # Get the bounding box for the region
