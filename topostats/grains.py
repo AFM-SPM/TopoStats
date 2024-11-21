@@ -1664,11 +1664,13 @@ class Grains:
     @staticmethod
     def extract_grains_from_full_image_mask(
         image: npt.NDArray[np.float32],
-        labelled_full_mask_tensor: npt.NDArray[np.bool_],
+        full_mask_tensor: npt.NDArray[np.bool_],
         padding: int,
     ) -> dict[int, GrainCrop]:
         """
         Extract grains from the full image mask tensor.
+
+        Grains are detected using connected components across all classes in the full mask tensor.
 
         Parameters
         ----------
@@ -1684,42 +1686,69 @@ class Grains:
         dict[int, GrainCrop]
             Dictionary of grain crops.
         """
-        grain_region_properties = regionprops(labelled_full_mask_tensor)
+        # Flatten the mask tensor
+        flat_mask = Grains.flatten_multi_class_tensor(full_mask_tensor)
+        labelled_flat_full_mask = label(flat_mask)
+        flat_regionprops_full_mask = regionprops(labelled_flat_full_mask)
         graincrops = {}
-        for grain_number, region in enumerate(grain_region_properties):
+        for grain_number, flat_region in enumerate(flat_regionprops_full_mask):
+            # Get a flattened binary mask for the whole grain and no other grains
+            flattened_grain_binary_mask = labelled_flat_full_mask == flat_region.label
+
+            # For each class, set all pixels to zero that are not in the current region
+            for class_index in range(1, full_mask_tensor.shape[2]):
+                # Set all pixels to zero that are not in the current region's pixels by multiplying by a binary mask
+                # for the whole flattened grain mask
+                grain_tensor_full_mask = np.zeros_like(full_mask_tensor)
+                grain_tensor_full_mask[:, :, class_index] = (
+                    flattened_grain_binary_mask * full_mask_tensor[:, :, class_index]
+                )
+
+            # Crop the tensor
             # Get the bounding box for the region
-            bounding_box: tuple[int, int, int, int] = tuple(region.bbox)  # min_row, min_col, max_row, max_col
-            mask_crop = labelled_full_mask_tensor[
-                bounding_box[0] : bounding_box[2],
-                bounding_box[1] : bounding_box[3],
-            ]
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
-            padded_mask, bounding_box = pad_crop(
-                crop=mask_crop,
-                bbox=bounding_box,
-                image_shape=(image.shape[0], image.shape[1]),
+            padded_flat_bounding_box = pad_bounding_box(
+                crop_min_row=flat_bounding_box[0],
+                crop_min_col=flat_bounding_box[1],
+                crop_max_row=flat_bounding_box[2],
+                crop_max_col=flat_bounding_box[3],
+                image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
                 padding=padding,
             )
 
-            square_padded_mask, bounding_box = make_crop_square(
-                crop=padded_mask,
-                bbox=bounding_box,
-                image_shape=(image.shape[0], image.shape[1]),
+            # Make the mask square
+            square_flat_bounding_box = make_bounding_box_square(
+                crop_min_row=padded_flat_bounding_box[0],
+                crop_min_col=padded_flat_bounding_box[1],
+                crop_max_row=padded_flat_bounding_box[2],
+                crop_max_col=padded_flat_bounding_box[3],
+                image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
             )
 
-            # Grab the cropped image. Using slice since the bounding box from skimage is
-            # half-open, so the max_row and max_col are not included in the region.
-            region_image = image[
-                bounding_box[0] : bounding_box[2],
-                bounding_box[1] : bounding_box[3],
+            # Grab image and mask for the cropped region
+            grain_cropped_image = image[
+                square_flat_bounding_box[0] : square_flat_bounding_box[2],
+                square_flat_bounding_box[1] : square_flat_bounding_box[3],
             ]
 
+            grain_cropped_tensor = grain_tensor_full_mask[
+                square_flat_bounding_box[0] : square_flat_bounding_box[2],
+                square_flat_bounding_box[1] : square_flat_bounding_box[3],
+                :,
+            ]
+
+            # Update background class to reflect the removal of any non-connected grains
+            grain_cropped_tensor = Grains.update_background_class(grain_mask_tensor=grain_cropped_tensor)
+
             graincrops[grain_number] = GrainCrop(
-                image=region_image,
-                mask=square_padded_mask,
+                image=grain_cropped_image,
+                mask=grain_cropped_tensor,
                 padding=padding,
-                bbox=bounding_box,
+                bbox=flat_bounding_box,
             )
 
         return graincrops
