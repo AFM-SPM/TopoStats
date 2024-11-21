@@ -1472,7 +1472,7 @@ class Grains:
 
     @staticmethod
     def vet_grains(
-        grain_mask_tensor: npt.NDArray,
+        graincrops: dict[int, GrainCrop],
         pixel_to_nm_scaling: float,
         class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
         class_size_thresholds: list[tuple[int, int, int]] | None,
@@ -1481,14 +1481,14 @@ class Grains:
         class_touching_threshold: int,
         keep_largest_labelled_regions_classes: list[int] | None,
         class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None,
-    ) -> npt.NDArray:
+    ) -> dict[int, GrainCrop]:
         """
         Vet grains in a grain mask tensor based on a variety of criteria.
 
         Parameters
         ----------
-        grain_mask_tensor : npt.NDArray
-            3-D Numpy array of the grain mask tensor.
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
         class_conversion_size_thresholds : list
@@ -1509,16 +1509,15 @@ class Grains:
 
         Returns
         -------
-        npt.NDArray
-            3-D Numpy array of the vetted grain mask tensor.
+        dict[int, GrainCrop]
+            Dictionary of grain crops that passed the vetting.
         """
-        # Get individual grain crops
-        grain_tensor_crops, bounding_boxes, padding = Grains.get_individual_grain_crops(grain_mask_tensor)
-
-        passed_grain_crops_and_bounding_boxes = []
+        passed_graincrops: dict[int, GrainCrop] = {}
 
         # Iterate over the grain crops
-        for _, (single_grain_mask_tensor, bounding_box) in enumerate(zip(grain_tensor_crops, bounding_boxes)):
+        for grain_number, graincrop in graincrops.items():
+
+            single_grain_mask_tensor = graincrop.mask
 
             # Convert small / big areas to other classes
             single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
@@ -1565,24 +1564,15 @@ class Grains:
             ):
                 continue
 
-            # If passed all vetting steps, add to the list of passed grain crops
-            passed_grain_crops_and_bounding_boxes.append(
-                {
-                    "grain_tensor": largest_only_single_grain_mask_tensor,
-                    "bounding_box": bounding_box,
-                    "padding": padding,
-                }
+            # If passed all vetting steps, add to the dictionary of passed grain crops
+            passed_graincrops[grain_number] = GrainCrop(
+                image=graincrop.image,
+                mask=largest_only_single_grain_mask_tensor,
+                padding=graincrop.padding,
+                bbox=graincrop.bbox,
             )
 
-        # Construct a new grain mask tensor from the passed grains
-        return Grains.assemble_grain_mask_tensor_from_crops(
-            grain_mask_tensor_shape=(
-                grain_mask_tensor.shape[0],
-                grain_mask_tensor.shape[1],
-                grain_mask_tensor.shape[2],
-            ),
-            grain_crops_and_bounding_boxes=passed_grain_crops_and_bounding_boxes,
-        )
+        return passed_graincrops
 
     @staticmethod
     def merge_classes(
