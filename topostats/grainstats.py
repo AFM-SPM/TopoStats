@@ -208,12 +208,10 @@ class GrainStats:
             )
             return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
 
-        grainstats_dict: dict[int, dict[int, dict[int, dict[int, dict]]]] = {}
+        grainstats_rows: list[dict] = []
 
         # Iterate over each grain
         for grain_index, grain_crop in self.grain_crops.items():
-
-            grainstats_dict[grain_index] = {}
             all_height_profiles[grain_index] = {}
 
             image = grain_crop.image
@@ -227,8 +225,6 @@ class GrainStats:
 
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
-
-                grainstats_dict[grain_index][class_index] = {}
                 all_height_profiles[grain_index][class_index] = {}
 
                 class_mask = mask[:, :, class_index]
@@ -292,6 +288,9 @@ class GrainStats:
                     # from pixel units to nanometres.
                     # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
                     stats = {
+                        "grain_number": grain_index,
+                        "class_number": class_index,
+                        "subgrain_number": subgrain_index,
                         "centre_x": centre_x * length_scaling_factor,
                         "centre_y": centre_y * length_scaling_factor,
                         "radius_min": radius_stats["min"] * length_scaling_factor,
@@ -320,9 +319,7 @@ class GrainStats:
                         "min_feret": feret_statistics["min_feret"],
                     }
 
-                    grainstats_dict[grain_index][class_index][subgrain_index] = stats
-
-        grainstats_df = pd.DataFrame(data=grainstats_dict)
+                    grainstats_rows.append(stats)
 
         # Check if the dataframe is empty
         if grainstats_df.empty:
