@@ -1754,3 +1754,25 @@ class Grains:
             )
 
         return graincrops
+
+    @staticmethod
+    def graincrops_update_background_class(
+        graincrops: dict[int, GrainCrop],
+    ) -> dict[int, GrainCrop]:
+        """
+        Update the background class in the grain crops.
+
+        Parameters
+        ----------
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            Dictionary of grain crops with updated background class.
+        """
+        for grain_number, graincrop in graincrops.items():
+            graincrop.mask = Grains.update_background_class(graincrop.mask)
+
+        return graincrops
