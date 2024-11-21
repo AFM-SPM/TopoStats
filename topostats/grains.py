@@ -95,8 +95,8 @@ class GrainCropsDirection:
         Grain crops.
     """
 
-    full_mask_tensor: npt.NDArray[np.bool_]
     crops: dict[int, GrainCrop]
+    full_mask_tensor: npt.NDArray[np.bool_]
 
     def __post_init__(self):
         """
@@ -616,7 +616,6 @@ class Grains:
             )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
-            thresholding_grain_count = self.directions[direction]["labelled_regions_02"].max()
 
             # Force labelled_regions_02 to be of shape NxNx2, where the two classes are a binary background mask and the second is a binary grain mask.
             # This is because we want to support multiple classes, and so we standardise so that the first layer is background mask, then feature mask 1, then feature mask 2 etc.
@@ -655,7 +654,7 @@ class Grains:
 
             graincrops = self.extract_grains_from_full_image_mask(
                 image=self.image,
-                labelled_full_mask_tensor=self.directions[direction]["labelled_regions_02"],
+                full_mask_tensor=self.directions[direction]["labelled_regions_02"],
                 padding=self.grain_crop_padding,
             )
 
@@ -680,37 +679,28 @@ class Grains:
 
             # Vet the grains
             if self.vetting is not None:
-                vetted_grains = Grains.vet_grains(
-                    grain_mask_tensor=self.directions[direction]["labelled_regions_02"].astype(bool),
+                graincrops_vetted = Grains.vet_grains(
+                    graincrops=graincrops,
                     pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                     **self.vetting,
                 )
             else:
-                vetted_grains = self.directions[direction]["labelled_regions_02"].astype(bool)
+                graincrops_vetted = graincrops
 
             # Merge classes if necessary
-            merged_classes = Grains.merge_classes(
-                vetted_grains,
-                self.classes_to_merge,
+            graincrops_merged_classes = Grains.graincrops_merge_classes(
+                graincrops=graincrops_vetted,
+                classes_to_merge=self.classes_to_merge,
             )
 
             # Update the background class
-            final_grains = Grains.update_background_class(grain_mask_tensor=merged_classes)
-
-            # Label each class in the tensor
-            labelled_final_grains = np.zeros_like(final_grains).astype(int)
-            # The background class will be the same as the binary mask
-            labelled_final_grains[:, :, 0] = final_grains[:, :, 0]
-            # Iterate over each class and label the regions
-            for class_index in range(final_grains.shape[2]):
-                labelled_final_grains[:, :, class_index] = Grains.label_regions(final_grains[:, :, class_index])
-
-            self.directions[direction]["removed_small_objects"] = labelled_final_grains.astype(bool)
-            self.directions[direction]["labelled_regions_02"] = labelled_final_grains.astype(np.int32)
+            graincrops_updated_background = Grains.graincrops_update_background_class(
+                graincrops=graincrops_merged_classes
+            )
 
             self.directions[direction]["grain_crops_direction"] = GrainCropsDirection(
                 full_mask_tensor=full_mask_tensor,
-                crops=graincrops,
+                crops=graincrops_updated_background,
             )
 
         if "above" in self.directions and "below" in self.directions:
@@ -820,8 +810,6 @@ class Grains:
                 bbox=graincrop.bbox,
             )
 
-                # Grab the unet mask for the class
-                unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
         return graincrops
 
     @staticmethod
@@ -969,7 +957,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
