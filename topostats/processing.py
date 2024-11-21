@@ -17,8 +17,12 @@ from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
+from topostats.measure.curvature import calculate_curvature_stats_image
 from topostats.plotting import plot_crossing_linetrace_halfmax
-from topostats.plottingfuncs import Images, add_pixel_to_nm_to_plotting_config
+from topostats.plottingfuncs import (
+    Images,
+    add_pixel_to_nm_to_plotting_config,
+)
 from topostats.statistics import image_statistics
 from topostats.tracing.disordered_tracing import trace_image_disordered
 from topostats.tracing.nodestats import nodestats_image
@@ -32,7 +36,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
@@ -898,6 +901,96 @@ def run_splining(
     return None, grainstats_df, molstats_df
 
 
+def run_curvature_stats(
+    image: np.ndarray,
+    cropped_image_data: dict,
+    grain_trace_data: dict,
+    pixel_to_nm_scaling: float,
+    filename: str,
+    core_out_path: Path,
+    grain_out_path: Path,
+    curvature_config: dict,
+    plotting_config: dict,
+) -> dict | None:
+    """
+    Calculate curvature statistics for the traced DNA molecules.
+
+    Currently only works on simple traces, not branched traces.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        AFM image, for plotting purposes.
+    cropped_image_data : dict
+        Dictionary containing cropped images.
+    grain_trace_data : dict
+        Dictionary of grain trace data.
+    pixel_to_nm_scaling : float
+        Scaling factor for converting pixel length scales to nanometres.
+        ie the number of pixels per nanometre.
+    filename : str
+        Name of the image.
+    core_out_path : Path
+        Path to save the core curvature image to.
+    grain_out_path : Path
+        Path to save the optional, diagnostic curvature images to.
+    curvature_config : dict
+        Dictionary of configuration for running the curvature stats.
+    plotting_config : dict
+        Dictionary of configuration for plotting images.
+
+    Returns
+    -------
+    dict
+        Dictionary containing curvature statistics.
+    """
+    if curvature_config["run"]:
+        try:
+            curvature_config.pop("run")
+            LOGGER.info(f"[{filename}] : *** Curvature Stats ***")
+            all_directions_grains_curvature_stats_dict: dict = {}
+            for direction in grain_trace_data.keys():
+                # Pass the traces to the curvature stats function
+                grains_curvature_stats_dict = calculate_curvature_stats_image(
+                    all_grain_smoothed_data=grain_trace_data[direction],
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                )
+
+                Images(
+                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["curvature"],
+                ).plot_curvatures(
+                    image=image,
+                    cropped_images=cropped_image_data[direction],
+                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grain_smoothed_data=grain_trace_data[direction],
+                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+                )
+
+                Images(
+                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    output_dir=grain_out_path,
+                    **plotting_config["plot_dict"]["curvature_individual_grains"],
+                ).plot_curvatures_individual_grains(
+                    cropped_images=cropped_image_data[direction],
+                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grains_smoothed_data=grain_trace_data[direction],
+                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+                )
+
+                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
+
+            return all_directions_grains_curvature_stats_dict
+        except Exception as e:
+            LOGGER.error(
+                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+            )
+            return None
+    LOGGER.info(f"[{filename}] : Calculation of Curvature Stats disabled, returning None.")
+    return None
+
+
 def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
     """
     Determine components of output paths for a given image and plotting config.
@@ -949,6 +1042,7 @@ def process_scan(
     nodestats_config: dict,
     ordered_tracing_config: dict,
     splining_config: dict,
+    curvature_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
 ) -> tuple[dict, pd.DataFrame, dict]:
@@ -976,6 +1070,8 @@ def process_scan(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     splining_config : dict
         Dictionary of configuration options for running the splining stage.
+    curvature_config : dict
+        Dictionary of configuration options for running the curvature stats stage.
     plotting_config : dict
         Dictionary of configuration options for plotting figures.
     output_dir : str | Path
@@ -1100,6 +1196,21 @@ def process_scan(
         )
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
+
+        # Curvature Stats
+        grain_curvature_stats_dict = run_curvature_stats(
+            image=topostats_object["image_flattened"],
+            cropped_image_data=topostats_object["disordered_traces"],
+            grain_trace_data=topostats_object["splining"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            core_out_path=core_out_path,
+            grain_out_path=grain_out_path,
+            curvature_config=curvature_config,
+            plotting_config=plotting_config,
+        )
+
+        topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
 
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
