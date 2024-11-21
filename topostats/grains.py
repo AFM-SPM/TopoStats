@@ -1723,3 +1723,34 @@ class Grains:
             )
 
         return graincrops
+
+    @staticmethod
+    def graincrops_merge_classes(
+        graincrops: dict[int, GrainCrop],
+        classes_to_merge: list[tuple[int]] | None,
+    ) -> dict[int, GrainCrop]:
+        """
+        Merge classes in the grain crops.
+
+        Parameters
+        ----------
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
+        classes_to_merge : list | None
+            List of tuples for classes to merge, can be any number of classes.
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            Dictionary of grain crops with classes merged.
+        """
+        if classes_to_merge is None:
+            return graincrops
+
+        for grain_number, graincrop in graincrops.items():
+            graincrop.mask = Grains.merge_classes(
+                grain_mask_tensor=graincrop.mask,
+                classes_to_merge=classes_to_merge,
+            )
+
+        return graincrops
