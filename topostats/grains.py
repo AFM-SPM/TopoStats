@@ -287,6 +287,11 @@ class Grains:
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
+        self.image_grain_crops = ImageGrainCrops(
+            above=None,
+            below=None,
+        )
+
     def tidy_border(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
         Remove grains touching the border.
@@ -547,7 +552,7 @@ class Grains:
         """
         return {region.area: region.area_bbox for region in self.region_properties[direction]}
 
-    def find_grains(self):
+    def find_grains(self) -> None:
         """Find grains."""
         LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         self.thresholds = get_thresholds(
@@ -557,6 +562,9 @@ class Grains:
             threshold_std_dev=self.threshold_std_dev,
             absolute=self.threshold_absolute,
         )
+
+        # Create an ImageGrainCrops object to store the grain crops
+        image_grain_crops = ImageGrainCrops(above=None, below=None)
 
         for direction in self.direction:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
@@ -617,50 +625,32 @@ class Grains:
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
-            # Force labelled_regions_02 to be of shape NxNx2, where the two classes are a binary background mask and the second is a binary grain mask.
-            # This is because we want to support multiple classes, and so we standardise so that the first layer is background mask, then feature mask 1, then feature mask 2 etc.
+            # Create a tensor out of the grain mask of shape NxNx2, where the two classes are a binary background
+            # mask and the second is a binary grain mask. This is because we want to support multiple classes, and
+            # so we standardise so that the first layer is background mask, then feature mask 1, then feature mask
+            # 2 etc.
 
             # Get a binary mask where 1s are background and 0s are grains
             labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
-            # keep only the largest region
-            labelled_regions_background_mask = label(labelled_regions_background_mask)
-            areas = [region.area for region in regionprops(labelled_regions_background_mask)]
-            labelled_regions_background_mask = np.where(
-                labelled_regions_background_mask == np.argmax(areas) + 1, labelled_regions_background_mask, 0
-            )
 
-            self.directions[direction]["labelled_regions_02"] = np.stack(
+            # Create a tensor out of the background and foreground masks
+            full_mask_tensor = np.stack(
                 [
                     labelled_regions_background_mask,
                     self.directions[direction]["labelled_regions_02"],
                 ],
                 axis=-1,
-            ).astype(
-                np.int32
-            )  # Will produce an NxNx2 array
+            ).astype(np.int32)
 
-            # Do the same for removed_small_objects, using the same labelled_regions_backgroudn_mask as the background since they will be the same
-            self.directions[direction]["removed_small_objects"] = np.stack(
-                [
-                    labelled_regions_background_mask,
-                    self.directions[direction]["removed_small_objects"],
-                ],
-                axis=-1,
-            ).astype(
-                np.int32
-            )  # Will produce an NxNx2 array
-
-            full_mask_tensor = self.directions[direction]["labelled_regions_02"]
-
-            graincrops = self.extract_grains_from_full_image_mask(
+            # Extract tensor mask crops of each grain.
+            graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
-                full_mask_tensor=self.directions[direction]["labelled_regions_02"],
+                full_mask_tensor=full_mask_tensor,
                 padding=self.grain_crop_padding,
             )
 
-            # Check whether to run the UNet model
+            # Optionally run a user-supplied u-net model on the grains to improve the segmentation
             if self.unet_config["model_path"] is not None:
-
                 # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
                 # later on along with all the other hardcoded class 1s.
                 graincrops = Grains.improve_grain_segmentation_unet(
@@ -670,8 +660,7 @@ class Grains:
                     image=self.image,
                     graincrops=graincrops,
                 )
-
-                # Construct full mask from the crops
+                # Construct full masks from the crops
                 full_mask_tensor = Grains.construct_full_mask_from_crops(
                     graincrops=graincrops,
                     image_shape=self.image.shape,
@@ -687,38 +676,32 @@ class Grains:
             else:
                 graincrops_vetted = graincrops
 
-            # Merge classes if necessary
+            # Merge classes as specified by the user
             graincrops_merged_classes = Grains.graincrops_merge_classes(
                 graincrops=graincrops_vetted,
                 classes_to_merge=self.classes_to_merge,
             )
 
-            # Update the background class
+            # Update the background class to ensure the background is accurate
             graincrops_updated_background = Grains.graincrops_update_background_class(
                 graincrops=graincrops_merged_classes
             )
 
-            self.directions[direction]["grain_crops_direction"] = GrainCropsDirection(
-                full_mask_tensor=full_mask_tensor,
-                crops=graincrops_updated_background,
-            )
+            # Store the grain crops
+            if direction == "above":
+                image_grain_crops.above = GrainCropsDirection(
+                    crops=graincrops_updated_background,
+                    full_mask_tensor=full_mask_tensor,
+                )
+            elif direction == "below":
+                image_grain_crops.below = GrainCropsDirection(
+                    crops=graincrops_updated_background,
+                    full_mask_tensor=full_mask_tensor,
+                )
+            else:
+                raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
 
-        if "above" in self.directions and "below" in self.directions:
-            return ImageGrainCrops(
-                above=self.directions["above"]["grain_crops_direction"],
-                below=self.directions["below"]["grain_crops_direction"],
-            )
-        if "above" in self.directions:
-            return ImageGrainCrops(
-                above=self.directions["above"]["grain_crops_direction"],
-                below=None,
-            )
-        if "below" in self.directions:
-            return ImageGrainCrops(
-                above=None,
-                below=self.directions["below"]["grain_crops_direction"],
-            )
-        raise ValueError("No grains found in either direction")
+        self.image_grain_crops = image_grain_crops
 
     # pylint: disable=too-many-locals
     @staticmethod
@@ -726,7 +709,6 @@ class Grains:
         filename: str,
         direction: str,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
-        image: npt.NDArray,
         graincrops: dict[int, GrainCrop],
     ) -> dict[int, GrainCrop]:
         """
@@ -748,8 +730,6 @@ class Grains:
                 Upper bound for normalising the image.
             lower_norm_bound: float
                 Lower bound for normalising the image.
-        image : npt.NDArray
-            2-D Numpy array of image.
         labelled_grain_regions : npt.NDArray
             2-D Numpy array of labelled grain regions.
 
@@ -1642,7 +1622,7 @@ class Grains:
         return full_mask_tensor
 
     @staticmethod
-    def extract_grains_from_full_image_mask(
+    def extract_grains_from_full_image_tensor(
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
         padding: int,
