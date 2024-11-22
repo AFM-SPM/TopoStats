@@ -15,10 +15,10 @@ import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
+from topostats.grains import GrainCrop
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
-from topostats.grains import GrainCrop
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -584,9 +584,7 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        return (
-            self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
-        )
+        return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
         # Return sorted array where equal angle points are sorted by distance
 
     def get_start_point(self, edges: npt.NDArray) -> None:

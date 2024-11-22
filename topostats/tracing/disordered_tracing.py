@@ -14,11 +14,11 @@ from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
 
+from topostats.grains import GrainCrop
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
-from topostats.grains import GrainCrop
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -372,7 +372,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 }
 
             # remap the cropped images back onto the original
-            #for image_name, full_image in all_images.items():
+            # for image_name, full_image in all_images.items():
             #    crop = disordered_trace_images[image_name]
             #    bbox = bboxs[cropped_image_index]
             #    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
