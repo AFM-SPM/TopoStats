@@ -200,13 +200,12 @@ class GrainStats:
             Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
             and a list of dictionaries containing grain data to be plotted.
         """
-        grains_plot_data = []
-        all_height_profiles = {}
+        all_height_profiles: dict[int, npt.NDArray] = {}
         if len(self.grain_crops) == 0:
             LOGGER.warning(
                 f"[{self.image_name}] : No grain crops for this image, grain statistics can not be calculated."
             )
-            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
+            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), all_height_profiles
 
         grainstats_rows: list[dict] = []
 
@@ -228,29 +227,32 @@ class GrainStats:
                 all_height_profiles[grain_index][class_index] = {}
 
                 class_mask = mask[:, :, class_index]
-
+                labelled_class_mask = skimage_measure.label(class_mask)
                 # Split the class into connected components
-                class_mask_regionprops = skimage_measure.regionprops(skimage_measure.label(class_mask))
+                class_mask_regionprops = skimage_measure.regionprops(labelled_class_mask)
 
                 # Iterate over all the sub_grains in the class
                 for subgrain_index, subgrain_region in enumerate(class_mask_regionprops):
-
-                    subgrain_mask = subgrain_region.image
+                    # Remove all but the current subgrain from the mask
+                    subgrain_only_mask = class_mask * (labelled_class_mask == subgrain_region.label)
+                    # Create a masked image of the subgrain
                     subgrain_mask_image = np.ma.masked_array(
-                        image, mask=np.invert(subgrain_mask), fill_value=np.nan
+                        image, mask=np.invert(subgrain_only_mask), fill_value=np.nan
                     ).filled()
 
+                    # Shape of the subgrain region with no padding and not necessarily square, more accurate measure of
+                    # the bounding box size
+                    subgrain_tight_shape = subgrain_region.image.shape
                     # Skip subgrain if too small to calculate stats for
-                    if min(subgrain_mask.shape) < 5:
+                    if min(subgrain_tight_shape) < 5:
                         LOGGER.debug(
                             f"[{self.image_name}] : Skipping subgrain due to being too small "
-                            f"(size: {subgrain_mask.shape}) to calculate stats for."
+                            f"(size: {subgrain_tight_shape}) to calculate stats for."
                         )
 
                     # Calculate all the stats
-
-                    points = self.calculate_points(subgrain_mask)
-                    edges = self.calculate_edges(subgrain_mask, edge_detection_method=self.edge_detection_method)
+                    points = self.calculate_points(subgrain_only_mask)
+                    edges = self.calculate_edges(subgrain_only_mask, edge_detection_method=self.edge_detection_method)
                     radius_stats = self.calculate_radius_stats(edges, points)
                     # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
                     _, _, hull_simplexes = self.convex_hull(edges, output_grain)
@@ -280,7 +282,7 @@ class GrainStats:
 
                     if self.extract_height_profile:
                         all_height_profiles[grain_index][class_index][subgrain_index] = (
-                            height_profiles.interpolate_height_profile(img=image, mask=subgrain_mask)
+                            height_profiles.interpolate_height_profile(img=image, mask=subgrain_only_mask)
                         )
                         LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
 
@@ -322,13 +324,16 @@ class GrainStats:
                     grainstats_rows.append(stats)
 
         # Check if the dataframe is empty
-        if grainstats_df.empty:
+        if len(grainstats_rows) == 0:
             grainstats_df = create_empty_dataframe()
+        else:
+            # Create a dataframe from the list of dictionaries
+            grainstats_df = pd.DataFrame(grainstats_rows)
 
         grainstats_df.index.name = "grain_number"
         grainstats_df["image"] = self.image_name
 
-        return grainstats_df, grains_plot_data, all_height_profiles
+        return grainstats_df, all_height_profiles
 
     @staticmethod
     def calculate_points(grain_mask: npt.NDArray) -> list:
