@@ -299,10 +299,8 @@ def run_grainstats(
             for direction, grain_crops_direction in image_grain_crops.__dict__.items():
                 if grain_crops_direction is None:
                     continue
-                grain_crops = grain_crops_direction.crops
-
                 grainstats_calculator = GrainStats(
-                    grain_crops=grain_crops,
+                    grain_crops=grain_crops_direction.crops,
                     pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                     direction=direction,
                     base_output_dir=grain_out_path,
@@ -310,9 +308,7 @@ def run_grainstats(
                     plot_opts=grain_plot_dict,
                     **grainstats_config,
                 )
-                grainstats_dict[direction], height_profiles_dict[direction] = (
-                    grainstats_calculator.calculate_stats()
-                )
+                grainstats_dict[direction], height_profiles_dict[direction] = grainstats_calculator.calculate_stats()
                 grainstats_dict[direction]["threshold"] = direction
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
@@ -346,7 +342,7 @@ def run_grainstats(
 
 def run_disordered_tracing(
     image: npt.NDArray,
-    grain_masks: dict,
+    image_grain_crops: ImageGrainCrops,
     pixel_to_nm_scaling: float,
     filename: str,
     basename: str,
@@ -399,25 +395,23 @@ def run_disordered_tracing(
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
-            # run image using directional grain masks
-            for direction, _ in grain_masks.items():
-                # Check if there are grains
-                assert len(grain_masks[direction].shape) == 3, "Grain masks should be 3D tensors"
-                dna_class_mask = grain_masks[direction][:, :, 1]
-                if np.max(dna_class_mask) == 0:
+
+            grain_crop_direction: GrainCropsDirection
+            for direction, grain_crop_direction in image_grain_crops.__dict__.items():
+
+                if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     raise ValueError(f"No grains exist for the {direction} direction")
-                # if grains are found
+
                 (
                     disordered_traces_cropped_data,
                     _disordered_trace_grainstats,
                     disordered_tracing_images,
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
-                    image=image,
-                    grains_mask=dna_class_mask,
+                    grain_crops=grain_crop_direction.crops,
                     filename=filename,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                     **disordered_tracing_config,
