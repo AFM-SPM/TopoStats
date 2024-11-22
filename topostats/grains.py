@@ -77,8 +77,8 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     npt.NDArray
         Numpy array if valid.
     """
-    if len(array.shape) != 3 or array.shape[2] != 3 or array.shape[1] != array.shape[0]:
-        raise ValueError(f"Full mask tensor must be NxNx3 but has shape {array.shape}")
+    if len(array.shape) != 3 or array.shape[2] < 2 or array.shape[1] != array.shape[0]:
+        raise ValueError(f"Full mask tensor must be NxNxC with C >= 2 but has shape {array.shape}")
     return array
 
 
