@@ -310,23 +310,10 @@ def run_grainstats(
                     plot_opts=grain_plot_dict,
                     **grainstats_config,
                 )
-                grainstats_dict[direction], grains_plot_data, height_profiles_dict[direction] = (
+                grainstats_dict[direction], height_profiles_dict[direction] = (
                     grainstats_calculator.calculate_stats()
                 )
                 grainstats_dict[direction]["threshold"] = direction
-                # Plot grains if required
-                if plotting_config["image_set"] == "all":
-                    LOGGER.info(f"[{filename}] : Plotting grain images for direction: {direction}.")
-                    for plot_data in grains_plot_data:
-                        LOGGER.debug(
-                            f"[{filename}] : Plotting grain image {plot_data['filename']} for direction: {direction}."
-                        )
-                        Images(
-                            data=plot_data["data"],
-                            output_dir=plot_data["output_dir"],
-                            filename=plot_data["filename"],
-                            **plotting_config["plot_dict"][plot_data["name"]],
-                        ).plot_and_save()
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
             grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
