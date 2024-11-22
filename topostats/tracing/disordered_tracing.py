@@ -371,14 +371,14 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "total_branch_lengths": total_branch_length,
                 }
 
-                # # remap the cropped images back onto the original
-                # for image_name, full_image in all_images.items():
-                #     crop = disordered_trace_images[image_name]
-                #     bbox = bboxs[grain_number]
-                #     full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-                disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
-                disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
-                disordered_trace_crop_data[f"grain_{grain_number}"]["padding"] = grain_crop.padding
+            # remap the cropped images back onto the original
+            #for image_name, full_image in all_images.items():
+            #    crop = disordered_trace_images[image_name]
+            #    bbox = bboxs[cropped_image_index]
+            #    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = grain_crop.bbox
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["pad_width"] = grain_crop.padding
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

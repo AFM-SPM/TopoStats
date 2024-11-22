@@ -350,6 +350,21 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "spline_degree": int,
             # "cores": lambda n: n > 0.0,
         },
+        "curvature": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
+            ),
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
+        },
         "plotting": {
             "run": Or(
                 True,
@@ -1281,6 +1296,39 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'splined_trace.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "curvature": {
+            "filename": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'curvature.image_type', valid values " "are 'binary' or 'non-binary'"),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "curvature_individual_grains": {
+            "filename": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'curvature_individual_grains.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "title": str,
