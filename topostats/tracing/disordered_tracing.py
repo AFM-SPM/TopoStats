@@ -266,7 +266,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     skeletonisation_params: dict,
     pruning_params: dict,
     pad_width: int = 1,
-) -> tuple[dict, pd.DataFrame, dict, pd.DataFrame]:
+) -> tuple[dict[str, dict], pd.DataFrame, pd.DataFrame]:
     """
     Processor function for tracing image.
 
@@ -307,7 +307,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     # img_base = np.zeros_like(image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
-    # disordered_tracing_stats = pd.DataFrame()
+    disordered_tracing_stats = pd.DataFrame()
 
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
@@ -349,8 +349,14 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         np.where(disordered_trace_images["pruned_skeleton"] == 1, grain_crop_image, 0),
                         spacing=pixel_to_nm_scaling,
                     )
-                    skan_df = skan.summarize(skan_skeleton)
-                    skan_df = compile_skan_stats(skan_df, skan_skeleton, grain_crop_image, filename, grain_number)
+                    skan_df = skan.summarize(skel=skan_skeleton)
+                    skan_df = compile_skan_stats(
+                        skan_df=skan_df,
+                        skan_skeleton=skan_skeleton,
+                        image=grain_crop_image,
+                        filename=filename,
+                        grain_number=grain_number,
+                    )
                     total_branch_length = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
                     LOGGER.warning(
@@ -376,9 +382,9 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             #    crop = disordered_trace_images[image_name]
             #    bbox = bboxs[cropped_image_index]
             #    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-            disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
-            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = grain_crop.bbox
-            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["pad_width"] = grain_crop.padding
+            disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
+            disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
+            disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

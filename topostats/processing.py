@@ -344,17 +344,17 @@ def run_grainstats(
 
 
 def run_disordered_tracing(
-    image: npt.NDArray,
+    # image: npt.NDArray,
     image_grain_crops: ImageGrainCrops,
     pixel_to_nm_scaling: float,
     filename: str,
     basename: str,
-    core_out_path: Path,
-    tracing_out_path: Path,
+    # core_out_path: Path,
+    # tracing_out_path: Path,
     disordered_tracing_config: dict,
-    plotting_config: dict,
+    # plotting_config: dict,
     grainstats_df: pd.DataFrame = None,
-) -> dict:
+) -> tuple[dict | None, pd.DataFrame, pd.DataFrame]:
     """
     Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
 
@@ -411,7 +411,7 @@ def run_disordered_tracing(
                 (
                     disordered_traces_cropped_data,
                     _disordered_trace_grainstats,
-                    disordered_tracing_images,
+                    # disordered_tracing_images,
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
                     grain_crops=grain_crop_direction.crops,
@@ -428,20 +428,23 @@ def run_disordered_tracing(
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
-                Images(
-                    image,
-                    masked_array=disordered_tracing_images.pop("pruned_skeleton"),
-                    output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_disordered_trace",
-                    **plotting_config["plot_dict"]["pruned_skeleton"],
-                ).plot_and_save()
-                for plot_name, image_value in disordered_tracing_images.items():
-                    Images(
-                        image,
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / direction,
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
+
+                # PLOT INDIVIDUALLY INSIDE THE FUNCTION??
+
+                # Images(
+                #     image,
+                #     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
+                #     output_dir=core_out_path,
+                #     filename=f"{filename}_{direction}_disordered_trace",
+                #     **plotting_config["plot_dict"]["pruned_skeleton"],
+                # ).plot_and_save()
+                # for plot_name, image_value in disordered_tracing_images.items():
+                #     Images(
+                #         image,
+                #         masked_array=image_value,
+                #         output_dir=tracing_out_path / direction,
+                #         **plotting_config["plot_dict"][plot_name],
+                #     ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(grainstats_df, disordered_trace_grainstats, on=["image", "threshold", "grain_number"])
@@ -802,7 +805,9 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+                    splining_molstats = create_empty_dataframe(
+                        column_set="mol_statistics", index_col="molecule_number"
+                    )
                     raise ValueError(f"No grains exist for the {direction} direction")
                 # if grains are found
                 (
@@ -1101,16 +1106,16 @@ def process_scan(
 
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
-            image=topostats_object["image_flattened"],
-            grain_dict=grain_dict,
+            # image=topostats_object["image_flattened"],
+            image_grain_crops=image_grain_crops,
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
-            core_out_path=core_out_path,
-            tracing_out_path=tracing_out_path,
+            # core_out_path=core_out_path,
+            # tracing_out_path=tracing_out_path,
             disordered_tracing_config=disordered_tracing_config,
             grainstats_df=grainstats_df,
-            plotting_config=plotting_config,
+            # plotting_config=plotting_config,
         )
         topostats_object["disordered_traces"] = disordered_traces_data
 
@@ -1176,7 +1181,9 @@ def process_scan(
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
         molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
-        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
+        disordered_tracing_stats = create_empty_dataframe(
+            column_set="disordered_tracing_statistics", index_col="index"
+        )
         height_profiles = {}
 
     # Get image statistics
