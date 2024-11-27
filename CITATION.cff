@@ -38,6 +38,24 @@ authors:
     given-names: Mingxue
     family-names: Du
     orcid: "https://orcid.org/0009-0008-9452-5719"
+  - given-names: Joseph
+    family-names: Beton
+    affiliation: CSSB Hamburg, Hamburg, DE
+    orcid: 0000-0001-7499-3867
+  - given-names: Luzie
+    family-names: Helfmann
+    email: helfmann@zib.de
+    affiliation: Zuse Institute Berlin
+    orcid: 0000-0002-8188-8288
+  - given-names: Robert
+    family-names: Gray
+    affiliation: Institute of Structural and Molecular Biology, Birkbeck, University of London
+    orcid: 0000-0001-5035-4999
+  - given-names: Agnel Praveen
+    family-names: Joseph
+    email: agnel-praveen.joseph@stfc.ac.uk
+    affiliation: Collaborative Computational Project for Electron cryo-Microscopy, Science and Technology Facilities Council
+
 identifiers:
   - type: doi
     value: 10.15131/shef.data.22633528.v1
