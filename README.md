@@ -102,3 +102,5 @@ Please use the [Citation File Format](https://citation-file-format.github.io/) w
 - [TopoStats - Atomic Force Microscopy image processing and
   analysis](https://orda.shef.ac.uk/articles/software/TopoStats_-_Atomic_Force_Microscopy_image_processing_and_analysis/22633528)
   [doi:10.15131/shef.data.22633528.v2](https://doi.org/10.15131/shef.data.22633528.v2)
+- **Pre-Print** [Under or Over? Tracing Complex DNA Structures with High Resolution Atomic Force Microscopy |
+  bioRxiv](https://www.biorxiv.org/content/10.1101/2024.06.28.601212v2) [doi:10.1101/2024.06.28.601212](https://doi.org/10.1101/2024.06.28.601212)
