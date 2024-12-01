@@ -10,6 +10,8 @@ import pytest
 
 from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
 
+# pylint: disable=too-many-positional-arguments
+
 
 @pytest.mark.parametrize(
     ("y_true", "y_pred", "smooth", "expected_loss"),
@@ -157,10 +159,11 @@ def test_predict_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
         pytest.param(2, 4, 8, 8, (10, 10), (2, 3, 8, 9), id="free space double min row decrease"),
         pytest.param(4, 4, 8, 6, (10, 10), (4, 3, 8, 7), id="free space double max col increase"),
         pytest.param(4, 4, 6, 8, (10, 10), (3, 4, 7, 8), id="free space double max row increase"),
-        pytest.param(1, 1, 6, 2, (10, 10), (1, 1, 6, 6), id="constrained left"),
-        pytest.param(1, 6, 7, 8, (10, 10), (1, 2, 7, 8), id="constrained right"),
-        pytest.param(1, 1, 2, 6, (10, 10), (1, 1, 6, 6), id="constrained top"),
-        pytest.param(6, 1, 8, 7, (10, 10), (2, 1, 8, 7), id="constrained bottom"),
+        pytest.param(1, 1, 6, 2, (10, 10), (1, 0, 6, 5), id="constrained left"),
+        pytest.param(1, 6, 7, 8, (10, 10), (1, 3, 7, 9), id="constrained right"),
+        pytest.param(1, 1, 2, 6, (10, 10), (0, 1, 5, 6), id="constrained top"),
+        pytest.param(6, 1, 8, 7, (10, 10), (3, 1, 9, 7), id="constrained bottom"),
+        pytest.param(117, 20, 521, 603, (608, 608), (24, 20, 607, 603), id="constrained top and bottom"),
     ],
 )
 def test_make_bounding_box_square(
