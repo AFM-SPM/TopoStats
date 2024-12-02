@@ -19,8 +19,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import pySPM
-import tifffile
-from AFMReader import asd, ibw, spm, topostats
+from AFMReader import asd, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
@@ -742,68 +741,11 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        # Load the file
-        img_path = str(self.img_path)
         try:
-            tif = tifffile.TiffFile(img_path)
+            return jpk.load_jpk(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
             LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
             raise
-        # Obtain channel list for all channels in file
-        channel_list = {}
-        for i, page in enumerate(tif.pages[1:]):  # [0] is thumbnail
-            available_channel = page.tags["32848"].value  # keys are hexadecimal values
-            if page.tags["32849"].value == 0:  # whether img is trace or retrace
-                tr_rt = "trace"
-            else:
-                tr_rt = "retrace"
-            channel_list[f"{available_channel}_{tr_rt}"] = i + 1
-        try:
-            channel_idx = channel_list[self.channel]
-        except KeyError:
-            LOGGER.error(f"{self.channel} not in channel list: {channel_list}")
-            raise
-        # Get image and if applicable, scale it
-        channel_page = tif.pages[channel_idx]
-        image = channel_page.asarray()
-        scaling_type = channel_page.tags["33027"].value
-        if scaling_type == "LinearScaling":
-            scaling = channel_page.tags["33028"].value
-            offset = channel_page.tags["33029"].value
-            image = (image * scaling) + offset
-        elif scaling_type == "NullScaling":
-            pass
-        else:
-            raise ValueError(f"Scaling type {scaling_type} is not 'NullScaling' or 'LinearScaling'")
-        # Get page for common metadata between scans
-        metadata_page = tif.pages[0]
-        return (image * 1e9, self._jpk_pixel_to_nm_scaling(metadata_page))
-
-    @staticmethod
-    def _jpk_pixel_to_nm_scaling(tiff_page: tifffile.tifffile.TiffPage) -> float:
-        """
-        Extract pixel to nm scaling from the JPK image metadata.
-
-        Parameters
-        ----------
-        tiff_page : tifffile.tifffile.TiffPage
-            An image file directory (IFD) of .jpk files.
-
-        Returns
-        -------
-        float
-            A value corresponding to the real length of a single pixel.
-        """
-        length = tiff_page.tags["32834"].value  # Grid-uLength (fast)
-        width = tiff_page.tags["32835"].value  # Grid-vLength (slow)
-        length_px = tiff_page.tags["32838"].value  # Grid-iLength (fast)
-        width_px = tiff_page.tags["32839"].value  # Grid-jLength (slow)
-
-        px_to_nm = (length / length_px, width / width_px)[0]
-
-        LOGGER.debug(px_to_nm)
-
-        return px_to_nm * 1e9
 
     @staticmethod
     def _gwy_read_object(open_file: io.TextIOWrapper, data_dict: dict) -> None:
