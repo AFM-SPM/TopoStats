@@ -7,7 +7,6 @@ import json
 import logging
 import os
 import pickle as pkl
-import re
 import struct
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -15,12 +14,13 @@ from importlib import resources
 from pathlib import Path
 from typing import Any, TypeVar
 
-from AFMReader import asd, spm
 import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import pySPM
 import tifffile
+from AFMReader import asd, spm, topostats
 from igor2 import binarywave
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
@@ -690,35 +690,12 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            with h5py.File(self.img_path, "r") as f:
-                # Load the hdf5 data to dictionary
-                topodata = hdf5_to_dict(open_hdf5_file=f, group_path="/")
-                main_keys = topodata.keys()
-
-                file_version = topodata["topostats_file_version"]
-                LOGGER.debug(f"TopoStats file version: {file_version}")
-                image = topodata["image"]
-                pixel_to_nm_scaling = topodata["pixel_to_nm_scaling"]
-                if "grain_masks" in main_keys:
-                    grain_masks_keys = topodata["grain_masks"].keys()
-                    if "above" in grain_masks_keys:
-                        LOGGER.debug(f"[{self.filename}] : Found grain mask for above direction")
-                        self.grain_masks["above"] = topodata["grain_masks"]["above"]
-                    if "below" in grain_masks_keys:
-                        LOGGER.debug(f"[{self.filename}] : Found grain mask for below direction")
-                        self.grain_masks["below"] = topodata["grain_masks"]["below"]
-                if "grain_trace_data" in main_keys:
-                    LOGGER.debug(f"[{self.filename}] : Found grain trace data")
-                    self.grain_trace_data = topodata["grain_trace_data"]
-
-        except OSError as e:
-            if "Unable to open file" in str(e):
-                LOGGER.error(f"[{self.filename}] File not found: {self.img_path}")
-            raise e
-
-        return (image, pixel_to_nm_scaling)
+            LOGGER.debug(f"Loading image from : {self.img_path}")
+            return topostats.load_topostats(self.img_path)
+        except FileNotFoundError:
+            LOGGER.error(f"File Not Found : {self.img_path}")
+            raise
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -1100,7 +1077,10 @@ class LoadScans:
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
                 try:
-                    self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
+                    if suffix == ".topostats":
+                        self.image, self.pixel_to_nm_scaling, self.img_dict = suffix_to_loader[suffix]()
+                    else:
+                        self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
                         LOGGER.warning(e)  # log the specific error message
