@@ -546,13 +546,30 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
-def test_load_scan_asd_file_not_found() -> None:
-    """Test file not found exception is raised when loading non existent .ASD file."""
-    load_scan_asd = LoadScans([Path("file_does_not_exist.asd")], channel="TP")
-    load_scan_asd.img_path = load_scan_asd.img_paths[0]
-    load_scan_asd.filename = load_scan_asd.img_paths[0].stem
+@pytest.mark.parametrize(
+    ("non_existent_file", "channel"),
+    [
+        pytest.param("file_does_not_exist.asd", "TP", id="non-existent .asd"),
+        pytest.param("file_does_not_exist.gwy", "ZSensor", id="non-existent .gwy"),
+        pytest.param(
+            "file_does_not_exist.ibw",
+            "HeightTracee",
+            id="non-existent .ibw",
+            marks=pytest.mark.skip(
+                reason="UnboundLocalError from AFMReader.ibw.ibw_load() if file does not exist means image is None"
+                " and can not be returned."
+            ),
+        ),
+        pytest.param("file_does_not_exist.jpk", "height_trace", id="non-existent .jpk"),
+        pytest.param("file_does_not_exist.spm", "Height", id="non-existent .spm"),
+        pytest.param("file_does_not_exist.topostats", "dummy_channel", id="non-existent .topostats"),
+    ],
+)
+def test_get_data_file_not_found(non_existent_file: str, channel: str) -> None:
+    """Test file not found exceptions are raised by .load_*() methods called by get_data()."""
+    load_scan = LoadScans([Path(non_existent_file)], channel=channel)
     with pytest.raises(FileNotFoundError):
-        load_scan_asd.load_asd()
+        load_scan.get_data()
 
 
 def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
