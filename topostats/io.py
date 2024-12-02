@@ -20,8 +20,7 @@ import numpy.typing as npt
 import pandas as pd
 import pySPM
 import tifffile
-from AFMReader import asd, spm, topostats
-from igor2 import binarywave
+from AFMReader import asd, ibw, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
@@ -639,7 +638,7 @@ class LoadScans:
         """
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            return spm.load_spm(self.img_path, self.channel)
+            return spm.load_spm(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
@@ -713,7 +712,7 @@ class LoadScans:
             frames, pixel_to_nm_scaling, _ = asd.load_asd(file_path=self.img_path, channel=self.channel)
             LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
         except FileNotFoundError:
-            LOGGER.error(f"[{self.filename}] : File not found. Path: {self.img_path}")
+            LOGGER.error(f"File not found. Path: {self.img_path}")
             raise
 
         return (frames, pixel_to_nm_scaling)
@@ -727,57 +726,12 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            scan = binarywave.load(self.img_path)
-            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
-
-            labels = []
-            for label_list in scan["wave"]["labels"]:
-                for label in label_list:
-                    if label:
-                        labels.append(label.decode())
-            channel_idx = labels.index(self.channel)
-            image = scan["wave"]["wData"][:, :, channel_idx].T * 1e9  # Looks to be in m
-            image = np.flipud(image)
-            LOGGER.debug(f"[{self.filename}] : Extracted channel {self.channel}")
+            LOGGER.debug(f"Loading image from : {self.img_path}")
+            return ibw.load_ibw(file_path=self.img_path, channel=self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
-        except ValueError:
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
+            LOGGER.error(f"File not found : {self.img_path}")
             raise
-        except Exception as exception:
-            LOGGER.error(f"[{self.filename}] : {exception}")
-
-        return (image, self._ibw_pixel_to_nm_scaling(scan))
-
-    def _ibw_pixel_to_nm_scaling(self, scan: dict) -> float:
-        """
-        Extract pixel to nm scaling from the IBW image metadata.
-
-        Parameters
-        ----------
-        scan : dict
-            The loaded binary wave object.
-
-        Returns
-        -------
-        float
-            A value corresponding to the real length of a single pixel.
-        """
-        # Get metadata
-        notes = {}
-        for line in str(scan["wave"]["note"]).split("\\r"):
-            if line.count(":"):
-                key, val = line.split(":", 1)
-                notes[key] = val.strip()
-        # Has potential for non-square pixels but not yet implemented
-        pixel_to_nm_scaling = (
-            float(notes["SlowScanSize"]) / scan["wave"]["wData"].shape[0] * 1e9,  # as in m
-            float(notes["FastScanSize"]) / scan["wave"]["wData"].shape[1] * 1e9,  # as in m
-        )[0]
-        LOGGER.debug(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
-        return pixel_to_nm_scaling
 
     def load_jpk(self) -> tuple[npt.NDArray, float]:
         """
