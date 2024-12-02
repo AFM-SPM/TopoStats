@@ -15,13 +15,12 @@ from importlib import resources
 from pathlib import Path
 from typing import Any, TypeVar
 
+from AFMReader import asd, spm
 import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import pySPM
 import tifffile
-from AFMReader import asd
 from igor2 import binarywave
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
@@ -638,26 +637,12 @@ class LoadScans:
         tuple[npt.NDArray, float]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
-        LOGGER.debug(f"Loading image from : {self.img_path}")
         try:
-            scan = pySPM.Bruker(self.img_path)
-            LOGGER.debug(f"[{self.filename}] : Loaded image from : {self.img_path}")
-            self.channel_data = scan.get_channel(self.channel)
-            LOGGER.debug(f"[{self.filename}] : Extracted channel {self.channel}")
-            image = np.flipud(np.array(self.channel_data.pixels))
+            LOGGER.debug(f"Loading image from : {self.img_path}")
+            return spm.load_spm(self.img_path, self.channel)
         except FileNotFoundError:
-            LOGGER.error(f"[{self.filename}] File not found : {self.img_path}")
+            LOGGER.error(f"File Not Found : {self.img_path}")
             raise
-        except Exception as e:
-            # trying to return the error with options of possible channel values
-            labels = []
-            for channel in [layer[b"@2:Image Data"][0] for layer in scan.layers]:
-                channel_description = channel.decode("latin1").split('"')[1]  # in case blank field raises questions?
-                labels.append(channel_description)
-            LOGGER.error(f"[{self.filename}] : {self.channel} not in {self.img_path.suffix} channel list: {labels}")
-            raise e
-
-        return (image, self._spm_pixel_to_nm_scaling(self.channel_data))
 
     def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
         """
