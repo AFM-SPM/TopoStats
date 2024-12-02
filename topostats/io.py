@@ -19,7 +19,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import pySPM
-from AFMReader import asd, ibw, gwy, jpk, spm, topostats
+from AFMReader import asd, gwy, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
