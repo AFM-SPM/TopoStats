@@ -17,10 +17,10 @@ from skimage.segmentation import clear_border
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.unet_masking import (
-    make_bounding_box_square,
     mean_iou,
     pad_bounding_box,
     predict_unet,
+    square_bounding_box,
 )
 from topostats.utils import _get_mask, get_thresholds
 
@@ -537,7 +537,6 @@ class Grains:
 
             # Check whether to run the UNet model
             if self.unet_config["model_path"] is not None:
-
                 # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
                 # later on along with all the other hardcoded class 1s.
                 unet_mask, unet_labelled_regions = Grains.improve_grain_segmentation_unet(
@@ -645,13 +644,14 @@ class Grains:
             )
 
             # Make the bounding box square within the confines of the image
-            bounding_box = make_bounding_box_square(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(image.shape[0], image.shape[1]),
-            )
+            if (bounding_box[2] - bounding_box[0]) != (bounding_box[3] - bounding_box[1]):
+                bounding_box = square_bounding_box(
+                    crop_min_row=bounding_box[0],
+                    crop_min_col=bounding_box[1],
+                    crop_max_row=bounding_box[2],
+                    crop_max_col=bounding_box[3],
+                    image_shape=(image.shape[0], image.shape[1]),
+                )
 
             # Grab the cropped image. Using slice since the bounding box from skimage is
             # half-open, so the max_row and max_col are not included in the region.
@@ -678,7 +678,6 @@ class Grains:
 
             # Add each class of the predicted mask to the overall full image mask
             for class_index in range(unet_mask.shape[2]):
-
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
                 # Keep only the largest object in the grain crop (needs to be configurable in future)
