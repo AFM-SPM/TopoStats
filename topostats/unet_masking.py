@@ -232,21 +232,65 @@ def square_bounding_box(
     tuple[int, int, int, int]
         The new crop indices.
     """
-    height = max_row - min_row
-    width = max_col - min_col
-    mid_row = min_row + (height / 2)
-    mid_col = min_col + (width / 2)
-    radius = max(width, height) / 2
-    _min_row = np.floor(mid_row - radius).astype(int)
-    _min_row = 0 if _min_row < 0 else _min_row
-    _min_col = np.floor(mid_col - radius).astype(int)
-    _min_col = 0 if _min_col < 0 else _min_col
-    _max_row = np.ceil(mid_row + radius).astype(int)
-    _max_row = image_shape[0] if _max_row > image_shape[0] else _max_row
-    _max_col = np.ceil(mid_col + radius).astype(int)
-    _max_col = image_shape[1] if _max_col > image_shape[1] else _max_col
+    height, width = max_row - min_row, max_col - min_col
+    print(f"{height=}")
+    print(f"{width=}")
+    print(f"Min : {min_row=}, {min_col=}")
+    print(f"Max : {max_row=}, {max_col=}")
+    # Wide rectangle
+    if height < width:
+        diff = width - height
+        print("height < width")
+        print(f"{diff=}")
+        u = min(min_row, diff // 2)
+        v = diff - u
+        print(f"{u=}")
+        print(f"{v=}")
+        if max_row + v > image_shape[0]:
+            min_row -= u + v
+        else:
+            min_row -= u
+            max_row += v
+        print(f"Min : {min_row=}, {min_col=}")
+        print(f"Max : {max_row=}, {max_col=}")
 
-    return (_min_row, _min_col, _max_row, _max_col)
+    # Tall rectangle
+    else:
+        print("width < height")
+        diff = height - width
+        print(f"{diff=}")
+        u = min(min_col, diff // 2)
+        v = diff - u
+        print(f"{u=}")
+        print(f"{v=}")
+        if max_col + v > image_shape[1]:
+            min_col -= u + v
+        else:
+            min_col -= u
+            max_col -= v
+        print(f"Min : {min_row=}, {min_col=}")
+        print(f"Max : {max_row=}, {max_col=}")
+    # Make sure coordinates are within the image shape
+    min_row = max(min_row, 0)
+    min_col = max(min_col, 0)
+    max_row = min(max_row, image_shape[0])
+    max_col = min(max_col, image_shape[1])
+    print("Bounding to image...")
+    print(f"Min : {min_row=}, {min_col=}")
+    print(f"Max : {max_row=}, {max_col=}")
+    # Ensure padding is square
+    height, width = max_row - min_row, max_col - min_col
+
+    if height != width:
+        increment = height // 2
+        increment = min(increment, min_row, min_col, (image_shape[0] - max_row), (image_shape[1] - max_col))
+        print(f"{increment=}")
+        min_row -= increment
+        min_col -= increment
+        max_row += increment
+        max_col += increment
+
+    return (min_row, min_col, max_row, max_col)
 
 
 def pad_bounding_box(
