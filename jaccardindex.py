@@ -12,10 +12,12 @@ imagepath2 = config.get("MainSection", "imagepath2")
 # Convert data into numpy array
 arraylist = []
 for maskpath in [imagepath1, imagepath2]:
-    if os.path.splitext(maskpath)[1] == '.tiff':
+    if os.path.splitext(maskpath)[1] == '.tiff' or os.path.splitext(maskpath)[1] == '.png':
         maskimage = Image.open(maskpath)
         maskarray = np.array(maskimage)[:, :, 0]
         maskarray[maskarray != 0] = 1  # Convert array into binary
+        # maskarray[maskarray != 255] = 1
+        # maskarray[maskarray == 255] = 0
         arraylist.append(maskarray)
     elif os.path.splitext(maskpath)[1] == '.npy':
         maskarray = np.load(maskpath).astype(int)
@@ -24,6 +26,8 @@ for maskpath in [imagepath1, imagepath2]:
         arraylist.append(maskarray)
 
 # Calculate the Jaccard index
+# arraylist[1] = np.flip(arraylist[1], axis=0)  # For comparing horizontal flip
+# arraylist[1] = np.flip(arraylist[1], axis=1) # For comparing vertical flip
 array_sum = arraylist[0] + arraylist[1]
 list_sum = list(array_sum.flatten())
 overlap = list_sum.count(2)  # Number of pixels masked in both images

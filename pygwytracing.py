@@ -1020,7 +1020,6 @@ if __name__ == '__main__':
             savefiles(data, filename, extension)
             # saveunknownfiles(data, filename, extension)
             np.save(os.path.join(path, 'Automatic mask'), npmask)
-            print(np.shape(npmask))
 
             # Saving stats to text and JSON files named by master path
             # saveindividualstats(filename, grainstats, k)
