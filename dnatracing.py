@@ -42,6 +42,7 @@ class dnaTrace(object):
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
+        self.subsplines = {}
         self.contour_lengths = {}
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
@@ -478,6 +479,7 @@ class dnaTrace(object):
 
             else:
                 ev_array = np.linspace(0, 1, nbr * step_size_px)
+                spline_list = []
 
                 for i in range(step_size_px):
                     x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
@@ -517,13 +519,16 @@ class dnaTrace(object):
                         spline_running_total = np.add(spline_running_total, splined_trace)
                     except NameError:
                         spline_running_total = np.array(splined_trace)
+                    spline_list.append(splined_trace)
 
                 if not self.splining_success:
                     continue
 
                 spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
+                spline_median = np.median(np.array(spline_list), axis=0)
                 del spline_running_total
                 self.splined_traces[dna_num] = spline_average
+                self.subsplines[dna_num] = spline_list
 
     def showTraces(self):
 
@@ -984,8 +989,11 @@ class dnaTrace(object):
 
         coordinates = pd.DataFrame(coordinates_array)
         coordinates.to_csv('%s_%s.csv' % (savename, dna_num))
-
-        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], 'k.', markersize=5)
+        # coordinates_plot_array = np.zeros((1024, 1024))
+        # for (x, y) in coordinates_array:
+        #     coordinates_plot_array[x][y] = 1
+        # np.save('%s_%s_coordinates' % (savename, dna_num), coordinates_plot_array)
+        plt.plot(coordinates_array[:, 0], coordinates_array[:, 1], '.', color='k', markersize=5)
         plt.axis('equal')
         ax = plt.axes()
         ax.patch.set_alpha(0)
@@ -1012,7 +1020,7 @@ class dnaTrace(object):
         plt.xticks([])
         plt.yticks([])
 
-        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num), dpi=300)
+        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num), dpi=500, transparent=True)
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])
@@ -1020,6 +1028,22 @@ class dnaTrace(object):
         # plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 1], color='b')
         # plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
         # plt.close()
+
+        for i, subspline in enumerate(self.subsplines[dna_num]):
+            for j, (x, y) in enumerate(subspline):
+                try:
+                    subcoordinates_array = np.append(subcoordinates_array, np.array([[x, y]]), axis=0)
+                except NameError:
+                    subcoordinates_array = np.array([[x, y]])
+
+            plt.plot(subcoordinates_array[:, 0], subcoordinates_array[:, 1], '.', color='#0A5495', markersize=5)
+            plt.axis('equal')
+            ax = plt.axes()
+            ax.patch.set_alpha(0)
+            ax.set_axis_off()
+            plt.savefig('%s_%s_coordinates_%s.png' % (savename, dna_num, i), dpi=300, transparent=True)
+            plt.close()
+            del subcoordinates_array
 
     def measureEndtoEndDistance(self):
 
