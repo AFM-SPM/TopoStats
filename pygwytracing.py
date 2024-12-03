@@ -954,12 +954,11 @@ if __name__ == '__main__':
                 trace_end = time.time()
                 # #dna_traces.showTraces()
                 print("Saving trace figures")
-                try:
-                    dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
-                except MemoryError:
-                    print('Unable to save trace figures')
+                # try:
+                #     dna_traces.saveTraceFigures(filename, channel_name, minheightscale, maxheightscale, 'Processed')
+                # except MemoryError:
+                #     print('Unable to save trace figures')
 
-                # dna_traces.writeContourLengths(filename, channel_name)
 
                 # Update the pandas Dataframe used to monitor stats
                 try:
@@ -970,21 +969,20 @@ if __name__ == '__main__':
                 print('Tracing took %f seconds' % (trace_end - trace_start))
                 tracing_stats.saveTraceStats(path)
 
-                try:
-                    curvature_stats.updateCurvature(dna_traces)
-                except NameError:
-                    curvature_stats = dnatracing.curvatureStats(dna_traces)
-                except MemoryError:
-                    print('Unable to save curvature stats')
+                # try:
+                #     curvature_stats.updateCurvature(dna_traces)
+                # except NameError:
+                #     curvature_stats = dnatracing.curvatureStats(dna_traces)
+                # except MemoryError:
+                #     print('Unable to save curvature stats')
 
-                curvature_stats.saveCurvatureStats(path)
-
-                # dna_traces.plotCurvature(0)
-                # dna_traces.writeCoordinates(0)
+                # curvature_stats.saveCurvatureStats(path)
+                #
                 for num in range(1, number_of_grains + 1):
                     try:
-                        dna_traces.plotCurvature(num)
-                        dna_traces.writeCoordinates(num)
+                        # dna_traces.plotCurvature(num)
+                        # dna_traces.writeCoordinates(num)
+                        dna_traces.writeContourLengths(num)
                     except KeyError:
                         continue
 
@@ -1003,18 +1001,6 @@ if __name__ == '__main__':
 
             # Export the channels data and mask as numpy arrays
             npdata, npmask = exportasnparray(datafield, mask)
-
-            directory = os.path.basename(os.path.dirname(filename))
-            if directory == 'DNA_pure':
-                try:
-                    dna_pure_all = np.append(dna_pure_all, npdata)
-                except NameError:
-                    dna_pure_all = npdata
-            elif directory == 'DNA_NDP':
-                try:
-                    dna_ndp_all = np.append(dna_ndp_all, npdata)
-                except NameError:
-                    dna_ndp_all = npdata
 
             # Save data as 2 images, with and without mask
             savefiles(data, filename, extension)

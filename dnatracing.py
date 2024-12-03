@@ -42,7 +42,6 @@ class dnaTrace(object):
         self.ordered_traces = {}
         self.fitted_traces = {}
         self.splined_traces = {}
-        self.subsplines = {}
         self.contour_lengths = {}
         self.end_to_end_distance = {}
         self.mol_is_circular = {}
@@ -76,11 +75,11 @@ class dnaTrace(object):
         self.determineLinearOrCircular(self.ordered_traces)
         self.getFittedTraces()
         self.getSplinedTraces()
-        self.findCurvature()
-        self.saveCurvature()
-        self.analyseCurvature()
+        # self.findCurvature()
+        # self.saveCurvature()
+        # self.analyseCurvature()
         self.measureContourLength()
-        self.measureEndtoEndDistance()
+        # self.measureEndtoEndDistance()
         self.reportBasicStats()
 
     def getNumpyArraysfromGwyddion(self):
@@ -393,142 +392,105 @@ class dnaTrace(object):
         is important for getting a good fit on the lower res data'''
 
         step_size_px = int(self.step_size_m / (self.pixel_size))
-        interp_step = int(1e-10 / self.pixel_size)
 
         for dna_num in sorted(self.fitted_traces.keys()):
 
-            self.splining_success = True
+            splining_success = True
             nbr = len(self.fitted_traces[dna_num][:, 0])
 
             # Hard to believe but some traces have less than 4 coordinates in total
             if len(self.fitted_traces[dna_num][:, 1]) < 4:
-                self.splined_traces[dna_num] = self.fitted_traces[dna_num]
+                self.splined_traces[dna_num] = [self.fitted_traces[dna_num]]
                 continue
 
             # The degree of spline fit used is 3 so there cannot be less than 3 points in the splined trace
+            # LOGGER.info(f"DNA Number      : {dna_num}")
+            # LOGGER.info(f"nbr             : {nbr}")
+            # LOGGER.info(f"step_size       : {step_size}")
+            # LOGGER.info(f"self.pixel_size : {self.pixel_size}")
             while nbr / step_size_px < 4:
                 if step_size_px <= 1:
                     step_size_px = 1
                     break
-                step_size_px = - 1
+                step_size_px = -1
 
             if self.mol_is_circular[dna_num]:
-
-                ev_array = np.linspace(0, 1, nbr * step_size_px)
-
-                for i in range(step_size_px):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)])
-
-                    try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=2, per=2, quiet=1, k=3)
-                        out = interp.splev(ev_array, tck)
-                        splined_trace = np.column_stack((out[0], out[1]))
-                    except ValueError:
-                        # Value error occurs when the "trace fitting" really messes up the traces
-
-                        x = np.array([self.ordered_traces[dna_num][:, 0][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)])
-                        y = np.array([self.ordered_traces[dna_num][:, 1][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)])
-
-                        try:
-                            tck, u = interp.splprep([x, y], s=2, per=2, quiet=1)
-                            out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
-                            splined_trace = np.column_stack((out[0], out[1]))
-                        except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
-                            self.mol_is_circular.pop(dna_num)
-                            self.disordered_traces.pop(dna_num)
-                            self.grains.pop(dna_num)
-                            self.ordered_traces.pop(dna_num)
-                            self.splining_success = False
-                            try:
-                                del spline_running_total
-                            except UnboundLocalError:  # happens if splining fails immediately
-                                break
-                            break
-
-                    try:
-                        spline_running_total = np.add(spline_running_total, splined_trace)
-                    except NameError:
-                        spline_running_total = np.array(splined_trace)
-
-                if not self.splining_success:
-                    continue
-
-                spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
-                del spline_running_total
-                spline_average = np.delete(spline_average, -1, 0)
-                self.splined_traces[dna_num] = spline_average
-                # else:
-                #    x = self.fitted_traces[dna_num][:,0]
-                #    y = self.fitted_traces[dna_num][:,1]
-
-                #    try:
-                #        tck, u = interp.splprep([x, y], s=0, per = 2, quiet = 1, k = 3)
-                #        out = interp.splev(np.linspace(0,1,nbr*step_size), tck)
-                #        splined_trace = np.column_stack((out[0], out[1]))
-                #        self.splined_traces[dna_num] = splined_trace
-                #    except ValueError: #if the trace is really messed up just delete it
-                #        self.mol_is_circular.pop(dna_num)
-                #        self.disordered_traces.pop(dna_num)
-                #        self.grains.pop(dna_num)
-                #        self.ordered_traces.pop(dna_num)
-
+                smoothness_range = [2]
+                periodicity_range = [2]
             else:
-                ev_array = np.linspace(0, 1, nbr * step_size_px)
-                spline_list = []
+                smoothness_range = [2, 3, 4, 5, 6, 7, 8]
+                periodicity_range = [0, 1, 2]
 
-                for i in range(step_size_px):
-                    x_sampled = np.array([self.fitted_traces[dna_num][:, 0][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)])
-                    y_sampled = np.array([self.fitted_traces[dna_num][:, 1][j] for j in
-                                          range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)])
+            ev_array = np.linspace(0, 1, nbr * step_size_px)
 
-                    try:
-                        tck, u = interp.splprep([x_sampled, y_sampled], s=5, per=0, quiet=1, k=3)
-                        out = interp.splev(ev_array, tck)
-                        splined_trace = np.column_stack((out[0], out[1]))
-                    except ValueError:
-                        # Value error occurs when the "trace fitting" really messes up the traces
+            self.splined_traces[dna_num] = []
 
-                        x = np.array([self.ordered_traces[dna_num][:, 0][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)])
-                        y = np.array([self.ordered_traces[dna_num][:, 1][j] for j in
-                                      range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)])
+            for smoothness in smoothness_range:
+                for periodicity in periodicity_range:
+
+                    for i in range(step_size_px):
+                        x_sampled = np.array(
+                            [
+                                self.fitted_traces[dna_num][:, 0][j]
+                                for j in range(i, len(self.fitted_traces[dna_num][:, 0]), step_size_px)
+                            ]
+                        )
+                        y_sampled = np.array(
+                            [
+                                self.fitted_traces[dna_num][:, 1][j]
+                                for j in range(i, len(self.fitted_traces[dna_num][:, 1]), step_size_px)
+                            ]
+                        )
 
                         try:
-                            tck, u = interp.splprep([x, y], s=5, per=0, quiet=1)
-                            out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
+                            tck, _ = interp.splprep([x_sampled, y_sampled], s=smoothness, per=periodicity, quiet=1, k=3)
+                            out = interp.splev(ev_array, tck)
                             splined_trace = np.column_stack((out[0], out[1]))
-                        except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
-                            self.mol_is_circular.pop(dna_num)
-                            self.disordered_traces.pop(dna_num)
-                            self.grains.pop(dna_num)
-                            self.ordered_traces.pop(dna_num)
-                            self.splining_success = False
+                        except ValueError:
+                            # Value error occurs when the "trace fitting" really messes up the traces
+
+                            x = np.array(
+                                [
+                                    self.ordered_traces[dna_num][:, 0][j]
+                                    for j in range(i, len(self.ordered_traces[dna_num][:, 0]), step_size_px)
+                                ]
+                            )
+                            y = np.array(
+                                [
+                                    self.ordered_traces[dna_num][:, 1][j]
+                                    for j in range(i, len(self.ordered_traces[dna_num][:, 1]), step_size_px)
+                                ]
+                            )
+
                             try:
-                                del spline_running_total
-                            except UnboundLocalError:  # happens if splining fails immediately
+                                tck, _ = interp.splprep([x, y], s=smoothness, per=periodicity, quiet=1)
+                                out = interp.splev(np.linspace(0, 1, nbr * step_size_px), tck)
+                                splined_trace = np.column_stack((out[0], out[1]))
+                            except ValueError:  # sometimes even the ordered_traces are too bugged out so just delete these traces
+                                self.mol_is_circular.pop(dna_num)
+                                self.disordered_traces.pop(dna_num)
+                                self.grains.pop(dna_num)
+                                self.ordered_traces.pop(dna_num)
+                                splining_success = False
+                                try:
+                                    del spline_running_total
+                                except UnboundLocalError:  # happens if splining fails immediately
+                                    break
                                 break
-                            break
 
-                    try:
-                        spline_running_total = np.add(spline_running_total, splined_trace)
-                    except NameError:
-                        spline_running_total = np.array(splined_trace)
-                    spline_list.append(splined_trace)
+                        try:
+                            spline_running_total = np.add(spline_running_total, splined_trace)
+                        except NameError:
+                            spline_running_total = np.array(splined_trace)
 
-                if not self.splining_success:
-                    continue
+                    if not splining_success:
+                        continue
 
-                spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
-                spline_median = np.median(np.array(spline_list), axis=0)
-                del spline_running_total
-                self.splined_traces[dna_num] = spline_average
-                self.subsplines[dna_num] = spline_list
+                    spline_average = np.divide(spline_running_total, [step_size_px, step_size_px])
+                    del spline_running_total
+                    if self.mol_is_circular[dna_num]:
+                        spline_average = np.delete(spline_average, -1, 0)  # removes the duplicate point at the end
+                    self.splined_traces[dna_num].append([smoothness, periodicity, spline_average])
 
     def showTraces(self):
 
@@ -562,45 +524,45 @@ class dnaTrace(object):
         plt.savefig('%s_%s_originalImage.png' % (save_file, channel_name), dpi=400)
         plt.close()
 
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
-        for dna_num in sorted(self.splined_traces.keys()):
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=2.0)
-        ax = plt.axes()
-        ax.patch.set_alpha(0)
-        plt.axis('equal')
-        plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=400)
-        plt.close()
-
-        plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
-        plt.colorbar()
-        for dna_num in sorted(self.splined_traces.keys()):
-            plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
-            if self.mol_is_circular[dna_num]:
-                starting_point = 0
-            else:
-                starting_point = 0
-            length = len(self.curvature[dna_num])
-            plt.plot(self.splined_traces[dna_num][starting_point, 0],
-                     self.splined_traces[dna_num][starting_point, 1],
-                     color='#D55E00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6), 1],
-                     color='#E69F00', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
-                     color='#F0E442', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
-                     color='#009E74', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
-                     color='#56B4E9', markersize=3.0, marker=5)
-            plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
-                     self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
-                     color='#CC79A7', markersize=3.0, marker=5)
-        plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name), dpi=400)
-        plt.close()
+        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.colorbar()
+        # for dna_num in sorted(self.splined_traces.keys()):
+        #     plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=2.0)
+        # ax = plt.axes()
+        # ax.patch.set_alpha(0)
+        # plt.axis('equal')
+        # plt.savefig('%s_%s_splinedtrace.png' % (save_file, channel_name), dpi=400)
+        # plt.close()
+        #
+        # plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
+        # plt.colorbar()
+        # for dna_num in sorted(self.splined_traces.keys()):
+        #     plt.plot(self.splined_traces[dna_num][:, 0], self.splined_traces[dna_num][:, 1], color='c', linewidth=1.0)
+        #     if self.mol_is_circular[dna_num]:
+        #         starting_point = 0
+        #     else:
+        #         starting_point = 0
+        #     length = len(self.curvature[dna_num])
+        #     plt.plot(self.splined_traces[dna_num][starting_point, 0],
+        #              self.splined_traces[dna_num][starting_point, 1],
+        #              color='#D55E00', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6), 1],
+        #              color='#E69F00', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 2), 1],
+        #              color='#F0E442', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 3), 1],
+        #              color='#009E74', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 4), 1],
+        #              color='#56B4E9', markersize=3.0, marker=5)
+        #     plt.plot(self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 0],
+        #              self.splined_traces[dna_num][starting_point + int(length / 6 * 5), 1],
+        #              color='#CC79A7', markersize=3.0, marker=5)
+        # plt.savefig('%s_%s_splinedtrace_with_markers.png' % (save_file, channel_name), dpi=400)
+        # plt.close()
 
         plt.pcolormesh(self.full_image_data, vmax=vmaxval, vmin=vminval)
         plt.colorbar()
@@ -656,18 +618,18 @@ class dnaTrace(object):
         plt.savefig('%s_%s_grains.png' % (save_file, channel_name))
         plt.close()
 
-        for dna_num in sorted(self.ordered_traces.keys()):
-            plt.scatter(x=self.splined_traces[dna_num][:, 0],
-                        y=self.splined_traces[dna_num][:, 1],
-                        c=self.curvature[dna_num][:, 2],
-                        s=1)
-
-        plt.colorbar()
-        plt.axis('equal')
-        plt.xticks([])
-        plt.yticks([])
-        plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
-        plt.close()
+        # for dna_num in sorted(self.ordered_traces.keys()):
+        #     plt.scatter(x=self.splined_traces[dna_num][:, 0],
+        #                 y=self.splined_traces[dna_num][:, 1],
+        #                 c=self.curvature[dna_num][:, 2],
+        #                 s=1)
+        #
+        # plt.colorbar()
+        # plt.axis('equal')
+        # plt.xticks([])
+        # plt.yticks([])
+        # plt.savefig('%s_%s_curvature_summary.png' % (save_file, channel_name), dpi=300)
+        # plt.close()
 
     def _checkForSaveDirectory(self, filename, new_directory_name):
 
@@ -930,50 +892,65 @@ class dnaTrace(object):
 
         for dna_num in sorted(self.splined_traces.keys()):
 
-            if self.mol_is_circular[dna_num]:
-                for num, i in enumerate(self.splined_traces[dna_num]):
+            self.contour_lengths[dna_num] = []
 
-                    x1 = self.splined_traces[dna_num][num - 1, 0]
-                    y1 = self.splined_traces[dna_num][num - 1, 1]
+            for j, test_spline in enumerate(self.splined_traces[dna_num]):
 
-                    x2 = self.splined_traces[dna_num][num, 0]
-                    y2 = self.splined_traces[dna_num][num, 1]
+                if self.mol_is_circular[dna_num]:
+                    for num, i in enumerate(test_spline[2]):
 
-                    try:
-                        hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
-                    except NameError:
-                        hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+                        x1 = test_spline[2][num - 1, 0]
+                        y1 = test_spline[2][num - 1, 1]
 
-                self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
-                del hypotenuse_array
-
-            else:
-                for num, i in enumerate(self.splined_traces[dna_num]):
-                    try:
-                        x1 = self.splined_traces[dna_num][num, 0]
-                        y1 = self.splined_traces[dna_num][num, 1]
-
-                        x2 = self.splined_traces[dna_num][num + 1, 0]
-                        y2 = self.splined_traces[dna_num][num + 1, 1]
+                        x2 = test_spline[2][num, 0]
+                        y2 = test_spline[2][num, 1]
 
                         try:
                             hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
                         except NameError:
                             hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
-                    except IndexError:  # IndexError happens at last point in array
-                        self.contour_lengths[dna_num] = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
-                        del hypotenuse_array
-                        break
 
-    def writeContourLengths(self, filename, channel_name):
+                    contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                    self.contour_lengths[dna_num].append([test_spline[0], test_spline[1], contour_length])
+                    del hypotenuse_array
+
+                else:
+                    for num, i in enumerate(test_spline[2]):
+                        try:
+                            x1 = test_spline[2][num, 0]
+                            y1 = test_spline[2][num, 1]
+
+                            x2 = test_spline[2][num + 1, 0]
+                            y2 = test_spline[2][num + 1, 1]
+
+                            try:
+                                hypotenuse_array.append(math.hypot((x1 - x2), (y1 - y2)))
+                            except NameError:
+                                hypotenuse_array = [math.hypot((x1 - x2), (y1 - y2))]
+                        except IndexError:  # IndexError happens at last point in array
+                            contour_length = np.sum(np.array(hypotenuse_array)) * self.pixel_size * 1e9
+                            self.contour_lengths[dna_num].append([test_spline[0], test_spline[1], contour_length])
+                            del hypotenuse_array
+                            break
+
+    def writeContourLengths(self, dna_num):
 
         if not self.contour_lengths:
             self.measureContourLength()
 
-        with open('%s_%s_contours.txt' % (filename, channel_name), 'w') as writing_file:
-            writing_file.write('#units: nm\n')
-            for dna_num in sorted(self.contour_lengths.keys()):
-                writing_file.write('%f \n' % self.contour_lengths[dna_num])
+        if not os.path.exists(os.path.join(os.path.dirname(self.afm_image_name), "Contour Lengths")):
+            os.mkdir(os.path.join(os.path.dirname(self.afm_image_name), "Contour Lengths"))
+        directory = os.path.join(os.path.dirname(self.afm_image_name), "Contour Lengths")
+        savename = os.path.join(directory, os.path.basename(self.afm_image_name)[:-4])
+
+        for i, (s, p, c) in enumerate(self.contour_lengths[dna_num]):
+            try:
+                contour_lengths_array = np.append(contour_lengths_array, np.array([[s, p, c]]), axis=0)
+            except NameError:
+                contour_lengths_array = np.array([[s, p, c]])
+
+        contour_lengths = pd.DataFrame(contour_lengths_array)
+        contour_lengths.to_csv('%s_%s.csv' % (savename, dna_num))
 
     def writeCoordinates(self, dna_num):
 
@@ -1020,7 +997,7 @@ class dnaTrace(object):
         plt.xticks([])
         plt.yticks([])
 
-        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num), dpi=500, transparent=True)
+        plt.savefig('%s_%s_coordinates.png' % (savename, dna_num), dpi=500, transparent=False)
         plt.close()
 
         # curvature = np.array(self.curvature[dna_num])
@@ -1028,22 +1005,6 @@ class dnaTrace(object):
         # plt.plot(curvature[:, 1] * self.pixel_size, coordinates_array[:, 1], color='b')
         # plt.savefig('%s_%s_x_and_y.png' % (savename, dna_num))
         # plt.close()
-
-        for i, subspline in enumerate(self.subsplines[dna_num]):
-            for j, (x, y) in enumerate(subspline):
-                try:
-                    subcoordinates_array = np.append(subcoordinates_array, np.array([[x, y]]), axis=0)
-                except NameError:
-                    subcoordinates_array = np.array([[x, y]])
-
-            plt.plot(subcoordinates_array[:, 0], subcoordinates_array[:, 1], '.', color='#0A5495', markersize=5)
-            plt.axis('equal')
-            ax = plt.axes()
-            ax.patch.set_alpha(0)
-            ax.set_axis_off()
-            plt.savefig('%s_%s_coordinates_%s.png' % (savename, dna_num, i), dpi=300, transparent=True)
-            plt.close()
-            del subcoordinates_array
 
     def measureEndtoEndDistance(self):
 
@@ -1094,29 +1055,29 @@ class traceStats(object):
                 data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
                 data_dict['Basename'].append(basename)
-                data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
+                # data_dict['Contour Lengths'].append(self.trace_object.contour_lengths[dna_num])
                 data_dict['Circular'].append(self.trace_object.mol_is_circular[dna_num])
-                data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
-                data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
-                data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
-                data_dict['Mean Absolute Curvature'].append(self.trace_object.mean_absolute_curvature[dna_num])
-                data_dict['Absolute Mean Curvature'].append(self.trace_object.absolute_mean_curvature[dna_num])
-                data_dict['Variance of Curvature'].append(self.trace_object.curvature_variance[dna_num])
-                data_dict['Variance of Absolute Curvature'].append(self.trace_object.curvature_variance_abs[dna_num])
+                # data_dict['End to End Distance'].append(self.trace_object.end_to_end_distance[dna_num])
+                # data_dict['Max Curvature'].append(self.trace_object.max_curvature[dna_num])
+                # data_dict['Max Curvature Location'].append(self.trace_object.max_curvature_location[dna_num])
+                # data_dict['Mean Absolute Curvature'].append(self.trace_object.mean_absolute_curvature[dna_num])
+                # data_dict['Absolute Mean Curvature'].append(self.trace_object.absolute_mean_curvature[dna_num])
+                # data_dict['Variance of Curvature'].append(self.trace_object.curvature_variance[dna_num])
+                # data_dict['Variance of Absolute Curvature'].append(self.trace_object.curvature_variance_abs[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
                 data_dict['Basename'] = [basename]
-                data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
+                # data_dict['Contour Lengths'] = [self.trace_object.contour_lengths[dna_num]]
                 data_dict['Circular'] = [self.trace_object.mol_is_circular[dna_num]]
-                data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
-                data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
-                data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
-                data_dict['Mean Absolute Curvature'] = [self.trace_object.mean_absolute_curvature[dna_num]]
-                data_dict['Absolute Mean Curvature'] = [self.trace_object.absolute_mean_curvature[dna_num]]
-                data_dict['Variance of Curvature'] = [self.trace_object.curvature_variance[dna_num]]
-                data_dict['Variance of Absolute Curvature'] = [self.trace_object.curvature_variance_abs[dna_num]]
+                # data_dict['End to End Distance'] = [self.trace_object.end_to_end_distance[dna_num]]
+                # data_dict['Max Curvature'] = [self.trace_object.max_curvature[dna_num]]
+                # data_dict['Max Curvature Location'] = [self.trace_object.max_curvature_location[dna_num]]
+                # data_dict['Mean Absolute Curvature'] = [self.trace_object.mean_absolute_curvature[dna_num]]
+                # data_dict['Absolute Mean Curvature'] = [self.trace_object.absolute_mean_curvature[dna_num]]
+                # data_dict['Variance of Curvature'] = [self.trace_object.curvature_variance[dna_num]]
+                # data_dict['Variance of Absolute Curvature'] = [self.trace_object.curvature_variance_abs[dna_num]]
         self.pd_dataframe = pd.DataFrame(data=data_dict)
 
     def updateTraceStats(self, new_traces):
@@ -1135,29 +1096,29 @@ class traceStats(object):
                 data_dict['Image Name'].append(img_name)
                 data_dict['Experiment Directory'].append(trace_directory)
                 data_dict['Basename'].append(basename)
-                data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
+                # data_dict['Contour Lengths'].append(new_traces.contour_lengths[dna_num])
                 data_dict['Circular'].append(new_traces.mol_is_circular[dna_num])
-                data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
-                data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
-                data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
-                data_dict['Mean Absolute Curvature'].append(new_traces.mean_absolute_curvature[dna_num])
-                data_dict['Absolute Mean Curvature'].append(new_traces.absolute_mean_curvature[dna_num])
-                data_dict['Variance of Curvature'].append(new_traces.curvature_variance[dna_num])
-                data_dict['Variance of Absolute Curvature'].append(new_traces.curvature_variance_abs[dna_num])
+                # data_dict['End to End Distance'].append(new_traces.end_to_end_distance[dna_num])
+                # data_dict['Max Curvature'].append(new_traces.max_curvature[dna_num])
+                # data_dict['Max Curvature Location'].append(new_traces.max_curvature_location[dna_num])
+                # data_dict['Mean Absolute Curvature'].append(new_traces.mean_absolute_curvature[dna_num])
+                # data_dict['Absolute Mean Curvature'].append(new_traces.absolute_mean_curvature[dna_num])
+                # data_dict['Variance of Curvature'].append(new_traces.curvature_variance[dna_num])
+                # data_dict['Variance of Absolute Curvature'].append(new_traces.curvature_variance_abs[dna_num])
             except KeyError:
                 data_dict['Molecule number'] = [mol_num]
                 data_dict['Image Name'] = [img_name]
                 data_dict['Experiment Directory'] = [trace_directory]
                 data_dict['Basename'] = [basename]
-                data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
+                # data_dict['Contour Lengths'] = [new_traces.contour_lengths[dna_num]]
                 data_dict['Circular'] = [new_traces.mol_is_circular[dna_num]]
-                data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
-                data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
-                data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
-                data_dict['Mean Absolute Curvature'] = [new_traces.mean_absolute_curvature[dna_num]]
-                data_dict['Absolute Mean Curvature'] = [new_traces.absolute_mean_curvature[dna_num]]
-                data_dict['Variance of Curvature'] = [new_traces.curvature_variance[dna_num]]
-                data_dict['Variance of Absolute Curvature'] = [new_traces.curvature_variance_abs[dna_num]]
+                # data_dict['End to End Distance'] = [new_traces.end_to_end_distance[dna_num]]
+                # data_dict['Max Curvature'] = [new_traces.max_curvature[dna_num]]
+                # data_dict['Max Curvature Location'] = [new_traces.max_curvature_location[dna_num]]
+                # data_dict['Mean Absolute Curvature'] = [new_traces.mean_absolute_curvature[dna_num]]
+                # data_dict['Absolute Mean Curvature'] = [new_traces.absolute_mean_curvature[dna_num]]
+                # data_dict['Variance of Curvature'] = [new_traces.curvature_variance[dna_num]]
+                # data_dict['Variance of Absolute Curvature'] = [new_traces.curvature_variance_abs[dna_num]]
 
         pd_new_traces_dframe = pd.DataFrame(data=data_dict)
 
