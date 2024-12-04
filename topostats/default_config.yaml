@@ -65,6 +65,7 @@ grainstats:
   extract_height_profile: true # Extract height profiles along maximum feret of molecules
 disordered_tracing:
   run: true # Options : true, false
+  class_index: 1 # The class index to trace. This is the class index of the grains.
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
