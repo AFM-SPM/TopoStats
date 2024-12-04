@@ -11,7 +11,6 @@ import pandas as pd
 import skan
 import skimage.measure as skimage_measure
 from scipy import ndimage
-from scipy.ndimage import distance_transform_edt
 from skimage import filters
 from skimage.morphology import label
 
@@ -256,7 +255,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         return self.re_add_holes(grain, dilation, holearea_min_max)
 
     @staticmethod
-    def calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, px2nm: float = 1) -> float:
+    def calculate_dna_width(
+        smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, pixel_to_nm_scaling: float = 1
+    ) -> float:
         """
         Calculate the mean width in metres of the DNA using the trace and mask.
 
@@ -266,7 +267,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             Smoothed mask to be measured.
         pruned_skeleton : npt.NDArray
             Pruned skeleton.
-        px2nm : float
+        pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
 
         Returns
@@ -274,11 +275,10 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         float
             Width of grain in metres.
         """
-        # Code will go here
-        dist_trans = distance_transform_edt(smoothed_mask)
+        dist_trans = ndimage.distance_transform_edt(smoothed_mask)
         comb = np.where(pruned_skeleton == 1, dist_trans, 0)
 
-        return comb[comb != 0].mean() * 2 * px2nm
+        return comb[comb != 0].mean() * 2 * pixel_to_nm_scaling
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
