@@ -418,7 +418,7 @@ class dnaTrace(object):
                 smoothness_range = [2]
                 periodicity_range = [2]
             else:
-                smoothness_range = [2, 3, 4, 5, 6, 7, 8]
+                smoothness_range = [0, 1, 2, 3, 4, 5, 6, 7, 8]
                 periodicity_range = [0, 1, 2]
 
             ev_array = np.linspace(0, 1, nbr * step_size_px)
