@@ -176,6 +176,14 @@ def test_make_bounding_box_square(
 ) -> None:
     """Test the make_bounding_box_square method."""
     result = make_bounding_box_square(crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape)
+    # check bbox within image bounds
+    assert result[0] >= 0
+    assert result[1] >= 0
+    assert result[2] <= image_shape[0]
+    assert result[3] <= image_shape[1]
+    # check if square
+    assert (result[2] - result[0]) == (result[3] - result[1])
+    # check bbox coords match
     assert result == expected_indices
 
 
