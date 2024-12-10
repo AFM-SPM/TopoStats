@@ -17,6 +17,7 @@ from skimage.segmentation import clear_border
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.unet_masking import (
+    iou_loss,
     make_bounding_box_square,
     mean_iou,
     pad_bounding_box,
@@ -611,7 +612,9 @@ class Grains:
         # You may also get an error referencing a "group_1" parameter, this is discussed in this issue:
         # https://github.com/keras-team/keras/issues/19441 which also has an experimental fix that we can try but
         # I haven't tested it yet.
-        unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
+        unet_model = keras.models.load_model(
+            unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+        )
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         # Initialise an empty mask to iteratively add to for each grain, with the correct number of class channels based on
