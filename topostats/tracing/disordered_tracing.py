@@ -254,6 +254,32 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
         return self.re_add_holes(grain, dilation, holearea_min_max)
 
+    @staticmethod
+    def calculate_dna_width(
+        smoothed_mask: npt.NDArray, pruned_skeleton: npt.NDArray, pixel_to_nm_scaling: float = 1
+    ) -> float:
+        """
+        Calculate the mean width in metres of the DNA using the trace and mask.
+
+        Parameters
+        ----------
+        smoothed_mask : npt.NDArray
+            Smoothed mask to be measured.
+        pruned_skeleton : npt.NDArray
+            Pruned skeleton.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+
+        Returns
+        -------
+        float
+            Width of grain in metres.
+        """
+        dist_trans = ndimage.distance_transform_edt(smoothed_mask)
+        comb = np.where(pruned_skeleton == 1, dist_trans, 0)
+
+        return comb[comb != 0].mean() * 2 * pixel_to_nm_scaling
+
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
     image: npt.NDArray,
@@ -363,15 +389,21 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length,
+                    "grain_width_mean": disorderedTrace.calculate_dna_width(
+                        disordered_trace_images["smoothed_grain"],
+                        disordered_trace_images["pruned_skeleton"],
+                        pixel_to_nm_scaling,
+                    )
+                    * 1e-9,
                 }
-
-                # remap the cropped images back onto the original
-                for image_name, full_image in all_images.items():
-                    crop = disordered_trace_images[image_name]
-                    bbox = bboxs[cropped_image_index]
-                    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-                disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
-                disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
+            # remap the cropped images back onto the original
+            for image_name, full_image in all_images.items():
+                crop = disordered_trace_images[image_name]
+                bbox = bboxs[cropped_image_index]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"] = disordered_trace_images
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["bbox"] = bboxs[cropped_image_index]
+            disordered_trace_crop_data[f"grain_{cropped_image_index}"]["pad_width"] = pad_width
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

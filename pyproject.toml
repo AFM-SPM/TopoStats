@@ -55,7 +55,7 @@ dependencies = [
   "snoop",
   "tensorflow",
   "tifffile",
-  "topoly==1.0.2",
+  "topoly",
   "tqdm",
 ]
 
@@ -194,7 +194,6 @@ exclude = [
 ]
 # per-file-ignores = []
 line-length = 120
-target-version = "py310"
 lint.select = [
   "A", # flake8-builtins
   "B", # flake8-bugbear
