@@ -261,7 +261,7 @@ def make_bounding_box_square(
         # Set the new crop height to the original crop height since we are just updating the width
         new_crop_min_row = crop_min_row
         new_crop_max_row = crop_max_row
-    elif crop_width > crop_height:
+    else:
         # The crop is wider than it is tall
         diff = crop_width - crop_height
         # Check if we can expand equally in each direction
@@ -280,12 +280,6 @@ def make_bounding_box_square(
                 new_crop_min_row = crop_min_row - (diff - (image_shape[0] - 1 - crop_max_row))
         # Set the new crop width to the original crop width since we are just updating the height
         new_crop_min_col = crop_min_col
-        new_crop_max_col = crop_max_col
-    else:
-        # If the crop is already square, return the original crop
-        new_crop_min_row = crop_min_row
-        new_crop_min_col = crop_min_col
-        new_crop_max_row = crop_max_row
         new_crop_max_col = crop_max_col
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
