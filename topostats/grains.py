@@ -21,6 +21,7 @@ from topostats.thresholds import threshold
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
+    mean_iou,
     pad_bounding_box,
     predict_unet,
 )
