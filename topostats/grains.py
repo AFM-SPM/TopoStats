@@ -660,7 +660,7 @@ class Grains:
 
         try:
             unet_model = keras.models.load_model(
-              unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
             )
         except Exception as e:
             LOGGER.debug(f"Python executable: {sys.executable}")
