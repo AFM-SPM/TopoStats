@@ -371,7 +371,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
                 grainstats_additions[grain_number] = {
                     "image": filename,
-                    "grain_number": grain_number,
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length,
@@ -396,6 +395,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
         # convert stats dict to dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+        # Set the name of the index column to be the grain number
+        grainstats_additions_df.index.name = "grain_number"
 
     # return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
     return disordered_trace_crop_data, grainstats_additions_df, disordered_tracing_stats
