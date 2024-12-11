@@ -40,6 +40,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -478,7 +479,9 @@ def run_disordered_tracing(
                     ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, disordered_trace_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(
+                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                )
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
@@ -617,7 +620,7 @@ def run_nodestats(  # noqa: C901
                                     )
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, nodestats_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, nodestats_grainstats, how="outer", on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
                 else nodestats_grainstats
             )
@@ -744,7 +747,9 @@ def run_ordered_tracing(
                     ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(
+                    grainstats_df, ordered_tracing_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                )
                 if grainstats_df is not None
                 else ordered_tracing_grainstats
             )
@@ -871,13 +876,18 @@ def run_splining(
                 ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, splining_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, splining_grainstats, how="outer", on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
                 else splining_grainstats
             )
             # merge molstats data with other dataframe
             resultant_molstats = (
-                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number", "molecule_number"])
+                pd.merge(
+                    molstats_df,
+                    splining_molstats,
+                    how="outer",
+                    on=["image", "threshold", "grain_number", "molecule_number"],
+                )
                 if molstats_df is not None
                 else splining_molstats
             )
