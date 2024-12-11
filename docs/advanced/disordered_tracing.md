@@ -120,7 +120,7 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 | `grain_junctions`     | The number of pixels designated as junctions (>2 neighbours) in the pruned skeleton.    | `integer` |
 | `total_branch_length` | The sum of all branch lengths in the pruned skeleton.                                   | `float`   |
 
-&nbsp;
+### Disordered Segment Statistics
 
 An `all_disordered_segment_statistics.csv` file is produced for each image which measures the following metrics from
 each segment in each pruned skeleton:
