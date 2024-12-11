@@ -19,7 +19,9 @@ from skimage.segmentation import clear_border
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.unet_masking import (
+    iou_loss,
     make_bounding_box_square,
+    mean_iou,
     pad_bounding_box,
     predict_unet,
 )
@@ -658,11 +660,13 @@ class Grains:
         # I haven't tested it yet.
 
         try:
-            unet_model = keras.models.load_model(unet_config["model_path"], compile=False)
+            unet_model = keras.models.load_model(
+                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+            )
         except Exception as e:
-            LOGGER.info(f"Python executable: {sys.executable}")
-            LOGGER.info(f"Keras version: {keras.__version__}")
-            LOGGER.info(f"Model path: {unet_config['model_path']}")
+            LOGGER.debug(f"Python executable: {sys.executable}")
+            LOGGER.debug(f"Keras version: {keras.__version__}")
+            LOGGER.debug(f"Model path: {unet_config['model_path']}")
             raise e
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
