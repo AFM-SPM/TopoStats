@@ -18,7 +18,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-locals
 
 
-# DICE Loss
 def dice_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float = 1e-5) -> tf.Tensor:
     """
     DICE loss function.
