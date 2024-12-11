@@ -58,6 +58,10 @@ mask pixels, and the gaussian smoothing better when there are small holes.
 In addition, this smoothing step also tries to preserve mask topology by re-adding any holes back into the mask that lie
 within the `holearea_min_max` threshold. This has the resulting effect of only smoothing the outer edge of the mask.
 
+If required, the function can also take `null` values for both `dilation_iteration` and `gaussian_sigma` values to
+return the original grain. This is useful for retaining the sample topology when the masking / segmentation is good
+enough, for example when you use finely-trained deep learning models.
+
 ### 2. Skeletonisation
 
 Skeletonisation is the process of reducing a binary image to a single-pixel wide representation. This can be done using
