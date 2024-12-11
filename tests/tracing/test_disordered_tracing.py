@@ -1932,7 +1932,7 @@ def test_calculate_dna_width(smoothed_mask: npt.NDArray, pruned_skeleton: npt.ND
     ],
 )
 def test_smooth_mask(
-    caplog,
+    caplog: pytest.LogCaptureFixture,
     disordered_trace: disordered_tracing.disorderedTrace,
     dilation_iteration: int | None,
     gaussian_sigma: float | int | None,
