@@ -406,7 +406,7 @@ def run_disordered_tracing(
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
-                    raise ValueError(f"No grains exist for the {direction} direction")
+                    
 
                 (
                     disordered_traces_cropped_data,
