@@ -597,7 +597,43 @@ def plot3v(df, arg1, arg2, arg3, nm=False, specpath=None):
     # plt.show()
     plt.savefig(savename)
 
+def plotbar(specpath=None):
 
+    # Set  the name of the file
+    if specpath is None:
+        specpath = path
+    savename = os.path.join(pathman(specpath) + '_' + 'barchart' + extension)
+
+    condition = ("Ni\nwith\nNDP52", "Mg-Ni exchange\nwith\nNDP52", "PLO\nwith\nNDP52", "Ni\nwithout\nNDP52", "Mg-Ni exchange\nwithout\nNDP52", "PLO\nwithout\nNDP52")
+    percentage = {
+        'Bending': (0.0185, 0.0346, 0.064516129, 0.036809816, 0.021164021, 0.091666667),
+        'Looping': (0.0185, 0.0035, 0.10483871, 0.024539877, 0.005291005, 0.066666667
+),
+        'Bridging': (0.1481, 0.1488, 0.282258065, 0.147239264, 0.135802469, 0.166666667
+),
+    }
+
+    x = np.arange(len(condition))  # the label locations
+    width = 0.2  # the width of the bars
+    multiplier = 0
+
+    fig, ax = plt.subplots(figsize=(20, 16))
+
+    for attribute, measurement in percentage.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, measurement, width, label=attribute, linewidth=2.0)
+        multiplier += 1
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Proportion')
+    ax.set_xticks(x + width, condition)
+    ax.legend(loc='upper left')
+    plt.ticklabel_format(axis="y", style="sci", scilimits=(-3, 3))
+    ax.tick_params(direction="out", bottom=True, left=True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.savefig(savename)
 
 def computeStats(data, columns, min, max):
     """Prints out a table of stats, including the standard deviation, standard error, N value, and peak position"""
@@ -738,9 +774,12 @@ if __name__ == "__main__":
             plotjoint(df, parameter, nm=nm)
         elif plottype == "3v":
             plot3v(df, parameter, parameter2, parameter3, nm=nm)
+        elif plottype == 'bar':
+            plotbar()
 
     if compute_stats:
         computeStats(stats_to_compute, column_names, compute_stats_min, compute_stats_max)
+
     # Filter data based on the need of specific projects
     # df = df[df['End to End Distance'] != 0]
     # df = df[df['Contour Lengths'] > 100]
