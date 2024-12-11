@@ -33,6 +33,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-public-methods
 
@@ -699,13 +700,14 @@ class Grains:
             )
 
             # Make the bounding box square within the confines of the image
-            bounding_box = make_bounding_box_square(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(image.shape[0], image.shape[1]),
-            )
+            if (bounding_box[2] - bounding_box[0]) != (bounding_box[3] - bounding_box[1]):
+                bounding_box = make_bounding_box_square(
+                    crop_min_row=bounding_box[0],
+                    crop_min_col=bounding_box[1],
+                    crop_max_row=bounding_box[2],
+                    crop_max_col=bounding_box[3],
+                    image_shape=(image.shape[0], image.shape[1]),
+                )
 
             # Grab the cropped image. Using slice since the bounding box from skimage is
             # half-open, so the max_row and max_col are not included in the region.
