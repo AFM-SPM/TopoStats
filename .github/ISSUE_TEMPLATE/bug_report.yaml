@@ -21,7 +21,7 @@ body:
       label: Checklist
       description: A Checklist is provided below for you to track each of the subsequent tasks.
       options:
-        - label: Re-run analysis with `topostats process --core 1`.
+        - label: Find the offending file in the output. If processing halts, re-run analysis with `topostats --core 1 process`.
           required: true
         - label: Describe the bug.
           required: true
