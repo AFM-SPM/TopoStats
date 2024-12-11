@@ -12,7 +12,7 @@ import skan
 import skimage.measure as skimage_measure
 from scipy import ndimage
 from skimage import filters
-from skimage.morphology import binary_dilation, label
+from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
@@ -750,10 +750,7 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
             path_coords = skan_skeleton.path_coordinates(i)
             if skan_column == "node-id-src":
                 branch_field = i
-            temp = np.zeros_like(branch_field_image)
-            temp[path_coords[:, 0], path_coords[:, 1]] = 1
-            temp = binary_dilation(temp)
-            branch_field_image[temp != 0] = branch_field + 1
+            branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
     except ValueError:  # when no skeleton to skan
         LOGGER.warning("Skeleton has been pruned out of existence.")
 
