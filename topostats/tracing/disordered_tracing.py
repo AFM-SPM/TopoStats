@@ -12,7 +12,7 @@ import skan
 import skimage.measure as skimage_measure
 from scipy import ndimage
 from skimage import filters
-from skimage.morphology import label
+from skimage.morphology import binary_dilation, label
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
@@ -241,14 +241,32 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
         npt.NDArray
-            Numpy array of smmoothed image.
+            Numpy array of smoothed image.
         """
-        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = filters.gaussian(grain, sigma=gaussian_sigma)
-        gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
-        gauss = gauss.astype(np.int32)
-        # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
-        if dilation.sum() > gauss.sum():
+        # Option to disable the smoothing (i.e. U-Net masks are already smooth)
+        if dilation_iterations is None and gaussian_sigma is None:
+            LOGGER.debug(f"[{self.filename}] : no grain smoothing done")
+            return grain
+
+        # Option to only do gaussian or dilation
+        if dilation_iterations is not None:
+            dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
+        else:
+            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
+            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
+            gauss = gauss.astype(np.int32)
+            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            return self.re_add_holes(grain, gauss, holearea_min_max)
+        if gaussian_sigma is not None:
+            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
+            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
+            gauss = gauss.astype(np.int32)
+        else:
+            LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+            return self.re_add_holes(grain, dilation, holearea_min_max)
+
+        # Competition option between dilation and gaussian mask differences wrt original grains
+        if abs(dilation.sum() - grain.sum()) > abs(gauss.sum() - grain.sum()):
             LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
             return self.re_add_holes(grain, gauss, holearea_min_max)
         LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
@@ -732,7 +750,10 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
             path_coords = skan_skeleton.path_coordinates(i)
             if skan_column == "node-id-src":
                 branch_field = i
-            branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
+            temp = np.zeros_like(branch_field_image)
+            temp[path_coords[:, 0], path_coords[:, 1]] = 1
+            temp = binary_dilation(temp)
+            branch_field_image[temp != 0] = branch_field + 1
     except ValueError:  # when no skeleton to skan
         LOGGER.warning("Skeleton has been pruned out of existence.")
 
