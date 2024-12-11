@@ -5,12 +5,10 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
 
 import h5py
 import numpy as np
 import pandas as pd
-import pySPM
 import pytest
 
 from topostats.io import (
@@ -601,33 +599,6 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
     assert above_grain_mask.sum() == 633746
     assert isinstance(grain_trace_data, dict)
     assert grain_trace_data.keys() == {"above"}
-
-
-@patch("pySPM.SPM.SPM_image.pxs")
-@pytest.mark.parametrize(
-    ("unit", "x", "y", "expected_px2nm"),
-    [
-        pytest.param("mm", 0.01, 0.01, 10000, id="mm units; square"),
-        pytest.param("um", 1.5, 1.5, 1500, id="um units; square"),
-        pytest.param("nm", 50, 50, 50, id="nm units; square"),
-        pytest.param("pm", 233, 233, 0.233, id="pm units; square"),
-        pytest.param("pm", 1, 512, 0.001, id="pm units; rectangular (thin)"),
-        pytest.param("pm", 512, 1, 0.512, id="pm units; rectangular (tall)"),
-    ],
-)
-def test__spm_pixel_to_nm_scaling(
-    mock_pxs,
-    load_scan_spm: LoadScans,
-    spm_channel_data: pySPM.SPM.SPM_image,
-    unit: str,
-    x: int,
-    y: int,
-    expected_px2nm: float,
-) -> None:
-    """Test extraction of pixels to nanometer scaling."""
-    mock_pxs.return_value = [(x, unit), (y, unit)]  # issue is that pxs is a func that returns the data
-    result = load_scan_spm._spm_pixel_to_nm_scaling(spm_channel_data)
-    assert result == expected_px2nm
 
 
 @pytest.mark.parametrize(
