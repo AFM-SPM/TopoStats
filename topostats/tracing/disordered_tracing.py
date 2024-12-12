@@ -241,14 +241,32 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
         npt.NDArray
-            Numpy array of smmoothed image.
+            Numpy array of smoothed image.
         """
-        dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        gauss = filters.gaussian(grain, sigma=gaussian_sigma)
-        gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
-        gauss = gauss.astype(np.int32)
-        # Add hole to the smooth mask conditional on smallest pixel difference for dilation or the Gaussian smoothing.
-        if dilation.sum() > gauss.sum():
+        # Option to disable the smoothing (i.e. U-Net masks are already smooth)
+        if dilation_iterations is None and gaussian_sigma is None:
+            LOGGER.debug(f"[{self.filename}] : no grain smoothing done")
+            return grain
+
+        # Option to only do gaussian or dilation
+        if dilation_iterations is not None:
+            dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
+        else:
+            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
+            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
+            gauss = gauss.astype(np.int32)
+            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
+            return self.re_add_holes(grain, gauss, holearea_min_max)
+        if gaussian_sigma is not None:
+            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
+            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
+            gauss = gauss.astype(np.int32)
+        else:
+            LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
+            return self.re_add_holes(grain, dilation, holearea_min_max)
+
+        # Competition option between dilation and gaussian mask differences wrt original grains
+        if abs(dilation.sum() - grain.sum()) > abs(gauss.sum() - grain.sum()):
             LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
             return self.re_add_holes(grain, gauss, holearea_min_max)
         LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")

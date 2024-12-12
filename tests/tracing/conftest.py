@@ -7,6 +7,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
+from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
@@ -128,6 +129,14 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> np.ndarray:
 def topostats_skeletonise(skeletonize_circular, skeletonize_circular_bool_int):
     """TopostatsSkeletonise for testing individual functions."""
     return topostatsSkeletonize(skeletonize_circular, skeletonize_circular_bool_int, 0.6)
+
+
+@pytest.fixture()
+def disordered_trace(skeletonize_circular, skeletonize_circular_bool_int) -> disorderedTrace:
+    """Minimal disorderedTrace class object."""
+    return disorderedTrace(
+        image=skeletonize_circular, mask=skeletonize_circular_bool_int, filename=None, pixel_to_nm_scaling=1
+    )
 
 
 @pytest.fixture()
