@@ -18,7 +18,6 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import pySPM
 from AFMReader import asd, gwy, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
@@ -641,38 +640,6 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
-
-    def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
-        """
-        Extract pixel to nm scaling from the SPM image metadata.
-
-        Parameters
-        ----------
-        channel_data : pySPM.SPM.SPM_image
-            Channel data from PySPM.
-
-        Returns
-        -------
-        float
-            Pixel to nm scaling factor.
-        """
-        unit_dict = {
-            "pm": 1e-3,
-            "nm": 1,
-            "um": 1e3,
-            "mm": 1e6,
-        }
-        px_to_real = channel_data.pxs()
-        # Has potential for non-square pixels but not yet implemented
-        pixel_to_nm_scaling = (
-            px_to_real[0][0] * unit_dict[px_to_real[0][1]],
-            px_to_real[1][0] * unit_dict[px_to_real[1][1]],
-        )[0]
-        if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
-            pixel_to_nm_scaling = 1
-            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
-        LOGGER.debug(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
-        return pixel_to_nm_scaling
 
     def load_topostats(self) -> tuple[npt.NDArray, float]:
         """

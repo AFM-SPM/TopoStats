@@ -38,13 +38,11 @@ dependencies = [
   "art",
   "AFMReader",
   "h5py",
-  "igor2",
   "keras",
   "matplotlib",
   "numpy",
   "numpyencoder",
   "pandas",
-  "pySPM",
   "pyyaml",
   "ruamel.yaml",
   "schema",
@@ -54,7 +52,6 @@ dependencies = [
   "skan~=0.11.0",
   "snoop",
   "tensorflow",
-  "tifffile",
   "topoly",
   "tqdm",
 ]
@@ -66,7 +63,6 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
   "pytest-regtest==2.3.1",
-  "pytest-testmon",
   "filetype",
 ]
 docs = [
@@ -89,6 +85,7 @@ dev = [
   "pyupgrade",
   "pytest-durations",
   "pytest-icdiff",
+  "pytest-testmon",
   "pytest-xdist",
 ]
 pypi = [
