@@ -387,7 +387,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         np.where(disordered_trace_images["pruned_skeleton"] == 1, cropped_image, 0),
                         spacing=pixel_to_nm_scaling,
                     )
-                    skan_df = skan.summarize(skan_skeleton)
+                    skan_df = skan.summarize(skan_skeleton, separator="_")
                     skan_df = compile_skan_stats(skan_df, skan_skeleton, cropped_image, filename, cropped_image_index)
                     total_branch_length = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
@@ -463,17 +463,12 @@ def compile_skan_stats(
         mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.
     """
     skan_df["image"] = filename
-    skan_df["branch-type"] = np.int64(skan_df["branch-type"])
+    skan_df["branch-type"] = np.int64(skan_df["branch_type"])
     skan_df["grain_number"] = grain_number
     skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
     skan_df["min_value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
     skan_df["median_value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
     skan_df["middle_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
-
-    # Skan-0.11.1 uses dashes in variables names which prevents dot-notation being used to refer to variable names
-    # this has been addressed (see https://github.com/jni/skan/pull/215) for now manually convert.
-    skan_df.columns = skan_df.columns.str.replace("-", "_")
-
     # remove unused skan columns
     return skan_df[
         [
@@ -555,10 +550,10 @@ def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> str:
         String is needed for csv compatibility since csvs can't hold lists.
     """
     connections = skan_df[
-        (skan_df["node-id-src"] == row["node-id-src"])
-        | (skan_df["node-id-dst"] == row["node-id-dst"])
-        | (skan_df["node-id-src"] == row["node-id-dst"])
-        | (skan_df["node-id-dst"] == row["node-id-src"])
+        (skan_df["node_id_src"] == row["node_id_src"])
+        | (skan_df["node_id_dst"] == row["node_id_dst"])
+        | (skan_df["node_id_src"] == row["node_id_dst"])
+        | (skan_df["node_id_dst"] == row["node_id_src"])
     ].index.tolist()
 
     # Remove the index of the current row itself from the list of connections
@@ -707,12 +702,8 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         "smoothed_grain": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
-        "branch_types": get_skan_image(
-            cropped_image, disorderedtrace.pruned_skeleton, "branch-type"
-        ),  # change with Skan new release
-        "branch_indexes": get_skan_image(
-            cropped_image, disorderedtrace.pruned_skeleton, "node-id-src"
-        ),  # change with Skan new release
+        "branch_types": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "branch_type"),
+        "branch_indexes": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "node_id_src"),
     }
 
 
@@ -742,13 +733,12 @@ def get_skan_image(original_image: npt.NDArray, pruned_skeleton: npt.NDArray, sk
     """
     branch_field_image = np.zeros_like(original_image)
     skeleton_image = np.where(pruned_skeleton == 1, original_image, 0)
-
     try:
         skan_skeleton = skan.Skeleton(skeleton_image, spacing=1e-9, value_is_height=True)
-        res = skan.summarize(skan_skeleton)
+        res = skan.summarize(skan_skeleton, separator="_")
         for i, branch_field in enumerate(res[skan_column]):
             path_coords = skan_skeleton.path_coordinates(i)
-            if skan_column == "node-id-src":
+            if skan_column == "node_id_src":
                 branch_field = i
             branch_field_image[path_coords[:, 0], path_coords[:, 1]] = branch_field + 1
     except ValueError:  # when no skeleton to skan
