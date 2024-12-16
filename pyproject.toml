@@ -39,7 +39,7 @@ dependencies = [
   "AFMReader",
   "h5py",
   "keras",
-  "matplotlib",
+  "matplotlib~=3.9.4",
   "numpy",
   "numpyencoder",
   "pandas",
