@@ -27,7 +27,7 @@ body:
           required: true
         - label: Include the configuration file.
           required: true
-        - label: Copy of the output.
+        - label: Copy of the log-file from running with `topostats --log-level debug <command>`.
           required: true
         - label: The exact command that failed. This is what you typed at the command line, including any options.
           required: true
@@ -45,9 +45,9 @@ body:
   - type: textarea
     id: copy-of-output
     attributes:
-      label: Copy of the output
+      label: Copy of the log-file from running with `topostats --log-level debug <command>`
       description: |
-        Please copy and paste the output from your terminal below. At a minimum this should include the bottom section showing where the error arose and the subsequent output. If there is no output and an image shows the problem please paste a URL to that image here. If able to include any images which demonstrate the problem please attach them using the paper clip in the menu above.
+        Please copy and paste the log-file from running with `topostats --log-level debug <command>` below (you can use [GitHub Markdown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) to format as a [code block](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#quoting-code) using triple backticks). At a minimum this should include the bottom section showing where the error arose and the subsequent output. If there is no output and an image shows the problem please paste a URL to that image here. If able to include any images which demonstrate the problem please attach them using the paper clip in the menu above. Screenshots invariably miss out some information.
     validations:
       required: true
   - type: textarea
