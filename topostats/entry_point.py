@@ -106,6 +106,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Channel to extract.",
     )
+    parser.add_argument(
+        "--image-set",
+        dest="image_set",
+        type=str,
+        required=False,
+        help="Image set to generate, default is 'core' other option is 'all'.",
+    )
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
