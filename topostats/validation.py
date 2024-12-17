@@ -58,7 +58,15 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".topostats",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {"channel": str},
+        "loading": {
+            "channel": str,
+            "extract": Or(
+                "all",
+                "raw",
+                "filters",
+                error="Invalid value in config for 'extract', valid values are 'all', 'raw' or 'filters'",
+            ),
+        },
         "filter": {
             "run": Or(
                 True,
