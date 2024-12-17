@@ -1307,7 +1307,6 @@ PLOTTING_SCHEMA = Schema(
             ),
         },
         "curvature": {
-            "filename": str,
             "image_type": Or(
                 "binary",
                 "non-binary",

@@ -918,7 +918,7 @@ def run_curvature_stats(
     pixel_to_nm_scaling: float,
     filename: str,
     core_out_path: Path,
-    grain_out_path: Path,
+    tracing_out_path: Path,
     curvature_config: dict,
     plotting_config: dict,
 ) -> dict | None:
@@ -942,7 +942,7 @@ def run_curvature_stats(
         Name of the image.
     core_out_path : Path
         Path to save the core curvature image to.
-    grain_out_path : Path
+    tracing_out_path : Path
         Path to save the optional, diagnostic curvature images to.
     curvature_config : dict
         Dictionary of configuration for running the curvature stats.
@@ -968,6 +968,7 @@ def run_curvature_stats(
 
                 Images(
                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    filename=f"{filename}_{direction}_curvature",
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["curvature"],
                 ).plot_curvatures(
@@ -980,7 +981,7 @@ def run_curvature_stats(
 
                 Images(
                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    output_dir=grain_out_path,
+                    output_dir=tracing_out_path / direction / "curvature",
                     **plotting_config["plot_dict"]["curvature_individual_grains"],
                 ).plot_curvatures_individual_grains(
                     cropped_images=cropped_image_data[direction],
@@ -1038,6 +1039,8 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above" / "curvature", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below" / "curvature", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
@@ -1215,7 +1218,7 @@ def process_scan(
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
-            grain_out_path=grain_out_path,
+            tracing_out_path=tracing_out_path,
             curvature_config=curvature_config,
             plotting_config=plotting_config,
         )
