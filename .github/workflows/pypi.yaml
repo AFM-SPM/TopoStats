@@ -7,6 +7,9 @@ on:
       - v*
   workflow_dispatch: # Uncomment line if you also want to trigger action manually
 
+permissions:
+  id-token: write
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
