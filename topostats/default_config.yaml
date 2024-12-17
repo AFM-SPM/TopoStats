@@ -30,7 +30,7 @@ filter:
 grains:
   run: true # Options : true, false
   # Thresholding by height
-  padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
+  grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:

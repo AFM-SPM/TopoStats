@@ -257,6 +257,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
+    full_image: npt.NDArray,
     grain_crops: dict[int, GrainCrop],
     class_index: int,
     filename: str,
@@ -272,7 +273,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     Parameters
     ----------
-    image : npt.NDArray
+    full_image : npt.NDArray
         Full image as Numpy Array.
     grains_mask : npt.NDArray
         Full image as Grains that are labelled.
@@ -304,20 +305,20 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     # cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
     # n_grains = len(cropped_images)
-    # img_base = np.zeros_like(image)
+    img_base = np.zeros_like(full_image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
 
     # want to get each cropped image, use some anchor coords to match them onto the image,
     #   and compile all the grain images onto a single image
-    # all_images = {
-    #     "smoothed_grain": img_base.copy(),
-    #     "skeleton": img_base.copy(),
-    #     "pruned_skeleton": img_base.copy(),
-    #     "branch_indexes": img_base.copy(),
-    #     "branch_types": img_base.copy(),
-    # }
+    all_images = {
+        "smoothed_grain": img_base.copy(),
+        "skeleton": img_base.copy(),
+        "pruned_skeleton": img_base.copy(),
+        "branch_indexes": img_base.copy(),
+        "branch_types": img_base.copy(),
+    }
 
     # LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains...")
 
@@ -329,7 +330,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             grain_crop_class_mask = grain_crop_tensor[:, :, class_index]
             grain_crop_image = grain_crop.image
 
-            disordered_trace_images = disordered_trace_grain(
+            disordered_trace_images: dict | None = disordered_trace_grain(
                 cropped_image=grain_crop_image,
                 cropped_mask=grain_crop_class_mask,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -376,14 +377,15 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "total_branch_lengths": total_branch_length,
                 }
 
-            # remap the cropped images back onto the original
-            # for image_name, full_image in all_images.items():
-            #    crop = disordered_trace_images[image_name]
-            #    bbox = bboxs[cropped_image_index]
-            #    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
-            disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
-            disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
-            disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
+                # remap the cropped images back onto the original, there are many image crops that we want to
+                #  remap back onto the original image so we iterate over them, as passed by the function
+                for image_name, full_image in all_images.items():
+                    crop = disordered_trace_images[image_name]
+                    bbox = grain_crop.bbox
+                    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+                disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
+                disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
+                disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

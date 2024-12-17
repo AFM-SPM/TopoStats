@@ -184,6 +184,7 @@ class Grains:
         image: npt.NDArray,
         filename: str,
         pixel_to_nm_scaling: float,
+        grain_crop_padding: int = 1,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
@@ -195,7 +196,6 @@ class Grains:
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[tuple[int, int]] | None = None,
         vetting: dict | None = None,
-        grain_crop_padding: int = 1,
     ):
         """
         Initialise the class.
@@ -935,7 +935,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1662,7 +1664,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(

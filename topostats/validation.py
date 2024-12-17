@@ -116,7 +116,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for grains.run, valid values are 'True' or 'False'",
             ),
-            "padding": int,
+            "grain_crop_padding": int,
             "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
