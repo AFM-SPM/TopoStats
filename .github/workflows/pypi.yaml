@@ -7,11 +7,10 @@ on:
       - v*
   workflow_dispatch: # Uncomment line if you also want to trigger action manually
 
-permissions:
-  id-token: write
-
 jobs:
   build-release:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     environment: pypi-publish
     name: Publish package to PyPi
