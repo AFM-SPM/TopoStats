@@ -22,6 +22,7 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -488,7 +489,7 @@ class Images:
                 fig.tight_layout()
                 # plt.savefig(f"./grain_{grain_index}_curvature.png")
                 fig.savefig(
-                    (self.output_dir / f"{self.filename}_{grain_index}.{self.savefig_format}"),
+                    (self.output_dir / f"{grain_index}_curvature.{self.savefig_format}"),
                     bbox_inches="tight",
                     pad_inches=0,
                     dpi=self.savefig_dpi,
