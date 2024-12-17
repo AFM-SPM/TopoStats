@@ -1261,6 +1261,76 @@ def process_scan(
     )
 
 
+def process_filters(
+    topostats_object: dict,
+    base_dir: str | Path,
+    filter_config: dict,
+    plotting_config: dict,
+    output_dir: str | Path = "output",
+) -> tuple[str, bool]:
+    """
+    Filter an image return the flattened images and save to ''.topostats''.
+
+    Runs just the first key step of flattening images to remove noise, tilt and optionally scars saving to
+    ''.topostats'' for subsequent processing and analyses.
+
+    Parameters
+    ----------
+    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
+        path and it's
+        pixel to namometre scaling value.
+    base_dir : str | Path
+        Directory to recursively search for files, if not specified the current directory is scanned.
+    filter_config : dict
+        Dictionary of configuration options for running the Filter stage.
+    plotting_config : dict
+        Dictionary of configuration options for plotting figures.
+    output_dir : str | Path
+        Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+        that output will be over-written.
+
+    Returns
+    -------
+    tuple[str, bool]
+        A tuple of the image and a boolean indicating if the image was successfully processed.
+    """
+    core_out_path, filter_out_path, _, _ = get_out_paths(
+        image_path=topostats_object["img_path"],
+        base_dir=base_dir,
+        output_dir=output_dir,
+        filename=topostats_object["filename"],
+        plotting_config=plotting_config,
+    )
+
+    plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
+
+    # Flatten Image
+    try:
+        image_flattened = run_filters(
+            unprocessed_image=topostats_object["image_original"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            filename=topostats_object["filename"],
+            filter_out_path=filter_out_path,
+            core_out_path=core_out_path,
+            filter_config=filter_config,
+            plotting_config=plotting_config,
+        )
+        # Use flattened image if one is returned, else use original image
+        topostats_object["image_flattened"] = (
+            image_flattened if image_flattened is not None else topostats_object["image_original"]
+        )
+
+        # Save the topostats dictionary object to .topostats file.
+        save_topostats_file(
+            output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        )
+        return (topostats_object["filename"], True)
+    except:  # noqa: E722  # pylint: disable=bare-except
+        LOGGER.info(f"Filtering failed for image : {topostats_object['filename']}")
+        return (topostats_object["filename"], False)
+
+
 def check_run_steps(  # noqa: C901
     filter_run: bool,
     grains_run: bool,

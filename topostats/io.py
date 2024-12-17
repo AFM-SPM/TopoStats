@@ -596,12 +596,17 @@ class LoadScans:
         Path to a valid AFM scan to load.
     channel : str
         Image channel to extract from the scan.
+    extract : str
+        What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
+       ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+       loaded. Options include ''raw'' and ''filter'' at present.
     """
 
     def __init__(
         self,
         img_paths: list[str | Path],
         channel: str,
+        extract: str = "all",
     ):
         """
         Initialise the class.
@@ -612,12 +617,18 @@ class LoadScans:
             Path to a valid AFM scan to load.
         channel : str
             Image channel to extract from the scan.
+        extract : str
+            What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
+           ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+           loaded. Options include ''raw'' and ''filter'' at present.
         """
         self.img_paths = img_paths
         self.img_path = None
         self.channel = channel
         self.channel_data = None
+        self.extract = extract
         self.filename = None
+        self.suffix = None
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
@@ -756,7 +767,6 @@ class LoadScans:
             ".topostats": self.load_topostats,
             ".asd": self.load_asd,
         }
-
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
@@ -767,8 +777,10 @@ class LoadScans:
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
                 try:
-                    if suffix == ".topostats":
-                        self.image, self.pixel_to_nm_scaling, self.img_dict = suffix_to_loader[suffix]()
+                    if suffix == ".topostats" and self.extract in (None, "all"):
+                        self.image, self.pixel_to_nm_scaling, self.img_dict = self.load_topostats()
+                    elif suffix == ".topostats" and self.extract not in (None, "all"):
+                        self.image, self.pixel_to_nm_scaling, _ = self.load_topostats(self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
