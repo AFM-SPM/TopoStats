@@ -233,6 +233,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # Keys are the image names
     # Values are the individual image data dictionaries
     scan_data_dict = all_scan_data.img_dict
+    # Pop elements added for user convenience by AFMReader.topostats.load_topostats(), irrelevant when processing
+    if config["file_ext"] == ".topostats":
+        scan_data_dict.pop("image")
+        scan_data_dict.pop("pixel_to_nm_scaling")
+        scan_data_dict.pop("topostats_file_version")
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
@@ -353,7 +358,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     # Write statistics to CSV if there is data.
     if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-        results.reset_index(inplace=True)
+        results.reset_index(drop=True, inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")

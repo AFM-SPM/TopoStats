@@ -14,8 +14,10 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=too-many-locals
 
-# DICE Loss
+
 def dice_loss(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32], smooth: float = 1e-5) -> tf.Tensor:
     """
     DICE loss function.
@@ -199,7 +201,7 @@ def predict_unet(
         # Resize the channel mask to the original image size, but we want boolean so use nearest neighbour
         # Sylvia: Pylint incorrectly thinks that Image.NEAREST is not a member of Image. IDK why.
         # pylint: disable=no-member
-        channel_mask_PIL = channel_mask_PIL.resize((original_image.shape[0], original_image.shape[1]), Image.NEAREST)
+        channel_mask_PIL = channel_mask_PIL.resize((original_image.shape[1], original_image.shape[0]), Image.NEAREST)
         resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
 
     return resized_predicted_mask
@@ -245,44 +247,38 @@ def make_bounding_box_square(
         if crop_min_col - diff // 2 >= 0 and crop_max_col + diff - diff // 2 < image_shape[1]:
             new_crop_min_col = crop_min_col - diff // 2
             new_crop_max_col = crop_max_col + diff - diff // 2
-        # If we can't expand uniformly, expand in just one direction
-        # Check if we can expand right
-        elif crop_max_col + diff - diff // 2 < image_shape[1]:
-            # We can expand right
-            new_crop_min_col = crop_min_col
-            new_crop_max_col = crop_max_col + diff
-        elif crop_min_col - diff // 2 >= 0:
-            # We can expand left
-            new_crop_min_col = crop_min_col - diff
-            new_crop_max_col = crop_max_col
+        # If we can't expand uniformly, expand as much as possible in that dir
+        else:
+            # Crop expansion below 0
+            if crop_min_col - diff // 2 <= 0:
+                new_crop_min_col = 0
+                new_crop_max_col = crop_max_col + (diff - crop_min_col)
+            # Crop expansion beyond image size
+            else:
+                new_crop_max_col = image_shape[1] - 1
+                new_crop_min_col = crop_min_col - (diff - (image_shape[1] - 1 - crop_max_col))
         # Set the new crop height to the original crop height since we are just updating the width
         new_crop_min_row = crop_min_row
         new_crop_max_row = crop_max_row
-    elif crop_width > crop_height:
+    else:
         # The crop is wider than it is tall
         diff = crop_width - crop_height
         # Check if we can expand equally in each direction
         if crop_min_row - diff // 2 >= 0 and crop_max_row + diff - diff // 2 < image_shape[0]:
             new_crop_min_row = crop_min_row - diff // 2
             new_crop_max_row = crop_max_row + diff - diff // 2
-        # If we can't expand uniformly, expand in just one direction
-        # Check if we can expand down
-        elif crop_max_row + diff - diff // 2 < image_shape[0]:
-            # We can expand down
-            new_crop_min_row = crop_min_row
-            new_crop_max_row = crop_max_row + diff
-        elif crop_min_row - diff // 2 >= 0:
-            # We can expand up
-            new_crop_min_row = crop_min_row - diff
-            new_crop_max_row = crop_max_row
+        # If we can't expand uniformly, expand as much as possible in that dir
+        else:
+            # Crop expansion below 0
+            if crop_min_row - diff // 2 <= 0:
+                new_crop_min_row = 0
+                new_crop_max_row = crop_max_row + (diff - crop_min_row)
+            # Crop expansion beyond image size
+            else:
+                new_crop_max_row = image_shape[0] - 1
+                new_crop_min_row = crop_min_row - (diff - (image_shape[0] - 1 - crop_max_row))
         # Set the new crop width to the original crop width since we are just updating the height
         new_crop_min_col = crop_min_col
-        new_crop_max_col = crop_max_col
-    else:
-        # If the crop is already square, return the original crop
-        new_crop_min_row = crop_min_row
-        new_crop_min_col = crop_min_col
-        new_crop_max_row = crop_max_row
         new_crop_max_col = crop_max_col
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col

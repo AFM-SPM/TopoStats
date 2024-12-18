@@ -40,6 +40,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -448,7 +449,9 @@ def run_disordered_tracing(
                 #     ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, disordered_trace_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(
+                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                )
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
@@ -587,7 +590,7 @@ def run_nodestats(  # noqa: C901
                                     )
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, nodestats_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, nodestats_grainstats, how="outer", on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
                 else nodestats_grainstats
             )
@@ -714,7 +717,9 @@ def run_ordered_tracing(
                     ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, ordered_tracing_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(
+                    grainstats_df, ordered_tracing_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                )
                 if grainstats_df is not None
                 else ordered_tracing_grainstats
             )
@@ -843,13 +848,18 @@ def run_splining(
                 ).plot_and_save()
             # merge grainstats data with other dataframe
             resultant_grainstats = (
-                pd.merge(grainstats_df, splining_grainstats, on=["image", "threshold", "grain_number"])
+                pd.merge(grainstats_df, splining_grainstats, how="outer", on=["image", "threshold", "grain_number"])
                 if grainstats_df is not None
                 else splining_grainstats
             )
             # merge molstats data with other dataframe
             resultant_molstats = (
-                pd.merge(molstats_df, splining_molstats, on=["image", "threshold", "grain_number", "molecule_number"])
+                pd.merge(
+                    molstats_df,
+                    splining_molstats,
+                    how="outer",
+                    on=["image", "threshold", "grain_number", "molecule_number"],
+                )
                 if molstats_df is not None
                 else splining_molstats
             )
@@ -880,7 +890,7 @@ def run_curvature_stats(
     pixel_to_nm_scaling: float,
     filename: str,
     core_out_path: Path,
-    grain_out_path: Path,
+    tracing_out_path: Path,
     curvature_config: dict,
     plotting_config: dict,
 ) -> dict | None:
@@ -904,7 +914,7 @@ def run_curvature_stats(
         Name of the image.
     core_out_path : Path
         Path to save the core curvature image to.
-    grain_out_path : Path
+    tracing_out_path : Path
         Path to save the optional, diagnostic curvature images to.
     curvature_config : dict
         Dictionary of configuration for running the curvature stats.
@@ -930,6 +940,7 @@ def run_curvature_stats(
 
                 Images(
                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    filename=f"{filename}_{direction}_curvature",
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["curvature"],
                 ).plot_curvatures(
@@ -942,7 +953,7 @@ def run_curvature_stats(
 
                 Images(
                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    output_dir=grain_out_path,
+                    output_dir=tracing_out_path / direction / "curvature",
                     **plotting_config["plot_dict"]["curvature_individual_grains"],
                 ).plot_curvatures_individual_grains(
                     cropped_images=cropped_image_data[direction],
@@ -1000,6 +1011,8 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Path.mkdir(tracing_out_path / "below", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "above" / "nodes", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "below" / "nodes", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "above" / "curvature", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "below" / "curvature", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
@@ -1172,7 +1185,7 @@ def process_scan(
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
-            grain_out_path=grain_out_path,
+            tracing_out_path=tracing_out_path,
             curvature_config=curvature_config,
             plotting_config=plotting_config,
         )

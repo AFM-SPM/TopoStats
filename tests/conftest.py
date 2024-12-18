@@ -9,7 +9,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import pySPM
 import pytest
 import yaml
 from skimage import draw, filters
@@ -371,13 +370,6 @@ def load_scan_data() -> LoadScans:
 def load_scan_spm() -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
-
-
-@pytest.fixture()
-def spm_channel_data() -> pySPM.SPM.SPM_image:
-    """Instantiate channel data from a LoadScans object."""
-    scan = pySPM.Bruker(RESOURCES / "minicircle.spm")
-    return scan.get_channel("Height")
 
 
 @pytest.fixture()
