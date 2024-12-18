@@ -51,7 +51,7 @@ class GrainCrop:
     image : npt.NDArray[np.float32]
         2-D Numpy array of the cropped image.
     mask : npt.NDArray[np.bool_]
-        2-D Numpy array of the cropped mask.
+        3-D Numpy tensor of the cropped mask.
     padding : int
         Padding added to the bounding box of the grain during cropping.
     bbox: tuple[int, int, int, int]
@@ -62,6 +62,31 @@ class GrainCrop:
     mask: npt.NDArray[np.bool_]
     padding: int
     bbox: tuple[int, int, int, int]
+
+    def __post_init__(self):
+        """
+        Validate the data makes sense.
+        """
+
+        # If image is not square
+        if self.image.shape[0] != self.image.shape[1]:
+            raise ValueError(f"Image is not square: {self.image.shape}")
+
+        # If first two dimensions of mask are not the same as the image
+        if self.mask.shape[0] != self.image.shape[0] or self.mask.shape[1] != self.image.shape[1]:
+            raise ValueError(f"Mask dimensions do not match image: {self.mask.shape} vs {self.image.shape}")
+
+        if self.padding < 1:
+            raise ValueError(f"Padding must be >= 1, but is {self.padding}")
+
+        if len(self.bbox) != 4:
+            raise ValueError(f"Bounding box must have 4 elements, but has {len(self.bbox)}")
+
+        # if bbox is not square
+        if self.bbox[2] - self.bbox[0] != self.bbox[3] - self.bbox[1]:
+            raise ValueError(
+                f"Bounding box is not square: {self.bbox}, size: {self.bbox[2] - self.bbox[0]} x {self.bbox[3] - self.bbox[1]}"
+            )
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
