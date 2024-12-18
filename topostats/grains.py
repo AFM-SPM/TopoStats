@@ -794,7 +794,6 @@ class Grains:
         new_graincrops = {}
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
-
             # Run the UNet on the region. This is allowed to be a single channel
             # as we can add a background channel afterwards if needed.
             # Remember that this region is cropped from the original image, so it's not
@@ -807,7 +806,6 @@ class Grains:
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
-
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
@@ -818,7 +816,7 @@ class Grains:
                 bbox=graincrop.bbox,
             )
 
-        return graincrops
+        return new_graincrops
 
     @staticmethod
     def keep_largest_labelled_region(
