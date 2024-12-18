@@ -963,7 +963,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1690,7 +1692,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
@@ -1711,11 +1715,22 @@ class Grains:
                 image_shape=(full_mask_tensor.shape[0], full_mask_tensor.shape[1]),
             )
 
+            assert (
+                square_flat_bounding_box[0] - square_flat_bounding_box[2]
+                == square_flat_bounding_box[1] - square_flat_bounding_box[3]
+            )
+
+            print(
+                f"square flat bounding box {square_flat_bounding_box} shape {square_flat_bounding_box[2] - square_flat_bounding_box[0], square_flat_bounding_box[3] - square_flat_bounding_box[1]}"
+            )
+
             # Grab image and mask for the cropped region
             grain_cropped_image = image[
                 square_flat_bounding_box[0] : square_flat_bounding_box[2],
                 square_flat_bounding_box[1] : square_flat_bounding_box[3],
             ]
+
+            print(f"grain cropped image shape {grain_cropped_image.shape}")
 
             grain_cropped_tensor = grain_tensor_full_mask[
                 square_flat_bounding_box[0] : square_flat_bounding_box[2],
@@ -1723,14 +1738,30 @@ class Grains:
                 :,
             ]
 
+            print(f"grain cropped tensor shape {grain_cropped_tensor.shape}")
+
             # Update background class to reflect the removal of any non-connected grains
             grain_cropped_tensor = Grains.update_background_class(grain_mask_tensor=grain_cropped_tensor)
+
+            assert grain_cropped_image.shape[0] == grain_cropped_image.shape[1]
+            print(f"grain cropped tensor shape {grain_cropped_tensor.shape}")
+            assert grain_cropped_tensor.shape[0] == grain_cropped_tensor.shape[1]
+            # Check that the bounding box is square
+            bounding_box_shape = (
+                square_flat_bounding_box[2] - square_flat_bounding_box[0],
+                square_flat_bounding_box[3] - square_flat_bounding_box[1],
+            )
+            print(f"bounding box shape {bounding_box_shape}")
+            assert bounding_box_shape[0] == bounding_box_shape[1]
+            # Check bounding box shape is same as image shape and first two dimensions of tensor
+            assert bounding_box_shape == grain_cropped_image.shape
+            assert bounding_box_shape == (grain_cropped_tensor.shape[0], grain_cropped_tensor.shape[1])
 
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
                 mask=grain_cropped_tensor,
                 padding=padding,
-                bbox=flat_bounding_box,
+                bbox=square_flat_bounding_box,
             )
 
         return graincrops
