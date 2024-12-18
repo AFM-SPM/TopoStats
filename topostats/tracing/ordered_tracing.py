@@ -957,7 +957,7 @@ def ordered_tracing_image(
             for image_name, full_image in ordered_trace_full_images.items():
                 crop = images[image_name]
                 bbox = disordered_trace_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
