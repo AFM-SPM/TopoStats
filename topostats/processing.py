@@ -811,9 +811,7 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
-                    splining_molstats = create_empty_dataframe(
-                        column_set="mol_statistics", index_col="molecule_number"
-                    )
+                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
                     raise ValueError(f"No grains exist for the {direction} direction")
                 # if grains are found
                 (
@@ -1195,9 +1193,7 @@ def process_scan(
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
         molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
-        disordered_tracing_stats = create_empty_dataframe(
-            column_set="disordered_tracing_statistics", index_col="index"
-        )
+        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
         height_profiles = {}
 
     # Get image statistics
