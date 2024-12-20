@@ -58,34 +58,69 @@ class GrainCrop:
         Bounding box of the crop including padding.
     """
 
-    image: npt.NDArray[np.float32]
-    mask: npt.NDArray[np.bool_]
-    padding: int
-    bbox: tuple[int, int, int, int]
+    _image: npt.NDArray[np.float32]
+    _mask: npt.NDArray[np.bool_]
+    _padding: int
+    _bbox: tuple[int, int, int, int]
 
     def __post_init__(self):
         """
         Validate the data makes sense.
         """
-        # If image is not square
-        if self.image.shape[0] != self.image.shape[1]:
-            raise ValueError(f"Image is not square: {self.image.shape}")
+        self.image = self._image
+        self.mask = self._mask
+        self.padding = self._padding
+        self.bbox = self._bbox
 
-        # If first two dimensions of mask are not the same as the image
-        if self.mask.shape[0] != self.image.shape[0] or self.mask.shape[1] != self.image.shape[1]:
-            raise ValueError(f"Mask dimensions do not match image: {self.mask.shape} vs {self.image.shape}")
+    @property
+    def image(self) -> npt.NDArray[np.float32]:
+        """Return the image."""
+        return self._image
 
-        if self.padding < 1:
-            raise ValueError(f"Padding must be >= 1, but is {self.padding}")
+    @image.setter
+    def image(self, value: npt.NDArray[np.float32]):
+        if value.shape[0] != value.shape[1]:
+            raise ValueError(f"Image is not square: {value.shape}")
+        self._image = value
 
-        if len(self.bbox) != 4:
-            raise ValueError(f"Bounding box must have 4 elements, but has {len(self.bbox)}")
+    @property
+    def mask(self) -> npt.NDArray[np.bool_]:
+        """Return the mask."""
+        return self._mask
 
-        # if bbox is not square
-        if self.bbox[2] - self.bbox[0] != self.bbox[3] - self.bbox[1]:
+    @mask.setter
+    def mask(self, value: npt.NDArray[np.bool_]):
+        if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
+            raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
+        self._mask = value
+
+    @property
+    def padding(self) -> int:
+        """Return the padding."""
+        return self._padding
+
+    @padding.setter
+    def padding(self, value: int):
+        if not isinstance(value, int):
+            raise ValueError(f"Padding must be an integer, but is {value}")
+        if value < 1:
+            raise ValueError(f"Padding must be >= 1, but is {value}")
+        self._padding = value
+
+    @property
+    def bbox(self) -> tuple[int, int, int, int]:
+        """Return the bounding box."""
+        return self._bbox
+
+    @bbox.setter
+    def bbox(self, value: tuple[int, int, int, int]):
+        if len(value) != 4:
+            raise ValueError(f"Bounding box must have 4 elements, but has {len(value)}")
+        if value[2] - value[0] != value[3] - value[1]:
             raise ValueError(
-                f"Bounding box is not square: {self.bbox}, size: {self.bbox[2] - self.bbox[0]} x {self.bbox[3] - self.bbox[1]}"
+                f"Bounding box is not square: {value}, size: {value[2] - value[0]} x {value[3] - value[1]}"
             )
+        self._bbox = value
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -121,7 +156,7 @@ class GrainCropsDirection:
     """
 
     crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
+    _full_mask_tensor: npt.NDArray[np.bool_]
 
     def __post_init__(self):
         """
@@ -962,7 +997,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1689,7 +1726,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
