@@ -1103,6 +1103,8 @@ def process_scan(
         grains_config=grains_config,
     )
 
+    topostats_object["grain_crops"] = image_grain_crops
+
     if image_grain_crops.above is not None or image_grain_crops.below is not None:
         # Grainstats :
         grainstats_df, height_profiles = run_grainstats(
