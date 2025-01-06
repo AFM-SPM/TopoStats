@@ -244,12 +244,11 @@ def test_calculate_squared_distance(dummy_grainstats: GrainStats) -> None:
     assert displacement_2_3 == target_2_3
 
 
-def test_random_grain_stats(caplog, tmp_path: Path) -> None:
+def test_no_grains(caplog, tmp_path: Path) -> None:
     """Test GrainStats raises error when passed zero grains."""
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
     grainstats = GrainStats(
-        data=None,
-        labelled_data=None,
+        grain_crops={},
         pixel_to_nanometre_scaling=0.5,
         image_name="random",
         direction="above",
@@ -257,7 +256,7 @@ def test_random_grain_stats(caplog, tmp_path: Path) -> None:
     )
     grainstats.calculate_stats()
 
-    assert "No labelled regions for this image, grain statistics can not be calculated." in caplog.text
+    assert "No grain crops for this image, grain statistics can not be calculated." in caplog.text
 
 
 @pytest.mark.parametrize(
