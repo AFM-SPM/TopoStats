@@ -641,7 +641,7 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
 
-    def load_topostats(self) -> tuple[npt.NDArray, float]:
+    def load_topostats(self, extract: str = "all") -> tuple[npt.NDArray, float, Any]:
         """
         Load a .topostats file (hdf5 format).
 
@@ -650,17 +650,33 @@ class LoadScans:
         Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
         all other file loading functions.
 
+        Parameters
+        ----------
+        extract : str
+            String of which image (Numpy array) and data to extract, default is 'all' which returns the cleaned
+            (post-Filter) image, `pixel_to_nm_scaling` and all `data`. It is possible to extract image arrays for other
+            stages of processing such as `raw` or 'filter'.
+
         Returns
         -------
-        tuple[npt.NDArray, float]
+        tuple[npt.NDArray, float, Any]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
+        map_stage_to_image = {"raw": "image_original"}
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            return topostats.load_topostats(self.img_path)
+            image, px_to_nm_scaling, data = topostats.load_topostats(self.img_path)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
+        try:
+            if extract == "all":
+                return (image, px_to_nm_scaling, data)
+            if extract == "filter":
+                return (image, px_to_nm_scaling, None)
+            return (data[map_stage_to_image[extract]], px_to_nm_scaling, None)
+        except KeyError as ke:
+            raise KeyError(f"Can not extract array of type '{extract}' from .topostats objects.") from ke
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
