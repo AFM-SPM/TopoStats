@@ -16,7 +16,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
-from topostats.grains import Grains
+from topostats.grains import Grains, GrainCrop
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -326,6 +326,60 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 
 
 @pytest.fixture()
+def dummy_graincrop() -> GrainCrop:
+    """Dummy GrainCrop object for testing."""
+
+    image = np.random.random((10, 10)).astype(np.float32)
+    mask = np.stack(
+        arrays=[
+            np.array(
+                [
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ],
+        axis=-1,
+    )
+    return GrainCrop(
+        image=image,
+        mask=mask,
+        padding=2,
+        bbox=(1, 1, 12, 12),
+        pixel_to_nm_scaling=1.0,
+        filename="dummy",
+    )
+
+
+@pytest.fixture()
+def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
+    """Dummy dictionary of GrainCrop objects for testing."""
+    return {0: dummy_graincrop}
+
+
+@pytest.fixture()
 def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
@@ -507,9 +561,11 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
 @pytest.fixture()
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
-    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
-        minicircle_masked_tilt_removal.images["masked_tilt_removal"],
-        mask=minicircle_masked_tilt_removal.images["mask"],
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = (
+        minicircle_masked_tilt_removal.remove_quadratic(
+            minicircle_masked_tilt_removal.images["masked_tilt_removal"],
+            mask=minicircle_masked_tilt_removal.images["mask"],
+        )
     )
     return minicircle_masked_tilt_removal
 
@@ -682,11 +738,12 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 
 # Derive fixture for grainstats
 @pytest.fixture()
-def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> GrainStats:
+def dummy_grainstats(
+    dummy_graincrops_dict: dict[int, GrainCrop], grainstats_config: dict, tmp_path: Path
+) -> GrainStats:
     """Grainstats class for testing functions."""
     return GrainStats(
-        image_random,
-        image_random,
+        grain_crops=dummy_graincrops_dict,
         pixel_to_nanometre_scaling=0.5,
         base_output_dir=tmp_path,
         **grainstats_config,
@@ -843,7 +900,9 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> npt.NDArray:
 # 4. Apply Gaussian filter to blur the heights and give an example original image with heights
 
 
-def _generate_heights(skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0) -> npt.NDArray:
+def _generate_heights(
+    skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0
+) -> npt.NDArray:
     """Generate heights from skeletons by scaling image and applying Gaussian blurring.
 
     Uses scikit-image 'skimage.filters.gaussian()' to generate heights from skeletons.
