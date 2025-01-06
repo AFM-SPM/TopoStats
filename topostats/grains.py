@@ -182,7 +182,7 @@ class GrainCropsDirection:
     """
 
     crops: dict[int, GrainCrop]
-    _full_mask_tensor: npt.NDArray[np.bool_]
+    full_mask_tensor: npt.NDArray[np.bool_]
 
     def __post_init__(self):
         """
