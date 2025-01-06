@@ -56,21 +56,29 @@ class GrainCrop:
         Padding added to the bounding box of the grain during cropping.
     bbox: tuple[int, int, int, int]
         Bounding box of the crop including padding.
+    pixel_to_nm_scaling : float
+        Pixel to nanometre scaling factor for the crop
+    filename : str
+        Filename of the image from which the crop was taken.
     """
 
-    _image: npt.NDArray[np.float32]
-    _mask: npt.NDArray[np.bool_]
-    _padding: int
-    _bbox: tuple[int, int, int, int]
+    image: npt.NDArray[np.float32]
+    mask: npt.NDArray[np.bool_]
+    padding: int
+    bbox: tuple[int, int, int, int]
+    pixel_to_nm_scaling: float
+    filename: str
 
-    def __post_init__(self):
-        """
-        Validate the data makes sense.
-        """
-        self.image = self._image
-        self.mask = self._mask
-        self.padding = self._padding
-        self.bbox = self._bbox
+    def __post_init__(self) -> None:
+        # This is where we can add post-initialisation checks but not needed at the moment.
+        pass
+
+    # Important note about mypy and dataclasses:
+    # mypy takes issue with the re-definition of the class attributes into property methods.
+    # Eg: how `image` is defined as both a property and a class attribute. I am ignoring this
+    # here as we don't currently require mypy for successful PRs but something to be aware of.
+    # We could get around this with dummy names and using the `post_init` method but it would be
+    # a little messy.
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -121,6 +129,24 @@ class GrainCrop:
                 f"Bounding box is not square: {value}, size: {value[2] - value[0]} x {value[3] - value[1]}"
             )
         self._bbox = value
+
+    @property
+    def pixel_to_nm_scaling(self) -> float:
+        """Return the pixel to nanometre scaling factor."""
+        return self._pixel_to_nm_scaling
+
+    @pixel_to_nm_scaling.setter
+    def pixel_to_nm_scaling(self, value: float):
+        self._pixel_to_nm_scaling = value
+
+    @property
+    def filename(self) -> str:
+        """Return the filename."""
+        return self._filename
+
+    @filename.setter
+    def filename(self, value: str):
+        self._filename = value
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -707,6 +733,8 @@ class Grains:
                 image=self.image,
                 full_mask_tensor=full_mask_tensor,
                 padding=self.grain_crop_padding,
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                filename=self.filename,
             )
 
             # Optionally run a user-supplied u-net model on the grains to improve the segmentation
@@ -1608,6 +1636,8 @@ class Grains:
                 mask=largest_only_single_grain_mask_tensor,
                 padding=graincrop.padding,
                 bbox=graincrop.bbox,
+                pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+                filename=graincrop.filename,
             )
 
         return passed_graincrops
@@ -1684,6 +1714,8 @@ class Grains:
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
         padding: int,
+        pixel_to_nm_scaling: float,
+        filename: str,
     ) -> dict[int, GrainCrop]:
         """
         Extract grains from the full image mask tensor.
@@ -1698,6 +1730,10 @@ class Grains:
             Labelled 3-D Numpy array of the full mask tensor.
         padding : int
             Padding added to the bounding box of the grain before cropping.
+        pixel_to_nm_scaling : float
+            Pixel to nanometre scaling factor.
+        filename: str
+            Filename of the image.
 
         Returns
         -------
@@ -1792,6 +1828,8 @@ class Grains:
                 mask=grain_cropped_tensor,
                 padding=padding,
                 bbox=square_flat_bounding_box,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                filename=filename,
             )
 
         return graincrops
