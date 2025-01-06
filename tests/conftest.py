@@ -16,7 +16,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
-from topostats.grains import Grains, GrainCrop
+from topostats.grains import GrainCrop, Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -328,7 +328,6 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 @pytest.fixture()
 def dummy_graincrop() -> GrainCrop:
     """Dummy GrainCrop object for testing."""
-
     image = np.random.random((10, 10)).astype(np.float32)
     mask = np.stack(
         arrays=[
@@ -561,11 +560,9 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
 @pytest.fixture()
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
-    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = (
-        minicircle_masked_tilt_removal.remove_quadratic(
-            minicircle_masked_tilt_removal.images["masked_tilt_removal"],
-            mask=minicircle_masked_tilt_removal.images["mask"],
-        )
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
+        minicircle_masked_tilt_removal.images["masked_tilt_removal"],
+        mask=minicircle_masked_tilt_removal.images["mask"],
     )
     return minicircle_masked_tilt_removal
 
@@ -900,9 +897,7 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> npt.NDArray:
 # 4. Apply Gaussian filter to blur the heights and give an example original image with heights
 
 
-def _generate_heights(
-    skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0
-) -> npt.NDArray:
+def _generate_heights(skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0) -> npt.NDArray:
     """Generate heights from skeletons by scaling image and applying Gaussian blurring.
 
     Uses scikit-image 'skimage.filters.gaussian()' to generate heights from skeletons.
