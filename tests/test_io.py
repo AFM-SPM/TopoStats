@@ -582,11 +582,11 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == 2.0
 
 
-def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
-    """Test loading of a .topostats file."""
+def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
+    """Test loading all data from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats()
+    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats(extract="all")
     above_grain_mask = data["grain_masks"]["above"]
     grain_trace_data = data["grain_trace_data"]
     assert isinstance(image, np.ndarray)
@@ -599,6 +599,33 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
     assert above_grain_mask.sum() == 633746
     assert isinstance(grain_trace_data, dict)
     assert grain_trace_data.keys() == {"above"}
+
+
+@pytest.mark.parametrize(
+    ("extract", "array_sum"),
+    [
+        pytest.param("raw", 30695369.188316286, id="loading raw data"),
+        pytest.param("filter", 184140.8593819073, id="loading filtered data"),
+    ],
+)
+def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
+    """Test loading different components from a .topostats file."""
+    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
+    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
+    image, px_to_nm_scaling, _ = load_scan_topostats.load_topostats(extract)
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (1024, 1024)
+    assert image.sum() == array_sum
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.4940029296875
+
+
+def test_load_scan_topostats_keyerror(load_scan_topostats: LoadScans):
+    """Test KeyError is raised when invalid extract is provided."""
+    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
+    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
+    with pytest.raises(KeyError):  # noqa: PT011
+        load_scan_topostats.load_topostats(extract="nothing")
 
 
 @pytest.mark.parametrize(
