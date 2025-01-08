@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.resources as pkg_resources
 from pathlib import Path
+import pickle
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -755,20 +756,15 @@ def dummy_grainstats(
     )
 
 
-# Minicircle
 @pytest.fixture()
 def minicircle_grainstats(
-    minicircle_grain_gaussian_filter: Filters,
-    minicircle_grain_labelled_post_removal: Grains,
-    load_scan: LoadScans,
+    minicircle_small_graincrops: dict[int, GrainCrop],
     grainstats_config: dict,
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
     return GrainStats(
-        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-        labelled_data=minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"],
-        pixel_to_nanometre_scaling=load_scan.pixel_to_nm_scaling,
+        grain_crops=minicircle_small_graincrops,
         base_output_dir=tmp_path,
         plot_opts={
             "grain_image": {"core_set": True},
