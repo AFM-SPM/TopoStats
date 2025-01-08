@@ -750,7 +750,6 @@ def dummy_grainstats(
     """Grainstats class for testing functions."""
     return GrainStats(
         grain_crops=dummy_graincrops_dict,
-        pixel_to_nanometre_scaling=0.5,
         base_output_dir=tmp_path,
         **grainstats_config,
     )

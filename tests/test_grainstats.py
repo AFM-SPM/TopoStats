@@ -249,7 +249,6 @@ def test_no_grains(caplog, tmp_path: Path) -> None:
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
     grainstats = GrainStats(
         grain_crops={},
-        pixel_to_nanometre_scaling=0.5,
         image_name="random",
         direction="above",
         base_output_dir=tmp_path,
