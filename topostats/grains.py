@@ -1702,8 +1702,8 @@ class Grains:
             # Add the crop to the full mask tensor without overriding anything else, for all classes
             for class_index in range(crop.shape[2]):
                 full_mask_tensor[
-                    bounding_box[0] + padding : bounding_box[2] - padding,
-                    bounding_box[1] + padding : bounding_box[3] - padding,
+                    bounding_box[0] : bounding_box[2],
+                    bounding_box[1] : bounding_box[3],
                     class_index,
                 ] += crop[:, :, class_index]
 
