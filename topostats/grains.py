@@ -1677,7 +1677,9 @@ class Grains:
         return grain_mask_tensor.astype(bool)
 
     @staticmethod
-    def construct_full_mask_from_crops(graincrops: dict[int, GrainCrop], image_shape: tuple[int, int]) -> npt.NDArray:
+    def construct_full_mask_from_graincrops(
+        graincrops: dict[int, GrainCrop], image_shape: tuple[int, int, int]
+    ) -> npt.NDArray[np.bool_]:
         """
         Construct a full mask tensor from the grain crops.
 
@@ -1685,27 +1687,26 @@ class Grains:
         ----------
         graincrops : dict[int, GrainCrop]
             Dictionary of grain crops.
-        image_shape : tuple[int, int]
+        image_shape : tuple[int, int, int]
             Shape of the original image.
 
         Returns
         -------
-        npt.NDArray
-            NxNx3 Numpy array of the full mask tensor.
+        npt.NDArray[np.bool_]
+            NxNxC Numpy array of the full mask tensor.
         """
-        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], 3), dtype=np.bool_)
-        for grain_number, graincrop in graincrops.items():
+        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], image_shape[2]), dtype=np.bool_)
+        for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
-            crop = graincrop.mask
-            padding = graincrop.padding
+            crop_tensor = graincrop.mask
 
             # Add the crop to the full mask tensor without overriding anything else, for all classes
-            for class_index in range(crop.shape[2]):
+            for class_index in range(crop_tensor.shape[2]):
                 full_mask_tensor[
                     bounding_box[0] : bounding_box[2],
                     bounding_box[1] : bounding_box[3],
                     class_index,
-                ] += crop[:, :, class_index]
+                ] += crop_tensor[:, :, class_index]
 
         return full_mask_tensor
 
