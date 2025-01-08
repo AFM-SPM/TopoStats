@@ -247,7 +247,6 @@ def run_grains(  # noqa: C901
 
 def run_grainstats(
     image_grain_crops: ImageGrainCrops,
-    pixel_to_nm_scaling: float,
     filename: str,
     basename: Path,
     grainstats_config: dict,
@@ -305,7 +304,6 @@ def run_grainstats(
                     continue
                 grainstats_calculator = GrainStats(
                     grain_crops=grain_crops_direction.crops,
-                    pixel_to_nanometre_scaling=pixel_to_nm_scaling,
                     direction=direction,
                     base_output_dir=grain_out_path,
                     image_name=filename,
@@ -1109,7 +1107,6 @@ def process_scan(
         # Grainstats :
         grainstats_df, height_profiles = run_grainstats(
             image_grain_crops=image_grain_crops,
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
             grainstats_config=grainstats_config,
