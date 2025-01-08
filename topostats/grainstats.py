@@ -94,7 +94,6 @@ class GrainStats:
     def __init__(
         self,
         grain_crops: dict[int, GrainCrop],
-        pixel_to_nanometre_scaling: float,
         direction: str,
         base_output_dir: str | Path,
         image_name: str = None,
@@ -135,7 +134,6 @@ class GrainStats:
             usual AFM length scale of nanometres.
         """
         self.grain_crops = grain_crops
-        self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
@@ -216,8 +214,12 @@ class GrainStats:
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
-            grain_padding = grain_crop.padding
-            grain_anchor = (grain_bbox[0] + grain_padding, grain_bbox[1] + grain_padding)
+            grain_anchor = (grain_bbox[0], grain_bbox[2])
+            pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
+
+            # Calculate scaling factors
+            length_scaling_factor = pixel_to_nm_scaling * self.metre_scaling_factor
+            area_scaling_factor = length_scaling_factor**2
 
             # Create directory for grain's plots
             output_grain = self.base_output_dir / self.direction / f"grain_{grain_index}"
@@ -256,11 +258,16 @@ class GrainStats:
                     radius_stats = self.calculate_radius_stats(edges, points)
                     # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
                     _, _, hull_simplexes = self.convex_hull(edges, output_grain)
-                    centroid = self._calculate_centroid(points)
+                    local_centroid = self._calculate_centroid(points)
+
                     # Centroids for the grains (grain anchor added because centroid returns values local to the
                     # cropped grain images)
-                    centre_x = centroid[0] + grain_anchor[0]
-                    centre_y = centroid[1] + grain_anchor[1]
+                    centre_global_x_px = local_centroid[0] + grain_anchor[0]
+                    centre_global_y_px = local_centroid[1] + grain_anchor[1]
+
+                    centre_x_m = centre_global_x_px * length_scaling_factor
+                    centre_y_m = centre_global_y_px * length_scaling_factor
+
                     (
                         smallest_bounding_width,
                         smallest_bounding_length,
@@ -270,10 +277,6 @@ class GrainStats:
                         hull_simplices=hull_simplexes,
                         path=output_grain,
                     )
-
-                    # Calculate scaling factors
-                    length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
-                    area_scaling_factor = length_scaling_factor**2
 
                     # Calculate minimum and maximum feret diameters and scale the distances
                     feret_statistics = feret.min_max_feret(points)
@@ -293,8 +296,8 @@ class GrainStats:
                         "grain_number": grain_index,
                         "class_number": class_index,
                         "subgrain_number": subgrain_index,
-                        "centre_x": centre_x * length_scaling_factor,
-                        "centre_y": centre_y * length_scaling_factor,
+                        "centre_x": centre_x_m,
+                        "centre_y": centre_y_m,
                         "radius_min": radius_stats["min"] * length_scaling_factor,
                         "radius_max": radius_stats["max"] * length_scaling_factor,
                         "radius_mean": radius_stats["mean"] * length_scaling_factor,
@@ -306,7 +309,7 @@ class GrainStats:
                         # [volume] = [pixel] * [pixel] * [height] = px * px * nm.
                         # To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.
                         "volume": np.nansum(subgrain_mask_image)
-                        * self.pixel_to_nanometre_scaling**2
+                        * pixel_to_nm_scaling**2
                         * (self.metre_scaling_factor**3),
                         "area": subgrain_region.area * area_scaling_factor,
                         "area_cartesian_bbox": subgrain_region.area_bbox * area_scaling_factor,
