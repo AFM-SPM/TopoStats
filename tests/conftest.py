@@ -642,6 +642,14 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
 
 
 @pytest.fixture()
+def minicircle_small_graincrops() -> dict[int, GrainCrop]:
+    """Dictionary of graincrops for the minicircle_small image."""
+    with open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:
+        graincrops = pickle.load(f)
+    return graincrops
+
+
+@pytest.fixture()
 def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
     """Cleared borders."""
     minicircle_grain_mask.directions["above"]["tidied_border"] = minicircle_grain_mask.tidy_border(
