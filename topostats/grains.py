@@ -1700,7 +1700,7 @@ class Grains:
 
     @staticmethod
     def construct_full_mask_from_graincrops(
-        graincrops: dict[int, GrainCrop], image_shape: tuple[int, int, int]
+        graincrops: dict[int, GrainCrop], image_shape: tuple[int, int]
     ) -> npt.NDArray[np.bool_]:
         """
         Construct a full mask tensor from the grain crops.
@@ -1717,7 +1717,12 @@ class Grains:
         npt.NDArray[np.bool_]
             NxNxC Numpy array of the full mask tensor.
         """
-        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], image_shape[2]), dtype=np.bool_)
+        # Calculate the number of classes from the first grain crop
+        # Check if graincrops is empty
+        if not graincrops:
+            raise ValueError("No grain crops provided to construct the full mask tensor.")
+        num_classes: int = list(graincrops.values())[0].mask.shape[2]
+        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
