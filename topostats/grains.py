@@ -148,6 +148,18 @@ class GrainCrop:
     def filename(self, value: str):
         self._filename = value
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, GrainCrop):
+            return NotImplemented
+        return (
+            np.array_equal(self.image, other.image)
+            and np.array_equal(self.mask, other.mask)
+            and self.padding == other.padding
+            and self.bbox == other.bbox
+            and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
+            and self.filename == other.filename
+        )
+
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
     """
@@ -204,6 +216,11 @@ class GrainCropsDirection:
     def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
         self._full_mask_tensor = validate_full_mask_tensor_shape(value)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, GrainCropsDirection):
+            return NotImplemented
+        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
+
 
 @dataclass
 class ImageGrainCrops:
@@ -220,6 +237,11 @@ class ImageGrainCrops:
 
     above: GrainCropsDirection | None
     below: GrainCropsDirection | None
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ImageGrainCrops):
+            return NotImplemented
+        return self.above == other.above and self.below == other.below
 
 
 class Grains:
