@@ -771,10 +771,12 @@ class Grains:
                     graincrops=graincrops,
                 )
                 # Construct full masks from the crops
-                full_mask_tensor = Grains.construct_full_mask_from_crops(
+                full_mask_tensor = Grains.construct_full_mask_from_graincrops(
                     graincrops=graincrops,
                     image_shape=self.image.shape,
                 )
+
+                self.directions[direction]["unet_tensor"] = full_mask_tensor
 
             # Vet the grains
             if self.vetting is not None:
@@ -785,6 +787,12 @@ class Grains:
                 )
             else:
                 graincrops_vetted = graincrops
+
+            vetted_full_tensor = Grains.construct_full_mask_from_graincrops(
+                graincrops=graincrops_vetted,
+                image_shape=self.image.shape,
+            )
+            self.directions[direction]["vetted_tensor"] = vetted_full_tensor
 
             # Merge classes as specified by the user
             graincrops_merged_classes = Grains.graincrops_merge_classes(
@@ -1047,7 +1055,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1788,7 +1798,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
