@@ -1334,8 +1334,15 @@ class Grains:
             grain_mask_tensor[
                 min_row + padding : max_row - padding,
                 min_col + padding : max_col - padding,
-                :,
-            ] = cropped_grain
+                :
+            ] = np.maximum(
+                grain_mask_tensor[
+                    min_row + padding : max_row - padding,
+                    min_col + padding : max_col - padding,
+                    :
+                ], 
+                cropped_grain
+            )
 
         # Update the background class
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
