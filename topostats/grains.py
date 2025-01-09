@@ -214,7 +214,7 @@ class GrainCropsDirection:
 
     @full_mask_tensor.setter
     def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
-        self._full_mask_tensor = validate_full_mask_tensor_shape(value)
+        self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, GrainCropsDirection):
