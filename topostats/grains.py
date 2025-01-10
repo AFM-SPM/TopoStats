@@ -160,6 +160,25 @@ class GrainCrop:
             and self.filename == other.filename
         )
 
+    def locate_difference(self, other: object) -> None:
+        """Debug function to find the culprit when two GrainCrop objects are not equal."""
+        if not isinstance(other, GrainCrop):
+            raise ValueError(f"Cannot compare GrainCrop with {type(other)}")
+        if not np.array_equal(self.image, other.image):
+            raise ValueError("Image is different")
+        if not np.array_equal(self.mask, other.mask):
+            raise ValueError("Mask is different")
+        if self.padding != other.padding:
+            raise ValueError("Padding is different")
+        if self.bbox != other.bbox:
+            raise ValueError("Bounding box is different")
+        if self.pixel_to_nm_scaling != other.pixel_to_nm_scaling:
+            raise ValueError("Pixel to nm scaling is different")
+        if self.filename != other.filename:
+            raise ValueError("Filename is different")
+        else:
+            LOGGER.info("Cannot find difference between graincrops")
+
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
     """
@@ -221,6 +240,19 @@ class GrainCropsDirection:
             return NotImplemented
         return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
 
+    def locate_difference(self, other: object) -> None:
+        """Debug function to find the culprit when two GrainCropsDirection objects are not equal."""
+        if not isinstance(other, GrainCropsDirection):
+            raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
+        for crop_index, crop in self.crops.items():
+            if crop != other.crops[crop_index]:
+                LOGGER.info(f"Grain crop {crop_index} is different:")
+                crop.locate_difference(other.crops[crop_index])
+        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
+            raise ValueError("Full mask tensor is different")
+
+        LOGGER.info("Cannot find difference between graincrops")
+
 
 @dataclass
 class ImageGrainCrops:
@@ -242,6 +274,27 @@ class ImageGrainCrops:
         if not isinstance(other, ImageGrainCrops):
             return NotImplemented
         return self.above == other.above and self.below == other.below
+
+    def locate_difference(self, other: object) -> None:
+        """Debug function to find the culprit when two ImageGrainCrops objects are not equal."""
+        if not isinstance(other, ImageGrainCrops):
+            raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
+        if self.above is not None:
+            if self.above != other.above:
+                LOGGER.info("Above grains are different")
+                self.above.locate_difference(other.above)
+        else:
+            if other.above is not None:
+                raise ValueError("Above grains are different")
+        if self.below is not None:
+            if self.below != other.below:
+                LOGGER.info("Below grains are different")
+                self.below.locate_difference(other.below)
+        else:
+            if other.below is not None:
+                raise ValueError("Below grains are different")
+
+        LOGGER.info("Cannot find difference between image grain crops")
 
 
 class Grains:
