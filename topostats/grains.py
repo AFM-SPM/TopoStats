@@ -1799,6 +1799,9 @@ class Grains:
                     class_index,
                 ] += crop_tensor[:, :, class_index]
 
+        # Update background class
+        full_mask_tensor = Grains.update_background_class(full_mask_tensor)
+
         return full_mask_tensor
 
     @staticmethod
