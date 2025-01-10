@@ -176,8 +176,7 @@ class GrainCrop:
             raise ValueError("Pixel to nm scaling is different")
         if self.filename != other.filename:
             raise ValueError("Filename is different")
-        else:
-            LOGGER.info("Cannot find difference between graincrops")
+        LOGGER.info("Cannot find difference between graincrops")
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -796,7 +795,9 @@ class Grains:
                 # 2 etc.
 
                 # Get a binary mask where 1s are background and 0s are grains
-                labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
+                labelled_regions_background_mask = np.where(
+                    self.directions[direction]["labelled_regions_02"] == 0, 1, 0
+                )
 
                 # Create a tensor out of the background and foreground masks
                 full_mask_tensor = np.stack(
