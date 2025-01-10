@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import Grains, ImageGrainCrops, GrainCropsDirection, GrainCrop
 from topostats.io import dict_almost_equal
 
 # Pylint returns this error for from skimage.filters import gaussian

@@ -874,11 +874,10 @@ class Grains:
                     )
                 else:
                     raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
-
-            self.image_grain_crops = image_grain_crops
-        else:
-            # No grains found
-            self.image_grain_crops = ImageGrainCrops(above=None, below=None)
+                self.image_grain_crops = image_grain_crops
+            else:
+                # No grains found
+                self.image_grain_crops = ImageGrainCrops(above=None, below=None)
 
     # pylint: disable=too-many-locals
     @staticmethod
