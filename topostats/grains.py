@@ -820,7 +820,6 @@ class Grains:
                     filename=self.filename,
                     direction=direction,
                     unet_config=self.unet_config,
-                    image=self.image,
                     graincrops=graincrops,
                 )
                 # Construct full masks from the crops
@@ -959,6 +958,8 @@ class Grains:
                 mask=predicted_mask,
                 padding=graincrop.padding,
                 bbox=graincrop.bbox,
+                pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+                filename=graincrop.filename,
             )
 
         return new_graincrops
