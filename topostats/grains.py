@@ -786,92 +786,99 @@ class Grains:
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
-            # Create a tensor out of the grain mask of shape NxNx2, where the two classes are a binary background
-            # mask and the second is a binary grain mask. This is because we want to support multiple classes, and
-            # so we standardise so that the first layer is background mask, then feature mask 1, then feature mask
-            # 2 etc.
+            # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
+            if len(self.region_properties[direction]) > 0:
+                # Grains found
 
-            # Get a binary mask where 1s are background and 0s are grains
-            labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
+                # Create a tensor out of the grain mask of shape NxNx2, where the two classes are a binary background
+                # mask and the second is a binary grain mask. This is because we want to support multiple classes, and
+                # so we standardise so that the first layer is background mask, then feature mask 1, then feature mask
+                # 2 etc.
 
-            # Create a tensor out of the background and foreground masks
-            full_mask_tensor = np.stack(
-                [
-                    labelled_regions_background_mask,
-                    self.directions[direction]["labelled_regions_02"],
-                ],
-                axis=-1,
-            ).astype(np.int32)
+                # Get a binary mask where 1s are background and 0s are grains
+                labelled_regions_background_mask = np.where(self.directions[direction]["labelled_regions_02"] == 0, 1, 0)
 
-            # Extract tensor mask crops of each grain.
-            graincrops = self.extract_grains_from_full_image_tensor(
-                image=self.image,
-                full_mask_tensor=full_mask_tensor,
-                padding=self.grain_crop_padding,
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                filename=self.filename,
-            )
+                # Create a tensor out of the background and foreground masks
+                full_mask_tensor = np.stack(
+                    [
+                        labelled_regions_background_mask,
+                        self.directions[direction]["labelled_regions_02"],
+                    ],
+                    axis=-1,
+                ).astype(np.int32)
 
-            # Optionally run a user-supplied u-net model on the grains to improve the segmentation
-            if self.unet_config["model_path"] is not None:
-                # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
-                # later on along with all the other hardcoded class 1s.
-                graincrops = Grains.improve_grain_segmentation_unet(
+                # Extract tensor mask crops of each grain.
+                graincrops = self.extract_grains_from_full_image_tensor(
+                    image=self.image,
+                    full_mask_tensor=full_mask_tensor,
+                    padding=self.grain_crop_padding,
+                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                     filename=self.filename,
-                    direction=direction,
-                    unet_config=self.unet_config,
-                    graincrops=graincrops,
                 )
-                # Construct full masks from the crops
-                full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-                    graincrops=graincrops,
+
+                # Optionally run a user-supplied u-net model on the grains to improve the segmentation
+                if self.unet_config["model_path"] is not None:
+                    # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
+                    # later on along with all the other hardcoded class 1s.
+                    graincrops = Grains.improve_grain_segmentation_unet(
+                        filename=self.filename,
+                        direction=direction,
+                        unet_config=self.unet_config,
+                        graincrops=graincrops,
+                    )
+                    # Construct full masks from the crops
+                    full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                        graincrops=graincrops,
+                        image_shape=self.image.shape,
+                    )
+
+                    self.directions[direction]["unet_tensor"] = full_mask_tensor
+
+                # Vet the grains
+                if self.vetting is not None:
+                    graincrops_vetted = Grains.vet_grains(
+                        graincrops=graincrops,
+                        pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                        **self.vetting,
+                    )
+                else:
+                    graincrops_vetted = graincrops
+
+                vetted_full_tensor = Grains.construct_full_mask_from_graincrops(
+                    graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
+                self.directions[direction]["vetted_tensor"] = vetted_full_tensor
 
-                self.directions[direction]["unet_tensor"] = full_mask_tensor
-
-            # Vet the grains
-            if self.vetting is not None:
-                graincrops_vetted = Grains.vet_grains(
-                    graincrops=graincrops,
-                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                    **self.vetting,
+                # Merge classes as specified by the user
+                graincrops_merged_classes = Grains.graincrops_merge_classes(
+                    graincrops=graincrops_vetted,
+                    classes_to_merge=self.classes_to_merge,
                 )
-            else:
-                graincrops_vetted = graincrops
 
-            vetted_full_tensor = Grains.construct_full_mask_from_graincrops(
-                graincrops=graincrops_vetted,
-                image_shape=self.image.shape,
-            )
-            self.directions[direction]["vetted_tensor"] = vetted_full_tensor
-
-            # Merge classes as specified by the user
-            graincrops_merged_classes = Grains.graincrops_merge_classes(
-                graincrops=graincrops_vetted,
-                classes_to_merge=self.classes_to_merge,
-            )
-
-            # Update the background class to ensure the background is accurate
-            graincrops_updated_background = Grains.graincrops_update_background_class(
-                graincrops=graincrops_merged_classes
-            )
-
-            # Store the grain crops
-            if direction == "above":
-                image_grain_crops.above = GrainCropsDirection(
-                    crops=graincrops_updated_background,
-                    full_mask_tensor=full_mask_tensor,
+                # Update the background class to ensure the background is accurate
+                graincrops_updated_background = Grains.graincrops_update_background_class(
+                    graincrops=graincrops_merged_classes
                 )
-            elif direction == "below":
-                image_grain_crops.below = GrainCropsDirection(
-                    crops=graincrops_updated_background,
-                    full_mask_tensor=full_mask_tensor,
-                )
-            else:
-                raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
 
-        self.image_grain_crops = image_grain_crops
+                # Store the grain crops
+                if direction == "above":
+                    image_grain_crops.above = GrainCropsDirection(
+                        crops=graincrops_updated_background,
+                        full_mask_tensor=full_mask_tensor,
+                    )
+                elif direction == "below":
+                    image_grain_crops.below = GrainCropsDirection(
+                        crops=graincrops_updated_background,
+                        full_mask_tensor=full_mask_tensor,
+                    )
+                else:
+                    raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
+
+            self.image_grain_crops = image_grain_crops
+        else:
+            # No grains found
+            self.image_grain_crops = ImageGrainCrops(above=None, below=None)
 
     # pylint: disable=too-many-locals
     @staticmethod
