@@ -895,6 +895,62 @@ def test_find_grains_unet(
 
         assert result_removed_small_objects.shape == expected_removed_small_objects_tensor.shape
         assert result_labelled_regions.shape == expected_labelled_regions_tensor.shape
+def test_find_grains_no_grains_found():
+    """Test the find_grains method of the Grains class when no grains are found."""
+    # Image
+    image = np.array(
+        [
+            [0.1, 0.1, 0.2, 0.1, 0.1],
+            [0.2, 0.1, 0.1, 0.1, 0.2],
+            [0.1, 0.1, 0.1, 0.1, 0.1],
+            [0.2, 0.1, 0.1, 0.1, 0.2],
+            [0.1, 0.1, 0.2, 0.1, 0.1],
+        ]
+    )
+
+    # Expected removed small objects tensor
+    expected_grain_mask = np.zeros_like(image, dtype=bool)
+
+    # Expected labelled regions tensor
+    expected_labelled_regions = np.zeros_like(image, dtype=int)
+
+    # Expected image grain crops
+    expected_imagegraincrops = ImageGrainCrops(
+        above=None,
+        below=None,
+    )
+
+    # Initialise the grains object
+    grains_object = Grains(
+        image=image,
+        filename="test_image",
+        pixel_to_nm_scaling=1.0,
+        unet_config=None,
+        threshold_method="absolute",
+        threshold_absolute={"above": 0.9, "below": 0.0},
+        absolute_area_threshold={"above": [1, 10000000], "below": [1, 10000000]},
+        direction="above",
+        smallest_grain_size_nm2=1,
+        remove_edge_intersecting_grains=True,
+    )
+
+    # Override grains' minimum grain size just for this test to allow for small grains in the test image
+    grains_object.minimum_grain_size_px = 1
+    grains_object.minimum_bbox_size_px = 1
+
+    grains_object.find_grains()
+
+    result_grain_mask = grains_object.directions["above"]["removed_objects_too_small_to_process"]
+    result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
+    result_image_grain_crops = grains_object.image_grain_crops
+
+    assert result_grain_mask.shape == expected_grain_mask.shape
+    assert result_labelled_regions.shape == expected_labelled_regions.shape
+
+    np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
+    np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
+
+    assert result_image_grain_crops == expected_imagegraincrops
 
         np.testing.assert_array_equal(result_removed_small_objects, expected_removed_small_objects_tensor)
         np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions_tensor)
