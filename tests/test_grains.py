@@ -1407,6 +1407,58 @@ def test_find_grains_no_grains_found():
                 ),
             },
         ),
+        # Unet produces empty predictions for traditional mask
+        pytest.param(
+            # U-Net config
+            {
+                "model_path": "dummy_model_path",
+                "confidence": 0.5,
+                "model_input_shape": (None, 5, 5, 1),
+                "upper_norm_bound": 1.0,
+                "lower_norm_bound": 0.0,
+                "grain_crop_padding": 1,
+            },
+            # Traditional graincrop
+            {
+                0: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.1, 0.2, 0.1],
+                            [0.2, 0.1, 1.1, 0.1, 0.2],
+                            [0.1, 1.1, 1.1, 1.1, 0.1],
+                            [0.2, 0.1, 1.1, 0.1, 0.2],
+                            [0.1, 0.2, 0.1, 0.2, 0.1],
+                        ]
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 1, 0, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 0, 1, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 1, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ]
+                    ),
+                    bbox=(0, 0, 5, 5),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                )
+            },
+        ),
     ],
 )
 def test_improve_grain_segmentation_unet(
