@@ -943,6 +943,7 @@ class Grains:
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
         new_graincrops = {}
+        num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
             # Run the UNet on the region. This is allowed to be a single channel
@@ -960,14 +961,20 @@ class Grains:
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
-            new_graincrops[grain_number] = GrainCrop(
-                image=graincrop.image,
-                mask=predicted_mask,
-                padding=graincrop.padding,
-                bbox=graincrop.bbox,
-                pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
-                filename=graincrop.filename,
-            )
+            # Check if all of the non-background classes are empty
+            if np.sum(predicted_mask[:, :, 1:]) == 0:
+                num_empty_removed_grains += 1
+            else:
+                new_graincrops[grain_number] = GrainCrop(
+                    image=graincrop.image,
+                    mask=predicted_mask,
+                    padding=graincrop.padding,
+                    bbox=graincrop.bbox,
+                    pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
+                    filename=graincrop.filename,
+                )
+
+        LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
         return new_graincrops
 
@@ -1116,7 +1123,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1860,7 +1869,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
