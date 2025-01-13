@@ -985,226 +985,448 @@ def test_find_grains_no_grains_found():
 
 @pytest.mark.parametrize(
     (
-        "image",
         "unet_config",
-        "traditional_threshold_labelled_regions",
-        "expected_boolean_mask_tensor",
-        "expected_labelled_regions_tensor",
+        "graincrops",
+        "expected_graincrops",
     ),
     [
+        # pytest.param(
+        #     # Image
+        #     np.array(
+        #         [
+        #             [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+        #             [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
+        #             [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
+        #             [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
+        #             [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+        #             [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+        #             [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+        #             [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+        #             [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+        #         ]
+        #     ),
+        #     # Unet config
+        #     {
+        #         "model_path": "dummy_model_path",
+        #         "confidence": 0.5,
+        #         "model_input_shape": (None, 5, 5, 1),
+        #         "upper_norm_bound": 1.0,
+        #         "lower_norm_bound": 0.0,
+        #     },
+        #     # Traditional thresholding labelled regions
+        #     # This has the centre pixel filled in, representing a feature that is impossible to segment
+        #     # with just thresholding. The U-Net is simulated to be able to recognise that there should be a
+        #     # hole in the grain and thus improves the mask.
+        #     np.array(
+        #         [
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #             [0, 1, 1, 1, 0, 2, 0, 3, 0],
+        #             [0, 1, 1, 1, 0, 2, 0, 0, 0],
+        #             [0, 1, 1, 1, 0, 2, 2, 2, 0],
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #         ]
+        #     ),
+        #     # Expected boolean mask tensor
+        #     np.stack(
+        #         [
+        #             np.array(
+        #                 [
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 0, 0, 0, 1, 0, 1, 0, 1],
+        #                     [1, 0, 1, 0, 1, 0, 1, 1, 1],
+        #                     [1, 0, 0, 0, 1, 0, 0, 0, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                 ]
+        #             ),
+        #             np.array(
+        #                 [
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 1, 1, 1, 0, 1, 0, 1, 0],
+        #                     [0, 1, 0, 1, 0, 1, 0, 0, 0],
+        #                     [0, 1, 1, 1, 0, 1, 1, 1, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                 ]
+        #             ),
+        #         ],
+        #         axis=-1,
+        #     ).astype(np.bool_),
+        #     # Expected labelled regions tensor
+        #     np.stack(
+        #         [
+        #             np.array(
+        #                 [
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 0, 0, 0, 1, 0, 1, 0, 1],
+        #                     [1, 0, 2, 0, 1, 0, 1, 1, 1],
+        #                     [1, 0, 0, 0, 1, 0, 0, 0, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        #                 ]
+        #             ),
+        #             np.array(
+        #                 [
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 1, 1, 1, 0, 2, 0, 3, 0],
+        #                     [0, 1, 0, 1, 0, 2, 0, 0, 0],
+        #                     [0, 1, 1, 1, 0, 2, 2, 2, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        #                 ]
+        #             ),
+        #         ],
+        #         axis=-1,
+        #     ).astype(np.int32),
+        #     id="unet, 5x5, multi class, 3 grains",
+        # ),
+        # pytest.param(
+        #     # Image
+        #     np.array(
+        #         [
+        #             [0.1, 0.2, 0.1, 0.2, 0.1],
+        #             [0.2, 0.1, 1.1, 0.1, 0.2],
+        #             [0.1, 1.1, 1.1, 1.1, 0.1],
+        #             [0.2, 0.1, 1.1, 0.1, 0.2],
+        #             [0.1, 0.2, 0.1, 0.2, 0.1],
+        #         ]
+        #     ),
+        #     # U-Net config
+        #     {
+        #         "model_path": "dummy_model_path",
+        #         "confidence": 0.5,
+        #         "model_input_shape": (None, 5, 5, 1),
+        #         "upper_norm_bound": 1.0,
+        #         "lower_norm_bound": 0.0,
+        #         "grain_crop_padding": 1,
+        #     },
+        #     # Traditional thresholding labelled regions
+        #     np.array(
+        #         [
+        #             [0, 0, 0, 0, 0],
+        #             [0, 0, 1, 0, 0],
+        #             [0, 1, 1, 1, 0],
+        #             [0, 0, 1, 0, 0],
+        #             [0, 0, 0, 0, 0],
+        #         ]
+        #     ),
+        #     # Expected boolean mask tensor
+        #     np.stack(
+        #         [
+        #             np.array(
+        #                 [
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                 ]
+        #             ),
+        #             np.array(
+        #                 [
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                 ]
+        #             ),
+        #         ],
+        #         axis=-1,
+        #     ),
+        #     # Expected labelled regions tensor
+        #     np.stack(
+        #         [
+        #             np.array(
+        #                 [
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                     [1, 1, 1, 1, 1],
+        #                 ]
+        #             ),
+        #             np.array(
+        #                 [
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                     [0, 0, 0, 0, 0],
+        #                 ]
+        #             ),
+        #         ],
+        #         axis=-1,
+        #     ),
+        #     id="unet, 5x5, traditional detects grains but unet doesn't. tests for empty unet predictions.",
+        # ),
         pytest.param(
-            # Image
-            np.array(
-                [
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
-                    [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
-                    [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
-                    [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
-                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
-            ),
-            # Unet config
+            #     # Unet config
             {
                 "model_path": "dummy_model_path",
                 "confidence": 0.5,
                 "model_input_shape": (None, 5, 5, 1),
                 "upper_norm_bound": 1.0,
                 "lower_norm_bound": 0.0,
-                "grain_crop_padding": 1,
             },
-            # Traditional thresholding labelled regions
-            # This has the centre pixel filled in, representing a feature that is impossible to segment
-            # with just thresholding. The U-Net is simulated to be able to recognise that there should be a
-            # hole in the grain and thus improves the mask.
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-            # Expected boolean mask tensor
-            np.stack(
-                [
-                    np.array(
-                        [
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                            [1, 0, 1, 0, 1, 0, 1, 1, 1],
-                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        ]
-                    ),
-                    np.array(
-                        [
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                            [0, 1, 0, 1, 0, 1, 0, 0, 0],
-                            [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ]
-                    ),
-                ],
-                axis=-1,
-            ).astype(np.bool_),
-            # Expected labelled regions tensor
-            np.stack(
-                [
-                    np.array(
-                        [
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                            [1, 0, 2, 0, 1, 0, 1, 1, 1],
-                            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        ]
-                    ),
-                    np.array(
-                        [
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                            [0, 1, 0, 1, 0, 2, 0, 0, 0],
-                            [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        ]
-                    ),
-                ],
-                axis=-1,
-            ).astype(np.int32),
-            id="unet, 5x5, multi class, 3 grains",
-        ),
-        pytest.param(
-            # Image
-            np.array(
-                [
-                    [0.1, 0.2, 0.1, 0.2, 0.1],
-                    [0.2, 0.1, 1.1, 0.1, 0.2],
-                    [0.1, 1.1, 1.1, 1.1, 0.1],
-                    [0.2, 0.1, 1.1, 0.1, 0.2],
-                    [0.1, 0.2, 0.1, 0.2, 0.1],
-                ]
-            ),
-            # U-Net config
+            # Traditionally generated graincrops
             {
-                "model_path": "dummy_model_path",
-                "confidence": 0.5,
-                "model_input_shape": (None, 5, 5, 1),
-                "upper_norm_bound": 1.0,
-                "lower_norm_bound": 0.0,
-                "grain_crop_padding": 1,
+                0: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.1, 0.2, 0.1],
+                            [0.1, 1.1, 1.2, 1.0, 0.1],
+                            [0.2, 1.2, 1.1, 1.3, 0.2],
+                            [0.1, 1.0, 1.2, 1.2, 0.1],
+                            [0.1, 0.1, 0.2, 0.2, 0.1],
+                        ],
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                    bbox=(0, 0, 5, 5),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
+                1: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.2, 0.2, 0.1],
+                            [0.1, 1.1, 0.2, 1.1, 0.2],
+                            [0.2, 1.2, 0.1, 0.2, 0.2],
+                            [0.1, 1.1, 1.2, 1.1, 0.1],
+                            [0.1, 0.1, 0.1, 0.2, 0.1],
+                        ],
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                    bbox=(0, 4, 5, 9),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
+                2: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.2, 0.2, 0.1],
+                            [0.2, 1.1, 0.2],
+                            [0.1, 0.2, 0.2],
+                        ]
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1],
+                                    [1, 0, 1],
+                                    [1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0],
+                                    [0, 1, 0],
+                                    [0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                    bbox=(0, 6, 3, 9),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
             },
-            # Traditional thresholding labelled regions
-            np.array(
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0],
-                    [0, 1, 1, 1, 0],
-                    [0, 0, 1, 0, 0],
-                    [0, 0, 0, 0, 0],
-                ]
-            ),
-            # Expected boolean mask tensor
-            np.stack(
-                [
-                    np.array(
+            {
+                0: GrainCrop(
+                    image=np.array(
                         [
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
+                            [0.1, 0.2, 0.1, 0.2, 0.1],
+                            [0.1, 1.1, 1.2, 1.0, 0.1],
+                            [0.2, 1.2, 1.1, 1.3, 0.2],
+                            [0.1, 1.0, 1.2, 1.2, 0.1],
+                            [0.1, 0.1, 0.2, 0.2, 0.1],
+                        ],
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                    bbox=(0, 0, 5, 5),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
+                1: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.2, 0.2, 0.1],
+                            [0.1, 1.1, 0.2, 1.1, 0.2],
+                            [0.2, 1.2, 0.1, 0.2, 0.2],
+                            [0.1, 1.1, 1.2, 1.1, 0.1],
+                            [0.1, 0.1, 0.1, 0.2, 0.1],
+                        ],
+                    ),
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                    bbox=(0, 4, 5, 9),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
+                2: GrainCrop(
+                    image=np.array(
+                        [
+                            [0.2, 0.2, 0.1],
+                            [0.2, 1.1, 0.2],
+                            [0.1, 0.2, 0.2],
                         ]
                     ),
-                    np.array(
+                    mask=np.stack(
                         [
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                        ]
+                            np.array(
+                                [
+                                    [1, 1, 1],
+                                    [1, 0, 1],
+                                    [1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0],
+                                    [0, 1, 0],
+                                    [0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
                     ),
-                ],
-                axis=-1,
-            ),
-            # Expected labelled regions tensor
-            np.stack(
-                [
-                    np.array(
-                        [
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1],
-                        ]
-                    ),
-                    np.array(
-                        [
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0],
-                        ]
-                    ),
-                ],
-                axis=-1,
-            ),
-            id="unet, 5x5, traditional detects grains but unet doesn't. tests for empty unet predictions.",
+                    bbox=(0, 6, 3, 9),
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    filename="test_image",
+                ),
+            },
         ),
     ],
 )
 def test_improve_grain_segmentation_unet(
     mock_model_5_by_5_single_class: MagicMock,
-    image: npt.NDArray[np.float32],
     unet_config: dict[str, str | int | float | tuple[int | None, int, int, int]],
-    traditional_threshold_labelled_regions: npt.NDArray[np.int32],
-    expected_boolean_mask_tensor: npt.NDArray[np.bool_],
-    expected_labelled_regions_tensor: npt.NDArray[np.int32],
+    graincrops: dict[int, GrainCrop],
+    expected_graincrops: dict[int, GrainCrop],
 ) -> None:
     """Test the improve_grain_segmentation method of the Grains class with a unet model."""
     with patch("keras.models.load_model") as mock_load_model:
         mock_load_model.return_value = mock_model_5_by_5_single_class
 
-        result_boolean_masks_tensor, result_labelled_regions_tensor = Grains.improve_grain_segmentation_unet(
+        result_graincrops: dict[int, GrainCrop] = Grains.improve_grain_segmentation_unet(
             filename="test_image",
             direction="above",
+            graincrops=graincrops,
             unet_config=unet_config,
-            image=image,
-            labelled_grain_regions=traditional_threshold_labelled_regions,
         )
 
-        assert result_boolean_masks_tensor.shape == expected_boolean_mask_tensor.shape
-        assert result_labelled_regions_tensor.shape == expected_labelled_regions_tensor.shape
-        np.testing.assert_array_equal(result_boolean_masks_tensor, expected_boolean_mask_tensor)
-        np.testing.assert_array_equal(result_labelled_regions_tensor, expected_labelled_regions_tensor)
+    assert result_graincrops == expected_graincrops
 
 
 @pytest.mark.parametrize(
