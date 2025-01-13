@@ -1301,36 +1301,6 @@ def test_disordered_trace_grain(
         "expected_all_images_filename",
     ),
     [
-        # pytest.param(
-        #     "example_catenanes.npy",
-        #     "example_catenanes_labelled_grain_mask_thresholded.npy",
-        #     # Pixel to nm scaling
-        #     0.488,
-        #     # Min skeleton size
-        #     10,
-        #     # Mask smoothing parameters
-        #     {
-        #         "gaussian_sigma": 2,
-        #         "dilation_iterations": 2,
-        #         "holearea_min_max": [10, None],
-        #     },
-        #     # Skeletonisation parameters
-        #     {
-        #         "method": "topostats",
-        #         "height_bias": 0.6,
-        #     },
-        #     # Pruning parameters
-        #     {
-        #         "method": "topostats",
-        #         "max_length": 7.0,
-        #         "height_threshold": None,
-        #         "method_values": "mid",
-        #         "method_outlier": "mean_abs",
-        #     },
-        #     "catenanes_disordered_tracing_crop_data.pkl",
-        #     "catenanes_disordered_tracing_all_images.pkl",
-        #     id="catenane",
-        # ),
         pytest.param(
             "example_catenanes.npy",
             "example_catenanes_graincrops.pkl",
@@ -1361,36 +1331,6 @@ def test_disordered_trace_grain(
             "catenanes_disordered_tracing_all_images.pkl",
             id="catenane",
         ),
-        # pytest.param(
-        #     "example_rep_int.npy",
-        #     "example_rep_int_labelled_grain_mask_thresholded.npy",
-        #     # Pixel to nm scaling
-        #     0.488,
-        #     # Min skeleton size
-        #     10,
-        #     # Mask smoothing parameters
-        #     {
-        #         "gaussian_sigma": 2,
-        #         "dilation_iterations": 2,
-        #         "holearea_min_max": [10, None],
-        #     },
-        #     # Skeletonisation parameters
-        #     {
-        #         "method": "topostats",
-        #         "height_bias": 0.6,
-        #     },
-        #     # Pruning parameters
-        #     {
-        #         "method": "topostats",
-        #         "max_length": 20.0,
-        #         "height_threshold": None,
-        #         "method_values": "mid",
-        #         "method_outlier": "mean_abs",
-        #     },
-        #     "rep_int_disordered_tracing_crop_data.pkl",
-        #     "rep_int_disordered_tracing_all_images.pkl",
-        #     id="replication intermediate",
-        # ),
         pytest.param(
             "example_rep_int.npy",
             "example_rep_int_graincrops.pkl",
@@ -1443,8 +1383,8 @@ def test_trace_image_disordered(
     (
         result_disordered_trace_crop_data,
         _grainstats_additions_df,
+        result_images,
         disordered_tracing_stats,
-        # _result_images
     ) = disordered_tracing.trace_image_disordered(
         full_image=image,
         grain_crops=graincrops,
@@ -1472,7 +1412,7 @@ def test_trace_image_disordered(
 
     # # Save result_all_images as a pickle
     # with open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "wb") as f:
-    #     pkl.dump(result_all_images, f)
+    #     pkl.dump(result_images, f)
 
     # Load expected values
     with Path.open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "rb") as f:
@@ -1482,7 +1422,7 @@ def test_trace_image_disordered(
         expected_all_images = pkl.load(f)
 
     assert dict_almost_equal(result_disordered_trace_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
-    # assert dict_almost_equal(result_all_images, expected_all_images, abs_tol=1e-11)
+    assert dict_almost_equal(result_images, expected_all_images, abs_tol=1e-11)
 
 
 @pytest.mark.parametrize(
