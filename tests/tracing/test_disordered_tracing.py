@@ -12,7 +12,6 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.grains import GrainCrop
 from topostats.io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing import disordered_tracing
@@ -1437,7 +1436,7 @@ def test_trace_image_disordered(
 ) -> None:
     """Test the trace image disordered method."""
     # Load the image
-    image: npt.NDArray[np.float] = np.load(GENERAL_RESOURCES / image_filename)
+    image: npt.NDArray[float] = np.load(GENERAL_RESOURCES / image_filename)
     # Load graincrops
     with Path.open(GENERAL_RESOURCES / graincrops_filename, "rb") as f:
         graincrops = pkl.load(f)
