@@ -311,7 +311,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     skeletonisation_params: dict,
     pruning_params: dict,
     pad_width: int = 1,
-) -> tuple[dict[str, dict], pd.DataFrame, pd.DataFrame]:
+) -> tuple[dict[str, dict], pd.DataFrame, dict[str, npt.NDArray], pd.DataFrame]:
     """
     Processor function for tracing image.
 
@@ -450,8 +450,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         # Set the name of the index column to be the grain number
         grainstats_additions_df.index.name = "grain_number"
 
-    # return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
-    return disordered_trace_crop_data, grainstats_additions_df, disordered_tracing_stats
+    return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
 
 
 def compile_skan_stats(
