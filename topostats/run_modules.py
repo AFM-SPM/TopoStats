@@ -237,11 +237,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # Keys are the image names
     # Values are the individual image data dictionaries
     scan_data_dict = all_scan_data.img_dict
-    # Pop elements added for user convenience by AFMReader.topostats.load_topostats(), irrelevant when processing
-    if config["file_ext"] == ".topostats":
-        scan_data_dict.pop("image")
-        scan_data_dict.pop("pixel_to_nm_scaling")
-        scan_data_dict.pop("topostats_file_version")
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()

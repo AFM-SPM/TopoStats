@@ -121,6 +121,8 @@ def test_run_topostats_process_all(caplog) -> None:
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "--extract",
+            "all",
             "process",
         ]
     )
