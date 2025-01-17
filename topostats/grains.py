@@ -840,7 +840,9 @@ class Grains:
                         image_shape=self.image.shape,
                     )
 
-                    self.directions[direction]["unet_tensor"] = full_mask_tensor
+                # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
+                # can be changed when we do a plotting overhaul
+                self.directions[direction]["unet_tensor"] = full_mask_tensor
 
                 # Vet the grains
                 if self.vetting is not None:
@@ -851,34 +853,42 @@ class Grains:
                     )
                 else:
                     graincrops_vetted = graincrops
+                graincrops_vetted = Grains.graincrops_update_background_class(graincrops=graincrops_vetted)
 
-                vetted_full_tensor = Grains.construct_full_mask_from_graincrops(
+                full_mask_tensor_vetted = Grains.construct_full_mask_from_graincrops(
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.directions[direction]["vetted_tensor"] = vetted_full_tensor
+                self.directions[direction]["vetted_tensor"] = full_mask_tensor_vetted
 
                 # Merge classes as specified by the user
                 graincrops_merged_classes = Grains.graincrops_merge_classes(
                     graincrops=graincrops_vetted,
                     classes_to_merge=self.classes_to_merge,
                 )
-
-                # Update the background class to ensure the background is accurate
-                graincrops_updated_background = Grains.graincrops_update_background_class(
+                graincrops_merged_classes = Grains.graincrops_update_background_class(
                     graincrops=graincrops_merged_classes
                 )
+                graincrops_merged_classes = Grains.graincrops_update_background_class(
+                    graincrops=graincrops_merged_classes
+                )
+
+                full_mask_tensor_merged_classes = Grains.construct_full_mask_from_graincrops(
+                    graincrops=graincrops_merged_classes,
+                    image_shape=self.image.shape,
+                )
+                self.directions[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
 
                 # Store the grain crops
                 if direction == "above":
                     image_grain_crops.above = GrainCropsDirection(
-                        crops=graincrops_updated_background,
-                        full_mask_tensor=full_mask_tensor,
+                        crops=graincrops_merged_classes,
+                        full_mask_tensor=full_mask_tensor_merged_classes,
                     )
                 elif direction == "below":
                     image_grain_crops.below = GrainCropsDirection(
-                        crops=graincrops_updated_background,
-                        full_mask_tensor=full_mask_tensor,
+                        crops=graincrops_merged_classes,
+                        full_mask_tensor=full_mask_tensor_merged_classes,
                     )
                 else:
                     raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
