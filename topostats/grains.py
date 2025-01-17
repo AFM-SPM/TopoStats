@@ -252,6 +252,13 @@ class GrainCropsDirection:
 
         LOGGER.info("Cannot find difference between graincrops")
 
+    def update_full_mask_tensor(self):
+        """Update the full mask tensor from the grain crops."""
+        self.full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+            graincrops=self.crops,
+            image_shape=self.full_mask_tensor.shape[:2],
+        )
+
 
 @dataclass
 class ImageGrainCrops:
