@@ -200,23 +200,40 @@ def run_grains(  # noqa: C901
                 for direction, image_arrays in grains.directions.items():
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
+                    # Possibly delete this creation of the directory since we already do this earlier?
                     if plotting_config["image_set"] == "all":
                         grain_out_path_direction.mkdir(parents=True, exist_ok=True)
                         LOGGER.debug(f"[{filename}] : Target grain directory created : {grain_out_path_direction}")
                     for plot_name, array in image_arrays.items():
-                        LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
-                        plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                        Images(
-                            data=np.zeros_like(array), masked_array=array, **plotting_config["plot_dict"][plot_name]
-                        ).plot_and_save()
+                        if len(array.shape) == 3:
+                            # Tensor, iterate over each channel
+                            for tensor_class in range(1, array.shape[2]):
+                                LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
+                                plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                                Images(
+                                    data=image,
+                                    filename=f"{filename}_{direction}_channel_{tensor_class}",
+                                    **plotting_config["plot_dict"][plot_name],
+                                ).plot_and_save()
+                        else:
+                            # 2D array
+                            LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
+                            plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                            Images(
+                                data=np.zeros_like(array),
+                                masked_array=array,
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
                     # Make a plot of coloured regions with bounding boxes
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
+                    # Coloured regions is always 2d for now.
                     Images(
                         grains.directions[direction]["coloured_regions"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
+                    # Labelled regions 02 is always 2d for now.
                     Images(
                         data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
                         masked_array=grains.directions[direction]["labelled_regions_02"],
@@ -226,14 +243,25 @@ def run_grains(  # noqa: C901
                     # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    # hard code to class index 1, as this implementation is not yet generalised.
-                    Images(
-                        image,
-                        filename=f"{filename}_{direction}_masked",
-                        masked_array=grains.directions[direction]["removed_small_objects"].astype(bool),
-                        **plotting_config["plot_dict"][plot_name],
-                        region_properties=grains.region_properties[direction],
-                    ).plot_and_save()
+                    removed_small_objects = grains.directions[direction]["removed_small_objects"]
+                    if len(removed_small_objects.shape) == 3:
+                        # Tensor, iterate over each channel
+                        for tensor_class in range(1, removed_small_objects.shape[2]):
+                            Images(
+                                data=image,
+                                filename=f"{filename}_{direction}_masked_channel_{tensor_class}",
+                                masked_array=removed_small_objects[:, :, tensor_class].astype(bool),
+                                **plotting_config["plot_dict"][plot_name],
+                                # region_properties=grains.region_properties[direction],
+                            )
+                    else:
+                        Images(
+                            data=image,
+                            filename=f"{filename}_{direction}_masked",
+                            masked_array=removed_small_objects.astype(bool),
+                            **plotting_config["plot_dict"][plot_name],
+                            # region_properties=grains.region_properties[direction],
+                        ).plot_and_save()
                 plotting_config["run"] = True
             else:
                 # Otherwise, return None and warn that plotting is disabled for grain finding images
@@ -807,7 +835,9 @@ def run_splining(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     splining_grainstats = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
+                    splining_molstats = create_empty_dataframe(
+                        column_set="mol_statistics", index_col="molecule_number"
+                    )
                     raise ValueError(f"No grains exist for the {direction} direction")
                 # if grains are found
                 (
@@ -1190,7 +1220,9 @@ def process_scan(
     else:
         grainstats_df = create_empty_dataframe(column_set="grainstats", index_col="grain_number")
         molstats_df = create_empty_dataframe(column_set="mol_statistics", index_col="molecule_number")
-        disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics", index_col="index")
+        disordered_tracing_stats = create_empty_dataframe(
+            column_set="disordered_tracing_statistics", index_col="index"
+        )
         height_profiles = {}
 
     # Get image statistics
