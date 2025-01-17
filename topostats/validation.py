@@ -260,6 +260,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'disordered_tracing.run', valid values are 'True' or 'False'",
             ),
+            "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
             "pad_width": lambda n: n > 0.0,
             "mask_smoothing_params": {
@@ -968,6 +969,58 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
+        "unet_tensor": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'unet_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "vetted_tensor": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'vetted_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "merged_classes_tensor": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'merged_classes_tensor.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
         "coloured_boxes": {
             "filename": str,
             "title": str,
@@ -1005,7 +1058,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
