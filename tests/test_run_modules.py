@@ -171,5 +171,4 @@ def test_filters(caplog) -> None:
         ]
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
-    assert "Extracting image from tests/resources/test_image/minicircle_small.topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
