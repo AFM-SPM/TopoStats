@@ -665,7 +665,6 @@ if __name__ == "__main__":
     df = importfromfile(path)
     # df = df[df['Basename'] == 'Ni']
     # df = df[df['Basename'] == 'PLO']
-    # df = df[df['Basename'] == 'Without NDP52']
     # df = df[df['bending_angle'] != 0]
     path2 = plotting_config["file2"]
     path3 = plotting_config["file3"]
