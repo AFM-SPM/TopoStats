@@ -114,14 +114,14 @@ class Grains:
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
-            Configuration for the UNet model.
-            model_path: str
+            Configuration for the UNet model which is a dictionary with the following keys and values.
+            model_path : str
                 Path to the UNet model.
-            grain_crop_padding: int
+            grain_crop_padding : int
                 Padding to add to the bounding box of the grain before cropping.
-            upper_norm_bound: float
+            upper_norm_bound : float
                 Upper bound for normalising the image.
-            lower_norm_bound: float
+            lower_norm_bound : float
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
@@ -738,7 +738,6 @@ class Grains:
 
             # Add each class of the predicted mask to the overall full image mask
             for class_index in range(unet_mask.shape[2]):
-
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
 
@@ -978,7 +977,6 @@ class Grains:
 
         # Iterate over the regions and return the crop, but zero any non-connected grains
         for region in Grains.get_region_properties(labelled_regions):
-
             binary_labelled_regions = labelled_regions == region.label
 
             # Zero any non-connected grains
@@ -1481,7 +1479,6 @@ class Grains:
 
         # Iterate over the grain crops
         for _, (single_grain_mask_tensor, bounding_box) in enumerate(zip(grain_tensor_crops, bounding_boxes)):
-
             # Convert small / big areas to other classes
             single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
                 grain_mask_tensor=single_grain_mask_tensor,
