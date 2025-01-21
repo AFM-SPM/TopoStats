@@ -58,6 +58,7 @@ CONFIG = {
 }
 
 # pylint: disable=protected-access
+# pylint: disable=too-many-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-positional-arguments
 
@@ -1118,11 +1119,21 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below", "grain_trace_data"),
+    (
+        "image",
+        "pixel_to_nm_scaling",
+        "filename",
+        "img_path",
+        "grain_mask_above",
+        "grain_mask_below",
+        "grain_trace_data",
+    ),
     [
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "below_grain_mask_with_grain_trace_data",
+            "./below_grain_mask_with_grain_trace_data.topostats",
             None,
             np.zeros((10, 10)),
             {
@@ -1224,6 +1235,8 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "above_grain_mask_without_grain_trace_data",
+            "./above_grain_mask_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
             None,
             None,
@@ -1232,6 +1245,8 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "above_and_below_grain_masks_without_grain_trace_data",
+            "./above_and_below_grain_masks_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
             np.zeros((10, 10)),
             None,
@@ -1244,14 +1259,19 @@ def test_save_and_load_topostats_file(
     tmp_path: Path,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
+    filename: str,
+    img_path: str,
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
     grain_trace_data: dict,
 ) -> None:
     """Test saving a .topostats file."""
     topostats_object = {
-        "image_flattened": image,
+        "filename": filename,
+        "img_path": img_path,
         "pixel_to_nm_scaling": pixel_to_nm_scaling,
+        "image_original": image,
+        "image_flattened": image,
         "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
         "grain_trace_data": grain_trace_data,
     }
@@ -1273,8 +1293,7 @@ def test_save_and_load_topostats_file(
         "grain_masks",
         "grain_trace_data",
     }
-
-    np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
+    np.testing.assert_array_equal(image, loadscans.img_dict["image_original"])
     assert pixel_to_nm_scaling == loadscans.img_dict["pixel_to_nm_scaling"]
     if grain_mask_above is not None:
         np.testing.assert_array_equal(grain_mask_above, loadscans.img_dict["grain_masks"]["above"])

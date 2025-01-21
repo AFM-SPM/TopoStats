@@ -5,6 +5,7 @@ cores: 2 # Number of CPU cores to utilise for processing multiple files simultan
 file_ext: .spm # File extension of the data files.
 loading:
   channel: Height # Channel to pull data from in the data files.
+  extract: raw # Array to extract when loading .topostats files.
 filter:
   run: true # Options : true, false
   row_alignment_quantile: 0.5 # lower values may improve flattening of larger features

@@ -121,6 +121,8 @@ def test_run_topostats_process_all(caplog) -> None:
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "--extract",
+            "all",
             "process",
         ]
     )
@@ -149,3 +151,24 @@ def test_run_topostats_process_debug(caplog) -> None:
         assert "File extension : .topostats" in caplog.text
         assert "Images processed : 1" in caplog.text
         assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
+
+
+def test_filters(caplog) -> None:
+    """Test running the filters module.
+
+    We use the command line entry point to test that _just_ filters runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "filter",  # This is the sub-command we wish to test, it will call run_modules.filters()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Filtering completed." in caplog.text

@@ -1,7 +1,8 @@
 """
 Run TopoStats modules.
 
-This provides an entry point for running TopoStats as a command line programme.
+This provide entry points for running TopoStats as a command line programme. Each function within this module is a
+wrapper which runs various functions from the ''processing'' module in parallel.
 """
 
 from __future__ import annotations
@@ -33,9 +34,9 @@ from topostats.plotting import toposum
 from topostats.processing import (
     check_run_steps,
     completion_message,
+    process_filters,
     process_scan,
     run_disordered_tracing,
-    run_filters,
     run_grains,
     run_grainstats,
     run_nodestats,
@@ -156,7 +157,7 @@ def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, 
 
     Parameters
     ----------
-    args : None
+    args : argparse.Namespace | None
         Arguments.
 
     Returns
@@ -226,6 +227,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )
+    # Ensure we load the original images as we are running the whole pipeline
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "raw"
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
@@ -233,11 +237,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # Keys are the image names
     # Values are the individual image data dictionaries
     scan_data_dict = all_scan_data.img_dict
-    # Pop elements added for user convenience by AFMReader.topostats.load_topostats(), irrelevant when processing
-    if config["file_ext"] == ".topostats":
-        scan_data_dict.pop("image")
-        scan_data_dict.pop("pixel_to_nm_scaling")
-        scan_data_dict.pop("topostats_file_version")
 
     with Pool(processes=config["cores"]) as pool:
         results = defaultdict()
@@ -410,7 +409,42 @@ def filters(args: argparse.Namespace | None = None) -> None:
         Arguments.
     """
     config, img_files = _parse_configuration(args)
-    run_filters()
+    # If loading existing .topostats files the images need filtering again so we need to extract the raw image
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "raw"
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+
+    processing_function = partial(
+        process_filters,
+        base_dir=config["base_dir"],
+        filter_config=config["filter"],
+        plotting_config=config["plotting"],
+        output_dir=config["output_dir"],
+    )
+
+    with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
+        with tqdm(
+            total=len(img_files),
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+        ) as pbar:
+            for img, result in pool.imap_unordered(
+                processing_function,
+                all_scan_data.img_dict.values(),
+            ):
+                results[str(img)] = result
+                pbar.update()
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img}] Filtering completed.")
+
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    LOGGER.debug(f"Images processed : {len(results)}")
+    # Update config with plotting defaults for printing
+    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
 
 
 def grains(args: argparse.Namespace | None = None) -> None:
