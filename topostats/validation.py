@@ -933,25 +933,6 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
         },
-        "coloured_regions": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_regions.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-        },
         "bounding_boxes": {
             "filename": str,
             "title": str,

@@ -175,13 +175,6 @@ labelled_regions_02:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
-coloured_regions:
-  filename: "24-coloured_regions"
-  title: "Coloured Regions"
-  image_type: "binary"
-  mask_cmap: "rainbow"
-  savefig_dpi: 100
-  core_set: false
 bounding_boxes:
   filename: "25-bounding_boxes"
   title: "Bounding Boxes"

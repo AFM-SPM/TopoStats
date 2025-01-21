@@ -786,9 +786,6 @@ class Grains:
                 self.directions[direction]["labelled_regions_02"]
             )
             LOGGER.debug(f"[{self.filename}] : Region properties calculated ({direction})")
-            self.directions[direction]["coloured_regions"] = self.colour_regions(
-                self.directions[direction]["labelled_regions_02"]
-            )
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
             LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 

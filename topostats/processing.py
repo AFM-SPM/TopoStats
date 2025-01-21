@@ -207,12 +207,16 @@ def run_grains(  # noqa: C901
                     for plot_name, array in image_arrays.items():
                         if len(array.shape) == 3:
                             # Tensor, iterate over each channel
+                            filename_base = plotting_config["plot_dict"][plot_name]["filename"]
                             for tensor_class in range(1, array.shape[2]):
                                 LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
                                 plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    filename_base + f"_class_{tensor_class}"
+                                )
                                 Images(
                                     data=image,
-                                    filename=f"{filename}_{direction}_channel_{tensor_class}",
+                                    masked_array=array[:, :, tensor_class],
                                     **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
                         else:
@@ -228,7 +232,7 @@ def run_grains(  # noqa: C901
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
                     # Coloured regions is always 2d for now.
                     Images(
-                        grains.directions[direction]["coloured_regions"],
+                        grains.directions[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
