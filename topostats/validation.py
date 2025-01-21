@@ -1039,9 +1039,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
