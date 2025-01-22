@@ -17,7 +17,6 @@ import pytest
 
 from topostats.io import (
     LoadScans,
-    TopoFileHelper,
     convert_basename_to_relative_paths,
     dict_to_hdf5,
     dict_to_json,

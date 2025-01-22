@@ -1,7 +1,7 @@
 """For helper scripts in handling .topostats files."""
 
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import h5py
 import numpy.typing as npt
