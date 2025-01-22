@@ -15,7 +15,7 @@ be found in the `notebook/` directory after cloning the GitHub repository.
 ## Installation
 
 To be able to run the Notebooks you need some additional Python packages installed. You will have to clone the
-repository from GitHub (see [installation](installation)) and then install the Notebook dependencies
+repository from GitHub (see [installation](installation.md)) and then install the Notebook dependencies
 with the following commands under your Virtual Environment (e.g. Conda)...
 
 ```bash

@@ -333,7 +333,7 @@ Graphics](https://en.wikipedia.org/wiki/SVG)), `pdf` ([Portable Document
 Format](https://en.wikipedia.org/wiki/PDF)), and `tif` ([Tag Image File
 Format](https://en.wikipedia.org/wiki/TIFF)). The default is `png` but, as with both DPI and Colormap, these can be
 easily changed via a custom configuration file or command line options to change these without having to edit the
-[Matplotlib Style file](matplotlib-style). If using `tif` it is worth being aware that although the image will be saved,
+[Matplotlib Style file](matplotlib-style.md). If using `tif` it is worth being aware that although the image will be saved,
 this will be without metadata since this is not supported for `tif` files (see the note under `metadata` of [Matplotlib
 savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html)).
 

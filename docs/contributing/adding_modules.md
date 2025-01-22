@@ -1,4 +1,4 @@
-# How to add modules
+# Adding Modules
 
 ## Basic Functionality
 
