@@ -21,7 +21,7 @@ not currently considered core elements of `topostats` apart from `Plotting.py`.
 
 Currently the `topostats` module consists of:
 
-- `default_config.ini` The default config file.
+- `default_config.yaml` The default config file.
 - `run_topostats.py` The main script for running `topostats` and handles multiprocessing.
 - `entry_point.py` Handles the entry point commandline commands.
 - `processing.py` Handles processing a single AFM file.
