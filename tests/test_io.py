@@ -1411,12 +1411,3 @@ class TestTopoFileHelper:
         topo_file_helper = TopoFileHelper("tests/resources/file.topostats")
         cropped_image = topo_file_helper.get_data("grain_trace_data/above/cropped_images/2")
         assert isinstance(cropped_image, np.ndarray)
-
-
-# This test only works when not part of the TestTopoFileHelper class
-def test_pretty_print_structure(caplog) -> None:
-    """Test the pretty_print_structure method of the TopoFileHelper class."""
-    topo_file_helper = TopoFileHelper("tests/resources/file.topostats")
-    topo_file_helper.pretty_print_structure()
-    assert "filename" in caplog.text
-    assert "keys with numpy arrays as values" in caplog.text

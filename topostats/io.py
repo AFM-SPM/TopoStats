@@ -1297,6 +1297,8 @@ class TopoFileHelper:
 
     Examples
     --------
+    This class should be used in a Jupyter Notebook or an interactive Python session.
+
     Creating a helper object.
     .. code-block:: RST
         from topostats.io import TopoFileHelper
@@ -1305,43 +1307,27 @@ class TopoFileHelper:
         helper = TopoFileHelper(topofile)
 
 
-    Print the structure of the data in the file.
+    Find the data you're looking for using H5Glance (only works in Jupyter Notebooks).
     .. code-block:: RST
-    from topostats.io import TopoFileHelper
+        from H5Glance import H5Glance
 
-    topofile = "path/to/topostats_file.topostats"
-    helper = TopoFileHelper(topofile)
-    helper.pretty_print_structure()
+        file = "path/to/topostats_file.topostats"
+        H5Glance(file)
+
+    Which prints an interactive explorer of the file structure, eg:
 
     .. code-block:: RST
-        >>> [./tests/resources/file.topostats]
-        >>> ├ filename
-        >>> │   └ minicircle
-        >>> ├ grain_masks
-        >>> │   └ above
-        >>> │       └ Numpy array, shape: (1024, 1024), dtype: int64
-        >>> ├ grain_trace_data
-        >>> │   └ above
-        >>> │       ├ cropped_images
-        >>> │       │   └ 21 keys with numpy arrays as values
-        >>> │       ├ ordered_trace_cumulative_distances
-        >>> │       │   └ 21 keys with numpy arrays as values
-        >>> │       ├ ordered_trace_heights
-        >>> │       │   └ 21 keys with numpy arrays as values
-        >>> │       ├ ordered_traces
-        >>> │       │   └ 21 keys with numpy arrays as values
-        >>> │       └ splined_traces
-        >>> │           └ 21 keys with numpy arrays as values
-        >>> ├ image
-        >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
-        >>> ├ image_original
-        >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
-        >>> ├ img_path
-        >>> │   └ /Users/sylvi/Documents/TopoStats/tests/resources/minicircle
-        >>> ├ pixel_to_nm_scaling
-        >>> │   └ 0.4940029296875
-        >>> └ topostats_file_version
-        >>>     └ 0.2
+        ../tests/resources/process_scan_topostats_file_regtest.topostats
+            grain_masks
+            grain_trace_data
+            height_profiles
+            filename [📋]: scalar entries, dtype: ASCII string
+            image [📋]: 64 x 64 entries, dtype: float64
+            image_original [📋]: 64 x 64 entries, dtype: float64
+            pixel_to_nm_scaling [📋]: scalar entries, dtype: float64
+            topostats_file_version [📋]: scalar entries, dtype: float64
+
+    Where each entry can be clicked on for more information.
 
     Finding data in a file.
     .. code-block:: RST
@@ -1515,69 +1501,6 @@ class TopoFileHelper:
         else:
             LOGGER.info("| [search] No partial matches found.")
         LOGGER.info("└ [End of search]")
-
-    def pretty_print_structure(self) -> None:
-        """
-        Print the structure of the data in the data dictionary.
-
-        The structure is printed with the keys indented to show the hierarchy of the data.
-        """
-
-        def print_structure(data: dict, level=0, prefix=""):
-            """
-            Recursive function to print the structure.
-
-            Parameters
-            ----------
-            data : dict
-                The dictionary to print the structure of.
-            level : int, optional
-                The current level of the dictionary, by default 0.
-            prefix : str, optional
-                The prefix to use when printing the dictionary, by default "".
-            """
-            for i, (key, value) in enumerate(data.items()):
-                is_last_item = i == len(data) - 1
-                current_prefix = prefix + ("└ " if is_last_item else "├ ")
-                LOGGER.info(current_prefix + key)
-
-                if isinstance(value, dict):
-                    # Check if all keys are able to be integers, they are strings but need to check if they can be
-                    # converted to integers without error
-                    all_keys_are_integers = True
-                    for k in value.keys():
-                        try:
-                            int(k)
-                        except ValueError:
-                            all_keys_are_integers = False
-                            break
-                    all_values_are_numpy_arrays = all(isinstance(v, np.ndarray) for v in value.values())
-                    # if dictionary has keys that are integers and values that are numpy arrays, print the number
-                    # of keys and the shape of the numpy arrays
-                    if all_keys_are_integers and all_values_are_numpy_arrays:
-                        LOGGER.info(
-                            prefix
-                            + ("    " if is_last_item else "│   ")
-                            + "└ "
-                            + f"{len(value)} keys with numpy arrays as values"
-                        )
-                    else:
-                        new_prefix = prefix + ("    " if is_last_item else "│   ")
-                        print_structure(value, level + 1, new_prefix)
-
-                elif isinstance(value, np.ndarray):
-                    # Don't print the array, just the shape
-                    LOGGER.info(
-                        prefix
-                        + ("    " if is_last_item else "│   ")
-                        + "└ "
-                        + f"Numpy array, shape: {str(value.shape)}, dtype: {value.dtype}"
-                    )
-                else:
-                    LOGGER.info(f"{prefix + ('    ' if is_last_item else '│   ') + '└ ' + str(value)}")
-
-        LOGGER.info(f"[{self.topofile}]")
-        print_structure(self.data)
 
     def get_data(self, location: str) -> int | float | str | np.ndarray | dict | None:
         """
