@@ -1382,32 +1382,3 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
 
     with outfile.open("r", encoding="utf-8") as f:
         assert target == json.load(f)
-
-
-class TestTopoFileHelper:
-    """Test the TopoFileHelper class."""
-
-    @pytest.mark.parametrize(
-        ("file_path_or_string"),
-        [
-            pytest.param(
-                "tests/resources/file.topostats",
-                id="String file path",
-            ),
-            pytest.param(
-                Path("tests/resources/file.topostats"),
-                id="Path object path",
-            ),
-        ],
-    )
-    def test_init(self, file_path_or_string: Path | str) -> None:
-        """Test the __init__ method of the TopoFileHelper class."""
-        topo_file_helper = TopoFileHelper(file_path_or_string)
-        assert isinstance(topo_file_helper, TopoFileHelper)
-        assert isinstance(topo_file_helper.data, dict)
-
-    def test_get_data(self) -> None:
-        """Test the get_data method of the TopoFileHelper class."""
-        topo_file_helper = TopoFileHelper("tests/resources/file.topostats")
-        cropped_image = topo_file_helper.get_data("grain_trace_data/above/cropped_images/2")
-        assert isinstance(cropped_image, np.ndarray)
