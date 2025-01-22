@@ -1298,88 +1298,91 @@ class TopoFileHelper:
     Examples
     --------
     Creating a helper object.
-    ```python
-    from topostats.io import TopoFileHelper
+    .. code-block:: RST
+        from topostats.io import TopoFileHelper
 
-    topofile = "path/to/topostats_file.topostats"
-    helper = TopoFileHelper(topofile)
-    ```
+        topofile = "path/to/topostats_file.topostats"
+        helper = TopoFileHelper(topofile)
+
 
     Print the structure of the data in the file.
-    ```python
+    .. code-block:: RST
     from topostats.io import TopoFileHelper
 
     topofile = "path/to/topostats_file.topostats"
     helper = TopoFileHelper(topofile)
     helper.pretty_print_structure()
-    ```
-    >>> [./tests/resources/file.topostats]
-    >>> ├ filename
-    >>> │   └ minicircle
-    >>> ├ grain_masks
-    >>> │   └ above
-    >>> │       └ Numpy array, shape: (1024, 1024), dtype: int64
-    >>> ├ grain_trace_data
-    >>> │   └ above
-    >>> │       ├ cropped_images
-    >>> │       │   └ 21 keys with numpy arrays as values
-    >>> │       ├ ordered_trace_cumulative_distances
-    >>> │       │   └ 21 keys with numpy arrays as values
-    >>> │       ├ ordered_trace_heights
-    >>> │       │   └ 21 keys with numpy arrays as values
-    >>> │       ├ ordered_traces
-    >>> │       │   └ 21 keys with numpy arrays as values
-    >>> │       └ splined_traces
-    >>> │           └ 21 keys with numpy arrays as values
-    >>> ├ image
-    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
-    >>> ├ image_original
-    >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
-    >>> ├ img_path
-    >>> │   └ /Users/sylvi/Documents/TopoStats/tests/resources/minicircle
-    >>> ├ pixel_to_nm_scaling
-    >>> │   └ 0.4940029296875
-    >>> └ topostats_file_version
-    >>>     └ 0.2
+
+    .. code-block:: RST
+        >>> [./tests/resources/file.topostats]
+        >>> ├ filename
+        >>> │   └ minicircle
+        >>> ├ grain_masks
+        >>> │   └ above
+        >>> │       └ Numpy array, shape: (1024, 1024), dtype: int64
+        >>> ├ grain_trace_data
+        >>> │   └ above
+        >>> │       ├ cropped_images
+        >>> │       │   └ 21 keys with numpy arrays as values
+        >>> │       ├ ordered_trace_cumulative_distances
+        >>> │       │   └ 21 keys with numpy arrays as values
+        >>> │       ├ ordered_trace_heights
+        >>> │       │   └ 21 keys with numpy arrays as values
+        >>> │       ├ ordered_traces
+        >>> │       │   └ 21 keys with numpy arrays as values
+        >>> │       └ splined_traces
+        >>> │           └ 21 keys with numpy arrays as values
+        >>> ├ image
+        >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+        >>> ├ image_original
+        >>> │   └ Numpy array, shape: (1024, 1024), dtype: float64
+        >>> ├ img_path
+        >>> │   └ /Users/sylvi/Documents/TopoStats/tests/resources/minicircle
+        >>> ├ pixel_to_nm_scaling
+        >>> │   └ 0.4940029296875
+        >>> └ topostats_file_version
+        >>>     └ 0.2
 
     Finding data in a file.
-    ```python
-    from topostats.io import TopoFileHelper
+    .. code-block:: RST
+        from topostats.io import TopoFileHelper
 
-    topofile = "path/to/topostats_file.topostats"
-    helper = TopoFileHelper(topofile)
-    helper.find_data(["ordered_trace_heights", "0"])
-    ```
+        topofile = "path/to/topostats_file.topostats"
+        helper = TopoFileHelper(topofile)
+        helper.find_data(["ordered_trace_heights", "0"])
 
-    >>>    [ Searching for ['ordered_trace_heights', '0'] in ./path/to/topostats_file.topostats ]
-    >>>    | [search] No direct match found.
-    >>>    | [search] Searching for partial matches.
-    >>>    | [search] !! [ 1 Partial matches found] !!
-    >>>    | [search] └ grain_trace_data/above/ordered_trace_heights/0
-    >>>    └ [End of search]
+    .. code-block:: RST
+        >>>    [ Searching for ['ordered_trace_heights', '0'] in ./path/to/topostats_file.topostats ]
+        >>>    | [search] No direct match found.
+        >>>    | [search] Searching for partial matches.
+        >>>    | [search] !! [ 1 Partial matches found] !!
+        >>>    | [search] └ grain_trace_data/above/ordered_trace_heights/0
+        >>>    └ [End of search]
 
     Get data from a file.
-    ```python
-    from topostats.io import TopoFileHelper
+    .. code-block:: RST
+        from topostats.io import TopoFileHelper
 
-    topofile = "path/to/topostats_file.topostats"
-    helper = TopoFileHelper(topofile)
+        topofile = "path/to/topostats_file.topostats"
+        helper = TopoFileHelper(topofile)
 
-    data = helper.get_data("ordered_trace_heights/0")
-    ```
-    >>> [ Get data ] Data found at grain_trace_data/above/ordered_trace_heights/0, type: <class 'numpy.ndarray'>
+        data = helper.get_data("ordered_trace_heights/0")
+
+    .. code-block:: RST
+        >>> [ Get data ] Data found at grain_trace_data/above/ordered_trace_heights/0, type: <class 'numpy.ndarray'>
 
     Get data information
-    ```python
-    from topostats.io import TopoFileHelper
+    .. code-block:: RST
+        from topostats.io import TopoFileHelper
 
-    topofile = "path/to/topostats_file.topostats"
-    helper = TopoFileHelper(topofile)
+        topofile = "path/to/topostats_file.topostats"
+        helper = TopoFileHelper(topofile)
 
-    helper.data_info("grain_trace_data/above/ordered_trace_heights/0")
-    ```
-    >>> [ Info ] Data at grain_trace_data/above/ordered_trace_heights/0 is a numpy array with shape: (95,),
-    >>> dtype: float64
+        helper.data_info("grain_trace_data/above/ordered_trace_heights/0")
+
+    .. code-block:: RST
+        >>> [ Info ] Data at grain_trace_data/above/ordered_trace_heights/0 is a numpy array with shape: (95,),
+        >>> dtype: float64
     """
 
     def __init__(self, topofile: Path | str) -> None:
