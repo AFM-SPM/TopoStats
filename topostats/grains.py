@@ -845,7 +845,6 @@ class Grains:
                 if self.vetting is not None:
                     graincrops_vetted = Grains.vet_grains(
                         graincrops=graincrops,
-                        pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                         **self.vetting,
                     )
                 else:
@@ -1651,7 +1650,6 @@ class Grains:
     @staticmethod
     def vet_grains(
         graincrops: dict[int, GrainCrop],
-        pixel_to_nm_scaling: float,
         class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
         class_size_thresholds: list[tuple[int, int, int]] | None,
         class_region_number_thresholds: list[tuple[int, int, int]] | None,
@@ -1667,8 +1665,6 @@ class Grains:
         ----------
         graincrops : dict[int, GrainCrop]
             Dictionary of grain crops.
-        pixel_to_nm_scaling : float
-            Scaling of pixels to nanometres.
         class_conversion_size_thresholds : list
             List of class conversion size thresholds. Structure is [(class_index, class_to_convert_to_if_too_small,
             class_to_convert_to_if_too_big), (lower_threshold, upper_threshold)].
@@ -1696,6 +1692,7 @@ class Grains:
         for grain_number, graincrop in graincrops.items():
 
             single_grain_mask_tensor = graincrop.mask
+            pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
 
             # Convert small / big areas to other classes
             single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
