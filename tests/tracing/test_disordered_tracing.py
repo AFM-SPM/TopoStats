@@ -1428,7 +1428,7 @@ def test_trace_image_disordered(
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "mask_filename",
+        "graincrops_filename",
         "pixel_to_nm_scaling",
         "min_skeleton_size",
         "mask_smoothing_params",
@@ -1438,7 +1438,7 @@ def test_trace_image_disordered(
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_labelled_grain_mask_thresholded.npy",
+            "example_catenanes_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1466,7 +1466,7 @@ def test_trace_image_disordered(
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_labelled_grain_mask_thresholded.npy",
+            "example_rep_int_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1496,7 +1496,7 @@ def test_trace_image_disordered(
 )
 def test_trace_image_disordered_dataframes(
     image_filename: str,
-    mask_filename: str,
+    graincrops_filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -1506,8 +1506,10 @@ def test_trace_image_disordered_dataframes(
 ) -> None:
     """Test the trace image disordered method produces correct dataframes (/csv files)."""
     # Load the image
-    image = np.load(GENERAL_RESOURCES / image_filename)
-    mask = np.load(GENERAL_RESOURCES / mask_filename)
+    full_image = np.load(GENERAL_RESOURCES / image_filename)
+    # Load graincrops
+    with Path.open(GENERAL_RESOURCES / graincrops_filename, "rb") as f:
+        graincrops = pkl.load(f)
 
     (
         _,
@@ -1515,8 +1517,9 @@ def test_trace_image_disordered_dataframes(
         _,
         result_disordered_tracing_stats,
     ) = disordered_tracing.trace_image_disordered(
-        image=image,
-        grains_mask=mask,
+        full_image=full_image,
+        grain_crops=graincrops,
+        class_index=1,
         filename="test_image",
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
