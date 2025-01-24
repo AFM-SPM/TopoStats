@@ -296,7 +296,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(column_set: str = "grainstats", index_col: str = "grain_number") -> pd.DataFrame:
+def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 
