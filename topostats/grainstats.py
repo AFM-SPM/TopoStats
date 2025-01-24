@@ -334,7 +334,7 @@ class GrainStats:
             grainstats_df = pd.DataFrame(grainstats_rows)
 
         # Change the index column from the arbitrary one to the grain number
-        grainstats_df.set_index("grain_number", inplace=True)
+        # grainstats_df.set_index("grain_number", inplace=True)
         grainstats_df["image"] = self.image_name
 
         return grainstats_df, all_height_profiles

@@ -313,7 +313,7 @@ def create_empty_dataframe(column_set: str = "grainstats", index_col: str = "gra
         Empty Pandas DataFrame.
     """
     empty_df = pd.DataFrame(columns=COLUMN_SETS[column_set])
-    return empty_df.set_index(index_col)
+    return empty_df
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
