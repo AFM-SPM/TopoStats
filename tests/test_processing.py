@@ -288,7 +288,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     guess = filetype.guess(
         tmp_path
         / "tests/resources/test_image/processed/minicircle_small/grains/above"
-        / f"minicircle_small_grain_image_0.{extension}"
+        / f"minicircle_small_grain_mask_0_class_1.{extension}"
     )
     assert guess.extension == extension
 
