@@ -199,9 +199,9 @@ def predict_unet(
         channel_mask = predicted_mask[:, :, channel_index].astype(np.uint8)
         channel_mask_PIL = Image.fromarray(channel_mask)
         # Resize the channel mask to the original image size, but we want boolean so use nearest neighbour
-        # Sylvia: Pylint incorrectly thinks that Image.NEAREST is not a member of Image. IDK why.
-        # pylint: disable=no-member
-        channel_mask_PIL = channel_mask_PIL.resize((original_image.shape[1], original_image.shape[0]), Image.NEAREST)
+        channel_mask_PIL = channel_mask_PIL.resize(
+            (original_image.shape[1], original_image.shape[0]), Image.Resampling.NEAREST
+        )
         resized_predicted_mask[:, :, channel_index] = np.array(channel_mask_PIL).astype(bool)
 
     return resized_predicted_mask
