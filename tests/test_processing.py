@@ -240,7 +240,7 @@ def test_save_cropped_grains(
         Path.exists(
             tmp_path
             / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_image_0.png"
+            / "minicircle_small_grain_0.png"
         )
         == expected
     )
@@ -248,15 +248,7 @@ def test_save_cropped_grains(
         Path.exists(
             tmp_path
             / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_mask_0.png"
-        )
-        == expected
-    )
-    assert (
-        Path.exists(
-            tmp_path
-            / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_mask_image_0.png"
+            / "minicircle_small_grain_mask_0_class_1.png"
         )
         == expected
     )
