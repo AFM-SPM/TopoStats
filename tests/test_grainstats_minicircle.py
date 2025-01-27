@@ -108,5 +108,10 @@ def test_trace_extract_height_profile(minicircle_grainstats: GrainStats) -> None
     _statistics, height_profiles = minicircle_grainstats.calculate_stats()
     assert isinstance(height_profiles, dict)
     assert len(height_profiles) == 3
-    for mol, heights in height_profiles.items():
-        np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[mol])
+    for grain_index, grain_height_data in height_profiles.items():
+        # class index is 1, subgrain index is 1 since this is a simple test image with 1 non background
+        # class and no subgrains
+        class_index = 1
+        subgrain_index = 0
+        heights = grain_height_data[class_index][subgrain_index]
+        np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[grain_index])
