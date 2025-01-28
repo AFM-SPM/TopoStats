@@ -857,9 +857,19 @@ class Grains:
                 )
                 self.directions[direction]["vetted_tensor"] = full_mask_tensor_vetted
 
+                # Mandatory check to remove any objects in any classes that are too small to process
+                graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
+                    graincrops=graincrops_vetted,
+                    min_object_size=self.minimum_grain_size_px,
+                    min_object_bbox_size=self.minimum_bbox_size_px,
+                )
+                graincrops_removed_too_small_to_process = Grains.graincrops_update_background_class(
+                    graincrops=graincrops_removed_too_small_to_process
+                )
+
                 # Merge classes as specified by the user
                 graincrops_merged_classes = Grains.graincrops_merge_classes(
-                    graincrops=graincrops_vetted,
+                    graincrops=graincrops_removed_too_small_to_process,
                     classes_to_merge=self.classes_to_merge,
                 )
                 graincrops_merged_classes = Grains.graincrops_update_background_class(
@@ -1136,7 +1146,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -1878,7 +1890,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
@@ -1949,6 +1963,59 @@ class Grains:
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
             )
+
+        return graincrops
+
+    @staticmethod
+    def graincrops_remove_objects_too_small_to_process(
+        graincrops: dict[int, GrainCrop],
+        min_object_size: int,
+        min_object_bbox_size: int,
+    ) -> dict[int, GrainCrop]:
+        """
+        Remove objects that are too small to process from each class of the grain crops.
+
+        Parameters
+        ----------
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
+        min_object_size : int
+            Minimum object size to keep (pixels).
+        min_object_bbox_size : int
+            Minimum object bounding box size to keep (pixels^2).
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            Dictionary of grain crops with objects too small to process removed.
+        """
+        for _grain_number, graincrop in graincrops.items():
+            # Iterate over the classes
+            for class_index in range(1, graincrop.mask.shape[2]):
+                # Get the binary mask for the class
+                class_mask = graincrop.mask[:, :, class_index]
+
+                # Label the regions
+                labelled_regions = Grains.label_regions(class_mask)
+                region_properties = Grains.get_region_properties(labelled_regions)
+
+                # Iterate over the regions
+                for region in region_properties:
+                    # Get the region mask
+                    region_mask = labelled_regions == region.label
+                    region_bbox = region.bbox
+
+                    # Check the region size
+                    if (
+                        region.area < min_object_size
+                        or (region_bbox[2] - region_bbox[0]) * (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
+                    ):
+                        # Remove the region from the class
+                        graincrop.mask[:, :, class_index] = np.where(
+                            region_mask,
+                            0,
+                            graincrop.mask[:, :, class_index],
+                        )
 
         return graincrops
 
