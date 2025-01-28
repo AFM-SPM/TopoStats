@@ -57,6 +57,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        args: [--config .codespellrc]
 
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.4.2
