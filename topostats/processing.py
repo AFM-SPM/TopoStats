@@ -1108,7 +1108,7 @@ def process_scan(
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
     # Flatten Image
-    image_flattened = run_filters(
+    image = run_filters(
         unprocessed_image=topostats_object["image_original"],
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
         filename=topostats_object["filename"],
@@ -1118,13 +1118,11 @@ def process_scan(
         plotting_config=plotting_config,
     )
     # Use flattened image if one is returned, else use original image
-    topostats_object["image_flattened"] = (
-        image_flattened if image_flattened is not None else topostats_object["image_original"]
-    )
+    topostats_object["image"] = image if image is not None else topostats_object["image_original"]
 
     # Find Grains :
     grain_masks = run_grains(
-        image=topostats_object["image_flattened"],
+        image=topostats_object["image"],
         pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
         filename=topostats_object["filename"],
         grain_out_path=grain_out_path,
@@ -1140,7 +1138,7 @@ def process_scan(
     if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
         # Grainstats :
         grainstats_df, height_profiles = run_grainstats(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             grain_masks=topostats_object["grain_masks"],
             filename=topostats_object["filename"],
@@ -1153,7 +1151,7 @@ def process_scan(
 
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             grain_masks=topostats_object["grain_masks"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
@@ -1168,7 +1166,7 @@ def process_scan(
 
         # Nodestats
         nodestats, grainstats_df = run_nodestats(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             disordered_tracing_data=topostats_object["disordered_traces"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
@@ -1181,7 +1179,7 @@ def process_scan(
 
         # Ordered Tracing
         ordered_tracing, grainstats_df, molstats_df = run_ordered_tracing(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             disordered_tracing_data=topostats_object["disordered_traces"],
             nodestats_data=nodestats,
             filename=topostats_object["filename"],
@@ -1197,7 +1195,7 @@ def process_scan(
 
         # splining
         splined_data, grainstats_df, molstats_df = run_splining(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             ordered_tracing_data=topostats_object["ordered_traces"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
@@ -1212,7 +1210,7 @@ def process_scan(
 
         # Curvature Stats
         grain_curvature_stats_dict = run_curvature_stats(
-            image=topostats_object["image_flattened"],
+            image=topostats_object["image"],
             cropped_image_data=topostats_object["disordered_traces"],
             grain_trace_data=topostats_object["splining"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
@@ -1234,8 +1232,8 @@ def process_scan(
     # Get image statistics
     LOGGER.info(f"[{topostats_object['filename']}] : *** Image Statistics ***")
     # Provide the raw image if image has not been flattened, else provide the flattened image.
-    if topostats_object["image_flattened"] is not None:
-        image_for_image_stats = topostats_object["image_flattened"]
+    if topostats_object["image"] is not None:
+        image_for_image_stats = topostats_object["image"]
     else:
         image_for_image_stats = topostats_object["image_original"]
     # Calculate image statistics - returns a dictionary
@@ -1278,8 +1276,7 @@ def process_filters(
     ----------
     topostats_object : dict[str, Union[npt.NDArray, Path, float]]
         A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
-        path and it's
-        pixel to namometre scaling value.
+        path and it's pixel to namometre scaling value.
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -1307,7 +1304,7 @@ def process_filters(
 
     # Flatten Image
     try:
-        image_flattened = run_filters(
+        image = run_filters(
             unprocessed_image=topostats_object["image_original"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
@@ -1317,9 +1314,7 @@ def process_filters(
             plotting_config=plotting_config,
         )
         # Use flattened image if one is returned, else use original image
-        topostats_object["image_flattened"] = (
-            image_flattened if image_flattened is not None else topostats_object["image_original"]
-        )
+        topostats_object["image"] = image if image is not None else topostats_object["image_original"]
 
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(

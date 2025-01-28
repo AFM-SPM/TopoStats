@@ -799,7 +799,7 @@ class LoadScans:
                     # If we have extracted the image dictionary (only possible with .topostats files) we add that to the
                     # dictionary
                     elif data is not None:
-                        data["img_path"] = img_path
+                        data["img_path"] = img_path.with_suffix("")
                         self.img_dict[self.filename] = self.clean_dict(img_dict=data)
                     # Otherwise check the size and add image to dictionary
                     else:
@@ -850,7 +850,7 @@ class LoadScans:
             "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
             "image_original": image,
-            "image_flattened": None,
+            "image": None,
             "grain_masks": self.grain_masks,
             "grain_trace_data": self.grain_trace_data,
         }
@@ -999,19 +999,16 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         save_file_path = output_dir / filename
 
     with h5py.File(save_file_path, "w") as f:
-        # It may be possible for topostats_object["image_flattened"] to be None.
+        # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object["image_flattened"] is not None:
+        if topostats_object["image"] is not None:
             topostats_object["topostats_file_version"] = 0.2
-            # Rename the key to "image" for backwards compatibility
-            topostats_object["image"] = topostats_object.pop("image_flattened")
-
             # Recursively save the topostats object dictionary to the .topostats file
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
 
         else:
             raise ValueError(
-                "TopoStats object dictionary does not contain an 'image_flattened'. \
+                "TopoStats object dictionary does not contain an 'image'. \
                  TopoStats objects must be saved with a flattened image."
             )
 
