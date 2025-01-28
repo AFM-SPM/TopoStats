@@ -227,6 +227,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )
+    # Ensure we load the original images as we are running the whole pipeline
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "raw"
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
