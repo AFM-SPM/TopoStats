@@ -11,6 +11,7 @@ import pandas as pd
 import pytest
 from test_io import dict_almost_equal
 
+from topostats.grains import ImageGrainCrops, GrainCropsDirection
 from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -746,7 +747,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
 
-    grains = run_grains(
+    imagegraincrops = run_grains(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         filename="dummy filename",
@@ -756,15 +757,14 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         plotting_config=process_scan_config["plotting"],
     )
 
-    assert isinstance(grains, dict)
-    assert list(grains.keys()) == ["above", "below"]
-    assert isinstance(grains["above"], np.ndarray)
-    assert np.max(grains["above"]) == 6
+    assert isinstance(imagegraincrops, ImageGrainCrops)
+    assert isinstance(imagegraincrops.above, GrainCropsDirection)
+    assert len(imagegraincrops.above.crops) == 6
     # Floating point errors mean that on different systems, different results are
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
-    assert np.max(grains["below"]) > 0
-    assert np.max(grains["above"]) < 10
+    assert isinstance(imagegraincrops.below, GrainCropsDirection)
+    assert len(imagegraincrops.below.crops) > 0
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
