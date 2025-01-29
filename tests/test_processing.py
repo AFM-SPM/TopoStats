@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 from test_io import dict_almost_equal
 
-from topostats.grains import ImageGrainCrops, GrainCropsDirection
+from topostats.grains import GrainCropsDirection, ImageGrainCrops
 from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,

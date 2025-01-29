@@ -589,9 +589,7 @@ class GrainStats:
         # relative to that and _then_ sort it.
         # pivot_angles = self.get_angle(points, self.start_point)
         # Recursively sort the arrays until each point is sorted
-        return (
-            self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
-        )
+        return self.sort_points(smaller) + sorted(equal, key=self.calculate_squared_distance) + self.sort_points(larger)
         # Return sorted array where equal angle points are sorted by distance
 
     def get_start_point(self, edges: npt.NDArray) -> None:
