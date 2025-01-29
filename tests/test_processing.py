@@ -769,47 +769,11 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
-
-    mask_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
-    assert mask_above.shape == (256, 256, 2)
-
-    # Create inverted mask above
-    # mask_above_background = np.logical_not(mask_above)
-    # # Keep only the largest grain
-    # from skimage.measure import label, regionprops
-
-    # mask_above_labelled = label(mask_above)
-    # regions = regionprops(mask_above_labelled)
-    # areas = [region.area for region in regions]
-    # mask_above[mask_above_labelled != np.argmax(areas) + 1] = False
-    # # save the mask above
-    # np.save("./tests/resources/minicircle_cropped_masks_above_background.npy", mask_above_background)
-
-    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
-
-    mask_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
-    assert mask_below.shape == (256, 256, 2)
-
-    # Create inverted mask below
-    # mask_below_background = np.logical_not(mask_below)
-    # # Keep only the largest grain
-    # mask_below_labelled = label(mask_below)
-    # regions = regionprops(mask_below_labelled)
-    # areas = [region.area for region in regions]
-    # mask_below[mask_below_labelled != np.argmax(areas) + 1] = False
-    # # save the mask below
-    # np.save("./tests/resources/minicircle_cropped_masks_below_background.npy", mask_below_background)
-
-    grain_masks = {"above": mask_above, "below": mask_below}
+    with open(RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb") as f:
+        image_grain_crops = pickle.load(f)
 
     grainstats_df, _ = run_grainstats(
-        image=flattened_image,
-        pixel_to_nm_scaling=0.4940029296875,
-        grain_masks=grain_masks,
+        image_grain_crops=image_grain_crops,
         filename="dummy filename",
         basename=RESOURCES,
         grainstats_config=process_scan_config["grainstats"],
@@ -818,8 +782,9 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     )
 
     assert isinstance(grainstats_df, pd.DataFrame)
-    assert grainstats_df.shape[0] == 13
-    assert len(grainstats_df.columns) == 22
+    # Expect 6 grains in the above direction for cropped minicircle
+    assert grainstats_df.shape[0] == 6
+    assert len(grainstats_df.columns) == 25
 
 
 # ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to
