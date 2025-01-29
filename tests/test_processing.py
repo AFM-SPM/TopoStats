@@ -626,7 +626,7 @@ def test_check_run_steps(
             False,  # Curvature
             "Processing grain",
             "Calculation of Curvature Stats disabled, returning None.",
-            id="All stages enabled",
+            id="All but curvature enabled",
         ),
         # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
         # pytest.param(
