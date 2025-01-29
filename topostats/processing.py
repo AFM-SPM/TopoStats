@@ -375,6 +375,9 @@ def run_grainstats(
             grain_crops_direction: GrainCropsDirection
             for direction, grain_crops_direction in image_grain_crops.__dict__.items():
                 if grain_crops_direction is None:
+                    LOGGER.warning(
+                        f"No grains exist for the {direction} direction. Skipping grainstats for {direction}."
+                    )
                     continue
                 grainstats_calculator = GrainStats(
                     grain_crops=grain_crops_direction.crops,
@@ -1262,6 +1265,7 @@ def process_scan(
         topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
 
     else:
+        LOGGER.warning(f"[{topostats_object['filename']}] : No grains found, skipping grainstats and tracing stages.")
         grainstats_df = create_empty_dataframe(column_set="grainstats")
         molstats_df = create_empty_dataframe(column_set="mol_statistics")
         disordered_tracing_stats = create_empty_dataframe(column_set="disordered_tracing_statistics")

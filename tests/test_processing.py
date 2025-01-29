@@ -711,7 +711,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         output_dir=tmp_path,
     )
     assert "Grains found for direction above : 0" in caplog.text
-    assert "No grains exist for the above direction. Skipping grainstats for above." in caplog.text
+    assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
