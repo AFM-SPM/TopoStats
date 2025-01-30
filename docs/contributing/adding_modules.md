@@ -5,7 +5,7 @@
 This should reside in `topostats/` or optionally `topostats/<sub_dir>`
 
 Unit tests should be written for each function, classes and method and integration tests to ensure the overall
-functionality is as expected now and in the future should refactoring be undertaken
+functionality is as expected now and in the future should refactoring be undertaken.
 
 ## Adding configuration
 
@@ -151,7 +151,7 @@ the first argument and the remaining configuration options. These will typically
 defined your `topostats/processing.py`. As mentioned above keeping configuration names consistent between configuration
 files and functions means [`**kwargs`][python_kwargs] can be used when passing options to functions.
 
-Continuing with out example lets look at the [`topostats.processing.run_filters()`][topostats_entry_point_filters]
+Continuing with our example let's look at the [`topostats.processing.run_filters()`][topostats_entry_point_filters]
 function.
 
 ```python
@@ -251,7 +251,7 @@ def run_filters(
     return None
 ```
 
-This instantiates (creates) and object `filters` of the class `Filters` with the supplied options and then runs the
+This instantiates (creates) the object `filters` of the class `Filters` with the supplied options and then runs the
 `filter_image()` method to perform the filtering. The rest of the code determines what images to plot based on the
 configuration. At the end the `gaussian_filtered` image is returned.
 
@@ -321,7 +321,7 @@ before a completion message is run.
 
 ## Conclusion
 
-Adding functionality is useful but it has to integrate into the workflow and ideally be accessible
+Adding functionality is useful but it has to integrate into the workflow and ideally be accessible as a stand alone step in the process. Hopefully the above helps demystify the steps required to achieve this.
 
 [python_argparse]: https://docs.python.org/3/library/argparse.html
 [python_kwargs]: https://realpython.com/python-kwargs-and-args/
