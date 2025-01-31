@@ -321,7 +321,8 @@ before a completion message is run.
 
 ## Conclusion
 
-Adding functionality is useful but it has to integrate into the workflow and ideally be accessible as a stand alone step in the process. Hopefully the above helps demystify the steps required to achieve this.
+Adding functionality is useful but it has to integrate into the workflow and ideally be accessible as a stand alone step
+in the process. Hopefully the above helps demystify the steps required to achieve this.
 
 [python_argparse]: https://docs.python.org/3/library/argparse.html
 [python_kwargs]: https://realpython.com/python-kwargs-and-args/
