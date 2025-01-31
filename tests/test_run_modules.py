@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 import pytest
+from AFMReader import topostats
 
 from topostats.entry_point import entry_point
 from topostats.logs.logs import LOGGER_NAME
@@ -172,3 +173,45 @@ def test_filters(caplog) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
+    # Load the output and check the keys
+    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    assert list(data.keys()) == [
+        "filename",
+        "image",
+        "image_original",
+        "img_path",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]
+
+
+def test_grains(caplog) -> None:
+    """Test running the grains module.
+
+    We use the command line entry point to test that _just_ grains runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "grains",  # This is the sub-command we wish to test, it will call run_modules.grains()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
+    # Load the output and check the keys
+    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    assert list(data.keys()) == [
+        "filename",
+        "grain_masks",
+        "image",
+        "image_original",
+        "img_path",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]

@@ -35,9 +35,9 @@ from topostats.processing import (
     check_run_steps,
     completion_message,
     process_filters,
+    process_grains,
     process_scan,
     run_disordered_tracing,
-    run_grains,
     run_grainstats,
     run_nodestats,
     run_ordered_tracing,
@@ -457,7 +457,41 @@ def grains(args: argparse.Namespace | None = None) -> None:
         Arguments.
     """
     config, img_files = _parse_configuration(args)
-    run_grains()
+    # Triggers extraction of filtered images from existing .topostats files
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "grains"
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+
+    processing_function = partial(
+        process_grains,
+        base_dir=config["base_dir"],
+        grains_config=config["grains"],
+        plotting_config=config["plotting"],
+        output_dir=config["output_dir"],
+    )
+    with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
+        with tqdm(
+            total=len(img_files),
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+        ) as pbar:
+            for img, result in pool.imap_unordered(
+                processing_function,
+                all_scan_data.img_dict.values(),
+            ):
+                results[str(img)] = result
+                pbar.update()
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img}] Grain detection completed (NB - Filtering was *not* re-run).")
+
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    LOGGER.debug(f"Images processed : {len(results)}")
+    # Update config with plotting defaults for printing
+    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
 
 
 def grainstats(args: argparse.Namespace | None = None) -> None:
@@ -469,7 +503,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
-    config, img_files = _parse_configuration(args)
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_grainstats()
 
 
@@ -482,7 +516,7 @@ def disordered_tracing(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
-    config, img_files = _parse_configuration(args)
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_disordered_tracing()
 
 
@@ -495,7 +529,7 @@ def nodestats(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
-    config, img_files = _parse_configuration(args)
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_nodestats()
 
 
@@ -508,7 +542,7 @@ def ordered_tracing(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
-    config, img_files = _parse_configuration(args)
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_ordered_tracing()
 
 
@@ -521,5 +555,5 @@ def splining(args: argparse.Namespace | None = None) -> None:
     args : None
         Arguments.
     """
-    config, img_files = _parse_configuration(args)
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_splining()

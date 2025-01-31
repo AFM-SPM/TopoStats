@@ -681,8 +681,10 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
         try:
-            if extract == "all":
+            # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
+            if extract in [None, "all", "grains", "grainstats"]:
                 return (image, px_to_nm_scaling, data)
+            # Otherwise we want the raw/image_original
             if extract == "filter":
                 return (image, px_to_nm_scaling, None)
             return (data[map_stage_to_image[extract]], px_to_nm_scaling, None)
@@ -757,7 +759,7 @@ class LoadScans:
             LOGGER.error(f"File not found : {self.img_path}")
             raise
 
-    def get_data(self) -> None:
+    def get_data(self) -> None:  # noqa: C901  # pylint: disable=too-many-branches
         """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
         suffix_to_loader = {
             ".spm": self.load_spm,
@@ -776,9 +778,10 @@ class LoadScans:
 
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
+                data = None
                 try:
-                    if suffix == ".topostats" and self.extract in (None, "all"):
-                        self.image, self.pixel_to_nm_scaling, self.img_dict = self.load_topostats()
+                    if suffix == ".topostats" and self.extract in (None, "all", "grains", "grainstats"):
+                        self.image, self.pixel_to_nm_scaling, data = self.load_topostats()
                     elif suffix == ".topostats" and self.extract not in (None, "all"):
                         self.image, self.pixel_to_nm_scaling, _ = self.load_topostats(self.extract)
                     else:
@@ -793,6 +796,12 @@ class LoadScans:
                     if suffix == ".asd":
                         for index, frame in enumerate(self.image):
                             self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    # If we have extracted the image dictionary (only possible with .topostats files) we add that to the
+                    # dictionary
+                    elif data is not None:
+                        data["img_path"] = img_path.with_suffix("")
+                        self.img_dict[self.filename] = self.clean_dict(img_dict=data)
+                    # Otherwise check the size and add image to dictionary
                     else:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
@@ -841,10 +850,49 @@ class LoadScans:
             "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
             "image_original": image,
-            "image_flattened": None,
+            "image": None,
             "grain_masks": self.grain_masks,
             "grain_trace_data": self.grain_trace_data,
         }
+
+    def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
+        """
+        If we are loading .topostats files for reprocessing we already have the dictionary structure.
+
+        We therefore need to extract just the information that is required for the stage requested and remove everything
+        else.
+
+        Parameters
+        ----------
+        img_dict : dict[str, Any]
+            Original image dictionary from which data is to be extracted.
+
+        Returns
+        -------
+        dict[str, Any]
+            Returns the image dictionary with keys/values removed appropriate to the extraction stage.
+        """
+        if self.extract in ["grains", "grainstats"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
+            img_dict.pop("grain_masks")
+            img_dict.pop("height_profiles")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_traces")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["disordered_tracing", "nodestats", "ordered_tracing"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_tracing")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["splining"]:
+            img_dict.pop("splining")
+            img_dict.pop("grain_curvature_stats")
+            return img_dict
+        return img_dict
 
 
 def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
@@ -951,19 +999,16 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         save_file_path = output_dir / filename
 
     with h5py.File(save_file_path, "w") as f:
-        # It may be possible for topostats_object["image_flattened"] to be None.
+        # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object["image_flattened"] is not None:
+        if topostats_object["image"] is not None:
             topostats_object["topostats_file_version"] = 0.2
-            # Rename the key to "image" for backwards compatibility
-            topostats_object["image"] = topostats_object.pop("image_flattened")
-
             # Recursively save the topostats object dictionary to the .topostats file
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
 
         else:
             raise ValueError(
-                "TopoStats object dictionary does not contain an 'image_flattened'. \
+                "TopoStats object dictionary does not contain an 'image'. \
                  TopoStats objects must be saved with a flattened image."
             )
 
