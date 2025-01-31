@@ -1347,7 +1347,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -2087,7 +2089,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(
@@ -2203,7 +2207,8 @@ class Grains:
                     # Check the region size
                     if (
                         region.area < min_object_size
-                        or (region_bbox[2] - region_bbox[0]) * (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
+                        or (region_bbox[2] - region_bbox[0]) < min_object_bbox_size
+                        or (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
                     ):
                         # Remove the region from the class
                         graincrop.mask[:, :, class_index] = np.where(
@@ -2211,6 +2216,9 @@ class Grains:
                             0,
                             graincrop.mask[:, :, class_index],
                         )
+
+            # Update the background class
+            graincrop.mask = Grains.update_background_class(graincrop.mask)
 
         return graincrops
 
