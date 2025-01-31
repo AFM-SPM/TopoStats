@@ -457,7 +457,7 @@ def grains(args: argparse.Namespace | None = None) -> None:
         Arguments.
     """
     config, img_files = _parse_configuration(args)
-    # If loading existing .topostats files the images need filtering again so we need to extract the raw image
+    # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "grains"
     all_scan_data = LoadScans(img_files, **config["loading"])

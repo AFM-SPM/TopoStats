@@ -701,8 +701,8 @@ def create_parser() -> arg.ArgumentParser:
 
     grains_parser = subparsers.add_parser(
         "grains",
-        description="WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.",
-        help="WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.",
+        description="Load filtered images from '.topostats' files and detect grains.",
+        help="Load filtered images from '.topostats' files and detect grains.",
     )
     grains_parser.add_argument(
         "--threshold-method",
