@@ -16,6 +16,7 @@ from topostats.io import dict_almost_equal
 # pylint: disable=no-name-in-module
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-locals
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.propagate = True
@@ -918,8 +919,6 @@ def test_find_grains_unet(
         np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
         np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
-        result_full_mask_tensor = result_image_grain_crops.above.full_mask_tensor
-        expected_full_mask_tensor = expected_imagegraincrops.above.full_mask_tensor
         result_image_grain_crops.locate_difference(expected_imagegraincrops)
 
         assert result_image_grain_crops == expected_imagegraincrops
@@ -4573,7 +4572,6 @@ def test_graincrops_update_background_class() -> None:
 
 def test_graincrops_remove_objects_too_small_to_process() -> None:
     """Test the remove_objects_too_small_to_process function."""
-
     graincrops = {
         0: GrainCrop(
             image=np.array(
