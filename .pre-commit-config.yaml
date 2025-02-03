@@ -7,6 +7,7 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
+        args: ["--unsafe"]
       - id: debug-statements
       - id: end-of-file-fixer
         types: [python]

@@ -263,8 +263,9 @@ speeds, slowing down the overall processing time. The solution we have implement
 `topostats/plotting_dictionary.yaml` file and set the `savefig_dpi` parameter on a per-image basis.
 
 If you wish to change the DPI there are two options, you can change the value for _all_ images by modifying the setting
-in your a [custom configuration](#generating-a-configuration) by modifying the `savefig_dpi` from `null` to your desired
-value. The example below shows a section of the configuration file you can generate and setting this value to `400`.
+in your a [custom configuration](configuration.md#generating-a-configuration) by modifying the `savefig_dpi` from `null`
+to your desired value. The example below shows a section of the configuration file you can generate and setting this
+value to `400`.
 
 ```yaml
 plotting:
@@ -308,8 +309,8 @@ colormaps `nanoscope` and `afmhot` but any colormap recognised by Matplotlib can
 reference](https://matplotlib.org/stable/gallery/color/colormap_reference.html) for choices).
 
 If you want to modify the colormap that is used you have two options. Firstly you can [generate a
-configuration](#generating-a-configuration) file and modify the field `cmap` to your choice. The example below shows
-changing this from `null` (which defaults to `nanoscope` as defined in `topostats.mplstyle`) to `rainbow`.
+configuration](configuration.md#generating-a-configuration) file and modify the field `cmap` to your choice. The example
+below shows changing this from `null` (which defaults to `nanoscope` as defined in `topostats.mplstyle`) to `rainbow`.
 
 ```yaml
 plotting:
@@ -338,8 +339,9 @@ this will be without metadata since this is not supported for `tif` files (see t
 savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html)).
 
 If you want to modify the output file format that is used you have two options. Firstly you can [generate a
-configuration](generating-a-configuration) file and modify the field `savefig_format` to your choice. The example below
-shows changing this from `null` (which defaults to `png` as defined in `topostats.mplstyle`) to `svg`.
+configuration](configuration.md#generating-a-configuration) file and modify the field `savefig_format` to your
+choice. The example below shows changing this from `null` (which defaults to `png` as defined in `topostats.mplstyle`)
+to `svg`.
 
 ```yaml
 plotting:

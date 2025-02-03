@@ -17,7 +17,7 @@
 ## of the configuration file. If for example your copy is 'my_custom.mplstyle' you
 ## would use it with the following
 ##
-##    topostats process --matplotlibrc my_custom.mplstyle
+##    topostats --matplotlibrc my_custom.mplstyle process
 ##
 ## See https://matplotlib.org/stable/users/explain/customizing.html#customizing-with-matplotlibrc-files
 ## for more details on the paths which are checked for the configuration file.
