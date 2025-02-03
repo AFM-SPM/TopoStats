@@ -372,14 +372,11 @@ class Grains:
         """
         image_cp = image.copy()
         lower_size_limit, upper_size_limit = area_thresholds
-        # if one value is None adjust for comparison
+        # if one value is None adjust for comparison, nothing has changed except this.
         if upper_size_limit is None:
             upper_size_limit = image.size * self.pixel_to_nm_scaling**2
         if lower_size_limit is None:
             lower_size_limit = 0
-        # Get array of grain numbers (discounting zero)
-        # uniq = np.delete(np.unique(image), 0)
-        # grain_count = 0
         LOGGER.debug(
             f"[{self.filename}] : Area thresholding grains | Thresholds: L: {(lower_size_limit / self.pixel_to_nm_scaling**2):.2f},"
             f"U: {(upper_size_limit / self.pixel_to_nm_scaling**2):.2f} px^2, L: {lower_size_limit:.2f}, U: {upper_size_limit:.2f} nm^2."
