@@ -5581,3 +5581,142 @@ def test_validate_full_mask_tensor_shape() -> None:
         validate_full_mask_tensor_shape(np.zeros((3, 3, 1)))
 
     assert validate_full_mask_tensor_shape(np.zeros((3, 3, 2))) is not None
+
+
+def test_graincropsdirection_init(dummy_graincrop: GrainCrop) -> None:
+    """Test the GrainCropsDirection class initialisation."""
+    graincropsdirection = GrainCropsDirection(
+        crops={
+            0: dummy_graincrop,
+            1: dummy_graincrop,
+        },
+        full_mask_tensor=np.zeros((10, 10, 2)).astype(bool),
+    )
+
+    assert len(graincropsdirection.crops) == 2
+    assert graincropsdirection.full_mask_tensor.shape == (10, 10, 2)
+
+
+def test_graincropsdirection_update_full_mask_tensor() -> None:
+    """Test the update_full_mask_tensor method of the GrainCropsDirection class."""
+    # Create a graincropsdirection instance
+    graincropsdirection = GrainCropsDirection(
+        crops={
+            0: GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 0, 1],
+                                [1, 0, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ).astype(bool),
+                padding=1,
+                bbox=(0, 0, 4, 4),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            )
+        },
+        full_mask_tensor=np.stack(
+            [
+                np.array(
+                    [
+                        [1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 1, 1, 1],
+                        [1, 0, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1],
+                    ]
+                ),
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            ],
+            axis=-1,
+        ).astype(bool),
+    )
+
+    # Edit the grain so the full mask tensor needs to be updated
+    graincropsdirection.crops[0].mask = np.stack(
+        [
+            np.array(
+                [
+                    [1, 1, 1, 1],
+                    [1, 0, 0, 1],
+                    [1, 0, 0, 1],
+                    [1, 1, 1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+        ],
+        axis=-1,
+    ).astype(bool)
+
+    # Update the full mask tensor
+    graincropsdirection.update_full_mask_tensor()
+
+    expected_full_mask_tensor = np.stack(
+        [
+            np.array(
+                [
+                    [1, 1, 1, 1, 1, 1],
+                    [1, 0, 0, 1, 1, 1],
+                    [1, 0, 0, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ],
+        axis=-1,
+    ).astype(bool)
+
+    result_full_mask_tensor = graincropsdirection.full_mask_tensor
+
+    np.testing.assert_array_equal(result_full_mask_tensor, expected_full_mask_tensor)
