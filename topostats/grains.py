@@ -372,7 +372,7 @@ class Grains:
         """
         image_cp = image.copy()
         lower_size_limit, upper_size_limit = area_thresholds
-        # if one value is None adjust for comparison, nothing has changed except this.
+        # if one value is None adjust for comparison
         if upper_size_limit is None:
             upper_size_limit = image.size * self.pixel_to_nm_scaling**2
         if lower_size_limit is None:
@@ -388,7 +388,7 @@ class Grains:
         grain_areas = grain_counts * (self.pixel_to_nm_scaling**2)
 
         # Create a mask for valid grains
-        valid_grains = (grain_areas > lower_size_limit) & (grain_areas < upper_size_limit)
+        valid_grains = (grain_areas >= lower_size_limit) & (grain_areas <= upper_size_limit)
 
         # Create a new mapping for valid grain numbers
         new_indices = np.arange(1, valid_grains.sum() + 1)  # New indices for valid grains
