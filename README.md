@@ -62,12 +62,13 @@ topostats process
 ```
 
 If you have your own YAML configuration file (see [Usage : Configuring
-TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats process`
-and use the argument for `--config <config_file>.yaml` that points to your file.
+TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
+and use the argument for `--config <config_file>.yaml` that points to your file with an associated module of
+TopoStats e.g. `process`.
 
 ```bash
 # Edit and save my_config.yaml then run TopoStats with this configuration file
-topostats process --config my_config.yaml
+topostats --config my_config.yaml process
 ```
 
 The configuration file is validated before analysis begins and if there are problems you will see errors messages that
@@ -75,13 +76,6 @@ are hopefully useful in resolving the error(s) in your modified configuration.
 
 You can generate a sample configuration file using the `topostats create-config` argument which writes the default
 configuration to the file `./config.yaml` (i.e. in the current directory). This will _not_ run any analyses.
-
-**NB** - This feature is only available in versions > v2.0.0 as it was introduced after v2.0.0 was released. In older
-version > 2.0.0 and <= 2.1.2 you can use the older `run_topostats --create-config` option.
-
-```bash
-run_topostats --create-config-file config.yaml
-```
 
 ### Notebooks
 
@@ -105,4 +99,8 @@ Please use the [Citation File Format](https://citation-file-format.github.io/) w
 
 ### Publications
 
-- [TopoStats – A program for automated tracing of biomolecules from AFM images](https://www.sciencedirect.com/science/article/pii/S1046202321000207)
+- [TopoStats - Atomic Force Microscopy image processing and
+  analysis](https://orda.shef.ac.uk/articles/software/TopoStats_-_Atomic_Force_Microscopy_image_processing_and_analysis/22633528)
+  [doi:10.15131/shef.data.22633528.v2](https://doi.org/10.15131/shef.data.22633528.v2)
+- **Pre-Print** [Under or Over? Tracing Complex DNA Structures with High Resolution Atomic Force Microscopy |
+  bioRxiv](https://www.biorxiv.org/content/10.1101/2024.06.28.601212v2) [doi:10.1101/2024.06.28.601212](https://doi.org/10.1101/2024.06.28.601212)

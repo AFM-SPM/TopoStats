@@ -9,7 +9,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import pySPM
 import pytest
 import yaml
 from skimage import draw, filters
@@ -350,6 +349,7 @@ def load_scan_dummy() -> LoadScans:
 @pytest.fixture()
 def load_scan_topostats_test_file(tmp_path: Path, loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object for a temporarily saved test .topostats file."""
+    loading_config["extract"] = "all"
     return LoadScans([tmp_path / "topostats_file_test.topostats"], **loading_config)
 
 
@@ -360,9 +360,9 @@ def load_scan(loading_config: dict) -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_data() -> LoadScans:
+def load_scan_data(loading_config: dict) -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
-    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], channel="Height")
+    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
     scan_data.get_data()
     return scan_data
 
@@ -371,13 +371,6 @@ def load_scan_data() -> LoadScans:
 def load_scan_spm() -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
     return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
-
-
-@pytest.fixture()
-def spm_channel_data() -> pySPM.SPM.SPM_image:
-    """Instantiate channel data from a LoadScans object."""
-    scan = pySPM.Bruker(RESOURCES / "minicircle.spm")
-    return scan.get_channel("Height")
 
 
 @pytest.fixture()

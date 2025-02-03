@@ -5,10 +5,11 @@ import logging
 from pathlib import Path
 
 import pytest
+from AFMReader import topostats
 
 from topostats.entry_point import entry_point
 from topostats.logs.logs import LOGGER_NAME
-from topostats.run_modules import reconcile_config_args
+from topostats.run_modules import _set_logging, reconcile_config_args
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, validate_config
 
 BASE_DIR = Path.cwd()
@@ -81,6 +82,22 @@ def test_reconcile_config_args_partial_config_with_overrides() -> None:
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
 
+@pytest.mark.parametrize(
+    ("log_level", "effective_level"),
+    [
+        pytest.param("debug", 10, id="log level debug"),
+        pytest.param("info", 20, id="log level warning"),
+        pytest.param("warning", 30, id="log level warning"),
+        pytest.param("error", 40, id="log level error"),
+    ],
+)
+def test_set_logging(log_level: str, effective_level: int) -> None:
+    """Test setting log-level."""
+    LOGGER = logging.getLogger(LOGGER_NAME)
+    _set_logging(log_level)
+    assert LOGGER.getEffectiveLevel() == effective_level
+
+
 @pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_run_topostats_main_help(capsys, option) -> None:
     """Test the -h/--help flag to run_topostats."""
@@ -105,6 +122,8 @@ def test_run_topostats_process_all(caplog) -> None:
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "--extract",
+            "all",
             "process",
         ]
     )
@@ -133,3 +152,66 @@ def test_run_topostats_process_debug(caplog) -> None:
         assert "File extension : .topostats" in caplog.text
         assert "Images processed : 1" in caplog.text
         assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
+
+
+def test_filters(caplog) -> None:
+    """Test running the filters module.
+
+    We use the command line entry point to test that _just_ filters runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "filter",  # This is the sub-command we wish to test, it will call run_modules.filters()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Filtering completed." in caplog.text
+    # Load the output and check the keys
+    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    assert list(data.keys()) == [
+        "filename",
+        "image",
+        "image_original",
+        "img_path",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]
+
+
+def test_grains(caplog) -> None:
+    """Test running the grains module.
+
+    We use the command line entry point to test that _just_ grains runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "grains",  # This is the sub-command we wish to test, it will call run_modules.grains()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
+    # Load the output and check the keys
+    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    assert list(data.keys()) == [
+        "filename",
+        "grain_masks",
+        "image",
+        "image_original",
+        "img_path",
+        "pixel_to_nm_scaling",
+        "topostats_file_version",
+    ]

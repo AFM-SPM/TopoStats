@@ -38,24 +38,21 @@ dependencies = [
   "art",
   "AFMReader",
   "h5py",
-  "igor2",
   "keras",
-  "matplotlib",
+  "matplotlib~=3.9.4",
   "numpy",
   "numpyencoder",
   "pandas",
-  "pySPM",
   "pyyaml",
   "ruamel.yaml",
   "schema",
   "scikit-image",
   "scipy",
   "seaborn",
-  "skan~=0.11.0",
+  "skan",
   "snoop",
   "tensorflow",
-  "tifffile",
-  "topoly==1.0.2",
+  "topoly",
   "tqdm",
 ]
 
@@ -66,7 +63,6 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
   "pytest-regtest==2.3.1",
-  "pytest-testmon",
   "filetype",
 ]
 docs = [
@@ -89,6 +85,7 @@ dev = [
   "pyupgrade",
   "pytest-durations",
   "pytest-icdiff",
+  "pytest-testmon",
   "pytest-xdist",
 ]
 pypi = [
@@ -194,8 +191,8 @@ exclude = [
 ]
 # per-file-ignores = []
 line-length = 120
-target-version = "py310"
-lint.select = [
+[tool.ruff.lint]
+select = [
   "A", # flake8-builtins
   "B", # flake8-bugbear
   "C", #
@@ -212,14 +209,15 @@ lint.select = [
   "U",
   "UP", # pyupgrade
 ]
-lint.ignore = [
+ignore = [
+  "A005",
   "B905",
   "E501",
   "S101",
   "S403",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-lint.fixable = [
+fixable = [
   "A", # flake8-builtins
   "B", # flake8-bugbear
   "C", #
@@ -236,10 +234,10 @@ lint.fixable = [
   "U",
   "UP", # pyupgrade
 ]
-lint.unfixable = []
+unfixable = []
 
 # Numpy2 deprecation checks
-lint.extend-select = ["NPY201"]
+extend-select = ["NPY201"]
 preview = false
 
 [tool.ruff.lint.flake8-quotes]

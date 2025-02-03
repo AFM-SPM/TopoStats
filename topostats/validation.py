@@ -58,7 +58,15 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".topostats",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {"channel": str},
+        "loading": {
+            "channel": str,
+            "extract": Or(
+                "all",
+                "raw",
+                "filters",
+                error="Invalid value in config for 'extract', valid values are 'all', 'raw' or 'filters'",
+            ),
+        },
         "filter": {
             "run": Or(
                 True,
@@ -186,6 +194,52 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
             },
+            "vetting": {
+                "class_conversion_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers and 2 integers
+                    [[[int, int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_conversion_size_thresholds', this "
+                    "needs to be a list of lists of 3 integers and 2 integers - [class number, class to convert to "
+                    "if too small, class to convert to if too big] and [minimum size, maximum size]",
+                ),
+                "class_region_number_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_region_number_thresholds', this needs"
+                    "to be a list of lists of 3 integers - class number, minimum region number, maximum region number",
+                ),
+                "class_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_size_thresholds', this needs to be a"
+                    "list of lists of 3 integers - class number, minimum size, maximum size",
+                ),
+                "nearby_conversion_classes_to_convert": Or(
+                    None,
+                    # List of tuples of two integers
+                    [[int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.nearby_conversion_classes_to_convert', this"
+                    "needs to be a list of tuples of two integers",
+                ),
+                "class_touching_threshold": lambda n: n >= 0,
+                "keep_largest_labelled_regions_classes": Or(
+                    None,
+                    # List of integers
+                    [int],
+                    error="Invalid value in config for 'grainstats.vetting.keep_largest_labelled_regions_classes', this"
+                    "needs to be a list of integers",
+                ),
+                "class_connection_point_thresholds": Or(
+                    None,
+                    # List of tuples: list[tuple[[tuple[int, int], tuple[int, int]]]
+                    [[[int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_connection_point_thresholds', this"
+                    "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
+                ),
+            },
         },
         "grainstats": {
             "run": Or(
@@ -303,6 +357,21 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "spline_circular_smoothing": lambda n: n >= 0.0,
             "spline_degree": int,
             # "cores": lambda n: n > 0.0,
+        },
+        "curvature": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
+            ),
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
         "plotting": {
             "run": Or(
@@ -1235,6 +1304,38 @@ PLOTTING_SCHEMA = Schema(
                 "non-binary",
                 error=(
                     "Invalid value in config 'splined_trace.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "curvature": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'curvature.image_type', valid values " "are 'binary' or 'non-binary'"),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+        },
+        "curvature_individual_grains": {
+            "filename": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'curvature_individual_grains.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
                 ),
             ),
             "title": str,

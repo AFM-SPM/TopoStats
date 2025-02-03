@@ -1,7 +1,8 @@
 """
 Run TopoStats modules.
 
-This provides an entry point for running TopoStats as a command line programme.
+This provide entry points for running TopoStats as a command line programme. Each function within this module is a
+wrapper which runs various functions from the ''processing'' module in parallel.
 """
 
 from __future__ import annotations
@@ -33,10 +34,10 @@ from topostats.plotting import toposum
 from topostats.processing import (
     check_run_steps,
     completion_message,
+    process_filters,
+    process_grains,
     process_scan,
     run_disordered_tracing,
-    run_filters,
-    run_grains,
     run_grainstats,
     run_nodestats,
     run_ordered_tracing,
@@ -80,8 +81,7 @@ def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     dict
         The configuration dictionary.
     """
-    default_config_raw = (resources.files(__package__) / "default_config.yaml").read_text()
-    default_config = yaml.safe_load(default_config_raw)
+    default_config = read_yaml(resources.files(__package__) / "default_config.yaml")
     if args is not None:
         config_file_arg: str | None = args.config_file
         if config_file_arg is not None:
@@ -103,14 +103,67 @@ def reconcile_config_args(args: argparse.Namespace | None) -> dict:
     return config
 
 
-def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
+def _set_logging(log_level: str | None) -> None:
     """
-    Find and process all files.
+    Set the logging level.
 
     Parameters
     ----------
-    args : None
+    log_level : str
+        String for the desired log-level.
+    """
+    if log_level == "warning":
+        LOGGER.setLevel("WARNING")
+    elif log_level == "error":
+        LOGGER.setLevel("ERROR")
+    elif log_level == "debug":
+        LOGGER.setLevel("DEBUG")
+    else:
+        LOGGER.setLevel("INFO")
+
+
+def _log_setup(config: dict, args: argparse.Namespace | None, img_files: dict) -> None:
+    """
+    Log the current configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Dictionary of configuration options.
+    args : argparse.Namespace | None
+        Arguments function was invoked with.
+    img_files : dict
+        Dictionary of image files that have been found.
+    """
+    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
+
+    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
+    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
+    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
+    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
+    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
+    if len(img_files) == 0:
+        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
+        LOGGER.error("Please check your configuration and directories.")
+        sys.exit()
+    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
+    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
+    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa: T203
+
+
+def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, dict]:
+    """
+    Load configurations, validate and check run steps are consistent.
+
+    Parameters
+    ----------
+    args : argparse.Namespace | None
         Arguments.
+
+    Returns
+    -------
+    tuple[dict, dict]
+        Returns the dictionary of configuration options and a dictionary of image files found on the input path.
     """
     # Parse command line options, load config (or default) and update with command line options
     config = reconcile_config_args(args=args)
@@ -119,14 +172,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
 
     # Set logging level
-    if config["log_level"] == "warning":
-        LOGGER.setLevel("WARNING")
-    elif config["log_level"] == "error":
-        LOGGER.setLevel("ERROR")
-    elif config["log_level"] == "debug":
-        LOGGER.setLevel("DEBUG")
-    else:
-        LOGGER.setLevel("INFO")
+    _set_logging(config["log_level"])
 
     # Create base output directory
     config["output_dir"].mkdir(parents=True, exist_ok=True)
@@ -151,21 +197,21 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     )
     # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
-    LOGGER.debug(f"Plotting configuration after update :\n{pformat(config['plotting'], indent=4)}")
-
-    LOGGER.info(f"Configuration file loaded from      : {args.config_file}")
-    LOGGER.info(f"Scanning for images in              : {config['base_dir']}")
-    LOGGER.info(f"Output directory                    : {str(config['output_dir'])}")
-    LOGGER.info(f"Looking for images with extension   : {config['file_ext']}")
     img_files = find_files(config["base_dir"], file_ext=config["file_ext"])
-    LOGGER.info(f"Images with extension {config['file_ext']} in {config['base_dir']} : {len(img_files)}")
-    if len(img_files) == 0:
-        LOGGER.error(f"No images with extension {config['file_ext']} in {config['base_dir']}")
-        LOGGER.error("Please check your configuration and directories.")
-        sys.exit()
-    LOGGER.info(f"Thresholding method (Filtering)     : {config['filter']['threshold_method']}")
-    LOGGER.info(f"Thresholding method (Grains)        : {config['grains']['threshold_method']}")
-    LOGGER.debug(f"Configuration after update         : \n{pformat(config, indent=4)}")  # noqa : T203
+    _log_setup(config, args, img_files)
+    return config, img_files
+
+
+def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
+    """
+    Find and process all files.
+
+    Parameters
+    ----------
+    args : None
+        Arguments.
+    """
+    config, img_files = _parse_configuration(args)
 
     processing_function = partial(
         process_scan,
@@ -177,9 +223,13 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         nodestats_config=config["nodestats"],
         ordered_tracing_config=config["ordered_tracing"],
         splining_config=config["splining"],
+        curvature_config=config["curvature"],
         plotting_config=config["plotting"],
         output_dir=config["output_dir"],
     )
+    # Ensure we load the original images as we are running the whole pipeline
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "raw"
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
@@ -307,7 +357,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     # Write statistics to CSV if there is data.
     if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-        results.reset_index(inplace=True)
+        results.reset_index(drop=True, inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
@@ -349,7 +399,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 # pylint: disable=unused-argument
 
 
-def filters(args: None = None) -> None:
+def filters(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run filtering.
 
@@ -358,10 +408,46 @@ def filters(args: None = None) -> None:
     args : None
         Arguments.
     """
-    run_filters()
+    config, img_files = _parse_configuration(args)
+    # If loading existing .topostats files the images need filtering again so we need to extract the raw image
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "raw"
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+
+    processing_function = partial(
+        process_filters,
+        base_dir=config["base_dir"],
+        filter_config=config["filter"],
+        plotting_config=config["plotting"],
+        output_dir=config["output_dir"],
+    )
+
+    with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
+        with tqdm(
+            total=len(img_files),
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+        ) as pbar:
+            for img, result in pool.imap_unordered(
+                processing_function,
+                all_scan_data.img_dict.values(),
+            ):
+                results[str(img)] = result
+                pbar.update()
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img}] Filtering completed.")
+
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    LOGGER.debug(f"Images processed : {len(results)}")
+    # Update config with plotting defaults for printing
+    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
 
 
-def grains(args: None = None) -> None:
+def grains(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grain finding.
 
@@ -370,10 +456,45 @@ def grains(args: None = None) -> None:
     args : None
         Arguments.
     """
-    run_grains()
+    config, img_files = _parse_configuration(args)
+    # Triggers extraction of filtered images from existing .topostats files
+    if config["file_ext"] == ".topostats":
+        config["loading"]["extract"] = "grains"
+    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data.get_data()
+
+    processing_function = partial(
+        process_grains,
+        base_dir=config["base_dir"],
+        grains_config=config["grains"],
+        plotting_config=config["plotting"],
+        output_dir=config["output_dir"],
+    )
+    with Pool(processes=config["cores"]) as pool:
+        results = defaultdict()
+        with tqdm(
+            total=len(img_files),
+            desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+        ) as pbar:
+            for img, result in pool.imap_unordered(
+                processing_function,
+                all_scan_data.img_dict.values(),
+            ):
+                results[str(img)] = result
+                pbar.update()
+
+                # Display completion message for the image
+                LOGGER.info(f"[{img}] Grain detection completed (NB - Filtering was *not* re-run).")
+
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    LOGGER.debug(f"Images processed : {len(results)}")
+    # Update config with plotting defaults for printing
+    completion_message(config, img_files, summary_config=None, images_processed=sum(results.values()))
 
 
-def grainstats(args: None = None) -> None:
+def grainstats(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -382,10 +503,11 @@ def grainstats(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_grainstats()
 
 
-def disordered_tracing(args: None = None) -> None:
+def disordered_tracing(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -394,10 +516,11 @@ def disordered_tracing(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_disordered_tracing()
 
 
-def nodestats(args: None = None) -> None:
+def nodestats(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -406,10 +529,11 @@ def nodestats(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_nodestats()
 
 
-def ordered_tracing(args: None = None) -> None:
+def ordered_tracing(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -418,10 +542,11 @@ def ordered_tracing(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_ordered_tracing()
 
 
-def splining(args: None = None) -> None:
+def splining(args: argparse.Namespace | None = None) -> None:
     """
     Load files from disk and run grainstats.
 
@@ -430,4 +555,5 @@ def splining(args: None = None) -> None:
     args : None
         Arguments.
     """
+    config, img_files = _parse_configuration(args)  # pylint: disable=unused-variable
     run_splining()

@@ -58,6 +58,10 @@ mask pixels, and the gaussian smoothing better when there are small holes.
 In addition, this smoothing step also tries to preserve mask topology by re-adding any holes back into the mask that lie
 within the `holearea_min_max` threshold. This has the resulting effect of only smoothing the outer edge of the mask.
 
+If required, the function can also take `null` values for both `dilation_iteration` and `gaussian_sigma` values to
+return the original grain. This is useful for retaining the sample topology when the masking / segmentation is good
+enough, for example when you use finely-trained deep learning models.
+
 ### 2. Skeletonisation
 
 Skeletonisation is the process of reducing a binary image to a single-pixel wide representation. This can be done using
@@ -120,7 +124,7 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 | `grain_junctions`     | The number of pixels designated as junctions (>2 neighbours) in the pruned skeleton.    | `integer` |
 | `total_branch_length` | The sum of all branch lengths in the pruned skeleton.                                   | `float`   |
 
-&nbsp;
+### Disordered Segment Statistics
 
 An `all_disordered_segment_statistics.csv` file is produced for each image which measures the following metrics from
 each segment in each pruned skeleton:
