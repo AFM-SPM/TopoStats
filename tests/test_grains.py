@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops, validate_full_mask_tensor_shape
 from topostats.io import dict_almost_equal
 
 # Pylint returns this error for from skimage.filters import gaussian
@@ -919,7 +919,7 @@ def test_find_grains_unet(
         np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
         np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
-        result_image_grain_crops.locate_difference(expected_imagegraincrops)
+        result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
 
         assert result_image_grain_crops == expected_imagegraincrops
 
@@ -5570,3 +5570,14 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
 def test_graincrop_eq(graincrop_1: GrainCrop, graincrop_2: GrainCrop, expected_result: bool) -> None:
     """Test the GrainCrop class __eq__ method."""
     assert (graincrop_1 == graincrop_2) == expected_result
+
+
+def test_validate_full_mask_tensor_shape() -> None:
+    """Test the validate_full_mask_tensor_shape function."""
+    with pytest.raises(ValueError, match="Full mask tensor must be NxNxC with C >= 2 but has shape"):
+        validate_full_mask_tensor_shape(np.zeros((3, 2, 2)))
+
+    with pytest.raises(ValueError, match="Full mask tensor must be NxNxC with C >= 2 but has shape"):
+        validate_full_mask_tensor_shape(np.zeros((3, 3, 1)))
+
+    assert validate_full_mask_tensor_shape(np.zeros((3, 3, 2))) is not None

@@ -401,7 +401,7 @@ class GrainCropsDirection:
             return False
         return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
 
-    def locate_difference(self, other: object) -> None:
+    def debug_locate_difference(self, other: object) -> None:
         """
         Debug function to find the culprit when two GrainCropsDirection objects are not equal.
 
@@ -420,7 +420,7 @@ class GrainCropsDirection:
         for crop_index, crop in self.crops.items():
             if crop != other.crops[crop_index]:
                 LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.locate_difference(other.crops[crop_index])
+                crop.debug_locate_difference(other.crops[crop_index])
         if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
             raise ValueError("Full mask tensor is different")
 
@@ -468,7 +468,7 @@ class ImageGrainCrops:
             return False
         return self.above == other.above and self.below == other.below
 
-    def locate_difference(self, other: object) -> None:
+    def debug_locate_difference(self, other: object) -> None:
         """
         Debug function to find the culprit when two ImageGrainCrops objects are not equal.
 
@@ -487,14 +487,14 @@ class ImageGrainCrops:
         if self.above is not None:
             if self.above != other.above:
                 LOGGER.info("Above grains are different")
-                self.above.locate_difference(other.above)
+                self.above.debug_locate_difference(other.above)
         else:
             if other.above is not None:
                 raise ValueError("Above grains are different")
         if self.below is not None:
             if self.below != other.below:
                 LOGGER.info("Below grains are different")
-                self.below.locate_difference(other.below)
+                self.below.debug_locate_difference(other.below)
         else:
             if other.below is not None:
                 raise ValueError("Below grains are different")
