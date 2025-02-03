@@ -14,6 +14,7 @@ nav:
       - usage/index.md
       - usage/configuration.md
       - usage/notebooks.md
+      - usage/mtaplotlib-style.md
       - usage/data_dictionary.md
       - usage/workflow.md
   - Related Software: related_software.md
