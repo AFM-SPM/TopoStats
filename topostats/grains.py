@@ -282,7 +282,7 @@ class GrainCrop:
             and self.filename == other.filename
         )
 
-    def locate_difference(self, other: object) -> None:
+    def debug_locate_difference(self, other: object) -> None:
         """
         Debug function to find the culprit when two GrainCrop objects are not equal.
 

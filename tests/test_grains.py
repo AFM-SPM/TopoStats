@@ -4864,3 +4864,709 @@ def test_graincrops_remove_objects_too_small_to_process() -> None:
     )
 
     assert result_graincrops == expected_graincrops
+
+
+def test_graincrop_init() -> None:
+    """Test the GrainCrop class initialisation."""
+    graincrop = GrainCrop(
+        image=np.array(
+            [
+                [1.1, 1.2, 1.3, 1.4],
+                [1.5, 1.6, 1.7, 1.8],
+                [1.9, 2.0, 2.1, 2.2],
+                [2.3, 2.4, 2.5, 2.6],
+            ]
+        ),
+        mask=np.stack(
+            [
+                np.array(
+                    [
+                        [1, 1, 1, 1],
+                        [1, 1, 1, 1],
+                        [1, 1, 1, 1],
+                        [1, 1, 1, 1],
+                    ]
+                ),
+                np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+            ],
+            axis=-1,
+        ),
+        padding=1,
+        bbox=(0, 0, 5, 5),
+        pixel_to_nm_scaling=1.0,
+        filename="test",
+    )
+
+    assert graincrop.image.sum() == 29.6
+    assert graincrop.mask.shape == (4, 4, 3)
+
+
+def test_graincrop_mask_setter(dummy_graincrop: GrainCrop) -> None:
+    """Test the GrainCrop class mask setter."""
+    with pytest.raises(ValueError, match="Mask dimensions do not match image"):
+        dummy_graincrop.mask = np.zeros((3, 3, 3)).astype(bool)
+
+
+def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
+    """Test the GrainCrop class padding setter."""
+    with pytest.raises(ValueError, match="Padding must be an integer"):
+        # Sylvia: need to find a way to get mypy to be able to ignore type errors
+        # using type: ignore doesn't work, let me know if solution is found.
+        dummy_graincrop.padding = "a"
+    with pytest.raises(ValueError, match="Padding must be >= 1"):
+        dummy_graincrop.padding = 0
+
+
+@pytest.mark.parametrize(
+    ("graincrop_1", "graincrop_2", "expected_result"),
+    [
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            True,
+            id="equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            False,
+            id="image not equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 1, 0],
+                                [0, 1, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 1, 0],
+                                [0, 1, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            False,
+            id="mask not equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=2,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            False,
+            id="padding not equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 4, 4),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            False,
+            id="padding not equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=2.0,
+                filename="test",
+            ),
+            False,
+            id="p2nm not equal",
+        ),
+        pytest.param(
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="test",
+            ),
+            GrainCrop(
+                image=np.array(
+                    [
+                        [1.1, 1.2, 1.3, 1.4],
+                        [1.5, 1.6, 1.7, 1.8],
+                        [1.9, 2.0, 2.1, 2.2],
+                        [2.3, 2.4, 2.5, 2.6],
+                    ]
+                ),
+                mask=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                                [1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 1, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ),
+                padding=1,
+                bbox=(0, 0, 5, 5),
+                pixel_to_nm_scaling=1.0,
+                filename="wrong filename",
+            ),
+            False,
+            id="filename not equal",
+        ),
+    ],
+)
+def test_graincrop_eq(graincrop_1: GrainCrop, graincrop_2: GrainCrop, expected_result: bool) -> None:
+    """Test the GrainCrop class __eq__ method."""
+    assert (graincrop_1 == graincrop_2) == expected_result
