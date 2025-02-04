@@ -65,12 +65,8 @@ class GrainStats:
 
     Parameters
     ----------
-    data : npt.NDArray
-        2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-    labelled_data : npt.NDArray
-        2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-    pixel_to_nanometre_scaling : float
-        Floating point value that defines the scaling factor between nanometres and pixels.
+    grain_crops : dict[int, GrainCrop]
+        Dictionary of GrainCrops to calculate stats for.
     direction : str
         Direction for which grains have been detected ("above" or "below").
     base_output_dir : Path
@@ -108,12 +104,8 @@ class GrainStats:
 
         Parameters
         ----------
-        data : npt.NDArray
-            2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-        labelled_data : npt.NDArray
-            2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-        pixel_to_nanometre_scaling : float
-            Floating point value that defines the scaling factor between nanometres and pixels.
+        grain_crops : dict[int, GrainCrop]
+            Dictionary of GrainCrops to calculate stats for.
         direction : str
             Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
