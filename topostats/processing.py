@@ -40,7 +40,6 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-lines
-# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -188,7 +187,6 @@ def run_grains(  # noqa: C901
             LOGGER.error(
                 f"[{filename}] : An error occurred during grain finding, skipping following steps.", exc_info=e
             )
-            raise e
         else:
             for direction, region_props in grains.region_properties.items():
                 if len(region_props) == 0:
@@ -229,9 +227,9 @@ def run_grains(  # noqa: C901
                                 ).plot_and_save()
                         # Plot individual grain masks
                         if direction == "above":
-                            direction_grain_crops = grains.image_grain_crops.above
-                        elif direction == "below":
-                            direction_grain_crops = grains.image_grain_crops.below
+                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.above
+                        else:
+                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.below
                         if direction_grain_crops is not None:
                             LOGGER.info(f"[{filename}] : Plotting individual grain masks")
                             for grain_number, grain_crop in direction_grain_crops.crops.items():
@@ -332,14 +330,8 @@ def run_grainstats(
 
     Parameters
     ----------
-    image : npt.NDArray
-        2D numpy array image for grain statistics calculations.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
-        boolean arrays indicating the pixels that have been masked as grains.
+    image_grain_crops : ImageGrainCrops
+        ImageGrainCrops object containing the GrainCrops to calculate stats for.
     filename : str
         Name of the image.
     basename : Path
@@ -406,11 +398,10 @@ def run_grainstats(
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
             return grainstats_df, height_profiles_dict
-        except Exception as e:
+        except Exception:
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            raise e
             return create_empty_dataframe(column_set="grainstats"), height_profiles_dict
     else:
         LOGGER.info(
@@ -436,11 +427,10 @@ def run_disordered_tracing(
 
     Parameters
     ----------
-    image : npt.ndarray
+    full_image : npt.ndarray
         Image containing the grains to pass to the tracing function.
-    grain_masks : dict
-        Dictionary of grain masks, keys "above" or "below" with values of 2D Numpy boolean arrays indicating the pixels
-        that have been masked as grains.
+    image_grain_crops : ImageGrainCrops
+        ImageGrainCrops object containing the GrainCrops to perform tracing on.
     pixel_to_nm_scaling : float
         Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
     filename : str
