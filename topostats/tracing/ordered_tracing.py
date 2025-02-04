@@ -862,7 +862,6 @@ def ordered_tracing_image(
     nodestats_direction_data: dict,
     filename: str,
     ordering_method: str,
-    pad_width: int,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
     # pylint: disable=too-many-locals
     """
@@ -880,8 +879,6 @@ def ordered_tracing_image(
         Image filename (for logging purposes).
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
-    pad_width : int
-        Width to pad the images by.
 
     Returns
     -------
@@ -922,7 +919,9 @@ def ordered_tracing_image(
                     )
                     LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
+                    LOGGER.debug(
+                        f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}"
+                    )
             # if not doing nodestats ordering, do original TS ordering
             else:
                 LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")

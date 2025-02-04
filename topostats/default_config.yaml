@@ -89,7 +89,6 @@ nodestats:
 ordered_tracing:
   run: true
   ordering_method: nodestats # The method of ordering the disordered traces.
-  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"
