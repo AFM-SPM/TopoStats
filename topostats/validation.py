@@ -262,7 +262,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
-            "pad_width": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
                     float,
