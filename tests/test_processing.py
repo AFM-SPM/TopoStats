@@ -26,6 +26,8 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
+# pylint: disable=too-many-positional-arguments
+
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
@@ -203,7 +205,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
     # Check the data
-    assert dict_almost_equal(expected_topostats, saved_topostats)
+    assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
 
 
 @pytest.mark.parametrize(

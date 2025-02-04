@@ -58,7 +58,15 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".topostats",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {"channel": str},
+        "loading": {
+            "channel": str,
+            "extract": Or(
+                "all",
+                "raw",
+                "filters",
+                error="Invalid value in config for 'extract', valid values are 'all', 'raw' or 'filters'",
+            ),
+        },
         "filter": {
             "run": Or(
                 True,
@@ -1036,9 +1044,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(

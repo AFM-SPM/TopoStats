@@ -58,6 +58,7 @@ CONFIG = {
 }
 
 # pylint: disable=protected-access
+# pylint: disable=too-many-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-positional-arguments
 
@@ -582,11 +583,11 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == 2.0
 
 
-def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
-    """Test loading of a .topostats file."""
+def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
+    """Test loading all data from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats()
+    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats(extract="all")
     above_grain_mask = data["grain_masks"]["above"]
     grain_trace_data = data["grain_trace_data"]
     assert isinstance(image, np.ndarray)
@@ -602,6 +603,33 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
 
 
 @pytest.mark.parametrize(
+    ("extract", "array_sum"),
+    [
+        pytest.param("raw", 30695369.188316286, id="loading raw data"),
+        pytest.param("filter", 184140.8593819073, id="loading filtered data"),
+    ],
+)
+def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
+    """Test loading different components from a .topostats file."""
+    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
+    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
+    image, px_to_nm_scaling, _ = load_scan_topostats.load_topostats(extract)
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (1024, 1024)
+    assert image.sum() == array_sum
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.4940029296875
+
+
+def test_load_scan_topostats_keyerror(load_scan_topostats: LoadScans):
+    """Test KeyError is raised when invalid extract is provided."""
+    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
+    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
+    with pytest.raises(KeyError):  # noqa: PT011
+        load_scan_topostats.load_topostats(extract="nothing")
+
+
+@pytest.mark.parametrize(
     ("load_scan_object", "length", "image_shape", "image_sum", "filename", "pixel_to_nm_scaling"),
     [
         pytest.param("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875, id="spm"),
@@ -609,7 +637,13 @@ def test_load_scan_topostats(load_scan_topostats: LoadScans) -> None:
         pytest.param("load_scan_jpk", 1, (256, 256), 286598232.9308627, "file", 1.2770176335964876, id="jpk"),
         pytest.param("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975, id="gwy"),
         pytest.param(
-            "load_scan_topostats", 9, (1024, 1024), 184140.8593819073, "file", 0.4940029296875, id="topostats"
+            "load_scan_topostats",
+            1,
+            (1024, 1024),
+            30695369.188316286,
+            "file",
+            0.4940029296875,
+            id="topostats",
         ),
         pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
     ],
@@ -1091,11 +1125,22 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("image", "pixel_to_nm_scaling", "grain_mask_above", "grain_mask_below", "grain_trace_data"),
+    (
+        "image",
+        "pixel_to_nm_scaling",
+        "filename",
+        "img_path",
+        "grain_mask_above",
+        "grain_mask_below",
+        "grain_trace_data",
+        "data_keys",
+    ),
     [
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "below_grain_mask_with_grain_trace_data",
+            "./below_grain_mask_with_grain_trace_data.topostats",
             None,
             np.zeros((10, 10)),
             {
@@ -1192,22 +1237,54 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
                     },
                 },
             },
+            {
+                "filename",
+                "grain_masks",
+                "grain_trace_data",
+                "image",
+                "image_original",
+                "img_path",
+                "pixel_to_nm_scaling",
+                "topostats_file_version",
+            },
             id="below_grain_mask_with_grain_trace_data",
         ),
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "above_grain_mask_without_grain_trace_data",
+            "./above_grain_mask_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
             None,
             None,
+            {
+                "filename",
+                "grain_masks",
+                "image",
+                "image_original",
+                "img_path",
+                "pixel_to_nm_scaling",
+                "topostats_file_version",
+            },
             id="above_grain_mask_without_grain_trace_data",
         ),
         pytest.param(
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
+            "above_and_below_grain_masks_without_grain_trace_data",
+            "./above_and_below_grain_masks_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
             np.zeros((10, 10)),
             None,
+            {
+                "filename",
+                "grain_masks",
+                "image",
+                "image_original",
+                "img_path",
+                "pixel_to_nm_scaling",
+                "topostats_file_version",
+            },
             id="above_and_below_grain_masks_without_grain_trace_data",
         ),
     ],
@@ -1217,14 +1294,20 @@ def test_save_and_load_topostats_file(
     tmp_path: Path,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
+    filename: str,
+    img_path: str,
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
     grain_trace_data: dict,
+    data_keys: set,
 ) -> None:
     """Test saving a .topostats file."""
     topostats_object = {
-        "image_flattened": image,
+        "filename": filename,
+        "img_path": img_path,
         "pixel_to_nm_scaling": pixel_to_nm_scaling,
+        "image_original": image,
+        "image": image,
         "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
         "grain_trace_data": grain_trace_data,
     }
@@ -1237,24 +1320,19 @@ def test_save_and_load_topostats_file(
     # Load the saved .topostats file using LoadScans
     loadscans = load_scan_topostats_test_file
     loadscans.get_data()
-    assert set(loadscans.img_dict["topostats_file_test"].keys()) == {
-        "filename",
-        "img_path",
-        "pixel_to_nm_scaling",
-        "image_original",
-        "image_flattened",
-        "grain_masks",
-        "grain_trace_data",
-    }
-
+    assert set(loadscans.img_dict["topostats_file_test"].keys()) == data_keys
     np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
-    assert pixel_to_nm_scaling == loadscans.img_dict["pixel_to_nm_scaling"]
+    assert pixel_to_nm_scaling == loadscans.img_dict["topostats_file_test"]["pixel_to_nm_scaling"]
     if grain_mask_above is not None:
-        np.testing.assert_array_equal(grain_mask_above, loadscans.img_dict["grain_masks"]["above"])
+        np.testing.assert_array_equal(
+            grain_mask_above, loadscans.img_dict["topostats_file_test"]["grain_masks"]["above"]
+        )
     if grain_mask_below is not None:
-        np.testing.assert_array_equal(grain_mask_below, loadscans.img_dict["grain_masks"]["below"])
+        np.testing.assert_array_equal(
+            grain_mask_below, loadscans.img_dict["topostats_file_test"]["grain_masks"]["below"]
+        )
     if grain_trace_data is not None:
-        np.testing.assert_equal(grain_trace_data, loadscans.img_dict["grain_trace_data"])
+        np.testing.assert_equal(grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"])
 
 
 @pytest.mark.parametrize(

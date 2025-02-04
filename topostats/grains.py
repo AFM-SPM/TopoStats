@@ -580,12 +580,12 @@ class Grains:
         grain_crop_padding : int
             Padding to add to the bounding box of grains during cropping.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
-            Configuration for the UNet model.
-            model_path: str
+            Configuration for the UNet model which is a dictionary with the following keys and values.
+            model_path : str
                 Path to the UNet model.
             upper_norm_bound: float
                 Upper bound for normalising the image.
-            lower_norm_bound: float
+            lower_norm_bound : float
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
@@ -1404,7 +1404,6 @@ class Grains:
 
         # Iterate over the regions and return the crop, but zero any non-connected grains
         for region in Grains.get_region_properties(labelled_regions):
-
             binary_labelled_regions = labelled_regions == region.label
 
             # Zero any non-connected grains
@@ -1757,11 +1756,12 @@ class Grains:
             ]
 
             # Update the grain mask tensor
-            grain_mask_tensor[
-                min_row + padding : max_row - padding,
-                min_col + padding : max_col - padding,
-                :,
-            ] = cropped_grain
+            grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :] = (
+                np.maximum(
+                    grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :],
+                    cropped_grain,
+                )
+            )
 
         # Update the background class
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)

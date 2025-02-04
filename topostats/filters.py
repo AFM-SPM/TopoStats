@@ -24,6 +24,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=broad-except
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-branches
 # pylint: disable=dangerous-default-value
 
