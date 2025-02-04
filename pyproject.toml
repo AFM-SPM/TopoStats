@@ -256,6 +256,7 @@ fixture-parentheses = true
 skip = '*.spm*,*.mplstyle,*.svg'
 count = ''
 quiet-level = 3
+ignore-words-list = 'OT'
 
 [tool.numpydoc_validation]
 checks = [
