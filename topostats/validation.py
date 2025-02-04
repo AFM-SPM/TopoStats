@@ -317,7 +317,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "node_extend_dist": float,
             "branch_pairing_length": float,
             "pair_odd_branches": bool,
-            "pad_width": lambda n: n > 0.0,
         },
         "ordered_tracing": {
             "run": Or(
