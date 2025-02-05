@@ -138,6 +138,8 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 &nbsp;
 
+![Ordered tracing grain metrics visualisation](../_static/images/ordered_tracing/ts2_ord_metrics.png)
+
 For each molecule found by the ordering algorithm(s), the following new columns are added to the `molstats.csv` file:
 
 | Column Name     | Description                                                                                                         | Data Type |
@@ -148,6 +150,8 @@ For each molecule found by the ordering algorithm(s), the following new columns 
 | `processing`    | The method used for ordering.                                                                                       | `str`     |
 
 &nbsp;
+
+![Ordered tracing molecule metrics visualisation](../_static/images/ordered_tracing/ts2_metrics-mols.png)
 
 Note: Most information obtained during the Ordered Tracing processing can be obtained from the `<image_name>.topostats`
 file found within the `processed` folder and contains a multitude of molecule related objects such as:
