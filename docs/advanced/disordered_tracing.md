@@ -124,6 +124,10 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 | `grain_junctions`     | The number of pixels designated as junctions (>2 neighbours) in the pruned skeleton.    | `integer` |
 | `total_branch_length` | The sum of all branch lengths in the pruned skeleton.                                   | `float`   |
 
+&nbsp;
+
+![Disordered tracing grain metrics visualisation](../_static/images/disordered_tracing/ts2_dis_metrics.png)
+
 ### Disordered Segment Statistics
 
 An `all_disordered_segment_statistics.csv` file is produced for each image which measures the following metrics from
@@ -144,6 +148,10 @@ each segment in each pruned skeleton:
 | `median-value`       | The median value of the branch pixel values (height), in nm.                                                               | `float`   |
 | `mid-value`          | The value of a pixel halfway along the ordered branch (height), in nm.                                                     | `float`   |
 | `basename`           | The directory path containing the image.                                                                                   | `string`  |
+
+&nbsp;
+
+![Disordered tracing branch metrics visualisation](../_static/images/disordered_tracing/ts2_metrics-branch.png)
 
 ## Diagnostic Images
 
