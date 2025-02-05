@@ -124,6 +124,8 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 &nbsp;
 
+![NodeStats grain metrics visualisation](../_static/images/NodeStats/ts2_ns_metrics.png)
+
 Note: Most information obtained during the NodeStats processing can be obtained from the `<image_name>.topostats` file
 found within the `processed` folder and contains a multitude of grain and branch statistics such as:
 
