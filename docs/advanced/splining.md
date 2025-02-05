@@ -91,6 +91,8 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 &nbsp;
 
+![Ordered tracing molecule metrics visualisation](../_static/images/splining/ts2_sp_metrics.png)
+
 For each molecule found by the ordering algorithm(s), the following new columns are added to the `molstats.csv` file:
 
 | Column Name           | Description                                                           | Data Type |
