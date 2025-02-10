@@ -1164,7 +1164,16 @@ def process_scan(
         grains_config=grains_config,
     )
 
-    topostats_object["grain_crops"] = image_grain_crops
+    topostats_object["grain_tensors"] = {}
+    topostats_object["grain_tensors"]["above"] = (
+        image_grain_crops.above.full_mask_tensor if image_grain_crops.above is not None else None
+    )
+    topostats_object["grain_tensors"]["below"] = (
+        image_grain_crops.below.full_mask_tensor if image_grain_crops.below is not None else None
+    )
+
+    if image_grain_crops.above is None:
+        print("no grains found for above")
 
     if image_grain_crops.above is not None or image_grain_crops.below is not None:
         # Grainstats :
@@ -1400,7 +1409,7 @@ def process_grains(
 
     # Find Grains using the filtered image
     try:
-        grain_masks = run_grains(
+        image_grain_crops = run_grains(
             image=topostats_object["image"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
@@ -1409,8 +1418,11 @@ def process_grains(
             plotting_config=plotting_config,
             grains_config=grains_config,
         )
-        # Use grain mask if one is returned, else use original image
-        topostats_object["grain_masks"] = grain_masks if grain_masks is not None else topostats_object["grain_masks"]
+        topostats_object["grain_tensors"] = {}
+        if image_grain_crops.above is not None:
+            topostats_object["grain_tensors"]["above"] = image_grain_crops.above.full_mask_tensor
+        if image_grain_crops.below is not None:
+            topostats_object["grain_tensors"]["below"] = image_grain_crops.below.full_mask_tensor
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
             output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
