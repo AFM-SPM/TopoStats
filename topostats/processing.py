@@ -1172,9 +1172,6 @@ def process_scan(
         image_grain_crops.below.full_mask_tensor if image_grain_crops.below is not None else None
     )
 
-    if image_grain_crops.above is None:
-        print("no grains found for above")
-
     if image_grain_crops.above is not None or image_grain_crops.below is not None:
         # Grainstats :
         grainstats_df, height_profiles = run_grainstats(
