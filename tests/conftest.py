@@ -1,3 +1,5 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Fixtures for testing."""
 
 from __future__ import annotations
@@ -329,7 +331,7 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 @pytest.fixture()
 def dummy_graincrop() -> GrainCrop:
     """Dummy GrainCrop object for testing."""
-    image = np.random.random((10, 10)).astype(np.float32)
+    image = RNG.random(size=(10, 10)).astype(np.float32)
     mask = np.stack(
         arrays=[
             np.array(
@@ -646,9 +648,8 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
 @pytest.fixture()
 def minicircle_small_graincrops() -> dict[int, GrainCrop]:
     """Dictionary of graincrops for the minicircle_small image."""
-    with open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:
-        graincrops = pickle.load(f)
-    return graincrops
+    with Path.open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:  # pylint: disable=unspecified-encoding
+        return pickle.load(f)
 
 
 @pytest.fixture()
