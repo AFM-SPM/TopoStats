@@ -1,3 +1,5 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Test end-to-end running of topostats."""
 
 import logging
@@ -25,8 +27,6 @@ from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
-
-# pylint: disable=too-many-positional-arguments
 
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
@@ -771,7 +771,9 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    with open(RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb") as f:
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
+    ) as f:
         image_grain_crops = pickle.load(f)
 
     grainstats_df, _ = run_grainstats(
