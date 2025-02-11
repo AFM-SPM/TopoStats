@@ -102,7 +102,7 @@ For each molecule found by the ordering algorithm(s), the following new columns 
 
 &nbsp;
 
-![Ordered tracing molecule metrics visualisation](../_static/images/splining/ts2_metrics-mols_1.png)
+![Splined tracing molecule metrics visualisation](../_static/images/splining/ts2_metrics-mols_1.png)
 
 Note: Most information obtained during the Splining processing can be obtained from the `<image_name>.topostats` file
 found within the `processed` folder and contains a multitude of molecule related objects such as:
