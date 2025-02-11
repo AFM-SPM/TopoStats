@@ -91,6 +91,8 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 &nbsp;
 
+![Splined tracing molecule metrics visualisation](../_static/images/splining/ts2_sp_metrics.png)
+
 For each molecule found by the ordering algorithm(s), the following new columns are added to the `molstats.csv` file:
 
 | Column Name           | Description                                                           | Data Type |
@@ -99,6 +101,8 @@ For each molecule found by the ordering algorithm(s), the following new columns 
 | `end_to_end_distance` | The distance from two endpoints of the spline of the linear molecule. | `float`   |
 
 &nbsp;
+
+![Splined tracing molecule metrics visualisation](../_static/images/splining/ts2_metrics-mols_1.png)
 
 Note: Most information obtained during the Splining processing can be obtained from the `<image_name>.topostats` file
 found within the `processed` folder and contains a multitude of molecule related objects such as:

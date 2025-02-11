@@ -5,6 +5,7 @@ You can read more detailed information about the methods implemented in TopoStat
 - [Flattening](advanced/flattening.md)
 - [Grain Finding](advanced/grain_finding.md)
 - [Thresholding](advanced/thresholding.md)
+- [Grain Stats](advanced/grainstats.md)
 - [Disordered Tracing](advanced/disordered_tracing.md)
 - [Nodestats](advanced/nodestats.md)
 - [Ordered Tracing](advanced/ordered_tracing.md)
