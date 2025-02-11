@@ -369,6 +369,13 @@ def create_parser() -> arg.ArgumentParser:
 
     # Disordered Tracing
     process_parser.add_argument(
+        "--disordered-class-index",
+        dest="disordered_class_index",
+        type=int,
+        required=False,
+        help="Index of the class to trace.",
+    )
+    process_parser.add_argument(
         "--disordered-min-skeleton-size",
         dest="disordered_min_skeleton_size",
         type=float,
