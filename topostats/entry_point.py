@@ -230,6 +230,13 @@ def create_parser() -> arg.ArgumentParser:
 
     # Grains
     process_parser.add_argument(
+        "--grains-grain-crop-padding",
+        dest="grains_grain_crop_padding",
+        type=int,
+        required=False,
+        help="Padding to be applied while cropping grains, must be >= 1.",
+    )
+    process_parser.add_argument(
         "--grains-threshold-method",
         dest="grains_threshold_method",
         type=str,
@@ -369,13 +376,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Minimum number of pixels in a skeleton for it to be retained",
     )
     process_parser.add_argument(
-        "--disordered-pad-width",
-        dest="disordered_pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing",
-    )
-    process_parser.add_argument(
         "--disordered-mask-smoothing-params-gaussian-sigma",
         dest="disordered_mask_smoothing_params_gaussian_sigma",
         type=float,
@@ -476,13 +476,6 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Whether to try and pair odd-branched nodes",
     )
-    process_parser.add_argument(
-        "--nodestats-pad-width",
-        dest="nodestats_pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing (should be the same as --disordered-pad-width)",
-    )
 
     # Ordered Tracing
     process_parser.add_argument(
@@ -491,13 +484,6 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Ordering method for ordering disordered traces. Option 'nodestats'",
-    )
-    process_parser.add_argument(
-        "--ordered-pad-width",
-        dest="ordered_pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing (should be the same as --disordered-pad-width)",
     )
 
     # Splining
@@ -705,6 +691,13 @@ def create_parser() -> arg.ArgumentParser:
         help="Load filtered images from '.topostats' files and detect grains.",
     )
     grains_parser.add_argument(
+        "--grain-crop-padding",
+        dest="grain_crop_padding",
+        type=int,
+        required=False,
+        help="Padding to be applied while cropping grains, must be at least 1.",
+    )
+    grains_parser.add_argument(
         "--threshold-method",
         dest="threshold_method",
         type=str,
@@ -850,18 +843,18 @@ def create_parser() -> arg.ArgumentParser:
         help="WIP DO NOT USE - Skeletonise and prune objects to disordered traces.",
     )
     disordered_tracing_parser.add_argument(
+        "--class-index",
+        dest="class_index",
+        type=int,
+        required=False,
+        help="Index of the class to trace",
+    )
+    disordered_tracing_parser.add_argument(
         "--min-skeleton-size",
         dest="min_skeleton_size",
         type=float,
         required=False,
         help="Minimum number of pixels in a skeleton for it to be retained",
-    )
-    disordered_tracing_parser.add_argument(
-        "--pad-width",
-        dest="pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing",
     )
     disordered_tracing_parser.add_argument(
         "--mask-smoothing-params-gaussian-sigma",
@@ -971,13 +964,6 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Whether to try and pair odd-branched nodes",
     )
-    nodestats_parser.add_argument(
-        "--pad-width",
-        dest="pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing (should be the same as --disordered-pad-width)",
-    )
     # Run the relevant function with the arguments
     nodestats_parser.set_defaults(func=run_modules.nodestats)
 
@@ -993,13 +979,6 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Ordering method for ordering disordered traces. Option 'nodestats'",
-    )
-    ordered_tracing_parser.add_argument(
-        "--pad-width",
-        dest="pad_width",
-        type=int,
-        required=False,
-        help="Pixels to pad grains by when tracing (should be the same as --disordered-pad-width)",
     )
     # Run the relevant function with the arguments
     ordered_tracing_parser.set_defaults(func=run_modules.ordered_tracing)
