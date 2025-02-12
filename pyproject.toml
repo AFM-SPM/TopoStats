@@ -191,7 +191,8 @@ exclude = [
 ]
 # per-file-ignores = []
 line-length = 120
-lint.select = [
+[tool.ruff.lint]
+select = [
   "A", # flake8-builtins
   "B", # flake8-bugbear
   "C", #
@@ -208,14 +209,15 @@ lint.select = [
   "U",
   "UP", # pyupgrade
 ]
-lint.ignore = [
+ignore = [
+  "A005",
   "B905",
   "E501",
   "S101",
   "S403",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-lint.fixable = [
+fixable = [
   "A", # flake8-builtins
   "B", # flake8-bugbear
   "C", #
@@ -232,10 +234,10 @@ lint.fixable = [
   "U",
   "UP", # pyupgrade
 ]
-lint.unfixable = []
+unfixable = []
 
 # Numpy2 deprecation checks
-lint.extend-select = ["NPY201"]
+extend-select = ["NPY201"]
 preview = false
 
 [tool.ruff.lint.flake8-quotes]
@@ -254,6 +256,7 @@ fixture-parentheses = true
 skip = '*.spm*,*.mplstyle,*.svg'
 count = ''
 quiet-level = 3
+ignore-words-list = 'OT'
 
 [tool.numpydoc_validation]
 checks = [

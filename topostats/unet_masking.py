@@ -14,7 +14,6 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-locals
 
 
@@ -230,7 +229,12 @@ def make_bounding_box_square(
     image_shape : tuple[int, int]
         The shape of the image.
 
-    Note:
+    Returns
+    -------
+    tuple[int, int, int, int]
+        The new crop indices.
+
+    Notes
     -----
     The crop indices are inclusive on the minimum side and exclusive on the maximum side.
     So an object like this:
@@ -241,11 +245,6 @@ def make_bounding_box_square(
     0 0 0 0 0
     With no padding, would have a bounding box of (1, 1, 4, 4) and not (1, 1, 3, 3).
     Hence the maximum index for the bbox is allowed to exceed the maximum index of the image by 1.
-
-    Returns
-    -------
-    tuple[int, int, int, int]
-        The new crop indices.
     """
     crop_height = crop_max_row - crop_min_row
     crop_width = crop_max_col - crop_min_col
@@ -276,7 +275,7 @@ def make_bounding_box_square(
             # Crop expansion beyond image size
             else:
                 new_crop_max_col = image_shape[1]
-                # Remaning size is equal to the axes_diff minus the size we just added.
+                # Remaining size is equal to the axes_diff minus the size we just added.
                 # The size we added is the size of the image minus the crop_max_col. Note that since
                 # the max is exclusive, we use the size of the image, not the maximum image column.
                 # The remaining size will be the axes diff minus the difference between original and new
@@ -306,7 +305,7 @@ def make_bounding_box_square(
             # Crop expansion beyond image size
             else:
                 new_crop_max_row = image_shape[0]
-                # Remaning size is equal to the axes_diff minus the size we just added.
+                # Remaining size is equal to the axes_diff minus the size we just added.
                 # The size we added is the size of the image minus the crop_max_row. Note that since
                 # the max is exclusive, we use the size of the image, not the maximum image row.
                 # The remaining size will be the axes diff minus the difference between original and new

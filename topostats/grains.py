@@ -40,7 +40,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-public-methods
 
@@ -74,8 +73,8 @@ class GrainCrop:
     filename: str
 
     def __post_init__(self) -> None:
+        """Post initialisation checks."""
         # This is where we can add post-initialisation checks but not needed at the moment.
-        pass
 
     # Important note about mypy and dataclasses:
     # mypy takes issue with the re-definition of the class attributes into property methods.
@@ -86,33 +85,93 @@ class GrainCrop:
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
-        """Return the image."""
+        """
+        Getter for the image.
+
+        Returns
+        -------
+        npt.NDArray
+            Numpy array of the image.
+        """
         return self._image
 
     @image.setter
     def image(self, value: npt.NDArray[np.float32]):
+        """
+        Setter for the image.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Numpy array of the image.
+
+        Raises
+        ------
+        ValueError
+            If the image is not square.
+        """
         if value.shape[0] != value.shape[1]:
             raise ValueError(f"Image is not square: {value.shape}")
         self._image = value
 
     @property
     def mask(self) -> npt.NDArray[np.bool_]:
-        """Return the mask."""
+        """
+        Getter for the mask.
+
+        Returns
+        -------
+        npt.NDArray
+            Numpy array of the mask.
+        """
         return self._mask
 
     @mask.setter
     def mask(self, value: npt.NDArray[np.bool_]):
+        """
+        Setter for the mask.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Numpy array of the mask.
+
+        Raises
+        ------
+        ValueError
+            If the mask dimensions do not match the image.
+        """
         if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
             raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
         self._mask = value
 
     @property
     def padding(self) -> int:
-        """Return the padding."""
+        """
+        Getter for the padding.
+
+        Returns
+        -------
+        int
+            The padding amount.
+        """
         return self._padding
 
     @padding.setter
     def padding(self, value: int):
+        """
+        Setter for the padding.
+
+        Parameters
+        ----------
+        value : int
+            Padding amount.
+
+        Raises
+        ------
+        ValueError
+            If the padding is not an integer or is less than 1.
+        """
         if not isinstance(value, int):
             raise ValueError(f"Padding must be an integer, but is {value}")
         if value < 1:
@@ -121,11 +180,31 @@ class GrainCrop:
 
     @property
     def bbox(self) -> tuple[int, int, int, int]:
-        """Return the bounding box."""
+        """
+        Getter for the bounding box.
+
+        Returns
+        -------
+        tuple
+            Bounding box of the crop.
+
+        Raises
+        ------
+        ValueError
+            If the bounding box is not square.
+        """
         return self._bbox
 
     @bbox.setter
     def bbox(self, value: tuple[int, int, int, int]):
+        """
+        Setter for the bounding box.
+
+        Parameters
+        ----------
+        value : tuple[int, int, int, int]
+            Bounding box of the crop.
+        """
         if len(value) != 4:
             raise ValueError(f"Bounding box must have 4 elements, but has {len(value)}")
         if value[2] - value[0] != value[3] - value[1]:
@@ -136,25 +215,68 @@ class GrainCrop:
 
     @property
     def pixel_to_nm_scaling(self) -> float:
-        """Return the pixel to nanometre scaling factor."""
+        """
+        Getter for the pixel to nanometre scaling factor.
+
+        Returns
+        -------
+        float
+            Pixel to nanometre scaling factor.
+        """
         return self._pixel_to_nm_scaling
 
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: float):
+        """
+        Setter for the pixel to nanometre scaling factor.
+
+        Parameters
+        ----------
+        value : float
+            Pixel to nanometre scaling factor.
+        """
         self._pixel_to_nm_scaling = value
 
     @property
     def filename(self) -> str:
-        """Return the filename."""
+        """
+        Getter for the filename.
+
+        Returns
+        -------
+        str
+            The image filename.
+        """
         return self._filename
 
     @filename.setter
     def filename(self, value: str):
+        """
+        Setter for the filename.
+
+        Parameters
+        ----------
+        value : str
+            Image filename.
+        """
         self._filename = value
 
     def __eq__(self, other: object) -> bool:
+        """
+        Check if two GrainCrop objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
         if not isinstance(other, GrainCrop):
-            return NotImplemented
+            return False
         return (
             np.array_equal(self.image, other.image)
             and np.array_equal(self.mask, other.mask)
@@ -164,8 +286,20 @@ class GrainCrop:
             and self.filename == other.filename
         )
 
-    def locate_difference(self, other: object) -> None:
-        """Debug function to find the culprit when two GrainCrop objects are not equal."""
+    def debug_locate_difference(self, other: object) -> None:
+        """
+        Debug function to find the culprit when two GrainCrop objects are not equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Raises
+        ------
+        ValueError
+            If the objects are not equal
+        """
         if not isinstance(other, GrainCrop):
             raise ValueError(f"Cannot compare GrainCrop with {type(other)}")
         if not np.array_equal(self.image, other.image):
@@ -231,26 +365,66 @@ class GrainCropsDirection:
 
     @property
     def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
-        """Return the full mask tensor."""
+        """
+        Getter for the full mask tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            Numpy array of the full mask tensor.
+        """
         return self._full_mask_tensor
 
     @full_mask_tensor.setter
     def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
+        """
+        Setter for the full mask tensor.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Numpy array of the full mask tensor.
+        """
         self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
 
     def __eq__(self, other: object) -> bool:
+        """
+        Check if two GrainCropsDirection objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
         if not isinstance(other, GrainCropsDirection):
-            return NotImplemented
+            return False
         return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
 
-    def locate_difference(self, other: object) -> None:
-        """Debug function to find the culprit when two GrainCropsDirection objects are not equal."""
+    def debug_locate_difference(self, other: object) -> None:
+        """
+        Debug function to find the culprit when two GrainCropsDirection objects are not equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Raises
+        ------
+        ValueError
+            If the objects are not equal.
+        """
         if not isinstance(other, GrainCropsDirection):
             raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
         for crop_index, crop in self.crops.items():
             if crop != other.crops[crop_index]:
                 LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.locate_difference(other.crops[crop_index])
+                crop.debug_locate_difference(other.crops[crop_index])
         if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
             raise ValueError("Full mask tensor is different")
 
@@ -281,25 +455,50 @@ class ImageGrainCrops:
     below: GrainCropsDirection | None
 
     def __eq__(self, other: object) -> bool:
+        """
+        Check if two ImageGrainCrops objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
         if not isinstance(other, ImageGrainCrops):
-            return NotImplemented
+            return False
         return self.above == other.above and self.below == other.below
 
-    def locate_difference(self, other: object) -> None:
-        """Debug function to find the culprit when two ImageGrainCrops objects are not equal."""
+    def debug_locate_difference(self, other: object) -> None:
+        """
+        Debug function to find the culprit when two ImageGrainCrops objects are not equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Raises
+        ------
+        ValueError
+            If the objects are not equal.
+        """
         if not isinstance(other, ImageGrainCrops):
             raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
         if self.above is not None:
             if self.above != other.above:
                 LOGGER.info("Above grains are different")
-                self.above.locate_difference(other.above)
+                self.above.debug_locate_difference(other.above)
         else:
             if other.above is not None:
                 raise ValueError("Above grains are different")
         if self.below is not None:
             if self.below != other.below:
                 LOGGER.info("Below grains are different")
-                self.below.locate_difference(other.below)
+                self.below.debug_locate_difference(other.below)
         else:
             if other.below is not None:
                 raise ValueError("Below grains are different")
@@ -319,12 +518,12 @@ class Grains:
         File being processed (used in logging).
     pixel_to_nm_scaling : float
         Scaling of pixels to nanometres.
+    grain_crop_padding : int
+        Padding to add to the bounding box of the grain during cropping.
     unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
         Configuration for the UNet model.
         model_path: str
             Path to the UNet model.
-        grain_crop_padding: int
-            Padding to add to the bounding box of the grain before cropping.
         upper_norm_bound: float
             Upper bound for normalising the image.
         lower_norm_bound: float
@@ -352,6 +551,7 @@ class Grains:
         Dictionary of vetting parameters.
     """
 
+    # pylint: disable=too-many-locals
     def __init__(
         self,
         image: npt.NDArray,
@@ -381,15 +581,15 @@ class Grains:
             File being processed (used in logging).
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
+        grain_crop_padding : int
+            Padding to add to the bounding box of grains during cropping.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
-            Configuration for the UNet model.
-            model_path: str
+            Configuration for the UNet model which is a dictionary with the following keys and values.
+            model_path : str
                 Path to the UNet model.
-            grain_crop_padding: int
-                Padding to add to the bounding box of the grain before cropping.
             upper_norm_bound: float
                 Upper bound for normalising the image.
-            lower_norm_bound: float
+            lower_norm_bound : float
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
@@ -434,7 +634,7 @@ class Grains:
         self.direction = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
-        self.thresholds = None
+        self.thresholds: dict[str, float] | None = None
         self.images = {
             "mask_grains": None,
             "tidied_border": None,
@@ -723,6 +923,9 @@ class Grains:
         """
         return {region.area: region.area_bbox for region in self.region_properties[direction]}
 
+    # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
+    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-statements
     def find_grains(self) -> None:
         """Find grains."""
         LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
@@ -983,16 +1186,18 @@ class Grains:
     # pylint: disable=too-many-locals
     @staticmethod
     def improve_grain_segmentation_unet(
+        graincrops: dict[int, GrainCrop],
         filename: str,
         direction: str,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
-        graincrops: dict[int, GrainCrop],
     ) -> dict[int, GrainCrop]:
         """
         Use a UNet model to re-segment existing grains to improve their accuracy.
 
         Parameters
         ----------
+        graincrops : dict[int, GrainCrop]
+            Dictionary of grain crops.
         filename : str
             File being processed (used in logging).
         direction : str
@@ -1007,15 +1212,11 @@ class Grains:
                 Upper bound for normalising the image.
             lower_norm_bound: float
                 Lower bound for normalising the image.
-        labelled_grain_regions : npt.NDArray
-            2-D Numpy array of labelled grain regions.
 
         Returns
         -------
-        npt.NDArray
-            NxNxC Numpy array of the UNet mask.
-        npt.NDArray
-            NxNxC Numpy array of the labelled regions from the UNet mask.
+        dict[int, GrainCrop]
+            Dictionary of (hopefully) improved grain crops.
         """
         LOGGER.debug(f"[{filename}] : Running UNet model on {direction} grains")
 
@@ -1042,7 +1243,7 @@ class Grains:
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
         LOGGER.debug(f"Output shape of UNet model: {unet_model.output_shape}")
 
-        new_graincrops = {}
+        new_graincrops: dict[int, GrainCrop] = {}
         num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
@@ -1284,7 +1485,6 @@ class Grains:
 
         # Iterate over the regions and return the crop, but zero any non-connected grains
         for region in Grains.get_region_properties(labelled_regions):
-
             binary_labelled_regions = labelled_regions == region.label
 
             # Zero any non-connected grains
@@ -1637,11 +1837,12 @@ class Grains:
             ]
 
             # Update the grain mask tensor
-            grain_mask_tensor[
-                min_row + padding : max_row - padding,
-                min_col + padding : max_col - padding,
-                :,
-            ] = cropped_grain
+            grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :] = (
+                np.maximum(
+                    grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :],
+                    cropped_grain,
+                )
+            )
 
         # Update the background class
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
@@ -1913,10 +2114,8 @@ class Grains:
                     class_index,
                 ] += crop_tensor[:, :, class_index]
 
-        # Update background class
-        full_mask_tensor = Grains.update_background_class(full_mask_tensor)
-
-        return full_mask_tensor
+        # Update background class and return
+        return Grains.update_background_class(full_mask_tensor)
 
     @staticmethod
     def extract_grains_from_full_image_tensor(
@@ -1935,13 +2134,13 @@ class Grains:
         ----------
         image : npt.NDArray[np.float32]
             2-D Numpy array of the image.
-        labelled_full_mask_tensor : npt.NDArray[np.bool_]
-            Labelled 3-D Numpy array of the full mask tensor.
+        full_mask_tensor : npt.NDArray[np.bool_]
+            3-D NxNxC boolean numpy array of all the class masks for the image.
         padding : int
             Padding added to the bounding box of the grain before cropping.
         pixel_to_nm_scaling : float
             Pixel to nanometre scaling factor.
-        filename: str
+        filename : str
             Filename of the image.
 
         Returns
@@ -1995,17 +2194,11 @@ class Grains:
                 == square_flat_bounding_box[1] - square_flat_bounding_box[3]
             )
 
-            print(
-                f"square flat bounding box {square_flat_bounding_box} shape {square_flat_bounding_box[2] - square_flat_bounding_box[0], square_flat_bounding_box[3] - square_flat_bounding_box[1]}"
-            )
-
             # Grab image and mask for the cropped region
             grain_cropped_image = image[
                 square_flat_bounding_box[0] : square_flat_bounding_box[2],
                 square_flat_bounding_box[1] : square_flat_bounding_box[3],
             ]
-
-            print(f"grain cropped image shape {grain_cropped_image.shape}")
 
             grain_cropped_tensor = grain_tensor_full_mask[
                 square_flat_bounding_box[0] : square_flat_bounding_box[2],
@@ -2013,20 +2206,16 @@ class Grains:
                 :,
             ]
 
-            print(f"grain cropped tensor shape {grain_cropped_tensor.shape}")
-
             # Update background class to reflect the removal of any non-connected grains
             grain_cropped_tensor = Grains.update_background_class(grain_mask_tensor=grain_cropped_tensor)
 
             assert grain_cropped_image.shape[0] == grain_cropped_image.shape[1]
-            print(f"grain cropped tensor shape {grain_cropped_tensor.shape}")
             assert grain_cropped_tensor.shape[0] == grain_cropped_tensor.shape[1]
             # Check that the bounding box is square
             bounding_box_shape = (
                 square_flat_bounding_box[2] - square_flat_bounding_box[0],
                 square_flat_bounding_box[3] - square_flat_bounding_box[1],
             )
-            print(f"bounding box shape {bounding_box_shape}")
             assert bounding_box_shape[0] == bounding_box_shape[1]
             # Check bounding box shape is same as image shape and first two dimensions of tensor
             assert bounding_box_shape == grain_cropped_image.shape
@@ -2085,7 +2274,8 @@ class Grains:
                     # Check the region size
                     if (
                         region.area < min_object_size
-                        or (region_bbox[2] - region_bbox[0]) * (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
+                        or (region_bbox[2] - region_bbox[0]) < min_object_bbox_size
+                        or (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
                     ):
                         # Remove the region from the class
                         graincrop.mask[:, :, class_index] = np.where(
@@ -2093,6 +2283,9 @@ class Grains:
                             0,
                             graincrop.mask[:, :, class_index],
                         )
+
+            # Update the background class
+            graincrop.mask = Grains.update_background_class(graincrop.mask)
 
         return graincrops
 
@@ -2119,7 +2312,7 @@ class Grains:
         if classes_to_merge is None:
             return graincrops
 
-        for grain_number, graincrop in graincrops.items():
+        for _grain_number, graincrop in graincrops.items():
             graincrop.mask = Grains.merge_classes(
                 grain_mask_tensor=graincrop.mask,
                 classes_to_merge=classes_to_merge,
@@ -2144,7 +2337,7 @@ class Grains:
         dict[int, GrainCrop]
             Dictionary of grain crops with updated background class.
         """
-        for grain_number, graincrop in graincrops.items():
+        for _grain_number, graincrop in graincrops.items():
             graincrop.mask = Grains.update_background_class(graincrop.mask)
 
         return graincrops

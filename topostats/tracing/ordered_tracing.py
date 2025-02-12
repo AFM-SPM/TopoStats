@@ -862,7 +862,6 @@ def ordered_tracing_image(
     nodestats_direction_data: dict,
     filename: str,
     ordering_method: str,
-    pad_width: int,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
     # pylint: disable=too-many-locals
     """
@@ -880,8 +879,6 @@ def ordered_tracing_image(
         Image filename (for logging purposes).
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
-    pad_width : int
-        Width to pad the images by.
 
     Returns
     -------

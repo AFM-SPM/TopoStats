@@ -5,6 +5,7 @@ cores: 2 # Number of CPU cores to utilise for processing multiple files simultan
 file_ext: .spm # File extension of the data files.
 loading:
   channel: Height # Channel to pull data from in the data files.
+  extract: raw # Array to extract when loading .topostats files.
 filter:
   run: true # Options : true, false
   row_alignment_quantile: 0.5 # lower values may improve flattening of larger features
@@ -67,7 +68,6 @@ disordered_tracing:
   run: true # Options : true, false
   class_index: 1 # The class index to trace. This is the class index of the grains.
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
-  pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
     gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
@@ -87,11 +87,9 @@ nodestats:
   node_extend_dist: 14.0 # The distance in nanometres over which to join nearby odd-branched nodes.
   branch_pairing_length: 20.0 # The length in nanometres from the crossing point to pair and trace, obtaining FWHM's.
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
-  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 ordered_tracing:
   run: true
   ordering_method: nodestats # The method of ordering the disordered traces.
-  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"

@@ -1,3 +1,5 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Fixtures for testing."""
 
 from __future__ import annotations
@@ -329,7 +331,7 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 @pytest.fixture()
 def dummy_graincrop() -> GrainCrop:
     """Dummy GrainCrop object for testing."""
-    image = np.random.random((10, 10)).astype(np.float32)
+    image = RNG.random(size=(10, 10)).astype(np.float32)
     mask = np.stack(
         arrays=[
             np.array(
@@ -403,6 +405,7 @@ def load_scan_dummy() -> LoadScans:
 @pytest.fixture()
 def load_scan_topostats_test_file(tmp_path: Path, loading_config: dict) -> LoadScans:
     """Instantiate a LoadScans object for a temporarily saved test .topostats file."""
+    loading_config["extract"] = "all"
     return LoadScans([tmp_path / "topostats_file_test.topostats"], **loading_config)
 
 
@@ -413,9 +416,9 @@ def load_scan(loading_config: dict) -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_data() -> LoadScans:
+def load_scan_data(loading_config: dict) -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
-    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], channel="Height")
+    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
     scan_data.get_data()
     return scan_data
 
@@ -645,9 +648,8 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
 @pytest.fixture()
 def minicircle_small_graincrops() -> dict[int, GrainCrop]:
     """Dictionary of graincrops for the minicircle_small image."""
-    with open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:
-        graincrops = pickle.load(f)
-    return graincrops
+    with Path.open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:  # pylint: disable=unspecified-encoding
+        return pickle.load(f)
 
 
 @pytest.fixture()

@@ -58,7 +58,15 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".topostats",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {"channel": str},
+        "loading": {
+            "channel": str,
+            "extract": Or(
+                "all",
+                "raw",
+                "filters",
+                error="Invalid value in config for 'extract', valid values are 'all', 'raw' or 'filters'",
+            ),
+        },
         "filter": {
             "run": Or(
                 True,
@@ -262,7 +270,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
-            "pad_width": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
                     float,
@@ -318,7 +325,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "node_extend_dist": float,
             "branch_pairing_length": float,
             "pair_odd_branches": bool,
-            "pad_width": lambda n: n > 0.0,
         },
         "ordered_tracing": {
             "run": Or(
@@ -331,7 +337,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "original",
                 error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
             ),
-            "pad_width": lambda n: n > 0.0,
         },
         "splining": {
             "run": Or(

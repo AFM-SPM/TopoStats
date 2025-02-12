@@ -9,7 +9,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import skan
-import skimage.measure as skimage_measure
 from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
@@ -310,7 +309,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
-    pad_width: int = 1,
 ) -> tuple[dict[str, dict], pd.DataFrame, dict[str, npt.NDArray], pd.DataFrame]:
     """
     Processor function for tracing image.
@@ -319,8 +317,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     ----------
     full_image : npt.NDArray
         Full image as Numpy Array.
-    grains_mask : npt.NDArray
-        Full image as Grains that are labelled.
+    grain_crops : dict[int, GrainCrop]
+        Dictionary of grain crops.
+    class_index : int
+        Index of the class to trace.
     filename : str
         File being processed.
     pixel_to_nm_scaling : float
@@ -335,27 +335,19 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         (scikitimage) or 'topostats' (original TopoStats method).
     pruning_params : dict
         Dictionary of options for pruning.
-    pad_width : int
-        Padding to the cropped image mask.
 
     Returns
     -------
     tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
-    # # Check both arrays are the same shape - should this be a test instead, why should this ever occur?
-    # if image.shape != grains_mask.shape:
-    #     raise ValueError(f"Image shape ({image.shape}) and Mask shape ({grains_mask.shape}) should match.")
-
-    # cropped_images, cropped_masks, bboxs = prep_arrays(image, grains_mask, pad_width)
-    # n_grains = len(cropped_images)
     img_base = np.zeros_like(full_image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
 
-    # want to get each cropped image, use some anchor coords to match them onto the image,
-    #   and compile all the grain images onto a single image
+    # These are images for diagnostics, edited during tracing to show
+    # various steps
     all_images = {
         "smoothed_grain": img_base.copy(),
         "skeleton": img_base.copy(),
@@ -363,8 +355,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "branch_indexes": img_base.copy(),
         "branch_types": img_base.copy(),
     }
-
-    # LOGGER.info(f"[{filename}] : Calculating Disordered Tracing statistics for {n_grains} grains...")
 
     # for cropped_image_index, cropped_image in cropped_images.items():
     number_of_grains = len(grain_crops)
@@ -429,10 +419,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function
-                for image_name, full_image in all_images.items():
+                for image_name, full_diagnostic_image in all_images.items():
                     crop = disordered_trace_images[image_name]
                     bbox = grain_crop.bbox
-                    full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+                    full_diagnostic_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
                 disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
                 disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
                 disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
@@ -575,52 +565,6 @@ def find_connections(row: pd.Series, skan_df: pd.DataFrame) -> str:
     # Remove the index of the current row itself from the list of connections
     connections.remove(row.name)
     return str(connections)
-
-
-def prep_arrays(
-    image: npt.NDArray, labelled_grains_mask: npt.NDArray, pad_width: int
-) -> tuple[dict[int, npt.NDArray], dict[int, npt.NDArray]]:
-    """
-    Take an image and labelled mask and crops individual grains and original heights to a list.
-
-    A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
-    they are traced correctly. This is accounted for when aligning traces to the whole image mask.
-
-    Parameters
-    ----------
-    image : npt.NDArray
-        Gaussian filtered image. Typically filtered_image.images["gaussian_filtered"].
-    labelled_grains_mask : npt.NDArray
-        2D Numpy array of labelled grain masks, with each mask being comprised solely of unique integer (not
-        zero). Typically this will be output from 'grains.directions[<direction>["labelled_region_02]'.
-    pad_width : int
-        Cells by which to pad cropped regions by.
-
-    Returns
-    -------
-    Tuple
-        Returns a tuple of three dictionaries, the cropped images, cropped masks and bounding boxes.
-    """
-    # Get bounding boxes for each grain
-    region_properties = skimage_measure.regionprops(labelled_grains_mask)
-    # Subset image and grains then zip them up
-    cropped_images = {}
-    cropped_masks = {}
-
-    # for index, grain in enumerate(region_properties):
-    #    cropped_image, cropped_bbox = crop_array(image, grain.bbox, pad_width)
-
-    cropped_images = {index: crop_array(image, grain.bbox, pad_width) for index, grain in enumerate(region_properties)}
-    cropped_images = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_images.items()}
-    cropped_masks = {
-        index: crop_array(labelled_grains_mask, grain.bbox, pad_width) for index, grain in enumerate(region_properties)
-    }
-    cropped_masks = {index: np.pad(grain, pad_width=pad_width) for index, grain in cropped_masks.items()}
-    cropped_masks = {index: np.where(grain == (index + 1), 1, 0) for index, grain in cropped_masks.items()}
-    # Get BBOX coords to remap crops to images
-    bboxs = [pad_bounding_box(image.shape, list(grain.bbox), pad_width=pad_width) for grain in region_properties]
-
-    return (cropped_images, cropped_masks, bboxs)
 
 
 def grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list:
@@ -826,6 +770,7 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
 #              entry-points/workflow. Will require that the gaussian filtered array is saved and passed in along with
 #              the labelled regions. @ns-rse
 #
+# 2025-02-04 - @sylviawhittle - removed prep_arrays due to GrainCrop refactor. This code would need updating.
 #
 # if __name__ == "__main__":
 #     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)

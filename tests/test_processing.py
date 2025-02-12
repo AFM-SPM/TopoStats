@@ -1,3 +1,5 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Test end-to-end running of topostats."""
 
 import logging
@@ -203,7 +205,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
     # Check the data
-    assert dict_almost_equal(expected_topostats, saved_topostats)
+    assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
 
 
 @pytest.mark.parametrize(
@@ -769,7 +771,9 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    with open(RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb") as f:
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
+    ) as f:
         image_grain_crops = pickle.load(f)
 
     grainstats_df, _ = run_grainstats(

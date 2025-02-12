@@ -19,7 +19,6 @@ from topostats.tracing import disordered_tracing
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unspecified-encoding
 
 BASE_DIR = Path.cwd()
@@ -1384,7 +1383,7 @@ def test_trace_image_disordered(
         result_disordered_trace_crop_data,
         _grainstats_additions_df,
         result_images,
-        disordered_tracing_stats,
+        _disordered_tracing_stats,
     ) = disordered_tracing.trace_image_disordered(
         full_image=image,
         grain_crops=graincrops,
@@ -1395,7 +1394,6 @@ def test_trace_image_disordered(
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
-        pad_width=1,
     )
 
     # DEBUGGING CODE
@@ -1526,7 +1524,6 @@ def test_trace_image_disordered_dataframes(
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
-        pad_width=1,
     )
     print(result_disordered_tracing_grainstats.to_string(float_format="{:.4e}".format), file=regtest)
     print(result_disordered_tracing_stats.to_string(float_format="{:.4e}".format), file=regtest)
@@ -1550,11 +1547,6 @@ def test_segment_middles() -> None:
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_find_connections() -> None:
     """Test of prep_find_connections()."""
-
-
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
-def test_prep_arrays() -> None:
-    """Test of prep_arrays()."""
 
 
 @pytest.mark.parametrize(

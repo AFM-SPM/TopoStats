@@ -244,7 +244,7 @@ def get_thresholds(  # noqa: C901
     threshold_std_dev: dict = None,
     absolute: dict = None,
     **kwargs,
-) -> dict:
+) -> dict[str, float]:
     """
     Obtain thresholds for masking data points.
 
@@ -265,7 +265,7 @@ def get_thresholds(  # noqa: C901
 
     Returns
     -------
-    dict
+    dict[str, float]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
@@ -304,16 +304,13 @@ def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     ----------
     column_set : str
         The name of the set of columns for the empty dataframe.
-    index_col : str
-        Column to set as index of empty dataframe.
 
     Returns
     -------
     pd.DataFrame
         Empty Pandas DataFrame.
     """
-    empty_df = pd.DataFrame(columns=COLUMN_SETS[column_set])
-    return empty_df
+    return pd.DataFrame(columns=COLUMN_SETS[column_set])
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
@@ -417,7 +414,7 @@ def coords_2_img(coords, image, ordered=False) -> np.ndarray:
     image : np.ndarray
         An MxL array to assign the above coordinates onto.
     ordered : bool, optional
-        If True, incremements the value of each coord to show order.
+        If True, increments the value of each coord to show order.
 
     Returns
     -------
