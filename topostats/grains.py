@@ -27,6 +27,10 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_mask, get_thresholds
+import numpy as np
+from skimage.morphology import skeletonize
+from skimage.draw import line as draw_line  # For drawing lines between points
+from skimage.morphology import dilation, disk
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -903,6 +907,79 @@ class Grains:
                 # No grains found
                 self.image_grain_crops = ImageGrainCrops(above=None, below=None)
 
+    @staticmethod
+    def fill_gaps_in_mask(binary_mask, iterations=1, max_distance=15):
+        """
+        Process a binary mask to selectively connect loose ends iteratively using skeletonization and fill gaps between them.
+        
+        Parameters:
+        - binary_mask (ndarray): The binary mask to be processed.
+        - iterations (int): The number of iterations to run for gap filling.
+        - max_distance (int): The maximum distance to connect loose ends within.
+        
+        Returns:
+        - updated_mask (ndarray): The binary mask after processing.
+        """
+        binary_mask = binary_mask.astype(np.uint8)
+        original_mask = binary_mask.copy()
+
+        for _ in range(iterations):
+            #Skeletonize the mask
+            sk = skeletonize(original_mask > 0).astype(np.uint8)
+
+            #Identify loose ends
+            loose_ends = np.zeros_like(sk, dtype=np.uint8)
+            for i in range(1, sk.shape[0] - 1):
+                for j in range(1, sk.shape[1] - 1):
+                    if sk[i, j] == 1:
+                        neighbors = np.sum(sk[i-1:i+2, j-1:j+2]) - sk[i, j]
+                        if neighbors == 1:
+                            loose_ends[i, j] = 1
+
+            #Extract coordinates of loose ends
+            pts = np.argwhere(loose_ends == 1)
+
+            # Step 4: Connect nearest loose ends within max_distance
+            connected = np.zeros(len(pts), dtype=bool)
+            for i, pt1 in enumerate(pts):
+                if connected[i]:
+                    continue
+
+                nearest_pt = None
+                nearest_idx = None
+                min_dist = float('inf')
+
+                for j, pt2 in enumerate(pts):
+                    if i != j and not connected[j]:
+                        dist = np.linalg.norm(pt1 - pt2)
+                        if dist < min_dist and dist <= max_distance:
+                            min_dist = dist
+                            nearest_pt = pt2
+                            nearest_idx = j
+
+                #Add points to close gaps
+                if nearest_pt is not None:
+                    pt1_x, pt1_y = pt1[1], pt1[0]
+                    pt2_x, pt2_y = nearest_pt[1], nearest_pt[0]
+
+                    # Interpolate points to fill the gap
+                    rr, cc = draw_line(pt1_y, pt1_x, pt2_y, pt2_x)
+
+                    # Create a temporary mask for the line
+                    line_mask = np.zeros_like(original_mask, dtype=np.uint8)
+                    line_mask[rr, cc] = 1
+
+                    # Dilate the line by 1 pixel
+                    dilated_line = dilation(line_mask, disk(1))
+
+                    # Update the original mask
+                    original_mask[dilated_line > 0] = 1
+
+                    connected[i] = True
+                    connected[nearest_idx] = True
+
+        return original_mask
+
     # pylint: disable=too-many-locals
     @staticmethod
     def improve_grain_segmentation_unet(
@@ -981,6 +1058,10 @@ class Grains:
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
+            predicted_mask[:,:,1] = Grains.fill_gaps_in_mask(predicted_mask[:,:,1], iterations=15, max_distance=15)
+            # Set any 1s in predicted_mask[:,:,1] that overlap with 1s in predicted_mask[:,:,2] to 0
+            overlap_mask = (predicted_mask[:,:,1] == 1) & (predicted_mask[:,:,2] == 1)
+            predicted_mask[overlap_mask, 1] = 0
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
