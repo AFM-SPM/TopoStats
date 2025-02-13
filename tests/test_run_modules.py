@@ -208,7 +208,7 @@ def test_grains(caplog) -> None:
     _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
     assert list(data.keys()) == [
         "filename",
-        "grain_masks",
+        "grain_tensors",
         "image",
         "image_original",
         "img_path",

@@ -244,7 +244,7 @@ def get_thresholds(  # noqa: C901
     threshold_std_dev: dict = None,
     absolute: dict = None,
     **kwargs,
-) -> dict:
+) -> dict[str, float]:
     """
     Obtain thresholds for masking data points.
 
@@ -265,7 +265,7 @@ def get_thresholds(  # noqa: C901
 
     Returns
     -------
-    dict
+    dict[str, float]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
@@ -296,7 +296,7 @@ def get_thresholds(  # noqa: C901
     return thresholds
 
 
-def create_empty_dataframe(column_set: str = "grainstats", index_col: str = "grain_number") -> pd.DataFrame:
+def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     """
     Create an empty data frame for returning when no results are found.
 
@@ -304,16 +304,13 @@ def create_empty_dataframe(column_set: str = "grainstats", index_col: str = "gra
     ----------
     column_set : str
         The name of the set of columns for the empty dataframe.
-    index_col : str
-        Column to set as index of empty dataframe.
 
     Returns
     -------
     pd.DataFrame
         Empty Pandas DataFrame.
     """
-    empty_df = pd.DataFrame(columns=COLUMN_SETS[column_set])
-    return empty_df.set_index(index_col)
+    return pd.DataFrame(columns=COLUMN_SETS[column_set])
 
 
 def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
