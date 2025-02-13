@@ -4916,10 +4916,111 @@ def test_graincrop_init() -> None:
     assert graincrop.mask.shape == (4, 4, 3)
 
 
-def test_graincrop_mask_setter(dummy_graincrop: GrainCrop) -> None:
+def test_graincrop_mask_setter_mask_dimensions_dont_match(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop class mask setter."""
     with pytest.raises(ValueError, match="Mask dimensions do not match image"):
         dummy_graincrop.mask = np.zeros((3, 3, 3)).astype(bool)
+
+
+@pytest.mark.parametrize(
+    ("mask_size", "padding", "graincrop_mask", "expected_graincrop_mask"),
+    [
+        pytest.param(
+            6,
+            1,
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [0, 0, 0, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1],
+                            [1, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 0, 0, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [1, 1, 1, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1],
+                            [1, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="padding 1",
+        )
+    ],
+)
+def test_graincrop_mask_setter(
+    mask_size: int,
+    padding: int,
+    graincrop_mask: npt.NDArray,
+    expected_graincrop_mask: npt.NDArray,
+) -> None:
+    """Test the GrainCrop class mask setter."""
+    graincrop = GrainCrop(
+        image=np.ones((mask_size, mask_size)).astype(np.float32),
+        mask=graincrop_mask,
+        padding=padding,
+        bbox=(0, 0, mask_size, mask_size),
+        pixel_to_nm_scaling=1.0,
+        filename="test",
+    )
+
+    result_graincrop_mask = graincrop.mask
+
+    np.testing.assert_array_equal(result_graincrop_mask, expected_graincrop_mask)
 
 
 def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
@@ -5574,10 +5675,7 @@ def test_graincrop_eq(graincrop_1: GrainCrop, graincrop_2: GrainCrop, expected_r
 
 def test_validate_full_mask_tensor_shape() -> None:
     """Test the validate_full_mask_tensor_shape function."""
-    with pytest.raises(ValueError, match="Full mask tensor must be NxNxC with C >= 2 but has shape"):
-        validate_full_mask_tensor_shape(np.zeros((3, 2, 2)))
-
-    with pytest.raises(ValueError, match="Full mask tensor must be NxNxC with C >= 2 but has shape"):
+    with pytest.raises(ValueError, match="Full mask tensor must be WxHxC with C >= 2 but has shape"):
         validate_full_mask_tensor_shape(np.zeros((3, 3, 1)))
 
     assert validate_full_mask_tensor_shape(np.zeros((3, 3, 2))) is not None
