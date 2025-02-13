@@ -1078,9 +1078,6 @@ class Grains:
                 graincrops_merged_classes = Grains.graincrops_update_background_class(
                     graincrops=graincrops_merged_classes
                 )
-                graincrops_merged_classes = Grains.graincrops_update_background_class(
-                    graincrops=graincrops_merged_classes
-                )
 
                 full_mask_tensor_merged_classes = Grains.construct_full_mask_from_graincrops(
                     graincrops=graincrops_merged_classes,
