@@ -1,0 +1,70 @@
+height_profiles
+===============
+
+.. py:module:: height_profiles
+
+.. autoapi-nested-parse::
+
+   Derive height profiles across the images.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   height_profiles.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   height_profiles.interpolate_height_profile
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: interpolate_height_profile(img: numpy.typing.NDArray, mask: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+   
+   Interpolate heights along the maximum feret.
+
+   Interpolates the height along the line of the maximum feret using SciPy `scipy.interpolateRegularGridInterpolator
+   https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RegularGridInterpolator.html`. Arguments can
+   be passed using 'kwargs'.
+
+   :param img: Original image with heights.
+   :type img: npt.NDArray
+   :param mask: Binary skeleton.
+   :type mask: npt.NDArray
+   :param \*\*kwargs: Keyword arguments passed on to scipy.interpolate.RegularGridInterpolator().
+   :type \*\*kwargs: dict
+
+   :returns: Interpolated heights between the calculated feret co-cordinates.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
