@@ -40,12 +40,11 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-public-methods
 
 
-@dataclass
 class GrainCrop:
     """
-    Dataclass for storing the crops of grains.
+    Class for storing the crops of grains.
 
-    Attributes
+    Parameters
     ----------
     image : npt.NDArray[np.float32]
         2-D Numpy array of the cropped image.
@@ -53,31 +52,49 @@ class GrainCrop:
         3-D Numpy tensor of the cropped mask.
     padding : int
         Padding added to the bounding box of the grain during cropping.
-    bbox: tuple[int, int, int, int]
+    bbox : tuple[int, int, int, int]
         Bounding box of the crop including padding.
     pixel_to_nm_scaling : float
-        Pixel to nanometre scaling factor for the crop
+        Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
     """
 
-    image: npt.NDArray[np.float32]
-    mask: npt.NDArray[np.bool_]
-    padding: int
-    bbox: tuple[int, int, int, int]
-    pixel_to_nm_scaling: float
-    filename: str
+    def __init__(
+        self,
+        image: npt.NDArray[np.float32],
+        mask: npt.NDArray[np.bool_],
+        padding: int,
+        bbox: tuple[int, int, int, int],
+        pixel_to_nm_scaling: float,
+        filename: str,
+    ):
+        """
+        Initialise the class.
 
-    def __post_init__(self) -> None:
-        """Post initialisation checks."""
-        # This is where we can add post-initialisation checks but not needed at the moment.
-
-    # Important note about mypy and dataclasses:
-    # mypy takes issue with the re-definition of the class attributes into property methods.
-    # Eg: how `image` is defined as both a property and a class attribute. I am ignoring this
-    # here as we don't currently require mypy for successful PRs but something to be aware of.
-    # We could get around this with dummy names and using the `post_init` method but it would be
-    # a little messy.
+        Parameters
+        ----------
+        image : npt.NDArray[np.float32]
+            2-D Numpy array of the cropped image.
+        mask : npt.NDArray[np.bool_]
+            3-D Numpy tensor of the cropped mask.
+        padding : int
+            Padding added to the bounding box of the grain during cropping.
+        bbox : tuple[int, int, int, int]
+            Bounding box of the crop including padding.
+        pixel_to_nm_scaling : float
+            Pixel to nanometre scaling factor for the crop.
+        filename : str
+            Filename of the image from which the crop was taken.
+        """
+        self.padding = padding
+        self.image = image
+        # This part of the constructor must go after padding since the setter
+        # for mask requires the padding.
+        self.mask = mask
+        self.bbox = bbox
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.filename = filename
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -117,13 +134,13 @@ class GrainCrop:
 
         Returns
         -------
-        npt.NDArray
+        npt.NDArray[np.bool_]
             Numpy array of the mask.
         """
         return self._mask
 
     @mask.setter
-    def mask(self, value: npt.NDArray[np.bool_]):
+    def mask(self, value: npt.NDArray[np.bool_]) -> None:
         """
         Setter for the mask.
 
@@ -139,7 +156,30 @@ class GrainCrop:
         """
         if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
             raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
-        self._mask = value
+        # Ensure that the padding region is blank, set it to be blank if not
+        for class_index in range(1, value.shape[2]):
+            class_mask = value[:, :, class_index]
+
+            padded_region_top = class_mask[: self.padding, :]
+            padded_region_bottom = class_mask[-self.padding :, :]
+            padded_region_left = class_mask[:, : self.padding]
+            padded_region_right = class_mask[:, -self.padding :]
+            if (
+                np.any(padded_region_top)
+                or np.any(padded_region_bottom)
+                or np.any(padded_region_left)
+                or np.any(padded_region_right)
+            ):
+                LOGGER.warning("Padding region is not blank, setting to blank")
+                value[: self.padding, :, class_index] = 0
+                value[-self.padding :, :, class_index] = 0
+                value[:, : self.padding, class_index] = 0
+                value[:, -self.padding :, class_index] = 0
+
+        # Update background class in case the mask has been edited
+        value = Grains.update_background_class(value)
+
+        self._mask: npt.NDArray[np.bool_] = value
 
     @property
     def padding(self) -> int:
@@ -154,7 +194,7 @@ class GrainCrop:
         return self._padding
 
     @padding.setter
-    def padding(self, value: int):
+    def padding(self, value: int) -> None:
         """
         Setter for the padding.
 
@@ -192,7 +232,7 @@ class GrainCrop:
         return self._bbox
 
     @bbox.setter
-    def bbox(self, value: tuple[int, int, int, int]):
+    def bbox(self, value: tuple[int, int, int, int]) -> None:
         """
         Setter for the bounding box.
 
@@ -222,7 +262,7 @@ class GrainCrop:
         return self._pixel_to_nm_scaling
 
     @pixel_to_nm_scaling.setter
-    def pixel_to_nm_scaling(self, value: float):
+    def pixel_to_nm_scaling(self, value: float) -> None:
         """
         Setter for the pixel to nanometre scaling factor.
 
@@ -246,7 +286,7 @@ class GrainCrop:
         return self._filename
 
     @filename.setter
-    def filename(self, value: str):
+    def filename(self, value: str) -> None:
         """
         Setter for the filename.
 
@@ -1282,7 +1322,7 @@ class Grains:
     @staticmethod
     def update_background_class(
         grain_mask_tensor: npt.NDArray,
-    ) -> npt.NDArray:
+    ) -> npt.NDArray[np.bool_]:
         """
         Update the background class to reflect the other classes.
 
