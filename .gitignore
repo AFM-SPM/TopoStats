@@ -225,3 +225,11 @@ __pycache__/
 
 # Debugging
 pytest-debug.ini
+
+# Emacs
+\#*
+*~
+.dir-locals.el
+
+# tmp directory
+tmp/

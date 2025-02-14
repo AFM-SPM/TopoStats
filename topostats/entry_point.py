@@ -106,6 +106,16 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Channel to extract.",
     )
+    parser.add_argument(
+        "--extract", dest="extract", type=str, required=False, help="Array to extract when loading '.topostats' files."
+    )
+    parser.add_argument(
+        "--image-set",
+        dest="image_set",
+        type=str,
+        required=False,
+        help="Image set to generate, default is 'core' other option is 'all'.",
+    )
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
@@ -586,8 +596,8 @@ def create_parser() -> arg.ArgumentParser:
     # Filter
     filter_parser = subparsers.add_parser(
         "filter",
-        description="WIP DO NOT USE - Load and filter images, saving as .topostats files for subsequent processing.",
-        help="WIP DO NOT USE - Load and filter images, saving as .topostats files for subsequent processing.",
+        description="Load and filter images, saving as .topostats files for subsequent processing.",
+        help="Load and filter images, saving as .topostats files for subsequent processing.",
     )
     filter_parser.add_argument(
         "--row-alignment-quantile",
@@ -691,8 +701,8 @@ def create_parser() -> arg.ArgumentParser:
 
     grains_parser = subparsers.add_parser(
         "grains",
-        description="WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.",
-        help="WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.",
+        description="Load filtered images from '.topostats' files and detect grains.",
+        help="Load filtered images from '.topostats' files and detect grains.",
     )
     grains_parser.add_argument(
         "--threshold-method",

@@ -18,7 +18,6 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import pySPM
 from AFMReader import asd, gwy, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
@@ -597,12 +596,17 @@ class LoadScans:
         Path to a valid AFM scan to load.
     channel : str
         Image channel to extract from the scan.
+    extract : str
+        What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
+       ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+       loaded. Options include ''raw'' and ''filter'' at present.
     """
 
     def __init__(
         self,
         img_paths: list[str | Path],
         channel: str,
+        extract: str = "all",
     ):
         """
         Initialise the class.
@@ -613,12 +617,18 @@ class LoadScans:
             Path to a valid AFM scan to load.
         channel : str
             Image channel to extract from the scan.
+        extract : str
+            What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
+           ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+           loaded. Options include ''raw'' and ''filter'' at present.
         """
         self.img_paths = img_paths
         self.img_path = None
         self.channel = channel
         self.channel_data = None
+        self.extract = extract
         self.filename = None
+        self.suffix = None
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
@@ -642,39 +652,7 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
 
-    def _spm_pixel_to_nm_scaling(self, channel_data: pySPM.SPM.SPM_image) -> float:
-        """
-        Extract pixel to nm scaling from the SPM image metadata.
-
-        Parameters
-        ----------
-        channel_data : pySPM.SPM.SPM_image
-            Channel data from PySPM.
-
-        Returns
-        -------
-        float
-            Pixel to nm scaling factor.
-        """
-        unit_dict = {
-            "pm": 1e-3,
-            "nm": 1,
-            "um": 1e3,
-            "mm": 1e6,
-        }
-        px_to_real = channel_data.pxs()
-        # Has potential for non-square pixels but not yet implemented
-        pixel_to_nm_scaling = (
-            px_to_real[0][0] * unit_dict[px_to_real[0][1]],
-            px_to_real[1][0] * unit_dict[px_to_real[1][1]],
-        )[0]
-        if px_to_real[0][0] == 0 and px_to_real[1][0] == 0:
-            pixel_to_nm_scaling = 1
-            LOGGER.warning(f"[{self.filename}] : Pixel size not found in metadata, defaulting to 1nm")
-        LOGGER.debug(f"[{self.filename}] : Pixel to nm scaling : {pixel_to_nm_scaling}")
-        return pixel_to_nm_scaling
-
-    def load_topostats(self) -> tuple[npt.NDArray, float]:
+    def load_topostats(self, extract: str = "all") -> tuple[npt.NDArray, float, Any]:
         """
         Load a .topostats file (hdf5 format).
 
@@ -683,17 +661,35 @@ class LoadScans:
         Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
         all other file loading functions.
 
+        Parameters
+        ----------
+        extract : str
+            String of which image (Numpy array) and data to extract, default is 'all' which returns the cleaned
+            (post-Filter) image, `pixel_to_nm_scaling` and all `data`. It is possible to extract image arrays for other
+            stages of processing such as `raw` or 'filter'.
+
         Returns
         -------
-        tuple[npt.NDArray, float]
+        tuple[npt.NDArray, float, Any]
             A tuple containing the image and its pixel to nanometre scaling value.
         """
+        map_stage_to_image = {"raw": "image_original"}
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            return topostats.load_topostats(self.img_path)
+            image, px_to_nm_scaling, data = topostats.load_topostats(self.img_path)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
+        try:
+            # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
+            if extract in [None, "all", "grains", "grainstats"]:
+                return (image, px_to_nm_scaling, data)
+            # Otherwise we want the raw/image_original
+            if extract == "filter":
+                return (image, px_to_nm_scaling, None)
+            return (data[map_stage_to_image[extract]], px_to_nm_scaling, None)
+        except KeyError as ke:
+            raise KeyError(f"Can not extract array of type '{extract}' from .topostats objects.") from ke
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -763,7 +759,7 @@ class LoadScans:
             LOGGER.error(f"File not found : {self.img_path}")
             raise
 
-    def get_data(self) -> None:
+    def get_data(self) -> None:  # noqa: C901  # pylint: disable=too-many-branches
         """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
         suffix_to_loader = {
             ".spm": self.load_spm,
@@ -773,7 +769,6 @@ class LoadScans:
             ".topostats": self.load_topostats,
             ".asd": self.load_asd,
         }
-
         for img_path in self.img_paths:
             self.img_path = img_path
             self.filename = img_path.stem
@@ -783,9 +778,12 @@ class LoadScans:
 
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
+                data = None
                 try:
-                    if suffix == ".topostats":
-                        self.image, self.pixel_to_nm_scaling, self.img_dict = suffix_to_loader[suffix]()
+                    if suffix == ".topostats" and self.extract in (None, "all", "grains", "grainstats"):
+                        self.image, self.pixel_to_nm_scaling, data = self.load_topostats()
+                    elif suffix == ".topostats" and self.extract not in (None, "all"):
+                        self.image, self.pixel_to_nm_scaling, _ = self.load_topostats(self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
@@ -798,6 +796,12 @@ class LoadScans:
                     if suffix == ".asd":
                         for index, frame in enumerate(self.image):
                             self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
+                    # If we have extracted the image dictionary (only possible with .topostats files) we add that to the
+                    # dictionary
+                    elif data is not None:
+                        data["img_path"] = img_path.with_suffix("")
+                        self.img_dict[self.filename] = self.clean_dict(img_dict=data)
+                    # Otherwise check the size and add image to dictionary
                     else:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
@@ -846,10 +850,49 @@ class LoadScans:
             "img_path": self.img_path.with_name(filename),
             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
             "image_original": image,
-            "image_flattened": None,
+            "image": None,
             "grain_masks": self.grain_masks,
             "grain_trace_data": self.grain_trace_data,
         }
+
+    def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
+        """
+        If we are loading .topostats files for reprocessing we already have the dictionary structure.
+
+        We therefore need to extract just the information that is required for the stage requested and remove everything
+        else.
+
+        Parameters
+        ----------
+        img_dict : dict[str, Any]
+            Original image dictionary from which data is to be extracted.
+
+        Returns
+        -------
+        dict[str, Any]
+            Returns the image dictionary with keys/values removed appropriate to the extraction stage.
+        """
+        if self.extract in ["grains", "grainstats"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
+            img_dict.pop("grain_masks")
+            img_dict.pop("height_profiles")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_traces")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["disordered_tracing", "nodestats", "ordered_tracing"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_tracing")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["splining"]:
+            img_dict.pop("splining")
+            img_dict.pop("grain_curvature_stats")
+            return img_dict
+        return img_dict
 
 
 def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
@@ -956,19 +999,16 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         save_file_path = output_dir / filename
 
     with h5py.File(save_file_path, "w") as f:
-        # It may be possible for topostats_object["image_flattened"] to be None.
+        # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object["image_flattened"] is not None:
+        if topostats_object["image"] is not None:
             topostats_object["topostats_file_version"] = 0.2
-            # Rename the key to "image" for backwards compatibility
-            topostats_object["image"] = topostats_object.pop("image_flattened")
-
             # Recursively save the topostats object dictionary to the .topostats file
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
 
         else:
             raise ValueError(
-                "TopoStats object dictionary does not contain an 'image_flattened'. \
+                "TopoStats object dictionary does not contain an 'image'. \
                  TopoStats objects must be saved with a flattened image."
             )
 

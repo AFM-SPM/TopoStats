@@ -1,0 +1,6 @@
+recursive-include topostats *.py *.yaml *.mplstyle
+recursive-exclude tests *
+recursive-exclude docs *
+recursive-exclude .github *
+recursive-exclude notebooks *
+exclude .*

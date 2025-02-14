@@ -19,7 +19,9 @@ from skimage.segmentation import clear_border
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 from topostats.unet_masking import (
+    iou_loss,
     make_bounding_box_square,
+    mean_iou,
     pad_bounding_box,
     predict_unet,
 )
@@ -33,6 +35,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-public-methods
 
@@ -111,14 +114,14 @@ class Grains:
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
-            Configuration for the UNet model.
-            model_path: str
+            Configuration for the UNet model which is a dictionary with the following keys and values.
+            model_path : str
                 Path to the UNet model.
-            grain_crop_padding: int
+            grain_crop_padding : int
                 Padding to add to the bounding box of the grain before cropping.
-            upper_norm_bound: float
+            upper_norm_bound : float
                 Upper bound for normalising the image.
-            lower_norm_bound: float
+            lower_norm_bound : float
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
@@ -657,11 +660,13 @@ class Grains:
         # I haven't tested it yet.
 
         try:
-            unet_model = keras.models.load_model(unet_config["model_path"], compile=False)
+            unet_model = keras.models.load_model(
+                unet_config["model_path"], custom_objects={"mean_iou": mean_iou, "iou_loss": iou_loss}, compile=False
+            )
         except Exception as e:
-            LOGGER.info(f"Python executable: {sys.executable}")
-            LOGGER.info(f"Keras version: {keras.__version__}")
-            LOGGER.info(f"Model path: {unet_config['model_path']}")
+            LOGGER.debug(f"Python executable: {sys.executable}")
+            LOGGER.debug(f"Keras version: {keras.__version__}")
+            LOGGER.debug(f"Model path: {unet_config['model_path']}")
             raise e
 
         # unet_model = keras.models.load_model(unet_config["model_path"], custom_objects={"mean_iou": mean_iou})
@@ -699,13 +704,14 @@ class Grains:
             )
 
             # Make the bounding box square within the confines of the image
-            bounding_box = make_bounding_box_square(
-                crop_min_row=bounding_box[0],
-                crop_min_col=bounding_box[1],
-                crop_max_row=bounding_box[2],
-                crop_max_col=bounding_box[3],
-                image_shape=(image.shape[0], image.shape[1]),
-            )
+            if (bounding_box[2] - bounding_box[0]) != (bounding_box[3] - bounding_box[1]):
+                bounding_box = make_bounding_box_square(
+                    crop_min_row=bounding_box[0],
+                    crop_min_col=bounding_box[1],
+                    crop_max_row=bounding_box[2],
+                    crop_max_col=bounding_box[3],
+                    image_shape=(image.shape[0], image.shape[1]),
+                )
 
             # Grab the cropped image. Using slice since the bounding box from skimage is
             # half-open, so the max_row and max_col are not included in the region.
@@ -732,7 +738,6 @@ class Grains:
 
             # Add each class of the predicted mask to the overall full image mask
             for class_index in range(unet_mask.shape[2]):
-
                 # Grab the unet mask for the class
                 unet_predicted_mask_labelled = morphology.label(predicted_mask[:, :, class_index])
 
@@ -972,7 +977,6 @@ class Grains:
 
         # Iterate over the regions and return the crop, but zero any non-connected grains
         for region in Grains.get_region_properties(labelled_regions):
-
             binary_labelled_regions = labelled_regions == region.label
 
             # Zero any non-connected grains
@@ -1325,11 +1329,12 @@ class Grains:
             ]
 
             # Update the grain mask tensor
-            grain_mask_tensor[
-                min_row + padding : max_row - padding,
-                min_col + padding : max_col - padding,
-                :,
-            ] = cropped_grain
+            grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :] = (
+                np.maximum(
+                    grain_mask_tensor[min_row + padding : max_row - padding, min_col + padding : max_col - padding, :],
+                    cropped_grain,
+                )
+            )
 
         # Update the background class
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
@@ -1475,7 +1480,6 @@ class Grains:
 
         # Iterate over the grain crops
         for _, (single_grain_mask_tensor, bounding_box) in enumerate(zip(grain_tensor_crops, bounding_boxes)):
-
             # Convert small / big areas to other classes
             single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(
                 grain_mask_tensor=single_grain_mask_tensor,

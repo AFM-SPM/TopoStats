@@ -680,7 +680,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         grain_mol_tracing_stats = {}
         for i, mol_trace in enumerate(ordered_traces):
             if len(mol_trace) > 3:  # if > 4 coords to trace
-                np.save(f"trace_xyz_{i}", mol_trace)
                 self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
                 self.mol_tracing_stats["topology"] = topology[i]
                 self.mol_tracing_stats["topology_flip"] = topology_flip[i]
@@ -902,7 +901,7 @@ def ordered_tracing_image(
 
     LOGGER.info(
         f"[{filename}] : Calculating Ordered Traces and statistics for "
-        + f"{len(disordered_tracing_direction_data)} grains..."
+        f"{len(disordered_tracing_direction_data)} grains..."
     )
 
     # iterate through disordered_tracing_dict

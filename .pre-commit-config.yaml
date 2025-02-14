@@ -19,26 +19,26 @@ repos:
         types: [python, yaml, markdown]
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.15.0
+    rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
         args: []
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.19.1
     hooks:
       - id: pyupgrade
         args: [--py38-plus]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.8.1
+    rev: v0.9.4
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --show-fixes]
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         types: [python]
@@ -54,12 +54,12 @@ repos:
           - black==22.12.0
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.4.1
+    rev: v3.4.2
     hooks:
       - id: prettier
 
@@ -67,6 +67,15 @@ repos:
     rev: 0.8.1
     hooks:
       - id: nbstripout
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.9.1
+    hooks:
+      - id: nbqa-black
+      - id: nbqa-check-ast
+      - id: nbqa-flake8
+      - id: nbqa-isort
+      - id: nbqa-pyupgrade
 
   - repo: https://github.com/numpy/numpydoc
     rev: v1.8.0

@@ -9,6 +9,8 @@ on:
 
 jobs:
   build-release:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     environment: pypi-publish
     name: Publish package to PyPi
