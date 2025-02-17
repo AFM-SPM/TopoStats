@@ -417,7 +417,7 @@ def coords_2_img(coords, image, ordered=False) -> np.ndarray:
     image : np.ndarray
         An MxL array to assign the above coordinates onto.
     ordered : bool, optional
-        If True, incremements the value of each coord to show order.
+        If True, increments the value of each coord to show order.
 
     Returns
     -------
