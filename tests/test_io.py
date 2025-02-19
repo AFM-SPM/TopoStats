@@ -587,14 +587,14 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     """Test loading all data from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats(extract="all")
+    data = load_scan_topostats.load_topostats(extract="all")
     above_grain_mask = data["grain_masks"]["above"]
     grain_trace_data = data["grain_trace_data"]
-    assert isinstance(image, np.ndarray)
-    assert image.shape == (1024, 1024)
-    assert image.sum() == 184140.8593819073
-    assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.4940029296875
+    assert isinstance(data["image"], np.ndarray)
+    assert data["image"].shape == (1024, 1024)
+    assert data["image"].sum() == 184140.8593819073
+    assert isinstance(data["pixel_to_nm_scaling"], float)
+    assert data["pixel_to_nm_scaling"] == 0.4940029296875
     # Check that the grain mask is loaded correctly
     assert isinstance(above_grain_mask, np.ndarray)
     assert above_grain_mask.sum() == 633746
@@ -606,14 +606,14 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     ("extract", "array_sum"),
     [
         pytest.param("raw", 30695369.188316286, id="loading raw data"),
-        pytest.param("filter", 184140.8593819073, id="loading filtered data"),
+        pytest.param("filter", 30695369.188316286, id="loading raw data of refiltering"),
     ],
 )
-def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
+def test_load_scan_topostats_components_raw(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
     """Test loading different components from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, _ = load_scan_topostats.load_topostats(extract)
+    image, px_to_nm_scaling = load_scan_topostats.load_topostats(extract)
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
     assert image.sum() == array_sum
@@ -621,12 +621,25 @@ def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract:
     assert px_to_nm_scaling == 0.4940029296875
 
 
-def test_load_scan_topostats_keyerror(load_scan_topostats: LoadScans):
-    """Test KeyError is raised when invalid extract is provided."""
+@pytest.mark.parametrize(
+    ("extract", "array_sum"),
+    [
+        pytest.param("grains", 184140.8593819073, id="loading filtered data for grains"),
+        pytest.param("grainstats", 184140.8593819073, id="loading filtered data for grainstats"),
+    ],
+)
+def test_load_scan_topostats_components_flattened(
+    load_scan_topostats: LoadScans, extract: str, array_sum: float
+) -> None:
+    """Test loading different components from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    with pytest.raises(KeyError):  # noqa: PT011
-        load_scan_topostats.load_topostats(extract="nothing")
+    data = load_scan_topostats.load_topostats(extract)
+    assert isinstance(data["image"], np.ndarray)
+    assert data["image"].shape == (1024, 1024)
+    assert data["image"].sum() == array_sum
+    assert isinstance(data["pixel_to_nm_scaling"], float)
+    assert data["pixel_to_nm_scaling"] == 0.4940029296875
 
 
 @pytest.mark.parametrize(
