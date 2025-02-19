@@ -174,7 +174,7 @@ def test_filters(caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
     # Load the output and check the keys
-    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
     assert list(data.keys()) == [
         "filename",
         "image",
@@ -205,7 +205,7 @@ def test_grains(caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check the keys
-    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
     assert list(data.keys()) == [
         "filename",
         "grain_masks",

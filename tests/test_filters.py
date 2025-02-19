@@ -33,7 +33,6 @@ def test_median_flatten_no_mask(
     median_flattened = test_filters_random.median_flatten(
         image, mask=None, row_alignment_quantile=row_alignment_quantile
     )
-
     assert isinstance(median_flattened, np.ndarray)
     assert median_flattened.shape == (20, 20)
     np.testing.assert_allclose(median_flattened, expected, **TOLERANCE)
@@ -42,7 +41,6 @@ def test_median_flatten_no_mask(
 def test_remove_tilt_no_mask(test_filters_random: Filters, image_random_remove_x_y_tilt: np.array) -> None:
     """Test removal of x/y tilt."""
     tilt_removed = test_filters_random.remove_tilt(test_filters_random.images["pixels"], mask=None)
-
     assert isinstance(tilt_removed, np.ndarray)
     assert tilt_removed.shape == (1024, 1024)
     np.testing.assert_allclose(tilt_removed, image_random_remove_x_y_tilt, **TOLERANCE)
