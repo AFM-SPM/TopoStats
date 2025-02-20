@@ -207,7 +207,7 @@ class GrainStats:
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
-            grain_anchor = (grain_bbox[0], grain_bbox[2])
+            grain_anchor = (grain_bbox[0], grain_bbox[1])
             pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
 
             # Calculate scaling factors
