@@ -364,6 +364,101 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             grain_crop_class_mask = grain_crop_tensor[:, :, class_index]
             grain_crop_image = grain_crop.image
 
+            # Iterate over sub-grains since the grain crop class mask isn't guaranteed to be a contiguous mask
+            labelled_grain_crop_class_mask = label(grain_crop_class_mask)
+            number_of_subgrains = labelled_grain_crop_class_mask.max()
+            for subgrain_index in range(1, labelled_grain_crop_class_mask.max() + 1):
+                subgrain_mask = np.where(labelled_grain_crop_class_mask == subgrain_index, 1, 0)
+
+                # trace the subgrain
+                subgrain_disordered_trace_images: dict | None = disordered_trace_grain(
+                    cropped_image=grain_crop_image,
+                    cropped_mask=subgrain_mask,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    mask_smoothing_params=mask_smoothing_params,
+                    skeletonisation_params=skeletonisation_params,
+                    pruning_params=pruning_params,
+                    filename=filename,
+                    min_skeleton_size=min_skeleton_size,
+                    n_grain=grain_number,
+                )
+                LOGGER.debug(f"[{filename}] : Disordered Traced subgrain {subgrain_index} of {subgrain_index}")
+
+                if subgrain_disordered_trace_images is not None:
+                    # obtain segment stats
+                    try:
+                        skan_skeleton = skan.Skeleton(
+                            skeleton_image=np.where(
+                                subgrain_disordered_trace_images["pruned_skeleton"] == 1, grain_crop_image, 0
+                            ),
+                            spacing=pixel_to_nm_scaling,
+                        )
+                        skan_df = skan.summarize(skel=skan_skeleton, separator="_")
+                        skan_df = compile_skan_stats(
+                            skan_df=skan_df,
+                            skan_skeleton=skan_skeleton,
+                            image=grain_crop_image,
+                            filename=filename,
+                            grain_number=grain_number,
+                        )
+                        total_branch_length = skan_df["branch_distance"].sum() * 1e-9
+                    except ValueError:
+                        LOGGER.warning(
+                            f"[{filename}] : Skeleton for grain {grain_number} subgrain {subgrain_index} has been"
+                            " pruned out of existence."
+                        )
+                        total_branch_length = 0
+                        skan_df = pd.DataFrame()
+
+                    disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
+
+                    # obtain stats
+                    conv_pruned_skeleton = convolve_skeleton(subgrain_disordered_trace_images["pruned_skeleton"])
+                    # FIXME: this gets turned into a DF, so be careful how this works, will need to be flattened to allow for grains and subgrains indexes blah
+                    grainstats_additions[grain_number][subgrain_index] = {
+                        "image": filename,
+                        "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
+                        "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
+                        "total_branch_lengths": total_branch_length,
+                        "grain_width_mean": disorderedTrace.calculate_dna_width(
+                            subgrain_disordered_trace_images["smoothed_grain"],
+                            subgrain_disordered_trace_images["pruned_skeleton"],
+                            pixel_to_nm_scaling,
+                        )
+                        * 1e-9,
+                    }
+
+                    # remap the cropped images back onto the original, there are many image crops that we want to
+                    #  remap back onto the original image so we iterate over them, as passed by the function
+                    # FIXME: max warning me that there is possibly an issue with the add with subgrains here, maybe overlapping and then causing not being in 
+                    # epected labelled image range? unsure but be careful!!!
+                    for image_name, full_diagnostic_image in all_images.items():
+                        crop = subgrain_disordered_trace_images[image_name]
+                        bbox = grain_crop.bbox
+                        full_diagnostic_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+                    # FIXME: max says that this might be dangerous later on but if there is only 1 subgrain, as long as the subgrain index is 0 then it should
+                    # be fine
+                    # WILL NEED CLASS HERE TOO THEN WHEN WE USE MULTIPLE / ALL CLASSES
+                    disordered_trace_crop_data[f"grain_{grain_number}_subgrain_{subgrain_index}"] = subgrain_disordered_trace_images
+                    disordered_trace_crop_data[f"grain_{grain_number}_subgrain_{subgrain_index}"]["bbox"] = grain_crop.bbox
+                    disordered_trace_crop_data[f"grain_{grain_number}_subgrain_{subgrain_index}"]["pad_width"] = grain_crop.padding
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            LOGGER.error(  # pylint: disable=logging-not-lazy
+                f"[{filename}] : Disordered tracing of grain "
+                f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
+            )
+
+        # convert stats dict to dataframe
+        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+        # Set the name of the index column to be the grain number
+        grainstats_additions_df.index.name = "grain_number"
+
+    return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
+
+            LOGGER.debug(f"[{filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
+
             disordered_trace_images: dict | None = disordered_trace_grain(
                 cropped_image=grain_crop_image,
                 cropped_mask=grain_crop_class_mask,

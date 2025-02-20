@@ -496,6 +496,7 @@ def run_disordered_tracing(
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
 
+                # FIXME: max says will need changing for multi subgrains and classes
                 Images(
                     full_image,
                     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
@@ -513,6 +514,7 @@ def run_disordered_tracing(
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(
+                    # FIXME: will need to merge on subgrain index too AND CLASS WHEN WE USE MULTIPLE CLASSES
                     grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
                 )
                 if grainstats_df is not None
