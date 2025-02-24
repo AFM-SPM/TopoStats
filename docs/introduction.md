@@ -17,13 +17,13 @@ statistics calculated capturing the height, volume, radius and the location of t
 Optionally DNA Tracing is then performed, which traces the backbone of the DNA molecules to calculate further statistics
 such as whether grains are linear or circular, their contour length and end-to-end distances etc.
 
-The resulting statistics are written to a [CSV file](data_dictionary) and optionally plots are then generated from
+The resulting statistics are written to a [CSV file](usage/data_dictionary.md) and optionally plots are then generated from
 various stages of the processing as well as cropped images of each grain. The amount of images produced is also
 configurable.
 
 An schematic overview of the classes and methods that are run in processing files can be found in the
-[workflow](workflow) page along with more detailed information on [installation](installation), [usage](usage),
-[configuration](configuration) and [contributing](contributing).
+[workflow](usage/workflow.md) page along with more detailed information on [installation](usage/installation.md),
+[usage](usage/index.md), [configuration](usage/configuration.md) and [contributing](contributing/index.md).
 
 If you have questions, please post them on the [discussion](https://github.com/AFM-SPM/TopoStats/discussions), if you
 think you've encountered a bug whilst running the code or suggestions for improvements please create an

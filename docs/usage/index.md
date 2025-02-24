@@ -1,6 +1,6 @@
-# Usage
+# Getting Started
 
-After having [installed](installation) TopoStats you are ready to run it. For convenience TopoStats provides a command
+After having [installed](installation.md) TopoStats you are ready to run it. For convenience TopoStats provides a command
 line interface `topostats` that will load a default configuration file and process all images with reasonable
 default configuration options.
 
@@ -78,7 +78,7 @@ The default location that TopoStats looks for scans is the directory from which 
 shell/terminal you will therefore need to do two things.
 
 1. Navigate to the location of the scans you wish to process using `cd /path/to/where/scans/are/located`.
-2. Activate the virtual environment under which you installed TopoStats (refer to [installed](installation) if unsure).
+2. Activate the virtual environment under which you installed TopoStats (refer to [installed](installation.md) if unsure).
 
 You can now run topostats by invoking `topostats process` and you should start to see some output similar to that below.
 
@@ -195,7 +195,7 @@ to run which are listed at the bottom of the output along with a description.
 
 Each sub-programme has its own specific set of options too which can be specified to override the settings in the
 configuration file that is loaded (either the default or the user specified configuration). To view these again use the
-`-h` or `--help` flag. For a more detailed description of the options see the [configuration](configuration) page.
+`-h` or `--help` flag. For a more detailed description of the options see the [configuration](configuration.md) page.
 
 ```bash
  ❱ topostats create-config --help
@@ -233,7 +233,7 @@ want to make to the default configuration and how to make them.
 ### Generating Configuration File
 
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
-parameters that are used. This is achieved using a [configuration](configuration) file. This is a
+parameters that are used. This is achieved using a [configuration](configuration.md) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
 a sample configuration file in your current working directory using the `topostats create-config` sub-command. It
 takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
