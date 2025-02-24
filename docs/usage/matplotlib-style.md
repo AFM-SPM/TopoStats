@@ -21,7 +21,7 @@ Alternatively you can change the parameters in a custom configuration file to po
 ## Color Maps
 
 Several custom [colormaps][mpl-colormaps] for plotting data are also included. These are defined within the
-`topostats.themes.Colormap` class. For full details refer to the [API](../api/theme/).
+`topostats.themes.Colormap` class. For full details refer to the [API](../api/theme.md).
 
 - `nanoscope` colormap is provided and used by default.
 - `gwyddion` colormap is provided that matches the colormap used by default in the [Gwyddion][gwyddion]
