@@ -2,7 +2,20 @@ site_name: TopoStats
 site_url: https://AFM-SPM.github.io/TopoStats/
 repo_url: https://github.com/AFM-SPM/TopoStats/
 theme:
-  name: terminal
+  # name: terminal
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   # features:
   #   - navigation.sections
 
@@ -14,7 +27,7 @@ nav:
       - usage/index.md
       - usage/configuration.md
       - usage/notebooks.md
-      - usage/mtaplotlib-style.md
+      - usage/matplotlib-style.md
       - usage/data_dictionary.md
       - usage/workflow.md
   - Related Software: related_software.md
