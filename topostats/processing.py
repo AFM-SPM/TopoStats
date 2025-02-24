@@ -1002,7 +1002,9 @@ def run_curvature_stats(
     return None
 
 
-def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict):
+def get_out_paths(
+    image_path: Path, base_dir: Path, output_dir: Path, filename: str, plotting_config: dict, grain_dirs: bool = True
+):
     """
     Determine components of output paths for a given image and plotting config.
 
@@ -1018,6 +1020,9 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
         Name of the image being processed.
     plotting_config : dict
         Dictionary of configuration for plotting images.
+    grain_dirs : bool
+        Whether to create the ``grains`` and ``dnatracing`` sub-directories, by default this is ``True`` but it should
+        be set to ``False`` when running just ``Filters``.
 
     Returns
     -------
@@ -1031,7 +1036,7 @@ def get_out_paths(image_path: Path, base_dir: Path, output_dir: Path, filename: 
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
     tracing_out_path = core_out_path / filename / "dnatracing"
-    if plotting_config["image_set"] == "all":
+    if plotting_config["image_set"] == "all" and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
@@ -1298,6 +1303,7 @@ def process_filters(
         output_dir=output_dir,
         filename=topostats_object["filename"],
         plotting_config=plotting_config,
+        grain_dirs=False,
     )
 
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
