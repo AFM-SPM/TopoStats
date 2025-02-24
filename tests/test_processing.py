@@ -28,6 +28,8 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
+# pylint: disable=too-many-positional-arguments
+
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
@@ -766,7 +768,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
     assert isinstance(imagegraincrops.below, GrainCropsDirection)
-    assert len(imagegraincrops.below.crops) > 0
+    assert len(imagegraincrops.below.crops) == 1
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
