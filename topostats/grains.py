@@ -2057,7 +2057,7 @@ class Grains:
         if not graincrops:
             raise ValueError("No grain crops provided to construct the full mask tensor.")
         num_classes: int = list(graincrops.values())[0].mask.shape[2]
-        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
+        full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
