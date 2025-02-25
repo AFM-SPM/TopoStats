@@ -14,7 +14,6 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-locals
 
 
@@ -199,8 +198,6 @@ def predict_unet(
         channel_mask = predicted_mask[:, :, channel_index].astype(np.uint8)
         channel_mask_PIL = Image.fromarray(channel_mask)
         # Resize the channel mask to the original image size, but we want boolean so use nearest neighbour
-        # Sylvia: Pylint incorrectly thinks that Image.NEAREST is not a member of Image. IDK why.
-        # pylint: disable=no-member
         channel_mask_PIL = channel_mask_PIL.resize(
             (original_image.shape[1], original_image.shape[0]), Image.Resampling.NEAREST
         )
@@ -222,9 +219,9 @@ def make_bounding_box_square(
     crop_min_col : int
         The minimum column index of the crop.
     crop_max_row : int
-        The maximum row index of the crop.
+        The maximum EXCLUSIVE row index of the crop.
     crop_max_col : int
-        The maximum column index of the crop.
+        The maximum EXCLUSIVE column index of the crop.
     image_shape : tuple[int, int]
         The shape of the image.
 
@@ -232,11 +229,23 @@ def make_bounding_box_square(
     -------
     tuple[int, int, int, int]
         The new crop indices.
+
+    Notes
+    -----
+    The crop indices are inclusive on the minimum side and exclusive on the maximum side.
+    So an object like this:
+    0 0 0 0 0
+    0 1 1 1 0
+    0 1 1 1 0
+    0 1 1 1 0
+    0 0 0 0 0
+    With no padding, would have a bounding box of (1, 1, 4, 4) and not (1, 1, 3, 3).
+    Hence the maximum index for the bbox is allowed to exceed the maximum index of the image by 1.
     """
     crop_height = crop_max_row - crop_min_row
     crop_width = crop_max_col - crop_min_col
 
-    diff: int
+    axes_diff: int
     new_crop_min_row: int
     new_crop_min_col: int
     new_crop_max_row: int
@@ -244,41 +253,60 @@ def make_bounding_box_square(
 
     if crop_height > crop_width:
         # The crop is taller than it is wide
-        diff = crop_height - crop_width
+        axes_diff = crop_height - crop_width
         # Check if we can expand equally in each direction
-        if crop_min_col - diff // 2 >= 0 and crop_max_col + diff - diff // 2 < image_shape[1]:
-            new_crop_min_col = crop_min_col - diff // 2
-            new_crop_max_col = crop_max_col + diff - diff // 2
-        # If we can't expand uniformly, expand as much as possible in that dir
+        # Note that we allow the crop max col to be equal to the image shape since the max is exclusive
+        if crop_min_col - axes_diff // 2 >= 0 and crop_max_col + axes_diff - axes_diff // 2 <= image_shape[1]:
+            new_crop_min_col = crop_min_col - axes_diff // 2
+            new_crop_max_col = crop_max_col + axes_diff - axes_diff // 2
+        # If we can't expand uniformly, expand as much as possible in that direction
         else:
-            # Crop expansion below 0
-            if crop_min_col - diff // 2 <= 0:
+            # Set crop edge be at the edge of the image
+            if crop_min_col - axes_diff // 2 <= 0:
                 new_crop_min_col = 0
-                new_crop_max_col = crop_max_col + (diff - crop_min_col)
+                # Remaining size is equal to the axes_diff minus the size we just added.
+                # The size we added is simply the original crop_min_col since the new crop_min_col is 0.
+                # Add that remaining size to the crop_max_col
+                new_crop_max_col = crop_max_col + (axes_diff - crop_min_col)
             # Crop expansion beyond image size
             else:
-                new_crop_max_col = image_shape[1] - 1
-                new_crop_min_col = crop_min_col - (diff - (image_shape[1] - 1 - crop_max_col))
+                new_crop_max_col = image_shape[1]
+                # Remaining size is equal to the axes_diff minus the size we just added.
+                # The size we added is the size of the image minus the crop_max_col. Note that since
+                # the max is exclusive, we use the size of the image, not the maximum image column.
+                # The remaining size will be the axes diff minus the difference between original and new
+                # crop_max_col.
+                # So we subtract the remaining size from the crop_min_col to get the new crop_min_col.
+                new_crop_min_col = crop_min_col - (axes_diff - (new_crop_max_col - crop_max_col))
         # Set the new crop height to the original crop height since we are just updating the width
         new_crop_min_row = crop_min_row
         new_crop_max_row = crop_max_row
     else:
         # The crop is wider than it is tall
-        diff = crop_width - crop_height
+        axes_diff = crop_width - crop_height
         # Check if we can expand equally in each direction
-        if crop_min_row - diff // 2 >= 0 and crop_max_row + diff - diff // 2 < image_shape[0]:
-            new_crop_min_row = crop_min_row - diff // 2
-            new_crop_max_row = crop_max_row + diff - diff // 2
+        # Note that we allow the crop max row to be equal to the image shape since the max is exclusive
+        if crop_min_row - axes_diff // 2 >= 0 and crop_max_row + axes_diff - axes_diff // 2 <= image_shape[0]:
+            new_crop_min_row = crop_min_row - axes_diff // 2
+            new_crop_max_row = crop_max_row + axes_diff - axes_diff // 2
         # If we can't expand uniformly, expand as much as possible in that dir
         else:
-            # Crop expansion below 0
-            if crop_min_row - diff // 2 <= 0:
+            # Set crop edge be at the edge of the image
+            if crop_min_row - axes_diff // 2 <= 0:
                 new_crop_min_row = 0
-                new_crop_max_row = crop_max_row + (diff - crop_min_row)
+                # Remaining size is equal to the axes_diff minus the size we just added.
+                # The size we added is simply the original crop_min_row since the new crop_min_row is 0.
+                # Add that remaining size to the crop_max_row
+                new_crop_max_row = crop_max_row + (axes_diff - crop_min_row)
             # Crop expansion beyond image size
             else:
-                new_crop_max_row = image_shape[0] - 1
-                new_crop_min_row = crop_min_row - (diff - (image_shape[0] - 1 - crop_max_row))
+                new_crop_max_row = image_shape[0]
+                # Remaining size is equal to the axes_diff minus the size we just added.
+                # The size we added is the size of the image minus the crop_max_row. Note that since
+                # the max is exclusive, we use the size of the image, not the maximum image row.
+                # The remaining size will be the axes diff minus the difference between original and new
+                # crop_max_row.
+                new_crop_min_row = crop_min_row - (axes_diff - (new_crop_max_row - crop_max_row))
         # Set the new crop width to the original crop width since we are just updating the height
         new_crop_min_col = crop_min_col
         new_crop_max_col = crop_max_col
@@ -323,3 +351,87 @@ def pad_bounding_box(
     new_crop_max_col: int = min(image_shape[1], crop_max_col + padding)
 
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
+
+
+def pad_crop(
+    crop: npt.NDArray,
+    bbox: tuple[int, int, int, int],
+    image_shape: tuple[int, int],
+    padding: int,
+) -> np.NDArray:
+    """
+    Pad a crop.
+
+    Parameters
+    ----------
+    crop : npt.NDArray
+        The crop to pad.
+    bbox : tuple[int, int, int, int]
+        The bounding box of the crop.
+    image_shape : tuple[int, int]
+        The shape of the image.
+    padding : int
+        The padding to apply to the crop.
+
+    Returns
+    -------
+    np.NDArray
+        The padded crop.
+    """
+    new_bounding_box = pad_bounding_box(
+        crop_min_row=bbox[0],
+        crop_min_col=bbox[1],
+        crop_max_row=bbox[2],
+        crop_max_col=bbox[3],
+        image_shape=image_shape,
+        padding=padding,
+    )
+
+    # Pad the crop with the new bounding box
+    padded_crop = np.zeros((new_bounding_box[2] - new_bounding_box[0], new_bounding_box[3] - new_bounding_box[1]))
+    padded_crop[
+        bbox[0] - new_bounding_box[0] : bbox[2] - new_bounding_box[0],
+        bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
+    ] = crop
+
+    return padded_crop, new_bounding_box
+
+
+def make_crop_square(
+    crop: npt.NDArray,
+    bbox: tuple[int, int, int, int],
+    image_shape: tuple[int, int],
+) -> np.NDArray:
+    """
+    Make a crop square.
+
+    Parameters
+    ----------
+    crop : npt.NDArray
+        The crop to make square.
+    bbox : tuple[int, int, int, int]
+        The bounding box of the crop.
+    image_shape : tuple[int, int]
+        The shape of the image.
+
+    Returns
+    -------
+    np.NDArray
+        The square crop.
+    """
+    new_bounding_box = make_bounding_box_square(
+        crop_min_row=bbox[0],
+        crop_min_col=bbox[1],
+        crop_max_row=bbox[2],
+        crop_max_col=bbox[3],
+        image_shape=image_shape,
+    )
+
+    # Make the crop square
+    square_crop = np.zeros((new_bounding_box[2] - new_bounding_box[0], new_bounding_box[3] - new_bounding_box[1]))
+    square_crop[
+        bbox[0] - new_bounding_box[0] : bbox[2] - new_bounding_box[0],
+        bbox[1] - new_bounding_box[1] : bbox[3] - new_bounding_box[1],
+    ] = crop
+
+    return square_crop, new_bounding_box

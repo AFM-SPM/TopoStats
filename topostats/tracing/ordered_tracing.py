@@ -862,7 +862,6 @@ def ordered_tracing_image(
     nodestats_direction_data: dict,
     filename: str,
     ordering_method: str,
-    pad_width: int,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
     # pylint: disable=too-many-locals
     """
@@ -880,8 +879,6 @@ def ordered_tracing_image(
         Image filename (for logging purposes).
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
-    pad_width : int
-        Width to pad the images by.
 
     Returns
     -------
@@ -957,7 +954,7 @@ def ordered_tracing_image(
             for image_name, full_image in ordered_trace_full_images.items():
                 crop = images[image_name]
                 bbox = disordered_trace_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
