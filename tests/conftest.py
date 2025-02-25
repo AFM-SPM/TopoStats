@@ -369,7 +369,7 @@ def dummy_graincrop() -> GrainCrop:
         image=image,
         mask=mask,
         padding=2,
-        bbox=(1, 1, 12, 12),
+        bbox=(1, 1, 11, 11),
         pixel_to_nm_scaling=1.0,
         filename="dummy",
     )
