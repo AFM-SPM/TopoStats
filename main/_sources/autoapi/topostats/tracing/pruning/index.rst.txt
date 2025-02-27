@@ -1,0 +1,879 @@
+topostats.tracing.pruning
+=========================
+
+.. py:module:: topostats.tracing.pruning
+
+.. autoapi-nested-parse::
+
+   Prune branches from skeletons.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.pruning.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.pruning.topostatsPrune
+   topostats.tracing.pruning.heightPruning
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.pruning.prune_skeleton
+   topostats.tracing.pruning._prune_method
+   topostats.tracing.pruning._prune_topostats
+   topostats.tracing.pruning.order_branch_from_end
+   topostats.tracing.pruning.rm_nibs
+   topostats.tracing.pruning.local_area_sum
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: prune_skeleton(image: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, pixel_to_nm_scaling: float, **kwargs) -> numpy.typing.NDArray
+
+   
+   Pruning skeletons using different pruning methods.
+
+   This is a thin wrapper to the methods provided within the pruning classes below.
+
+   :param image: Original image as 2D numpy array.
+   :type image: npt.NDArray
+   :param skeleton: Skeleton to be pruned.
+   :type skeleton: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nm scaling for pruning by length.
+   :type pixel_to_nm_scaling: float
+   :param \*\*kwargs: Pruning options passed to the respective method.
+
+   :returns: An array of the skeleton with spurious branching artefacts removed.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _prune_method(image: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, pixel_to_nm_scaling: float, **kwargs) -> collections.abc.Callable
+
+   
+   Determine which skeletonize method to use.
+
+   :param image: Original image as 2D numpy array.
+   :type image: npt.NDArray
+   :param skeleton: Skeleton to be pruned.
+   :type skeleton: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nm scaling for pruning by length.
+   :type pixel_to_nm_scaling: float
+   :param \*\*kwargs: Pruning options passed to the respective method.
+
+   :returns: Returns the function appropriate for the required skeletonizing method.
+   :rtype: Callable
+
+   :raises ValueError: Invalid method passed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _prune_topostats(img: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, pixel_to_nm_scaling: float, **kwargs) -> numpy.typing.NDArray
+
+   
+   Prune using the original TopoStats method.
+
+   This is a modified version of the pubhlished Zhang method.
+
+   :param img: Image used to find skeleton, may be original heights or binary mask.
+   :type img: npt.NDArray
+   :param skeleton: Binary mask of the skeleton.
+   :type skeleton: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nm scaling for pruning by length.
+   :type pixel_to_nm_scaling: float
+   :param \*\*kwargs: Pruning options passed to the topostatsPrune class.
+
+   :returns: The skeleton with spurious branches removed.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: topostatsPrune(img: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, pixel_to_nm_scaling: float, max_length: float = None, height_threshold: float = None, method_values: str = None, method_outlier: str = None)
+
+   
+   Prune spurious skeletal branches based on their length and/or height.
+
+   Contains all the functions used in the original TopoStats pruning code written by Joe Betton.
+
+   :param img: Original image.
+   :type img: npt.NDArray
+   :param skeleton: Skeleton to be pruned.
+   :type skeleton: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nm scaling for pruning by length.
+   :type pixel_to_nm_scaling: float
+   :param max_length: Maximum length of the branch to prune in nanometres (nm).
+   :type max_length: float
+   :param height_threshold: Absolute height value to remove branches below in nanometres (nm).
+   :type height_threshold: float
+   :param method_values: Method for obtaining the height thresholding values. Options are 'min' (minimum value of the branch),
+                         'median' (median value of the branch) or 'mid' (ordered branch middle coordinate value).
+   :type method_values: str
+   :param method_outlier: Method for pruning brancvhes based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
+                          skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
+   :type method_outlier: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: img
+
+
+   .. py:attribute:: skeleton
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: max_length
+      :value: None
+
+
+
+   .. py:attribute:: height_threshold
+      :value: None
+
+
+
+   .. py:attribute:: method_values
+      :value: None
+
+
+
+   .. py:attribute:: method_outlier
+      :value: None
+
+
+
+   .. py:method:: prune_skeleton() -> numpy.typing.NDArray
+
+      
+      Prune skeleton by length and/or height.
+
+      If the class was initialised with both `max_length is not None` an d `height_threshold is not None` then length
+      based pruning is performed prior to height based pruning.
+
+      :returns: A pruned skeleton.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _prune_by_length(single_skeleton: numpy.typing.NDArray, max_length: float) -> numpy.typing.NDArray
+
+      
+      Remove hanging branches from a skeleton by their length.
+
+      This is an iterative process as these are a persistent problem in the overall tracing process.
+
+      :param single_skeleton: Binary array of the skeleton.
+      :type single_skeleton: npt.NDArray
+      :param max_length: Maximum length of the branch to prune in nanometers (nm).
+      :type max_length: float
+
+      :returns: Pruned skeleton as binary array.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _find_branch_ends(coordinates: list) -> list
+      :staticmethod:
+
+
+      
+      Identify branch ends.
+
+      This is achieved by iterating through the coordinates and assessing the local pixel area. Ends have only one
+      adjacent pixel.
+
+      :param coordinates: List of x, y coordinates of a branch.
+      :type coordinates: list
+
+      :returns: List of x, y coordinates of the branch ends.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: heightPruning(image: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, max_length: float = None, height_threshold: float = None, method_values: str = None, method_outlier: str = None)
+
+   
+   Pruning of branches based on height.
+
+   :param image: Original image, typically the height data.
+   :type image: npt.NDArray
+   :param skeleton: Skeleton to prune branches from.
+   :type skeleton: npt.NDArray
+   :param max_length: Maximum length of the branch to prune in nanometres (nm).
+   :type max_length: float
+   :param height_threshold: Absolute height value to remove branches below in nanometers (nm).
+   :type height_threshold: float
+   :param method_values: Method of obtaining the height thresholding values. Options are 'min' (minimum value of the branch),
+                         'median' (median value of the branch) or 'mid' (ordered branch middle coordinate value).
+   :type method_values: str
+   :param method_outlier: Method to prune branches based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
+                          skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
+   :type method_outlier: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: skeleton
+
+
+   .. py:attribute:: skeleton_convolved
+      :value: None
+
+
+
+   .. py:attribute:: skeleton_branches
+      :value: None
+
+
+
+   .. py:attribute:: skeleton_branches_labelled
+      :value: None
+
+
+
+   .. py:attribute:: max_length
+      :value: None
+
+
+
+   .. py:attribute:: height_threshold
+      :value: None
+
+
+
+   .. py:attribute:: method_values
+      :value: None
+
+
+
+   .. py:attribute:: method_outlier
+      :value: None
+
+
+
+   .. py:attribute:: skeleton_pruned
+
+
+   .. py:method:: convolve_skeleton() -> None
+
+      
+      Convolve skeleton.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: segment_skeleton() -> None
+
+      
+      Convolve skeleton and break into segments at nodes/junctions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: label_branches() -> None
+
+      
+      Label segmented branches.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_branch_mins(segments: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Collect the minimum height value of each individually labeled branch.
+
+      :param segments: Integer labeled array matching the dimensions of the image.
+      :type segments: npt.NDArray
+
+      :returns: Array of minimum values of each branch index -1.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_branch_medians(segments: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Collect the median height value of each labeled branch.
+
+      :param segments: Integer labeled array matching the dimensions of the image.
+      :type segments: npt.NDArray
+
+      :returns: Array of median values of each branch index -1.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_branch_middles(segments: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Collect the positionally ordered middle height value of each labeled branch.
+
+      Where the branch has an even amount of points, average the two middle heights.
+
+      :param segments: Integer labeled array matching the dimensions of the image.
+      :type segments: npt.NDArray
+
+      :returns: Array of middle values of each branch.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_abs_thresh_idx(height_values: numpy.typing.NDArray, threshold: float | int) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Identify indices of labelled branches whose height values are less than a given threshold.
+
+      :param height_values: Array of each branches heights.
+      :type height_values: npt.NDArray
+      :param threshold: Threshold for heights.
+      :type threshold: float | int
+
+      :returns: Branch indices which are less than threshold.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_mean_abs_thresh_idx(height_values: numpy.typing.NDArray, threshold: float | int, image: numpy.typing.NDArray, skeleton: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Identify indices of labelled branch whose height values are less than mean skeleton height - absolute threshold.
+
+      For DNA a threshold of 0.85nm (the depth of the major groove) would ideally remove all segments whose lowest
+      point is < mean(height) - 0.85nm, i.e. 1.15nm.
+
+      :param height_values: Array of branches heights.
+      :type height_values: npt.NDArray
+      :param threshold: Threshold to be subtracted from mean heights.
+      :type threshold: float | int
+      :param image: Original image of heights.
+      :type image: npt.NDArray
+      :param skeleton: Binary array of skeleton used to identify heights from original image to use.
+      :type skeleton: npt.NDArray
+
+      :returns: Branch indices which are less than mean(height) - threshold.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_iqr_thresh_idx(image: numpy.typing.NDArray, segments: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Identify labelled branch indices whose heights are less than 1.5 x interquartile range of all heights.
+
+      :param image: Original image with heights.
+      :type image: npt.NDArray
+      :param segments: Array of skeleton branches.
+      :type segments: npt.NDArray
+
+      :returns: Branch indices where heights are < 1.5 * inter-quartile range.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: check_skeleton_one_object(skeleton: numpy.typing.NDArray) -> bool
+      :staticmethod:
+
+
+      
+      Ensure that the skeleton hasn't been broken up upon removing a segment.
+
+      :param skeleton: 2D single pixel thick array.
+      :type skeleton: npt.NDArray
+
+      :returns: True or False depending on whether there is 1 or !1 objects.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: filter_segments(segments: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Identify and remove segments of a skeleton based on the underlying image height.
+
+      :param segments: A labelled 2D array of skeleton segments.
+      :type segments: npt.NDArray
+
+      :returns: The original skeleton without the segments identified by the height criteria.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: height_prune() -> numpy.typing.NDArray
+
+      
+      Identify and remove spurious branches (containing endpoints) using the underlying image height.
+
+      :returns: A skeleton with outer branches removed by height.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _split_skeleton(skeleton: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Split the skeleton into branches by removing junctions/nodes and label branches.
+
+      :param skeleton: Convolved skeleton to be split. This should have nodes labelled as 3, ends as 2 and all other points as 1.
+      :type skeleton: npt.NDArray
+
+      :returns: Removes the junctions (3) and returns all remaining sections as labelled segments.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: order_branch_from_end(nodeless: numpy.typing.NDArray, start: list, max_length: float = np.inf) -> numpy.typing.NDArray
+
+   
+   Take a linear branch and orders its coordinates starting from a specific endpoint.
+
+   NB - It may be possible to use np.lexsort() to order points, see topostats.measure.feret.sort_coords() for an
+   example of how to sort by row or column coordinates, which end of the branch this is from probably doesn't matter
+   as one only wants to find the mid-point I think.
+
+   :param nodeless: A 2D binary array where there are no crossing pixels.
+   :type nodeless: npt.NDArray
+   :param start: A coordinate to start closest to / at.
+   :type start: list
+   :param max_length: The maximum length to order along the branch, in pixels, by default np.inf.
+   :type max_length: float, optional
+
+   :returns: The input linear branch ordered from the start coordinate.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: rm_nibs(skeleton)
+
+   
+   Remove single pixel branches (nibs) not identified by nearest neighbour algorithms as there may be >2 neighbours.
+
+   :param skeleton: A single pixel thick trace.
+   :type skeleton: npt.NDArray
+
+   :returns: A skeleton with single pixel nibs removed.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: local_area_sum(img: numpy.typing.NDArray, point: list | tuple | numpy.typing.NDArray) -> tuple
+
+   
+   Evaluate the local area around a point in a binary map.
+
+   :param img: Binary array of image.
+   :type img: npt.NDArray
+   :param point: Coordinates of a point within the binary_map.
+   :type point: list | tuple | npt.NDArray
+
+   :returns: Tuple consisting of an array values of the local coordinates around the point and the number of neighbours
+             around the point.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

@@ -1,0 +1,1235 @@
+topostats.io
+============
+
+.. py:module:: topostats.io
+
+.. autoapi-nested-parse::
+
+   Functions for reading and writing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.io.LOGGER
+   topostats.io.CONFIG_DOCUMENTATION_REFERENCE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.io.LoadScans
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.io.read_yaml
+   topostats.io.get_date_time
+   topostats.io.write_yaml
+   topostats.io.write_config_with_comments
+   topostats.io.save_array
+   topostats.io.load_array
+   topostats.io.path_to_str
+   topostats.io.get_out_path
+   topostats.io.find_files
+   topostats.io.save_folder_grainstats
+   topostats.io.read_null_terminated_string
+   topostats.io.read_u32i
+   topostats.io.read_64d
+   topostats.io.read_char
+   topostats.io.read_gwy_component_dtype
+   topostats.io.get_relative_paths
+   topostats.io.convert_basename_to_relative_paths
+   topostats.io.save_topostats_file
+   topostats.io.save_pkl
+   topostats.io.load_pkl
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:data:: CONFIG_DOCUMENTATION_REFERENCE
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """# For more information on configuration and how to use it:
+      # https://afm-spm.github.io/TopoStats/main/configuration.html
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:function:: read_yaml(filename: str | pathlib.Path) -> dict
+
+   
+   Read a YAML file.
+
+   :param filename: YAML file to read.
+   :type filename: Union[str, Path]
+
+   :returns: Dictionary of the file.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_date_time() -> str
+
+   
+   Get a date and time for adding to generated files or logging.
+
+   :param None:
+
+   :returns: A string of the current date and time, formatted appropriately.
+   :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: write_yaml(config: dict, output_dir: str | pathlib.Path, config_file: str = 'config.yaml', header_message: str = None) -> None
+
+   
+   Write a configuration (stored as a dictionary) to a YAML file.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param output_dir: Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
+   :type output_dir: Union[str, Path]
+   :param config_file: Filename to write to.
+   :type config_file: str
+   :param header_message: String to write to the header message of the YAML file
+   :type header_message: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: write_config_with_comments(args=None) -> None
+
+   
+   Write a sample configuration with in-line comments.
+
+   This function is not designed to be used interactively but can be, just call it without any arguments and it will
+   write a configuration to './config.yaml'.
+
+   :param args: A Namespace object parsed from argparse with values for 'filename',
+   :type args: Namespace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: save_array(array: numpy.ndarray, outpath: pathlib.Path, filename: str, array_type: str) -> None
+
+   
+   Save a Numpy array to disk.
+
+   :param array: Numpy array to be saved.
+   :type array: np.ndarray
+   :param outpath: Location array should be saved
+   :type outpath: Path
+   :param filename: Filename of the current image from which the array is derived.
+   :type filename: str
+   :param array_type: Short string describing the array type e.g. z_threshold. Ideally should not have periods or spaces in (use
+   :type array_type: str
+   :param underscores '_' instead).:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: load_array(array_path: str | pathlib.Path) -> numpy.ndarray
+
+   
+   Load a Numpy array from file.
+
+   Should have been saved using save_array() or numpy.save().
+
+   :param array_path: Path to the Numpy array on disk.
+   :type array_path: Union[str, Path]
+
+   :returns: Returns the loaded Numpy array.
+   :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: path_to_str(config: dict) -> dict
+
+   
+   Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.
+
+   :param config: Dictionary to be converted.
+   :type config: dict
+
+   :returns: The same dictionary with any Path() objects converted to string.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_out_path(image_path: str | pathlib.Path = None, base_dir: str | pathlib.Path = None, output_dir: str | pathlib.Path = None) -> pathlib.Path
+
+   
+   Add the image path relative to the base directory to the output directory.
+
+   :param image_path: The path of the current image.
+   :type image_path: Path
+   :param base_dir: Directory to recursively search for files.
+   :type base_dir: Path
+   :param output_dir: The output directory specified in the configuration file.
+   :type output_dir: Path
+
+   :returns: The output path that mirrors the input path structure.
+   :rtype: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_files(base_dir: str | pathlib.Path = None, file_ext: str = '.spm') -> list
+
+   
+   Recursively scan the specified directory for images with the given file extension.
+
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param file_ext: File extension to search for.
+   :type file_ext: str
+
+   :returns: List of files found with the extension in the given directory.
+   :rtype: List
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: save_folder_grainstats(output_dir: str | pathlib.Path, base_dir: str | pathlib.Path, all_stats_df: pandas.DataFrame) -> None
+
+   
+   Save a data frame of grain and tracing statistics at the folder level.
+
+   :param output_dir: Path of the output directory head.
+   :type output_dir: Union[str, Path]
+   :param base_dir: Path of the base directory where files were found.
+   :type base_dir: Union[str, Path]
+   :param all_stats_df: The dataframe containing all sample statistics run.
+   :type all_stats_df: pd.DataFrame
+
+   :returns: This only saves the dataframes and does not retain them.
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_null_terminated_string(open_file: io.TextIOWrapper) -> str
+
+   
+   Read an open file from the current position in the open binary file, until the next null value.
+
+   :param open_file: An open file object.
+   :type open_file: io.TextIOWrapper
+
+   :returns: String of the ASCII decoded bytes before the next null byte.
+   :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_u32i(open_file: io.TextIOWrapper) -> str
+
+   
+   Read an unsigned 32 bit integer from an open binary file (in little-endian form).
+
+   :param open_file: An open file object.
+   :type open_file: io.TextIOWrapper
+
+   :returns: Python integer type cast from the unsigned 32 bit integer.
+   :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_64d(open_file: io.TextIOWrapper) -> str
+
+   
+   Read a 64-bit double from an open binary file.
+
+   :param open_file: An open file object.
+
+   :returns: Python float type cast from the double.
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_char(open_file: io.TextIOWrapper) -> str
+
+   
+   Read a character from an open binary file.
+
+   :param open_file: An open file object.
+   :type open_file: io.TextIOWrapper
+
+   :returns: A string type cast from the decoded character.
+   :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_gwy_component_dtype(open_file: io.TextIOWrapper) -> str
+
+   
+   Read the data type of a `.gwy` file component.
+
+   Possible data types are as follows:
+
+   - 'b': boolean
+   - 'c': character
+   - 'i': 32-bit integer
+   - 'q': 64-bit integer
+   - 'd': double
+   - 's': string
+   - 'o': `.gwy` format object
+
+   Capitalised versions of some of these data types represent arrays of values of that data type. Arrays are stored as
+   an unsigned 32 bit integer, describing the size of the array, followed by the unseparated array values:
+
+   - 'C': array of characters
+   - 'I': array of 32-bit integers
+   - 'Q': array of 64-bit integers
+   - 'D': array of doubles
+   - 'S': array of strings
+   - 'O': array of objects.
+
+   :param open_file: An open file object.
+   :type open_file: io.TextIOWrapper
+
+   :returns: Python string (one character long) of the data type of the
+             component's value.
+   :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_relative_paths(paths: list[pathlib.Path]) -> list[str]
+
+   
+   Extract a list of relative paths, removing the common suffix.
+
+   From a list of paths, create a list where each path is relative to all path's closest common parent. For
+   example, ['a/b/c', 'a/b/d', 'a/b/e/f'] would return ['c', 'd', 'e/f'].
+
+   :param paths: List of string or pathlib paths.
+   :type paths: list
+
+   :returns: **relative_paths** -- List of string paths, relative to the common parent.
+   :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: convert_basename_to_relative_paths(df: pandas.DataFrame)
+
+   
+   Convert paths in the 'basename' column of a dataframe to relative paths.
+
+   If the 'basename' column has the following paths: ['/usr/topo/data/a/b', '/usr/topo/data/c/d'], the output will be:
+   ['a/b', 'c/d'].
+
+   :param df: A pandas dataframe containing a column 'basename' which contains the paths
+              indicating the locations of the image data files.
+   :type df: pd.DataFrame
+
+   :returns: **df** -- A pandas dataframe where the 'basename' column has paths relative to a common
+             parent.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: LoadScans(img_paths: list, channel: str)
+
+   
+   Load the image and image parameters from a file path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: img_paths
+
+
+   .. py:attribute:: img_path
+      :value: None
+
+
+
+   .. py:attribute:: channel
+
+
+   .. py:attribute:: channel_data
+      :value: None
+
+
+
+   .. py:attribute:: filename
+      :value: None
+
+
+
+   .. py:attribute:: image
+      :value: None
+
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+      :value: None
+
+
+
+   .. py:attribute:: grain_masks
+
+
+   .. py:attribute:: img_dict
+
+
+   .. py:attribute:: MINIMUM_IMAGE_SIZE
+      :value: 10
+
+
+
+   .. py:method:: load_spm() -> tuple
+
+      
+      Extract image and pixel to nm scaling from the Bruker .spm file.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple(np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _spm_pixel_to_nm_scaling(channel_data: pySPM.SPM.SPM_image) -> float
+
+      
+      Extract pixel to nm scaling from the SPM image metadata.
+
+      :param channel_data: Channel data from PySPM.
+      :type channel_data: pySPM.SPM.SPM_image
+
+      :returns: Pixel to nm scaling factor.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_topostats() -> tuple
+
+      
+      Load a .topostats file (hdf5 format).
+
+      Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.
+
+      Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
+      all other file loading functions.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple(np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_asd() -> tuple
+
+      
+      Extract image and pixel to nm scaling from .asd files.
+
+      :returns: **tuple** -- A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: (np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_ibw() -> tuple
+
+      
+      Load image from Asylum Research (Igor) .ibw files.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple(np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _ibw_pixel_to_nm_scaling(scan: dict) -> float
+
+      
+      Extract pixel to nm scaling from the IBW image metadata.
+
+      :param scan: The loaded binary wave object.
+      :type scan: dict
+
+      :returns: A value corresponding to the real length of a single pixel.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_jpk() -> tuple
+
+      
+      Load image from JPK Instruments .jpk files.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple(np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _jpk_pixel_to_nm_scaling(tiff_page: tifffile.tifffile.TiffPage) -> float
+      :staticmethod:
+
+
+      
+      Extract pixel to nm scaling from the JPK image metadata.
+
+      :param tiff_page: An image file directory (IFD) of .jpk files.
+      :type tiff_page: tifffile.tifffile.TiffPage
+
+      :returns: A value corresponding to the real length of a single pixel.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_read_object(open_file: io.TextIOWrapper, data_dict: dict) -> None
+      :staticmethod:
+
+
+      
+      Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+
+      :param open_file: An open file object.
+      :type open_file: io.TextIOWrapper
+      :param data_dict: Dictionary of `.gwy` file image properties.
+      :type data_dict: dict
+
+      :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_read_component(open_file: io.TextIOWrapper, initial_byte_pos: int, data_dict: dict) -> int
+      :staticmethod:
+
+
+      
+      Parse and extract data from a `.gwy` file object, starting at the current open file read position.
+
+      :param open_file: An open file object.
+      :type open_file: io.TextIOWrapper,
+      :param data_dict: Dictionary of `.gwy` file image properties.
+      :type data_dict: dict
+
+      :returns: Size of the component in bytes.
+      :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_print_dict(gwy_file_dict: dict, pre_string: str) -> None
+      :staticmethod:
+
+
+      
+      Print the nested object / component structure.
+
+      Can be used to find labels and values of objects / components in the `.gwy` file.
+
+      :param gwy_file_dict: Dictionary of the nested object / component structure of a `.gwy` file.
+      :type gwy_file_dict: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _gwy_print_dict_wrapper(gwy_file_dict: dict) -> None
+      :staticmethod:
+
+
+      
+      Print dictionaries.
+
+      This is a wrapper for the _gwy_print_dict() method.
+
+      :param gwy_file_dict: Dictionary of the nested object / component structure of a `.gwy` file.
+      :type gwy_file_dict: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_gwy() -> tuple
+
+      
+      Extract image and pixel to nm scaling from the Gwyddion .gwy file.
+
+      :returns: A tuple containing the image and its pixel to nanometre scaling value.
+      :rtype: tuple(np.ndarray, float)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_data() -> None
+
+      
+      Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _check_image_size_and_add_to_dict(image: numpy.ndarray, filename: str) -> None
+
+      
+      Check the image is above a minimum size in both dimensions.
+
+      Images that do not meet the minimum size are not included for processing.
+
+      :param image: An array of the extracted AFM image.
+      :type image: np.ndarray
+      :param filename: The name of the file
+      :type filename: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_to_dict(image: numpy.ndarray, filename: str) -> None
+
+      
+      Add an image and metadata to the img_dict dictionary under the key filename.
+
+      Adds the image and associated metadata such as any grain masks, and pixel to nanometere
+      scaling factor to the img_dict dictionary which is used as a place to store the image
+      information for processing.
+
+      :param image: An array of the extracted AFM image.
+      :type image: np.ndarray
+      :param filename: The name of the file
+      :type filename: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: save_topostats_file(output_dir: pathlib.Path, filename: str, topostats_object: dict) -> None
+
+   
+   Save a topostats dictionary object to a .topostats (hdf5 format) file.
+
+   :param output_dir: Directory to save the .topostats file in.
+   :type output_dir: Path
+   :param filename: File name of the .topostats file.
+   :type filename: str
+   :param topostats_object: Dictionary of the topostats data to save. Must include a flattened image and
+                            pixel to nanometre scaling factor. May also include grain masks.
+   :type topostats_object: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: save_pkl(outfile: pathlib.Path, to_pkl: dict) -> None
+
+   
+   Pickle objects for working with later.
+
+   :param outfile: Path and filename to save pickle to.
+   :type outfile: Path
+   :param to_pkl: Object to be picled.
+   :type to_pkl: dict
+
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: load_pkl(infile: pathlib.Path) -> Any
+
+   
+   Load data from a pickle.
+
+   :param infile: Path to a valid pickle.
+   :type infile: Path
+
+   :returns: Dictionary of generated images.
+   :rtype: dict
+
+   .. rubric:: Example
+
+   from pathlib import Path
+
+   from topostats.io import load_plots
+
+   pkl_path = "output/distribution_plots.pkl"
+   my_plots = load_pkl(pkl_path)
+   # Show the type of my_plots which is a dictionary of nested dictionaries
+   type(my_plots)
+   # Show the keys are various levels of nesting.
+   my_plots.keys()
+   my_plots["area"].keys()
+   my_plots["area"]["dist"].keys()
+   # Get the figure and axis object for a given metrics distribution plot
+   figure, axis = my_plots["area"]["dist"].values()
+   # Get the figure and axis object for a given metrics violin plot
+   figure, axis = my_plots["area"]["violin"].values()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
