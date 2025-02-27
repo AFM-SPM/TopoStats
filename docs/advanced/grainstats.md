@@ -18,7 +18,7 @@ The metrics are briefly summarised in the table below:
 | `smallest_bounding_width/length` | The shortest bounding box length and perpendicular width of the grain in non-cardinal directions. | `float`   |
 | `smallest_bounding_area`         | The area of the smallest possible box bounding the grain.                                         | `float`   |
 | `aspect_ratio`                   | Ratio of the smallest bounding width to smallest bounding length.                                 | `float`   |
-| `max/min_feret`                  | The feret diameter of the grain.                                                                  | `float`   |
+| `max/min_feret`                  | The largest and shortest distance of the calipers rotating the grain between calipers. See [feret diameter](https://en.wikipedia.org/wiki/Feret_diameter).                                             | `float`   |
 
 &nbsp;
 
