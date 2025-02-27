@@ -779,6 +779,9 @@ class LoadScans:
                         data = self.load_topostats(extract=self.extract)
                         self.image = data["image"]
                         self.pixel_to_nm_scaling = data["pixel_to_nm_scaling"]
+                        # If we need the grain masks for processing we extract them
+                        if self.extract in ("grainstats"):
+                            self.grain_masks = data["grain_masks"]
                     elif suffix == ".topostats" and self.extract in ("filter", "raw"):
                         self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
@@ -869,10 +872,21 @@ class LoadScans:
         dict[str, Any]
             Returns the image dictionary with keys/values removed appropriate to the extraction stage.
         """
-        if self.extract in ["grains", "grainstats"]:
+        # Reverse order so we remove things in reverse order, splining removes what it doesn't need then ordered
+        # tracing removes what it doesn't need, then nodestats, then disordered, then grainstats then grains, should be
+        # more succinct code with less popping
+        if self.extract in ["grains"]:
             img_dict.pop("disordered_traces")
             img_dict.pop("grain_curvature_stats")
             img_dict.pop("grain_masks")
+            img_dict.pop("height_profiles")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_traces")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["grainstats"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
             img_dict.pop("height_profiles")
             img_dict.pop("nodestats")
             img_dict.pop("ordered_traces")

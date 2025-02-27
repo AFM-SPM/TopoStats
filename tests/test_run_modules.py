@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from AFMReader import topostats
 
@@ -215,3 +216,53 @@ def test_grains(caplog) -> None:
         "pixel_to_nm_scaling",
         "topostats_file_version",
     ]
+
+
+def test_grainstats(caplog) -> None:
+    """Test running the grainstats module.
+
+    We use the command line entry point to test that _just_ grains runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "grainstats",  # This is the sub-command we wish to test, it will call run_modules.grains()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
+    # Load the output and check the keys
+    data = pd.read_csv("output/image_stats.csv")
+    print(f"\n{list(data.columns)=}\n")
+    assert list(data.columns) == [
+        "grain_number",
+        "centre_x",
+        "centre_y",
+        "radius_min",
+        "radius_max",
+        "radius_mean",
+        "radius_median",
+        "height_min",
+        "height_max",
+        "height_median",
+        "height_mean",
+        "volume",
+        "area",
+        "area_cartesian_bbox",
+        "smallest_bounding_width",
+        "smallest_bounding_length",
+        "smallest_bounding_area",
+        "aspect_ratio",
+        "threshold",
+        "max_feret",
+        "min_feret",
+        "image",
+        "basename",
+    ]
+    assert data.shape == (3, 23)

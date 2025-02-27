@@ -815,8 +815,8 @@ def create_parser() -> arg.ArgumentParser:
 
     grainstats_parser = subparsers.add_parser(
         "grainstats",
-        description="WIP DO NOT USE - Load images with grains from '.topostats' files and calculate statistics.",
-        help="WIP DO NOT USE - Load images with grains from '.topostats' files and calculate statistics.",
+        description="Load images with grains from '.topostats' files and calculate statistics.",
+        help="Load images with grains from '.topostats' files and calculate statistics.",
     )
     grainstats_parser.add_argument(
         "--edge-detection-method",
