@@ -160,10 +160,10 @@ def test_predict_unet(mock_model_5_by_5_single_class: MagicMock) -> None:
         pytest.param(4, 4, 8, 6, (10, 10), (4, 3, 8, 7), id="free space double min col decrease, max col increase"),
         pytest.param(4, 4, 6, 8, (10, 10), (3, 4, 7, 8), id="free space double min row decrease, max row increase"),
         pytest.param(1, 1, 6, 2, (10, 10), (1, 0, 6, 5), id="constrained left"),
-        pytest.param(1, 6, 7, 8, (10, 10), (1, 3, 7, 9), id="constrained right"),
+        pytest.param(1, 7, 7, 9, (10, 10), (1, 4, 7, 10), id="constrained right"),
         pytest.param(1, 1, 2, 6, (10, 10), (0, 1, 5, 6), id="constrained top"),
-        pytest.param(6, 1, 8, 7, (10, 10), (3, 1, 9, 7), id="constrained bottom"),
-        pytest.param(117, 20, 521, 603, (608, 608), (24, 20, 607, 603), id="constrained top and bottom"),
+        pytest.param(7, 1, 9, 7, (10, 10), (4, 1, 10, 7), id="constrained bottom"),
+        pytest.param(117, 20, 521, 603, (608, 608), (25, 20, 608, 603), id="constrained top and bottom"),
         pytest.param(
             1,
             1,

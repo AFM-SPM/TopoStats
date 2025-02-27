@@ -1,5 +1,6 @@
-        image  grain_number  grain_endpoints  grain_junctions  total_branch_lengths  grain_width_mean
-0  test_image             0                0               13            9.6852e-07        3.0318e-09
+                   image  grain_endpoints  grain_junctions  total_branch_lengths  grain_width_mean
+grain_number                                                                                      
+0             test_image                0               13            9.6852e-07        3.0318e-09
          image  grain_number  branch_distance  branch_type connected_segments  mean_pixel_value  stdev_pixel_value  min_value  median_value  middle_value
 0   test_image             0       1.7269e+02            2       [1, 2, 3, 8]        2.1474e+00         1.8580e-01 1.4118e+00    2.1479e+00    2.1939e+00
 1   test_image             0       3.3804e+02            2      [0, 2, 7, 11]        2.1262e+00         1.8417e-01 1.1279e+00    2.1329e+00    2.2363e+00
