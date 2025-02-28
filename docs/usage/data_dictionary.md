@@ -66,6 +66,6 @@ The `image_stats.csv` summarises the metrics
 ## `all_disordered_segment_statistics.csv`
 
 Please refer to the specific sections on output from running [Disordered Segment Statistics
-Tracing](advanced/disordered_tracing.md#disordered-segment-statistics) section of the [Disordered
-Tracing](advanced/disordered_tracing.md) page for the data dictionary of the `all_disordered_segment_statistics.csv`
+Tracing](../advanced/disordered_tracing.md#disordered-segment-statistics) section of the [Disordered
+Tracing](../advanced/disordered_tracing.md) page for the data dictionary of the `all_disordered_segment_statistics.csv`
 output.
