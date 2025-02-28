@@ -41,6 +41,7 @@ nav:
       - advanced/flattening.md
       - advanced/grain_finding.md
       - advanced/thresholding.md
+      - advanced/grainstats.md
       - advanced/disordered_tracing.md
       - advanced/nodestats.md
       - advanced/ordered_tracing.md
