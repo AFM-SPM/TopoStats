@@ -598,8 +598,8 @@ class LoadScans:
         Image channel to extract from the scan.
     extract : str
         What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
-       ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
-       loaded. Options include ''raw'' and ''filter'' at present.
+        ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+        loaded. Options include ''raw'' and ''filter'' at present.
     """
 
     def __init__(
@@ -619,8 +619,8 @@ class LoadScans:
             Image channel to extract from the scan.
         extract : str
             What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
-           ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
-           loaded. Options include ''raw'' and ''filter'' at present.
+            ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
+            loaded. Options include ''raw'' and ''filter'' at present.
         """
         self.img_paths = img_paths
         self.img_path = None
@@ -1055,22 +1055,29 @@ def load_pkl(infile: Path) -> Any:
 
     Examples
     --------
-    from pathlib import Path
+    >>> from pathlib import Path
+    >>> from topostats.io import load_plots
 
-    from topostats.io import load_plots
+    >>> pkl_path = "output/distribution_plots.pkl"
+    >>> my_plots = load_pkl(pkl_path)
 
-    pkl_path = "output/distribution_plots.pkl"
-    my_plots = load_pkl(pkl_path)
-    # Show the type of my_plots which is a dictionary of nested dictionaries
-    type(my_plots)
-    # Show the keys are various levels of nesting.
-    my_plots.keys()
-    my_plots["area"].keys()
-    my_plots["area"]["dist"].keys()
-    # Get the figure and axis object for a given metrics distribution plot
-    figure, axis = my_plots["area"]["dist"].values()
-    # Get the figure and axis object for a given metrics violin plot
-    figure, axis = my_plots["area"]["violin"].values()
+    Show the type of my_plots which is a dictionary of nested dictionaries
+
+    >>> type(my_plots)
+
+    Show the keys are various levels of nesting.
+
+    >>> my_plots.keys()
+    >>> my_plots["area"].keys()
+    >>> my_plots["area"]["dist"].keys()
+
+    Get the figure and axis object for a given metrics distribution plot
+
+    >>> figure, axis = my_plots["area"]["dist"].values()
+
+    Get the figure and axis object for a given metrics violin plot
+
+    >>> figure, axis = my_plots["area"]["violin"].values()
     """
     with infile.open("rb", encoding=None) as f:
         return pkl.load(f)  # noqa: S301
