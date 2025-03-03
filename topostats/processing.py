@@ -260,7 +260,7 @@ def run_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
-):
+) -> pd.DataFrame:
     """
     Calculate grain statistics for an image and optionally plots the results.
 
@@ -1340,10 +1340,10 @@ def process_grains(
     output_dir: str | Path = "output",
 ) -> tuple[str, bool]:
     """
-    Detect grains in an image return the flattened images and save to ''.topostats''.
+    Detect grains in flattened images and save to ''.topostats''.
 
-    Runs just the first key step of flattening images to remove noise, tilt and optionally scars saving to
-    ''.topostats'' for subsequent processing and analyses.
+    Runs grain detection on flattened images to identify grains and save data to  ''.topostats'' for subsequent
+    processing and analyses.
 
     Parameters
     ----------
@@ -1365,7 +1365,7 @@ def process_grains(
     tuple[str, bool]
         A tuple of the image and a boolean indicating if the image was successfully processed.
     """
-    core_out_path, filter_out_path, _, _ = get_out_paths(
+    core_out_path, _, grain_out_path, _ = get_out_paths(
         image_path=topostats_object["img_path"],
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1380,7 +1380,7 @@ def process_grains(
             image=topostats_object["image"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
-            grain_out_path=filter_out_path,
+            grain_out_path=grain_out_path,
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             grains_config=grains_config,
@@ -1395,6 +1395,78 @@ def process_grains(
     except:  # noqa: E722  # pylint: disable=bare-except
         LOGGER.info(f"Grain detection failed for image : {topostats_object['filename']}")
         return (topostats_object["filename"], False)
+
+
+def process_grainstats(
+    topostats_object: dict,
+    base_dir: str | Path,
+    grainstats_config: dict,
+    plotting_config: dict,
+    output_dir: str | Path = "output",
+) -> tuple[str, bool]:
+    """
+    Calculate grain statistics in an image where grains have already been detected.
+
+    Runs just the first key step of flattening images to remove noise, tilt and optionally scars saving to
+    ''.topostats'' for subsequent processing and analyses.
+
+    Parameters
+    ----------
+    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
+        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
+        path and it's pixel to namometre scaling value.
+    base_dir : str | Path
+        Directory to recursively search for files, if not specified the current directory is scanned.
+    grainstats_config : dict
+        Dictionary of configuration options for running the Filter stage.
+    plotting_config : dict
+        Dictionary of configuration options for plotting figures.
+    output_dir : str | Path
+        Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+        that output will be over-written.
+
+    Returns
+    -------
+    tuple[str, bool]
+        A tuple of the image and a boolean indicating if the image was successfully processed.
+    """
+    core_out_path, _, grainstats_out_path, _ = get_out_paths(
+        image_path=topostats_object["img_path"],
+        base_dir=base_dir,
+        output_dir=output_dir,
+        filename=topostats_object["filename"],
+        plotting_config=plotting_config,
+    )
+    plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
+
+    # Calculate grainstats if there are any to be detected
+    # try:
+    print(f"\n{topostats_object.keys()=}\n")
+    if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
+        grainstats_df, height_profiles = run_grainstats(
+            image=topostats_object["image"],
+            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
+            grain_masks=topostats_object["grain_masks"],
+            filename=topostats_object["filename"],
+            basename=topostats_object["img_path"],
+            grainstats_config=grainstats_config,
+            plotting_config=plotting_config,
+            grain_out_path=grainstats_out_path,
+        )
+        # Save the topostats dictionary object to .topostats file.
+        topostats_object["height_profiles"] = height_profiles
+        save_topostats_file(
+            output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        )
+        return (topostats_object["filename"], grainstats_df, height_profiles)
+    return (
+        topostats_object["filename"],
+        create_empty_dataframe(column_set="grainstats", index_col="grain_number"),
+        None,
+    )
+    # except:  # noqa: E722  # pylint: disable=bare-except
+    #     LOGGER.info(f"Grain detection failed for image : {topostats_object['filename']}")
+    #     return (create_empty_dataframe(column_set="grainstats", index_col="grain_number"), False)
 
 
 def check_run_steps(  # noqa: C901
