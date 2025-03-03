@@ -979,7 +979,6 @@ def test_nodestats_image(
         node_extend_dist=node_extend_dist,
         branch_pairing_length=branch_pairing_length,
         pair_odd_branches=pair_odd_branches,
-        pad_width=1,
     )
 
     # # DEBUGGING (For viewing images)

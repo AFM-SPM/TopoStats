@@ -317,7 +317,6 @@ def test_ordered_tracing_image(
         nodestats_direction_data=nodestats_whole_data,
         filename=filename,
         ordering_method="nodestats",
-        pad_width=1,
     )
 
     # # Debugging - grab variables to show images
