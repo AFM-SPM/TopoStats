@@ -719,7 +719,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test the filter_wrapper function of processing.py."""
+    """Test the filter wrapper function of processing.py."""
     img_dict = load_scan_data.img_dict
     unprocessed_image = img_dict["minicircle_small"]["image_original"]
     pixel_to_nm_scaling = img_dict["minicircle_small"]["pixel_to_nm_scaling"]
@@ -740,7 +740,7 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
 
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
-    """Test the grains_wrapper function of processing.py."""
+    """Test the grains wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
 
     grains_config = process_scan_config["grains"]

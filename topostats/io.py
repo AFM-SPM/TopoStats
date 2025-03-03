@@ -652,7 +652,7 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
 
-    def load_topostats(self, extract: str = "all") -> tuple[npt.NDArray, float, Any]:
+    def load_topostats(self, extract: str = "all") -> dict[str, Any] | tuple[npt.NDArray, float, Any]:
         """
         Load a .topostats file (hdf5 format).
 
@@ -670,26 +670,21 @@ class LoadScans:
 
         Returns
         -------
-        tuple[npt.NDArray, float, Any]
-            A tuple containing the image and its pixel to nanometre scaling value.
+        dict[str, Any] | tuple[npt.NDArray, float, Any]
+            A dictionary of all previously processed data or tuple containing the image and its pixel to nanometre
+            scaling value. This is contingent on the ''extract'' option.
         """
-        map_stage_to_image = {"raw": "image_original"}
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            image, px_to_nm_scaling, data = topostats.load_topostats(self.img_path)
+            data = topostats.load_topostats(self.img_path)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
-        try:
-            # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
-            if extract in [None, "all", "grains", "grainstats"]:
-                return (image, px_to_nm_scaling, data)
-            # Otherwise we want the raw/image_original
-            if extract == "filter":
-                return (image, px_to_nm_scaling, None)
-            return (data[map_stage_to_image[extract]], px_to_nm_scaling, None)
-        except KeyError as ke:
-            raise KeyError(f"Can not extract array of type '{extract}' from .topostats objects.") from ke
+        # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
+        if extract in [None, "all", "grains", "grainstats"]:
+            return data
+        # Otherwise we are re-running filtering we want the raw/image_original and scaling
+        return (data["image_original"], data["pixel_to_nm_scaling"])
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -781,9 +776,14 @@ class LoadScans:
                 data = None
                 try:
                     if suffix == ".topostats" and self.extract in (None, "all", "grains", "grainstats"):
-                        self.image, self.pixel_to_nm_scaling, data = self.load_topostats()
-                    elif suffix == ".topostats" and self.extract not in (None, "all"):
-                        self.image, self.pixel_to_nm_scaling, _ = self.load_topostats(self.extract)
+                        data = self.load_topostats(extract=self.extract)
+                        self.image = data["image"]
+                        self.pixel_to_nm_scaling = data["pixel_to_nm_scaling"]
+                        # If we need the grain masks for processing we extract them
+                        if self.extract in ("grainstats"):
+                            self.grain_masks = data["grain_masks"]
+                    elif suffix == ".topostats" and self.extract in ("filter", "raw"):
+                        self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
@@ -872,10 +872,21 @@ class LoadScans:
         dict[str, Any]
             Returns the image dictionary with keys/values removed appropriate to the extraction stage.
         """
-        if self.extract in ["grains", "grainstats"]:
+        # Reverse order so we remove things in reverse order, splining removes what it doesn't need then ordered
+        # tracing removes what it doesn't need, then nodestats, then disordered, then grainstats then grains, should be
+        # more succinct code with less popping
+        if self.extract in ["grains"]:
             img_dict.pop("disordered_traces")
             img_dict.pop("grain_curvature_stats")
             img_dict.pop("grain_masks")
+            img_dict.pop("height_profiles")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_traces")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["grainstats"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
             img_dict.pop("height_profiles")
             img_dict.pop("nodestats")
             img_dict.pop("ordered_traces")
