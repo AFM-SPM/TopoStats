@@ -36,6 +36,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=unnecessary-dict-index-lookup
@@ -464,10 +465,8 @@ def run_disordered_tracing(
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
-
             grain_crop_direction: GrainCropsDirection
             for direction, grain_crop_direction in image_grain_crops.__dict__.items():
-
                 if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
@@ -1479,33 +1478,30 @@ def process_grainstats(
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
     # Calculate grainstats if there are any to be detected
-    # try:
-    print(f"\n{topostats_object.keys()=}\n")
-    if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
-        grainstats_df, height_profiles = run_grainstats(
-            image=topostats_object["image"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            grain_masks=topostats_object["grain_masks"],
-            filename=topostats_object["filename"],
-            basename=topostats_object["img_path"],
-            grainstats_config=grainstats_config,
-            plotting_config=plotting_config,
-            grain_out_path=grainstats_out_path,
+    try:
+        if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
+            grainstats_df, height_profiles = run_grainstats(
+                image_grain_crops=topostats_object["image"],
+                filename=topostats_object["filename"],
+                basename=topostats_object["img_path"],
+                grainstats_config=grainstats_config,
+                plotting_config=plotting_config,
+                grain_out_path=grainstats_out_path,
+            )
+            # Save the topostats dictionary object to .topostats file.
+            topostats_object["height_profiles"] = height_profiles
+            save_topostats_file(
+                output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+            )
+            return (topostats_object["filename"], grainstats_df, height_profiles)
+        return (
+            topostats_object["filename"],
+            create_empty_dataframe(column_set="grainstats"),
+            None,
         )
-        # Save the topostats dictionary object to .topostats file.
-        topostats_object["height_profiles"] = height_profiles
-        save_topostats_file(
-            output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
-        )
-        return (topostats_object["filename"], grainstats_df, height_profiles)
-    return (
-        topostats_object["filename"],
-        create_empty_dataframe(column_set="grainstats", index_col="grain_number"),
-        None,
-    )
-    # except:  # noqa: E722  # pylint: disable=bare-except
-    #     LOGGER.info(f"Grain detection failed for image : {topostats_object['filename']}")
-    #     return (create_empty_dataframe(column_set="grainstats", index_col="grain_number"), False)
+    except:  # noqa: E722  # pylint: disable=bare-except
+        LOGGER.info(f"Grain detection failed for image : {topostats_object['filename']}")
+        return (topostats_object["filename"], create_empty_dataframe(column_set="grainstats"), False)
 
 
 def check_run_steps(  # noqa: C901
