@@ -56,6 +56,12 @@ def construct_grains_dictionary(file_list: list, plot: bool = False):
     grain_index = 0
     for filename, file_data in img_dict.items():
         try:
+
+            try:
+                nodestats_data = file_data["nodestats"]["above"]["stats"]
+            except KeyError:
+                nodestats_data = None
+
             # print(f"getting data from {filename}")
             image = file_data["image"]
             ordered_trace_data = file_data["ordered_traces"]["above"]
@@ -102,6 +108,23 @@ def construct_grains_dictionary(file_list: list, plot: bool = False):
                 grains_dictionary[grain_index]["mask"] = mask_crop
                 grains_dictionary[grain_index]["filename"] = file_data["filename"]
                 grains_dictionary[grain_index]["pixel_to_nm_scaling"] = file_data["pixel_to_nm_scaling"]
+
+                # grab node coordinates
+                all_node_coords = []
+                if nodestats_data is not None:
+                    try:
+                        grain_nodestats_data = nodestats_data[current_grain_index]
+                        for _node_index, node_data in grain_nodestats_data.items():
+                            node_coords = node_data["node_coords"]
+                            for node_coord in node_coords:
+                                all_node_coords.append(node_coord)
+                    except KeyError as e:
+                        if "grain_" in str(e):
+                            # grain has no nodestats data here, skip
+                            pass
+
+                grains_dictionary[grain_index]["node_coords"] = np.array(all_node_coords)
+
                 grain_index += 1
         except KeyError as e:
             if "ordered_traces" in str(e):
@@ -119,6 +142,9 @@ def construct_grains_dictionary(file_list: list, plot: bool = False):
             for molecule_index, molecule_data in grain_data["molecule_data"].items():
                 ordered_coords = molecule_data["ordered_coords"]
                 plt.plot(ordered_coords[:, 1], ordered_coords[:, 0], "r")
+            all_node_coords = grain_data["node_coords"]
+            if all_node_coords.size > 0:
+                plt.plot(all_node_coords[:, 1], all_node_coords[:, 0], "b.")
             plt.show()
 
             mask = grain_data["mask"][:, :, 1]
