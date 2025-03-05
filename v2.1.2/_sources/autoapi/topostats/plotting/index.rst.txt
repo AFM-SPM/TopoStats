@@ -1,0 +1,451 @@
+topostats.plotting
+==================
+
+.. py:module:: topostats.plotting
+
+.. autoapi-nested-parse::
+
+   Plotting and summary of TopoStats output statistics.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.plotting.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.plotting.TopoSum
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.plotting.toposum
+   topostats.plotting.run_toposum
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: TopoSum(df: pandas.DataFrame = None, base_dir: Union[str, pathlib.Path] = None, csv_file: Union[str, pathlib.Path] = None, stat_to_sum: str = None, molecule_id: str = 'molecule_number', image_id: str = 'image', hist: bool = True, stat: str = 'count', bins: int = 12, kde: bool = True, cut: float = 20, figsize: tuple = (16, 9), alpha: float = 0.5, palette: str = 'deep', file_ext: str = 'png', output_dir: Union[str, pathlib.Path] = '.', var_to_label: dict = None, hue: str = 'basename')
+
+   
+   Class for summarising grain statistics in plots.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: df
+      :value: None
+
+
+
+   .. py:attribute:: base_dir
+      :value: None
+
+
+
+   .. py:attribute:: stat_to_sum
+      :value: None
+
+
+
+   .. py:attribute:: molecule_id
+      :value: 'molecule_number'
+
+
+
+   .. py:attribute:: image_id
+      :value: 'image'
+
+
+
+   .. py:attribute:: hist
+      :value: True
+
+
+
+   .. py:attribute:: bins
+      :value: 12
+
+
+
+   .. py:attribute:: stat
+      :value: 'count'
+
+
+
+   .. py:attribute:: kde
+      :value: True
+
+
+
+   .. py:attribute:: cut
+      :value: 20
+
+
+
+   .. py:attribute:: figsize
+      :value: (16, 9)
+
+
+
+   .. py:attribute:: alpha
+      :value: 0.5
+
+
+
+   .. py:attribute:: palette
+      :value: 'deep'
+
+
+
+   .. py:attribute:: file_ext
+      :value: 'png'
+
+
+
+   .. py:attribute:: output_dir
+
+
+   .. py:attribute:: var_to_label
+      :value: None
+
+
+
+   .. py:attribute:: hue
+      :value: 'basename'
+
+
+
+   .. py:attribute:: melted_data
+      :value: None
+
+
+
+   .. py:attribute:: summary_data
+      :value: None
+
+
+
+   .. py:attribute:: label
+      :value: None
+
+
+
+   .. py:method:: _setup_figure()
+
+      
+      Setup Matplotlib figure and axes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _outfile(plot_suffix: str) -> str
+
+      
+      Generate the output file name with the appropriate suffix.
+
+      :param plot_suffix: The suffix to append to the output file.
+      :type plot_suffix: str
+
+      :returns: Concanenated string of the outfile and plot_suffix.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sns_plot() -> Optional[Tuple[matplotlib.pyplot.Figure, matplotlib.pyplot.Axes]]
+
+      
+      Plot the distribution of one or more statistics as either histogram, kernel density estimates or both. Uses
+      base Seaborn.
+
+      :returns: Tuple of Matplotlib figure and axes if plotting is successful, None otherwise.
+      :rtype: Optional[Union[Tuple[plt.Figure, plt.Axes], None]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sns_violinplot() -> None
+
+      
+      Violin plot of data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: melt_data(df: pandas.DataFrame, stat_to_summarize: str, var_to_label: dict) -> pandas.DataFrame
+      :staticmethod:
+
+
+      
+      Melt a dataframe into long format for plotting with Seaborn.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: set_xlim(percent: float = 0.1) -> None
+
+      
+      Set the range of the x-axis.
+
+      :param percent: Percentage of the observed range by which to extend the x-axis. Only used if supplied range is outside the
+      :type percent: float
+      :param observed values.:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: set_palette()
+
+      
+      Set the color palette.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_plot(outfile: pathlib.Path) -> None
+
+      
+      Save the plot to the output_dir
+
+      :param outfile: Output file name to save figure to.
+      :type outfile: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _set_label(var: str)
+
+      
+      Get the label based on the column name(s).
+
+      :param var: The variable for which a label is required.
+      :type var: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: toposum(config: dict) -> Dict
+
+   
+   Process plotting and summarisation of data.
+
+   :param config: Dictionary of summarisation options.
+   :type config: dict
+
+   :returns:  Dictionary of nested dictionaries. Each variable has its own dictionary with keys 'dist' and 'violin' which
+              contain distribution like plots and violin plots respectively (if the later are required). Each 'dist' and
+             'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
+             'ax' for that plot.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_toposum(args=None)
+
+   
+   Run Plotting
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

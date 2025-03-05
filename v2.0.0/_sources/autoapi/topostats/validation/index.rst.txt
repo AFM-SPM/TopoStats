@@ -1,0 +1,85 @@
+topostats.validation
+====================
+
+.. py:module:: topostats.validation
+
+.. autoapi-nested-parse::
+
+   Validation of configuration.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.validation.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.validation.validate_config
+   topostats.validation.validate_plotting
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: validate_config(config: dict)
+
+   
+   Validate configuration.
+
+   :param config: Config dictionary imported by read_yaml() and parsed through clean_config().
+   :type config: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: validate_plotting(config: dict) -> None
+
+   
+   Validate configuration.
+
+   :param config: Config dictionary imported by read_yaml() and parsed through clean_config().
+   :type config: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
