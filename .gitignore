@@ -210,7 +210,7 @@ _build/
 
 # Tests and docs
 .coverage
-.testmondata
+.testmondata*
 
 # Ignore topostats/_version.py as per setuptools_scm
 topostats/_version.py
