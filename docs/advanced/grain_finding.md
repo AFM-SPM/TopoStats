@@ -79,8 +79,9 @@ there are no grains in the other classes and 0 where there are grains in any of 
 the mask produced by the basic grain detection, which usually is designed to be segmenting `DNA` but could really be
 anything.
 
-Multi class masking is able to be performed on the existing grains by using a U-Net (a deep-learning feature detection
-program) which can optionally be ran after simple grain finding, though needs training.
+Multi class masking is able to be performed on the existing grains by using a
+[U-Net](https://en.wikipedia.org/wiki/U-Net) (a deep-learning feature detection program) which can optionally be ran
+after simple grain finding, though needs training.
 
 It is planned to be able to run multiple rounds of traditional thresholding instead of running a U-Net for easier but
 less powerful multi-class segmentation implementations.

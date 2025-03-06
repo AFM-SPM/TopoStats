@@ -2138,7 +2138,7 @@ class Grains:
         if not graincrops:
             raise ValueError("No grain crops provided to construct the full mask tensor.")
         num_classes: int = list(graincrops.values())[0].mask.shape[2]
-        full_mask_tensor = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
+        full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
@@ -2306,13 +2306,12 @@ class Grains:
                 for region in region_properties:
                     # Get the region mask
                     region_mask = labelled_regions == region.label
-                    region_bbox = region.bbox
 
                     # Check the region size
                     if (
                         region.area < min_object_size
-                        or (region_bbox[2] - region_bbox[0]) < min_object_bbox_size
-                        or (region_bbox[3] - region_bbox[1]) < min_object_bbox_size
+                        or (region.bbox[2] - region.bbox[0]) < min_object_bbox_size
+                        or (region.bbox[3] - region.bbox[1]) < min_object_bbox_size
                     ):
                         # Remove the region from the class
                         graincrop.mask[:, :, class_index] = np.where(

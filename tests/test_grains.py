@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -17,6 +18,7 @@ from topostats.io import dict_almost_equal
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.propagate = True
@@ -655,13 +657,11 @@ def test_find_grains(
 
     # Check the image_grain_crops
     result_image_grain_crops = grains_object.image_grain_crops
-    print(result_image_grain_crops.above.crops[3].mask[:, :, 1].astype(int))
     result_above = result_image_grain_crops.above
     expected_above = expected_imagegraincrops.above
-    for index, (expected_graincrop, result_graincrop) in enumerate(
+    for _index, (expected_graincrop, result_graincrop) in enumerate(
         zip(expected_above.crops.values(), result_above.crops.values())
     ):
-        print(f"graincrop {index}")
         result_graincrop_mask = result_graincrop.mask
         expected_graincrop_mask = expected_graincrop.mask
         assert np.array_equal(result_graincrop_mask, expected_graincrop_mask)
@@ -3174,13 +3174,7 @@ def test_merge_classes(
 @pytest.mark.parametrize(
     (
         "graincrops",
-        "class_conversion_size_thresholds",
-        "class_size_thresholds",
-        "class_region_number_thresholds",
-        "nearby_conversion_classes_to_convert",
-        "class_touching_threshold",
-        "keep_largest_labelled_regions_classes",
-        "class_connection_point_thresholds",
+        "vet_grains_conf",
         "expected_graincrops",
     ),
     [
@@ -3265,22 +3259,17 @@ def test_merge_classes(
                     filename="test",
                 )
             },
-            # Class conversion size thresholds
-            # Convert class 1 to class 2 if too small, class 3 if too big
-            [[(1, 2, 3), (2, 2)]],
-            # Class size thresholds
-            None,
-            # Class region number thresholds
-            None,
-            # Nearby conversion classes to convert
-            # Convert class 2 to 3 if touching and not largest of class 2
-            [(2, 3)],
-            # Class touching threshold
-            1,
-            # Keep largest labelled regions classes
-            None,
-            # Class connection point thresholds
-            None,
+            {
+                # Convert class 1 to class 2 if too small, class 3 if too big
+                "class_conversion_size_thresholds": [[(1, 2, 3), (2, 2)]],
+                "class_size_thresholds": None,
+                "class_region_number_thresholds": None,
+                # Convert class 2 to 3 if touching and not largest of class 2
+                "nearby_conversion_classes_to_convert": [(2, 3)],
+                "class_touching_threshold": 1,
+                "keep_largest_labelled_regions_classes": None,
+                "class_connection_point_thresholds": None,
+            },
             # Expected graincrops
             {
                 # Class conversion when too big or small
@@ -3430,20 +3419,15 @@ def test_merge_classes(
                     filename="test",
                 ),
             },
-            # Class conversion size thresholds
-            None,
-            # Class size thresholds
-            None,
-            # Class region number thresholds
-            None,
-            # Nearby conversion classes to convert
-            None,
-            # Class touching threshold
-            1,
-            # Keep largest labelled regions classes
-            [1, 2],
-            # Class connection point thresholds
-            None,
+            {
+                "class_conversion_size_thresholds": None,
+                "class_size_thresholds": None,
+                "class_region_number_thresholds": None,
+                "nearby_conversion_classes_to_convert": None,
+                "class_touching_threshold": 1,
+                "keep_largest_labelled_regions_classes": [1, 2],
+                "class_connection_point_thresholds": None,
+            },
             # Expected graincrops
             {
                 0: GrainCrop(
@@ -3756,20 +3740,15 @@ def test_merge_classes(
                     filename="test",
                 ),
             },
-            # Class conversion size thresholds
-            None,
-            # Class size thresholds
-            [(1, 2, 2)],
-            # Class region number thresholds
-            [(2, 2, 2)],
-            # Nearby conversion classes to convert
-            None,
-            # Class touching threshold
-            1,
-            # Keep largest labelled regions classes
-            None,
-            # Class connection point thresholds
-            None,
+            {
+                "class_conversion_size_thresholds": None,
+                "class_size_thresholds": [(1, 2, 2)],
+                "class_region_number_thresholds": [(2, 2, 2)],
+                "nearby_conversion_classes_to_convert": None,
+                "class_touching_threshold": 1,
+                "keep_largest_labelled_regions_classes": None,
+                "class_connection_point_thresholds": None,
+            },
             # Expected graincrops
             {
                 4: GrainCrop(
@@ -4066,20 +4045,15 @@ def test_merge_classes(
                     filename="test",
                 ),
             },
-            # Class conversion size thresholds
-            None,
-            # Class size thresholds
-            None,
-            # Class region number thresholds
-            None,
-            # Nearby conversion classes to convert
-            None,
-            # Class touching threshold
-            1,
-            # Keep largest labelled regions classes
-            None,
-            # Class connection point thresholds
-            None,
+            {
+                "class_conversion_size_thresholds": None,
+                "class_size_thresholds": None,
+                "class_region_number_thresholds": None,
+                "nearby_conversion_classes_to_convert": None,
+                "class_touching_threshold": 1,
+                "keep_largest_labelled_regions_classes": None,
+                "class_connection_point_thresholds": None,
+            },
             # Expected graincrops
             {
                 # Class 1 too small
@@ -4329,25 +4303,13 @@ def test_merge_classes(
 )
 def test_vet_grains(
     graincrops: dict[int, GrainCrop],
-    class_conversion_size_thresholds: list[list[int, int, int]] | None,
-    class_size_thresholds: list[list[int, int, int]] | None,
-    class_region_number_thresholds: list[list[int, int, int]] | None,
-    nearby_conversion_classes_to_convert: list[tuple[int, int]] | None,
-    class_touching_threshold: int,
-    keep_largest_labelled_regions_classes: list[int] | None,
-    class_connection_point_thresholds: list[list[int, int, int, int]] | None,
+    vet_grains_conf: dict[str, Any],
     expected_graincrops: npt.NDArray[np.int32],
 ) -> None:
     """Test the vet_grains function."""
     result_graincrops = Grains.vet_grains(
         graincrops=graincrops,
-        class_conversion_size_thresholds=class_conversion_size_thresholds,
-        class_size_thresholds=class_size_thresholds,
-        class_region_number_thresholds=class_region_number_thresholds,
-        nearby_conversion_classes_to_convert=nearby_conversion_classes_to_convert,
-        class_touching_threshold=class_touching_threshold,
-        keep_largest_labelled_regions_classes=keep_largest_labelled_regions_classes,
-        class_connection_point_thresholds=class_connection_point_thresholds,
+        **vet_grains_conf,
     )
 
     assert result_graincrops == expected_graincrops

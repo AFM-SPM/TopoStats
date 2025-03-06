@@ -207,7 +207,7 @@ class GrainStats:
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
-            grain_anchor = (grain_bbox[0], grain_bbox[2])
+            grain_anchor = (grain_bbox[0], grain_bbox[1])
             pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
 
             # Calculate scaling factors
@@ -255,8 +255,8 @@ class GrainStats:
 
                     # Centroids for the grains (grain anchor added because centroid returns values local to the
                     # cropped grain images)
-                    centre_global_x_px = local_centroid[0] + grain_anchor[0]
-                    centre_global_y_px = local_centroid[1] + grain_anchor[1]
+                    centre_global_x_px = local_centroid[1] + grain_anchor[1]
+                    centre_global_y_px = local_centroid[0] + grain_anchor[0]
 
                     centre_x_m = centre_global_x_px * length_scaling_factor
                     centre_y_m = centre_global_y_px * length_scaling_factor

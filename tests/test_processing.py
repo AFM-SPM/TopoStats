@@ -28,6 +28,8 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
+# pylint: disable=too-many-positional-arguments
+
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
@@ -86,13 +88,13 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
     )
 
     # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "wb") as f:
+    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "wb") as f:
     #     pickle.dump(height_profiles, f)
 
     # Load expected height profiles dictionary from pickle
     # pylint wants an encoding but binary mode doesn't use one
     # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "rb") as f:
+    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "rb") as f:
         expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
 
     assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
@@ -148,13 +150,13 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
     )
 
     # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "wb") as f:
+    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "wb") as f:
     #     pickle.dump(height_profiles, f)
 
     # Load expected height profiles dictionary from pickle
     # pylint wants an encoding but binary mode doesn't use one
     # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "rb") as f:
+    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "rb") as f:
         expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
 
     assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
@@ -717,7 +719,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
-    """Test the filter_wrapper function of processing.py."""
+    """Test the filter wrapper function of processing.py."""
     img_dict = load_scan_data.img_dict
     unprocessed_image = img_dict["minicircle_small"]["image_original"]
     pixel_to_nm_scaling = img_dict["minicircle_small"]["pixel_to_nm_scaling"]
@@ -738,7 +740,7 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
 
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
-    """Test the grains_wrapper function of processing.py."""
+    """Test the grains wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
 
     grains_config = process_scan_config["grains"]
@@ -766,7 +768,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
     assert isinstance(imagegraincrops.below, GrainCropsDirection)
-    assert len(imagegraincrops.below.crops) > 0
+    assert len(imagegraincrops.below.crops) == 1
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:

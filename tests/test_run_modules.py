@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from AFMReader import topostats
 
@@ -174,7 +175,7 @@ def test_filters(caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
     # Load the output and check the keys
-    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
     assert list(data.keys()) == [
         "filename",
         "image",
@@ -205,7 +206,7 @@ def test_grains(caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check the keys
-    _, _, data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
     assert list(data.keys()) == [
         "filename",
         "grain_tensors",
@@ -215,3 +216,58 @@ def test_grains(caplog) -> None:
         "pixel_to_nm_scaling",
         "topostats_file_version",
     ]
+
+
+@pytest.mark.xfail(reason="Awaiting update of AFMReader to reconstruct `image_grain_crops` with correct classes")
+def test_grainstats(caplog) -> None:
+    """Test running the grainstats module.
+
+    We use the command line entry point to test that _just_ grains runs.
+    """
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--config",
+            f"{BASE_DIR / 'topostats' / 'default_config.yaml'}",
+            "--base-dir",
+            "./tests/resources/test_image/",
+            "--file-ext",
+            ".topostats",
+            "grainstats",  # This is the sub-command we wish to test, it will call run_modules.grains()
+        ]
+    )
+    assert "Looking for images with extension   : .topostats" in caplog.text
+    assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
+    # Load the output and check the keys
+    data = pd.read_csv("output/image_stats.csv")
+    assert list(data.columns) == [
+        "Unnamed: 0",
+        "image",
+        "basename",
+        "grain_number",
+        "area",
+        "area_cartesian_bbox",
+        "aspect_ratio",
+        "bending_angle",
+        "centre_x",
+        "centre_y",
+        "circular",
+        "contour_length",
+        "end_to_end_distance",
+        "height_max",
+        "height_mean",
+        "height_median",
+        "height_min",
+        "max_feret",
+        "min_feret",
+        "radius_max",
+        "radius_mean",
+        "radius_median",
+        "radius_min",
+        "smallest_bounding_area",
+        "smallest_bounding_length",
+        "smallest_bounding_width",
+        "threshold",
+        "volume",
+    ]
+    assert data.shape == (3, 23)
