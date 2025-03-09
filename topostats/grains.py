@@ -13,8 +13,9 @@ import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.color import label2rgb
+from skimage.draw import line as draw_line  # For drawing lines between points
 from skimage.measure import label, regionprops
-from skimage.morphology import binary_dilation
+from skimage.morphology import binary_dilation, dilation, disk, skeletonize
 from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
@@ -27,10 +28,6 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_mask, get_thresholds
-import numpy as np
-from skimage.morphology import skeletonize
-from skimage.draw import line as draw_line  # For drawing lines between points
-from skimage.morphology import dilation, disk
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -1151,32 +1148,34 @@ class Grains:
     def fill_gaps_in_mask(binary_mask, iterations=1, max_distance=15):
         """
         Process a binary mask to selectively connect loose ends iteratively using skeletonization and fill gaps between them.
-        
-        Parameters:
+
+        Parameters
+        ----------
         - binary_mask (ndarray): The binary mask to be processed.
         - iterations (int): The number of iterations to run for gap filling.
         - max_distance (int): The maximum distance to connect loose ends within.
-        
-        Returns:
+
+        Returns
+        -------
         - updated_mask (ndarray): The binary mask after processing.
         """
         binary_mask = binary_mask.astype(np.uint8)
         original_mask = binary_mask.copy()
 
         for _ in range(iterations):
-            #Skeletonize the mask
+            # Skeletonize the mask
             sk = skeletonize(original_mask > 0).astype(np.uint8)
 
-            #Identify loose ends
+            # Identify loose ends
             loose_ends = np.zeros_like(sk, dtype=np.uint8)
             for i in range(1, sk.shape[0] - 1):
                 for j in range(1, sk.shape[1] - 1):
                     if sk[i, j] == 1:
-                        neighbors = np.sum(sk[i-1:i+2, j-1:j+2]) - sk[i, j]
+                        neighbors = np.sum(sk[i - 1 : i + 2, j - 1 : j + 2]) - sk[i, j]
                         if neighbors == 1:
                             loose_ends[i, j] = 1
 
-            #Extract coordinates of loose ends
+            # Extract coordinates of loose ends
             pts = np.argwhere(loose_ends == 1)
 
             # Step 4: Connect nearest loose ends within max_distance
@@ -1187,7 +1186,7 @@ class Grains:
 
                 nearest_pt = None
                 nearest_idx = None
-                min_dist = float('inf')
+                min_dist = float("inf")
 
                 for j, pt2 in enumerate(pts):
                     if i != j and not connected[j]:
@@ -1197,7 +1196,7 @@ class Grains:
                             nearest_pt = pt2
                             nearest_idx = j
 
-                #Add points to close gaps
+                # Add points to close gaps
                 if nearest_pt is not None:
                     pt1_x, pt1_y = pt1[1], pt1[0]
                     pt2_x, pt2_y = nearest_pt[1], nearest_pt[0]
@@ -1296,12 +1295,20 @@ class Grains:
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
-            predicted_mask[:,:,1] = Grains.fill_gaps_in_mask(predicted_mask[:,:,1], iterations=15, max_distance=15)
+            predicted_mask[:, :, 1] = Grains.fill_gaps_in_mask(predicted_mask[:, :, 1], iterations=15, max_distance=15)
             # Set any 1s in predicted_mask[:,:,1] that overlap with 1s in predicted_mask[:,:,2] to 0
-            overlap_mask = (predicted_mask[:,:,1] == 1) & (predicted_mask[:,:,2] == 1)
+            overlap_mask = (predicted_mask[:, :, 1] == 1) & (predicted_mask[:, :, 2] == 1)
             predicted_mask[overlap_mask, 1] = 0
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
+
+            if unet_config["remove_grains_not_connected_to_original_grain"]:
+                # Remove grains that are not connected to the original grain
+                original_grain_mask = graincrop.mask
+                predicted_mask = Grains.remove_grains_not_connected_to_original_grains(
+                    original_grain_tensor=original_grain_mask,
+                    predicted_grain_tensor=predicted_mask,
+                )
 
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
@@ -1319,6 +1326,54 @@ class Grains:
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
 
         return new_graincrops
+
+    @staticmethod
+    def remove_grains_not_connected_to_original_grains(
+        original_grain_tensor: npt.NDArray,
+        predicted_grain_tensor: npt.NDArray,
+    ):
+        """
+        Remove grains that are not connected to the original grains.
+
+        Parameters
+        ----------
+        original_grain_tensor : npt.NDArray
+            3-D Numpy array of the original grain tensor.
+        predicted_grain_tensor : npt.NDArray
+            3-D Numpy array of the predicted grain tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the predicted grain tensor with grains not connected to the original grains removed.
+        """
+        # flatten the masks and compare connected components
+        original_mask_flattened = Grains.flatten_multi_class_tensor(original_grain_tensor)
+        predicted_mask_flattened = Grains.flatten_multi_class_tensor(predicted_grain_tensor)
+        # Get the connected components of the original grain mask
+        original_mask_flattened_labelled = label(original_mask_flattened)
+        predicted_mask_flattened_labelled = label(predicted_mask_flattened)
+        # for each region of the predicted mask, check if it overlaps with any of the original mask regions
+        # (the original mask is expected to only have one region, but just in case future edits don't follow
+        # this assumption, I check all regions)
+        predicted_mask_regions = regionprops(predicted_mask_flattened_labelled)
+        original_mask_regions = regionprops(original_mask_flattened_labelled)
+        # if the predicted mask region doesn't overlap with any of the original mask regions, set it to 0
+        for predicted_mask_region in predicted_mask_regions:
+            predicted_mask_region_mask = predicted_mask_flattened_labelled == predicted_mask_region.label
+            overlap = False
+            for original_mask_region in original_mask_regions:
+                original_mask_region_mask = original_mask_flattened_labelled == original_mask_region.label
+                if np.any(predicted_mask_region_mask & original_mask_region_mask):
+                    # a region in the flattened original mask shares a pixel with the flattened predicted mask
+                    overlap = True
+                    break
+            if not overlap:
+                # zero the region in all channels of the predicted mask
+                for channel in range(1, predicted_grain_tensor.shape[-1]):
+                    predicted_grain_tensor[predicted_mask_region_mask, channel] = 0
+
+        return predicted_grain_tensor
 
     @staticmethod
     def keep_largest_labelled_region(
