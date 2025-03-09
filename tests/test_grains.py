@@ -3073,6 +3073,140 @@ def test_assemble_grain_mask_tensor_from_crops(
 
 
 @pytest.mark.parametrize(
+    ("original_grain_tensor", "predicted_grain_tensor", "expected_result_grain_tensor"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+        )
+    ],
+)
+def test_remove_grains_not_connected_to_original_grains(
+    original_grain_tensor: npt.NDArray[np.int32],
+    predicted_grain_tensor: npt.NDArray[np.int32],
+    expected_result_grain_tensor: npt.NDArray[np.int32],
+) -> None:
+    """Test the remove_grains_not_connected_to_original_grains method of the Grains class."""
+    result_grain_tensor = Grains.remove_grains_not_connected_to_original_grains(
+        original_grain_tensor, predicted_grain_tensor
+    )
+
+    np.testing.assert_array_equal(result_grain_tensor, expected_result_grain_tensor)
+
+
+@pytest.mark.parametrize(
     ("grain_mask_tensor", "classes_to_merge", "expected_result_grain_mask_tensor"),
     [
         pytest.param(
