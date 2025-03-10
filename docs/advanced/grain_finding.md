@@ -98,7 +98,12 @@ For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCr
 ## Optional: U-Net mask improvement
 
 As an additional optional step, each grain that reaches this stage can be improved by using a U-Net to mask the grain
-again. This requires a U-Net model path to be supplied in the config file.
+again. This requires a U-Net model path to be supplied in the config file. To supply a U-Net model, you will need to
+train a model on your own data, or use a pre-trained model. The Pyne Lab increasingly uses U-Nets for segmentation
+and feature detection in AFM images, our models can be found in the datasets for our papers where U-Nets are used.
+
+Once a model is obtained, add it as the `unet_model_path` in the config file. The U-Net model should be a tensorflow
+model saved in the `.h5` or `.keras` format.
 
 Each `GrainCrop`'s image crop is passed to a trained U-Net model which makes a prediction for a better mask, which then
 replaces the original mask tensor.
