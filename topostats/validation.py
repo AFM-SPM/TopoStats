@@ -193,6 +193,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "model_path": Or(None, str),
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
+                "remove_disconnected_grains": bool,
             },
             "vetting": {
                 "class_conversion_size_thresholds": Or(
@@ -1044,7 +1045,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(

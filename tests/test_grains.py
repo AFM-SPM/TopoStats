@@ -3193,13 +3193,13 @@ def test_assemble_grain_mask_tensor_from_crops(
         )
     ],
 )
-def test_remove_grains_not_connected_to_original_grains(
+def test_remove_disconnected_grains(
     original_grain_tensor: npt.NDArray[np.int32],
     predicted_grain_tensor: npt.NDArray[np.int32],
     expected_result_grain_tensor: npt.NDArray[np.int32],
 ) -> None:
-    """Test the remove_grains_not_connected_to_original_grains method of the Grains class."""
-    result_grain_tensor = Grains.remove_grains_not_connected_to_original_grains(
+    """Test the remove_disconnected_grains method of the Grains class."""
+    result_grain_tensor = Grains.remove_disconnected_grains(
         original_grain_tensor, predicted_grain_tensor
     )
 
