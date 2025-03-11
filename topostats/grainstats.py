@@ -15,6 +15,7 @@ import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
+from topostats.grains import GrainCrop
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
@@ -64,12 +65,8 @@ class GrainStats:
 
     Parameters
     ----------
-    data : npt.NDArray
-        2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-    labelled_data : npt.NDArray
-        2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-    pixel_to_nanometre_scaling : float
-        Floating point value that defines the scaling factor between nanometres and pixels.
+    grain_crops : dict[int, GrainCrop]
+        Dictionary of GrainCrops to calculate stats for.
     direction : str
         Direction for which grains have been detected ("above" or "below").
     base_output_dir : Path
@@ -92,9 +89,7 @@ class GrainStats:
 
     def __init__(
         self,
-        data: npt.NDArray,
-        labelled_data: npt.NDArray,
-        pixel_to_nanometre_scaling: float,
+        grain_crops: dict[int, GrainCrop],
         direction: str,
         base_output_dir: str | Path,
         image_name: str = None,
@@ -109,12 +104,8 @@ class GrainStats:
 
         Parameters
         ----------
-        data : npt.NDArray
-            2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
-        labelled_data : npt.NDArray
-            2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
-        pixel_to_nanometre_scaling : float
-            Floating point value that defines the scaling factor between nanometres and pixels.
+        grain_crops : dict[int, GrainCrop]
+            Dictionary of GrainCrops to calculate stats for.
         direction : str
             Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
@@ -134,9 +125,7 @@ class GrainStats:
             Multiplier to convert the current length scale to metres. Default: 1e-9 for the
             usual AFM length scale of nanometres.
         """
-        self.data = data
-        self.labelled_data = labelled_data
-        self.pixel_to_nanometre_scaling = pixel_to_nanometre_scaling
+        self.grain_crops = grain_crops
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
@@ -201,153 +190,147 @@ class GrainStats:
             Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
             and a list of dictionaries containing grain data to be plotted.
         """
-        grains_plot_data = []
-        all_height_profiles = {}
-        if self.labelled_data is None:
+        all_height_profiles: dict[int, npt.NDArray] = {}
+        if len(self.grain_crops) == 0:
             LOGGER.warning(
-                f"[{self.image_name}] : No labelled regions for this image, grain statistics can not be calculated."
+                f"[{self.image_name}] : No grain crops for this image, grain statistics can not be calculated."
             )
-            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), grains_plot_data, all_height_profiles
+            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), all_height_profiles
 
-        # Calculate region properties
-        region_properties = skimage_measure.regionprops(self.labelled_data)
+        grainstats_rows: list[dict] = []
 
-        # Iterate over all the grains in the image
-        stats_array = []
-        # List to hold all the plot data for all the grains. Each entry is a dictionary of plotting data.
-        # There are multiple entries for each grain.
-        for index, region in enumerate(region_properties):
-            LOGGER.debug(f"[{self.image_name}] : Processing grain: {index}")
+        # Iterate over each grain
+        for grain_index, grain_crop in self.grain_crops.items():
+            LOGGER.debug(f"Processing grain {grain_index}")
+            all_height_profiles[grain_index] = {}
 
-            # Skip grain if too small to calculate stats for
-            LOGGER.debug(f"[{self.image_name}] : Grain size: {region.image.size}")
-            if min(region.image.shape) < 5:
-                LOGGER.debug(
-                    f"[{self.image_name}] : Skipping grain due to being too small (size: {region.image.shape}) to calculate stats for."
-                )
-                continue
-
-            # Create directory for each grain's plots
-            output_grain = self.base_output_dir / self.direction
-            # Obtain cropped grain mask and image
-            minr, minc, maxr, maxc = region.bbox
-            grain_mask = np.array(region.image)
-            grain_image = self.data[minr:maxr, minc:maxc]
-            grain_mask_image = np.ma.masked_array(grain_image, mask=np.invert(grain_mask), fill_value=np.nan).filled()
-
-            if self.cropped_size == -1:
-                for name, image in {
-                    "grain_image": grain_image,
-                    "grain_mask": grain_mask,
-                    "grain_mask_image": grain_mask_image,
-                }.items():
-                    grains_plot_data.append(
-                        {
-                            "data": image,
-                            "output_dir": output_grain,
-                            "filename": f"{self.image_name}_{name}_{index}",
-                            "name": name,
-                        }
-                    )
-
-            else:
-                # Get cropped image and mask
-                grain_centre = int((minr + maxr) / 2), int((minc + maxc) / 2)
-                length = int(self.cropped_size / (2 * self.pixel_to_nanometre_scaling))
-                solo_mask = self.labelled_data.copy()
-                solo_mask[solo_mask != index + 1] = 0
-                solo_mask[solo_mask == index + 1] = 1
-                cropped_grain_image = self.get_cropped_region(self.data, length, np.asarray(grain_centre))
-                cropped_grain_mask = self.get_cropped_region(solo_mask, length, np.asarray(grain_centre)).astype(bool)
-                cropped_grain_mask_image = np.ma.masked_array(
-                    grain_image, mask=np.invert(grain_mask), fill_value=np.nan
-                ).filled()
-                for name, image in {
-                    "grain_image": cropped_grain_image,
-                    "grain_mask": cropped_grain_mask,
-                    "grain_mask_image": cropped_grain_mask_image,
-                }.items():
-                    grains_plot_data.append(
-                        {
-                            "data": image,
-                            "output_dir": output_grain,
-                            "filename": f"{self.image_name}_{name}_{index}",
-                            "name": name,
-                        }
-                    )
-
-            points = self.calculate_points(grain_mask)
-            edges = self.calculate_edges(grain_mask, edge_detection_method=self.edge_detection_method)
-            radius_stats = self.calculate_radius_stats(edges, points)
-            # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
-            _, _, hull_simplexes = self.convex_hull(edges, output_grain)
-            centroid = self._calculate_centroid(points)
-            # Centroids for the grains (minc and minr added because centroid returns values local to the cropped grain images)
-            centre_x = centroid[0] + minc
-            centre_y = centroid[1] + minr
-            (
-                smallest_bounding_width,
-                smallest_bounding_length,
-                aspect_ratio,
-            ) = self.calculate_aspect_ratio(
-                edges=edges,
-                hull_simplices=hull_simplexes,
-                path=output_grain,
-            )
+            image = grain_crop.image
+            mask = grain_crop.mask
+            grain_bbox = grain_crop.bbox
+            grain_anchor = (grain_bbox[0], grain_bbox[1])
+            pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
 
             # Calculate scaling factors
-            length_scaling_factor = self.pixel_to_nanometre_scaling * self.metre_scaling_factor
+            length_scaling_factor = pixel_to_nm_scaling * self.metre_scaling_factor
             area_scaling_factor = length_scaling_factor**2
 
-            # Calculate minimum and maximum feret diameters and scale the distances
-            feret_statistics = feret.min_max_feret(points)
-            feret_statistics["min_feret"] = feret_statistics["min_feret"] * length_scaling_factor
-            feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
+            # Create directory for grain's plots
+            output_grain = self.base_output_dir / self.direction / f"grain_{grain_index}"
 
-            if self.extract_height_profile:
-                all_height_profiles[index] = height_profiles.interpolate_height_profile(
-                    img=grain_image, mask=grain_mask
-                )
-                LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
+            # Iterate over all the classes except background
+            for class_index in range(1, mask.shape[2]):
+                all_height_profiles[grain_index][class_index] = {}
 
-            # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
-            # from pixel units to nanometres.
-            # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
-            stats = {
-                "centre_x": centre_x * length_scaling_factor,
-                "centre_y": centre_y * length_scaling_factor,
-                "radius_min": radius_stats["min"] * length_scaling_factor,
-                "radius_max": radius_stats["max"] * length_scaling_factor,
-                "radius_mean": radius_stats["mean"] * length_scaling_factor,
-                "radius_median": radius_stats["median"] * length_scaling_factor,
-                "height_min": np.nanmin(grain_mask_image) * self.metre_scaling_factor,
-                "height_max": np.nanmax(grain_mask_image) * self.metre_scaling_factor,
-                "height_median": np.nanmedian(grain_mask_image) * self.metre_scaling_factor,
-                "height_mean": np.nanmean(grain_mask_image) * self.metre_scaling_factor,
-                # [volume] = [pixel] * [pixel] * [height] = px * px * nm.
-                # To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.
-                "volume": np.nansum(grain_mask_image)
-                * self.pixel_to_nanometre_scaling**2
-                * (self.metre_scaling_factor**3),
-                "area": region.area * area_scaling_factor,
-                "area_cartesian_bbox": region.area_bbox * area_scaling_factor,
-                "smallest_bounding_width": smallest_bounding_width * length_scaling_factor,
-                "smallest_bounding_length": smallest_bounding_length * length_scaling_factor,
-                "smallest_bounding_area": smallest_bounding_length * smallest_bounding_width * area_scaling_factor,
-                "aspect_ratio": aspect_ratio,
-                "threshold": self.direction,
-                "max_feret": feret_statistics["max_feret"],
-                "min_feret": feret_statistics["min_feret"],
-            }
-            stats_array.append(stats)
-        if len(stats_array) > 0:
-            grainstats_df = pd.DataFrame(data=stats_array)
-        else:
+                class_mask = mask[:, :, class_index]
+                labelled_class_mask = skimage_measure.label(class_mask)
+                # Split the class into connected components
+                class_mask_regionprops = skimage_measure.regionprops(labelled_class_mask)
+
+                # Iterate over all the sub_grains in the class
+                for subgrain_index, subgrain_region in enumerate(class_mask_regionprops):
+                    # Remove all but the current subgrain from the mask
+                    subgrain_only_mask = class_mask * (labelled_class_mask == subgrain_region.label)
+                    # Create a masked image of the subgrain
+                    subgrain_mask_image = np.ma.masked_array(
+                        image, mask=np.invert(subgrain_only_mask), fill_value=np.nan
+                    ).filled()
+
+                    # Shape of the subgrain region with no padding and not necessarily square, more accurate measure of
+                    # the bounding box size
+                    subgrain_tight_shape = subgrain_region.image.shape
+                    # Skip subgrain if too small to calculate stats for
+                    if min(subgrain_tight_shape) < 5:
+                        LOGGER.debug(
+                            f"[{self.image_name}] : Skipping subgrain due to being too small "
+                            f"(size: {subgrain_tight_shape}) to calculate stats for."
+                        )
+
+                    # Calculate all the stats
+                    points = self.calculate_points(subgrain_only_mask)
+                    edges = self.calculate_edges(subgrain_only_mask, edge_detection_method=self.edge_detection_method)
+                    radius_stats = self.calculate_radius_stats(edges, points)
+                    # hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)
+                    _, _, hull_simplexes = self.convex_hull(edges, output_grain)
+                    local_centroid = self._calculate_centroid(points)
+
+                    # Centroids for the grains (grain anchor added because centroid returns values local to the
+                    # cropped grain images)
+                    centre_global_x_px = local_centroid[1] + grain_anchor[1]
+                    centre_global_y_px = local_centroid[0] + grain_anchor[0]
+
+                    centre_x_m = centre_global_x_px * length_scaling_factor
+                    centre_y_m = centre_global_y_px * length_scaling_factor
+
+                    (
+                        smallest_bounding_width,
+                        smallest_bounding_length,
+                        aspect_ratio,
+                    ) = self.calculate_aspect_ratio(
+                        edges=edges,
+                        hull_simplices=hull_simplexes,
+                        path=output_grain,
+                    )
+
+                    # Calculate minimum and maximum feret diameters and scale the distances
+                    feret_statistics = feret.min_max_feret(points)
+                    feret_statistics["min_feret"] = feret_statistics["min_feret"] * length_scaling_factor
+                    feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
+
+                    if self.extract_height_profile:
+                        all_height_profiles[grain_index][class_index][subgrain_index] = (
+                            height_profiles.interpolate_height_profile(img=image, mask=subgrain_only_mask)
+                        )
+                        LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
+
+                    # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
+                    # from pixel units to nanometres.
+                    # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
+                    stats = {
+                        "grain_number": grain_index,
+                        "class_number": class_index,
+                        "subgrain_number": subgrain_index,
+                        "centre_x": centre_x_m,
+                        "centre_y": centre_y_m,
+                        "radius_min": radius_stats["min"] * length_scaling_factor,
+                        "radius_max": radius_stats["max"] * length_scaling_factor,
+                        "radius_mean": radius_stats["mean"] * length_scaling_factor,
+                        "radius_median": radius_stats["median"] * length_scaling_factor,
+                        "height_min": np.nanmin(subgrain_mask_image) * self.metre_scaling_factor,
+                        "height_max": np.nanmax(subgrain_mask_image) * self.metre_scaling_factor,
+                        "height_median": np.nanmedian(subgrain_mask_image) * self.metre_scaling_factor,
+                        "height_mean": np.nanmean(subgrain_mask_image) * self.metre_scaling_factor,
+                        # [volume] = [pixel] * [pixel] * [height] = px * px * nm.
+                        # To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.
+                        "volume": np.nansum(subgrain_mask_image)
+                        * pixel_to_nm_scaling**2
+                        * (self.metre_scaling_factor**3),
+                        "area": subgrain_region.area * area_scaling_factor,
+                        "area_cartesian_bbox": subgrain_region.area_bbox * area_scaling_factor,
+                        "smallest_bounding_width": smallest_bounding_width * length_scaling_factor,
+                        "smallest_bounding_length": smallest_bounding_length * length_scaling_factor,
+                        "smallest_bounding_area": smallest_bounding_length
+                        * smallest_bounding_width
+                        * area_scaling_factor,
+                        "aspect_ratio": aspect_ratio,
+                        "threshold": self.direction,
+                        "max_feret": feret_statistics["max_feret"],
+                        "min_feret": feret_statistics["min_feret"],
+                    }
+
+                    grainstats_rows.append(stats)
+
+        # Check if the dataframe is empty
+        if len(grainstats_rows) == 0:
             grainstats_df = create_empty_dataframe()
-        grainstats_df.index.name = "grain_number"
+        else:
+            # Create a dataframe from the list of dictionaries
+            grainstats_df = pd.DataFrame(grainstats_rows)
+
+        # Change the index column from the arbitrary one to the grain number
+        # grainstats_df.set_index("grain_number", inplace=True)
         grainstats_df["image"] = self.image_name
 
-        return grainstats_df, grains_plot_data, all_height_profiles
+        return grainstats_df, all_height_profiles
 
     @staticmethod
     def calculate_points(grain_mask: npt.NDArray) -> list:
@@ -414,7 +397,7 @@ class GrainStats:
         # return np.stack(nonzero_coordinates, axis=1)
         return [list(vector) for vector in np.transpose(nonzero_coordinates)]
 
-    def calculate_radius_stats(self, edges: list, points: list) -> tuple[float]:
+    def calculate_radius_stats(self, edges: list, points: list) -> dict[str, float]:
         """
         Calculate the radius of grains.
 
@@ -429,8 +412,8 @@ class GrainStats:
 
         Returns
         -------
-        tuple[float]
-            A tuple of the minimum, maximum, mean and median radius of the grain.
+        dict[str, float]
+            A dictionary containing the minimum, maximum, mean and median radius of the grain.
         """
         # Calculate the centroid of the grain
         centroid = self._calculate_centroid(points)
@@ -441,8 +424,8 @@ class GrainStats:
         return {
             "min": np.min(radii),
             "max": np.max(radii),
-            "mean": np.mean(radii),
-            "median": np.median(radii),
+            "mean": float(np.mean(radii)),
+            "median": float(np.median(radii)),
         }
 
     @staticmethod

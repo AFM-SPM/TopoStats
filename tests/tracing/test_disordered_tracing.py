@@ -19,7 +19,6 @@ from topostats.tracing import disordered_tracing
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
-# pylint: disable=too-many-positional-arguments
 # pylint: disable=unspecified-encoding
 
 BASE_DIR = Path.cwd()
@@ -1291,7 +1290,7 @@ def test_disordered_trace_grain(
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "mask_filename",
+        "graincrops_filename",
         "pixel_to_nm_scaling",
         "min_skeleton_size",
         "mask_smoothing_params",
@@ -1303,7 +1302,7 @@ def test_disordered_trace_grain(
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_labelled_grain_mask_thresholded.npy",
+            "example_catenanes_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1333,7 +1332,7 @@ def test_disordered_trace_grain(
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_labelled_grain_mask_thresholded.npy",
+            "example_rep_int_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1365,7 +1364,7 @@ def test_disordered_trace_grain(
 )
 def test_trace_image_disordered(
     image_filename: str,
-    mask_filename: str,
+    graincrops_filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -1376,24 +1375,25 @@ def test_trace_image_disordered(
 ) -> None:
     """Test the trace image disordered method."""
     # Load the image
-    image = np.load(GENERAL_RESOURCES / image_filename)
-    mask = np.load(GENERAL_RESOURCES / mask_filename)
-
+    image: npt.NDArray[float] = np.load(GENERAL_RESOURCES / image_filename)
+    # Load graincrops
+    with Path.open(GENERAL_RESOURCES / graincrops_filename, "rb") as f:
+        graincrops = pkl.load(f)
     (
-        result_disordered_crop_data,
-        _,
-        result_all_images,
-        _,
+        result_disordered_trace_crop_data,
+        _grainstats_additions_df,
+        result_images,
+        _disordered_tracing_stats,
     ) = disordered_tracing.trace_image_disordered(
-        image=image,
-        grains_mask=mask,
+        full_image=image,
+        grain_crops=graincrops,
+        class_index=1,
         filename="test_image",
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
-        pad_width=1,
     )
 
     # DEBUGGING CODE
@@ -1406,11 +1406,11 @@ def test_trace_image_disordered(
     # # Update expected values - CHECK RESULTS WITH EXPERT BEFORE UPDATING
     # # Pickle result_disordered_crop_data
     # with open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "wb") as f:
-    #     pkl.dump(result_disordered_crop_data, f)
+    #     pkl.dump(result_disordered_trace_crop_data, f)
 
     # # Save result_all_images as a pickle
     # with open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "wb") as f:
-    #     pkl.dump(result_all_images, f)
+    #     pkl.dump(result_images, f)
 
     # Load expected values
     with Path.open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "rb") as f:
@@ -1418,14 +1418,15 @@ def test_trace_image_disordered(
 
     with Path.open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "rb") as f:
         expected_all_images = pkl.load(f)
-    assert dict_almost_equal(result_disordered_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
-    assert dict_almost_equal(result_all_images, expected_all_images, abs_tol=1e-11)
+
+    assert dict_almost_equal(result_disordered_trace_crop_data, expected_disordered_crop_data, abs_tol=1e-11)
+    assert dict_almost_equal(result_images, expected_all_images, abs_tol=1e-11)
 
 
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "mask_filename",
+        "graincrops_filename",
         "pixel_to_nm_scaling",
         "min_skeleton_size",
         "mask_smoothing_params",
@@ -1435,7 +1436,7 @@ def test_trace_image_disordered(
     [
         pytest.param(
             "example_catenanes.npy",
-            "example_catenanes_labelled_grain_mask_thresholded.npy",
+            "example_catenanes_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1463,7 +1464,7 @@ def test_trace_image_disordered(
         ),
         pytest.param(
             "example_rep_int.npy",
-            "example_rep_int_labelled_grain_mask_thresholded.npy",
+            "example_rep_int_graincrops.pkl",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1493,7 +1494,7 @@ def test_trace_image_disordered(
 )
 def test_trace_image_disordered_dataframes(
     image_filename: str,
-    mask_filename: str,
+    graincrops_filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -1503,8 +1504,10 @@ def test_trace_image_disordered_dataframes(
 ) -> None:
     """Test the trace image disordered method produces correct dataframes (/csv files)."""
     # Load the image
-    image = np.load(GENERAL_RESOURCES / image_filename)
-    mask = np.load(GENERAL_RESOURCES / mask_filename)
+    full_image = np.load(GENERAL_RESOURCES / image_filename)
+    # Load graincrops
+    with Path.open(GENERAL_RESOURCES / graincrops_filename, "rb") as f:
+        graincrops = pkl.load(f)
 
     (
         _,
@@ -1512,15 +1515,15 @@ def test_trace_image_disordered_dataframes(
         _,
         result_disordered_tracing_stats,
     ) = disordered_tracing.trace_image_disordered(
-        image=image,
-        grains_mask=mask,
+        full_image=full_image,
+        grain_crops=graincrops,
+        class_index=1,
         filename="test_image",
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         min_skeleton_size=min_skeleton_size,
         mask_smoothing_params=mask_smoothing_params,
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
-        pad_width=1,
     )
     print(result_disordered_tracing_grainstats.to_string(float_format="{:.4e}".format), file=regtest)
     print(result_disordered_tracing_stats.to_string(float_format="{:.4e}".format), file=regtest)
@@ -1544,11 +1547,6 @@ def test_segment_middles() -> None:
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_find_connections() -> None:
     """Test of prep_find_connections()."""
-
-
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
-def test_prep_arrays() -> None:
-    """Test of prep_arrays()."""
 
 
 @pytest.mark.parametrize(

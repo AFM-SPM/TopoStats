@@ -1,3 +1,5 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Test end-to-end running of topostats."""
 
 import logging
@@ -11,6 +13,7 @@ import pandas as pd
 import pytest
 from test_io import dict_almost_equal
 
+from topostats.grains import GrainCropsDirection, ImageGrainCrops
 from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -85,13 +88,13 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
     )
 
     # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "wb") as f:
+    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "wb") as f:
     #     pickle.dump(height_profiles, f)
 
     # Load expected height profiles dictionary from pickle
     # pylint wants an encoding but binary mode doesn't use one
     # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pickle", "rb") as f:
+    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "rb") as f:
         expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
 
     assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
@@ -147,13 +150,13 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
     )
 
     # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "wb") as f:
+    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "wb") as f:
     #     pickle.dump(height_profiles, f)
 
     # Load expected height profiles dictionary from pickle
     # pylint wants an encoding but binary mode doesn't use one
     # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pickle", "rb") as f:
+    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "rb") as f:
         expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
 
     assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
@@ -242,7 +245,7 @@ def test_save_cropped_grains(
         Path.exists(
             tmp_path
             / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_image_0.png"
+            / "minicircle_small_grain_0.png"
         )
         == expected
     )
@@ -250,15 +253,7 @@ def test_save_cropped_grains(
         Path.exists(
             tmp_path
             / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_mask_0.png"
-        )
-        == expected
-    )
-    assert (
-        Path.exists(
-            tmp_path
-            / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_mask_image_0.png"
+            / "minicircle_small_grain_mask_0_class_1.png"
         )
         == expected
     )
@@ -290,7 +285,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     guess = filetype.guess(
         tmp_path
         / "tests/resources/test_image/processed/minicircle_small/grains/above"
-        / f"minicircle_small_grain_image_0.{extension}"
+        / f"minicircle_small_grain_mask_0_class_1.{extension}"
     )
     assert guess.extension == extension
 
@@ -635,7 +630,7 @@ def test_check_run_steps(
             False,  # Curvature
             "Processing grain",
             "Calculation of Curvature Stats disabled, returning None.",
-            id="All stages enabled",
+            id="All but curvature enabled",
         ),
         # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
         # pytest.param(
@@ -720,7 +715,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         output_dir=tmp_path,
     )
     assert "Grains found for direction above : 0" in caplog.text
-    assert "No grains exist for the above direction. Skipping grainstats for above." in caplog.text
+    assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
 def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
@@ -756,7 +751,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
 
-    grains = run_grains(
+    imagegraincrops = run_grains(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         filename="dummy filename",
@@ -766,60 +761,25 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         plotting_config=process_scan_config["plotting"],
     )
 
-    assert isinstance(grains, dict)
-    assert list(grains.keys()) == ["above", "below"]
-    assert isinstance(grains["above"], np.ndarray)
-    assert np.max(grains["above"]) == 6
+    assert isinstance(imagegraincrops, ImageGrainCrops)
+    assert isinstance(imagegraincrops.above, GrainCropsDirection)
+    assert len(imagegraincrops.above.crops) == 6
     # Floating point errors mean that on different systems, different results are
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
-    assert np.max(grains["below"]) > 0
-    assert np.max(grains["above"]) < 10
+    assert isinstance(imagegraincrops.below, GrainCropsDirection)
+    assert len(imagegraincrops.below.crops) == 1
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    mask_above_dna = np.load("./tests/resources/minicircle_cropped_masks_above.npy")
-    mask_above_background = np.load("./tests/resources/minicircle_cropped_masks_above_background.npy")
-
-    mask_above = np.stack([mask_above_background, mask_above_dna], axis=-1)
-    assert mask_above.shape == (256, 256, 2)
-
-    # Create inverted mask above
-    # mask_above_background = np.logical_not(mask_above)
-    # # Keep only the largest grain
-    # from skimage.measure import label, regionprops
-
-    # mask_above_labelled = label(mask_above)
-    # regions = regionprops(mask_above_labelled)
-    # areas = [region.area for region in regions]
-    # mask_above[mask_above_labelled != np.argmax(areas) + 1] = False
-    # # save the mask above
-    # np.save("./tests/resources/minicircle_cropped_masks_above_background.npy", mask_above_background)
-
-    mask_below_dna = np.load("./tests/resources/minicircle_cropped_masks_below.npy")
-    mask_below_background = np.load("./tests/resources/minicircle_cropped_masks_below_background.npy")
-
-    mask_below = np.stack([mask_below_background, mask_below_dna], axis=-1)
-    assert mask_below.shape == (256, 256, 2)
-
-    # Create inverted mask below
-    # mask_below_background = np.logical_not(mask_below)
-    # # Keep only the largest grain
-    # mask_below_labelled = label(mask_below)
-    # regions = regionprops(mask_below_labelled)
-    # areas = [region.area for region in regions]
-    # mask_below[mask_below_labelled != np.argmax(areas) + 1] = False
-    # # save the mask below
-    # np.save("./tests/resources/minicircle_cropped_masks_below_background.npy", mask_below_background)
-
-    grain_masks = {"above": mask_above, "below": mask_below}
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
+    ) as f:
+        image_grain_crops = pickle.load(f)
 
     grainstats_df, _ = run_grainstats(
-        image=flattened_image,
-        pixel_to_nm_scaling=0.4940029296875,
-        grain_masks=grain_masks,
+        image_grain_crops=image_grain_crops,
         filename="dummy filename",
         basename=RESOURCES,
         grainstats_config=process_scan_config["grainstats"],
@@ -828,8 +788,9 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     )
 
     assert isinstance(grainstats_df, pd.DataFrame)
-    assert grainstats_df.shape[0] == 13
-    assert len(grainstats_df.columns) == 22
+    # Expect 6 grains in the above direction for cropped minicircle
+    assert grainstats_df.shape[0] == 6
+    assert len(grainstats_df.columns) == 25
 
 
 # ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to

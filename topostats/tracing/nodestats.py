@@ -1834,7 +1834,6 @@ def nodestats_image(
     node_extend_dist: float,
     branch_pairing_length: float,
     pair_odd_branches: float,
-    pad_width: int,
 ) -> tuple:
     """
     Initialise the nodeStats class.
@@ -1859,8 +1858,6 @@ def nodestats_image(
         The length from the crossing point to pair and trace, obtaining FWHM's.
     pair_odd_branches : bool
         Whether to try and pair odd-branched nodes.
-    pad_width : int
-        The number of edge pixels to pad the image by.
 
     Returns
     -------
@@ -1872,8 +1869,7 @@ def nodestats_image(
     img_base = np.zeros_like(image)
     nodestats_data = {}
 
-    # want to get each cropped image, use some anchor coords to match them onto the image,
-    #   and compile all the grain images onto a single image
+    # Images for diagnostics edited during processing
     all_images = {
         "convolved_skeletons": img_base.copy(),
         "node_centres": img_base.copy(),
@@ -1924,7 +1920,7 @@ def nodestats_image(
             for image_name, full_image in all_images.items():
                 crop = nodestats_images[image_name]
                 bbox = disordered_tracing_grain_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop[pad_width:-pad_width, pad_width:-pad_width]
+                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
