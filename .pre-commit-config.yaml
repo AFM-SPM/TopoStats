@@ -7,6 +7,7 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-yaml
+        args: ["--unsafe"]
       - id: debug-statements
       - id: end-of-file-fixer
         types: [python]
@@ -57,6 +58,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        args: [--config .codespellrc]
 
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.5.3

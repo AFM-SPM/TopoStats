@@ -1,4 +1,4 @@
-# How to add modules
+# Adding Modules
 
 ## Basic Functionality
 
@@ -11,9 +11,9 @@ functionality is as expected now and in the future should refactoring be underta
 
 Configuration options live in `topostats/default_config.yaml` you should create a nested object for the options
 corresponding to your module. The configuration nomenclature should match _exactly_ the options of your modules
-class/function as this allows the use of [`**kwargs`][python_kwargs] to be used to pass the options from the loaded
-dictionary to the function without having to explicitly map them to the class/function arguments. This might seem fickle
-or excessive but it saves you and others work in the long run.
+class/function as this allows the [`**kwargs`][python_kwargs] to be used to pass the options from the loaded dictionary
+to the function without having to explicitly map them to the class/function arguments. This might seem fickle or
+excessive but it saves you and others work in the long run.
 
 ## Modularity
 

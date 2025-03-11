@@ -96,8 +96,8 @@ e.g. `@another_branch` would install the `another_branch` (if it existed).
 #### Cloning the Repository and installing
 
 If you do not have Git already installed please see [Git Installation](https://github.com/git-guides/install-git). If
-you intend to contribute to the development of TopoStats please read through the [contributing](contributing) section.
-
+you intend to contribute to the development of TopoStats please read through the
+[contributing](../contributing/index.md) section.
 If you are familiar with the command line then you can clone and install TopoStats with the following _after_ activating
 your virtual environment. By installing in editable mode (with the `-e` flag) switching branches will make the branch
 available.
@@ -110,10 +110,10 @@ pip install -e .
 ```
 
 If you plan to contribute to development by adding features or address an existing
-[issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](contributing) section and pay
-particular attention to the section about installing additional dependencies.
+[issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](../contributing/index.md)
+section and pay particular attention to the section about installing additional dependencies.
 
-We include [notebooks](notebooks) which show how to use different aspects of TopoStats. If you wish to try these out the
+We include [notebooks](notebooks.md) which show how to use different aspects of TopoStats. If you wish to try these out the
 [Jupyter Noteooks](https://jupyter.org/) then you can install the dependencies that are required from the cloned
 TopoStats repository using...
 

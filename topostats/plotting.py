@@ -377,8 +377,8 @@ def toposum(config: dict) -> dict:
     dict
         Dictionary of nested dictionaries. Each variable has its own dictionary with keys 'dist' and 'violin' which
         contain distribution like plots and violin plots respectively (if the later are required). Each 'dist' and
-       'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
-       'ax' for that plot.
+        'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
+        'ax' for that plot.
     """
     if "df" not in config.keys():
         config["df"] = pd.read_csv(config["csv_file"])
@@ -491,7 +491,7 @@ def plot_crossing_linetrace_halfmax(
     Returns
     -------
     fig, ax
-       Matplotlib fig and ax objects.
+        Matplotlib fig and ax objects.
     """
     fig, ax = plt.subplots(1, 1, figsize=(7, 4))
     cmp = Colormap(mask_cmap).get_cmap()

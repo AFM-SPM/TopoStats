@@ -6,6 +6,8 @@ detailed here. If you know of another package please consider making a pull requ
 ## Python
 
 - [afmformats](https://github.com/AFM-Analysis/afmformats) reading common AFM file formats.
+- [AFMReader](https://github.com/AFM-SPM/AFMReader) library developed by TopoStats team for loading different AFM
+  images.
 - [gwyfile](https://pypi.org/project/gwyfile/) a pure Python interface to reading and writing Gwyddion files.
 - [magni](https://github.com/SIP-AAU/Magni) compressive sampling and reconstruction of Atomic Force Microscopy images.
 - [nanite](https://github.com/AFM-Analysis/nanite) loading, fitting and rating AFM force-distance data.

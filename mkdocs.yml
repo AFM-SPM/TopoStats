@@ -1,0 +1,94 @@
+site_name: TopoStats
+site_url: https://AFM-SPM.github.io/TopoStats/
+repo_url: https://github.com/AFM-SPM/TopoStats/
+theme:
+  # name: terminal
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  # features:
+  #   - navigation.sections
+
+nav:
+  - Home: index.md
+  - Introduction: introduction.md
+  - "Usage":
+      - usage/installation.md
+      - usage/index.md
+      - usage/configuration.md
+      - usage/notebooks.md
+      - usage/matplotlib-style.md
+      - usage/data_dictionary.md
+      - usage/workflow.md
+  - Related Software: related_software.md
+  - Glossary: glossary.md
+  - FAQ: faq.md
+  - "Contributing":
+      - contributing/index.md
+      - contributing/adding_modules.md
+  - "Advanced Documentation":
+      - advanced/index.md
+      - advanced/flattening.md
+      - advanced/grain_finding.md
+      - advanced/thresholding.md
+      - advanced/grainstats.md
+      - advanced/disordered_tracing.md
+      - advanced/nodestats.md
+      - advanced/ordered_tracing.md
+      - advanced/splining.md
+  - "API":
+      - api/index.md
+      - Entry Point: api/entry_point.md
+      - Filters: api/filters.md
+      - Grains: api/grains.md
+      - Grainstats: api/grainstats.md
+      - IO: api/io.md
+      - Plotting: api/plotting.md
+      - PlottingFuncs: api/plottingfuncs.md
+      - Run Modules: api/run_modules.md
+      - Scars: api/scars.md
+      - Statistics: api/statistics.md
+      - Theme: api/theme.md
+      - Thresholds: api/thresholds.md
+      - Utils: api/utils.md
+      - Validation: api/validation.md
+
+extra:
+  version:
+    provider: mike
+
+plugins:
+  - mermaid2
+  - search
+  - mkdocstrings
+  - mike:
+      version_selector: true
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
