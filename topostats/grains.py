@@ -533,6 +533,17 @@ class ImageGrainCrops:
             return False
         return self.above == other.above and self.below == other.below
 
+    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
+        """
+        Convert ImageGrainCrops to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
     def debug_locate_difference(self, other: object) -> None:
         """
         Debug function to find the culprit when two ImageGrainCrops objects are not equal.
