@@ -68,7 +68,7 @@ grain_array4 = np.array(
 )
 
 
-def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
+def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop.grain_crop_to_dict() method."""
     expected = {
         "image": dummy_graincrop.image,
@@ -81,13 +81,23 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
     np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 
 
-def test_grain_crop_direction_to_dict(dummy_graincropsdirection: GrainCropsDirection):
+def test_grain_crop_direction_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
     """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
     expected = {
         "crops": dummy_graincropsdirection.crops,
         "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
     }
     assert dict_almost_equal(dummy_graincropsdirection.grain_crops_direction_to_dict(), expected)
+
+
+def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
+    """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
+    dummy_image_grain_crop = ImageGrainCrops(above=dummy_graincropsdirection, below=dummy_graincropsdirection)
+    expected = {
+        "above": dummy_graincropsdirection,
+        "below": dummy_graincropsdirection,
+    }
+    assert dict_almost_equal(dummy_image_grain_crop.image_grain_crops_to_dict(), expected)
 
 
 @pytest.mark.parametrize(
