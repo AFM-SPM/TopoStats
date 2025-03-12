@@ -963,7 +963,6 @@ def test_dict_to_hdf5_list(tmp_path: Path) -> None:
 def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_path: Path) -> None:
     """Test loading a GrainGrop object and writing to file."""
     # Make a dictionary from dummy_graincrop
-    print(f"{dummy_graincrops_dict=}")
     expected = {
         "0": {
             "image": dummy_graincrops_dict[0].image,
