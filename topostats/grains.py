@@ -327,7 +327,7 @@ class GrainCrop:
 
     def grain_crop_to_dict(self) -> dict[str, Any]:
         """
-        Convert grain crop to dictionary indexed by attributes.
+        Convert GrainCrop to dictionary indexed by attributes.
 
         Returns
         -------
@@ -454,6 +454,17 @@ class GrainCropsDirection:
         if not isinstance(other, GrainCropsDirection):
             return False
         return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
+
+    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
+        """
+        Convert GrainCropsDirection to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
     def debug_locate_difference(self, other: object) -> None:
         """
