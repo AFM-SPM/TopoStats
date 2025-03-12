@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import Any
 
 import keras
 import numpy as np
@@ -32,12 +34,13 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=fixme
 # pylint: disable=line-too-long
-# pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-lines
+# pylint: disable=too-many-positional-arguments
+# pylint: disable=too-many-public-methods
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
-# pylint: disable=too-many-lines
-# pylint: disable=too-many-public-methods
 
 
 class GrainCrop:
@@ -321,6 +324,17 @@ class GrainCrop:
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.filename == other.filename
         )
+
+    def grain_crop_to_dict(self) -> dict[str, Any]:
+        """
+        Convert grain crop to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
     def debug_locate_difference(self, other: object) -> None:
         """
@@ -823,7 +837,7 @@ class Grains:
             )
             LOGGER.debug(
                 f"[{self.filename}] : Removed small objects (< \
-{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling) ** 2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
@@ -1938,7 +1952,6 @@ class Grains:
 
         # Iterate over the grain crops
         for grain_number, graincrop in graincrops.items():
-
             single_grain_mask_tensor = graincrop.mask
             pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
 

@@ -68,6 +68,19 @@ grain_array4 = np.array(
 )
 
 
+def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
+    """Test the GrainCrop.grain_crop_to_dict() method."""
+    expected = {
+        "image": dummy_graincrop.image,
+        "mask": dummy_graincrop.mask,
+        "padding": dummy_graincrop.padding,
+        "bbox": dummy_graincrop.bbox,
+        "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
+        "filename": dummy_graincrop.filename,
+    }
+    np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
+
+
 @pytest.mark.parametrize(
     ("area_thresh_nm", "expected"),
     [([None, None], grain_array), ([None, 32], grain_array2), ([12, 24], grain_array3), ([32, 44], grain_array4)],
@@ -279,7 +292,6 @@ def test_remove_edge_intersecting_grains(
     assert number_of_grains == expected_number_of_grains
 
 
-# Find grains without unet
 @pytest.mark.parametrize(
     (
         "image",
@@ -621,7 +633,7 @@ def test_find_grains(
     expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
-    """Test the find_grains method of the Grains class."""
+    """Test the find_grains method of the Grains class without unet."""
     # Initialise the grains object
     grains_object = Grains(
         image=image,

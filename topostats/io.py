@@ -22,6 +22,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
+from topostats import grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -32,6 +33,7 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-branches
 
 MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
 
@@ -906,7 +908,7 @@ class LoadScans:
         return img_dict
 
 
-def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
+def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:  # noqa: C901
     """
     Recursively save a dictionary to an open hdf5 file.
 
@@ -929,23 +931,54 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
 
         # Check if the item is a known datatype
         # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
-        if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
+        if isinstance(
+            item,
+            (
+                list,
+                str,
+                int,
+                float,
+                np.ndarray,
+                Path,
+                dict,
+                grains.GrainCrop,
+                grains.GrainCropsDirection,
+                grains.ImageGrainCrops,
+            ),
+        ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 item = np.array(item)
                 open_hdf5_file[group_path + key] = item
             # Strings need to be encoded to bytes
             elif isinstance(item, str):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item.encode("utf8")
             # Integers, floats and numpy arrays can be added directly to the hdf5 file
             # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
             elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item
             # Path objects need to be encoded to bytes
             elif isinstance(item, Path):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
+            # Extract ImageGrainCrops
+            elif isinstance(item, grains.ImageGrainCrops):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.above)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.below)
+            elif isinstance(item, grains.GrainCropsDirection):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.crops)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.full_mask_tensor)
+            elif isinstance(item, grains.GrainCrop):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
