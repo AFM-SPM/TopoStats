@@ -960,22 +960,23 @@ def test_dict_to_hdf5_list(tmp_path: Path) -> None:
         np.testing.assert_array_equal(f["list"][()], expected["list"])
 
 
-def test_dict_to_hdf5_graincrop(dummy_graincrop: grains.GrainCrop, tmp_path: Path) -> None:
+def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_path: Path) -> None:
     """Test loading a GrainGrop object and writing to file."""
     # Make a dictionary from dummy_graincrop
+    print(f"{dummy_graincrops_dict=}")
     expected = {
         "0": {
-            "image": dummy_graincrop.image,
-            "mask": dummy_graincrop.mask,
-            "padding": dummy_graincrop.padding,
-            "bbox": dummy_graincrop.bbox,
-            "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
-            "filename": dummy_graincrop.filename,
+            "image": dummy_graincrops_dict[0].image,
+            "mask": dummy_graincrops_dict[0].mask,
+            "padding": dummy_graincrops_dict[0].padding,
+            "bbox": dummy_graincrops_dict[0].bbox,
+            "pixel_to_nm_scaling": dummy_graincrops_dict[0].pixel_to_nm_scaling,
+            "filename": dummy_graincrops_dict[0].filename,
         }
     }
 
     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={0: dummy_graincrop})
+        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=dummy_graincrops_dict)
     # Load it back in and check if the dictionary is the same
     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
         # Check keys are the same

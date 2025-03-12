@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -333,14 +334,7 @@ class GrainCrop:
         dict[str, Any]
             Dictionary indexed by attribute of the grain attributes.
         """
-        return {
-            "image": self.image,
-            "mask": self.mask,
-            "bbox": self.bbox,
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "padding": self.padding,
-            "filename": self.filename,
-        }
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
     def debug_locate_difference(self, other: object) -> None:
         """
@@ -843,7 +837,7 @@ class Grains:
             )
             LOGGER.debug(
                 f"[{self.filename}] : Removed small objects (< \
-{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling)**2} nm^2)"
+{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling) ** 2} nm^2)"
             )
             return small_objects_removed > 0.0
         return image
