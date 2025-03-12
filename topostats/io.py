@@ -975,11 +975,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.full_mask_tensor)
             elif isinstance(item, grains.GrainCrop):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.mask)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.bbox)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.pixel_to_nm_scaling)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.padding)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
@@ -1050,7 +1046,7 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image"] is not None:
-            topostats_object["topostats_file_version"] = 0.3
+            topostats_object["topostats_file_version"] = 0.2
             # Recursively save the topostats object dictionary to the .topostats file
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
 

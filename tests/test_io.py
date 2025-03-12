@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from topostats import grains
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
@@ -957,6 +958,34 @@ def test_dict_to_hdf5_list(tmp_path: Path) -> None:
         # Check keys are the same
         assert sorted(f.keys()) == sorted(expected.keys())
         np.testing.assert_array_equal(f["list"][()], expected["list"])
+
+
+def test_dict_to_hdf5_graincrop(dummy_graincrop: grains.GrainCrop, tmp_path: Path) -> None:
+    """Test loading a GrainGrop object and writing to file."""
+    # Make a dictionary from dummy_graincrop
+    expected = {
+        "0": {
+            "image": dummy_graincrop.image,
+            "mask": dummy_graincrop.mask,
+            "padding": dummy_graincrop.padding,
+            "bbox": dummy_graincrop.bbox,
+            "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
+            "filename": dummy_graincrop.filename,
+        }
+    }
+
+    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={0: dummy_graincrop})
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        np.testing.assert_array_equal(f["0"]["image"], expected["0"]["image"])
+        np.testing.assert_array_equal(f["0"]["mask"], expected["0"]["mask"])
+        assert f["0"]["padding"], expected["0"]["padding"]
+        assert f["0"]["bbox"], expected["0"]["bbox"]
+        assert f["0"]["pixel_to_nm_scaling"], expected["0"]["pixel_to_nm_scaling"]
+        assert f["0"]["filename"], expected["0"]["filename"]
 
 
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
