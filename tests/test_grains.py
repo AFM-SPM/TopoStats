@@ -68,7 +68,7 @@ grain_array4 = np.array(
 )
 
 
-def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
+def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop.grain_crop_to_dict() method."""
     expected = {
         "image": dummy_graincrop.image,
@@ -79,6 +79,25 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
         "filename": dummy_graincrop.filename,
     }
     np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
+
+
+def test_grain_crop_direction_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
+    """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
+    expected = {
+        "crop": dummy_graincropsdirection.crops,
+        "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
+    }
+    dict_almost_equal(dummy_graincropsdirection.grain_crops_direction_to_dict(), expected)
+
+
+def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
+    """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
+    dummy_image_grain_crop = ImageGrainCrops(above=dummy_graincropsdirection, below=dummy_graincropsdirection)
+    expected = {
+        "above": dummy_graincropsdirection,
+        "below": dummy_graincropsdirection,
+    }
+    dict_almost_equal(dummy_image_grain_crop.image_grain_crops_to_dict(), expected)
 
 
 @pytest.mark.parametrize(
@@ -94,7 +113,7 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 # def test_random_grains(random_grains: Grains, caplog) -> None:
 #     """Test errors raised when processing images without grains."""
 #     # FIXME : I can see for myself that the error message is logged but the assert fails as caplog.text is empty?
-#     # assert "No gains found." in caplog.text
+#     # assert "No grains found." in caplog.text
 #     assert True
 
 
