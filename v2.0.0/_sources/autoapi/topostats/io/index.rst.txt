@@ -1,0 +1,304 @@
+topostats.io
+============
+
+.. py:module:: topostats.io
+
+.. autoapi-nested-parse::
+
+   Functions for reading and writing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.io.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.io.LoadScan
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.io.read_yaml
+   topostats.io.write_yaml
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: read_yaml(filename: Union[str, pathlib.Path]) -> Dict
+
+   
+   Read a YAML file.
+
+   :param filename: YAML file to read.
+   :type filename: Union[str, Path]
+
+   :returns: Dictionary of the file.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: write_yaml(config: dict, output_dir: Union[str, pathlib.Path]) -> None
+
+   
+   Write a configuration (stored as a dictionary) to a YAML file.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param output_dir: Path to save the dictionary to as a YAML file (it will be called 'config.yaml').
+   :type output_dir: Union[str, Path]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: LoadScan(img_path: Union[str, pathlib.Path], channel: str)
+
+   
+   Load the image and image parameters from a file path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: img_path
+
+
+   .. py:attribute:: channel
+
+
+   .. py:attribute:: channel_data
+      :value: None
+
+
+
+   .. py:attribute:: file_path
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: suffix
+
+
+   .. py:attribute:: image
+      :value: None
+
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+      :value: None
+
+
+
+   .. py:method:: load_spm() -> tuple
+
+      
+      Extract image and pixel to nm scaling from the Bruker .spm file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _spm_pixel_to_nm_scaling(channel_data) -> float
+
+      
+      Extract pixel to nm scaling from the SPM image metadata.
+
+      :param channel_data: Channel data
+
+      :returns: Pixel to nm scaling factor.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_ibw() -> tuple
+
+      
+      Loads image from Asylum Research (Igor) .ibw files
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _ibw_pixel_to_nm_scaling(scan) -> float
+
+      
+      Extract pixel to nm scaling from the IBW image metadata.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: load_jpk() -> None
+
+
+   .. py:method:: _extract_jpk(jpk: afmformats.mod_creep_compliance.AFMCreepCompliance) -> numpy.ndarray
+      :staticmethod:
+
+
+      
+      Extract data from jpk object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_data() -> None
+
+      
+      Method to extract image and pixel to nm scaling.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
