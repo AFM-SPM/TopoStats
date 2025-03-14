@@ -265,25 +265,41 @@ def get_thresholds(  # noqa: C901
 
     Returns
     -------
-    dict[str, float]
+    dict[str, list[float]]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
     thresholds = defaultdict()
     if threshold_method == "otsu":
-        thresholds["above"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
+        thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
     elif threshold_method == "std_dev":
         try:
             if threshold_std_dev["below"] is not None:
-                thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
+                thresholds_std_dev_below = []
+                for threshold_std_dev_value in threshold_std_dev["below"]:
+                    thresholds_std_dev_below.append(
+                        threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                    )
+                thresholds["below"] = thresholds_std_dev_below
             if threshold_std_dev["above"] is not None:
-                thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
+                thresholds_std_dev_above = []
+                for threshold_std_dev_value in threshold_std_dev["above"]:
+                    thresholds_std_dev_above.append(
+                        threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
+                    )
+                thresholds["above"] = thresholds_std_dev_above
         except TypeError as typeerror:
             raise typeerror
     elif threshold_method == "absolute":
         if absolute["below"] is not None:
-            thresholds["below"] = absolute["below"]
+            thresolds_absolute_below = []
+            for threshold_absolute_value in absolute["below"]:
+                thresolds_absolute_below.append(threshold_absolute_value)
+            thresholds["below"] = thresolds_absolute_below
         if absolute["above"] is not None:
-            thresholds["above"] = absolute["above"]
+            thresolds_absolute_above = []
+            for threshold_absolute_value in absolute["above"]:
+                thresolds_absolute_above.append(threshold_absolute_value)
+            thresholds["above"] = thresolds_absolute_above
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(
