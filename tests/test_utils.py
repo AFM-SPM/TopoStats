@@ -157,7 +157,7 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
 
 
 @pytest.mark.parametrize(
-    ("threshold_config_std_dev", "expected_thresholds"),
+    ("threshold_config", "expected_thresholds"),
     [
         pytest.param(
             {
@@ -177,26 +177,41 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
 )
 def test_get_thresholds_stddev(
     image_random: np.ndarray,
-    threshold_config_std_dev: dict[str, list[float]],
+    threshold_config: dict[str, list[float]],
     expected_thresholds: dict[str, list[float]],
 ) -> None:
     """Test of get_thresholds() method with mean threshold."""
-    thresholds = get_thresholds(
-        image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config_std_dev
-    )
+    thresholds = get_thresholds(image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config)
     assert isinstance(thresholds, dict)
     assert thresholds == expected_thresholds
 
-    # TODO Sylvia: i know this is ran each time, need to split into its own test. poke me if this crops up in the PR
-    with pytest.raises(TypeError):
-        thresholds = get_thresholds(image=image_random, threshold_method="std_dev")
 
-
-def test_get_thresholds_absolute(image_random: np.ndarray) -> None:
+@pytest.mark.parametrize(
+    ("threshold_config", "expected_thresholds"),
+    [
+        pytest.param(
+            {
+                "above": [1.5],
+                "below": [-1.5],
+            },
+            {"below": [-1.5], "above": [1.5]},
+        ),
+        pytest.param(
+            {
+                "above": [1.5, 2.0],
+                "below": [-1.5],
+            },
+            {"below": [-1.5], "above": [1.5, 2.0]},
+        ),
+    ],
+)
+def test_get_thresholds_absolute(
+    image_random: np.ndarray, threshold_config: dict[str, list[float]], expected_thresholds: dict[str, list[float]]
+) -> None:
     """Test of get_thresholds() method with absolute threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="absolute", **THRESHOLD_OPTIONS)
+    thresholds = get_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
     assert isinstance(thresholds, dict)
-    assert thresholds == {"above": 1.5, "below": -1.5}
+    assert thresholds == expected_thresholds
 
 
 def test_get_thresholds_type_error(image_random: np.ndarray) -> None:

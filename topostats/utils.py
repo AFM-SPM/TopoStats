@@ -272,23 +272,20 @@ def get_thresholds(  # noqa: C901
     if threshold_method == "otsu":
         thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
     elif threshold_method == "std_dev":
-        try:
-            if threshold_std_dev["below"] is not None:
-                thresholds_std_dev_below = []
-                for threshold_std_dev_value in threshold_std_dev["below"]:
-                    thresholds_std_dev_below.append(
-                        threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
-                    )
-                thresholds["below"] = thresholds_std_dev_below
-            if threshold_std_dev["above"] is not None:
-                thresholds_std_dev_above = []
-                for threshold_std_dev_value in threshold_std_dev["above"]:
-                    thresholds_std_dev_above.append(
-                        threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
-                    )
-                thresholds["above"] = thresholds_std_dev_above
-        except TypeError as typeerror:
-            raise typeerror
+        if threshold_std_dev["below"] is not None:
+            thresholds_std_dev_below = []
+            for threshold_std_dev_value in threshold_std_dev["below"]:
+                thresholds_std_dev_below.append(
+                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["below"] = thresholds_std_dev_below
+        if threshold_std_dev["above"] is not None:
+            thresholds_std_dev_above = []
+            for threshold_std_dev_value in threshold_std_dev["above"]:
+                thresholds_std_dev_above.append(
+                    threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["above"] = thresholds_std_dev_above
     elif threshold_method == "absolute":
         if absolute["below"] is not None:
             thresolds_absolute_below = []
