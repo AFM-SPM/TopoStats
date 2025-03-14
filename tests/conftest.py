@@ -564,9 +564,11 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
 @pytest.fixture()
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
-    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
-        minicircle_masked_tilt_removal.images["masked_tilt_removal"],
-        mask=minicircle_masked_tilt_removal.images["mask"],
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = (
+        minicircle_masked_tilt_removal.remove_quadratic(
+            minicircle_masked_tilt_removal.images["masked_tilt_removal"],
+            mask=minicircle_masked_tilt_removal.images["mask"],
+        )
     )
     return minicircle_masked_tilt_removal
 
@@ -635,8 +637,8 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
 @pytest.fixture()
 def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
     """Boolean mask."""
-    minicircle_grain_threshold_abs.directions["above"] = {}
-    minicircle_grain_threshold_abs.directions["above"]["mask_grains"] = _get_mask(
+    minicircle_grain_threshold_abs.masks["above"] = {}
+    minicircle_grain_threshold_abs.masks["above"]["mask_grains"] = _get_mask(
         image=minicircle_grain_threshold_abs.image,
         thresh=minicircle_grain_threshold_abs.thresholds["above"],
         threshold_direction="above",
@@ -664,8 +666,8 @@ def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
 @pytest.fixture()
 def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grains:
     """Fixture to test removing noise."""
-    minicircle_grain_clear_border.directions["above"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
-        minicircle_grain_clear_border.directions["above"]["tidied_border"]
+    minicircle_grain_clear_border.masks["above"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
+        minicircle_grain_clear_border.masks["above"]["tidied_border"]
     )
     return minicircle_grain_clear_border
 
@@ -673,8 +675,8 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grai
 @pytest.fixture()
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
     """Labelled regions."""
-    minicircle_grain_remove_noise.directions["above"]["labelled_regions_01"] = (
-        minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
+    minicircle_grain_remove_noise.masks["above"]["labelled_regions_01"] = minicircle_grain_remove_noise.label_regions(
+        minicircle_grain_remove_noise.masks["above"]["removed_noise"]
     )
     return minicircle_grain_remove_noise
 
@@ -683,7 +685,7 @@ def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grai
 def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grains:
     """Minimum grain size."""
     minicircle_grain_labelled_all.calc_minimum_grain_size(
-        minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"]
+        minicircle_grain_labelled_all.masks["above"]["labelled_regions_01"]
     )
     return minicircle_grain_labelled_all
 
@@ -691,9 +693,9 @@ def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grai
 @pytest.fixture()
 def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> Grains:
     """Small objects removed."""
-    minicircle_minimum_grain_size.directions["above"]["removed_small_objects"] = (
+    minicircle_minimum_grain_size.masks["above"]["removed_small_objects"] = (
         minicircle_minimum_grain_size.remove_small_objects(
-            minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+            minicircle_minimum_grain_size.masks["above"]["labelled_regions_01"]
         )
     )
     return minicircle_minimum_grain_size
@@ -703,9 +705,9 @@ def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> G
 def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grains:
     """Small objects removed."""
     absolute_area_thresholds = [30, 2000]
-    minicircle_grain_labelled_all.directions["above"]["removed_small_objects"] = (
+    minicircle_grain_labelled_all.masks["above"]["removed_small_objects"] = (
         minicircle_grain_labelled_all.area_thresholding(
-            image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
+            image=minicircle_grain_labelled_all.masks["above"]["labelled_regions_01"],
             area_thresholds=absolute_area_thresholds,
         )
     )
@@ -902,7 +904,9 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> npt.NDArray:
 # 4. Apply Gaussian filter to blur the heights and give an example original image with heights
 
 
-def _generate_heights(skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0) -> npt.NDArray:
+def _generate_heights(
+    skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0
+) -> npt.NDArray:
     """Generate heights from skeletons by scaling image and applying Gaussian blurring.
 
     Uses scikit-image 'skimage.filters.gaussian()' to generate heights from skeletons.

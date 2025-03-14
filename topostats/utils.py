@@ -240,11 +240,11 @@ def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.
 def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
-    otsu_threshold_multiplier: float = None,
-    threshold_std_dev: dict = None,
-    absolute: dict = None,
+    otsu_threshold_multiplier: float | None = None,
+    threshold_std_dev: dict | None = None,
+    absolute: dict | None = None,
     **kwargs,
-) -> dict[str, float]:
+) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
 
@@ -268,10 +268,16 @@ def get_thresholds(  # noqa: C901
     dict[str, list[float]]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
-    thresholds = defaultdict()
+    thresholds: dict[str, list[float]] = defaultdict()
     if threshold_method == "otsu":
+        assert (
+            otsu_threshold_multiplier is not None
+        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
         thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
     elif threshold_method == "std_dev":
+        assert (
+            threshold_std_dev is not None
+        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
         if threshold_std_dev["below"] is not None:
             thresholds_std_dev_below = []
             for threshold_std_dev_value in threshold_std_dev["below"]:
@@ -287,6 +293,7 @@ def get_thresholds(  # noqa: C901
                 )
             thresholds["above"] = thresholds_std_dev_above
     elif threshold_method == "absolute":
+        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
         if absolute["below"] is not None:
             thresolds_absolute_below = []
             for threshold_absolute_value in absolute["below"]:

@@ -681,10 +681,10 @@ class Grains:
         self.threshold_absolute = threshold_absolute
         self.absolute_area_threshold = absolute_area_threshold
         # Only detect grains for the desired direction
-        self.direction = [direction] if direction != "both" else ["above", "below"]
+        self.threshold_directions: list[str] = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
-        self.thresholds: dict[str, float] | None = None
+        self.thresholds: dict[str, list[float]] | None = None
         self.images = {
             "mask_grains": None,
             "tidied_border": None,
@@ -693,7 +693,7 @@ class Grains:
             # "labelled_regions": None,
             # "coloured_regions": None,
         }
-        self.directions = defaultdict()
+        self.masks = defaultdict()
         self.minimum_grain_size = None
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
@@ -979,6 +979,7 @@ class Grains:
     def find_grains(self) -> None:
         """Find grains."""
         LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
+        assert self.threshold_method is not None, "Threshold method must be specified"  # type safety
         self.thresholds = get_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
@@ -990,57 +991,68 @@ class Grains:
         # Create an ImageGrainCrops object to store the grain crops
         image_grain_crops = ImageGrainCrops(above=None, below=None)
 
-        for direction in self.direction:
+        for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
-            self.directions[direction] = {}
-            self.directions[direction]["mask_grains"] = _get_mask(
-                self.image,
-                thresh=self.thresholds[direction],
-                threshold_direction=direction,
-                img_name=self.filename,
+            self.masks[direction] = {}
+
+            # iterate over the thresholds for each direction
+            direction_thresholds = self.thresholds[direction]
+            traditional_full_mask_tensor = np.zeros(
+                (self.image.shape[0], self.image.shape[1], len(direction_thresholds) + 1), dtype=np.int32
             )
-            self.directions[direction]["labelled_regions_01"] = self.label_regions(
-                self.directions[direction]["mask_grains"]
-            )
+            for threshold_index, direction_threshold in enumerate(direction_thresholds):
+                # mask the grains
+                traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
+                    image=self.image,
+                    thresh=direction_threshold,
+                    threshold_direction=direction,
+                    img_name=self.filename,
+                )
+            
+            # Vet the traditional tensor grains
+
+            # self.directions[direction]["mask_grains"] = _get_mask(
+            #     self.image,
+            #     thresh=self.thresholds[direction],
+            #     threshold_direction=direction,
+            #     img_name=self.filename,
+            # )
+            self.masks[direction]["labelled_regions_01"] = self.label_regions(self.masks[direction]["mask_grains"])
 
             if self.remove_edge_intersecting_grains:
-                self.directions[direction]["tidied_border"] = self.tidy_border(
-                    self.directions[direction]["labelled_regions_01"]
-                )
+                self.masks[direction]["tidied_border"] = self.tidy_border(self.masks[direction]["labelled_regions_01"])
             else:
-                self.directions[direction]["tidied_border"] = self.directions[direction]["labelled_regions_01"]
+                self.masks[direction]["tidied_border"] = self.masks[direction]["labelled_regions_01"]
 
             LOGGER.debug(f"[{self.filename}] : Removing noise ({direction})")
-            self.directions[direction]["removed_noise"] = self.area_thresholding(
-                self.directions[direction]["tidied_border"],
+            self.masks[direction]["removed_noise"] = self.area_thresholding(
+                self.masks[direction]["tidied_border"],
                 [self.smallest_grain_size_nm2, None],
             )
 
             LOGGER.debug(f"[{self.filename}] : Removing small / large grains ({direction})")
             # if no area thresholds specified, use otsu
             if self.absolute_area_threshold[direction].count(None) == 2:
-                self.calc_minimum_grain_size(self.directions[direction]["removed_noise"])
-                self.directions[direction]["removed_small_objects"] = self.remove_small_objects(
-                    self.directions[direction]["removed_noise"]
+                self.calc_minimum_grain_size(self.masks[direction]["removed_noise"])
+                self.masks[direction]["removed_small_objects"] = self.remove_small_objects(
+                    self.masks[direction]["removed_noise"]
                 )
             else:
-                self.directions[direction]["removed_small_objects"] = self.area_thresholding(
-                    self.directions[direction]["removed_noise"],
+                self.masks[direction]["removed_small_objects"] = self.area_thresholding(
+                    self.masks[direction]["removed_noise"],
                     self.absolute_area_threshold[direction],
                 )
-            self.directions[direction]["removed_objects_too_small_to_process"] = (
-                self.remove_objects_too_small_to_process(
-                    image=self.directions[direction]["removed_small_objects"],
-                    minimum_size_px=self.minimum_grain_size_px,
-                    minimum_bbox_size_px=self.minimum_bbox_size_px,
-                )
+            self.masks[direction]["removed_objects_too_small_to_process"] = self.remove_objects_too_small_to_process(
+                image=self.masks[direction]["removed_small_objects"],
+                minimum_size_px=self.minimum_grain_size_px,
+                minimum_bbox_size_px=self.minimum_bbox_size_px,
             )
-            self.directions[direction]["labelled_regions_02"] = self.label_regions(
-                self.directions[direction]["removed_objects_too_small_to_process"]
+            self.masks[direction]["labelled_regions_02"] = self.label_regions(
+                self.masks[direction]["removed_objects_too_small_to_process"]
             )
 
             self.region_properties[direction] = self.get_region_properties(
-                self.directions[direction]["labelled_regions_02"]
+                self.masks[direction]["labelled_regions_02"]
             )
             LOGGER.debug(f"[{self.filename}] : Region properties calculated ({direction})")
             self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
@@ -1056,15 +1068,13 @@ class Grains:
                 # 2 etc.
 
                 # Get a binary mask where 1s are background and 0s are grains
-                labelled_regions_background_mask = np.where(
-                    self.directions[direction]["labelled_regions_02"] == 0, 1, 0
-                )
+                labelled_regions_background_mask = np.where(self.masks[direction]["labelled_regions_02"] == 0, 1, 0)
 
                 # Create a tensor out of the background and foreground masks
                 full_mask_tensor = np.stack(
                     [
                         labelled_regions_background_mask,
-                        self.directions[direction]["labelled_regions_02"],
+                        self.masks[direction]["labelled_regions_02"],
                     ],
                     axis=-1,
                 ).astype(np.int32)
@@ -1096,7 +1106,7 @@ class Grains:
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
-                self.directions[direction]["unet_tensor"] = full_mask_tensor
+                self.masks[direction]["unet_tensor"] = full_mask_tensor
 
                 # Vet the grains
                 if self.vetting is not None:
@@ -1112,7 +1122,7 @@ class Grains:
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.directions[direction]["vetted_tensor"] = full_mask_tensor_vetted
+                self.masks[direction]["vetted_tensor"] = full_mask_tensor_vetted
 
                 # Mandatory check to remove any objects in any classes that are too small to process
                 graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
@@ -1137,7 +1147,7 @@ class Grains:
                     graincrops=graincrops_merged_classes,
                     image_shape=self.image.shape,
                 )
-                self.directions[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
+                self.masks[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
 
                 # Store the grain crops
                 if direction == "above":

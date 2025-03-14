@@ -44,7 +44,9 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
         ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
     ],
 )
-def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str) -> None:
+def test_load_mplstyle(
+    style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str
+) -> None:
     """Test loading of topostats.mplstyle and a custom style."""
     load_mplstyle(style)
     assert mpl.rcParams["axes.titlesize"] == axes_titlesize
@@ -350,7 +352,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.directions["above"]["coloured_regions"],
+        data=minicircle_grain_coloured.masks["above"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
         pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
