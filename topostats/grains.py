@@ -1922,8 +1922,49 @@ class Grains:
         return new_grain_mask_tensor.astype(bool)
 
     @staticmethod
+    def vet_whole_grain_size(
+        grain_mask_tensor: npt.NDArray,
+        pixel_to_nm_scaling: float,
+        whole_grain_size_thresholds: tuple[int, int] | None,
+    ) -> bool:
+        """
+        Vet the size of the whole grain based on size thresholds.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+        whole_grain_size_thresholds : tuple
+            Tuple of whole grain size thresholds. Structure is (lower, upper).
+
+        Returns
+        -------
+        bool
+            True if the grain size is within the area thresholds, False if it fails.
+        """
+        if whole_grain_size_thresholds is None:
+            return True
+
+        whole_grain_size_nm = (
+            Grains.flatten_multi_class_tensor(grain_mask_tensor).astype(bool).sum() * pixel_to_nm_scaling**2
+        )
+
+        lower_threshold, upper_threshold = whole_grain_size_thresholds
+        if lower_threshold is not None:
+            if whole_grain_size_nm < lower_threshold:
+                return False
+        if upper_threshold is not None:
+            if whole_grain_size_nm > upper_threshold:
+                return False
+
+        return True
+
+    @staticmethod
     def vet_grains(
         graincrops: dict[int, GrainCrop],
+        whole_grain_size_thresholds: tuple[int, int] | None,
         class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
         class_size_thresholds: list[tuple[int, int, int]] | None,
         class_region_number_thresholds: list[tuple[int, int, int]] | None,

@@ -2335,6 +2335,173 @@ def test_vet_numbers_of_regions_single_grain(
 
 
 @pytest.mark.parametrize(
+    ("grain_mask_tensor", "whole_grain_size_thresholds", "expected_passed"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [8, None],
+            False,
+            id="too small",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [None, 5],
+            False,
+            id="too big",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [4, 7],
+            True,
+            id="correct size",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [None, None],
+            True,
+            id="no thresholds",
+        ),
+    ],
+)
+def test_vet_whole_grain_size(
+    grain_mask_tensor: npt.NDArray[np.int32],
+    whole_grain_size_thresholds: dict,
+    expected_passed: bool,
+) -> None:
+    """Test the vet_whole_grain_size method of the Grains class."""
+    result_passed = Grains.vet_whole_grain_size(
+        grain_mask_tensor=grain_mask_tensor,
+        pixel_to_nm_scaling=1.0,
+        whole_grain_size_thresholds=whole_grain_size_thresholds,
+    )
+    assert result_passed == expected_passed
+
+
+@pytest.mark.parametrize(
     ("grain_mask_tensor", "classes_to_convert", "class_touching_threshold", "expected_result_grain_mask_tensor"),
     [
         pytest.param(
