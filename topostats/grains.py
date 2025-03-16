@@ -733,6 +733,38 @@ class Grains:
         return clear_border(image, **kwargs)
 
     @staticmethod
+    def tidy_border_tensor(grain_mask_tensor: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
+        """
+        Remove whole grains touching the border.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the grain mask tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the grain mask tensor with grains touching the border removed.
+        """
+        flattened_grain_mask_tensor = Grains.flatten_multi_class_tensor(grain_mask_tensor)
+        # Find the grains that touch the border then remove them from the full mask tensor
+        flattened_grain_mask_tensor_labelled = morphology.label(flattened_grain_mask_tensor)
+        flattened_grain_mask_tensor_regionprops = regionprops(flattened_grain_mask_tensor_labelled)
+        for region in flattened_grain_mask_tensor_regionprops:
+            if (
+                region.bbox[0] == 0
+                or region.bbox[1] == 0
+                or region.bbox[2] == flattened_grain_mask_tensor.shape[0]
+                or region.bbox[3] == flattened_grain_mask_tensor.shape[1]
+            ):
+                # Remove the grain from the full mask tensor
+                for class_index in range(1, grain_mask_tensor.shape[2]):
+                    grain_mask_tensor[:, :, class_index][flattened_grain_mask_tensor_labelled == region.label] = 0
+
+        return grain_mask_tensor
+
+    @staticmethod
     def label_regions(image: npt.NDArray, background: int = 0) -> npt.NDArray:
         """
         Label regions.
