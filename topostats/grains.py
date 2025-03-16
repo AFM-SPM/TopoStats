@@ -693,7 +693,7 @@ class Grains:
             # "labelled_regions": None,
             # "coloured_regions": None,
         }
-        self.masks = defaultdict()
+        self.mask_images: dict[str, npt.NDArray] = defaultdict()
         self.minimum_grain_size = None
         self.region_properties = defaultdict()
         self.bounding_boxes = defaultdict()
@@ -1025,13 +1025,13 @@ class Grains:
 
         for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
-            self.masks[direction] = {}
+            self.mask_images[direction] = {}
 
             # iterate over the thresholds for each direction
             direction_thresholds = self.thresholds[direction]
             traditional_full_mask_tensor = np.zeros(
                 (self.image.shape[0], self.image.shape[1], len(direction_thresholds) + 1), dtype=np.int32
-            )
+            ).astype(bool)
             for threshold_index, direction_threshold in enumerate(direction_thresholds):
                 # mask the grains
                 traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
@@ -1039,56 +1039,72 @@ class Grains:
                     thresh=direction_threshold,
                     threshold_direction=direction,
                     img_name=self.filename,
-                )
-            
+                ).astype(bool)
+
+            # Update background class in the full mask tensor
+            traditional_full_mask_tensor = Grains.update_background_class(traditional_full_mask_tensor)
+
+            self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+
             # Vet the traditional tensor grains
 
-            # self.directions[direction]["mask_grains"] = _get_mask(
-            #     self.image,
-            #     thresh=self.thresholds[direction],
-            #     threshold_direction=direction,
-            #     img_name=self.filename,
-            # )
-            self.masks[direction]["labelled_regions_01"] = self.label_regions(self.masks[direction]["mask_grains"])
-
+            # Tidy border
             if self.remove_edge_intersecting_grains:
-                self.masks[direction]["tidied_border"] = self.tidy_border(self.masks[direction]["labelled_regions_01"])
-            else:
-                self.masks[direction]["tidied_border"] = self.masks[direction]["labelled_regions_01"]
+                traditional_full_mask_tensor = Grains.remove_edge_intersecting_grains(traditional_full_mask_tensor)
 
-            LOGGER.debug(f"[{self.filename}] : Removing noise ({direction})")
-            self.masks[direction]["removed_noise"] = self.area_thresholding(
-                self.masks[direction]["tidied_border"],
-                [self.smallest_grain_size_nm2, None],
-            )
+            # Area thresholding
 
-            LOGGER.debug(f"[{self.filename}] : Removing small / large grains ({direction})")
-            # if no area thresholds specified, use otsu
-            if self.absolute_area_threshold[direction].count(None) == 2:
-                self.calc_minimum_grain_size(self.masks[direction]["removed_noise"])
-                self.masks[direction]["removed_small_objects"] = self.remove_small_objects(
-                    self.masks[direction]["removed_noise"]
-                )
-            else:
-                self.masks[direction]["removed_small_objects"] = self.area_thresholding(
-                    self.masks[direction]["removed_noise"],
-                    self.absolute_area_threshold[direction],
-                )
-            self.masks[direction]["removed_objects_too_small_to_process"] = self.remove_objects_too_small_to_process(
-                image=self.masks[direction]["removed_small_objects"],
-                minimum_size_px=self.minimum_grain_size_px,
-                minimum_bbox_size_px=self.minimum_bbox_size_px,
-            )
-            self.masks[direction]["labelled_regions_02"] = self.label_regions(
-                self.masks[direction]["removed_objects_too_small_to_process"]
+            # Remove objects too small to process
+
+            # Extract GrainCrops from the full mask tensor
+            traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
+                image=self.image,
+                full_mask_tensor=traditional_full_mask_tensor,
+                padding=self.grain_crop_padding,
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                filename=self.filename,
             )
 
-            self.region_properties[direction] = self.get_region_properties(
-                self.masks[direction]["labelled_regions_02"]
-            )
-            LOGGER.debug(f"[{self.filename}] : Region properties calculated ({direction})")
-            self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
-            LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
+            # self.masks[direction]["labelled_regions_01"] = self.label_regions(self.masks[direction]["mask_grains"])
+
+            # if self.remove_edge_intersecting_grains:
+            #     self.masks[direction]["tidied_border"] = self.tidy_border(self.masks[direction]["labelled_regions_01"])
+            # else:
+            #     self.masks[direction]["tidied_border"] = self.masks[direction]["labelled_regions_01"]
+
+            # LOGGER.debug(f"[{self.filename}] : Removing noise ({direction})")
+            # self.masks[direction]["removed_noise"] = self.area_thresholding(
+            #     self.masks[direction]["tidied_border"],
+            #     [self.smallest_grain_size_nm2, None],
+            # )
+
+            # LOGGER.debug(f"[{self.filename}] : Removing small / large grains ({direction})")
+            # # if no area thresholds specified, use otsu
+            # if self.absolute_area_threshold[direction].count(None) == 2:
+            #     self.calc_minimum_grain_size(self.masks[direction]["removed_noise"])
+            #     self.masks[direction]["removed_small_objects"] = self.remove_small_objects(
+            #         self.masks[direction]["removed_noise"]
+            #     )
+            # else:
+            #     self.masks[direction]["removed_small_objects"] = self.area_thresholding(
+            #         self.masks[direction]["removed_noise"],
+            #         self.absolute_area_threshold[direction],
+            #     )
+            # self.masks[direction]["removed_objects_too_small_to_process"] = self.remove_objects_too_small_to_process(
+            #     image=self.masks[direction]["removed_small_objects"],
+            #     minimum_size_px=self.minimum_grain_size_px,
+            #     minimum_bbox_size_px=self.minimum_bbox_size_px,
+            # )
+            # self.masks[direction]["labelled_regions_02"] = self.label_regions(
+            #     self.masks[direction]["removed_objects_too_small_to_process"]
+            # )
+
+            # self.region_properties[direction] = self.get_region_properties(
+            #     self.masks[direction]["labelled_regions_02"]
+            # )
+            # LOGGER.debug(f"[{self.filename}] : Region properties calculated ({direction})")
+            # self.bounding_boxes[direction] = self.get_bounding_boxes(direction=direction)
+            # LOGGER.debug(f"[{self.filename}] : Extracted bounding boxes ({direction})")
 
             # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
             if len(self.region_properties[direction]) > 0:
@@ -1100,13 +1116,15 @@ class Grains:
                 # 2 etc.
 
                 # Get a binary mask where 1s are background and 0s are grains
-                labelled_regions_background_mask = np.where(self.masks[direction]["labelled_regions_02"] == 0, 1, 0)
+                labelled_regions_background_mask = np.where(
+                    self.mask_images[direction]["labelled_regions_02"] == 0, 1, 0
+                )
 
                 # Create a tensor out of the background and foreground masks
                 full_mask_tensor = np.stack(
                     [
                         labelled_regions_background_mask,
-                        self.masks[direction]["labelled_regions_02"],
+                        self.mask_images[direction]["labelled_regions_02"],
                     ],
                     axis=-1,
                 ).astype(np.int32)
@@ -1138,7 +1156,7 @@ class Grains:
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
-                self.masks[direction]["unet_tensor"] = full_mask_tensor
+                self.mask_images[direction]["unet_tensor"] = full_mask_tensor
 
                 # Vet the grains
                 if self.vetting is not None:
@@ -1154,7 +1172,7 @@ class Grains:
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.masks[direction]["vetted_tensor"] = full_mask_tensor_vetted
+                self.mask_images[direction]["vetted_tensor"] = full_mask_tensor_vetted
 
                 # Mandatory check to remove any objects in any classes that are too small to process
                 graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
@@ -1179,7 +1197,7 @@ class Grains:
                     graincrops=graincrops_merged_classes,
                     image_shape=self.image.shape,
                 )
-                self.masks[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
+                self.mask_images[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
 
                 # Store the grain crops
                 if direction == "above":
@@ -2012,6 +2030,8 @@ class Grains:
         ----------
         graincrops : dict[int, GrainCrop]
             Dictionary of grain crops.
+        whole_grain_size_thresholds : tuple
+            Tuple of whole grain size thresholds. Structure is (lower, upper).
         class_conversion_size_thresholds : list
             List of class conversion size thresholds. Structure is [(class_index, class_to_convert_to_if_too_small,
             class_to_convert_to_if_too_big), (lower_threshold, upper_threshold)].
@@ -2039,6 +2059,14 @@ class Grains:
         for grain_number, graincrop in graincrops.items():
             single_grain_mask_tensor = graincrop.mask
             pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
+
+            # Vet whole grain size
+            if not Grains.vet_whole_grain_size(
+                grain_mask_tensor=single_grain_mask_tensor,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                whole_grain_size_thresholds=whole_grain_size_thresholds,
+            ):
+                continue
 
             # Convert small / big areas to other classes
             single_grain_mask_tensor = Grains.convert_classes_when_too_big_or_small(

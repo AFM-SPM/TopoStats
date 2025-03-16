@@ -352,7 +352,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.masks["above"]["coloured_regions"],
+        data=minicircle_grain_coloured.mask_images["above"]["coloured_regions"],
         output_dir=tmp_path,
         filename="15-coloured_regions",
         pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,

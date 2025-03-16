@@ -196,7 +196,7 @@ def run_grains(  # noqa: C901
             if plotting_config["run"]:
                 plotting_config.pop("run")
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
-                for direction, image_arrays in grains.masks.items():
+                for direction, image_arrays in grains.mask_images.items():
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Possibly delete this creation of the directory since we already do this earlier?
@@ -273,22 +273,22 @@ def run_grains(  # noqa: C901
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
                     # Coloured regions is always 2d for now.
                     Images(
-                        grains.masks[direction]["labelled_regions_02"],
+                        grains.mask_images[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["bounding_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
                     # Labelled regions 02 is always 2d for now.
                     Images(
-                        data=np.zeros_like(grains.masks[direction]["labelled_regions_02"]),
-                        masked_array=grains.masks[direction]["labelled_regions_02"],
+                        data=np.zeros_like(grains.mask_images[direction]["labelled_regions_02"]),
+                        masked_array=grains.mask_images[direction]["labelled_regions_02"],
                         **plotting_config["plot_dict"]["coloured_boxes"],
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    removed_small_objects = grains.masks[direction]["removed_small_objects"]
+                    removed_small_objects = grains.mask_images[direction]["removed_small_objects"]
                     if len(removed_small_objects.shape) == 3:
                         # Tensor, iterate over each channel
                         for tensor_class in range(1, removed_small_objects.shape[2]):

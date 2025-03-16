@@ -29,23 +29,23 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
 
 def test_mask_minicircle(minicircle_grain_mask: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_mask.masks["above"]["mask_grains"], np.ndarray)
-    assert minicircle_grain_mask.masks["above"]["mask_grains"].shape == (64, 64)
-    assert minicircle_grain_mask.masks["above"]["mask_grains"].sum() == 668
+    assert isinstance(minicircle_grain_mask.mask_images["above"]["mask_grains"], np.ndarray)
+    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].shape == (64, 64)
+    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].sum() == 668
 
 
 def test_clear_border(minicircle_grain_clear_border: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_clear_border.masks["above"]["tidied_border"], np.ndarray)
-    assert minicircle_grain_clear_border.masks["above"]["tidied_border"].shape == (64, 64)
-    assert minicircle_grain_clear_border.masks["above"]["tidied_border"].sum() == 524
+    assert isinstance(minicircle_grain_clear_border.mask_images["above"]["tidied_border"], np.ndarray)
+    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"].shape == (64, 64)
+    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"].sum() == 524
 
 
 def test_remove_noise(minicircle_grain_remove_noise: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_remove_noise.masks["above"]["removed_noise"], np.ndarray)
-    assert minicircle_grain_remove_noise.masks["above"]["removed_noise"].shape == (64, 64)
-    assert minicircle_grain_remove_noise.masks["above"]["removed_noise"].sum() == 524
+    assert isinstance(minicircle_grain_remove_noise.mask_images["above"]["removed_noise"], np.ndarray)
+    assert minicircle_grain_remove_noise.mask_images["above"]["removed_noise"].shape == (64, 64)
+    assert minicircle_grain_remove_noise.mask_images["above"]["removed_noise"].sum() == 524
 
 
 def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size: Grains) -> None:
@@ -56,23 +56,23 @@ def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size: Grains) -
 
 def test_remove_small_objects(minicircle_small_objects_removed: Grains) -> None:
     """Test removal of small objects."""
-    assert isinstance(minicircle_small_objects_removed.masks["above"]["removed_small_objects"], np.ndarray)
-    assert minicircle_small_objects_removed.masks["above"]["removed_small_objects"].shape == (64, 64)
-    assert minicircle_small_objects_removed.masks["above"]["removed_small_objects"].sum() == 511
+    assert isinstance(minicircle_small_objects_removed.mask_images["above"]["removed_small_objects"], np.ndarray)
+    assert minicircle_small_objects_removed.mask_images["above"]["removed_small_objects"].shape == (64, 64)
+    assert minicircle_small_objects_removed.mask_images["above"]["removed_small_objects"].sum() == 511
 
 
 def test_area_thresholding(minicircle_area_thresholding: Grains) -> None:
     """Test removal of small objects via absolute area thresholding."""
-    assert isinstance(minicircle_area_thresholding.masks["above"]["removed_small_objects"], np.ndarray)
-    assert minicircle_area_thresholding.masks["above"]["removed_small_objects"].shape == (64, 64)
-    assert minicircle_area_thresholding.masks["above"]["removed_small_objects"].sum() == 1064
+    assert isinstance(minicircle_area_thresholding.mask_images["above"]["removed_small_objects"], np.ndarray)
+    assert minicircle_area_thresholding.mask_images["above"]["removed_small_objects"].shape == (64, 64)
+    assert minicircle_area_thresholding.mask_images["above"]["removed_small_objects"].sum() == 1064
 
 
 def test_label_regions(minicircle_grain_labelled_post_removal: Grains) -> None:
     """Test removal of small objects."""
-    assert isinstance(minicircle_grain_labelled_post_removal.masks["above"]["labelled_regions_02"], np.ndarray)
-    assert minicircle_grain_labelled_post_removal.masks["above"]["labelled_regions_02"].shape == (64, 64)
-    assert minicircle_grain_labelled_post_removal.masks["above"]["labelled_regions_02"].sum() == 1028
+    assert isinstance(minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"], np.ndarray)
+    assert minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"].shape == (64, 64)
+    assert minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"].sum() == 1028
 
 
 def test_region_properties(minicircle_grain_region_properties_post_removal: np.array) -> None:
@@ -85,6 +85,6 @@ def test_region_properties(minicircle_grain_region_properties_post_removal: np.a
 
 def test_colour_regions(minicircle_grain_coloured: Grains) -> None:
     """Test removal of small objects."""
-    assert isinstance(minicircle_grain_coloured.masks["above"]["coloured_regions"], np.ndarray)
-    assert minicircle_grain_coloured.masks["above"]["coloured_regions"].shape == (64, 64, 3)
-    assert minicircle_grain_coloured.masks["above"]["coloured_regions"].sum() == 691
+    assert isinstance(minicircle_grain_coloured.mask_images["above"]["coloured_regions"], np.ndarray)
+    assert minicircle_grain_coloured.mask_images["above"]["coloured_regions"].shape == (64, 64, 3)
+    assert minicircle_grain_coloured.mask_images["above"]["coloured_regions"].sum() == 691

@@ -656,8 +656,8 @@ def test_find_grains(
 
     grains_object.find_grains()
 
-    result_removed_small_objects = grains_object.masks[direction]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.masks[direction]["labelled_regions_02"]
+    result_removed_small_objects = grains_object.mask_images[direction]["removed_objects_too_small_to_process"]
+    result_labelled_regions = grains_object.mask_images[direction]["labelled_regions_02"]
 
     assert result_removed_small_objects.shape == expected_grain_mask.shape
     assert result_removed_small_objects.dtype == expected_grain_mask.dtype
@@ -921,8 +921,8 @@ def test_find_grains_unet(
 
         grains_object.find_grains()
 
-        result_grain_mask = grains_object.masks["above"]["removed_objects_too_small_to_process"]
-        result_labelled_regions = grains_object.masks["above"]["labelled_regions_02"]
+        result_grain_mask = grains_object.mask_images["above"]["removed_objects_too_small_to_process"]
+        result_labelled_regions = grains_object.mask_images["above"]["labelled_regions_02"]
         result_image_grain_crops = grains_object.image_grain_crops
 
         assert result_grain_mask.shape == expected_grain_mask.shape
@@ -981,8 +981,8 @@ def test_find_grains_no_grains_found():
 
     grains_object.find_grains()
 
-    result_grain_mask = grains_object.masks["above"]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.masks["above"]["labelled_regions_02"]
+    result_grain_mask = grains_object.mask_images["above"]["removed_objects_too_small_to_process"]
+    result_labelled_regions = grains_object.mask_images["above"]["labelled_regions_02"]
     result_image_grain_crops = grains_object.image_grain_crops
 
     assert result_grain_mask.shape == expected_grain_mask.shape
