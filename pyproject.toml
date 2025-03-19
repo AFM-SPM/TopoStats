@@ -36,7 +36,7 @@ keywords = [
 requires-python = ">=3.9, <3.12"
 dependencies = [
   "art",
-  "AFMReader @ git+https://github.com/AFM-SPM/AFMReader@1f03159edae2e906cb709ad9949d7b6d460cd1a9",
+  "AFMReader @ git+https://github.com/AFM-SPM/AFMReader@main",
   "h5py",
   "keras",
   "matplotlib~=3.9.4",
