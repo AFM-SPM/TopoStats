@@ -19,7 +19,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
-from topostats.grains import GrainCrop, Grains
+from topostats.grains import GrainCrop, GrainCropsDirection, Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -379,6 +379,45 @@ def dummy_graincrop() -> GrainCrop:
 def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
     """Dummy dictionary of GrainCrop objects for testing."""
     return {0: dummy_graincrop}
+
+
+@pytest.fixture()
+def dummy_graincropsdirection(dummy_graincrops_dict: dict[int, GrainCrop]) -> GrainCropsDirection:
+    """Dummy GrainCropsDirection object for testing."""
+    full_mask_tensor = np.stack(
+        [
+            np.array(
+                [
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+            ),
+        ],
+        axis=-1,
+    ).astype(np.bool_)
+    return GrainCropsDirection(full_mask_tensor=full_mask_tensor, crops=dummy_graincrops_dict)
 
 
 @pytest.fixture()
