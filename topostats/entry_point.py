@@ -342,6 +342,13 @@ def create_parser() -> arg.ArgumentParser:
         help="Lower bound for normalisation of input data. This should be slightly lower than the minimum desired"
         "/expected height of the background",
     )
+    process_parser.add_argument(
+        "--unet-remove-disconnected-grains",
+        dest="unet_remove_disconnected_grains",
+        type=bool,
+        required=False,
+        help="Whether or not to remove grains that are disconnected from the original mask",
+    )
 
     # Grainstats
     process_parser.add_argument(
@@ -809,6 +816,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Lower bound for normalisation of input data. This should be slightly lower than the minimum desired"
         "/expected height of the background",
+    )
+    grains_parser.add_argument(
+        "--unet-remove-disconnected-grains",
+        dest="unet_remove_disconnected_grains",
+        type=bool,
+        required=False,
+        help="Whether or not to remove grains that are disconnected from the original mask",
     )
     # Run the relevant function with the arguments
     grains_parser.set_defaults(func=run_modules.grains)

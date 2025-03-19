@@ -1258,6 +1258,14 @@ class Grains:
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
+            if unet_config["remove_disconnected_grains"]:
+                # Remove grains that are not connected to the original grain
+                original_grain_mask = graincrop.mask
+                predicted_mask = Grains.remove_disconnected_grains(
+                    original_grain_tensor=original_grain_mask,
+                    predicted_grain_tensor=predicted_mask,
+                )
+
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
@@ -2331,3 +2339,51 @@ class Grains:
             graincrop.mask = Grains.update_background_class(graincrop.mask)
 
         return graincrops
+
+    @staticmethod
+    def remove_disconnected_grains(
+        original_grain_tensor: npt.NDArray,
+        predicted_grain_tensor: npt.NDArray,
+    ):
+        """
+        Remove grains that are not connected to the original grains.
+
+        Parameters
+        ----------
+        original_grain_tensor : npt.NDArray
+            3-D Numpy array of the original grain tensor.
+        predicted_grain_tensor : npt.NDArray
+            3-D Numpy array of the predicted grain tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the predicted grain tensor with grains not connected to the original grains removed.
+        """
+        # flatten the masks and compare connected components
+        original_mask_flattened = Grains.flatten_multi_class_tensor(original_grain_tensor)
+        predicted_mask_flattened = Grains.flatten_multi_class_tensor(predicted_grain_tensor)
+        # Get the connected components of the original grain mask
+        original_mask_flattened_labelled = label(original_mask_flattened)
+        predicted_mask_flattened_labelled = label(predicted_mask_flattened)
+        # for each region of the predicted mask, check if it overlaps with any of the original mask regions
+        # (the original mask is expected to only have one region, but just in case future edits don't follow
+        # this assumption, I check all regions)
+        predicted_mask_regions = regionprops(predicted_mask_flattened_labelled)
+        original_mask_regions = regionprops(original_mask_flattened_labelled)
+        # if the predicted mask region doesn't overlap with any of the original mask regions, set it to 0
+        for predicted_mask_region in predicted_mask_regions:
+            predicted_mask_region_mask = predicted_mask_flattened_labelled == predicted_mask_region.label
+            overlap = False
+            for original_mask_region in original_mask_regions:
+                original_mask_region_mask = original_mask_flattened_labelled == original_mask_region.label
+                if np.any(predicted_mask_region_mask & original_mask_region_mask):
+                    # a region in the flattened original mask shares a pixel with the flattened predicted mask
+                    overlap = True
+                    break
+            if not overlap:
+                # zero the region in all channels of the predicted mask
+                for channel in range(1, predicted_grain_tensor.shape[-1]):
+                    predicted_grain_tensor[predicted_mask_region_mask, channel] = 0
+
+        return predicted_grain_tensor

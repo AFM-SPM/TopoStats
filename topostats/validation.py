@@ -193,6 +193,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "model_path": Or(None, str),
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
+                "remove_disconnected_grains": bool,
             },
             "vetting": {
                 "class_conversion_size_thresholds": Or(
