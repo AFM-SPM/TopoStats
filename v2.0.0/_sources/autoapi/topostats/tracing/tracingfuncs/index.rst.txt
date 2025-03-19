@@ -1,0 +1,597 @@
+topostats.tracing.tracingfuncs
+==============================
+
+.. py:module:: topostats.tracing.tracingfuncs
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.tracingfuncs.getSkeleton
+   topostats.tracing.tracingfuncs.reorderTrace
+   topostats.tracing.tracingfuncs.genTracingFuncs
+
+
+Module Contents
+---------------
+
+.. py:class:: getSkeleton(image_data, binary_map, number_of_columns, number_of_rows, pixel_size)
+
+   Bases: :py:obj:`object`
+
+
+   
+   Skeltonisation algorithm based on the paper "A Fast Parallel Algorithm for
+   Thinning Digital Patterns" by Zhang et al., 1984
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image_data
+
+
+   .. py:attribute:: binary_map
+
+
+   .. py:attribute:: number_of_columns
+
+
+   .. py:attribute:: number_of_rows
+
+
+   .. py:attribute:: pixel_size
+
+
+   .. py:attribute:: p2
+      :value: 0
+
+
+
+   .. py:attribute:: p3
+      :value: 0
+
+
+
+   .. py:attribute:: p4
+      :value: 0
+
+
+
+   .. py:attribute:: p5
+      :value: 0
+
+
+
+   .. py:attribute:: p6
+      :value: 0
+
+
+
+   .. py:attribute:: p7
+      :value: 0
+
+
+
+   .. py:attribute:: p8
+      :value: 0
+
+
+
+   .. py:attribute:: mask_being_skeletonised
+      :value: []
+
+
+
+   .. py:attribute:: output_skeleton
+      :value: []
+
+
+
+   .. py:attribute:: skeleton_converged
+      :value: False
+
+
+
+   .. py:attribute:: pruning
+      :value: True
+
+
+
+   .. py:attribute:: average_height
+      :value: 0
+
+
+
+   .. py:attribute:: highest_points
+
+
+   .. py:attribute:: search_window
+
+
+   .. py:attribute:: dir_search
+
+
+   .. py:method:: getDNAmolHeightStats()
+
+
+   .. py:method:: doSkeletonising()
+
+      
+      Simple while loop to check if the skeletonising is finished
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _doSkeletonisingIteration()
+
+      
+      Do an iteration of skeletonisation - check for the local binary pixel
+      environment and assess the local height values to decide whether to
+      delete a point
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _deletePixelSubit1(point)
+
+      
+      Function to check whether a single point should be deleted based
+      on both its local binary environment and its local height values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _deletePixelSubit2(point)
+
+      
+      Function to check whether a single point should be deleted based
+      on both its local binary environment and its local height values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_a()
+
+
+   .. py:method:: _binaryThinCheck_b()
+
+
+   .. py:method:: _binaryThinCheck_c()
+
+
+   .. py:method:: _binaryThinCheck_d()
+
+
+   .. py:method:: _binaryThinCheck_csharp()
+
+
+   .. py:method:: _binaryThinCheck_dsharp()
+
+
+   .. py:method:: _checkHeights(candidate_points)
+
+
+   .. py:method:: _checkWhichHeightPoints()
+
+
+   .. py:method:: _initialiseHeightFindingDict()
+
+
+   .. py:method:: _getHorizontalLeftHeights(x, y)
+
+
+   .. py:method:: _getHorizontalRightHeights(x, y)
+
+
+   .. py:method:: _getVerticalUpwardHeights(x, y)
+
+
+   .. py:method:: _getVerticalDonwardHeights(x, y)
+
+
+   .. py:method:: _getDiaganolLeftUpwardHeights(x, y)
+
+
+   .. py:method:: _getDiaganolLeftDownwardHeights(x, y)
+
+
+   .. py:method:: _getDiaganolRightUpwardHeights(x, y)
+
+
+   .. py:method:: _getDiaganolRightDownwardHeights(x, y)
+
+
+   .. py:method:: _condemnPoint(x, y)
+
+
+   .. py:method:: _identifyHighestPoint(x, y, index_direction, indexed_heights)
+
+
+   .. py:method:: finalSkeletonisationIteration()
+
+      
+      A final skeletonisation iteration that removes "hanging" pixels.
+      Examples of such pixels are:
+
+                  [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+                  [0, 1, 1]               [0, 1, 1]            [0, 1, 1]
+          case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
+
+      This is useful for the future functions that rely on local pixel environment
+      to make assessments about the overall shape/structure of traces
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryFinalThinCheck_a()
+
+
+   .. py:method:: _binaryFinalThinCheck_b()
+
+
+   .. py:method:: _binaryThinCheck_b_returncount()
+
+
+   .. py:method:: pruneSkeleton()
+
+      
+      Function to remove the hanging branches from the skeletons - these
+      are a persistent problem in the overall tracing process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _findBranchEnds(coordinates)
+
+
+   .. py:method:: _deleteSquareEnds(coordinates)
+
+
+.. py:class:: reorderTrace
+
+   .. py:method:: linearTrace(trace_coordinates)
+      :staticmethod:
+
+
+      
+      My own function to order the points from a linear trace.
+
+      This works by checking the local neighbours for a given pixel (starting
+      at one of the ends). If this pixel has only one neighbour in the array
+      of unordered points, this must be the next pixel in the trace -- and it
+      is added to the ordered points trace and removed from the
+      remaining_unordered_coords array.
+
+      If there is more than one neighbouring pixel, a fairly simple function
+      (checkVectorsCandidatePoints) finds which pixel incurs the smallest
+      change in angle compared with the rest of the trace and chooses that as
+      the next point.
+
+      This process is repeated until all the points are placed in the ordered
+      trace array or the other end point is reached.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: circularTrace(trace_coordinates)
+      :staticmethod:
+
+
+      
+      An alternative implementation of the linear tracing algorithm but
+      with some adaptations to work with circular dna molecules
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: circularTrace_old(trace_coordinates)
+      :staticmethod:
+
+
+      
+      Reorders the coordinates of a trace from a circular DNA molecule
+      (with no loops) using a polar coordinate system with reference to the
+      center of mass
+
+      I think every step of this can be vectorised for speed up
+
+      This is vulnerable to bugs if the dna molecule folds in on itself slightly
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: loopedCircularTrace()
+
+
+   .. py:method:: loopedLinearTrace()
+
+
+.. py:class:: genTracingFuncs
+
+   .. py:method:: getLocalPixelsBinary(binary_map, x, y)
+      :staticmethod:
+
+
+
+   .. py:method:: countNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Counts the number of neighbouring points for a given coordinate in
+      a list of points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: getNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Returns an array containing the neighbouring points for a given
+      coordinate in a list of points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: countandGetNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Returns the number of neighbouring points for a coordinate and an
+      array containing the those points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: returnPointsInArray(points_array, trace_coordinates)
+      :staticmethod:
+
+
+
+   .. py:method:: makeGrid(x, y, size)
+      :staticmethod:
+
+
+
+   .. py:method:: findBestNextPoint(x, y, ordered_points, candidate_points)
+      :staticmethod:
+
+
+
+   .. py:method:: checkVectorsCandidatePoints(x, y, ordered_points, candidate_points)
+      :staticmethod:
+
+
+      
+      Finds which neighbouring pixel incurs the smallest angular change
+      with reference to a previous pixel in the ordered trace, and chooses that
+      as the next point
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
