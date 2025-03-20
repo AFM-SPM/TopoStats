@@ -952,7 +952,9 @@ class Grains:
 
     @staticmethod
     def area_thresholding_tensor(
-        grain_mask_tensor: npt.NDArray[np.bool_], area_thresholds: tuple[int, int], pixel_to_nm_scaling: float
+        grain_mask_tensor: npt.NDArray[np.bool_],
+        area_thresholds: tuple[float | None, float | None],
+        pixel_to_nm_scaling: float,
     ) -> npt.NDArray[np.bool_]:
         """
         Remove objects larger and smaller than the specified thresholds.
@@ -972,7 +974,6 @@ class Grains:
             3-D Numpy array with small and large objects removed.
         """
         lower_size_limit, upper_size_limit = area_thresholds
-        # if one value is None adjust for comparison
         if upper_size_limit is None:
             upper_size_limit = grain_mask_tensor.size * pixel_to_nm_scaling**2
         if lower_size_limit is None:
@@ -991,20 +992,20 @@ class Grains:
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
 
         return grain_mask_tensor
-    
+
     @staticmethod
     def bbox_size_thresholding_tensor(
-        grain_mask_tensor: npt.NDArray[np.bool_], bbox_size_thresholds: tuple
+        grain_mask_tensor: npt.NDArray[np.bool_], bbox_size_thresholds: tuple[int | None, int | None]
     ) -> npt.NDArray[np.bool_]:
         """
         Remove objects whose bounding box is smaller than the specified threshold.
 
         Parameters
         ----------
-        grain_mask_tensor : npt.NDArray
+        grain_mask_tensor : npt.NDArray[np.bool_]
             3-D Numpy array of the full mask tensor.
-        bbox_size_thresholds : tuple
-            List of bounding box size thresholds, first is the lower limit for size, second is the upper.
+        bbox_size_thresholds : tuple[int | None, int | None]
+            List of bounding box size thresholds (in pixels), first is the lower limit for size, second is the upper.
 
         Returns
         -------
@@ -1021,17 +1022,16 @@ class Grains:
             for region in class_mask_regionprops:
                 bbox_width = region.bbox[2] - region.bbox[0]
                 bbox_height = region.bbox[3] - region.bbox[1]
-                # If the minimum dimension of the bounding box is less than the minimum dimension, remove the region
-                if min(bbox_width, bbox_height) < lower_size_limit:
-                    grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
-                # if the maximum dimension of the bounding box is greater than the maximum dimension, remove the region
-                if max(bbox_width, bbox_height) > upper_size_limit:
-                    grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
+                if lower_size_limit is not None:
+                    if min(bbox_width, bbox_height) < lower_size_limit:
+                        grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
+                if upper_size_limit is not None:
+                    if max(bbox_width, bbox_height) > upper_size_limit:
+                        grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
 
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
 
         return grain_mask_tensor
-
 
     def colour_regions(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
