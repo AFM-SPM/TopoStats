@@ -991,6 +991,47 @@ class Grains:
         grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
 
         return grain_mask_tensor
+    
+    @staticmethod
+    def bbox_size_thresholding_tensor(
+        grain_mask_tensor: npt.NDArray[np.bool_], bbox_size_thresholds: tuple
+    ) -> npt.NDArray[np.bool_]:
+        """
+        Remove objects whose bounding box is smaller than the specified threshold.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the full mask tensor.
+        bbox_size_thresholds : tuple
+            List of bounding box size thresholds, first is the lower limit for size, second is the upper.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array with objects removed that are too small to process.
+        """
+        lower_size_limit, upper_size_limit = bbox_size_thresholds
+
+        # Iterate over all classes except background
+        for class_index in range(1, grain_mask_tensor.shape[2]):
+            class_mask = grain_mask_tensor[:, :, class_index]
+            class_mask_labelled = label(class_mask)
+            class_mask_regionprops = regionprops(class_mask_labelled)
+            for region in class_mask_regionprops:
+                bbox_width = region.bbox[2] - region.bbox[0]
+                bbox_height = region.bbox[3] - region.bbox[1]
+                # If the minimum dimension of the bounding box is less than the minimum dimension, remove the region
+                if min(bbox_width, bbox_height) < lower_size_limit:
+                    grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
+                # if the maximum dimension of the bounding box is greater than the maximum dimension, remove the region
+                if max(bbox_width, bbox_height) > upper_size_limit:
+                    grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
+
+        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
+
+        return grain_mask_tensor
+
 
     def colour_regions(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
