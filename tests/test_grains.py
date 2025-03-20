@@ -1409,16 +1409,16 @@ def test_find_grains_no_grains_found():
                 [
                     np.array(
                         [
+                            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 1, 1, 1, 0, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
                         ]
                     ),
                     np.array(
@@ -1457,8 +1457,8 @@ def test_find_grains_no_grains_found():
                     np.array(
                         [
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -1508,9 +1508,6 @@ def test_tidy_border_tensor(
 ) -> None:
     """Test the tidy_border_tensor method of the Grains class."""
     result_full_grain_mask_tensor = Grains.tidy_border_tensor(full_grain_mask_tensor)
-
-    result_class_1 = result_full_grain_mask_tensor[..., 1]
-    result_class_2 = result_full_grain_mask_tensor[..., 2]
 
     np.testing.assert_array_equal(result_full_grain_mask_tensor, expected_full_grain_mask_tensor)
 

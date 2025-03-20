@@ -762,6 +762,8 @@ class Grains:
                 for class_index in range(1, grain_mask_tensor.shape[2]):
                     grain_mask_tensor[:, :, class_index][flattened_grain_mask_tensor_labelled == region.label] = 0
 
+        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
+
         return grain_mask_tensor
 
     @staticmethod
