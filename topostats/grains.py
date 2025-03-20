@@ -950,6 +950,48 @@ class Grains:
                 image_cp[image_cp == grain_no] = grain_count
         return image_cp
 
+    @staticmethod
+    def area_thresholding_tensor(
+        grain_mask_tensor: npt.NDArray[np.bool_], area_thresholds: tuple[int, int], pixel_to_nm_scaling: float
+    ) -> npt.NDArray[np.bool_]:
+        """
+        Remove objects larger and smaller than the specified thresholds.
+
+        Parameters
+        ----------
+        grain_mask_tensor : npt.NDArray
+            3-D Numpy array of the full mask tensor.
+        area_thresholds : tuple
+            List of area thresholds (in nanometres squared), first is the lower limit for size, second is the upper.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array with small and large objects removed.
+        """
+        lower_size_limit, upper_size_limit = area_thresholds
+        # if one value is None adjust for comparison
+        if upper_size_limit is None:
+            upper_size_limit = grain_mask_tensor.size * pixel_to_nm_scaling**2
+        if lower_size_limit is None:
+            lower_size_limit = 0
+
+        # Iterate over all classes except background
+        for class_index in range(1, grain_mask_tensor.shape[2]):
+            class_mask = grain_mask_tensor[:, :, class_index]
+            class_mask_labelled = label(class_mask)
+            class_mask_regionprops = regionprops(class_mask_labelled)
+            for region in class_mask_regionprops:
+                region_area = region.area * pixel_to_nm_scaling**2
+                if region_area > upper_size_limit or region_area < lower_size_limit:
+                    grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
+
+        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
+
+        return grain_mask_tensor
+
     def colour_regions(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
         Colour the regions.
