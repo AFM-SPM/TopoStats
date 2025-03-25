@@ -2149,7 +2149,7 @@ class Grains:
         """
         # Flatten the mask tensor
         flat_mask = Grains.flatten_multi_class_tensor(full_mask_tensor)
-        labelled_flat_full_mask = label(flat_mask)
+        labelled_flat_full_mask = label(flat_mask, connectivity=1)
         flat_regionprops_full_mask = regionprops(labelled_flat_full_mask)
         graincrops = {}
         for grain_number, flat_region in enumerate(flat_regionprops_full_mask):
