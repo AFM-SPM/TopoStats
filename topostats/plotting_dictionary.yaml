@@ -175,13 +175,6 @@ labelled_regions_02:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
-coloured_regions:
-  filename: "24-coloured_regions"
-  title: "Coloured Regions"
-  image_type: "binary"
-  mask_cmap: "rainbow"
-  savefig_dpi: 100
-  core_set: false
 bounding_boxes:
   filename: "25-bounding_boxes"
   title: "Bounding Boxes"
@@ -193,6 +186,24 @@ coloured_boxes:
   title: "Labelled Image with Bounding Boxes"
   image_type: "binary"
   mask_cmap: "rainbow"
+  savefig_dpi: 100
+  core_set: false
+unet_tensor:
+  filename: "27-unet_tensor"
+  title: "U-Net Tensor"
+  image_type: "binary"
+  savefig_dpi: 100
+  core_set: false
+vetted_tensor:
+  filename: "28-vetted_tensor"
+  title: "Vetted Tensor"
+  image_type: "binary"
+  savefig_dpi: 100
+  core_set: false
+merged_classes_tensor:
+  filename: "29-merged_classes_tensor"
+  title: "Merged Classes Tensor"
+  image_type: "binary"
   savefig_dpi: 100
   core_set: false
 grain_image:

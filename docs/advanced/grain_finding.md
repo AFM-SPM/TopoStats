@@ -9,7 +9,7 @@ TopoStats automatically tries to find grains (objects of interest) in your AFM i
 - **Size thresholding**: We remove grains that are too small or too large.
 - **Optional: U-Net mask improvement**: We can use a U-Net to improve the mask of each grain.
 
-## Height thresholding
+### Basic Height Thresholding
 
 Grain finding is the process of detecting useful objects in your AFM images. This might be DNA, proteins, holes in a
 surface or ridges on a surface.
@@ -64,13 +64,49 @@ maximum area of the grains that you want to keep, in nanometers squared. Eg if y
 
 ![size_thresholding](../_static/images/grain_finding/grain_finding_size_thresholding.png)
 
+## Tensors
+
+After basic grain finding is performed in order to identify objects of interest, the grain mask is turned into a tensor.
+A tensor is simply a 3D array. In this case, the tensor is the same shape as the AFM image, Width x Height, but with an
+added dimension, Class, making the tensor a W x H x C shaped 3D object. Imagine lots of printed out paper sheets stacked
+on top of each other to form a block of paper.
+
+This data structure allows us to have multiple masks per image, and so allows for masking of different types of
+features, for example DNA and proteins. This is called "multi-class-masking".
+
+Initially, this tensor is just given two binary classes, `0`, and `1`. Class `0` is the background class and is 1 where
+there are no grains in the other classes and 0 where there are grains in any of the other classes. Class `1` is simply
+the mask produced by the basic grain detection, which usually is designed to be segmenting `DNA` but could really be
+anything.
+
+Multi class masking is able to be performed on the existing grains by using a
+[U-Net](https://en.wikipedia.org/wiki/U-Net) (a deep-learning feature detection program) which can optionally be ran
+after simple grain finding, though needs training.
+
+It is planned to be able to run multiple rounds of traditional thresholding instead of running a U-Net for easier but
+less powerful multi-class segmentation implementations.
+
+## Grain Crops
+
+Once the mask has been turned into a tensor, the grains are then cropped from the tensor to produce a mini tensor for
+each grain, allowing for easier processing of individual grains. They are stored in `GrainCrop` dataclasses and are held
+in a dictionary within a `GrainCropDirection` dataclass instance, which in turn is held in the `ImageGrainCrops`
+dataclass instance for the whole image.
+
+For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCrop` dataclasses, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
+
 ## Optional: U-Net mask improvement
 
 As an additional optional step, each grain that reaches this stage can be improved by using a U-Net to mask the grain
-again. This requires a U-Net model path to be supplied in the config file.
+again. This requires a U-Net model path to be supplied in the config file. To supply a U-Net model, you will need to
+train a model on your own data, or use a pre-trained model. The Pyne Lab increasingly uses U-Nets for segmentation
+and feature detection in AFM images, our models can be found in the datasets for our papers where U-Nets are used.
 
-The U-Net model will take the bounding box of each grain, makes it square, and passees it to a trained U-Net model
-which makes a prediction for a better mask, which then replaces the original mask.
+Once a model is obtained, add it as the `unet_model_path` in the config file. The U-Net model should be a tensorflow
+model saved in the `.h5` or `.keras` format.
+
+Each `GrainCrop`'s image crop is passed to a trained U-Net model which makes a prediction for a better mask, which then
+replaces the original mask tensor.
 
 Here is an example comparing absolute height thresholding to U-Net masking for one of our projects. The white boxes
 indicate regions where the height threhsold performs poorly and is improved by the U-Net mask.

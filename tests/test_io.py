@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from topostats import grains
 from topostats.io import (
     LoadScans,
     convert_basename_to_relative_paths,
@@ -587,14 +588,14 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     """Test loading all data from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, data = load_scan_topostats.load_topostats(extract="all")
+    data = load_scan_topostats.load_topostats(extract="all")
     above_grain_mask = data["grain_masks"]["above"]
     grain_trace_data = data["grain_trace_data"]
-    assert isinstance(image, np.ndarray)
-    assert image.shape == (1024, 1024)
-    assert image.sum() == 184140.8593819073
-    assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.4940029296875
+    assert isinstance(data["image"], np.ndarray)
+    assert data["image"].shape == (1024, 1024)
+    assert data["image"].sum() == 184140.8593819073
+    assert isinstance(data["pixel_to_nm_scaling"], float)
+    assert data["pixel_to_nm_scaling"] == 0.4940029296875
     # Check that the grain mask is loaded correctly
     assert isinstance(above_grain_mask, np.ndarray)
     assert above_grain_mask.sum() == 633746
@@ -606,14 +607,14 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     ("extract", "array_sum"),
     [
         pytest.param("raw", 30695369.188316286, id="loading raw data"),
-        pytest.param("filter", 184140.8593819073, id="loading filtered data"),
+        pytest.param("filter", 30695369.188316286, id="loading raw data of refiltering"),
     ],
 )
-def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
+def test_load_scan_topostats_components_raw(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
     """Test loading different components from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling, _ = load_scan_topostats.load_topostats(extract)
+    image, px_to_nm_scaling = load_scan_topostats.load_topostats(extract)
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
     assert image.sum() == array_sum
@@ -621,12 +622,25 @@ def test_load_scan_topostats_components(load_scan_topostats: LoadScans, extract:
     assert px_to_nm_scaling == 0.4940029296875
 
 
-def test_load_scan_topostats_keyerror(load_scan_topostats: LoadScans):
-    """Test KeyError is raised when invalid extract is provided."""
+@pytest.mark.parametrize(
+    ("extract", "array_sum"),
+    [
+        pytest.param("grains", 184140.8593819073, id="loading filtered data for grains"),
+        pytest.param("grainstats", 184140.8593819073, id="loading filtered data for grainstats"),
+    ],
+)
+def test_load_scan_topostats_components_flattened(
+    load_scan_topostats: LoadScans, extract: str, array_sum: float
+) -> None:
+    """Test loading different components from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    with pytest.raises(KeyError):  # noqa: PT011
-        load_scan_topostats.load_topostats(extract="nothing")
+    data = load_scan_topostats.load_topostats(extract)
+    assert isinstance(data["image"], np.ndarray)
+    assert data["image"].shape == (1024, 1024)
+    assert data["image"].sum() == array_sum
+    assert isinstance(data["pixel_to_nm_scaling"], float)
+    assert data["pixel_to_nm_scaling"] == 0.4940029296875
 
 
 @pytest.mark.parametrize(
@@ -944,6 +958,34 @@ def test_dict_to_hdf5_list(tmp_path: Path) -> None:
         # Check keys are the same
         assert sorted(f.keys()) == sorted(expected.keys())
         np.testing.assert_array_equal(f["list"][()], expected["list"])
+
+
+def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_path: Path) -> None:
+    """Test loading a GrainGrop object and writing to file."""
+    # Make a dictionary from dummy_graincrop
+    expected = {
+        "0": {
+            "image": dummy_graincrops_dict[0].image,
+            "mask": dummy_graincrops_dict[0].mask,
+            "padding": dummy_graincrops_dict[0].padding,
+            "bbox": dummy_graincrops_dict[0].bbox,
+            "pixel_to_nm_scaling": dummy_graincrops_dict[0].pixel_to_nm_scaling,
+            "filename": dummy_graincrops_dict[0].filename,
+        }
+    }
+
+    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=dummy_graincrops_dict)
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        np.testing.assert_array_equal(f["0"]["image"], expected["0"]["image"])
+        np.testing.assert_array_equal(f["0"]["mask"], expected["0"]["mask"])
+        assert f["0"]["padding"], expected["0"]["padding"]
+        assert f["0"]["bbox"], expected["0"]["bbox"]
+        assert f["0"]["pixel_to_nm_scaling"], expected["0"]["pixel_to_nm_scaling"]
+        assert f["0"]["filename"], expected["0"]["filename"]
 
 
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:

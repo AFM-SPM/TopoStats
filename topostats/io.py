@@ -22,6 +22,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
+from topostats import grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -32,6 +33,7 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-branches
 
 MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
 
@@ -652,7 +654,7 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
 
-    def load_topostats(self, extract: str = "all") -> tuple[npt.NDArray, float, Any]:
+    def load_topostats(self, extract: str = "all") -> dict[str, Any] | tuple[npt.NDArray, float, Any]:
         """
         Load a .topostats file (hdf5 format).
 
@@ -670,26 +672,21 @@ class LoadScans:
 
         Returns
         -------
-        tuple[npt.NDArray, float, Any]
-            A tuple containing the image and its pixel to nanometre scaling value.
+        dict[str, Any] | tuple[npt.NDArray, float, Any]
+            A dictionary of all previously processed data or tuple containing the image and its pixel to nanometre
+            scaling value. This is contingent on the ''extract'' option.
         """
-        map_stage_to_image = {"raw": "image_original"}
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            image, px_to_nm_scaling, data = topostats.load_topostats(self.img_path)
+            data = topostats.load_topostats(self.img_path)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
-        try:
-            # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
-            if extract in [None, "all", "grains", "grainstats"]:
-                return (image, px_to_nm_scaling, data)
-            # Otherwise we want the raw/image_original
-            if extract == "filter":
-                return (image, px_to_nm_scaling, None)
-            return (data[map_stage_to_image[extract]], px_to_nm_scaling, None)
-        except KeyError as ke:
-            raise KeyError(f"Can not extract array of type '{extract}' from .topostats objects.") from ke
+        # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
+        if extract in [None, "all", "grains", "grainstats"]:
+            return data
+        # Otherwise we are re-running filtering we want the raw/image_original and scaling
+        return (data["image_original"], data["pixel_to_nm_scaling"])
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -781,9 +778,14 @@ class LoadScans:
                 data = None
                 try:
                     if suffix == ".topostats" and self.extract in (None, "all", "grains", "grainstats"):
-                        self.image, self.pixel_to_nm_scaling, data = self.load_topostats()
-                    elif suffix == ".topostats" and self.extract not in (None, "all"):
-                        self.image, self.pixel_to_nm_scaling, _ = self.load_topostats(self.extract)
+                        data = self.load_topostats(extract=self.extract)
+                        self.image = data["image"]
+                        self.pixel_to_nm_scaling = data["pixel_to_nm_scaling"]
+                        # If we need the grain masks for processing we extract them
+                        if self.extract in ("grainstats"):
+                            self.grain_masks = data["grain_masks"]
+                    elif suffix == ".topostats" and self.extract in ("filter", "raw"):
+                        self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
@@ -872,10 +874,21 @@ class LoadScans:
         dict[str, Any]
             Returns the image dictionary with keys/values removed appropriate to the extraction stage.
         """
-        if self.extract in ["grains", "grainstats"]:
+        # Reverse order so we remove things in reverse order, splining removes what it doesn't need then ordered
+        # tracing removes what it doesn't need, then nodestats, then disordered, then grainstats then grains, should be
+        # more succinct code with less popping
+        if self.extract in ["grains"]:
             img_dict.pop("disordered_traces")
             img_dict.pop("grain_curvature_stats")
             img_dict.pop("grain_masks")
+            img_dict.pop("height_profiles")
+            img_dict.pop("nodestats")
+            img_dict.pop("ordered_traces")
+            img_dict.pop("splining")
+            return img_dict
+        if self.extract in ["grainstats"]:
+            img_dict.pop("disordered_traces")
+            img_dict.pop("grain_curvature_stats")
             img_dict.pop("height_profiles")
             img_dict.pop("nodestats")
             img_dict.pop("ordered_traces")
@@ -895,7 +908,7 @@ class LoadScans:
         return img_dict
 
 
-def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:
+def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:  # noqa: C901
     """
     Recursively save a dictionary to an open hdf5 file.
 
@@ -918,23 +931,54 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
 
         # Check if the item is a known datatype
         # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
-        if isinstance(item, (list, str, int, float, np.ndarray, Path, dict)):  # noqa: UP038
+        if isinstance(
+            item,
+            (
+                list,
+                str,
+                int,
+                float,
+                np.ndarray,
+                Path,
+                dict,
+                grains.GrainCrop,
+                grains.GrainCropsDirection,
+                grains.ImageGrainCrops,
+            ),
+        ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 item = np.array(item)
                 open_hdf5_file[group_path + key] = item
             # Strings need to be encoded to bytes
             elif isinstance(item, str):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item.encode("utf8")
             # Integers, floats and numpy arrays can be added directly to the hdf5 file
             # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
             elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item
             # Path objects need to be encoded to bytes
             elif isinstance(item, Path):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
+            # Extract ImageGrainCrops
+            elif isinstance(item, grains.ImageGrainCrops):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.above)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.below)
+            elif isinstance(item, grains.GrainCropsDirection):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.crops)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.full_mask_tensor)
+            elif isinstance(item, grains.GrainCrop):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:

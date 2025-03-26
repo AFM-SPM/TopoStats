@@ -186,27 +186,28 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
 
 
 @pytest.mark.parametrize(
-    ("column_set", "index_col", "n_columns", "columns_check"),
+    ("column_set", "n_columns", "columns_check"),
     [
-        pytest.param("grainstats", "grain_number", 26, {"image", "basename", "area"}, id="Empty grainstats dataframe"),
+        pytest.param("grainstats", 27, {"image", "grain_number", "basename", "area"}, id="Empty grainstats dataframe"),
         pytest.param(
             "disordered_tracing_statistics",
-            "index",
-            12,
+            13,
             {"connected_segments", "mean_pixel_value", "stdev_pixel_value"},
             id="Empty disordered_tracing_statistics dataframe",
         ),
         pytest.param(
-            "mol_statistics", "molecule_number", 7, {"image", "basename", "area"}, id="Empty mol_statistics dataframe"
+            "mol_statistics",
+            8,
+            {"image", "grain_number", "basename", "area"},
+            id="Empty mol_statistics dataframe",
         ),
     ],
 )
-def test_create_empty_dataframe(column_set: str, index_col: str, n_columns: int, columns_check: set) -> None:
+def test_create_empty_dataframe(column_set: str, n_columns: int, columns_check: set) -> None:
     """Test the empty dataframes are created correctly."""
-    empty_df = create_empty_dataframe(column_set, index_col)
+    empty_df = create_empty_dataframe(column_set=column_set)
 
-    assert empty_df.index.name == index_col
-    assert index_col not in empty_df.columns
+    assert empty_df.index.name is None
     assert empty_df.shape == (0, n_columns)
     assert columns_check.intersection(empty_df.columns)
 

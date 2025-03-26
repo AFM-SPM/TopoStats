@@ -31,6 +31,7 @@ filter:
 grains:
   run: true # Options : true, false
   # Thresholding by height
+  grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:
@@ -48,9 +49,9 @@ grains:
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   unet_config:
     model_path: null # Path to a trained U-Net model
-    grain_crop_padding: 2 # Padding to apply to the grain crop bounding box
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
+    remove_disconnected_grains: false # Whether to remove grains in the crop that don't touch the original grain mask.
   vetting:
     class_conversion_size_thresholds: null # Class conversion size thresholds, list of tuples of 3 integers and 2 integers, ie list[tuple[tuple[int, int, int], tuple[int, int]]] eg [[[1, 2, 3], [5, 10]]] for each region of class 1 to convert to 2 if smaller than 5 nm^2 and to class 3 if larger than 10 nm^2.
     class_region_number_thresholds: null # Class region number thresholds, list of lists, ie [[class, low, high],] eg [[1, 2, 4], [2, 1, 1]] for class 1 to have 2-4 regions and class 2 to have 1 region. Can use None to not set an upper/lower bound.
@@ -66,8 +67,8 @@ grainstats:
   extract_height_profile: true # Extract height profiles along maximum feret of molecules
 disordered_tracing:
   run: true # Options : true, false
+  class_index: 1 # The class index to trace. This is the class index of the grains.
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
-  pad_width: 1 # Pixels to pad grains by when tracing
   mask_smoothing_params:
     gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
     dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
@@ -87,11 +88,9 @@ nodestats:
   node_extend_dist: 14.0 # The distance in nanometres over which to join nearby odd-branched nodes.
   branch_pairing_length: 20.0 # The length in nanometres from the crossing point to pair and trace, obtaining FWHM's.
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
-  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 ordered_tracing:
   run: true
   ordering_method: nodestats # The method of ordering the disordered traces.
-  pad_width: 1 # Pixels to pad grains by when tracing (should be the same as disordered_tracing).
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"

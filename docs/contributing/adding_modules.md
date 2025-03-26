@@ -319,6 +319,43 @@ function is defined as `processing_function` with all of the arguments before ru
 [`tqdm`][tqdm] package is leverage to give a progress bar and after completion the configuration file is written to file
 before a completion message is run.
 
+##### Results
+
+Before we start the parallel processing we create a dictionary `results = defaultdict()` which will have the results of
+processing added to. Some steps in processing return more than one object, for example `grainstats` returns statistics
+for the image along with height profiles. In such cases we need to instantiate a dictionary to hold each set of results
+across images and included a holder in the `for ... in pool.imap_unordered(...):` to store the results before adding the
+results to the dictionary. For `run_modules.grainstats()` this looks like the below code. We create two dictionaries
+`results` and `height_profile_all` and in our call for `for` we have `img` (a string representing the image name),
+`result` (the returned Pandas DataFrame of grain statistics for the given image) and `height_profiles` (the height
+profile dictionary for the grains in that image).
+
+```python
+with Pool(processes=config["cores"]) as pool:
+    results = defaultdict()
+    height_profile_all = defaultdict()
+    with tqdm(
+        total=len(img_files),
+        desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
+    ) as pbar:
+        for img, result, height_profiles in pool.imap_unordered(
+            processing_function,
+            all_scan_data.img_dict.values(),
+        ):
+            results[str(img)] = results
+            height_profile_all[str(img)] = height_profiles
+            pbar.update()
+
+            # Display completion message for the image
+            LOGGER.info(
+                f"[{img}] Grainstats completed (NB - Filtering was *not* re-run)."
+            )
+```
+
+Note that your `processing.process_<stage>` function which is used in the call to `processing_function` should return a
+tuple, the first item of which is the `topostats_object["filename"]` (which will be stored in `img` and used as
+dictionary keys), the remaining items are the results that you expect to be returned.
+
 ## Conclusion
 
 Adding functionality is useful but it has to integrate into the workflow and ideally be accessible as a stand alone step

@@ -1,8 +1,11 @@
+# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
+# ruff: noqa: S301
 """Fixtures for testing."""
 
 from __future__ import annotations
 
 import importlib.resources as pkg_resources
+import pickle
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -16,7 +19,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
-from topostats.grains import Grains
+from topostats.grains import GrainCrop, Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -326,6 +329,59 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 
 
 @pytest.fixture()
+def dummy_graincrop() -> GrainCrop:
+    """Dummy GrainCrop object for testing."""
+    image = RNG.random(size=(10, 10)).astype(np.float32)
+    mask = np.stack(
+        arrays=[
+            np.array(
+                [
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+        ],
+        axis=-1,
+    )
+    return GrainCrop(
+        image=image,
+        mask=mask,
+        padding=2,
+        bbox=(1, 1, 11, 11),
+        pixel_to_nm_scaling=1.0,
+        filename="dummy",
+    )
+
+
+@pytest.fixture()
+def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
+    """Dummy dictionary of GrainCrop objects for testing."""
+    return {0: dummy_graincrop}
+
+
+@pytest.fixture()
 def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
     filter_obj = Filters(
@@ -590,6 +646,13 @@ def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
 
 
 @pytest.fixture()
+def minicircle_small_graincrops() -> dict[int, GrainCrop]:
+    """Dictionary of graincrops for the minicircle_small image."""
+    with Path.open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:  # pylint: disable=unspecified-encoding
+        return pickle.load(f)
+
+
+@pytest.fixture()
 def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
     """Cleared borders."""
     minicircle_grain_mask.directions["above"]["tidied_border"] = minicircle_grain_mask.tidy_border(
@@ -683,31 +746,26 @@ def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) 
 
 # Derive fixture for grainstats
 @pytest.fixture()
-def grainstats(image_random: np.array, grainstats_config: dict, tmp_path) -> GrainStats:
+def dummy_grainstats(
+    dummy_graincrops_dict: dict[int, GrainCrop], grainstats_config: dict, tmp_path: Path
+) -> GrainStats:
     """Grainstats class for testing functions."""
     return GrainStats(
-        image_random,
-        image_random,
-        pixel_to_nanometre_scaling=0.5,
+        grain_crops=dummy_graincrops_dict,
         base_output_dir=tmp_path,
         **grainstats_config,
     )
 
 
-# Minicircle
 @pytest.fixture()
 def minicircle_grainstats(
-    minicircle_grain_gaussian_filter: Filters,
-    minicircle_grain_labelled_post_removal: Grains,
-    load_scan: LoadScans,
+    minicircle_small_graincrops: dict[int, GrainCrop],
     grainstats_config: dict,
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
     return GrainStats(
-        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
-        labelled_data=minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"],
-        pixel_to_nanometre_scaling=load_scan.pixel_to_nm_scaling,
+        grain_crops=minicircle_small_graincrops,
         base_output_dir=tmp_path,
         plot_opts={
             "grain_image": {"core_set": True},
