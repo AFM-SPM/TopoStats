@@ -115,3 +115,8 @@ def test_trace_extract_height_profile(minicircle_grainstats: GrainStats) -> None
         subgrain_index = 0
         heights = grain_height_data[class_index][subgrain_index]
         np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[grain_index])
+    for grain_index, grain_crop in minicircle_grainstats.grain_crops.items():
+        class_index = 1
+        subgrain_index = 0
+        heights = grain_crop.height_profiles[class_index][subgrain_index]
+        np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[grain_index])
