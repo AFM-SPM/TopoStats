@@ -146,7 +146,7 @@ def predict_unet(
         The predicted mask.
     """
     # Strip the batch dimension from the model input shape
-    image_shape: tuple[int, int] = model_input_shape[1:3]
+    image_shape: tuple[int, int] = [256, 256]
     LOGGER.info(f"Model input shape: {model_input_shape}")
 
     # Make a copy of the original image
@@ -167,7 +167,13 @@ def predict_unet(
 
     # Predict the mask
     LOGGER.info("Running Unet & predicting mask")
-    prediction: npt.NDArray[np.float32] = model.predict(np.expand_dims(image_resized_np, axis=(0, 3)))
+    image_resized_np_rgb = np.repeat(image_resized_np[:, :, np.newaxis], 3, axis=2)
+
+    # Expand dimensions to add batch size (1, 256, 256, 3)
+    input_tensor = np.expand_dims(image_resized_np_rgb, axis=0)
+
+    # Predict using the model
+    prediction = model.predict(input_tensor)
     LOGGER.info(f"Unet finished predicted mask. Prediction shape: {prediction.shape}")
 
     # Threshold the predicted mask
