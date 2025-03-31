@@ -617,7 +617,7 @@ class Grains:
         direction: str | None = None,
         smallest_grain_size_nm2: float | None = None,
         remove_edge_intersecting_grains: bool = True,
-        classes_to_merge: list[tuple[int, int]] | None = None,
+        classes_to_merge: list[list[int]] | None = None,
         traditional_vetting: dict | None = None,
         vetting: dict | None = None,
     ):
@@ -680,8 +680,9 @@ class Grains:
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
-        self.absolute_area_threshold = absolute_area_threshold
+        self.area_thresholds = absolute_area_threshold
         # Only detect grains for the desired direction
+        assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
         self.threshold_directions: list[str] = [direction] if direction != "both" else ["above", "below"]
         self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
@@ -696,12 +697,9 @@ class Grains:
         }
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.minimum_grain_size = None
-        self.region_properties = defaultdict()
-        self.bounding_boxes = defaultdict()
         self.grainstats = None
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
-        self.traditional_vetting = traditional_vetting
         self.vetting = vetting
         self.classes_to_merge = classes_to_merge
 
@@ -790,35 +788,6 @@ class Grains:
         """
         return morphology.label(image, background)
 
-    def calc_minimum_grain_size(self, image: npt.NDArray) -> float:
-        """
-        Calculate the minimum grain size in pixels squared.
-
-        Very small objects are first removed via thresholding before calculating the below extreme.
-
-        Parameters
-        ----------
-        image : npt.NDArray
-            2-D Numpy image from which to calculate the minimum grain size.
-
-        Returns
-        -------
-        float
-            Minimum grains size in pixels squared. If there are areas a value of -1 is returned.
-        """
-        region_properties = self.get_region_properties(image)
-        grain_areas = np.array([grain.area for grain in region_properties])
-        if len(grain_areas > 0):
-            # Exclude small objects less than a given threshold first
-            grain_areas = grain_areas[
-                grain_areas >= threshold(grain_areas, method="otsu", otsu_threshold_multiplier=1.0)
-            ]
-            self.minimum_grain_size = np.median(grain_areas) - (
-                1.5 * (np.quantile(grain_areas, 0.75) - np.quantile(grain_areas, 0.25))
-            )
-        else:
-            self.minimum_grain_size = -1
-
     def remove_noise(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
         """
         Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
@@ -844,39 +813,6 @@ class Grains:
         return morphology.remove_small_objects(
             image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
         )
-
-    def remove_small_objects(self, image: np.array, **kwargs) -> npt.NDArray:
-        """
-        Remove small objects from the input image.
-
-        Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
-
-        Parameters
-        ----------
-        image : np.array
-            2-D Numpy array to remove small objects from.
-        **kwargs
-            Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
-
-        Returns
-        -------
-        npt.NDArray
-            2-D Numpy array of image with objects < minimumm_grain_size removed.
-        """
-        # If self.minimum_grain_size is -1, then this means that
-        # there were no grains to calculate the minimum grian size from.
-        if self.minimum_grain_size != -1:
-            small_objects_removed = morphology.remove_small_objects(
-                image.astype(bool),
-                min_size=self.minimum_grain_size,  # minimum_grain_size is in pixels squared
-                **kwargs,
-            )
-            LOGGER.debug(
-                f"[{self.filename}] : Removed small objects (< \
-{self.minimum_grain_size} px^2 / {self.minimum_grain_size / (self.pixel_to_nm_scaling) ** 2} nm^2)"
-            )
-            return small_objects_removed > 0.0
-        return image
 
     def remove_objects_too_small_to_process(
         self, image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int
@@ -1058,7 +994,7 @@ class Grains:
         return coloured_regions
 
     @staticmethod
-    def get_region_properties(image: np.array, **kwargs) -> list:
+    def get_region_properties(image: npt.NDArray, **kwargs) -> list:
         """
         Extract the properties of each region.
 
@@ -1075,22 +1011,6 @@ class Grains:
             List of region property objects.
         """
         return regionprops(image, **kwargs)
-
-    def get_bounding_boxes(self, direction: str) -> dict:
-        """
-        Derive a list of bounding boxes for each region from the derived region_properties.
-
-        Parameters
-        ----------
-        direction : str
-            Direction of threshold for which bounding boxes are being calculated.
-
-        Returns
-        -------
-        dict
-            Dictionary of bounding boxes indexed by region area.
-        """
-        return {region.area: region.area_bbox for region in self.region_properties[direction]}
 
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
@@ -1114,7 +1034,7 @@ class Grains:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.mask_images[direction] = {}
 
-            # iterate over the thresholds for each direction
+            # iterate over the thresholds for the current direction
             direction_thresholds = self.thresholds[direction]
             traditional_full_mask_tensor = np.zeros(
                 (self.image.shape[0], self.image.shape[1], len(direction_thresholds) + 1), dtype=np.int32
@@ -1139,7 +1059,6 @@ class Grains:
                 traditional_full_mask_tensor = Grains.tidy_border_tensor(
                     grain_mask_tensor=traditional_full_mask_tensor
                 )
-
             self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
@@ -1153,8 +1072,14 @@ class Grains:
                 grain_mask_tensor=traditional_full_mask_tensor,
                 bbox_size_thresholds=(self.minimum_bbox_size_px, None),
             )
-
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
+
+            # Area threshold using user specified thresholds
+            traditional_full_mask_tensor = Grains.area_thresholding_tensor(
+                grain_mask_tensor=traditional_full_mask_tensor,
+                area_thresholds=self.area_thresholds[direction],
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            )
 
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
@@ -1164,14 +1089,6 @@ class Grains:
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                 filename=self.filename,
             )
-
-            # traditional grain finding vetting
-            if self.traditional_vetting is not None:
-                traditional_graincrops = Grains.vet_grains(
-                    graincrops=traditional_graincrops,
-                    **self.traditional_vetting,
-                )
-            traditional_graincrops = Grains.graincrops_update_background_class(graincrops=traditional_graincrops)
 
             # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
             if len(traditional_graincrops) > 0:
@@ -1192,11 +1109,14 @@ class Grains:
                         unet_config=self.unet_config,
                         graincrops=traditional_graincrops,
                     )
-                    # Construct full masks from the crops
-                    full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-                        graincrops=graincrops,
-                        image_shape=self.image.shape,
-                    )
+                else:
+                    # otherwise use the traditional graincrops
+                    graincrops = traditional_graincrops
+                # Construct full masks from the crops
+                full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                    graincrops=graincrops,
+                    image_shape=self.image.shape,
+                )
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
@@ -2172,7 +2092,7 @@ class Grains:
     @staticmethod
     def merge_classes(
         grain_mask_tensor: npt.NDArray,
-        classes_to_merge: list[tuple[int]] | None,
+        classes_to_merge: list[list[int]] | None,
     ) -> npt.NDArray:
         """
         Merge classes in a grain mask tensor and add them to the grain tensor.
@@ -2421,7 +2341,7 @@ class Grains:
     @staticmethod
     def graincrops_merge_classes(
         graincrops: dict[int, GrainCrop],
-        classes_to_merge: list[tuple[int]] | None,
+        classes_to_merge: list[list[int]] | None,
     ) -> dict[int, GrainCrop]:
         """
         Merge classes in the grain crops.
