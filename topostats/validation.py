@@ -240,6 +240,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
                 ),
             },
+            "classes_to_merge": Or(
+                None,
+                [int],
+                error="Invalid value in config for 'grains.classes_to_merge', this needs to be a list of integers.",
+            ),
         },
         "grainstats": {
             "run": Or(

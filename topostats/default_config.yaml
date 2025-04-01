@@ -57,6 +57,7 @@ grains:
     class_touching_threshold: 5 # Number of dilation steps to use for detecting touching regions
     keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for, list of integers eg [1, 2] to keep only the largest regions of class 1 and 2
     class_connection_point_thresholds: null # Class connection point thresholds, [[[class_1, class_2], [min, max]]] eg [[[1, 2], [1, 1]]] for class 1 to have 1 connection point with class 2
+  classes_to_merge: null # Classes to merge into a single combined class. List of lists, eg [[1, 2]] to merge classes 1 and 2. New classes will be appended to the tensor.
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
