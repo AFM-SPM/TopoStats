@@ -591,10 +591,8 @@ class Grains:
         Dictionary of above and below grain's area thresholds.
     direction : str
         Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
-    smallest_grain_size_nm2 : float
-        Whether or not to remove grains that intersect the edge of the image.
     remove_edge_intersecting_grains : bool
-        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+        Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
         List of tuples of classes to merge.
     vetting : dict | None
@@ -615,7 +613,6 @@ class Grains:
         threshold_absolute: dict | None = None,
         absolute_area_threshold: dict | None = None,
         direction: str | None = None,
-        smallest_grain_size_nm2: float | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         traditional_vetting: dict | None = None,
@@ -655,8 +652,6 @@ class Grains:
             Dictionary of above and below grain's area thresholds.
         direction : str
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
-        smallest_grain_size_nm2 : float
-            Whether or not to remove grains that intersect the edge of the image.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
@@ -684,7 +679,6 @@ class Grains:
         # Only detect grains for the desired direction
         assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
         self.threshold_directions: list[str] = [direction] if direction != "both" else ["above", "below"]
-        self.smallest_grain_size_nm2 = smallest_grain_size_nm2
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: dict[str, list[float]] | None = None
         self.images = {
@@ -787,32 +781,6 @@ class Grains:
             2-D Numpy array of image with regions numbered.
         """
         return morphology.label(image, background)
-
-    def remove_noise(self, image: npt.NDArray, **kwargs) -> npt.NDArray:
-        """
-        Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
-
-        This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
-
-        Parameters
-        ----------
-        image : npt.NDArray
-            2-D Numpy array to be cleaned.
-        **kwargs
-            Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
-
-        Returns
-        -------
-        npt.NDArray
-            2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
-        """
-        LOGGER.debug(
-            f"[{self.filename}] : Removing noise (< {self.smallest_grain_size_nm2} nm^2"
-            "{self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2):.2f} px^2)"
-        )
-        return morphology.remove_small_objects(
-            image, min_size=self.smallest_grain_size_nm2 / (self.pixel_to_nm_scaling**2), **kwargs
-        )
 
     def remove_objects_too_small_to_process(
         self, image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int
