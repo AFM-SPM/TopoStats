@@ -236,7 +236,6 @@ def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.
     return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
-# pylint: disable=unused-argument
 def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,

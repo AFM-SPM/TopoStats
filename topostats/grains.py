@@ -696,6 +696,25 @@ class Grains:
         )
 
     @staticmethod
+    def get_region_properties(image: npt.NDArray, **kwargs) -> list:
+        """
+        Extract the properties of each region.
+
+        Parameters
+        ----------
+        image : np.array
+            Numpy array representing image.
+        **kwargs :
+            Arguments passed to 'skimage.measure.regionprops(**kwargs)'.
+
+        Returns
+        -------
+        list
+            List of region property objects.
+        """
+        return regionprops(image, **kwargs)
+
+    @staticmethod
     def tidy_border_tensor(grain_mask_tensor: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
         """
         Remove whole grains touching the border.
