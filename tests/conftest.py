@@ -589,7 +589,7 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 def minicircle_grains(minicircle_grain_gaussian_filter: Grains, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
     return Grains(
-        image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        image=minicircle_grain_gaussian_filter.plot_images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         **grains_config,

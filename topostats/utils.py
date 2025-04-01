@@ -243,7 +243,6 @@ def get_thresholds(  # noqa: C901
     otsu_threshold_multiplier: float | None = None,
     threshold_std_dev: dict | None = None,
     absolute: dict | None = None,
-    **kwargs,
 ) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
@@ -260,8 +259,6 @@ def get_thresholds(  # noqa: C901
         Dict of above and below thresholds for the standard deviation method.
     absolute : tuple
         Dict of below and above thresholds.
-    **kwargs :
-        Dictionary passed to 'topostats.threshold(**kwargs)'.
 
     Returns
     -------
@@ -309,7 +306,7 @@ def get_thresholds(  # noqa: C901
             raise TypeError(
                 f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
             )
-        if threshold_method not in ["otsu", "std_dev", "absolute"]:
+        else:
             raise ValueError(
                 f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
             )

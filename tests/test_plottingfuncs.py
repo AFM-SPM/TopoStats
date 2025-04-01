@@ -369,7 +369,7 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True
     fig, _ = Images(
-        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        data=minicircle_grain_gaussian_filter.plot_images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="08_5-z_threshold",
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
@@ -419,7 +419,7 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
     """Test plotting with high DPI."""
     plotting_config["savefig_dpi"] = DPI
     fig, _ = Images(
-        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
+        data=minicircle_grain_gaussian_filter.plot_images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="high_dpi",
         **plotting_config,
