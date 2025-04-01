@@ -912,19 +912,12 @@ class Grains:
 
             # iterate over the thresholds for the current direction
             direction_thresholds = self.thresholds[direction]
-            traditional_full_mask_tensor = np.zeros(
-                (self.image.shape[0], self.image.shape[1], len(direction_thresholds) + 1), dtype=np.int32
-            ).astype(bool)
-            for threshold_index, direction_threshold in enumerate(direction_thresholds):
-                # mask the grains
-                traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
-                    image=self.image,
-                    thresh=direction_threshold,
-                    threshold_direction=direction,
-                    img_name=self.filename,
-                ).astype(bool)
-            # Update background class in the full mask tensor
-            traditional_full_mask_tensor = Grains.update_background_class(traditional_full_mask_tensor)
+            traditional_full_mask_tensor = Grains.multi_class_thresholding(
+                image=self.image,
+                thresholds=direction_thresholds,
+                threshold_direction=direction,
+                image_name=self.filename,
+            )
 
             self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
@@ -1056,6 +1049,48 @@ class Grains:
             else:
                 # No grains found
                 self.image_grain_crops = ImageGrainCrops(above=None, below=None)
+
+    @staticmethod
+    def multi_class_thresholding(
+        image: npt.NDArray,
+        thresholds: list[float],
+        threshold_direction: str,
+        image_name: str,
+    ) -> npt.NDArray[np.bool_]:
+        """
+        Perform multi-class thresholding on an image to obtain a mask tensor.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            2-D Numpy array of image.
+        thresholds : list[float]
+            List of thresholds for each class.
+        threshold_direction : str
+            Direction for which the threshold is applied.
+        image_name : str
+            Name of the image being processed (used in logging).
+
+        Returns
+        -------
+        npt.NDArray
+            WxHxC Numpy array of the mask tensor.
+        """
+        traditional_full_mask_tensor = np.zeros(
+            (image.shape[0], image.shape[1], len(thresholds) + 1), dtype=np.int32
+        ).astype(bool)
+        for threshold_index, direction_threshold in enumerate(thresholds):
+            # mask the grains
+            traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
+                image=image,
+                thresh=direction_threshold,
+                threshold_direction=threshold_direction,
+                img_name=image_name,
+            ).astype(bool)
+        # Update background class in the full mask tensor
+        traditional_full_mask_tensor = Grains.update_background_class(traditional_full_mask_tensor)
+
+        return traditional_full_mask_tensor
 
     # pylint: disable=too-many-locals
     @staticmethod
