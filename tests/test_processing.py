@@ -30,6 +30,51 @@ RESOURCES = BASE_DIR / "tests/resources"
 
 # pylint: disable=too-many-positional-arguments
 
+def test_debug_process_file(tmp_path) -> None:
+    """Debug processing a file."""
+    from topostats.io import read_yaml
+    import yaml
+    import importlib.resources as pkg_resources
+    import topostats
+    import copy
+
+    # config
+    config_path = Path("")
+    assert config_path.exists()
+    original_config = read_yaml(config_path)
+    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    original_config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
+
+    # data
+    datafiles = Path("/Users/sylvi/topo_data/topo-test-unets/debugging/data/").glob("*.spm")
+    scans = LoadScans(list(datafiles), channel="Height", extract="all")
+    scans.get_data()
+    image_dict = scans.img_dict
+    for filename, topo_image in image_dict.items():
+
+        if filename != "MC2_427bp_Sc_Ni_Area1.0_00000":
+            continue
+
+        print()
+        print(f"PROCESSING IMAGE {filename}")
+        print()
+
+        config = copy.deepcopy(original_config)
+
+        _, _, _, _, _, _ = process_scan(
+            topostats_object=topo_image,
+            base_dir=BASE_DIR,
+            filter_config=config["filter"],
+            grains_config=config["grains"],
+            grainstats_config=config["grainstats"],
+            disordered_tracing_config=config["disordered_tracing"],
+            nodestats_config=config["nodestats"],
+            ordered_tracing_config=config["ordered_tracing"],
+            splining_config=config["splining"],
+            curvature_config=config["curvature"],
+            plotting_config=config["plotting"],
+            output_dir=tmp_path,
+        )
 
 # Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
 # so instead we run three regression tests.
