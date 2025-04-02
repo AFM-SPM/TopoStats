@@ -971,20 +971,24 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
             "bbox": dummy_graincrops_dict[0].bbox,
             "pixel_to_nm_scaling": dummy_graincrops_dict[0].pixel_to_nm_scaling,
             "filename": dummy_graincrops_dict[0].filename,
+            "stats": dummy_graincrops_dict[0].stats,
+            "height_profiles": dummy_graincrops_dict[0].height_profiles,
         }
     }
     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
         dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=dummy_graincrops_dict)
     # Load it back in and check if the dictionary is the same
     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-        # Check keys are the same
         assert sorted(f.keys()) == sorted(expected.keys())
-        np.testing.assert_array_equal(f["0"]["image"], expected["0"]["image"])
-        np.testing.assert_array_equal(f["0"]["mask"], expected["0"]["mask"])
-        assert f["0"]["padding"], expected["0"]["padding"]
-        assert f["0"]["bbox"], expected["0"]["bbox"]
-        assert f["0"]["pixel_to_nm_scaling"], expected["0"]["pixel_to_nm_scaling"]
-        assert f["0"]["filename"], expected["0"]["filename"]
+        np.testing.assert_array_equal(f["0"]["image"][()], expected["0"]["image"])
+        np.testing.assert_array_equal(f["0"]["mask"][()], expected["0"]["mask"])
+        assert f["0"]["padding"][()] == expected["0"]["padding"]
+        np.testing.assert_array_equal(f["0"]["bbox"][()], expected["0"]["bbox"])
+        assert f["0"]["pixel_to_nm_scaling"][()] == expected["0"]["pixel_to_nm_scaling"]
+        assert f["0"]["filename"][()].decode("utf-8") == expected["0"]["filename"]  # pylint: disable=no-member
+        for key, value in f["0"]["stats"]["1"]["0"].items():
+            assert value[()] == expected["0"]["stats"][1][0][key]
+        np.testing.assert_array_equal(f["0"]["height_profiles"]["1"]["0"][()], expected["0"]["height_profiles"][1][0])
 
 
 def test_dict_to_hdf5_graincropsdirection(
