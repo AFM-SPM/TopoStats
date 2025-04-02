@@ -77,6 +77,8 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "bbox": dummy_graincrop.bbox,
         "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
         "filename": dummy_graincrop.filename,
+        "stats": dummy_graincrop.stats,
+        "height_profiles": dummy_graincrop.height_profiles,
     }
     np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 

@@ -13,7 +13,7 @@ from art import tprint
 
 from topostats import __version__
 from topostats.filters import Filters
-from topostats.grains import GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
@@ -325,7 +325,7 @@ def run_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
-) -> tuple[pd.DataFrame, dict]:
+) -> tuple[pd.DataFrame, dict[int : npt.NDArray], dict[int, GrainCrop]]:
     """
     Calculate grain statistics for an image and optionally plots the results.
 
@@ -346,7 +346,7 @@ def run_grainstats(
 
     Returns
     -------
-    pd.DataFrame
+    tuple[pd.DataFrame, dict[int: npt.NDArray, dict[int, GrainCrop]]
         A pandas DataFrame containing the statsistics for each grain. The index is the
         filename and grain number.
     """
@@ -398,17 +398,17 @@ def run_grainstats(
             grainstats_df["basename"] = basename.parent
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
-            return grainstats_df, height_profiles_dict
+            return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
         except Exception:
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            return create_empty_dataframe(column_set="grainstats"), height_profiles_dict
+            return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
     else:
         LOGGER.info(
             f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
         )
-        return create_empty_dataframe(column_set="grainstats"), {}
+        return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
 def run_disordered_tracing(
@@ -1178,7 +1178,7 @@ def process_scan(
 
     if image_grain_crops.above is not None or image_grain_crops.below is not None:
         # Grainstats :
-        grainstats_df, height_profiles = run_grainstats(
+        grainstats_df, height_profiles, _ = run_grainstats(
             image_grain_crops=image_grain_crops,
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
@@ -1435,6 +1435,8 @@ def process_grains(
         return (topostats_object["filename"], False)
 
 
+# @ns-rse 2025-03-28 - This function will need updating to work with ImageGrainCrops object once we have updated loading
+# the HDF5 dictionaries to such objects.
 def process_grainstats(
     topostats_object: dict,
     base_dir: str | Path,
@@ -1465,7 +1467,7 @@ def process_grainstats(
 
     Returns
     -------
-    tuple[str, bool]
+    tuple[str, pd.DataFrame]
         A tuple of the image and a boolean indicating if the image was successfully processed.
     """
     core_out_path, _, grainstats_out_path, _ = get_out_paths(
@@ -1480,7 +1482,7 @@ def process_grainstats(
     # Calculate grainstats if there are any to be detected
     try:
         if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
-            grainstats_df, height_profiles = run_grainstats(
+            grainstats_df, height_profiles, grain_crops = run_grainstats(
                 image_grain_crops=topostats_object["image"],
                 filename=topostats_object["filename"],
                 basename=topostats_object["img_path"],
@@ -1493,10 +1495,11 @@ def process_grainstats(
             save_topostats_file(
                 output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
             )
-            return (topostats_object["filename"], grainstats_df, height_profiles)
+            return (topostats_object["filename"], grainstats_df, height_profiles, grain_crops)
         return (
             topostats_object["filename"],
             create_empty_dataframe(column_set="grainstats"),
+            None,
             None,
         )
     except:  # noqa: E722  # pylint: disable=bare-except

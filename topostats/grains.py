@@ -61,6 +61,10 @@ class GrainCrop:
         Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
+    height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+        3-D Numpy tensor of the height profiles.
+    stats : dict[int, dict[int, Any]] | None
+        Dictionary of grain statistics.
     """
 
     def __init__(
@@ -71,6 +75,8 @@ class GrainCrop:
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         filename: str,
+        height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
+        stats: dict[int, dict[int, Any]] | None = None,
     ):
         """
         Initialise the class.
@@ -89,6 +95,10 @@ class GrainCrop:
             Pixel to nanometre scaling factor for the crop.
         filename : str
             Filename of the image from which the crop was taken.
+        height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+            3-D Numpy tensor of the height profiles.
+        stats : dict[int, dict[int, Any]] | None
+            Dictionary of grain statistics.
         """
         self.padding = padding
         self.image = image
@@ -98,6 +108,8 @@ class GrainCrop:
         self.bbox = bbox
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.filename = filename
+        self.height_profiles = height_profiles
+        self.stats = stats
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -300,6 +312,54 @@ class GrainCrop:
         """
         self._filename = value
 
+    @property
+    def height_profiles(self) -> npt.NDArray:
+        """
+        Getter for the height_profile.
+
+        Returns
+        -------
+        str
+            The image height_profile.
+        """
+        return self._height_profiles
+
+    @height_profiles.setter
+    def height_profiles(self, value: npt.NDArray) -> None:
+        """
+        Setter for the height_profile.
+
+        Parameters
+        ----------
+        value : str
+            Image height_profile.
+        """
+        self._height_profiles = value
+
+    @property
+    def stats(self) -> dict[str, Any]:
+        """
+        Getter for the stats.
+
+        Returns
+        -------
+        str
+            Dictionary of image statistics.
+        """
+        return self._stats
+
+    @stats.setter
+    def stats(self, value: dict[str, Any]) -> None:
+        """
+        Setter for the stats.
+
+        Parameters
+        ----------
+        value : dict[str, Any]
+            Image stats.
+        """
+        self._stats = value
+
     def __eq__(self, other: object) -> bool:
         """
         Check if two GrainCrop objects are equal.
@@ -323,6 +383,8 @@ class GrainCrop:
             and self.bbox == other.bbox
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.filename == other.filename
+            and self.stats == other.stats
+            and self.height_profiles == other.height_profiles
         )
 
     def grain_crop_to_dict(self) -> dict[str, Any]:
@@ -1277,6 +1339,8 @@ class Grains:
                     bbox=graincrop.bbox,
                     pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                     filename=graincrop.filename,
+                    height_profiles=None,
+                    stats=None,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -2038,6 +2102,8 @@ class Grains:
                 bbox=graincrop.bbox,
                 pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                 filename=graincrop.filename,
+                height_profiles=None,
+                stats=None,
             )
 
         return passed_graincrops
@@ -2227,6 +2293,8 @@ class Grains:
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
+                height_profiles=None,
+                stats=None,
             )
 
         return graincrops

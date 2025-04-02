@@ -33,6 +33,7 @@ from topostats.utils import create_empty_dataframe
 # FIXME : calculate_aspect_ratio raises this error when linting it has 65 statements, recommended not to exceed 50.
 #         Could break some out to small functions such as the lines that calculate the samllest bounding rectangle
 # pylint: disable=too-many-statements
+# pylint: disable=too-many-positional-arguments
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -203,7 +204,8 @@ class GrainStats:
         for grain_index, grain_crop in self.grain_crops.items():
             LOGGER.debug(f"Processing grain {grain_index}")
             all_height_profiles[grain_index] = {}
-
+            grain_crop.stats = {}
+            grain_crop.height_profiles = {}
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
@@ -220,7 +222,8 @@ class GrainStats:
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
                 all_height_profiles[grain_index][class_index] = {}
-
+                grain_crop.stats[class_index] = {}
+                grain_crop.height_profiles[class_index] = {}
                 class_mask = mask[:, :, class_index]
                 labelled_class_mask = skimage_measure.label(class_mask)
                 # Split the class into connected components
@@ -234,7 +237,6 @@ class GrainStats:
                     subgrain_mask_image = np.ma.masked_array(
                         image, mask=np.invert(subgrain_only_mask), fill_value=np.nan
                     ).filled()
-
                     # Shape of the subgrain region with no padding and not necessarily square, more accurate measure of
                     # the bounding box size
                     subgrain_tight_shape = subgrain_region.image.shape
@@ -277,9 +279,11 @@ class GrainStats:
                     feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
 
                     if self.extract_height_profile:
-                        all_height_profiles[grain_index][class_index][subgrain_index] = (
-                            height_profiles.interpolate_height_profile(img=image, mask=subgrain_only_mask)
+                        _height_profiles = height_profiles.interpolate_height_profile(
+                            img=image, mask=subgrain_only_mask
                         )
+                        all_height_profiles[grain_index][class_index][subgrain_index] = _height_profiles
+                        grain_crop.height_profiles[class_index][subgrain_index] = _height_profiles
                         LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
 
                     # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
@@ -316,8 +320,12 @@ class GrainStats:
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }
-
                     grainstats_rows.append(stats)
+                    # remove indexes from stats and save to nested stats object
+                    _stats = stats.copy()
+                    for x in ["grain_number", "class_number", "subgrain_number"]:
+                        _stats.pop(x)
+                    grain_crop.stats[class_index][subgrain_index] = _stats
 
         # Check if the dataframe is empty
         if len(grainstats_rows) == 0:
@@ -325,12 +333,9 @@ class GrainStats:
         else:
             # Create a dataframe from the list of dictionaries
             grainstats_df = pd.DataFrame(grainstats_rows)
-
         # Change the index column from the arbitrary one to the grain number
-        # grainstats_df.set_index("grain_number", inplace=True)
         grainstats_df["image"] = self.image_name
-
-        return grainstats_df, all_height_profiles
+        return (grainstats_df, all_height_profiles)
 
     @staticmethod
     def calculate_points(grain_mask: npt.NDArray) -> list:
@@ -823,8 +828,6 @@ class GrainStats:
                     (extremes["x_max"] - extremes["x_min"]),
                     (extremes["y_max"] - extremes["y_min"]),
                 )
-                # aspect ratio bounded to be <= 1
-                aspect_ratio = smallest_bounding_width / smallest_bounding_length
 
         # Unrotate the bounding box vertices
         r_inverse = rotated_coordinates.T
@@ -900,7 +903,11 @@ class GrainStats:
         # plt.savefig(path / "minimum_bbox.png")
         plt.close()
 
-        return smallest_bounding_width, smallest_bounding_length, aspect_ratio
+        return (
+            smallest_bounding_width,  # pylint: disable=possibly-used-before-assignment
+            smallest_bounding_length,  # pylint: disable=possibly-used-before-assignment
+            smallest_bounding_width / smallest_bounding_length,  # pylint: disable=possibly-used-before-assignment
+        )
 
     @staticmethod
     def find_cartesian_extremes(rotated_points: npt.NDArray) -> dict:
