@@ -709,10 +709,7 @@ def test_remove_edge_intersecting_grains(
         "threshold_absolute",
         "absolute_area_threshold",
         "direction",
-        "smallest_grain_size_nm2",
         "remove_edge_intersecting_grains",
-        "expected_grain_mask",
-        "expected_labelled_regions",
         "expected_imagegraincrops",
     ),
     [
@@ -725,8 +722,8 @@ def test_remove_edge_intersecting_grains(
                     [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
                     [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
                     [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
-                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
                     [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
                     [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
                 ]
@@ -735,39 +732,10 @@ def test_remove_edge_intersecting_grains(
             "absolute",
             None,
             None,
-            {"above": 0.9, "below": 0.0},
+            {"above": [0.9, 2.5], "below": [0.0]},
             {"above": [1, 10000000], "below": [1, 10000000]},
             "above",
-            1,
             True,
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                    [0, 1, 0, 1, 0, 0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 1, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 0, 1, 0, 6, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-            ).astype(bool),
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-            ).astype(np.int32),
             ImageGrainCrops(
                 above=GrainCropsDirection(
                     crops={
@@ -802,6 +770,15 @@ def test_remove_edge_intersecting_grains(
                                             [0, 1, 1, 1, 0],
                                             [0, 1, 0, 1, 0],
                                             [0, 1, 1, 1, 0],
+                                            [0, 0, 0, 0, 0],
+                                        ]
+                                    ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0],
                                         ]
                                     ),
@@ -843,6 +820,15 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -878,6 +864,14 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -891,8 +885,8 @@ def test_remove_edge_intersecting_grains(
                                 [
                                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
                                     [1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                                    [0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
-                                    [0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                                    [0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                                    [0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
                                     [1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
                                     [0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
                                 ]
@@ -903,8 +897,8 @@ def test_remove_edge_intersecting_grains(
                                         [
                                             [1, 1, 1, 1, 1, 1],
                                             [1, 1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 0, 1],
-                                            [1, 1, 1, 1, 0, 1],
+                                            [1, 1, 1, 0, 0, 1],
+                                            [1, 1, 1, 0, 0, 1],
                                             [1, 1, 0, 0, 0, 1],
                                             [1, 1, 1, 1, 1, 1],
                                         ]
@@ -913,9 +907,19 @@ def test_remove_edge_intersecting_grains(
                                         [
                                             [0, 0, 0, 0, 0, 0],
                                             [0, 0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 1, 0],
-                                            [0, 0, 0, 0, 1, 0],
+                                            [0, 0, 0, 1, 1, 0],
+                                            [0, 0, 0, 1, 1, 0],
                                             [0, 0, 1, 1, 1, 0],
+                                            [0, 0, 0, 0, 0, 0],
+                                        ]
+                                    ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0, 0],
                                         ]
                                     ),
@@ -954,6 +958,14 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -980,6 +992,13 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0],
+                                            [0, 0, 0],
+                                            [0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -995,8 +1014,8 @@ def test_remove_edge_intersecting_grains(
                                     [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
                                     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                     [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                                    [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
+                                    [1, 0, 0, 1, 1, 1, 1, 0, 0, 1],
                                     [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
                                     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                 ]
@@ -1009,9 +1028,23 @@ def test_remove_edge_intersecting_grains(
                                     [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                     [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                                    [0, 1, 1, 0, 0, 0, 0, 0, 1, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+                                    [0, 1, 1, 0, 0, 0, 0, 1, 1, 0],
                                     [0, 0, 1, 0, 1, 0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                ],
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                 ],
                             ),
@@ -1034,10 +1067,7 @@ def test_find_grains(
     threshold_absolute: dict,
     absolute_area_threshold: dict,
     direction: str,
-    smallest_grain_size_nm2: int,
     remove_edge_intersecting_grains: bool,
-    expected_grain_mask: npt.NDArray[np.int32],
-    expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class without unet."""
@@ -1053,7 +1083,6 @@ def test_find_grains(
         threshold_absolute=threshold_absolute,
         area_thresholds=absolute_area_threshold,
         direction=direction,
-        smallest_grain_size_nm2=smallest_grain_size_nm2,
         remove_edge_intersecting_grains=remove_edge_intersecting_grains,
     )
 
@@ -1062,17 +1091,6 @@ def test_find_grains(
     grains_object.minimum_bbox_size_px = 1
 
     grains_object.find_grains()
-
-    result_removed_small_objects = grains_object.mask_images[direction]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.mask_images[direction]["labelled_regions_02"]
-
-    assert result_removed_small_objects.shape == expected_grain_mask.shape
-    assert result_removed_small_objects.dtype == expected_grain_mask.dtype
-    np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
-
-    assert result_labelled_regions.shape == expected_labelled_regions.shape
-    assert result_labelled_regions.dtype == expected_labelled_regions.dtype
-    np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
     # Check the image_grain_crops
     result_image_grain_crops = grains_object.image_grain_crops
