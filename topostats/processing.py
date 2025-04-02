@@ -1146,7 +1146,6 @@ def process_scan(
 
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
-
     # Flatten Image
     image = run_filters(
         unprocessed_image=topostats_object["image_original"],
