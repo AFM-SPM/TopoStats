@@ -353,7 +353,7 @@ def run_grainstats(
     # Calculate statistics if required
     if grainstats_config["run"]:
         grainstats_config.pop("run")
-        class_names = {index+1: class_name for index, class_name in enumerate(grainstats_config.pop('class_names'))}
+        class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
         try:
             LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
@@ -397,7 +397,7 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
             grainstats_df["basename"] = basename.parent
-            grainstats_df['class_name'] = grainstats_df['class_number'].map(class_names)
+            grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
             return grainstats_df, height_profiles_dict
@@ -1146,8 +1146,6 @@ def process_scan(
 
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
 
-    #class_names = {index+1: class_name for index, class_name in enumerate(grains_config['unet_config'].pop('class_names'))}
-    #print("CLASS NAMES: ", class_names)
 
     # Flatten Image
     image = run_filters(
@@ -1293,8 +1291,6 @@ def process_scan(
     save_topostats_file(
         output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
     )
-
-    #grainstats_df['class_names'] = grainstats_df['class_number'].map(class_names)
 
     return (
         topostats_object["img_path"],
