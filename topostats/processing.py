@@ -178,20 +178,21 @@ def run_grains(  # noqa: C901
                 **grains_config,
             )
             grains.find_grains()
-            for direction, _ in grains.region_properties.items():
-                LOGGER.info(
-                    f"[{filename}] : Grains found for direction {direction} : {len(grains.region_properties[direction])}"
-                )
-                if len(grains.region_properties[direction]) == 0:
-                    LOGGER.warning(f"[{filename}] : No grains found for direction {direction}")
+            # Get number of grains found
+            num_above = 0
+            if grains.image_grain_crops.above is not None:
+                num_above = len(grains.image_grain_crops.above.crops)
+            num_below = 0
+            if grains.image_grain_crops.below is not None:
+                num_below = len(grains.image_grain_crops.below.crops)
+            LOGGER.info(f"[{filename}] : Grains found: {num_above} above, {num_below} below")
+            if num_above == 0 and num_below == 0:
+                LOGGER.warning(f"[{filename}] : No grains found for either direction.")
         except Exception as e:
             LOGGER.error(
                 f"[{filename}] : An error occurred during grain finding, skipping following steps.", exc_info=e
             )
         else:
-            for direction, region_props in grains.region_properties.items():
-                if len(region_props) == 0:
-                    LOGGER.warning(f"[{filename}] : No grains found for the {direction} direction.")
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
                 plotting_config.pop("run")
