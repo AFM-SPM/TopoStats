@@ -41,7 +41,7 @@ grains:
     below: [-1.0] # Thresholds for grains below the image background. List[float].
     above: [1.0] # Thresholds for grains above the image background. List[float].
   direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
-  absolute_area_threshold:
+  area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
@@ -50,6 +50,7 @@ grains:
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
   vetting:
+    whole_grain_size_thresholds: null  # Size thresholds for whole grains in nanometres squared, ie all classes combined. Tuple of 2 floats, ie [low, high] eg [100, 1000] for grains to be between 100 and 1000 nm^2. Can use None to not set an upper/lower bound.
     class_conversion_size_thresholds: null # Class conversion size thresholds, list of tuples of 3 integers and 2 integers, ie list[tuple[tuple[int, int, int], tuple[int, int]]] eg [[[1, 2, 3], [5, 10]]] for each region of class 1 to convert to 2 if smaller than 5 nm^2 and to class 3 if larger than 10 nm^2.
     class_region_number_thresholds: null # Class region number thresholds, list of lists, ie [[class, low, high],] eg [[1, 2, 4], [2, 1, 1]] for class 1 to have 2-4 regions and class 2 to have 1 region. Can use None to not set an upper/lower bound.
     class_size_thresholds: null # Class size thresholds (nm^2), list of tuples of 3 integers, ie [[class, low, high],] eg [[1, 100, 1000], [2, 1000, None]] for class 1 to have 100-1000 nm^2 and class 2 to have 1000-any nm^2. Can use None to not set an upper/lower bound.
