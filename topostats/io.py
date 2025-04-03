@@ -783,7 +783,7 @@ class LoadScans:
                         self.pixel_to_nm_scaling = data["pixel_to_nm_scaling"]
                         # If we need the grain masks for processing we extract them
                         if self.extract in ("grainstats"):
-                            self.grain_masks = data["grain_masks"]
+                            self.grain_masks = data["grain_tensors"]
                     elif suffix == ".topostats" and self.extract in ("filter", "raw"):
                         self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
@@ -878,32 +878,32 @@ class LoadScans:
         # tracing removes what it doesn't need, then nodestats, then disordered, then grainstats then grains, should be
         # more succinct code with less popping
         if self.extract in ["grains"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("grain_masks")
-            img_dict.pop("height_profiles")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_traces")
-            img_dict.pop("splining")
+            img_dict.pop("disordered_traces", None)
+            img_dict.pop("grain_curvature_stats", None)
+            img_dict.pop("grain_tensors", None)
+            img_dict.pop("height_profiles", None)
+            img_dict.pop("nodestats", None)
+            img_dict.pop("ordered_traces", None)
+            img_dict.pop("splining", None)
             return img_dict
         if self.extract in ["grainstats"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("height_profiles")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_traces")
-            img_dict.pop("splining")
+            img_dict.pop("disordered_traces", None)
+            img_dict.pop("grain_curvature_stats", None)
+            img_dict.pop("height_profiles", None)
+            img_dict.pop("nodestats", None)
+            img_dict.pop("ordered_traces", None)
+            img_dict.pop("splining", None)
             return img_dict
         if self.extract in ["disordered_tracing", "nodestats", "ordered_tracing"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_tracing")
-            img_dict.pop("splining")
+            img_dict.pop("disordered_traces", None)
+            img_dict.pop("grain_curvature_stats", None)
+            img_dict.pop("nodestats", None)
+            img_dict.pop("ordered_tracing", None)
+            img_dict.pop("splining", None)
             return img_dict
         if self.extract in ["splining"]:
-            img_dict.pop("splining")
-            img_dict.pop("grain_curvature_stats")
+            img_dict.pop("splining", None)
+            img_dict.pop("grain_curvature_stats", None)
             return img_dict
         return img_dict
 
