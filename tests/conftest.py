@@ -373,6 +373,8 @@ def dummy_graincrop() -> GrainCrop:
         bbox=(1, 1, 11, 11),
         pixel_to_nm_scaling=1.0,
         filename="dummy",
+        stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
+        height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
     )
 
 

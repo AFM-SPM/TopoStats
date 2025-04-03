@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 from test_io import dict_almost_equal
 
-from topostats.grains import GrainCropsDirection, ImageGrainCrops
+from topostats.grains import GrainCrop, GrainCropsDirection, ImageGrainCrops
 from topostats.io import LoadScans, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -742,7 +742,6 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grains wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-
     grains_config = process_scan_config["grains"]
     grains_config["threshold_method"] = "absolute"
     grains_config["direction"] = "both"
@@ -750,7 +749,6 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["threshold_absolute"]["below"] = -0.4
     grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
-
     imagegraincrops = run_grains(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
@@ -777,8 +775,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
     ) as f:
         image_grain_crops = pickle.load(f)
-
-    grainstats_df, _ = run_grainstats(
+    grainstats_df, _, grain_crops = run_grainstats(
         image_grain_crops=image_grain_crops,
         filename="dummy filename",
         basename=RESOURCES,
@@ -787,10 +784,27 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         grain_out_path=tmp_path,
     )
 
+    GRAIN_CROP_ATTRIBUTES = [
+        "bbox",
+        "debug_locate_difference",
+        "filename",
+        "grain_crop_to_dict",
+        "height_profiles",
+        "image",
+        "mask",
+        "padding",
+        "pixel_to_nm_scaling",
+        "stats",
+    ]
     assert isinstance(grainstats_df, pd.DataFrame)
     # Expect 6 grains in the above direction for cropped minicircle
     assert grainstats_df.shape[0] == 6
     assert len(grainstats_df.columns) == 26
+    assert isinstance(grain_crops, dict)
+    assert len(grain_crops) == 6
+    for grain_crop in grain_crops.values():
+        assert isinstance(grain_crop, GrainCrop)
+        assert all(x in dir(grain_crop) for x in GRAIN_CROP_ATTRIBUTES)
 
 
 # ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to
