@@ -500,10 +500,12 @@ def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filter
 
 
 @pytest.fixture()
-def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
+def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], **filter_config
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        threshold_method="otsu",
+        otsu_threshold_multiplier=1.0,
     )
     return minicircle_initial_tilt_removal
 
@@ -512,10 +514,10 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_c
 def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0], "above": [1.0]},
     )
     return minicircle_initial_tilt_removal
 
@@ -524,10 +526,10 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
 def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.5, "above": 1.5},
+        absolute={"below": [-1.5], "above": [1.5]},
     )
     return minicircle_initial_tilt_removal
 
