@@ -587,7 +587,7 @@ class Grains:
         if threshold_method is 'std_dev'.
     threshold_absolute : dict
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-    absolute_area_threshold : dict
+    area_thresholds : dict
         Dictionary of above and below grain's area thresholds.
     direction : str
         Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.

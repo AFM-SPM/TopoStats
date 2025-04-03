@@ -156,13 +156,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     ),
                 ),
             },
-            "absolute_area_threshold": {
+            "area_thresholds": {
                 "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
+                            "Invalid value in config for 'grains.area_thresholds.above', valid values "
                             "are int or null"
                         ),
                     )
@@ -172,7 +172,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
+                            "Invalid value in config for 'grains.area_thresholds.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -1049,7 +1049,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(

@@ -52,7 +52,7 @@ def default_config() -> dict:
     config["grains"]["threshold_absolute"]["above"] = 1.0
     config["grains"]["threshold_absolute"]["below"] = -1.0
     config["grains"]["smallest_grain_size_nm2"] = 10
-    config["grains"]["absolute_area_threshold"]["above"] = [10, 60000000]
+    config["grains"]["area_thresholds"]["above"] = [10, 60000000]
     return config
 
 
@@ -61,8 +61,8 @@ def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["filter"]["remove_scars"]["run"] = True
-    config["grains"]["threshold_std_dev"]["below"] = 1.0
-    config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
+    config["grains"]["threshold_std_dev"]["below"] = [1.0]
+    config["grains"]["area_thresholds"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
