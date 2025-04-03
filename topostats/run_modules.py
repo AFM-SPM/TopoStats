@@ -523,10 +523,10 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, height_profiles in pool.imap_unordered(
+            for img, result, height_profiles, grain_crops in pool.imap_unordered(
                 processing_function,
                 all_scan_data.img_dict.values(),
-            ):
+            ): # grain_crops not used... yet!
                 results[str(img)] = result
                 height_profile_all[str(img)] = height_profiles
                 pbar.update()
