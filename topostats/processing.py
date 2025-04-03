@@ -347,7 +347,7 @@ def run_grainstats(
     Returns
     -------
     tuple[pd.DataFrame, dict[int: npt.NDArray], dict[int, GrainCrop]]
-        Tuple of a pandas DataFrame containing the statsistics for each grain, a dictionary of images and a 
+        Tuple of a pandas DataFrame containing the statsistics for each grain, a dictionary of images and a
         dictionary of GrainCrop objects.
     """
     # Calculate statistics if required
