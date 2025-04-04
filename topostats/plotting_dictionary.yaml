@@ -241,17 +241,17 @@ grain_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
-  module: "grains"
+  module: "grain_crops"
 grain_mask:
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
-  module: "grains"
+  module: "grain_crops"
 grain_mask_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
-  module: "grains"
+  module: "grain_crops"
 # Disordered Tracing Troubleshooting Images
 orig_grain:
   filename: "20-original_grains"
