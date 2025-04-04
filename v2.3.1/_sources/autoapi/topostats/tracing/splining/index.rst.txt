@@ -1,0 +1,461 @@
+topostats.tracing.splining
+==========================
+
+.. py:module:: topostats.tracing.splining
+
+.. autoapi-nested-parse::
+
+   Order single pixel skeletons with or without NodeStats Statistics.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.splining.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.splining.splineTrace
+   topostats.tracing.splining.windowTrace
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.splining.measure_contour_length
+   topostats.tracing.splining.measure_end_to_end_distance
+   topostats.tracing.splining.splining_image
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: splineTrace(image: numpy.typing.NDArray, mol_ordered_tracing_data: dict, pixel_to_nm_scaling: float, spline_step_size: float, spline_linear_smoothing: float, spline_circular_smoothing: float, spline_degree: int)
+
+   
+   Smooth the ordered trace via an average of splines.
+
+   :param image: Whole image containing all molecules and grains.
+   :type image: npt.NDArray
+   :param mol_ordered_tracing_data: Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
+   :type mol_ordered_tracing_data: dict
+   :param pixel_to_nm_scaling: The pixel to nm scaling factor, by default 1.
+   :type pixel_to_nm_scaling: float
+   :param spline_step_size: Step length in meters to use a coordinate for splining.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Amount of linear spline smoothing.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Amount of circular spline smoothing.
+   :type spline_circular_smoothing: float
+   :param spline_degree: Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
+                         small s-value.
+   :type spline_degree: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: mol_ordered_trace
+
+
+   .. py:attribute:: mol_is_circular
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: spline_step_size
+
+
+   .. py:attribute:: spline_linear_smoothing
+
+
+   .. py:attribute:: spline_circular_smoothing
+
+
+   .. py:attribute:: spline_degree
+
+
+   .. py:attribute:: tracing_stats
+
+
+   .. py:method:: get_splined_traces(fitted_trace: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Get a splined version of the fitted trace - useful for finding the radius of gyration etc.
+
+      This function actually calculates the average of several splines which is important for getting a good fit on
+      the lower resolution data.
+
+      :param fitted_trace: Numpy array of the fitted trace.
+      :type fitted_trace: npt.NDArray
+
+      :returns: Splined (smoothed) array of trace.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_duplicate_consecutive_tuples(tuple_list: list[tuple | numpy.typing.NDArray]) -> list[tuple]
+      :staticmethod:
+
+
+      
+      Remove duplicate consecutive tuples from a list.
+
+      :param tuple_list: List of tuples or numpy ndarrays to remove consecutive duplicates from.
+      :type tuple_list: list[tuple | npt.NDArray]
+
+      :returns: List of tuples with consecutive duplicates removed.
+      :rtype: list[Tuple]
+
+      .. rubric:: Examples
+
+      For the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
+      [(1, 2), (2, 3), (3, 4)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: run_spline_trace() -> tuple[numpy.typing.NDArray, dict]
+
+      
+      Pipeline to run the splining smoothing and obtaining smoothing stats.
+
+      :returns: Tuple of Nx2 smoothed trace coordinates, and smoothed trace statistics.
+      :rtype: tuple[npt.NDArray, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: windowTrace(mol_ordered_tracing_data: dict, pixel_to_nm_scaling: float, rolling_window_size: float)
+
+   
+   Obtain a smoothed trace of a molecule.
+
+   :param mol_ordered_tracing_data: Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
+   :type mol_ordered_tracing_data: dict
+   :param pixel_to_nm_scaling: The pixel to nm scaling factor, by default 1.
+   :type pixel_to_nm_scaling: float, optional
+   :param rolling_window_size: The length of the rolling window too average over, by default 6.0.
+   :type rolling_window_size: np.float64, optional
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: mol_ordered_trace
+
+
+   .. py:attribute:: mol_is_circular
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: rolling_window_size
+
+
+   .. py:attribute:: tracing_stats
+
+
+   .. py:method:: pool_trace_circular(pixel_trace: numpy.typing.NDArray[numpy.int32], rolling_window_size: numpy.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> numpy.typing.NDArray[numpy.float64]
+      :staticmethod:
+
+
+      
+      Smooth a pixelwise ordered trace of circular molecules via a sliding window.
+
+      :param pixel_trace: Nx2 ordered trace coordinates.
+      :type pixel_trace: npt.NDArray[np.int32]
+      :param rolling_window_size: The length of the rolling window too average over, by default 6.0.
+      :type rolling_window_size: np.float64, optional
+      :param pixel_to_nm_scaling: The pixel to nm scaling factor, by default 1.
+      :type pixel_to_nm_scaling: float, optional
+
+      :returns: MxN Smoothed ordered trace coordinates.
+      :rtype: npt.NDArray[np.float64]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pool_trace_linear(pixel_trace: numpy.typing.NDArray[numpy.int32], rolling_window_size: numpy.float64 = 6.0, pixel_to_nm_scaling: float = 1) -> numpy.typing.NDArray[numpy.float64]
+      :staticmethod:
+
+
+      
+      Smooth a pixelwise ordered trace of linear molecules via a sliding window.
+
+      :param pixel_trace: Nx2 ordered trace coordinates.
+      :type pixel_trace: npt.NDArray[np.int32]
+      :param rolling_window_size: The length of the rolling window too average over, by default 6.0.
+      :type rolling_window_size: np.float64, optional
+      :param pixel_to_nm_scaling: The pixel to nm scaling factor, by default 1.
+      :type pixel_to_nm_scaling: float, optional
+
+      :returns: MxN Smoothed ordered trace coordinates.
+      :rtype: npt.NDArray[np.float64]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: run_window_trace() -> tuple[numpy.typing.NDArray, dict]
+
+      
+      Pipeline to run the rolling window smoothing and obtaining smoothing stats.
+
+      :returns: Tuple of Nx2 smoothed trace coordinates, and smoothed trace statistics.
+      :rtype: tuple[npt.NDArray, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: measure_contour_length(splined_trace: numpy.typing.NDArray, mol_is_circular: bool, pixel_to_nm_scaling: float) -> float
+
+   
+   Contour length for each of the splined traces accounting  for whether the molecule is circular or linear.
+
+   Contour length units are nm.
+
+   :param splined_trace: The splined trace.
+   :type splined_trace: npt.NDArray
+   :param mol_is_circular: Whether the molecule is circular or not.
+   :type mol_is_circular: bool
+   :param pixel_to_nm_scaling: Scaling factor from pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+
+   :returns: Length of molecule in nanometres (nm).
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scaling: float)
+
+   
+   Euclidean distance between the start and end of linear molecules.
+
+   The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+   molecules. If the molecule is circular then the distance is set to zero (0).
+
+   :param splined_trace: The splined trace.
+   :type splined_trace: npt.NDArray
+   :param mol_is_circular: Whether the molecule is circular or not.
+   :type mol_is_circular: bool
+   :param pixel_to_nm_scaling: Scaling factor from pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+
+   :returns: Length of molecule in nanometres (nm).
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: splining_image(image: numpy.typing.NDArray, ordered_tracing_direction_data: dict, pixel_to_nm_scaling: float, filename: str, method: str, rolling_window_size: float, spline_step_size: float, spline_linear_smoothing: float, spline_circular_smoothing: float, spline_degree: int) -> tuple[dict, pandas.DataFrame, pandas.DataFrame]
+
+   
+   Obtain smoothed traces of pixel-wise ordered traces for molecules in an image.
+
+   :param image: Whole image containing all molecules and grains.
+   :type image: npt.NDArray
+   :param ordered_tracing_direction_data: Dictionary result from the ordered traces.
+   :type ordered_tracing_direction_data: dict
+   :param pixel_to_nm_scaling: Scaling factor from pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of the image file.
+   :type filename: str
+   :param method: Method of trace smoothing, options are 'splining' and 'rolling_window'.
+   :type method: str
+   :param rolling_window_size: Length in meters to average coordinates over in the rolling window.
+   :type rolling_window_size: float
+   :param spline_step_size: Step length in meters to use a coordinate for splining.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Amount of linear spline smoothing.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Amount of circular spline smoothing.
+   :type spline_circular_smoothing: float
+   :param spline_degree: Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
+                         small s-value.
+   :type spline_degree: int
+
+   :returns: A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe and molecule
+             statistics dataframe.
+   :rtype: tuple[dict, pd.DataFrame, pd.DataFrame]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
