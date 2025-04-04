@@ -112,7 +112,8 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "--image-set",
         dest="image_set",
-        type=str,
+        type=list,
+        nargs="+",
         required=False,
         help="Image set to generate, default is 'core' other option is 'all'.",
     )
