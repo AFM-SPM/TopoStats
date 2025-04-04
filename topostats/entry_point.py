@@ -373,6 +373,17 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Extract height profiles along maximum feret of molecules",
     )
+    process_parser.add_argument(
+        "--grainstats-class-names",
+        dest="grainstats_class_names",
+        type=list,
+        nargs="+",
+        required=False,
+        help=(
+            "Names of the objects found by the segmentation methods (objects "
+            "are linked to the `class_number` output in the grainstats csv"
+        ),
+    )
 
     # Disordered Tracing
     process_parser.add_argument(
@@ -853,6 +864,17 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Extract height profiles along maximum feret of molecules",
+    )
+    grainstats_parser.add_argument(
+        "--class-names",
+        dest="class_names",
+        type=list,
+        nargs="+",
+        required=False,
+        help=(
+            "Names of the objects found by the segmentation methods (objects "
+            "are linked to the `class_number` output in the grainstats csv"
+        ),
     )
     # Run the relevant function with the arguments
     grainstats_parser.set_defaults(func=run_modules.grainstats)
