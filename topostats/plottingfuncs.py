@@ -157,6 +157,7 @@ class Images:
         plot_coords: npt.NDArray = None,
         title: str = None,
         image_type: str = "non-binary",
+        module: str = "",
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
@@ -201,6 +202,8 @@ class Images:
             Title for plot.
         image_type : str
             The image data type, options are 'binary' or 'non-binary'.
+        module : str
+            The name of the module plotting the images.
         image_set : str
             The set of images to process, options are 'core' or 'all'.
         core_set : bool
@@ -245,6 +248,7 @@ class Images:
         self.plot_coords = plot_coords
         self.title = title
         self.image_type = image_type
+        self.module = module
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
@@ -513,7 +517,7 @@ class Images:
         fig, ax = None, None
         if self.save:
             # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-            if self.image_set == "all" or self.core_set:
+            if "all" in self.image_set or self.module in self.image_set or self.core_set:
                 fig, ax = self.save_figure()
                 LOGGER.debug(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
