@@ -19,7 +19,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains
+from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -30,6 +30,7 @@ from topostats.utils import _get_mask, get_mask, get_thresholds
 # pylint: disable=too-many-lines
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
+GRAINCROP_DIR = RESOURCES / "graincrop"
 
 RNG = np.random.default_rng(seed=1000)
 SMALL_ARRAY_SIZE = (10, 10)
@@ -420,6 +421,81 @@ def dummy_graincropsdirection(dummy_graincrops_dict: dict[int, GrainCrop]) -> Gr
         axis=-1,
     ).astype(np.bool_)
     return GrainCropsDirection(full_mask_tensor=full_mask_tensor, crops=dummy_graincrops_dict)
+
+
+@pytest.fixture()
+def graincrop_catenanes_0() -> GrainCrop:
+    """Catenanes GrainCrop object."""
+    image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_0.npy")
+    mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_0.npy")
+    return GrainCrop(
+        image=image,
+        mask=mask,
+        padding=1,
+        bbox=(0, 2, 323, 325),
+        pixel_to_nm_scaling=0.488,
+        filename="example_catenanes",
+    )
+
+
+@pytest.fixture()
+def graincrop_catenanes_1() -> GrainCrop:
+    """Catenane GrainCrop object."""
+    image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_1.npy")
+    mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_1.npy")
+    return GrainCrop(
+        image=image,
+        mask=mask,
+        padding=1,
+        bbox=(77, 75, 400, 398),
+        pixel_to_nm_scaling=0.488,
+        filename="example_catenanes",
+    )
+
+
+@pytest.fixture()
+def graincrops_above_catenanes(
+    graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop
+) -> GrainCropsDirection:
+    """GrainCropsDirection object of example catenanes."""
+    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_full_mask_tensor.npy")
+    return GrainCropsDirection(
+        crops={0: graincrop_catenanes_0, 1: graincrop_catenanes_1}, full_mask_tensor=full_mask_tensor
+    )
+
+
+@pytest.fixture()
+def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -> ImageGrainCrops:
+    """ImageGrainCrops object of example catenanes."""
+    return ImageGrainCrops(above=graincrops_above_catenanes, below=None)
+
+
+@pytest.fixture()
+def graincrop_rep_int_0() -> GrainCrop:
+    """Rep_Int GrainCrop object."""
+    image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_rep_int_image_0.npy")
+    mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_mask_0.npy")
+    return GrainCrop(
+        image=image,
+        mask=mask,
+        padding=1,
+        bbox=(19, 4, 341, 326),
+        pixel_to_nm_scaling=0.488,
+        filename="example_rep",
+    )
+
+
+@pytest.fixture()
+def graincrops_above_rep_int(graincrop_rep_int_0: GrainCrop) -> GrainCropsDirection:
+    """GrainCropsDirection object of example rep_int."""
+    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_full_mask_tensor.npy")
+    return GrainCropsDirection(crops={0: graincrop_rep_int_0}, full_mask_tensor=full_mask_tensor)
+
+
+@pytest.fixture()
+def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> ImageGrainCrops:
+    """ImageGrainCrops object of example rep_int."""
+    return ImageGrainCrops(above=graincrops_above_rep_int, below=None)
 
 
 @pytest.fixture()
