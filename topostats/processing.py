@@ -96,7 +96,7 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            if plotting_config["image_set"] == "all":
+            if "all" in plotting_config["image_set"] or "filters" in plotting_config["image_set"]:
                 filter_out_path.mkdir(parents=True, exist_ok=True)
                 LOGGER.debug(f"[{filename}] : Target filter directory created : {filter_out_path}")
             # Generate plots
@@ -200,7 +200,7 @@ def run_grains(  # noqa: C901
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Possibly delete this creation of the directory since we already do this earlier?
-                    if plotting_config["image_set"] == "all":
+                    if "all" in plotting_config["image_set"] or "grains" in plotting_config["image_set"]:
                         # Plot diagnostic full grain images
                         for plot_name, array in image_arrays.items():
                             if len(array.shape) == 3:
@@ -635,7 +635,7 @@ def run_nodestats(  # noqa: C901
                                     **plotting_config["plot_dict"][cropped_image_type],
                                 ).plot_and_save()
                             # plot crossing height linetrace
-                            if plotting_config["image_set"] == "all":
+                            if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
                                 if not single_node_stats["error"]:
                                     fig, _ = plot_crossing_linetrace_halfmax(
                                         branch_stats_dict=single_node_stats["branch_stats"],

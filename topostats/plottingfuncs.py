@@ -178,9 +178,9 @@ class Images:
         Initialise the class.
 
         There are two key parameters that ensure whether an image is plotted that are passed in from the updated
-        plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
-        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
-        not. If it doesn't then it is not plotted when `image_set == "core"`.
+        plotting dictionary. These are the `image_set` which defines which images to plot. 'all' images plots everything, or `core` only plots the core set.
+        There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
+        not. If it doesn't then it is not plotted when `image_set == ["core"]`.
 
         Parameters
         ----------
@@ -275,7 +275,7 @@ class Images:
         tuple | None
             Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
-        if self.image_set == "all":
+        if "all" in self.image_set:
             fig, ax = plt.subplots(1, 1)
 
             ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
@@ -328,7 +328,7 @@ class Images:
         fig, ax = None, None
 
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-        if self.image_set == "all" or self.core_set:
+        if "all" in self.image_set or self.module in self.image_set or self.core_set:
             # Get the shape of the image
 
             shape = image.shape
@@ -429,7 +429,7 @@ class Images:
         """
         fig, ax = None, None
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-        if self.image_set == "all" or self.core_set:
+        if "all" in self.image_set or self.module in self.image_set or self.core_set:
 
             # Iterate over grains
             for (
