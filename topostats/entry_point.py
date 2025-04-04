@@ -865,6 +865,7 @@ def create_parser() -> arg.ArgumentParser:
         "--class-names",
         dest="class_names",
         type=list,
+        nargs="+",
         required=False,
         help="Names of the objects found by the segmentation methods (objects are linked to the `class_number` output in the grainstats csv",
     )
