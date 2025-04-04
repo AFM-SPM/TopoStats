@@ -114,6 +114,8 @@ class Images:
         Title for plot.
     image_type : str
         The image data type, options are 'binary' or 'non-binary'.
+    module : str
+            The name of the module plotting the images.
     image_set : str
         The set of images to process, options are 'core' or 'all'.
     core_set : bool
