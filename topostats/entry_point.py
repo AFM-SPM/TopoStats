@@ -861,7 +861,7 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Extract height profiles along maximum feret of molecules",
     )
-    process_parser.add_argument(
+    grainstats_parser.add_argument(
         "--class-names",
         dest="class_names",
         type=list,
