@@ -101,7 +101,6 @@ def run_filters(
                 LOGGER.debug(f"[{filename}] : Target filter directory created : {filter_out_path}")
             # Generate plots
             for plot_name, array in filters.images.items():
-                plotting_config["plot_dict"][plot_name]["module"] = "filters"
                 if plot_name not in ["scan_raw"]:
                     if plot_name == "extracted_channel":
                         array = np.flipud(array.pixels)
@@ -117,7 +116,6 @@ def run_filters(
         # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
         plot_name = "z_threshed"
         plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-        plotting_config["plot_dict"][plot_name]["module"] = "filters"
         Images(
             filters.images["gaussian_filtered"],
             filename=filename,
@@ -203,7 +201,7 @@ def run_grains(  # noqa: C901
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Possibly delete this creation of the directory since we already do this earlier?
                     if plotting_config["image_set"] == "all":
-                        # Plot diagnostic ful grain images
+                        # Plot diagnostic full grain images
                         for plot_name, array in image_arrays.items():
                             if len(array.shape) == 3:
                                 # Tensor, iterate over each channel
@@ -223,7 +221,6 @@ def run_grains(  # noqa: C901
                                 # 2D array
                                 LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
                                 plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                                plotting_config["plot_dict"][plot_name]["module"] = "grains"
                                 Images(
                                     data=np.zeros_like(array),
                                     masked_array=array,
@@ -243,7 +240,6 @@ def run_grains(  # noqa: C901
                                     "filename"
                                 ] = f"{filename}_grain_{grain_number}"
                                 plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
-                                plotting_config["plot_dict"]["grain_image"]["module"] = "grain crops"
                                 Images(
                                     data=crop_image,
                                     **plotting_config["plot_dict"]["grain_image"],
@@ -257,7 +253,6 @@ def run_grains(  # noqa: C901
                                         plotting_config["plot_dict"]["grain_mask"][
                                             "filename"
                                         ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
-                                        plotting_config["plot_dict"]["grain_mask"]["module"] = "grain crops"
                                         Images(
                                             data=crop_image,
                                             masked_array=crop_mask[:, :, tensor_class],
@@ -268,7 +263,6 @@ def run_grains(  # noqa: C901
                                     plotting_config["plot_dict"]["grain_mask"][
                                         "filename"
                                     ] = f"{filename}_grain_mask_{grain_number}"
-                                    plotting_config["plot_dict"]["grain_mask"]["module"] = "grain crops"
                                     Images(
                                         data=crop_image,
                                         masked_array=crop_mask,
@@ -277,7 +271,6 @@ def run_grains(  # noqa: C901
                     # Always plot these plots
                     # Make a plot of coloured regions with bounding boxes
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
-                    plotting_config["plot_dict"]["bounding_boxes"]["module"] = "grains"
                     # Coloured regions is always 2d for now.
                     Images(
                         grains.directions[direction]["labelled_regions_02"],
@@ -285,7 +278,6 @@ def run_grains(  # noqa: C901
                         region_properties=grains.region_properties[direction],
                     ).plot_and_save()
                     plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
-                    plotting_config["plot_dict"]["coloured_boxes"]["module"] = "grains"
                     # Labelled regions 02 is always 2d for now.
                     Images(
                         data=np.zeros_like(grains.directions[direction]["labelled_regions_02"]),
@@ -296,7 +288,6 @@ def run_grains(  # noqa: C901
                     # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
                     plot_name = "mask_overlay"
                     plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    plotting_config["plot_dict"][plot_name]["module"] = "grains"
                     removed_small_objects = grains.directions[direction]["removed_small_objects"]
                     if len(removed_small_objects.shape) == 3:
                         # Tensor, iterate over each channel
@@ -503,7 +494,6 @@ def run_disordered_tracing(
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
-                plotting_config["plot_dict"]["pruned_skeleton"]["module"] = "disordered_tracing"
                 Images(
                     full_image,
                     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
@@ -512,7 +502,6 @@ def run_disordered_tracing(
                     **plotting_config["plot_dict"]["pruned_skeleton"],
                 ).plot_and_save()
                 for plot_name, image_value in disordered_tracing_images.items():
-                    plotting_config["plot_dict"][plot_name]["module"] = "disordered_tracing"
                     Images(
                         full_image,
                         masked_array=image_value,
@@ -616,7 +605,6 @@ def run_nodestats(  # noqa: C901
                 # append direction results to dict
                 nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
                 # save whole image plots
-                plotting_config["plot_dict"]["connected_nodes"]["module"] = "nodestats"
                 Images(
                     filename=f"{filename}_{direction}_nodes",
                     data=image,
@@ -625,7 +613,6 @@ def run_nodestats(  # noqa: C901
                     **plotting_config["plot_dict"]["connected_nodes"],
                 ).plot_and_save()
                 for plot_name, image_value in nodestats_full_images.items():
-                    plotting_config["plot_dict"][plot_name]["module"] = "nodestats"
                     Images(
                         image,
                         masked_array=image_value,
@@ -640,7 +627,6 @@ def run_nodestats(  # noqa: C901
                             for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
                                 node_no
                             ].items():
-                                plotting_config["plot_dict"][cropped_image_type]["module"] = "nodestats"
                                 Images(
                                     nodestats_branch_images[mol_no]["grain"]["grain_image"],
                                     masked_array=cropped_image,
@@ -775,7 +761,6 @@ def run_ordered_tracing(
                 ordered_tracing_image_data[direction] = ordered_tracing_data
                 # save whole image plots
                 plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
-                plotting_config["plot_dict"]["ordered_traces"]["module"] = "ordered_tracing"
                 Images(
                     filename=f"{filename}_{direction}_ordered_traces",
                     data=image,
@@ -785,7 +770,6 @@ def run_ordered_tracing(
                 ).plot_and_save()
                 # save optional diagnostic plots (those with core_set = False)
                 for plot_name, image_value in ordered_tracing_full_images.items():
-                    plotting_config["plot_dict"][plot_name]["module"] = "ordered_tracing"
                     Images(
                         image,
                         masked_array=image_value,
@@ -915,7 +899,6 @@ def run_splining(
                     for _, mol_dict in grain_dict.items():
                         all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
                 
-                plotting_config["plot_dict"]["splined_trace"]["module"] = "splining"
                 Images(
                     data=image,
                     output_dir=core_out_path,

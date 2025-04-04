@@ -19,29 +19,34 @@ extracted_channel:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 pixels:
   filename: "01-pixels"
   title: "Pixels"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 initial_median_flatten:
   filename: "02-initial_median_flatten_unmasked"
   title: "Initial Alignment (Unmasked)"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 initial_tilt_removal:
   filename: "03-initial_tilt_removal_unmasked"
   title: "Initial Tilt Removal (Unmasked)"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 initial_quadratic_removal:
   filename: "04-initial_quadratic_removal_unmasked"
   title: "Initial Quadratic Removal (Unmasked)"
   image_type: "non-binary"
   savefig_dpi: 100
+  module: "filters"
   core_set: false
 initial_nonlinear_polynomial_removal:
   filename: "05-nonlinear_polynomial_removal_unmasked"
@@ -49,77 +54,90 @@ initial_nonlinear_polynomial_removal:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 initial_scar_removal:
   filename: "06-initial_scar_removal"
   title: "Scar removal"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 initial_zero_average_background:
   filename: "7-initial_zero_average_background"
   title: "Initial Zero Averaged Background"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 mask:
   filename: "08-binary_mask"
   title: "Binary Mask"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 masked_median_flatten:
   filename: "09-secondary_align_masked"
   title: "Secondary Alignment (Masked)"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 masked_tilt_removal:
   filename: "10-secondary_tilt_removal_masked"
   title: "Secondary Tilt Removal (Masked)"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 masked_quadratic_removal:
   filename: "11-quadratic_removal_masked"
   title: "Secondary Quadratic Removal"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 masked_nonlinear_polynomial_removal:
   filename: "12-nonlinear_polynomial_removal_masked"
   title: "Nonlinear polynomial removal masked"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 secondary_scar_removal:
   filename: "13-scar_removal"
   title: "Secondary scar removal"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 scar_mask:
   filename: "14-scar_mask"
   title: "Scar mask"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 final_zero_average_background:
   filename: "15-final_zero_average_background"
   title: "Final Zero Averaged Background"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 gaussian_filtered:
   filename: "16-gaussian_filtered"
   title: "Gaussian Filtered"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "filters"
 z_threshed:
   title: "Height Thresholded"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: true
+  module: "filters"
 # Grainfinding Troubleshooting Images
 mask_grains:
   filename: "17-mask_grains"
@@ -128,6 +146,7 @@ mask_grains:
   mask_cmap: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 labelled_regions_01:
   filename: "18-labelled_regions"
   title: "Labelled Regions"
@@ -135,6 +154,7 @@ labelled_regions_01:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 tidied_border:
   filename: "19-tidy_borders"
   title: "Tidied Borders"
@@ -142,6 +162,7 @@ tidied_border:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 removed_noise:
   filename: "20-noise_removed"
   title: "Noise removed"
@@ -149,6 +170,7 @@ removed_noise:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 removed_small_objects:
   filename: "21-small_objects_removed"
   title: "Small Objects Removed"
@@ -156,6 +178,7 @@ removed_small_objects:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 removed_objects_too_small_to_process:
   filename: "22-objects_too_small_removed"
   title: "Objects too small to process removed"
@@ -163,11 +186,13 @@ removed_objects_too_small_to_process:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 mask_overlay:
   title: "Masked Objects"
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: true
+  module: "grains"
 labelled_regions_02:
   filename: "23-labelled_regions"
   title: "Labelled Regions"
@@ -175,12 +200,14 @@ labelled_regions_02:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 bounding_boxes:
   filename: "25-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 coloured_boxes:
   filename: "26-labelled_image_bboxes"
   title: "Labelled Image with Bounding Boxes"
@@ -188,36 +215,43 @@ coloured_boxes:
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 unet_tensor:
   filename: "27-unet_tensor"
   title: "U-Net Tensor"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 vetted_tensor:
   filename: "28-vetted_tensor"
   title: "Vetted Tensor"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 merged_classes_tensor:
   filename: "29-merged_classes_tensor"
   title: "Merged Classes Tensor"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 grain_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 grain_mask:
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 grain_mask_image:
   image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
+  module: "grains"
 # Disordered Tracing Troubleshooting Images
 orig_grain:
   filename: "20-original_grains"
@@ -225,12 +259,14 @@ orig_grain:
   image_type: "non-binary"
   mask_cmap: "blue"
   core_set: false
+  module: "disordered_tracing"
 smoothed_grain:
   filename: "21-smoothed_grains"
   title: "Image with Gaussian-Smoothed Threshold Mask"
   image_type: "non-binary"
   mask_cmap: "blue"
   core_set: false
+  module: "disordered_tracing"
 skeleton:
   filename: "22-original_skeletons"
   title: "Original Skeletons"
@@ -238,12 +274,14 @@ skeleton:
   mask_cmap: "blue"
   core_set: false
   savefig_dpi: 600
+  module: "disordered_tracing"
 pruned_skeleton:
   title: "Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
   core_set: false
   savefig_dpi: 600
+  module: "disordered_tracing"
 branch_indexes:
   filename: "23-segment_indexes"
   title: "Skeleton Segment Indexes"
@@ -251,6 +289,7 @@ branch_indexes:
   mask_cmap: "viridis"
   core_set: false
   savefig_dpi: 600
+  module: "disordered_tracing"
 branch_types:
   filename: "24-segment_types"
   title: "Skeleton Segment Types"
@@ -258,6 +297,7 @@ branch_types:
   mask_cmap: "viridis"
   core_set: false
   savefig_dpi: 600
+  module: "disordered_tracing"
 # Nodestats troubleshooting images
 convolved_skeletons:
   filename: "25-convolved_skeleton"
@@ -266,6 +306,7 @@ convolved_skeletons:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
+  module: "nodestats"
 node_centres:
   filename: "26-node_centres"
   title: "Skeletons and Highlighted Nodes"
@@ -273,34 +314,40 @@ node_centres:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
+  module: "nodestats"
 connected_nodes:
   title: "Skeletons and Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: true
   savefig_dpi: 600
+  module: "nodestats"
 node_area_skeleton:
   title: "Zoom of Node Skeleton"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
   savefig_dpi: 200
+  module: "nodestats"
 node_branch_mask:
   title: "Crossing and Skeleton Branches"
   image_type: "non-binary"
   core_set: false
   mask_cmap: "blue_purple_green"
   savefig_dpi: 200
+  module: "nodestats"
 node_avg_mask:
   title: "Main and Parallel Traces"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
+  module: "nodestats"
 node_line_trace:
   title: "Heights of Crossing"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
   core_set: false
+  module: "nodestats"
 # Ordered tracing troubleshooting images
 ordered_traces:
   title: "Ordered Traces"
@@ -308,6 +355,7 @@ ordered_traces:
   mask_cmap: "viridis"
   core_set: false
   savefig_dpi: 600
+  module: "ordered_tracing"
 trace_segments:
   filename: "27-trace_segments"
   title: "Trace Segments"
@@ -315,6 +363,7 @@ trace_segments:
   mask_cmap: "gist_rainbow"
   savefig_dpi: 600
   core_set: false
+  module: "ordered_tracing"
 over_under:
   filename: "28-molecule_crossings"
   title: "Visualised Molecule Crossings"
@@ -322,6 +371,7 @@ over_under:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
+  module: "ordered_tracing"
 all_molecules:
   filename: "29-all_molecules"
   title: "Individual Molecules"
@@ -329,6 +379,7 @@ all_molecules:
   mask_cmap: "blue_purple_green"
   savefig_dpi: 600
   core_set: false
+  module: "ordered_tracing"
 # Splining
 fitted_trace:
   filename: "30-fitted-traces"
@@ -337,19 +388,23 @@ fitted_trace:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
+  module: "splining"
 splined_trace:
   title: "Smoothed Traces"
   image_type: "non-binary"
   savefig_dpi: 300
   core_set: true
+  module: "splining"
 curvature:
   title: "Curvature"
   image_type: "non-binary"
   savefig_dpi: 600
   core_set: true
+  module: "splining"
 curvature_individual_grains:
   filename: "32-individual_grain_curvature"
   title: "Curvature"
   image_type: "non-binary"
   savefig_dpi: 600
   core_set: false
+  module: "splining"
