@@ -399,18 +399,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 lambda n: n > 0,
                 error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or floats",
             ),
-            "image_set": [Or(
-                "all",
-                "core",
-                "filters",
-                "grains",
-                "grain_crops",
-                "disordered_tracing",
-                "nodestats",
-                "ordered_tracing",
-                "splining",
-                error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
-            )],
+            "image_set": [
+                Or(
+                    "all",
+                    "core",
+                    "filters",
+                    "grains",
+                    "grain_crops",
+                    "disordered_tracing",
+                    "nodestats",
+                    "ordered_tracing",
+                    "splining",
+                    error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+                )
+            ],
             "pixel_interpolation": Or(
                 None,
                 "none",

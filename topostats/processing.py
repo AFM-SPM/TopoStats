@@ -898,7 +898,7 @@ def run_splining(
                 for _, grain_dict in splined_data.items():
                     for _, mol_dict in grain_dict.items():
                         all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
-                
+
                 Images(
                     data=image,
                     output_dir=core_out_path,
