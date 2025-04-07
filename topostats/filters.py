@@ -71,8 +71,8 @@ class Filters:
         row_alignment_quantile: float = 0.5,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
-        threshold_std_dev: dict = None,
-        threshold_absolute: dict = None,
+        threshold_std_dev: dict | None = None,
+        threshold_absolute: dict | None = None,
         gaussian_size: float = None,
         gaussian_mode: str = "nearest",
         remove_scars: dict = None,
@@ -118,14 +118,20 @@ class Filters:
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         # Convert to lists since the thresholding function expects lists of thresholds but
         # we don't want to use more than one value for the filters step.
-        self.threshold_std_dev = {
-            "above": [threshold_std_dev["above"]],
-            "below": [threshold_std_dev["below"]],
-        }
-        self.threshold_absolute = {
-            "above": [threshold_absolute["above"]],
-            "below": [threshold_absolute["below"]],
-        }
+        if threshold_std_dev is None:
+            threshold_std_dev = {"above": 1.0, "below": 1.0}
+        else:
+            self.threshold_std_dev = {
+                "above": [threshold_std_dev["above"]],
+                "below": [threshold_std_dev["below"]],
+            }
+        if threshold_absolute is None:
+            threshold_absolute = {"above": 1.0, "below": 10.0}
+        else:
+            self.threshold_absolute = {
+                "above": [threshold_absolute["above"]],
+                "below": [threshold_absolute["below"]],
+            }
         self.remove_scars_config = remove_scars
         self.images = {
             "pixels": image,

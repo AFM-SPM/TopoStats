@@ -240,8 +240,8 @@ def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
     otsu_threshold_multiplier: float | None = None,
-    threshold_std_dev: dict | None = None,
-    absolute: dict | None = None,
+    threshold_std_dev: dict[str, list | float] | None = None,
+    absolute: dict[str, list | float] | None = None,
 ) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
