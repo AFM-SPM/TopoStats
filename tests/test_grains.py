@@ -684,7 +684,6 @@ def test_remove_edge_intersecting_grains(
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
     grains_config["threshold_absolute"]["above"] = 1.0
     grains_config["threshold_method"] = "absolute"
-    grains_config["smallest_grain_size_nm2"] = 20
     grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
 
     grains = Grains(
@@ -1336,7 +1335,6 @@ def test_find_grains_unet(
             threshold_absolute={"above": 0.9, "below": 0.0},
             area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
             direction="above",
-            smallest_grain_size_nm2=1,
             remove_edge_intersecting_grains=True,
         )
 
@@ -1396,7 +1394,6 @@ def test_find_grains_no_grains_found():
         threshold_absolute={"above": 0.9, "below": 0.0},
         area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
         direction="above",
-        smallest_grain_size_nm2=1,
         remove_edge_intersecting_grains=True,
     )
 

@@ -288,13 +288,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
     )
     process_parser.add_argument(
-        "--grains-smallest-grain-size-nm2",
-        dest="grains_smallest_grain_size_nm2",
-        type=float,
-        required=False,
-        help="Size in nm^2 of tiny grains/blobs to remove, must be > 0.0",
-    )
-    process_parser.add_argument(
         "--grains-area-thresholds-above",
         dest="grains_area_thresholds_above",
         type=float,
