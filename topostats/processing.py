@@ -204,34 +204,24 @@ def run_grains(  # noqa: C901
                     if plotting_config["image_set"] == "all":
                         # Plot diagnostic ful grain images
                         for plot_name, array in image_arrays.items():
-                            if len(array.shape) == 3:
-                                # Tensor, iterate over each channel
-                                filename_base = plotting_config["plot_dict"][plot_name]["filename"]
-                                for tensor_class in range(1, array.shape[2]):
-                                    LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
-                                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                                    plotting_config["plot_dict"][plot_name]["filename"] = (
-                                        filename_base + f"_class_{tensor_class}"
-                                    )
-                                    Images(
-                                        data=image,
-                                        masked_array=array[:, :, tensor_class],
-                                        **plotting_config["plot_dict"][plot_name],
-                                    ).plot_and_save()
-                            else:
-                                # 2D array
-                                LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
+                            # Tensor, iterate over each channel
+                            filename_base = plotting_config["plot_dict"][plot_name]["filename"]
+                            for tensor_class in range(1, array.shape[2]):
+                                LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
                                 plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    filename_base + f"_class_{tensor_class}"
+                                )
                                 Images(
-                                    data=np.zeros_like(array),
-                                    masked_array=array,
+                                    data=image,
+                                    masked_array=array[:, :, tensor_class],
                                     **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
                         # Plot individual grain masks
                         if direction == "above":
-                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.above
+                            direction_grain_crops: GrainCropsDirection | None = grains.image_grain_crops.above
                         else:
-                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.below
+                            direction_grain_crops = grains.image_grain_crops.below
                         if direction_grain_crops is not None:
                             LOGGER.info(f"[{filename}] : Plotting individual grain masks")
                             for grain_number, grain_crop in direction_grain_crops.crops.items():
@@ -248,66 +238,47 @@ def run_grains(  # noqa: C901
                                 # Grain mask plot
                                 crop_mask = grain_crop.mask
                                 plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
-                                if len(crop_mask.shape) == 3:
-                                    # Tensor, iterate over channels
-                                    for tensor_class in range(1, crop_mask.shape[2]):
-                                        plotting_config["plot_dict"]["grain_mask"][
-                                            "filename"
-                                        ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
-                                        Images(
-                                            data=crop_image,
-                                            masked_array=crop_mask[:, :, tensor_class],
-                                            **plotting_config["plot_dict"]["grain_mask"],
-                                        ).plot_and_save()
-                                else:
-                                    # 2D array
+                                # Tensor, iterate over channels
+                                for tensor_class in range(1, crop_mask.shape[2]):
                                     plotting_config["plot_dict"]["grain_mask"][
                                         "filename"
-                                    ] = f"{filename}_grain_mask_{grain_number}"
+                                    ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                     Images(
                                         data=crop_image,
-                                        masked_array=crop_mask,
+                                        masked_array=crop_mask[:, :, tensor_class],
                                         **plotting_config["plot_dict"]["grain_mask"],
                                     ).plot_and_save()
                     # Always plot these plots
-                    # Make a plot of coloured regions with bounding boxes
-                    plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
-                    # Coloured regions is always 2d for now.
-                    Images(
-                        grains.mask_images[direction]["labelled_regions_02"],
-                        **plotting_config["plot_dict"]["bounding_boxes"],
-                        region_properties=grains.region_properties[direction],
-                    ).plot_and_save()
-                    plotting_config["plot_dict"]["coloured_boxes"]["output_dir"] = grain_out_path_direction
-                    # Labelled regions 02 is always 2d for now.
-                    Images(
-                        data=np.zeros_like(grains.mask_images[direction]["labelled_regions_02"]),
-                        masked_array=grains.mask_images[direction]["labelled_regions_02"],
-                        **plotting_config["plot_dict"]["coloured_boxes"],
-                        region_properties=grains.region_properties[direction],
-                    ).plot_and_save()
-                    # Always want mask_overlay (aka "Height Thresholded with Mask") but in core_out_path
-                    plot_name = "mask_overlay"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                    removed_small_objects = grains.mask_images[direction]["removed_small_objects"]
-                    if len(removed_small_objects.shape) == 3:
+                    # Make a plot of labelled regions with bounding boxes
+                    if direction == "above":
+                        direction_grain_crops = grains.image_grain_crops.above
+                    else:
+                        direction_grain_crops = grains.image_grain_crops.below
+
+                    if direction_grain_crops is not None:
+
+                        full_mask_tensor = direction_grain_crops.full_mask_tensor
+
+                        # Plot image with overlaid masks
+                        plot_name = "mask_overlay"
+                        plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
                         # Tensor, iterate over each channel
-                        for tensor_class in range(1, removed_small_objects.shape[2]):
+                        for tensor_class in range(1, full_mask_tensor.shape[2]):
+                            # Set filename for this class
+                            plotting_config["plot_dict"][plot_name][
+                                "filename"
+                            ] = f"{filename}_{direction}_masked_overlay_class_{tensor_class}"
+                            full_mask_tensor_class = full_mask_tensor[:, :, tensor_class]
+                            full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
+                            full_mask_tensor_class_regionprops = Grains.get_region_properties(
+                                full_mask_tensor_class_labelled
+                            )
                             Images(
                                 data=image,
-                                filename=f"{filename}_{direction}_masked_channel_{tensor_class}",
-                                masked_array=removed_small_objects[:, :, tensor_class].astype(bool),
+                                masked_array=full_mask_tensor_class.astype(bool),
                                 **plotting_config["plot_dict"][plot_name],
-                                # region_properties=grains.region_properties[direction],
-                            )
-                    else:
-                        Images(
-                            data=image,
-                            filename=f"{filename}_{direction}_masked",
-                            masked_array=removed_small_objects.astype(bool),
-                            **plotting_config["plot_dict"][plot_name],
-                            # region_properties=grains.region_properties[direction],
-                        ).plot_and_save()
+                                region_properties=full_mask_tensor_class_regionprops,
+                            ).plot_and_save()
                 plotting_config["run"] = True
             else:
                 # Otherwise, return None and warn that plotting is disabled for grain finding images
