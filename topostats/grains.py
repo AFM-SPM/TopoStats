@@ -609,9 +609,9 @@ class Grains:
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
-        threshold_std_dev: dict | None = None,
-        threshold_absolute: dict | None = None,
-        area_thresholds: dict | None = None,
+        threshold_std_dev: dict[str, float | list] | None = None,
+        threshold_absolute: dict[str, float | list] | None = None,
+        area_thresholds: dict[str, list[float | None]] | None = None,
         direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
@@ -671,6 +671,13 @@ class Grains:
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        # Ensure thresholds are lists (might not be from passing in CLI args)
+        if threshold_std_dev is None:
+            threshold_std_dev = {"above": [1.0], "below": [10.0]}
+        if not isinstance(threshold_std_dev["above"], list):
+            threshold_std_dev["above"] = [threshold_std_dev["above"]]
+        if not isinstance(threshold_std_dev["above"], list):
+            threshold_std_dev["below"] = [threshold_std_dev["below"]]
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
         self.area_thresholds = area_thresholds
