@@ -799,7 +799,7 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     assert isinstance(grainstats_df, pd.DataFrame)
     # Expect 6 grains in the above direction for cropped minicircle
     assert grainstats_df.shape[0] == 6
-    assert len(grainstats_df.columns) == 25
+    assert len(grainstats_df.columns) == 26
     assert isinstance(grain_crops, dict)
     assert len(grain_crops) == 6
     for grain_crop in grain_crops.values():

@@ -262,6 +262,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'grainstats.extract_height_profile',"
                 "valid values are 'True' or 'False'",
             ),
+            "class_names": [str],
         },
         "disordered_tracing": {
             "run": Or(

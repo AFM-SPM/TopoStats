@@ -346,13 +346,14 @@ def run_grainstats(
 
     Returns
     -------
-    tuple[pd.DataFrame, dict[int: npt.NDArray, dict[int, GrainCrop]]
-        A pandas DataFrame containing the statsistics for each grain. The index is the
-        filename and grain number.
+    tuple[pd.DataFrame, dict[int: npt.NDArray], dict[int, GrainCrop]]
+        Tuple of a pandas DataFrame containing the statsistics for each grain, a dictionary of images and a
+        dictionary of GrainCrop objects.
     """
     # Calculate statistics if required
     if grainstats_config["run"]:
         grainstats_config.pop("run")
+        class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
         try:
             LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
@@ -396,6 +397,7 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
             grainstats_df["basename"] = basename.parent
+            grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
             return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
