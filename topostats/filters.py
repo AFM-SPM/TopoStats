@@ -116,8 +116,16 @@ class Filters:
         self.row_alignment_quantile = row_alignment_quantile
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
-        self.threshold_std_dev = threshold_std_dev
-        self.threshold_absolute = threshold_absolute
+        # Convert to lists since the thresholding function expects lists of thresholds but
+        # we don't want to use more than one value for the filters step.
+        self.threshold_std_dev = {
+            "above": [threshold_std_dev["above"]],
+            "below": [threshold_std_dev["below"]],
+        }
+        self.threshold_absolute = {
+            "above": [threshold_absolute["above"]],
+            "below": [threshold_absolute["below"]],
+        }
         self.remove_scars_config = remove_scars
         self.images = {
             "pixels": image,

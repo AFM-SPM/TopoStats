@@ -950,6 +950,8 @@ class Grains:
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
 
+            self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
+
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
                 image=self.image,
@@ -989,7 +991,7 @@ class Grains:
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
-                self.mask_images[direction]["unet_tensor"] = full_mask_tensor
+                self.mask_images[direction]["unet"] = full_mask_tensor.copy()
 
                 # Vet the grains
                 if self.vetting_config is not None:
@@ -1005,7 +1007,7 @@ class Grains:
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[direction]["vetted_tensor"] = full_mask_tensor_vetted
+                self.mask_images[direction]["vetted"] = full_mask_tensor_vetted.copy()
 
                 # Mandatory check to remove any objects in any classes that are too small to process
                 graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
@@ -1030,7 +1032,7 @@ class Grains:
                     graincrops=graincrops_merged_classes,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[direction]["merged_classes_tensor"] = full_mask_tensor_merged_classes
+                self.mask_images[direction]["merged_classes"] = full_mask_tensor_merged_classes.copy()
 
                 # Store the grain crops
                 if direction == "above":
@@ -1156,8 +1158,8 @@ class Grains:
         num_empty_removed_grains = 0
         for grain_number, graincrop in graincrops.items():
             LOGGER.debug(f"Unet predicting mask for grain {grain_number} of {len(graincrops)}")
-            # Run the UNet on the region. This is allowed to be a single channel
-            # as we can add a background channel afterwards if needed.
+            # Run the UNet on the region. This is allowed to be a single class
+            # as we can add a background class afterwards if needed.
             # Remember that this region is cropped from the original image, so it's not
             # the same size as the original image.
             predicted_mask = predict_unet(
@@ -1850,7 +1852,7 @@ class Grains:
     def vet_whole_grain_size(
         grain_mask_tensor: npt.NDArray,
         pixel_to_nm_scaling: float,
-        whole_grain_size_thresholds: tuple[int, int] | None,
+        whole_grain_size_thresholds: tuple[float, float] | None,
     ) -> bool:
         """
         Vet the size of the whole grain based on size thresholds.
@@ -1889,7 +1891,7 @@ class Grains:
     @staticmethod
     def vet_grains(
         graincrops: dict[int, GrainCrop],
-        whole_grain_size_thresholds: tuple[int, int] | None,
+        whole_grain_size_thresholds: tuple[float, float] | None,
         class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None,
         class_size_thresholds: list[tuple[int, int, int]] | None,
         class_region_number_thresholds: list[tuple[int, int, int]] | None,
