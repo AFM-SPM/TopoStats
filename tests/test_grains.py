@@ -3972,6 +3972,7 @@ def test_merge_classes(
                 )
             },
             {
+                "whole_grain_size_thresholds": None,
                 # Convert class 1 to class 2 if too small, class 3 if too big
                 "class_conversion_size_thresholds": [[(1, 2, 3), (2, 2)]],
                 "class_size_thresholds": None,
@@ -4132,6 +4133,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": None,
                 "class_region_number_thresholds": None,
@@ -4453,6 +4455,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": [(1, 2, 2)],
                 "class_region_number_thresholds": [(2, 2, 2)],
@@ -4758,6 +4761,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": None,
                 "class_region_number_thresholds": None,
