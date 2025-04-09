@@ -213,18 +213,18 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 @pytest.mark.parametrize(
     ("image_set", "expected"),
     [
-        (["core"], False),
-        (["all"], True),
-        (["filters"], False),
-        (["grain_crops"], True),
-        (["filters", "grain_crops", "disordered_tracing"], True),
-        (["filters", "grains", "disordered_tracing"], False),
+        pytest.param(["core"], False, id="core"),
+        pytest.param(["all"], True, id="all"),
+        pytest.param(["filters"], False, id="filters"),
+        pytest.param(["grain_crops"], True, id="grain crops"),
+        pytest.param(["filters", "grain_crops", "disordered_tracing"], True, id="list with grain crops"),
+        pytest.param(["filters", "grains", "disordered_tracing"], False, id="list without grain crops"),
     ],
 )
 def test_save_cropped_grains(
     tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected
 ) -> None:
-    """Tests if cropped grains are saved only when image set is 'all' rather than 'core'."""
+    """Tests if cropped grains are saved only when ``image_set`` is 'all' or contains ``grain_crops``."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
