@@ -49,8 +49,8 @@ def default_config() -> dict:
     config["filter"]["threshold_method"] = "std_dev"
     config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_method"] = "absolute"
-    config["grains"]["threshold_absolute"]["above"] = 1.0
-    config["grains"]["threshold_absolute"]["below"] = -1.0
+    config["grains"]["threshold_absolute"]["above"] = [1.0]
+    config["grains"]["threshold_absolute"]["below"] = [-1.0]
     config["grains"]["area_thresholds"]["above"] = [10, 60000000]
     return config
 

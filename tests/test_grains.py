@@ -682,9 +682,9 @@ def test_remove_edge_intersecting_grains(
     """Test that Grains successfully does and doesn't remove edge intersecting grains."""
     # Ensure that a sensible number of grains are found
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
-    grains_config["threshold_absolute"]["above"] = 1.0
+    grains_config["threshold_absolute"]["above"] = [1.0]
     grains_config["threshold_method"] = "absolute"
-    grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
+    grains_config["area_thresholds"]["above"] = [20, 10000000]
 
     grains = Grains(
         image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
