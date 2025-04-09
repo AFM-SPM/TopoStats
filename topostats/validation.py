@@ -315,6 +315,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "method_values": Or("min", "median", "mid"),
                 "method_outlier": Or("abs", "mean_abs", "iqr"),
                 "height_threshold": Or(int, float, None),
+                "only_height_prune_endpoints": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'",
+                ),
             },
         },
         "nodestats": {

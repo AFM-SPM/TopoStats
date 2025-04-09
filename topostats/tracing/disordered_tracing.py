@@ -48,8 +48,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
         method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
     pruning_params : dict
-        Dictionary of pruning parameters. Contains 'method', 'max_length', 'height_threshold', 'method_values' and
-        'method_outlier'.
+        Dictionary of pruning parameters. Contains 'method', 'max_length', 'height_threshold', 'method_values'
+        'method_outlier' and 'only_height_prune_endpoints'.
     n_grain : int
         Grain number being processed (only  used in logging).
     """
@@ -88,8 +88,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             Skeletonisation Parameters. Method of skeletonisation to use 'topostats' is the original TopoStats
             method. Three methods from scikit-image are available 'zhang', 'lee' and 'thin'.
         pruning_params : dict
-            Dictionary of pruning parameters. Contains 'method', 'max_length', 'height_threshold', 'method_values' and
-            'method_outlier'.
+            Dictionary of pruning parameters. Contains 'method', 'max_length', 'height_threshold', 'method_values',
+            'method_outlier' and 'only_height_prune_endpoints'.
         n_grain : int
             Grain number being processed (only  used in logging).
         """
