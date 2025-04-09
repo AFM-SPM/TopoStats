@@ -28,6 +28,7 @@ from topostats.utils import update_plotting_config
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
 
+# pylint: disable=too-many-lines
 # pylint: disable=too-many-positional-arguments
 
 
@@ -264,51 +265,185 @@ def test_save_cropped_grains(
 
 
 @pytest.mark.parametrize(
-    ("image_set", "expected"),
+    ("image_set", "expected_image"),
     [
-        (pytest.param(["core"], [True, False, False, False, False, False, False, False], id="only core")),
-        (pytest.param(["all"], [True, True, True, True, True, True, True, True], id="only all")),
-        (pytest.param(["filters"], [True, True, False, False, False, False, False, False], id="only filters")),
-        (pytest.param(["grains"], [True, False, True, False, False, False, False, False], id="only grains")),
-        (pytest.param(["grain_crops"], [True, False, False, True, False, False, False, False], id="only grain_crops")),
-        (
-            pytest.param(
-                ["disordered_tracing"],
-                [True, False, False, False, True, False, False, False],
-                id="only disordered_tracing",
-            )
+        pytest.param(
+            ["core"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only core",
         ),
-        (pytest.param(["nodestats"], [True, False, False, False, False, True, False, False], id="only nodestats")),
-        (
-            pytest.param(
-                ["ordered_tracing"], [True, False, False, False, False, False, True, False], id="only ordered_tracing"
-            )
+        pytest.param(
+            ["all"],
+            {
+                "core": True,
+                "filters": True,
+                "grains": True,
+                "grain_crop": True,
+                "disordered_tracing": True,
+                "nodestats": True,
+                "ordered_tracing": True,
+                "splining": True,
+            },
+            id="all",
         ),
-        (pytest.param(["splining"], [True, False, False, False, False, False, False, True], id="only splining")),
-        (
-            pytest.param(
-                ["filters", "grain_crops", "disordered_tracing"],
-                [True, True, False, True, True, False, False, False],
-                id="filters, grain_crops and disordered_tracing",
-            )
+        pytest.param(
+            ["filters"],
+            {
+                "core": True,
+                "filters": True,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only filters",
         ),
-        (
-            pytest.param(
-                ["grains", "nodestats", "ordered_tracing"],
-                [True, False, True, False, False, True, True, False],
-                id="grains, nodestats, ordered_tracing",
-            )
+        pytest.param(
+            ["grains"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": True,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only grains",
         ),
-        (
-            pytest.param(
-                ["filters", "disordered_tracing", "splining"],
-                [True, True, False, False, True, False, False, True],
-                id="filters, disordered_tracing, splining",
-            )
+        pytest.param(
+            ["grain_crops"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": True,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only grain_crops",
+        ),
+        pytest.param(
+            ["disordered_tracing"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": True,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only disordered_tracing",
+        ),
+        pytest.param(
+            ["nodestats"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": True,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="only nodestats",
+        ),
+        pytest.param(
+            ["ordered_tracing"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": True,
+                "splining": False,
+            },
+            id="only ordered_tracing",
+        ),
+        pytest.param(
+            ["splining"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": True,
+            },
+            id="only splining",
+        ),
+        pytest.param(
+            ["filters", "grain_crops", "disordered_tracing"],
+            {
+                "core": True,
+                "filters": True,
+                "grains": False,
+                "grain_crop": True,
+                "disordered_tracing": True,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": False,
+            },
+            id="filters, grain_crops and disordered_tracing",
+        ),
+        pytest.param(
+            ["grains", "nodestats", "ordered_tracing"],
+            {
+                "core": True,
+                "filters": False,
+                "grains": True,
+                "grain_crop": False,
+                "disordered_tracing": False,
+                "nodestats": True,
+                "ordered_tracing": True,
+                "splining": False,
+            },
+            id="grains, nodestats, ordered_tracing",
+        ),
+        pytest.param(
+            ["filters", "disordered_tracing", "splining"],
+            {
+                "core": True,
+                "filters": True,
+                "grains": False,
+                "grain_crop": False,
+                "disordered_tracing": True,
+                "nodestats": False,
+                "ordered_tracing": False,
+                "splining": True,
+            },
+            id="filters, disordered_tracing, splining",
         ),
     ],
 )
-def test_image_set(tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected) -> None:
+def test_image_set(
+    tmp_path: Path,
+    process_scan_config: dict,
+    load_scan_data: LoadScans,
+    image_set: list[str],
+    expected_image: list[bool],
+) -> None:
     """Tests if specific diagnostic images are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
@@ -330,20 +465,19 @@ def test_image_set(tmp_path: Path, process_scan_config: dict, load_scan_data: Lo
         output_dir=tmp_path,
     )
 
-    # check for filters image
-    images = [
-        "minicircle_small_above_all_splines.png",  # core
-        "minicircle_small/filters/01-pixels.png",  # filters
-        "minicircle_small/grains/above/19-tidy_borders.png",  # grains
-        "minicircle_small/grains/above/minicircle_small_grain_0.png",  # grain_crop
-        "minicircle_small/dnatracing/above/22-original_skeletons.png",  # disordered_tracing
-        "minicircle_small/dnatracing/above/26-node_centres.png",  # nodestats
-        "minicircle_small/dnatracing/above/28-molecule_crossings.png",  # ordered_tracing
-        "minicircle_small/dnatracing/above/curvature/grain_0_curvature.png",  # splining
-    ]
-
-    for i, img in enumerate(images):
-        assert Path.exists(tmp_path / "tests/resources/test_image/processed/" / img) == expected[i]
+    # expected image paths
+    images = {
+        "core": "minicircle_small_above_all_splines.png",
+        "filters": "minicircle_small/filters/01-pixels.png",
+        "grains": "minicircle_small/grains/above/19-tidy_borders.png",
+        "grain_crop": "minicircle_small/grains/above/minicircle_small_grain_0.png",
+        "disordered_tracing": "minicircle_small/dnatracing/above/22-original_skeletons.png",
+        "nodestats": "minicircle_small/dnatracing/above/26-node_centres.png",
+        "ordered_tracing": "minicircle_small/dnatracing/above/28-molecule_crossings.png",
+        "splining": "minicircle_small/dnatracing/above/curvature/grain_0_curvature.png",
+    }
+    for key, img_path in images.items():
+        assert Path.exists(tmp_path / "tests/resources/test_image/processed/" / img_path) == expected_image[key]
 
 
 @pytest.mark.parametrize("extension", [("png"), ("tif")])
