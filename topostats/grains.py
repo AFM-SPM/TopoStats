@@ -678,6 +678,12 @@ class Grains:
             threshold_std_dev["above"] = [threshold_std_dev["above"]]
         if not isinstance(threshold_std_dev["above"], list):
             threshold_std_dev["below"] = [threshold_std_dev["below"]]
+        if threshold_absolute is None:
+            threshold_absolute = {"above": [None], "below": [None]}
+        if not isinstance(threshold_absolute["above"], list):
+            threshold_absolute["above"] = [threshold_absolute["above"]]
+        if not isinstance(threshold_absolute["below"], list):
+            threshold_absolute["below"] = [threshold_absolute["below"]]
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
         self.area_thresholds = area_thresholds
