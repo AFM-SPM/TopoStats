@@ -471,6 +471,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Method to prune branches based on height. Options : 'abs' | 'mean_abs' | 'iqr'",
     )
+    process_parser.add_argument(
+        "--disordered-pruning-params-only-height-prune-endpoints",
+        dest="disordered_pruning_params_only_height_prune_endpoints",
+        type=bool,
+        required=False,
+        help="Restrict height-based pruning to skeleton segments containing an endpoint.",
+    )
 
     # Nodestats
     process_parser.add_argument(
@@ -969,6 +976,13 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Method to prune branches based on height. Options : 'abs' | 'mean_abs' | 'iqr'",
+    )
+    disordered_tracing_parser.add_argument(
+        "--pruning-params-only-height-prune-endpoints",
+        dest="pruning_params_only_height_prune_endpoints",
+        type=bool,
+        required=False,
+        help="Restrict height-based pruning to skeleton segments containing an endpoint.",
     )
     # Run the relevant function with the arguments
     disordered_tracing_parser.set_defaults(func=run_modules.disordered_tracing)
