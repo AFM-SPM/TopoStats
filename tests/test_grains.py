@@ -683,7 +683,7 @@ def test_remove_edge_intersecting_grains(
         **grains_config,
     )
     grains.find_grains()
-    number_of_grains = len(grains.region_properties["above"])
+    number_of_grains = len(grains.image_grain_crops.above.crops)
 
     assert number_of_grains == expected_number_of_grains
 
