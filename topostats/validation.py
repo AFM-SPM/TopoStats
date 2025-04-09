@@ -318,8 +318,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "only_height_prune_endpoints": Or(
                     True,
                     False,
-                    error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'"
-                )
+                    error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'",
+                ),
             },
         },
         "nodestats": {

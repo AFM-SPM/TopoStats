@@ -231,7 +231,7 @@ class topostatsPrune:
     method_outlier : str
         Method for pruning brancvhes based on height. Options are 'abs' (below absolute value), 'mean_abs' (below the
         skeleton mean - absolute threshold) or 'iqr' (below 1.5 * inter-quartile range).
-    height_prune_endpoints : bool
+    only_height_prune_endpoints : bool
         Whether to only prune endpoints by height, or all skeleton segments.
     """
 
