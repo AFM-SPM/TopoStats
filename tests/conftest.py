@@ -604,7 +604,8 @@ def minicircle_grain_threshold_otsu(minicircle_grains: Grains, grains_config: di
     grains_config["threshold_method"] = "otsu"
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
-        **grains_config,
+        threshold_method="otsu",
+        otsu_threshold_multiplier=1.0,
     )
     return minicircle_grains
 
@@ -617,7 +618,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: 
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0], "above": [1.0]},
         absolute=None,
     )
     return minicircle_grains
@@ -630,7 +631,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
         image=minicircle_grains.image,
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.0, "above": 1.0},
+        absolute={"below": [-1.0], "above": [1.0]},
     )
     return minicircle_grains
 
