@@ -10,7 +10,7 @@ from topostats.grains import Grains
 def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
     """Test threshold calculation."""
     assert isinstance(minicircle_grain_threshold_otsu.thresholds, dict)
-    assert minicircle_grain_threshold_otsu.thresholds["above"] == pytest.approx(0.769617128561541)
+    assert minicircle_grain_threshold_otsu.thresholds["above"] == pytest.approx([0.7724327490179487])
 
 
 def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
