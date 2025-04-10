@@ -11,6 +11,7 @@
 # | image_type   | String  | Whether the plot includes the height (non-binary) or the outline (binary)    |
 # | savefig_dpi  | int     | Dots Per Inch for plotting                                                   |
 # | core_set     | Boolean | Whether a plot is considered part of the core set of images that are plotted.|
+# | module       | str     | The module an image belongs to                                               |
 
 # Flattening Troubleshooting Images
 extracted_channel:
