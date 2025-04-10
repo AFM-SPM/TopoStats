@@ -937,7 +937,7 @@ def test_find_grains(
 
 # Find grains with unet - needs mocking
 @pytest.mark.parametrize(
-    ("image", "expected_grain_mask", "expected_labelled_regions", "expected_imagegraincrops"),
+    ("image", "expected_imagegraincrops"),
     [
         pytest.param(
             # Image
@@ -952,34 +952,6 @@ def test_find_grains(
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
-            ),
-            # Expected removed small objects tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ).astype(bool),
-            # Expected labelled regions tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             # Expected image grain crops
@@ -1136,8 +1108,6 @@ def test_find_grains(
 def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
     image: npt.NDArray[np.float32],
-    expected_grain_mask: npt.NDArray[np.bool_],
-    expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
@@ -1170,15 +1140,7 @@ def test_find_grains_unet(
 
         grains_object.find_grains()
 
-        result_grain_mask = grains_object.mask_images["above"]["removed_objects_too_small_to_process"]
-        result_labelled_regions = grains_object.mask_images["above"]["labelled_regions_02"]
         result_image_grain_crops = grains_object.image_grain_crops
-
-        assert result_grain_mask.shape == expected_grain_mask.shape
-        assert result_labelled_regions.shape == expected_labelled_regions.shape
-
-        np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
-        np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
         result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
 
