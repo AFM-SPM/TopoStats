@@ -381,7 +381,6 @@ all_molecules:
   savefig_dpi: 600
   core_set: false
   module: "ordered_tracing"
-# Splining
 fitted_trace:
   filename: "30-fitted-traces"
   title: "Fitted Trace"
@@ -389,7 +388,8 @@ fitted_trace:
   mask_cmap: "blue_purple_green"
   core_set: false
   savefig_dpi: 600
-  module: "splining"
+  module: "ordered_tracing"
+# Splining
 splined_trace:
   title: "Smoothed Traces"
   image_type: "non-binary"
