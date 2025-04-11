@@ -180,7 +180,7 @@ class Images:
         Initialise the class.
 
         There are two key parameters that ensure whether an image is plotted that are passed in from the updated
-        plotting dictionary. These are the `image_set` which defines which images to plot. 'all' images plots everything, or `core` only plots the core set.
+        plotting dictionary. These are the ``image_set`` which defines which images to plot. ``all`` images plots everything, or ``core`` only plots the core set.
         There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
         not. If it doesn't then it is not plotted when `image_set` is `["core"]`.
 
