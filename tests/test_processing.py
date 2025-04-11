@@ -223,7 +223,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     ],
 )
 def test_save_cropped_grains(
-    tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set, expected
+    tmp_path: Path, process_scan_config: dict, load_scan_data: LoadScans, image_set: list[str], expected: bool
 ) -> None:
     """Tests if cropped grains are saved only when ``image_set`` is 'all' or contains ``grain_crops``."""
     process_scan_config["plotting"]["image_set"] = image_set
@@ -442,7 +442,7 @@ def test_image_set(
     process_scan_config: dict,
     load_scan_data: LoadScans,
     image_set: list[str],
-    expected_image: list[bool],
+    expected_image: dict[str, bool],
 ) -> None:
     """Tests if specific diagnostic images are saved only when image set is 'all' rather than 'core'."""
     process_scan_config["plotting"]["image_set"] = image_set
