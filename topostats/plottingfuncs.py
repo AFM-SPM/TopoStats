@@ -114,6 +114,8 @@ class Images:
         Title for plot.
     image_type : str
         The image data type, options are 'binary' or 'non-binary'.
+    module : str
+            The name of the module plotting the images.
     image_set : str
         The set of images to process, options are 'core' or 'all'.
     core_set : bool
@@ -157,6 +159,7 @@ class Images:
         plot_coords: npt.NDArray = None,
         title: str = None,
         image_type: str = "non-binary",
+        module: str = "",
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
@@ -177,9 +180,9 @@ class Images:
         Initialise the class.
 
         There are two key parameters that ensure whether an image is plotted that are passed in from the updated
-        plotting dictionary. These are the `image_set` which defines whether to plot 'all' images or just the `core`
-        set. There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
-        not. If it doesn't then it is not plotted when `image_set == "core"`.
+        plotting dictionary. These are the ``image_set`` which defines which images to plot. ``all`` images plots everything, or ``core`` only plots the core set.
+        There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
+        not. If it doesn't then it is not plotted when `image_set` is `["core"]`.
 
         Parameters
         ----------
@@ -201,6 +204,8 @@ class Images:
             Title for plot.
         image_type : str
             The image data type, options are 'binary' or 'non-binary'.
+        module : str
+            The name of the module plotting the images.
         image_set : str
             The set of images to process, options are 'core' or 'all'.
         core_set : bool
@@ -245,6 +250,7 @@ class Images:
         self.plot_coords = plot_coords
         self.title = title
         self.image_type = image_type
+        self.module = module
         self.image_set = image_set
         self.core_set = core_set
         self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
@@ -271,7 +277,7 @@ class Images:
         tuple | None
             Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
-        if self.image_set == "all":
+        if "all" in self.image_set:
             fig, ax = plt.subplots(1, 1)
 
             ax.hist(self.data.flatten().astype(float), bins=self.histogram_bins, log=self.histogram_log_axis)
@@ -324,7 +330,7 @@ class Images:
         fig, ax = None, None
 
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-        if self.image_set == "all" or self.core_set:
+        if "all" in self.image_set or self.module in self.image_set or self.core_set:
             # Get the shape of the image
 
             shape = image.shape
@@ -425,7 +431,7 @@ class Images:
         """
         fig, ax = None, None
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-        if self.image_set == "all" or self.core_set:
+        if "all" in self.image_set or self.module in self.image_set or self.core_set:
 
             # Iterate over grains
             for (
@@ -513,7 +519,7 @@ class Images:
         fig, ax = None, None
         if self.save:
             # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
-            if self.image_set == "all" or self.core_set:
+            if "all" in self.image_set or self.module in self.image_set or self.core_set:
                 fig, ax = self.save_figure()
                 LOGGER.debug(
                     f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
