@@ -92,16 +92,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "below": Or(
                     int,
                     float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
                 ),
                 "above": Or(
                     int,
                     float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
                 ),
             },
             "gaussian_size": float,
@@ -136,12 +132,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": [
-                    lambda n: n > 0,
-                ],
-                "above": [
-                    lambda n: n > 0,
-                ],
+                "below": [lambda n: n > 0],
+                "above": [lambda n: n > 0],
             },
             "threshold_absolute": {
                 "below": [
@@ -149,8 +141,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         float,
                         error=(
-                            "Invalid value in config for grains.threshold.absolute.below "
-                            "should be type int or float"
+                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
                         ),
                     )
                 ],
@@ -159,8 +150,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         float,
                         error=(
-                            "Invalid value in config for grains.threshold.absolute.below "
-                            "should be type int or float"
+                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
                         ),
                     )
                 ],
@@ -171,8 +161,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.area_thresholds.above', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"
                         ),
                     )
                 ],
@@ -181,8 +170,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.area_thresholds.below', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.below', valid values are int or null"
                         ),
                     )
                 ],
@@ -410,18 +398,18 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "savefig_format": Or(
                 None,
                 str,
-                error="Invalid value in config for plotting.savefig_format" "must be a value supported by Matplotlib.",
+                error="Invalid value in config for plotting.savefig_formatmust be a value supported by Matplotlib.",
             ),
             "savefig_dpi": Or(
                 None,
                 "figure",
                 lambda n: n > 0,
-                error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or floats",
+                error="Invalid value in config for plotting.savefig_dpi, validvalues are 'figure' or floats",
             ),
             "image_set": Or(
                 "all",
                 "core",
-                error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+                error="Invalid value in config for 'plotting.image_set', valid values are 'all' or 'core'",
             ),
             "pixel_interpolation": Or(
                 None,
@@ -470,8 +458,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 True,
                 False,
                 error=(
-                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or "
-                    "'False'"
+                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'"
                 ),
             ),
         },
@@ -503,8 +490,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'extracted_channel.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'extracted_channel.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -785,8 +771,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'gaussian_filtered.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'gaussian_filtered.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -801,9 +786,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'z_threshold.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'z_threshold.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": True,
             "savefig_dpi": Or(
@@ -818,9 +801,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'mask_grains.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'mask_grains.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -836,9 +817,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'tidied_border.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -892,9 +871,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'unet_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'unet_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -909,9 +886,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'vetted_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -944,9 +919,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'mask_overlay.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'mask_overlay.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": True,
             "savefig_dpi": Or(
@@ -962,7 +935,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'bounding_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'bounding_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -976,9 +949,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'grain_image.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": False,
             "savefig_dpi": Or(
@@ -991,9 +962,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'grain_mask.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1007,8 +976,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'grain_mask_image.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'grain_mask_image.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -1025,7 +993,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1038,7 +1006,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1051,7 +1019,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1064,7 +1032,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1078,7 +1046,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'branch_indexes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'branch_indexes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1092,7 +1060,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1106,8 +1074,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'convolved_skeleton.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'convolved_skeleton.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1120,9 +1087,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'node_centres.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'node_centres.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "mask_cmap": str,
             "core_set": bool,
@@ -1134,8 +1099,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'node_branch_mask.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_branch_mask.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1148,8 +1112,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'node_area_skeleton.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_area_skeleton.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1162,8 +1125,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'node_branch_mask.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'node_branch_mask.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1175,9 +1137,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'node_avg_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "mask_cmap": str,
             "core_set": bool,
@@ -1188,7 +1148,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1257,7 +1217,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1271,7 +1231,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "mask_cmap": str,
@@ -1282,9 +1242,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'splined_trace.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "title": str,
             "core_set": bool,
@@ -1298,7 +1256,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'curvature.image_type', valid values " "are 'binary' or 'non-binary'"),
+                error=("Invalid value in config 'curvature.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "title": str,
             "core_set": bool,

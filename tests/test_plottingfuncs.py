@@ -44,9 +44,7 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
         ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
     ],
 )
-def test_load_mplstyle(
-    style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str
-) -> None:
+def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str) -> None:
     """Test loading of topostats.mplstyle and a custom style."""
     load_mplstyle(style)
     assert mpl.rcParams["axes.titlesize"] == axes_titlesize
@@ -232,14 +230,14 @@ def test_plot_curvatures(tmp_path: Path) -> None:
     ("masked_array", "axes_colorbar", "region_properties"),
     [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
 )
-def test_save_figure(
+def test_save_figure(  # pylint: disable=too-many-positional-arguments
     masked_array: np.ndarray,
     axes_colorbar: bool,
     region_properties: bool,
     image_random: np.ndarray,
     minicircle_grain_region_properties_post_removal: Grains,
     tmp_path: Path,
-):
+) -> None:
     """Tests that an image is saved and a figure returned."""
     if region_properties:
         region_properties = minicircle_grain_region_properties_post_removal

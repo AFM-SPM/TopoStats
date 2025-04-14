@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 import re
 import sys
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
@@ -14,13 +13,10 @@ import keras
 import numpy as np
 import numpy.typing as npt
 from skimage import morphology
-from skimage.color import label2rgb
 from skimage.measure import label, regionprops
 from skimage.morphology import binary_dilation
-from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.thresholds import threshold
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
@@ -582,12 +578,12 @@ class Grains:
         Method for determining thershold to mask values, default is 'otsu'.
     otsu_threshold_multiplier : float
         Factor by which the below threshold is to be scaled prior to masking.
-    threshold_std_dev : dict
+    threshold_std_dev : dict[str, float | list]
         Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
         if threshold_method is 'std_dev'.
-    threshold_absolute : dict
+    threshold_absolute : dict[str, float | list]
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-    area_thresholds : dict
+    area_thresholds : dict[str, list[float | None]]
         Dictionary of above and below grain's area thresholds.
     direction : str
         Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
@@ -642,12 +638,12 @@ class Grains:
             Method for determining thershold to mask values, default is 'otsu'.
         otsu_threshold_multiplier : float
             Factor by which the below threshold is to be scaled prior to masking.
-        threshold_std_dev : dict
+        threshold_std_dev : dict[str, float | list]
             Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
             if threshold_method is 'std_dev'.
-        threshold_absolute : dict
+        threshold_absolute : dict[str, float | list]
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-        absolute_area_threshold : dict
+        area_thresholds : dict[str, list[float | None]]
             Dictionary of above and below grain's area thresholds.
         direction : str
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
@@ -757,9 +753,7 @@ class Grains:
                 for class_index in range(1, grain_mask_tensor.shape[2]):
                     grain_mask_tensor[:, :, class_index][flattened_grain_mask_tensor_labelled == region.label] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     @staticmethod
     def label_regions(image: npt.NDArray, background: int = 0) -> npt.NDArray:
@@ -857,9 +851,7 @@ class Grains:
                 if region_area > upper_size_limit or region_area < lower_size_limit:
                     grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     @staticmethod
     def bbox_size_thresholding_tensor(
@@ -897,9 +889,7 @@ class Grains:
                     if max(bbox_width, bbox_height) > upper_size_limit:
                         grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
@@ -938,9 +928,7 @@ class Grains:
 
             # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
             if self.remove_edge_intersecting_grains:
-                traditional_full_mask_tensor = Grains.tidy_border_tensor(
-                    grain_mask_tensor=traditional_full_mask_tensor
-                )
+                traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
             self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
@@ -1103,9 +1091,7 @@ class Grains:
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor
-        traditional_full_mask_tensor = Grains.update_background_class(traditional_full_mask_tensor)
-
-        return traditional_full_mask_tensor
+        return Grains.update_background_class(traditional_full_mask_tensor)
 
     # pylint: disable=too-many-locals
     @staticmethod
@@ -1301,8 +1287,7 @@ class Grains:
             3-D Numpy array of image tensor with updated background class.
         """
         flattened_mask = Grains.flatten_multi_class_tensor(grain_mask_tensor)
-        new_background = np.where(flattened_mask == 0, 1, 0)
-        grain_mask_tensor[:, :, 0] = new_background
+        grain_mask_tensor[:, :, 0] = np.where(flattened_mask == 0, 1, 0)
         return grain_mask_tensor.astype(bool)
 
     @staticmethod
@@ -1348,9 +1333,7 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:]
-                for vetting_criteria in class_size_thresholds
-                if vetting_criteria[0] == class_index
+                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -2073,9 +2056,7 @@ class Grains:
         if not graincrops:
             raise ValueError("No grain crops provided to construct the full mask tensor.")
         num_classes: int = list(graincrops.values())[0].mask.shape[2]
-        full_mask_tensor: npt.NDArray[np.bool] = np.zeros(
-            (image_shape[0], image_shape[1], num_classes), dtype=np.bool_
-        )
+        full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
@@ -2142,9 +2123,7 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(
-                flat_region.bbox
-            )  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(

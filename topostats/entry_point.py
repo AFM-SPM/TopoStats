@@ -117,9 +117,7 @@ def create_parser() -> arg.ArgumentParser:
         help="Image set to generate, default is 'core' other option is 'all'.",
     )
 
-    subparsers = parser.add_subparsers(
-        title="program", description="Available programs, listed below:", dest="program"
-    )
+    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
 
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(

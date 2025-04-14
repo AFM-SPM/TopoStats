@@ -565,11 +565,9 @@ def minicircle_masked_tilt_removal(minicircle_masked_median_flatten: Filters) ->
 @pytest.fixture()
 def minicircle_masked_quadratic_removal(minicircle_masked_tilt_removal: Filters) -> Filters:
     """Secondary quadratic removal using mask."""
-    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = (
-        minicircle_masked_tilt_removal.remove_quadratic(
-            minicircle_masked_tilt_removal.images["masked_tilt_removal"],
-            mask=minicircle_masked_tilt_removal.images["mask"],
-        )
+    minicircle_masked_tilt_removal.images["masked_quadratic_removal"] = minicircle_masked_tilt_removal.remove_quadratic(
+        minicircle_masked_tilt_removal.images["masked_tilt_removal"],
+        mask=minicircle_masked_tilt_removal.images["mask"],
     )
     return minicircle_masked_tilt_removal
 
@@ -677,9 +675,7 @@ def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grai
 def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
     """Labelled regions."""
     minicircle_grain_remove_noise.mask_images["above"]["labelled_regions_01"] = (
-        minicircle_grain_remove_noise.label_regions(
-            minicircle_grain_remove_noise.mask_images["above"]["removed_noise"]
-        )
+        minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.mask_images["above"]["removed_noise"])
     )
     return minicircle_grain_remove_noise
 
@@ -907,9 +903,7 @@ def skeletonize_linear_bool_int(skeletonize_linear) -> npt.NDArray:
 # 4. Apply Gaussian filter to blur the heights and give an example original image with heights
 
 
-def _generate_heights(
-    skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0
-) -> npt.NDArray:
+def _generate_heights(skeleton: npt.NDArray, scale: float = 100, sigma: float = 5.0, cval: float = 20.0) -> npt.NDArray:
     """Generate heights from skeletons by scaling image and applying Gaussian blurring.
 
     Uses scikit-image 'skimage.filters.gaussian()' to generate heights from skeletons.
