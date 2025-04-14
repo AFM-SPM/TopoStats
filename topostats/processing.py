@@ -96,9 +96,6 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            if plotting_config["image_set"] == "all":
-                filter_out_path.mkdir(parents=True, exist_ok=True)
-                LOGGER.debug(f"[{filename}] : Target filter directory created : {filter_out_path}")
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -200,74 +197,71 @@ def run_grains(  # noqa: C901
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Possibly delete this creation of the directory since we already do this earlier?
-                    if plotting_config["image_set"] == "all":
-                        # Plot diagnostic ful grain images
-                        for plot_name, array in image_arrays.items():
-                            if len(array.shape) == 3:
-                                # Tensor, iterate over each channel
-                                filename_base = plotting_config["plot_dict"][plot_name]["filename"]
-                                for tensor_class in range(1, array.shape[2]):
-                                    LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
-                                    plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                                    plotting_config["plot_dict"][plot_name]["filename"] = (
-                                        filename_base + f"_class_{tensor_class}"
-                                    )
+                    # Plot diagnostic full grain images
+                    for plot_name, array in image_arrays.items():
+                        if len(array.shape) == 3:
+                            # Tensor, iterate over each channel
+                            filename_base = plotting_config["plot_dict"][plot_name]["filename"]
+                            for tensor_class in range(1, array.shape[2]):
+                                LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
+                                plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    filename_base + f"_class_{tensor_class}"
+                                )
+                                Images(
+                                    data=image,
+                                    masked_array=array[:, :, tensor_class],
+                                    **plotting_config["plot_dict"][plot_name],
+                                ).plot_and_save()
+                        else:
+                            # 2D array
+                            LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
+                            plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                            Images(
+                                data=np.zeros_like(array),
+                                masked_array=array,
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
+                    # Plot individual grain masks
+                    if direction == "above":
+                        direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.above
+                    else:
+                        direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.below
+                    if direction_grain_crops is not None:
+                        LOGGER.info(f"[{filename}] : Plotting individual grain masks")
+                        for grain_number, grain_crop in direction_grain_crops.crops.items():
+                            # Crop image plot
+                            crop_image = grain_crop.image
+                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
+                            Images(
+                                data=crop_image,
+                                **plotting_config["plot_dict"]["grain_image"],
+                            ).plot_and_save()
+                            # Grain mask plot
+                            crop_mask = grain_crop.mask
+                            plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
+                            if len(crop_mask.shape) == 3:
+                                # Tensor, iterate over channels
+                                for tensor_class in range(1, crop_mask.shape[2]):
+                                    plotting_config["plot_dict"]["grain_mask"][
+                                        "filename"
+                                    ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                     Images(
-                                        data=image,
-                                        masked_array=array[:, :, tensor_class],
-                                        **plotting_config["plot_dict"][plot_name],
+                                        data=crop_image,
+                                        masked_array=crop_mask[:, :, tensor_class],
+                                        **plotting_config["plot_dict"]["grain_mask"],
                                     ).plot_and_save()
                             else:
                                 # 2D array
-                                LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
-                                plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                                Images(
-                                    data=np.zeros_like(array),
-                                    masked_array=array,
-                                    **plotting_config["plot_dict"][plot_name],
-                                ).plot_and_save()
-                        # Plot individual grain masks
-                        if direction == "above":
-                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.above
-                        else:
-                            direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.below
-                        if direction_grain_crops is not None:
-                            LOGGER.info(f"[{filename}] : Plotting individual grain masks")
-                            for grain_number, grain_crop in direction_grain_crops.crops.items():
-                                # Crop image plot
-                                crop_image = grain_crop.image
-                                plotting_config["plot_dict"]["grain_image"][
+                                plotting_config["plot_dict"]["grain_mask"][
                                     "filename"
-                                ] = f"{filename}_grain_{grain_number}"
-                                plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
+                                ] = f"{filename}_grain_mask_{grain_number}"
                                 Images(
                                     data=crop_image,
-                                    **plotting_config["plot_dict"]["grain_image"],
+                                    masked_array=crop_mask,
+                                    **plotting_config["plot_dict"]["grain_mask"],
                                 ).plot_and_save()
-                                # Grain mask plot
-                                crop_mask = grain_crop.mask
-                                plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
-                                if len(crop_mask.shape) == 3:
-                                    # Tensor, iterate over channels
-                                    for tensor_class in range(1, crop_mask.shape[2]):
-                                        plotting_config["plot_dict"]["grain_mask"][
-                                            "filename"
-                                        ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
-                                        Images(
-                                            data=crop_image,
-                                            masked_array=crop_mask[:, :, tensor_class],
-                                            **plotting_config["plot_dict"]["grain_mask"],
-                                        ).plot_and_save()
-                                else:
-                                    # 2D array
-                                    plotting_config["plot_dict"]["grain_mask"][
-                                        "filename"
-                                    ] = f"{filename}_grain_mask_{grain_number}"
-                                    Images(
-                                        data=crop_image,
-                                        masked_array=crop_mask,
-                                        **plotting_config["plot_dict"]["grain_mask"],
-                                    ).plot_and_save()
                     # Always plot these plots
                     # Make a plot of coloured regions with bounding boxes
                     plotting_config["plot_dict"]["bounding_boxes"]["output_dir"] = grain_out_path_direction
@@ -496,7 +490,6 @@ def run_disordered_tracing(
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
-
                 Images(
                     full_image,
                     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
@@ -638,7 +631,7 @@ def run_nodestats(  # noqa: C901
                                     **plotting_config["plot_dict"][cropped_image_type],
                                 ).plot_and_save()
                             # plot crossing height linetrace
-                            if plotting_config["image_set"] == "all":
+                            if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
                                 if not single_node_stats["error"]:
                                     fig, _ = plot_crossing_linetrace_halfmax(
                                         branch_stats_dict=single_node_stats["branch_stats"],
@@ -901,6 +894,7 @@ def run_splining(
                 for _, grain_dict in splined_data.items():
                     for _, mol_dict in grain_dict.items():
                         all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
+
                 Images(
                     data=image,
                     output_dir=core_out_path,
@@ -1070,7 +1064,7 @@ def get_out_paths(
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
     tracing_out_path = core_out_path / filename / "dnatracing"
-    if plotting_config["image_set"] == "all" and grain_dirs:
+    if "core" not in plotting_config["image_set"] and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)

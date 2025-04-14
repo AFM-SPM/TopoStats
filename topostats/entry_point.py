@@ -112,9 +112,12 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "--image-set",
         dest="image_set",
-        type=str,
+        type=list,
+        nargs="+",
         required=False,
-        help="Image set to generate, default is 'core' other option is 'all'.",
+        help="Image set to generate, default is 'core' other options are 'all', "
+        "'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+        "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
     subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")

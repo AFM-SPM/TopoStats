@@ -206,7 +206,10 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            if plotting_config["image_set"] == "all":
+            if (
+                "all" in plotting_config["image_set"]
+                or "filters" in plotting_config["image_set"]
+            ):
                 filter_out_path.mkdir(parents=True, exist_ok=True)
                 LOGGER.debug(
                     f"[{filename}] : Target filter directory created : {filter_out_path}"
