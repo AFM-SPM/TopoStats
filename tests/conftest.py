@@ -23,7 +23,7 @@ from topostats.grains import GrainCrop, Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
-from topostats.utils import _get_mask, get_mask, get_thresholds
+from topostats.utils import get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
