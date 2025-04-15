@@ -88,170 +88,6 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop):
 #     assert True
 
 
-def test_remove_small_objects():
-    """Test the remove_small_objects method of the Grains class."""
-    grains_object = Grains(
-        image=None,
-        filename="",
-        pixel_to_nm_scaling=1.0,
-    )
-
-    test_img = np.array(
-        [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 3, 3, 0],
-            [0, 0, 1, 0, 3, 3, 0],
-            [0, 0, 0, 0, 0, 3, 0],
-            [0, 2, 0, 2, 0, 3, 0],
-            [0, 2, 2, 2, 0, 3, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-        ]
-    )
-
-    expected = np.array(
-        [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0, 1, 0],
-            [0, 1, 0, 1, 0, 1, 0],
-            [0, 1, 1, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-        ]
-    )
-
-    grains_object.minimum_grain_size = 5
-    result = grains_object.remove_small_objects(test_img)
-
-    np.testing.assert_array_equal(result, expected)
-
-
-@pytest.mark.parametrize(
-    ("binary_image", "minimum_size_px", "minimum_bbox_size_px", "expected_image"),
-    [
-        pytest.param(
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-            8,
-            4,
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-        )
-    ],
-)
-def test_remove_objects_too_small_to_process(
-    binary_image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int, expected_image: npt.NDArray
-) -> None:
-    """Test the remove_objects_too_small_to_process method of the Grains class."""
-    grains_object = Grains(
-        image=np.array([[0, 0], [0, 0]]),
-        filename="",
-        pixel_to_nm_scaling=1.0,
-    )
-
-    result = grains_object.remove_objects_too_small_to_process(
-        image=binary_image, minimum_size_px=minimum_size_px, minimum_bbox_size_px=minimum_bbox_size_px
-    )
-
-    np.testing.assert_array_equal(result, expected_image)
-
-
-@pytest.mark.parametrize(
-    ("test_labelled_image", "area_thresholds", "expected"),
-    [
-        (
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-            [4.0, 6.0],
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 0, 1, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-        ),
-        (
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-            [None, None],
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
-            ),
-        ),
-    ],
-)
-def test_area_thresholding(test_labelled_image, area_thresholds, expected):
-    """Test the area_thresholding() method of the Grains class."""
-    grains_object = Grains(
-        image=None,
-        filename="",
-        pixel_to_nm_scaling=1.0,
-    )
-
-    result = grains_object.area_thresholding(test_labelled_image, area_thresholds=area_thresholds)
-
-    np.testing.assert_array_equal(result, expected)
-
-
 @pytest.mark.parametrize(
     ("grain_mask_tensor", "area_thresholds", "pixel_to_nm_scaling", "expected_grain_mask_tensor"),
     [
@@ -1101,7 +937,7 @@ def test_find_grains(
 
 # Find grains with unet - needs mocking
 @pytest.mark.parametrize(
-    ("image", "expected_grain_mask", "expected_labelled_regions", "expected_imagegraincrops"),
+    ("image", "expected_imagegraincrops"),
     [
         pytest.param(
             # Image
@@ -1116,34 +952,6 @@ def test_find_grains(
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
-            ),
-            # Expected removed small objects tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ).astype(bool),
-            # Expected labelled regions tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             # Expected image grain crops
@@ -1300,8 +1108,6 @@ def test_find_grains(
 def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
     image: npt.NDArray[np.float32],
-    expected_grain_mask: npt.NDArray[np.bool_],
-    expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
@@ -1334,15 +1140,7 @@ def test_find_grains_unet(
 
         grains_object.find_grains()
 
-        result_grain_mask = grains_object.mask_images["above"]["removed_objects_too_small_to_process"]
-        result_labelled_regions = grains_object.mask_images["above"]["labelled_regions_02"]
         result_image_grain_crops = grains_object.image_grain_crops
-
-        assert result_grain_mask.shape == expected_grain_mask.shape
-        assert result_labelled_regions.shape == expected_labelled_regions.shape
-
-        np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
-        np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
         result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
 
@@ -1361,12 +1159,6 @@ def test_find_grains_no_grains_found():
             [0.1, 0.1, 0.2, 0.1, 0.1],
         ]
     )
-
-    # Expected removed small objects tensor
-    expected_grain_mask = np.zeros_like(image, dtype=bool)
-
-    # Expected labelled regions tensor
-    expected_labelled_regions = np.zeros_like(image, dtype=int)
 
     # Expected image grain crops
     expected_imagegraincrops = ImageGrainCrops(
@@ -1393,15 +1185,7 @@ def test_find_grains_no_grains_found():
 
     grains_object.find_grains()
 
-    result_grain_mask = grains_object.mask_images["above"]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.mask_images["above"]["labelled_regions_02"]
     result_image_grain_crops = grains_object.image_grain_crops
-
-    assert result_grain_mask.shape == expected_grain_mask.shape
-    assert result_labelled_regions.shape == expected_labelled_regions.shape
-
-    np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
-    np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
     assert result_image_grain_crops == expected_imagegraincrops
 
