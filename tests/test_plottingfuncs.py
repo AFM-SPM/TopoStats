@@ -344,21 +344,24 @@ def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_bounding_box(
-    minicircle_grain_coloured: Grains,
-    minicircle_grain_region_properties_post_removal: Grains,
+    minicircle_grain_area_thresholding: Grains,
     plotting_config: dict,
     tmp_path: Path,
 ) -> None:
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_coloured.mask_images["above"]["coloured_regions"],
+        data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1],
         output_dir=tmp_path,
-        filename="15-coloured_regions",
-        pixel_to_nm_scaling=minicircle_grain_coloured.pixel_to_nm_scaling,
+        filename="bounding_box",
+        pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
-        region_properties=minicircle_grain_region_properties_post_removal,
+        region_properties=Grains.get_region_properties(
+            image=Grains.label_regions(
+                minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1]
+            )
+        ),
     ).plot_and_save()
     return fig
 
@@ -419,7 +422,7 @@ def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dic
     """Test plotting with high DPI."""
     plotting_config["savefig_dpi"] = DPI
     fig, _ = Images(
-        data=minicircle_grain_gaussian_filter.plot_images["gaussian_filtered"],
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="high_dpi",
         **plotting_config,
