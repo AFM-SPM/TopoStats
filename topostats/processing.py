@@ -179,7 +179,7 @@ def run_grains(  # noqa: C901
             )
             grains.find_grains()
             # Get number of grains found
-            num_above = 0 if grains.image_grain_crops.above is None else len(grains.image_grain_crops.above)
+            num_above = 0
             if grains.image_grain_crops.above is not None:
                 num_above = len(grains.image_grain_crops.above.crops)
             num_below = 0
