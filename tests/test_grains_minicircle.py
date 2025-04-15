@@ -27,11 +27,11 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
     assert minicircle_grain_threshold_abs.thresholds == {"above": [1.0], "below": [-1.0]}
 
 
-def test_mask_minicircle(minicircle_grain_mask: Grains) -> None:
+def test_mask_minicircle(minicircle_thresholded_grain_tensor: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_mask.mask_images["above"]["mask_grains"], np.ndarray)
-    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].shape == (64, 64)
-    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].sum() == 668
+    assert isinstance(minicircle_thresholded_grain_tensor.mask_images["above"]["mask_grains"], np.ndarray)
+    assert minicircle_thresholded_grain_tensor.mask_images["above"]["mask_grains"].shape == (64, 64)
+    assert minicircle_thresholded_grain_tensor.mask_images["above"]["mask_grains"].sum() == 668
 
 
 def test_clear_border(minicircle_grain_clear_border: Grains) -> None:
