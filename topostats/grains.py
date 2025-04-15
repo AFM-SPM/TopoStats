@@ -689,7 +689,7 @@ class Grains:
         self.area_thresholds = area_thresholds
         # Only detect grains for the desired direction
         assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
-        self.threshold_directions: list[str] = [direction] if direction != "both" else ["above", "below"]
+        self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
