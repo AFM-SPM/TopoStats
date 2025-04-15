@@ -250,7 +250,7 @@ def run_grains(  # noqa: C901
                                     ).plot_and_save()
                     # Always plot these plots
                     # Make a plot of labelled regions with bounding boxes
-                    if direction == "above":
+                    direction_grain_crops = grains.image_grain_crops.above if direction == "above" else grains.image_grain_crops.below
                         direction_grain_crops = grains.image_grain_crops.above
                     else:
                         direction_grain_crops = grains.image_grain_crops.below
