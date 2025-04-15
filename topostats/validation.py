@@ -137,7 +137,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
                 "below": [
-                    lambda n: n > 0,
+                    lambda n: n > 0
                 ],
                 "above": [
                     lambda n: n > 0,
