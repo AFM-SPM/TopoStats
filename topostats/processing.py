@@ -180,11 +180,7 @@ def run_grains(  # noqa: C901
             grains.find_grains()
             # Get number of grains found
             num_above = 0 if grains.image_grain_crops.above is None else len(grains.image_grain_crops.above)
-            if grains.image_grain_crops.above is not None:
-                num_above = len(grains.image_grain_crops.above.crops)
-            num_below = 0
-            if grains.image_grain_crops.below is not None:
-                num_below = len(grains.image_grain_crops.below.crops)
+            num_below = 0 if grains.image_grain_crops.below is None else len(grains.image_grain_crops.below)
             LOGGER.info(f"[{filename}] : Grains found: {num_above} above, {num_below} below")
             if num_above == 0 and num_below == 0:
                 LOGGER.warning(f"[{filename}] : No grains found for either direction.")
@@ -250,10 +246,9 @@ def run_grains(  # noqa: C901
                                     ).plot_and_save()
                     # Always plot these plots
                     # Make a plot of labelled regions with bounding boxes
-                    direction_grain_crops = grains.image_grain_crops.above if direction == "above" else grains.image_grain_crops.below
-                        direction_grain_crops = grains.image_grain_crops.above
-                    else:
-                        direction_grain_crops = grains.image_grain_crops.below
+                    direction_grain_crops = (
+                        grains.image_grain_crops.above if direction == "above" else grains.image_grain_crops.below
+                    )
 
                     if direction_grain_crops is not None:
 
