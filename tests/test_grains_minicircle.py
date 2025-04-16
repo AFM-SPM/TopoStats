@@ -27,11 +27,11 @@ def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:
     assert minicircle_grain_threshold_abs.thresholds == {"above": [1.0], "below": [-1.0]}
 
 
-def test_mask_minicircle(minicircle_grain_mask: Grains) -> None:
+def test_mask_minicircle(minicircle_grain_traditional_thresholding: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_mask.mask_images["above"]["mask_grains"], np.ndarray)
-    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].shape == (64, 64)
-    assert minicircle_grain_mask.mask_images["above"]["mask_grains"].sum() == 668
+    assert isinstance(minicircle_grain_traditional_thresholding.mask_images["above"]["thresholded_grains"], np.ndarray)
+    assert minicircle_grain_traditional_thresholding.mask_images["above"]["thresholded_grains"].shape == (64, 64, 2)
+    assert minicircle_grain_traditional_thresholding.mask_images["above"]["thresholded_grains"][:, :, 1].sum() == 670
 
 
 def test_clear_border(minicircle_grain_clear_border: Grains) -> None:
@@ -61,11 +61,11 @@ def test_remove_small_objects(minicircle_small_objects_removed: Grains) -> None:
     assert minicircle_small_objects_removed.mask_images["above"]["removed_small_objects"].sum() == 511
 
 
-def test_area_thresholding(minicircle_area_thresholding: Grains) -> None:
+def test_area_thresholding(minicircle_grain_area_thresholding: Grains) -> None:
     """Test removal of small objects via absolute area thresholding."""
-    assert isinstance(minicircle_area_thresholding.mask_images["above"]["removed_small_objects"], np.ndarray)
-    assert minicircle_area_thresholding.mask_images["above"]["removed_small_objects"].shape == (64, 64)
-    assert minicircle_area_thresholding.mask_images["above"]["removed_small_objects"].sum() == 1064
+    assert isinstance(minicircle_grain_area_thresholding.mask_images["above"]["removed_small_objects"], np.ndarray)
+    assert minicircle_grain_area_thresholding.mask_images["above"]["removed_small_objects"].shape == (64, 64)
+    assert minicircle_grain_area_thresholding.mask_images["above"]["removed_small_objects"].sum() == 1064
 
 
 def test_label_regions(minicircle_grain_labelled_post_removal: Grains) -> None:

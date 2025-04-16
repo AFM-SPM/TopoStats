@@ -16,6 +16,7 @@ import pytest
 import yaml
 from skimage import draw, filters
 from skimage.morphology import skeletonize
+from skimage.measure._regionprops import RegionProperties
 
 import topostats
 from topostats.filters import Filters
@@ -637,7 +638,7 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
 
 
 @pytest.fixture()
-def minicircle_thresholded_grain_tensor(minicircle_grain_threshold_abs: Grains) -> Grains:
+def minicircle_grain_traditional_thresholding(minicircle_grain_threshold_abs: Grains) -> Grains:
     """Boolean mask."""
     minicircle_grain_threshold_abs.mask_images["above"] = {}
     # Typing conformity
@@ -659,12 +660,12 @@ def minicircle_small_graincrops() -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def minicircle_grain_clear_border(minicircle_thresholded_grain_tensor: Grains) -> Grains:
+def minicircle_grain_clear_border(minicircle_grain_traditional_thresholding: Grains) -> Grains:
     """Cleared borders."""
-    minicircle_thresholded_grain_tensor.mask_images["above"]["tidied_border"] = Grains.tidy_border_tensor(
-        minicircle_thresholded_grain_tensor.mask_images["above"]["thresholded_grains"]
+    minicircle_grain_traditional_thresholding.mask_images["above"]["tidied_border"] = Grains.tidy_border_tensor(
+        minicircle_grain_traditional_thresholding.mask_images["above"]["thresholded_grains"]
     )
-    return minicircle_thresholded_grain_tensor
+    return minicircle_grain_traditional_thresholding
 
 
 @pytest.fixture()
@@ -682,7 +683,7 @@ def minicircle_grain_remove_objects_too_small_to_process(minicircle_grain_clear_
 
 
 @pytest.fixture()
-def minicircle_area_thresholding(minicircle_grain_remove_objects_too_small_to_process: Grains) -> Grains:
+def minicircle_grain_area_thresholding(minicircle_grain_remove_objects_too_small_to_process: Grains) -> Grains:
     """Small objects removed."""
     area_thresholds = [30, 2000]
     minicircle_grain_remove_objects_too_small_to_process.mask_images["above"]["area_thresholded"] = (
@@ -696,6 +697,17 @@ def minicircle_area_thresholding(minicircle_grain_remove_objects_too_small_to_pr
     )
 
     return minicircle_grain_remove_objects_too_small_to_process
+
+
+@pytest.fixture()
+def minicircle_grain_area_thresholding_regionprops(
+    minicircle_grain_area_thresholding: Grains,
+) -> list[RegionProperties]:
+    """Region properties of the area thresholded image."""
+    labelled_image = Grains.label_regions(
+        image=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1]
+    )
+    return Grains.get_region_properties(image=labelled_image)
 
 
 # Derive fixture for grainstats
