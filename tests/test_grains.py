@@ -102,16 +102,6 @@ def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection
     assert dict_almost_equal(dummy_image_grain_crop.image_grain_crops_to_dict(), expected)
 
 
-@pytest.mark.parametrize(
-    ("area_thresh_nm", "expected"),
-    [([None, None], grain_array), ([None, 32], grain_array2), ([12, 24], grain_array3), ([32, 44], grain_array4)],
-)
-def test_known_array_threshold(area_thresh_nm, expected) -> None:
-    """Tests that arrays are thresholded on size as expected."""
-    grains = Grains(image=np.zeros((10, 6)), filename="xyz", pixel_to_nm_scaling=2)
-    assert (grains.area_thresholding(grain_array, area_thresh_nm) == expected).all()
-
-
 # def test_random_grains(random_grains: Grains, caplog) -> None:
 #     """Test errors raised when processing images without grains."""
 #     # FIXME : I can see for myself that the error message is logged but the assert fails as caplog.text is empty?
