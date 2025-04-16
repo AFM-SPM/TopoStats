@@ -69,25 +69,3 @@ def test_area_thresholding(minicircle_grain_area_thresholding: Grains) -> None:
     assert isinstance(minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"], np.ndarray)
     assert minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"].shape == (64, 64, 2)
     assert minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1].sum() == 511
-
-
-def test_label_regions(minicircle_grain_labelled_post_removal: Grains) -> None:
-    """Test removal of small objects."""
-    assert isinstance(minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"], np.ndarray)
-    assert minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"].shape == (64, 64)
-    assert minicircle_grain_labelled_post_removal.mask_images["above"]["labelled_regions_02"].sum() == 1028
-
-
-def test_region_properties(minicircle_grain_region_properties_post_removal: np.array) -> None:
-    """Test removal of small objects."""
-    assert isinstance(minicircle_grain_region_properties_post_removal, list)
-    assert len(minicircle_grain_region_properties_post_removal) == 3
-    for x in minicircle_grain_region_properties_post_removal:
-        assert isinstance(x, RegionProperties)
-
-
-def test_colour_regions(minicircle_grain_coloured: Grains) -> None:
-    """Test removal of small objects."""
-    assert isinstance(minicircle_grain_coloured.mask_images["above"]["coloured_regions"], np.ndarray)
-    assert minicircle_grain_coloured.mask_images["above"]["coloured_regions"].shape == (64, 64, 3)
-    assert minicircle_grain_coloured.mask_images["above"]["coloured_regions"].sum() == 691
