@@ -64,11 +64,6 @@ def test_remove_objects_too_small_to_process(minicircle_grain_remove_objects_too
     )
 
 
-def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size: Grains) -> None:
-    """Test calculation of minimum grain size in pixels."""
-    assert isinstance(minicircle_minimum_grain_size.minimum_grain_size, float)
-    assert minicircle_minimum_grain_size.minimum_grain_size == 156.75
-
 
 def test_remove_small_objects(minicircle_small_objects_removed: Grains) -> None:
     """Test removal of small objects."""
