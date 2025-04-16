@@ -61,6 +61,10 @@ class GrainCrop:
         Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
+    height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+        3-D Numpy tensor of the height profiles.
+    stats : dict[int, dict[int, Any]] | None
+        Dictionary of grain statistics.
     """
 
     def __init__(
@@ -71,6 +75,8 @@ class GrainCrop:
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         filename: str,
+        height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
+        stats: dict[int, dict[int, Any]] | None = None,
     ):
         """
         Initialise the class.
@@ -89,6 +95,10 @@ class GrainCrop:
             Pixel to nanometre scaling factor for the crop.
         filename : str
             Filename of the image from which the crop was taken.
+        height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+            3-D Numpy tensor of the height profiles.
+        stats : dict[int, dict[int, Any]] | None
+            Dictionary of grain statistics.
         """
         self.padding = padding
         self.image = image
@@ -98,6 +108,8 @@ class GrainCrop:
         self.bbox = bbox
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.filename = filename
+        self.height_profiles = height_profiles
+        self.stats = stats
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -300,6 +312,54 @@ class GrainCrop:
         """
         self._filename = value
 
+    @property
+    def height_profiles(self) -> npt.NDArray:
+        """
+        Getter for the height_profile.
+
+        Returns
+        -------
+        str
+            The image height_profile.
+        """
+        return self._height_profiles
+
+    @height_profiles.setter
+    def height_profiles(self, value: npt.NDArray) -> None:
+        """
+        Setter for the height_profile.
+
+        Parameters
+        ----------
+        value : str
+            Image height_profile.
+        """
+        self._height_profiles = value
+
+    @property
+    def stats(self) -> dict[str, Any]:
+        """
+        Getter for the stats.
+
+        Returns
+        -------
+        str
+            Dictionary of image statistics.
+        """
+        return self._stats
+
+    @stats.setter
+    def stats(self, value: dict[str, Any]) -> None:
+        """
+        Setter for the stats.
+
+        Parameters
+        ----------
+        value : dict[str, Any]
+            Image stats.
+        """
+        self._stats = value
+
     def __eq__(self, other: object) -> bool:
         """
         Check if two GrainCrop objects are equal.
@@ -323,11 +383,13 @@ class GrainCrop:
             and self.bbox == other.bbox
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.filename == other.filename
+            and self.stats == other.stats
+            and self.height_profiles == other.height_profiles
         )
 
     def grain_crop_to_dict(self) -> dict[str, Any]:
         """
-        Convert grain crop to dictionary indexed by attributes.
+        Convert GrainCrop to dictionary indexed by attributes.
 
         Returns
         -------
@@ -394,8 +456,8 @@ class GrainCropsDirection:
     Attributes
     ----------
     full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean NxNx3 array of the full mask tensor.
-    crops : GrainCrops
+        Boolean WxHxC array of the full mask tensor (W = width ; H = height; C = class >= 2).
+    crops : dict[int, GrainCrops]
         Grain crops.
     """
 
@@ -454,6 +516,17 @@ class GrainCropsDirection:
         if not isinstance(other, GrainCropsDirection):
             return False
         return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
+
+    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
+        """
+        Convert GrainCropsDirection to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
     def debug_locate_difference(self, other: object) -> None:
         """
@@ -521,6 +594,17 @@ class ImageGrainCrops:
         if not isinstance(other, ImageGrainCrops):
             return False
         return self.above == other.above and self.below == other.below
+
+    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
+        """
+        Convert ImageGrainCrops to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
     def debug_locate_difference(self, other: object) -> None:
         """
@@ -1186,6 +1270,14 @@ class Grains:
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
+            if unet_config["remove_disconnected_grains"]:
+                # Remove grains that are not connected to the original grain
+                original_grain_mask = graincrop.mask
+                predicted_mask = Grains.remove_disconnected_grains(
+                    original_grain_tensor=original_grain_mask,
+                    predicted_grain_tensor=predicted_mask,
+                )
+
             # Check if all of the non-background classes are empty
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
@@ -1197,6 +1289,8 @@ class Grains:
                     bbox=graincrop.bbox,
                     pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                     filename=graincrop.filename,
+                    height_profiles=None,
+                    stats=None,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -2011,6 +2105,8 @@ class Grains:
                 bbox=graincrop.bbox,
                 pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                 filename=graincrop.filename,
+                height_profiles=None,
+                stats=None,
             )
 
         return passed_graincrops
@@ -2051,7 +2147,7 @@ class Grains:
 
     @staticmethod
     def construct_full_mask_from_graincrops(
-        graincrops: dict[int, GrainCrop], image_shape: tuple[int, int]
+        graincrops: dict[int, GrainCrop], image_shape: tuple[int, int, int]
     ) -> npt.NDArray[np.bool_]:
         """
         Construct a full mask tensor from the grain crops.
@@ -2066,7 +2162,7 @@ class Grains:
         Returns
         -------
         npt.NDArray[np.bool_]
-            NxNxC Numpy array of the full mask tensor.
+            HxWxC Numpy array of the full mask tensor (H = height, W = width, C = class >= 2).
         """
         # Calculate the number of classes from the first grain crop
         # Check if graincrops is empty
@@ -2204,6 +2300,8 @@ class Grains:
                 bbox=square_flat_bounding_box,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
+                height_profiles=None,
+                stats=None,
             )
 
         return graincrops
@@ -2316,3 +2414,51 @@ class Grains:
             graincrop.mask = Grains.update_background_class(graincrop.mask)
 
         return graincrops
+
+    @staticmethod
+    def remove_disconnected_grains(
+        original_grain_tensor: npt.NDArray,
+        predicted_grain_tensor: npt.NDArray,
+    ):
+        """
+        Remove grains that are not connected to the original grains.
+
+        Parameters
+        ----------
+        original_grain_tensor : npt.NDArray
+            3-D Numpy array of the original grain tensor.
+        predicted_grain_tensor : npt.NDArray
+            3-D Numpy array of the predicted grain tensor.
+
+        Returns
+        -------
+        npt.NDArray
+            3-D Numpy array of the predicted grain tensor with grains not connected to the original grains removed.
+        """
+        # flatten the masks and compare connected components
+        original_mask_flattened = Grains.flatten_multi_class_tensor(original_grain_tensor)
+        predicted_mask_flattened = Grains.flatten_multi_class_tensor(predicted_grain_tensor)
+        # Get the connected components of the original grain mask
+        original_mask_flattened_labelled = label(original_mask_flattened)
+        predicted_mask_flattened_labelled = label(predicted_mask_flattened)
+        # for each region of the predicted mask, check if it overlaps with any of the original mask regions
+        # (the original mask is expected to only have one region, but just in case future edits don't follow
+        # this assumption, I check all regions)
+        predicted_mask_regions = regionprops(predicted_mask_flattened_labelled)
+        original_mask_regions = regionprops(original_mask_flattened_labelled)
+        # if the predicted mask region doesn't overlap with any of the original mask regions, set it to 0
+        for predicted_mask_region in predicted_mask_regions:
+            predicted_mask_region_mask = predicted_mask_flattened_labelled == predicted_mask_region.label
+            overlap = False
+            for original_mask_region in original_mask_regions:
+                original_mask_region_mask = original_mask_flattened_labelled == original_mask_region.label
+                if np.any(predicted_mask_region_mask & original_mask_region_mask):
+                    # a region in the flattened original mask shares a pixel with the flattened predicted mask
+                    overlap = True
+                    break
+            if not overlap:
+                # zero the region in all channels of the predicted mask
+                for channel in range(1, predicted_grain_tensor.shape[-1]):
+                    predicted_grain_tensor[predicted_mask_region_mask, channel] = 0
+
+        return predicted_grain_tensor

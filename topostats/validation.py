@@ -202,6 +202,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "model_path": Or(None, str),
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
+                "remove_disconnected_grains": bool,
             },
             "vetting": {
                 "whole_grain_size_thresholds": Or(
@@ -281,6 +282,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'grainstats.extract_height_profile',"
                 "valid values are 'True' or 'False'",
             ),
+            "class_names": [str],
         },
         "disordered_tracing": {
             "run": Or(
@@ -418,11 +420,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 lambda n: n > 0,
                 error="Invalid value in config for plotting.savefig_dpi, valid" "values are 'figure' or floats",
             ),
-            "image_set": Or(
-                "all",
-                "core",
-                error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
-            ),
+            "image_set": [
+                Or(
+                    "all",
+                    "core",
+                    "filters",
+                    "grains",
+                    "grain_crops",
+                    "disordered_tracing",
+                    "nodestats",
+                    "ordered_tracing",
+                    "splining",
+                    error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+                )
+            ],
             "pixel_interpolation": Or(
                 None,
                 "none",
@@ -513,6 +524,20 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'extracted_channel.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "pixels": {
             "filename": str,
@@ -527,6 +552,20 @@ PLOTTING_SCHEMA = Schema(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'pixels.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
             ),
         },
         "initial_median_flatten": {
@@ -546,6 +585,20 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'initial_median_flatten.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "initial_tilt_removal": {
             "filename": str,
@@ -563,6 +616,20 @@ PLOTTING_SCHEMA = Schema(
                 lambda n: n > 0,
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'initial_tilt_removal.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
             ),
         },
         "initial_quadratic_removal": {
@@ -582,6 +649,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "initial_scar_removal": {
             "filename": str,
@@ -600,6 +668,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "initial_zero_average_background": {
             "filename": str,
@@ -618,6 +687,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "initial_nonlinear_polynomial_removal": {
             "filename": str,
@@ -636,6 +706,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "mask": {
             "filename": str,
@@ -651,6 +722,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "masked_median_flatten": {
             "filename": str,
@@ -669,6 +741,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "masked_tilt_removal": {
             "filename": str,
@@ -687,6 +760,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "masked_quadratic_removal": {
             "filename": str,
@@ -705,6 +779,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "masked_nonlinear_polynomial_removal": {
             "filename": str,
@@ -723,6 +798,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "secondary_scar_removal": {
             "filename": str,
@@ -741,6 +817,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "scar_mask": {
             "filename": str,
@@ -759,6 +836,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "final_zero_average_background": {
             "filename": str,
@@ -777,6 +855,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "gaussian_filtered": {
             "filename": str,
@@ -795,6 +874,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "z_threshed": {
             "title": str,
@@ -811,6 +891,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "filters",
         },
         "thresholded_grains": {
             "filename": str,
@@ -829,6 +910,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "mask_cmap": str,
+            "module": "grains",
         },
         "tidied_border": {
             "filename": str,
@@ -847,6 +929,7 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "mask_cmap": str,
+            "module": "grains",
         },
         "removed_objects_too_small_to_process": {
             "filename": str,
@@ -866,6 +949,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "area_thresholded": {
             "filename": str,
@@ -885,6 +969,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "unet": {
             "filename": str,
@@ -902,6 +987,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "vetted": {
             "filename": str,
@@ -919,6 +1005,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "merged_classes": {
             "filename": str,
@@ -937,6 +1024,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "mask_overlay": {
             "filename": str,
@@ -954,6 +1042,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "bounding_boxes": {
             "filename": str,
@@ -971,6 +1060,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grains",
         },
         "grain_image": {
             "image_type": Or(
@@ -986,6 +1076,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grain_crops",
         },
         "grain_mask": {
             "image_type": Or(
@@ -1001,6 +1092,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grain_crops",
         },
         "grain_mask_image": {
             "image_type": Or(
@@ -1017,6 +1109,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "grain_crops",
         },
         "orig_grain": {
             "filename": str,
@@ -1030,6 +1123,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "module": "disordered_tracing",
         },
         "smoothed_grain": {
             "filename": str,
@@ -1043,6 +1137,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "module": "disordered_tracing",
         },
         "skeleton": {
             "filename": str,
@@ -1057,6 +1152,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "disordered_tracing",
         },
         "pruned_skeleton": {
             "title": str,
@@ -1070,6 +1166,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "disordered_tracing",
         },
         "branch_indexes": {
             "filename": str,
@@ -1084,6 +1181,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "disordered_tracing",
         },
         "branch_types": {
             "filename": str,
@@ -1098,6 +1196,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "disordered_tracing",
         },
         "convolved_skeletons": {
             "filename": str,
@@ -1113,6 +1212,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "nodestats",
         },
         "node_centres": {
             "filename": str,
@@ -1127,6 +1227,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "nodestats",
         },
         "connected_nodes": {
             "title": str,
@@ -1141,6 +1242,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "nodestats",
         },
         "node_area_skeleton": {
             "title": str,
@@ -1155,6 +1257,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "nodestats",
         },
         "node_branch_mask": {
             "title": str,
@@ -1169,6 +1272,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "nodestats",
         },
         "node_avg_mask": {
             "title": str,
@@ -1181,6 +1285,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "module": "nodestats",
         },
         "node_line_trace": {
             "title": str,
@@ -1193,6 +1298,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "mask_cmap": str,
             "core_set": bool,
+            "module": "nodestats",
         },
         "ordered_traces": {
             "title": str,
@@ -1211,6 +1317,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "ordered_tracing",
         },
         "trace_segments": {
             "filename": str,
@@ -1230,6 +1337,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "ordered_tracing",
         },
         "over_under": {
             "filename": str,
@@ -1249,6 +1357,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "ordered_tracing",
         },
         "all_molecules": {
             "filename": str,
@@ -1263,6 +1372,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "ordered_tracing",
         },
         "fitted_trace": {
             "filename": str,
@@ -1277,6 +1387,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": int,
+            "module": "ordered_tracing",
         },
         "splined_trace": {
             "image_type": Or(
@@ -1293,6 +1404,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "splining",
         },
         "curvature": {
             "image_type": Or(
@@ -1307,6 +1419,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "splining",
         },
         "curvature_individual_grains": {
             "filename": str,
@@ -1325,6 +1438,7 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
+            "module": "splining",
         },
     }
 )

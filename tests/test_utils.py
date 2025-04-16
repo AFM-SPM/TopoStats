@@ -229,7 +229,7 @@ def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
 @pytest.mark.parametrize(
     ("column_set", "n_columns", "columns_check"),
     [
-        pytest.param("grainstats", 27, {"image", "grain_number", "basename", "area"}, id="Empty grainstats dataframe"),
+        pytest.param("grainstats", 30, {"image", "grain_number", "basename", "area"}, id="Empty grainstats dataframe"),
         pytest.param(
             "disordered_tracing_statistics",
             13,

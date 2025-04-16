@@ -112,9 +112,12 @@ def create_parser() -> arg.ArgumentParser:
     parser.add_argument(
         "--image-set",
         dest="image_set",
-        type=str,
+        type=list,
+        nargs="+",
         required=False,
-        help="Image set to generate, default is 'core' other option is 'all'.",
+        help="Image set to generate, default is 'core' other options are 'all', "
+        "'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+        "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
     subparsers = parser.add_subparsers(
@@ -337,6 +340,13 @@ def create_parser() -> arg.ArgumentParser:
         help="Lower bound for normalisation of input data. This should be slightly lower than the minimum desired"
         "/expected height of the background",
     )
+    process_parser.add_argument(
+        "--unet-remove-disconnected-grains",
+        dest="unet_remove_disconnected_grains",
+        type=bool,
+        required=False,
+        help="Whether or not to remove grains that are disconnected from the original mask",
+    )
 
     # Grainstats
     process_parser.add_argument(
@@ -360,6 +370,17 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Extract height profiles along maximum feret of molecules",
+    )
+    process_parser.add_argument(
+        "--grainstats-class-names",
+        dest="grainstats_class_names",
+        type=list,
+        nargs="+",
+        required=False,
+        help=(
+            "Names of the objects found by the segmentation methods (objects "
+            "are linked to the `class_number` output in the grainstats csv"
+        ),
     )
 
     # Disordered Tracing
@@ -798,6 +819,13 @@ def create_parser() -> arg.ArgumentParser:
         help="Lower bound for normalisation of input data. This should be slightly lower than the minimum desired"
         "/expected height of the background",
     )
+    grains_parser.add_argument(
+        "--unet-remove-disconnected-grains",
+        dest="unet_remove_disconnected_grains",
+        type=bool,
+        required=False,
+        help="Whether or not to remove grains that are disconnected from the original mask",
+    )
     # Run the relevant function with the arguments
     grains_parser.set_defaults(func=run_modules.grains)
 
@@ -827,6 +855,17 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Extract height profiles along maximum feret of molecules",
+    )
+    grainstats_parser.add_argument(
+        "--class-names",
+        dest="class_names",
+        type=list,
+        nargs="+",
+        required=False,
+        help=(
+            "Names of the objects found by the segmentation methods (objects "
+            "are linked to the `class_number` output in the grainstats csv"
+        ),
     )
     # Run the relevant function with the arguments
     grainstats_parser.set_defaults(func=run_modules.grainstats)

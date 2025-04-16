@@ -13,7 +13,7 @@ from art import tprint
 
 from topostats import __version__
 from topostats.filters import Filters
-from topostats.grains import GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
@@ -96,9 +96,6 @@ def run_filters(
         if plotting_config["run"]:
             plotting_config.pop("run")
             LOGGER.info(f"[{filename}] : Plotting Filtering Images")
-            if plotting_config["image_set"] == "all":
-                filter_out_path.mkdir(parents=True, exist_ok=True)
-                LOGGER.debug(f"[{filename}] : Target filter directory created : {filter_out_path}")
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -197,9 +194,9 @@ def run_grains(  # noqa: C901
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Possibly delete this creation of the directory since we already do this earlier?
-                    if plotting_config["image_set"] == "all":
-                        # Plot diagnostic ful grain images
-                        for plot_name, array in image_arrays.items():
+                    # Plot diagnostic full grain images
+                    for plot_name, array in image_arrays.items():
+                        if len(array.shape) == 3:
                             # Tensor, iterate over each channel
                             filename_base = plotting_config["plot_dict"][plot_name]["filename"]
                             for tensor_class in range(1, array.shape[2]):
@@ -213,27 +210,35 @@ def run_grains(  # noqa: C901
                                     masked_array=array[:, :, tensor_class],
                                     **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
-                        # Plot individual grain masks
-                        if direction == "above":
-                            direction_grain_crops: GrainCropsDirection | None = grains.image_grain_crops.above
                         else:
-                            direction_grain_crops = grains.image_grain_crops.below
-                        if direction_grain_crops is not None:
-                            LOGGER.info(f"[{filename}] : Plotting individual grain masks")
-                            for grain_number, grain_crop in direction_grain_crops.crops.items():
-                                # Crop image plot
-                                crop_image = grain_crop.image
-                                plotting_config["plot_dict"]["grain_image"][
-                                    "filename"
-                                ] = f"{filename}_grain_{grain_number}"
-                                plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
-                                Images(
-                                    data=crop_image,
-                                    **plotting_config["plot_dict"]["grain_image"],
-                                ).plot_and_save()
-                                # Grain mask plot
-                                crop_mask = grain_crop.mask
-                                plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
+                            # 2D array
+                            LOGGER.debug(f"[{filename}] : Plotting {plot_name} image")
+                            plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
+                            Images(
+                                data=np.zeros_like(array),
+                                masked_array=array,
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
+                    # Plot individual grain masks
+                    if direction == "above":
+                        direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.above
+                    else:
+                        direction_grain_crops: GrainCropsDirection = grains.image_grain_crops.below
+                    if direction_grain_crops is not None:
+                        LOGGER.info(f"[{filename}] : Plotting individual grain masks")
+                        for grain_number, grain_crop in direction_grain_crops.crops.items():
+                            # Crop image plot
+                            crop_image = grain_crop.image
+                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
+                            Images(
+                                data=crop_image,
+                                **plotting_config["plot_dict"]["grain_image"],
+                            ).plot_and_save()
+                            # Grain mask plot
+                            crop_mask = grain_crop.mask
+                            plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
+                            if len(crop_mask.shape) == 3:
                                 # Tensor, iterate over channels
                                 for tensor_class in range(1, crop_mask.shape[2]):
                                     plotting_config["plot_dict"]["grain_mask"][
@@ -244,6 +249,16 @@ def run_grains(  # noqa: C901
                                         masked_array=crop_mask[:, :, tensor_class],
                                         **plotting_config["plot_dict"]["grain_mask"],
                                     ).plot_and_save()
+                            else:
+                                # 2D array
+                                plotting_config["plot_dict"]["grain_mask"][
+                                    "filename"
+                                ] = f"{filename}_grain_mask_{grain_number}"
+                                Images(
+                                    data=crop_image,
+                                    masked_array=crop_mask,
+                                    **plotting_config["plot_dict"]["grain_mask"],
+                                ).plot_and_save()
                     # Always plot these plots
                     # Make a plot of labelled regions with bounding boxes
                     direction_grain_crops = (
@@ -292,7 +307,7 @@ def run_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
-) -> tuple[pd.DataFrame, dict]:
+) -> tuple[pd.DataFrame, dict[int : npt.NDArray], dict[int, GrainCrop]]:
     """
     Calculate grain statistics for an image and optionally plots the results.
 
@@ -313,13 +328,14 @@ def run_grainstats(
 
     Returns
     -------
-    pd.DataFrame
-        A pandas DataFrame containing the statsistics for each grain. The index is the
-        filename and grain number.
+    tuple[pd.DataFrame, dict[int: npt.NDArray], dict[int, GrainCrop]]
+        Tuple of a pandas DataFrame containing the statsistics for each grain, a dictionary of images and a
+        dictionary of GrainCrop objects.
     """
     # Calculate statistics if required
     if grainstats_config["run"]:
         grainstats_config.pop("run")
+        class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
         try:
             LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
@@ -363,19 +379,20 @@ def run_grainstats(
                     "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
                 )
             grainstats_df["basename"] = basename.parent
+            grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
-            return grainstats_df, height_profiles_dict
+            return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
         except Exception:
             LOGGER.info(
                 f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
-            return create_empty_dataframe(column_set="grainstats"), height_profiles_dict
+            return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
     else:
         LOGGER.info(
             f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
         )
-        return create_empty_dataframe(column_set="grainstats"), {}
+        return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
 def run_disordered_tracing(
@@ -461,7 +478,6 @@ def run_disordered_tracing(
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
-
                 Images(
                     full_image,
                     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
@@ -603,7 +619,7 @@ def run_nodestats(  # noqa: C901
                                     **plotting_config["plot_dict"][cropped_image_type],
                                 ).plot_and_save()
                             # plot crossing height linetrace
-                            if plotting_config["image_set"] == "all":
+                            if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
                                 if not single_node_stats["error"]:
                                     fig, _ = plot_crossing_linetrace_halfmax(
                                         branch_stats_dict=single_node_stats["branch_stats"],
@@ -866,6 +882,7 @@ def run_splining(
                 for _, grain_dict in splined_data.items():
                     for _, mol_dict in grain_dict.items():
                         all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
+
                 Images(
                     data=image,
                     output_dir=core_out_path,
@@ -1035,7 +1052,7 @@ def get_out_paths(
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
     tracing_out_path = core_out_path / filename / "dnatracing"
-    if plotting_config["image_set"] == "all" and grain_dirs:
+    if "core" not in plotting_config["image_set"] and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         Path.mkdir(grain_out_path / "above", parents=True, exist_ok=True)
         Path.mkdir(grain_out_path / "below", parents=True, exist_ok=True)
@@ -1145,7 +1162,7 @@ def process_scan(
 
     if image_grain_crops.above is not None or image_grain_crops.below is not None:
         # Grainstats :
-        grainstats_df, height_profiles = run_grainstats(
+        grainstats_df, height_profiles, _ = run_grainstats(
             image_grain_crops=image_grain_crops,
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
@@ -1402,6 +1419,8 @@ def process_grains(
         return (topostats_object["filename"], False)
 
 
+# @ns-rse 2025-03-28 - This function will need updating to work with ImageGrainCrops object once we have updated loading
+# the HDF5 dictionaries to such objects.
 def process_grainstats(
     topostats_object: dict,
     base_dir: str | Path,
@@ -1432,7 +1451,7 @@ def process_grainstats(
 
     Returns
     -------
-    tuple[str, bool]
+    tuple[str, pd.DataFrame]
         A tuple of the image and a boolean indicating if the image was successfully processed.
     """
     core_out_path, _, grainstats_out_path, _ = get_out_paths(
@@ -1447,7 +1466,7 @@ def process_grainstats(
     # Calculate grainstats if there are any to be detected
     try:
         if "above" in topostats_object["grain_masks"].keys() or "below" in topostats_object["grain_masks"].keys():
-            grainstats_df, height_profiles = run_grainstats(
+            grainstats_df, height_profiles, grain_crops = run_grainstats(
                 image_grain_crops=topostats_object["image"],
                 filename=topostats_object["filename"],
                 basename=topostats_object["img_path"],
@@ -1460,10 +1479,11 @@ def process_grainstats(
             save_topostats_file(
                 output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
             )
-            return (topostats_object["filename"], grainstats_df, height_profiles)
+            return (topostats_object["filename"], grainstats_df, height_profiles, grain_crops)
         return (
             topostats_object["filename"],
             create_empty_dataframe(column_set="grainstats"),
+            None,
             None,
         )
     except:  # noqa: E722  # pylint: disable=bare-except

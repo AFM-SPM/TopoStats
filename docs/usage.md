@@ -18,7 +18,7 @@ TopoStats will scan for all images within this directory but currently it will o
 
 ## Command Line Navigation
 
-TopoStats currently runs as a command-line programme. To use it you will have to use a "prompt" or "terminal" (they're
+TopoStats currently runs as a command-line program. To use it you will have to use a "prompt" or "terminal" (they're
 essentially the same thing). What you use will depend on your operating system, but the following are some simple
 commands on navigation. If you use Windows then for consistency it is recommended to install and use
 [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell).
@@ -141,7 +141,7 @@ along with information about how to give feedback, report bugs and cite the soft
 
 ## Help Options
 
-The main `topostats` programme has a number of flags which can be specified to change the behaviour of how the programme
+The main `topostats` program has a number of flags which can be specified to change the behaviour of how the program
 runs. You can view the possible options by supplying the `-h` or `--help` flag.
 
 ```bash
@@ -190,10 +190,10 @@ program:
                         Create a Matplotlibrc parameters file using the defaults.
 ```
 
-The global flags/options for modifying behaviour are listed. You then need to provide the name of the programme you wish
+The global flags/options for modifying behaviour are listed. You then need to provide the name of the program you wish
 to run which are listed at the bottom of the output along with a description.
 
-Each sub-programme has its own specific set of options too which can be specified to override the settings in the
+Each sub-program has its own specific set of options too which can be specified to override the settings in the
 configuration file that is loaded (either the default or the user specified configuration). To view these again use the
 `-h` or `--help` flag. For a more detailed description of the options see the [configuration](configuration) page.
 
@@ -214,7 +214,7 @@ options:
   -s, --simple          Create a simple configuration file with only the most common options.
 ```
 
-**NB** The `process` programme has a _lot_ of options as it runs the processing pipeline in full.
+**NB** The `process` program has a _lot_ of options as it runs the processing pipeline in full.
 
 ### Reducing Output
 
@@ -376,7 +376,7 @@ is `output/summary_distributions`. If you have used a custom configuration file 
 output you will have a `summary_distributions` directory present.
 
 Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
-were not already plotted. This can be achieved using the command line programme `toposum` which is included.
+were not already plotted. This can be achieved using the command line program `toposum` which is included.
 
 **NB** Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
 configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) (which is built on top of
