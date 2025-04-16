@@ -358,7 +358,7 @@ def test_plot_and_save_bounding_box(
         output_dir=tmp_path,
         filename="bounding_box",
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
-        title="Coloured Regions",
+        title="bounding boxes",
         **plotting_config,
         region_properties=minicircle_grain_area_thresholding_regionprops,
     ).plot_and_save()
@@ -366,12 +366,14 @@ def test_plot_and_save_bounding_box(
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+def test_plot_and_save_zrange(
+    minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path
+) -> None:
     """Tests plotting of the zrange scaled image."""
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True
     fig, _ = Images(
-        data=minicircle_grain_gaussian_filter.mask_images["gaussian_filtered"],
+        data=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         output_dir=tmp_path,
         filename="08_5-z_threshold",
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
