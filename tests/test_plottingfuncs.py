@@ -231,20 +231,20 @@ def test_plot_curvatures(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("masked_array", "axes_colorbar", "region_properties"),
+    ("masked_array", "axes_colorbar", "use_region_properties"),
     [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
 )
 def test_save_figure(
     masked_array: np.ndarray,
     axes_colorbar: bool,
-    region_properties: bool,
+    use_region_properties: bool,
     image_random: np.ndarray,
-    minicircle_grain_region_properties_post_removal: Grains,
+    minicircle_grain_area_thresholding_regionprops: list[RegionProperties],
     tmp_path: Path,
 ):
     """Tests that an image is saved and a figure returned."""
-    if region_properties:
-        region_properties = minicircle_grain_region_properties_post_removal
+    # decide whether to use the region properties or not
+    region_properties = minicircle_grain_area_thresholding_regionprops if use_region_properties else None
     fig, ax = Images(
         data=image_random,
         output_dir=tmp_path,
