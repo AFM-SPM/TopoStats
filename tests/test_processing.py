@@ -101,7 +101,7 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
 def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
-    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [10, 1000000000]
+    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
 
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
@@ -127,7 +127,7 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
 def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
-    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [10, 1000000000]
+    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
 
     img_dic = load_scan_data.img_dict
     _, _, height_profiles, _, _, _ = process_scan(
@@ -162,7 +162,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
-    process_scan_config["grains"]["absolute_area_threshold"]["below"] = [10, 1000000000]
+    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
 
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
@@ -709,7 +709,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    assert "Grains found for direction above : 0" in caplog.text
+    assert "Grains found: 0 above, 0 below" in caplog.text
     assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
