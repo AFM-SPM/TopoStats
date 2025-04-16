@@ -37,8 +37,8 @@ def test_mask_minicircle(minicircle_grain_traditional_thresholding: Grains) -> N
 def test_clear_border(minicircle_grain_clear_border: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
     assert isinstance(minicircle_grain_clear_border.mask_images["above"]["tidied_border"], np.ndarray)
-    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"].shape == (64, 64)
-    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"].sum() == 524
+    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"].shape == (64, 64, 2)
+    assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"][:, :, 1].sum() == 525
 
 
 def test_remove_noise(minicircle_grain_remove_noise: Grains) -> None:
