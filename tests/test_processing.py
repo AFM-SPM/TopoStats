@@ -744,6 +744,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["threshold_absolute"]["above"] = 1.0
     grains_config["threshold_absolute"]["below"] = -0.4
     grains_config["area_thresholds"]["above"] = [20, 10000000]
+    grains_config["area_thresholds"]["below"] = [20, 10000000]
 
     imagegraincrops = run_grains(
         image=flattened_image,
@@ -762,7 +763,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
     assert isinstance(imagegraincrops.below, GrainCropsDirection)
-    assert len(imagegraincrops.below.crops) == 1
+    assert len(imagegraincrops.below.crops) == 2
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
