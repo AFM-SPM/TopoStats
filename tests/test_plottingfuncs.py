@@ -8,8 +8,10 @@ import numpy as np
 import pytest
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from skimage.measure._regionprops import RegionProperties
 
 from topostats.grains import Grains
+from topostats.filters import Filters
 from topostats.io import LoadScans
 from topostats.plottingfuncs import (
     Images,
@@ -345,6 +347,7 @@ def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_bounding_box(
     minicircle_grain_area_thresholding: Grains,
+    minicircle_grain_area_thresholding_regionprops: list[RegionProperties],
     plotting_config: dict,
     tmp_path: Path,
 ) -> None:
@@ -357,11 +360,7 @@ def test_plot_and_save_bounding_box(
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
         title="Coloured Regions",
         **plotting_config,
-        region_properties=Grains.get_region_properties(
-            image=Grains.label_regions(
-                minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1]
-            )
-        ),
+        region_properties=minicircle_grain_area_thresholding_regionprops,
     ).plot_and_save()
     return fig
 
