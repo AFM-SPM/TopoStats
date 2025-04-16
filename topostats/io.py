@@ -18,7 +18,7 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from AFMReader import asd, gwy, ibw, jpk, spm, topostats, stp, top
+from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
@@ -771,7 +771,7 @@ class LoadScans:
         except FileNotFoundError:
             LOGGER.error(f"File not found : {self.img_path}")
             raise
-     
+
     def load_stp(self) -> tuple[npt.NDArray, float]:
         """
         Extract image and pixel to nm scaling from the WsXM .stp file.
@@ -1001,12 +1001,10 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             # Extract ImageGrainCrops
             elif isinstance(item, grains.ImageGrainCrops):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.above)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.below)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
             elif isinstance(item, grains.GrainCropsDirection):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.crops)
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.full_mask_tensor)
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
             elif isinstance(item, grains.GrainCrop):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
