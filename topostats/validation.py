@@ -136,9 +136,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": [
-                    lambda n: n > 0
-                ],
+                "below": [lambda n: n > 0],
                 "above": [
                     lambda n: n > 0,
                 ],
@@ -149,8 +147,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         float,
                         error=(
-                            "Invalid value in config for grains.threshold.absolute.below "
-                            "should be type int or float"
+                            "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                         ),
                     )
                 ],
@@ -159,8 +156,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         float,
                         error=(
-                            "Invalid value in config for grains.threshold.absolute.below "
-                            "should be type int or float"
+                            "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
                         ),
                     )
                 ],
@@ -1082,9 +1078,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(

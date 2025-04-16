@@ -10,8 +10,8 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from skimage.measure._regionprops import RegionProperties
 
-from topostats.grains import Grains
 from topostats.filters import Filters
+from topostats.grains import Grains
 from topostats.io import LoadScans
 from topostats.plottingfuncs import (
     Images,
@@ -46,9 +46,7 @@ def test_add_pixel_to_nm_to_plotting_config(plotting_config_with_plot_dict):
         ("tests/resources/my_custom.mplstyle", 34, 5.0, "viridis", "svg"),
     ],
 )
-def test_load_mplstyle(
-    style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str
-) -> None:
+def test_load_mplstyle(style: str, axes_titlesize: int, font_size: float, image_cmap: str, savefig_format: str) -> None:
     """Test loading of topostats.mplstyle and a custom style."""
     load_mplstyle(style)
     assert mpl.rcParams["axes.titlesize"] == axes_titlesize
@@ -366,9 +364,7 @@ def test_plot_and_save_bounding_box(
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_and_save_zrange(
-    minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path
-) -> None:
+def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Tests plotting of the zrange scaled image."""
     plotting_config["zrange"] = [-10, 10]
     plotting_config["core_set"] = True

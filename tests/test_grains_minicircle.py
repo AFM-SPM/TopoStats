@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-from skimage.measure._regionprops import RegionProperties
 
 from topostats.grains import Grains
 

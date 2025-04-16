@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 import re
 import sys
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
@@ -14,13 +13,10 @@ import keras
 import numpy as np
 import numpy.typing as npt
 from skimage import morphology
-from skimage.color import label2rgb
 from skimage.measure import label, regionprops
 from skimage.morphology import binary_dilation
-from skimage.segmentation import clear_border
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.thresholds import threshold
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
@@ -1022,9 +1018,7 @@ class Grains:
 
             # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
             if self.remove_edge_intersecting_grains:
-                traditional_full_mask_tensor = Grains.tidy_border_tensor(
-                    grain_mask_tensor=traditional_full_mask_tensor
-                )
+                traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
             self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
@@ -1442,9 +1436,7 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:]
-                for vetting_criteria in class_size_thresholds
-                if vetting_criteria[0] == class_index
+                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -2169,9 +2161,7 @@ class Grains:
         if not graincrops:
             raise ValueError("No grain crops provided to construct the full mask tensor.")
         num_classes: int = list(graincrops.values())[0].mask.shape[2]
-        full_mask_tensor: npt.NDArray[np.bool] = np.zeros(
-            (image_shape[0], image_shape[1], num_classes), dtype=np.bool_
-        )
+        full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
@@ -2238,9 +2228,7 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(
-                flat_region.bbox
-            )  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box(

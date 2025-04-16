@@ -311,7 +311,6 @@ def test_area_thresholding_tensor(
     expected_grain_mask_tensor: npt.NDArray,
 ) -> None:
     """Test the area_thresholding_tensor method of the Grains class."""
-
     result = Grains.area_thresholding_tensor(
         grain_mask_tensor=grain_mask_tensor, area_thresholds=area_thresholds, pixel_to_nm_scaling=pixel_to_nm_scaling
     )
@@ -518,7 +517,6 @@ def test_bbox_size_thresholding_tensor(
     grain_mask_tensor: npt.NDArray, bbox_size_thresholds: list[float], expected_grain_mask_tensor: npt.NDArray
 ) -> None:
     """Test the bbox_size_thresholding_tensor method of the Grains class."""
-
     result = Grains.bbox_size_thresholding_tensor(
         grain_mask_tensor=grain_mask_tensor, bbox_size_thresholds=bbox_size_thresholds
     )
