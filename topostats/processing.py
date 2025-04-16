@@ -179,8 +179,8 @@ def run_grains(  # noqa: C901
             )
             grains.find_grains()
             # Get number of grains found
-            num_above = 0 if grains.image_grain_crops.above is None else len(grains.image_grain_crops.above)
-            num_below = 0 if grains.image_grain_crops.below is None else len(grains.image_grain_crops.below)
+            num_above = 0 if grains.image_grain_crops.above is None else len(grains.image_grain_crops.above.crops)
+            num_below = 0 if grains.image_grain_crops.below is None else len(grains.image_grain_crops.below.crops)
             LOGGER.info(f"[{filename}] : Grains found: {num_above} above, {num_below} below")
             if num_above == 0 and num_below == 0:
                 LOGGER.warning(f"[{filename}] : No grains found for either direction.")
