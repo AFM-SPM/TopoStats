@@ -417,7 +417,7 @@ def test_mask_cmap(plotting_config: dict, tmp_path: Path) -> None:
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/", savefig_kwargs={"dpi": DPI})
-def test_high_dpi(minicircle_grain_gaussian_filter: Grains, plotting_config: dict, tmp_path: Path) -> None:
+def test_high_dpi(minicircle_grain_gaussian_filter: Filters, plotting_config: dict, tmp_path: Path) -> None:
     """Test plotting with high DPI."""
     plotting_config["savefig_dpi"] = DPI
     fig, _ = Images(
