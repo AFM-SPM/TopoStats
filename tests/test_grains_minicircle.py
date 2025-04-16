@@ -41,11 +41,27 @@ def test_clear_border(minicircle_grain_clear_border: Grains) -> None:
     assert minicircle_grain_clear_border.mask_images["above"]["tidied_border"][:, :, 1].sum() == 525
 
 
-def test_remove_noise(minicircle_grain_remove_noise: Grains) -> None:
+def test_remove_objects_too_small_to_process(minicircle_grain_remove_objects_too_small_to_process: Grains) -> None:
     """Test creation of boolean array for clearing borders."""
-    assert isinstance(minicircle_grain_remove_noise.mask_images["above"]["removed_noise"], np.ndarray)
-    assert minicircle_grain_remove_noise.mask_images["above"]["removed_noise"].shape == (64, 64)
-    assert minicircle_grain_remove_noise.mask_images["above"]["removed_noise"].sum() == 524
+    assert isinstance(
+        minicircle_grain_remove_objects_too_small_to_process.mask_images["above"][
+            "removed_objects_too_small_to_process"
+        ],
+        np.ndarray,
+    )
+    assert minicircle_grain_remove_objects_too_small_to_process.mask_images["above"][
+        "removed_objects_too_small_to_process"
+    ].shape == (
+        64,
+        64,
+        2,
+    )
+    assert (
+        minicircle_grain_remove_objects_too_small_to_process.mask_images["above"][
+            "removed_objects_too_small_to_process"
+        ][:, :, 1].sum()
+        == 511
+    )
 
 
 def test_calc_minimum_grain_size_pixels(minicircle_minimum_grain_size: Grains) -> None:
