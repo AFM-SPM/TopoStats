@@ -51,8 +51,8 @@ thresholds of 1.2 for DNA and 2.5 for protein, then you would set this in the `g
 
 ```yaml
 threshold_absolute:
-    below: [-1.0] # Thresholds for grains below the image background. List[float].
-    above: [1.2, 2.5] # Thresholds for grains above the image background. List[float].
+  below: [-1.0] # Thresholds for grains below the image background. List[float].
+  above: [1.2, 2.5] # Thresholds for grains above the image background. List[float].
 ```
 
 TopoStats will then treat the resulting multiple masks (tensor) as separate classes, as if it were produced by a
