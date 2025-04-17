@@ -41,6 +41,23 @@ background.
 
 For more information on the types of thresholding, and how to set them, see the [thresholding](thresholding.md) page.
 
+### Multiple thresholds
+
+TopoStats also allows use of multiple thresholds. This means that the thresholding can be done in multiple steps, using
+different thresholds for each step, producing several masks. This is useful for example if you want to separately
+segment DNA and proteins. To use multiple thresholds, simply provide a list of thresholds in the config file for the
+threshold method that you want to use. For example if you want to use absolute height thresholding with two
+thresholds of 1.2 for DNA and 2.5 for protein, then you would set this in the `grains` section of the config file:
+
+```yaml
+threshold_absolute:
+    below: [-1.0] # Thresholds for grains below the image background. List[float].
+    above: [1.2, 2.5] # Thresholds for grains above the image background. List[float].
+```
+
+TopoStats will then treat the resulting multiple masks (tensor) as separate classes, as if it were produced by a
+multi-class U-Net model. Read the U-Net section for more information on multi-class processing.
+
 ## Remove edge grains
 
 Some grains may intersect the image border. In these cases, the grain will not be able to have accuracte statistics
@@ -58,9 +75,9 @@ In our thresholded image, you will notice that we have a lot of small grains tha
 image. We can get rid of those with size thresholding. This is where TopoStats will remove grains based on their area,
 leaving only the right size of molecules. You will need to play around with the thresholds to get the right results.
 
-You can set the size threshold using the `absolute_area_threshold` in the config file. This sets the minimum and
+You can set the size threshold using the `area_thresholds` in the config file. This sets the minimum and
 maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
-10nm^2 and 100nm^2, you would set `absolute_area_threshold` to `[10, 100]`.
+10nm^2 and 100nm^2, you would set `area_thresholds` to `[10, 100]`.
 
 ![size_thresholding](../_static/images/grain_finding/grain_finding_size_thresholding.png)
 
