@@ -660,12 +660,12 @@ class Grains:
             Lower bound for normalising the image.
     threshold_method : str
         Method for determining thershold to mask values, default is 'otsu'.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float | None
         Factor by which the below threshold is to be scaled prior to masking.
-    threshold_std_dev : dict
+    threshold_std_dev : dict[str, float | list] | None
         Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
         if threshold_method is 'std_dev'.
-    threshold_absolute : dict
+    threshold_absolute : dict[str, float | list] | None
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
     area_thresholds : dict
         Dictionary of above and below grain's area thresholds.
@@ -720,14 +720,14 @@ class Grains:
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
-        otsu_threshold_multiplier : float
+        otsu_threshold_multiplier : float | None
             Factor by which the below threshold is to be scaled prior to masking.
-        threshold_std_dev : dict
+        threshold_std_dev : dict[str, float | list] | None
             Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
             if threshold_method is 'std_dev'.
-        threshold_absolute : dict
+        threshold_absolute : dict[str, float | list] | None
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-        absolute_area_threshold : dict
+        area_thresholds : dict
             Dictionary of above and below grain's area thresholds.
         direction : str
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
@@ -837,9 +837,7 @@ class Grains:
                 for class_index in range(1, grain_mask_tensor.shape[2]):
                     grain_mask_tensor[:, :, class_index][flattened_grain_mask_tensor_labelled == region.label] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     @staticmethod
     def label_regions(image: npt.NDArray, background: int = 0) -> npt.NDArray:
@@ -937,9 +935,7 @@ class Grains:
                 if region_area > upper_size_limit or region_area < lower_size_limit:
                     grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     @staticmethod
     def bbox_size_thresholding_tensor(
@@ -977,9 +973,7 @@ class Grains:
                     if max(bbox_width, bbox_height) > upper_size_limit:
                         grain_mask_tensor[class_mask_labelled == region.label, class_index] = 0
 
-        grain_mask_tensor = Grains.update_background_class(grain_mask_tensor)
-
-        return grain_mask_tensor
+        return Grains.update_background_class(grain_mask_tensor)
 
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
@@ -1181,9 +1175,7 @@ class Grains:
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor
-        traditional_full_mask_tensor = Grains.update_background_class(traditional_full_mask_tensor)
-
-        return traditional_full_mask_tensor
+        return Grains.update_background_class(traditional_full_mask_tensor)
 
     # pylint: disable=too-many-locals
     @staticmethod
