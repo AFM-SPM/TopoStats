@@ -219,9 +219,7 @@ def run_grains(  # noqa: C901
                         for grain_number, grain_crop in direction_grain_crops.crops.items():
                             # Crop image plot
                             crop_image = grain_crop.image
-                            plotting_config["plot_dict"]["grain_image"][
-                                "filename"
-                            ] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
