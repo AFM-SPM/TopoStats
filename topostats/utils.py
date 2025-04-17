@@ -239,12 +239,13 @@ def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.
     return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
+# pylint: disable=too-many-branches
 def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
     otsu_threshold_multiplier: float | None = None,
-    threshold_std_dev: dict[str, list | float] | None = None,
-    absolute: dict[str, list | float] | None = None,
+    threshold_std_dev: dict[str, list] | None = None,
+    absolute: dict[str, list] | None = None,
 ) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
