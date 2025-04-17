@@ -464,7 +464,7 @@ def test_image_set(
     images = {
         "core": "minicircle_small_above_all_splines.png",
         "filters": "minicircle_small/filters/01-pixels.png",
-        "grains": "minicircle_small/grains/above/19-tidy_borders.png",
+        "grains": "minicircle_small/grains/above/24-area_thresholded_class_1.png",
         "grain_crop": "minicircle_small/grains/above/minicircle_small_grain_0.png",
         "disordered_tracing": "minicircle_small/dnatracing/above/22-original_skeletons.png",
         "nodestats": "minicircle_small/dnatracing/above/26-node_centres.png",
