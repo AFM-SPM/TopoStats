@@ -172,6 +172,20 @@ area_thresholded:
   savefig_dpi: 100
   core_set: false
   module: "grains"
+bounding_boxes:
+  filename: "25-bounding_boxes"
+  title: "Bounding Boxes"
+  image_type: "binary"
+  savefig_dpi: 600
+  core_set: false
+  module: "grains"
+mask_overlay:
+  filename: "26-image_with_grains"
+  title: "Image with overlaid mask"
+  image_type: "binary"
+  savefig_dpi: 600
+  core_set: true
+  module: "grains"
 unet:
   filename: "27-unet_tensor"
   title: "UNet Mask"
@@ -192,20 +206,6 @@ merged_classes:
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
-  module: "grains"
-bounding_boxes:
-  filename: "25-bounding_boxes"
-  title: "Bounding Boxes"
-  image_type: "binary"
-  savefig_dpi: 600
-  core_set: false
-  module: "grains"
-mask_overlay:
-  filename: "26-image_with_grains"
-  title: "Image with overlaid mask"
-  image_type: "binary"
-  savefig_dpi: 600
-  core_set: true
   module: "grains"
 grain_image:
   image_type: "non-binary"
