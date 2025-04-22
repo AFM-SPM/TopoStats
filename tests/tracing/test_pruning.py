@@ -1471,6 +1471,7 @@ class TestTopoStatsPruneMethods:
         "height_threshold",
         "method_values",
         "method_outliers",
+        "only_height_prune_endpoints",
         "convolved_skeleton_target",
         "segmented_skeleton_target",
         "labelled_skeleton_target",
@@ -1517,6 +1518,7 @@ class TestTopoStatsPruneMethods:
             9,
             "min",
             "abs",
+            True,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0],
@@ -1615,6 +1617,7 @@ class TestTopoStatsPruneMethods:
             9,
             "min",
             "abs",
+            True,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1721,6 +1724,7 @@ class TestTopoStatsPruneMethods:
             9,
             "min",
             "abs",
+            True,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1840,6 +1844,7 @@ class TestTopoStatsPruneMethods:
             10,
             "min",
             "abs",
+            True,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -1968,6 +1973,7 @@ class TestTopoStatsPruneMethods:
             9,
             "min",
             "abs",
+            True,
             np.asarray(
                 [
                     [0, 0, 0, 0, 0, 0, 0],
@@ -2034,8 +2040,107 @@ class TestTopoStatsPruneMethods:
                 ]
             ),
             id="figure 8",
-            # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
-            # lengthed branches see region 1"),
+        ),
+        pytest.param(
+            {
+                "skeleton": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 1, 0, 0, 0, 1, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                "img": np.asarray(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 9, 9, 9, 0, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 0, 3, 2, 3, 0, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 9, 0, 0, 0, 9, 0],
+                        [0, 0, 9, 9, 9, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            },
+            10,
+            3,
+            "mid",
+            "abs",
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 3, 1, 3, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 2, 0, 0, 0],
+                    [0, 3, 0, 0, 0, 3, 0],
+                    [0, 3, 0, 0, 0, 3, 0],
+                    [0, 0, 3, 3, 3, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.asarray([9, 2, 9]),  # branch mins
+            np.asarray(
+                [
+                    9,
+                    2,
+                    9,
+                ]
+            ),  # branch_medians : Used in _abs_thresh_idx with threshold of 9
+            np.asarray([9, 2, 9]),  # branch_middles
+            np.asarray([2]),  # abs_thresh_idx : index + 1 in above noted array that are < 10
+            np.asarray([2]),  # mean_abs_thresh_idx
+            np.asarray([2]),  # iqr_thresh_idx
+            False,
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            id="bridge (low figure 8)",
         ),
     ],
 )
@@ -2051,6 +2156,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
     ) -> None:
         """Instantiate a topostatsPrune object."""
         return heightPruning(
@@ -2060,6 +2166,7 @@ class TestHeightPruningBasic:
             height_threshold,
             method_values,
             method_outliers,
+            only_height_prune_endpoints,
         )
 
     def test_convolve_skeleton(
@@ -2069,6 +2176,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2083,7 +2191,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test convolve_skeleton() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         np.testing.assert_array_equal(height_pruning.skeleton_convolved, convolved_skeleton_target)
 
@@ -2094,6 +2202,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2108,7 +2217,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test segment_skeleton() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         np.testing.assert_array_equal(height_pruning.skeleton_branches, segmented_skeleton_target)
 
@@ -2119,6 +2228,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2133,7 +2243,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test label_branches() method of HeightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         np.testing.assert_array_equal(height_pruning.skeleton_branches_labelled, labelled_skeleton_target)
 
@@ -2144,6 +2254,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2158,7 +2269,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of get_branch_mins() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         branch_mins = height_pruning._get_branch_mins(height_pruning.skeleton_branches_labelled)
         np.testing.assert_array_equal(branch_mins, branch_mins_target)
@@ -2170,6 +2281,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2184,7 +2296,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of get_branch_medians() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         branch_medians = height_pruning._get_branch_medians(height_pruning.skeleton_branches_labelled)
         np.testing.assert_array_equal(branch_medians, branch_medians_target)
@@ -2196,6 +2308,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2215,7 +2328,7 @@ class TestHeightPruningBasic:
         points is not returned.
         """
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         branch_middles = height_pruning._get_branch_middles(height_pruning.skeleton_branches_labelled)
         np.testing.assert_array_equal(branch_middles, branch_middles_target)
@@ -2227,6 +2340,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2241,7 +2355,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of get_abs_thresh_idx(self) method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         abs_thresh_idx = height_pruning._get_abs_thresh_idx(branch_medians_target, height_pruning.height_threshold)
         np.testing.assert_array_equal(abs_thresh_idx, abs_thresh_idx_target)
@@ -2253,6 +2367,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2267,7 +2382,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of get_mean_abs_thresh_idx() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         mean_abs_thresh_idx = height_pruning._get_mean_abs_thresh_idx(
             branch_medians_target,
@@ -2284,6 +2399,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2298,7 +2414,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of get_iqr_thresh_idx() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         iqr_thresh_idx = height_pruning._get_iqr_thresh_idx(
             height_pruning.image, height_pruning.skeleton_branches_labelled
@@ -2312,6 +2428,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2326,7 +2443,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of check_skeleton_one_object() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         check_skeleton_one_object = height_pruning.check_skeleton_one_object(height_pruning.skeleton_branches_labelled)
         assert check_skeleton_one_object == check_skeleton_one_object_target
@@ -2360,6 +2477,7 @@ class TestHeightPruningBasic:
         height_threshold: float,
         method_values: str,
         method_outliers: str,
+        only_height_prune_endpoints: bool,
         convolved_skeleton_target: npt.NDArray,
         segmented_skeleton_target: npt.NDArray,
         labelled_skeleton_target: npt.NDArray,
@@ -2374,7 +2492,7 @@ class TestHeightPruningBasic:
     ) -> None:
         """Test of remove_bridges() method of heightPruning class."""
         height_pruning = self.topostats_height_pruner(
-            img_skeleton, max_length, height_threshold, method_values, method_outliers
+            img_skeleton, max_length, height_threshold, method_values, method_outliers, only_height_prune_endpoints
         )
         height_prune = height_pruning.height_prune()
         np.testing.assert_array_equal(height_prune, height_prune_target)
