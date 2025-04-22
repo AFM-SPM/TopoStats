@@ -663,7 +663,7 @@ class Grains:
         lower_norm_bound: float
             Lower bound for normalising the image.
     threshold_method : str
-        Method for determining thershold to mask values, default is 'otsu'.
+        Method for determining threshold to mask values, default is 'otsu'.
     otsu_threshold_multiplier : float
         Factor by which the below threshold is to be scaled prior to masking.
     threshold_std_dev : dict
@@ -680,7 +680,7 @@ class Grains:
     remove_edge_intersecting_grains : bool
         Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
     classes_to_merge : list[tuple[int, int]] | None
-        List of tuples of classes to merge.
+        List of classes to merge into a single combined class, where the new classes will be appended to the tensor. Structure is a list of lists, eg [[1, 2]].
     vetting : dict | None
         Dictionary of vetting parameters.
     """
@@ -726,7 +726,7 @@ class Grains:
             lower_norm_bound : float
                 Lower bound for normalising the image.
         threshold_method : str
-            Method for determining thershold to mask values, default is 'otsu'.
+            Method for determining threshold to mask values, default is 'otsu'.
         otsu_threshold_multiplier : float
             Factor by which the below threshold is to be scaled prior to masking.
         threshold_std_dev : dict
@@ -743,7 +743,7 @@ class Grains:
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
-            List of tuples of classes to merge.
+            List of classes to merge into a single combined class, where the new classes will be appended to the tensor. Structure is a list of lists, eg [[1, 2]].
         vetting : dict | None
             Dictionary of vetting parameters.
         """
