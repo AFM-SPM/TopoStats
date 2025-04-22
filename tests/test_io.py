@@ -546,6 +546,18 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
+def test_load_scan_top(load_scan_top: LoadScans) -> None:
+    """Test loading of a .top file."""
+    load_scan_top.img_path = load_scan_top.img_paths[0]
+    load_scan_top.filename = load_scan_top.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_top.load_top()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == 6034386.429246264
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.9765625
+
+
 @pytest.mark.parametrize(
     ("non_existent_file", "channel"),
     [
