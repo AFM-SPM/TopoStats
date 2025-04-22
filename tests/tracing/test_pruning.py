@@ -2040,8 +2040,6 @@ class TestTopoStatsPruneMethods:
                 ]
             ),
             id="figure 8",
-            # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
-            # lengthed branches see region 1"),
         ),
         pytest.param(
             {
@@ -2143,8 +2141,6 @@ class TestTopoStatsPruneMethods:
                 ]
             ),
             id="bridge (low figure 8)",
-            # marks=pytest.mark.xfail(reason="Not sure middles are correct, arbitrarily takes point left or gith of even
-            # lengthed branches see region 1"),
         ),
     ],
 )
