@@ -18,7 +18,7 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from AFMReader import asd, gwy, ibw, jpk, spm, topostats
+from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
@@ -756,6 +756,38 @@ class LoadScans:
             LOGGER.error(f"File not found : {self.img_path}")
             raise
 
+    def load_top(self) -> tuple[npt.NDArray, float]:
+        """
+        Extract image and pixel to nm scaling from the WsXM .top file.
+
+        Returns
+        -------
+        tuple[npt.NDArray, float]
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        LOGGER.debug(f"Loading image from : {self.img_path}")
+        try:
+            return top.load_top(file_path=self.img_path)
+        except FileNotFoundError:
+            LOGGER.error(f"File not found : {self.img_path}")
+            raise
+
+    def load_stp(self) -> tuple[npt.NDArray, float]:
+        """
+        Extract image and pixel to nm scaling from the WsXM .stp file.
+
+        Returns
+        -------
+        tuple[npt.NDArray, float]
+            A tuple containing the image and its pixel to nanometre scaling value.
+        """
+        LOGGER.debug(f"Loading image from : {self.img_path}")
+        try:
+            return stp.load_stp(file_path=self.img_path)
+        except FileNotFoundError:
+            LOGGER.error(f"File not found : {self.img_path}")
+            raise
+
     def get_data(self) -> None:  # noqa: C901  # pylint: disable=too-many-branches
         """Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object."""
         suffix_to_loader = {
@@ -765,6 +797,8 @@ class LoadScans:
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
             ".asd": self.load_asd,
+            ".stp": self.load_stp,
+            ".top": self.load_top,
         }
         for img_path in self.img_paths:
             self.img_path = img_path

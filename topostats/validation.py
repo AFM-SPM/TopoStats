@@ -56,6 +56,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".ibw",
             ".gwy",
             ".topostats",
+            ".stp",
+            ".top",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
         "loading": {
