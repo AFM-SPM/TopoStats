@@ -1233,6 +1233,7 @@ class Grains:
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],
             )
+            predicted_mask[:, :, 3] = np.logical_or(predicted_mask[:, :, 1] == 1, predicted_mask[:, :, 2] == 1).astype(np.uint8)
             assert len(predicted_mask.shape) == 3
             LOGGER.debug(f"Predicted mask shape: {predicted_mask.shape}")
 
