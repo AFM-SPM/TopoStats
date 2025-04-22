@@ -358,87 +358,89 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     # for cropped_image_index, cropped_image in cropped_images.items():
     number_of_grains = len(grain_crops)
+    entry_index = 0
     for grain_number, grain_crop in grain_crops.items():
-        try:
-            grain_crop_tensor = grain_crop.mask
-            grain_crop_class_mask = grain_crop_tensor[:, :, class_index]
-            grain_crop_image = grain_crop.image
+        for class_index in range(1,grain_crop.mask.shape[2]):
+            try:
+                grain_crop_class_mask = grain_crop.mask[:, :, class_index]
+                grain_crop_image = grain_crop.image
 
-            disordered_trace_images: dict | None = disordered_trace_grain(
-                cropped_image=grain_crop_image,
-                cropped_mask=grain_crop_class_mask,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                mask_smoothing_params=mask_smoothing_params,
-                skeletonisation_params=skeletonisation_params,
-                pruning_params=pruning_params,
-                filename=filename,
-                min_skeleton_size=min_skeleton_size,
-                n_grain=grain_number,
-            )
-            LOGGER.debug(f"[{filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
+                disordered_trace_images: dict | None = disordered_trace_grain(
+                    cropped_image=grain_crop_image,
+                    cropped_mask=grain_crop_class_mask,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    mask_smoothing_params=mask_smoothing_params,
+                    skeletonisation_params=skeletonisation_params,
+                    pruning_params=pruning_params,
+                    filename=filename,
+                    min_skeleton_size=min_skeleton_size,
+                    n_grain=grain_number,
+                )
+                LOGGER.debug(f"[{filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
 
-            if disordered_trace_images is not None:
-                # obtain segment stats
-                try:
-                    skan_skeleton = skan.Skeleton(
-                        np.where(disordered_trace_images["pruned_skeleton"] == 1, grain_crop_image, 0),
-                        spacing=pixel_to_nm_scaling,
-                    )
-                    skan_df = skan.summarize(skel=skan_skeleton, separator="_")
-                    skan_df = compile_skan_stats(
-                        skan_df=skan_df,
-                        skan_skeleton=skan_skeleton,
-                        image=grain_crop_image,
-                        filename=filename,
-                        grain_number=grain_number,
-                    )
-                    total_branch_length = skan_df["branch_distance"].sum() * 1e-9
-                except ValueError:
-                    LOGGER.warning(
-                        f"[{filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
-                    )
-                    total_branch_length = 0
-                    skan_df = pd.DataFrame()
+                if disordered_trace_images is not None:
+                    # obtain segment stats
+                    try:
+                        skan_skeleton = skan.Skeleton(
+                            np.where(disordered_trace_images["pruned_skeleton"] == 1, grain_crop_image, 0),
+                            spacing=pixel_to_nm_scaling,
+                        )
+                        skan_df = skan.summarize(skel=skan_skeleton, separator="_")
+                        skan_df = compile_skan_stats(
+                            skan_df=skan_df,
+                            skan_skeleton=skan_skeleton,
+                            image=grain_crop_image,
+                            filename=filename,
+                            grain_number=grain_number,
+                        )
+                        total_branch_length = skan_df["branch_distance"].sum() * 1e-9
+                    except ValueError:
+                        LOGGER.warning(
+                            f"[{filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
+                        )
+                        total_branch_length = 0
+                        skan_df = pd.DataFrame()
 
-                disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
+                    disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
 
-                # obtain stats
-                conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
-                grainstats_additions[grain_number] = {
-                    "image": filename,
-                    "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
-                    "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
-                    "total_branch_lengths": total_branch_length,
-                    "grain_width_mean": disorderedTrace.calculate_dna_width(
-                        disordered_trace_images["smoothed_grain"],
-                        disordered_trace_images["pruned_skeleton"],
-                        pixel_to_nm_scaling,
-                    )
-                    * 1e-9,
-                }
+                    # obtain stats
+                    conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
+                    grainstats_additions[entry_index] = {
+                        "image": filename,
+                        "grain_number": grain_number,
+                        "class_number": class_index,
+                        "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
+                        "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
+                        "total_branch_lengths": total_branch_length,
+                        "grain_width_mean": disorderedTrace.calculate_dna_width(
+                            disordered_trace_images["smoothed_grain"],
+                            disordered_trace_images["pruned_skeleton"],
+                            pixel_to_nm_scaling,
+                        )
+                        * 1e-9,
+                    }
+                    entry_index += 1
 
-                # remap the cropped images back onto the original, there are many image crops that we want to
-                #  remap back onto the original image so we iterate over them, as passed by the function
-                for image_name, full_diagnostic_image in all_images.items():
-                    crop = disordered_trace_images[image_name]
-                    bbox = grain_crop.bbox
-                    full_diagnostic_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
-                disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
-                disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
-                disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
+                    # remap the cropped images back onto the original, there are many image crops that we want to
+                    #  remap back onto the original image so we iterate over them, as passed by the function
+                    for image_name, full_diagnostic_image in all_images.items():
+                        crop = disordered_trace_images[image_name]
+                        bbox = grain_crop.bbox
+                        full_diagnostic_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+                    disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
+                    disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
+                    disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
 
-        # when skel too small, pruned to 0's, skan -> ValueError -> skipped
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(  # pylint: disable=logging-not-lazy
-                f"[{filename}] : Disordered tracing of grain "
-                f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
-                exc_info=e,
-            )
+            # when skel too small, pruned to 0's, skan -> ValueError -> skipped
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                LOGGER.error(  # pylint: disable=logging-not-lazy
+                    f"[{filename}] : Disordered tracing of grain "
+                    f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
+                    exc_info=e,
+                )
 
         # convert stats dict to dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-        # Set the name of the index column to be the grain number
-        grainstats_additions_df.index.name = "grain_number"
 
     return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
 
