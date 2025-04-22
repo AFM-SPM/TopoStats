@@ -47,6 +47,7 @@ grains:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
+  classes_to_merge: null # Classes to merge into a single combined class. List of lists, eg [[1, 2]] to merge classes 1 and 2. New classes will be appended to the tensor.
   unet_config:
     model_path: null # Path to a trained U-Net model
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
