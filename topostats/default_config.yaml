@@ -69,7 +69,6 @@ grainstats:
   class_names: ["DNA", "Protein"] # The names corresponding to each class of a object identified, please specify merged classes after.
 disordered_tracing:
   run: true # Options : true, false
-  class_index: 1 # The class index to trace. This is the class index of the grains.
   min_skeleton_size: 10 # Minimum number of pixels in a skeleton for it to be retained.
   mask_smoothing_params:
     gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.

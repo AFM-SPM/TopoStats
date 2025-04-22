@@ -302,7 +302,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
     full_image: npt.NDArray,
     grain_crops: dict[int, GrainCrop],
-    class_index: int,
     filename: str,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
@@ -319,8 +318,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         Full image as Numpy Array.
     grain_crops : dict[int, GrainCrop]
         Dictionary of grain crops.
-    class_index : int
-        Index of the class to trace.
     filename : str
         File being processed.
     pixel_to_nm_scaling : float
@@ -360,7 +357,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     number_of_grains = len(grain_crops)
     entry_index = 0
     for grain_number, grain_crop in grain_crops.items():
-        for class_index in range(1,grain_crop.mask.shape[2]):
+        for class_index in range(1, grain_crop.mask.shape[2]):  # ignore bg class
             try:
                 grain_crop_class_mask = grain_crop.mask[:, :, class_index]
                 grain_crop_image = grain_crop.image
@@ -396,7 +393,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         total_branch_length = skan_df["branch_distance"].sum() * 1e-9
                     except ValueError:
                         LOGGER.warning(
-                            f"[{filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
+                            f"[{filename}] : Skeleton for grain-class {grain_number}-{class_index} has been pruned out "
+                            f"of existence."
                         )
                         total_branch_length = 0
                         skan_df = pd.DataFrame()
@@ -434,8 +432,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             # when skel too small, pruned to 0's, skan -> ValueError -> skipped
             except Exception as e:  # pylint: disable=broad-exception-caught
                 LOGGER.error(  # pylint: disable=logging-not-lazy
-                    f"[{filename}] : Disordered tracing of grain "
-                    f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
+                    f"[{filename}] : Disordered tracing of grain-class "
+                    f"{grain_number}-{class_index} failed. Consider raising an issue on GitHub. Error: ",
                     exc_info=e,
                 )
 

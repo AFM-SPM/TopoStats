@@ -190,9 +190,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
             "classes_to_merge": Or(
-                    None,
-                    [[int]],
-                    error="Invalid value in config for 'grains.classes_to_merge', this needs to be a list of lists of integers.",
+                None,
+                [[int]],
+                error="Invalid value in config for 'grains.classes_to_merge', this needs to be a list of lists of integers.",
             ),
             "unet_config": {
                 "model_path": Or(None, str),
@@ -275,7 +275,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'disordered_tracing.run', valid values are 'True' or 'False'",
             ),
-            "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
             "mask_smoothing_params": {
                 "gaussian_sigma": Or(
