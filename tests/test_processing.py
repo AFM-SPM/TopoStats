@@ -70,7 +70,6 @@ def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict,
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
-
     process_scan_config["grains"]["direction"] = "below"
     img_dic = load_scan_data.img_dict
     _, _, height_profiles, _, _, _ = process_scan(
@@ -106,7 +105,6 @@ def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_s
     # Ensure there are below grains
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
-
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -133,7 +131,6 @@ def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict,
     # Ensure there are below grains
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
-
     img_dic = load_scan_data.img_dict
     _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -169,7 +166,6 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["smallest_grain_size_nm2"] = 10
     process_scan_config["grains"]["absolute_area_threshold"]["below"] = [1, 1000000000]
-
     process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
@@ -229,7 +225,6 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -448,7 +443,6 @@ def test_image_set(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -486,7 +480,6 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"]["image_set"] = "all"
     process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -944,7 +937,6 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     img_dict = load_scan_data.img_dict
     unprocessed_image = img_dict["minicircle_small"]["image_original"]
     pixel_to_nm_scaling = img_dict["minicircle_small"]["pixel_to_nm_scaling"]
-
     flattened_image = run_filters(
         unprocessed_image=unprocessed_image,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -954,7 +946,6 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         filter_config=process_scan_config["filter"],
         plotting_config=process_scan_config["plotting"],
     )
-
     assert isinstance(flattened_image, np.ndarray)
     assert flattened_image.shape == (64, 64)
     assert np.sum(flattened_image) == pytest.approx(1172.6088236592373)

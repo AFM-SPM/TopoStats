@@ -22,6 +22,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
+import topostats as TopoStats
 from topostats import grains
 from topostats.logs.logs import LOGGER_NAME
 
@@ -1053,9 +1054,9 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     return data_dict
 
 
-def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict) -> None:
+def save_topostats_file(output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops) -> None:
     """
-    Save a topostats dictionary object to a .topostats (hdf5 format) file.
+    Save ''ImageGrainCrops'' object to a .topostats (hdf5 format) file.
 
     Parameters
     ----------
@@ -1078,9 +1079,13 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: dict)
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
         if topostats_object["image"] is not None:
-            topostats_object["topostats_file_version"] = 0.2
             # Recursively save the topostats object dictionary to the .topostats file
-            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
+            if isinstance(topostats_object, dict) and float(".".join(TopoStats.__release__.split(".")[:1])) < 2.4:
+                topostats_object["topostats_file_version"] = TopoStats.__release__
+                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
+            else:
+                topostats_object["topostats_file_version"] = TopoStats.__release__
+                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
 
         else:
             raise ValueError(
