@@ -77,6 +77,7 @@ class GrainCrop:
         filename: str,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
+        disordered_tracing_data: dict[str, npt.NDArray[np.bool_]] | None = None,
     ):
         """
         Initialise the class.
@@ -99,6 +100,9 @@ class GrainCrop:
             3-D Numpy tensor of the height profiles.
         stats : dict[int, dict[int, Any]] | None
             Dictionary of grain statistics.
+        disordered_tracing_data : dict[str, npt.NDArray[np.bool_]] | None
+            Dictionary of smoothed_grain_tensor and pruned_skeleton_tensor.
+
         """
         self.padding = padding
         self.image = image
@@ -110,6 +114,7 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
+        self.disordered_tracing_data = disordered_tracing_data
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -359,6 +364,30 @@ class GrainCrop:
             Image stats.
         """
         self._stats = value
+
+    @property
+    def disordered_tracing_data(self) -> dict[str, npt.NDArray[np.bool_]]:
+        """
+        Getter for the disordered tracing data.
+
+        Returns
+        -------
+        str
+            Dictionary of smoothed grain, and pruned skeleton tensors for the classes.
+        """
+        return self._disordered_tracing_data
+
+    @disordered_tracing_data.setter
+    def disordered_tracing_data(self, value: dict[str, npt.NDArray[np.bool_]]) -> None:
+        """
+        Setter for the disordered tracing data.
+
+        Parameters
+        ----------
+        value : dict[str, npt.NDArray[np.bool]]
+            Dictionary of smoothed grain, and pruned skeleton tensors for the classes.
+        """
+        self._disordered_tracing_data = value
 
     def __eq__(self, other: object) -> bool:
         """

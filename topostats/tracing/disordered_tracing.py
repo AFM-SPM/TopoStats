@@ -339,13 +339,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     img_base = np.zeros_like(full_image)
-    disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
 
     # These are images for diagnostics, edited during tracing to show
     # various steps
-    all_images = {
+    all_images = { # TODO: do these need to also be tensors?
         "smoothed_grain": img_base.copy(),
         "skeleton": img_base.copy(),
         "pruned_skeleton": img_base.copy(),
@@ -357,9 +356,13 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     number_of_grains = len(grain_crops)
     entry_index = 0
     for grain_number, grain_crop in grain_crops.items():
+        smoothed_grain_tensor = np.zeros_like(grain_crop.mask)
+        pruned_skel_tensor = np.zeros_like(grain_crop.mask)
+
         for class_index in range(1, grain_crop.mask.shape[2]):  # ignore bg class
             grain_crop_class_mask = grain_crop.mask[:, :, class_index]
             subgrains = label(grain_crop_class_mask)
+
             for subgrain_index in np.unique(subgrains[subgrains>0]):
                 subgrain_mask = np.where(subgrains==subgrain_index, 1, 0)
                 try:
@@ -375,7 +378,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         min_skeleton_size=min_skeleton_size,
                         n_grain=grain_number,
                     )
-                    LOGGER.info(f"[{filename}] : Disordered Traced grain {grain_number}-{class_index}-{subgrain_index} of {number_of_grains}")
+                    LOGGER.debug(f"[{filename}] : Disordered Traced grain {grain_number}-{class_index}-{subgrain_index} of {number_of_grains}")
 
                     if disordered_trace_images is not None:
                         # obtain segment stats
@@ -405,28 +408,9 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
                         disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
 
-                        # TODO: update GrainCrop stats -> stats[class][subgrain]
-                        """
-                        grain_crop.stats[class_index][subgrain_index].update({
-                            "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
-                            "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
-                            "total_branch_lengths": total_branch_length,
-                            "grain_width_mean": disorderedTrace.calculate_dna_width(
-                                disordered_trace_images["smoothed_grain"],
-                                disordered_trace_images["pruned_skeleton"],
-                                pixel_to_nm_scaling,
-                            )
-                            * 1e-9,
-                        })
-                        """
-
-                        # obtain stats
+                        # Update GrainCrop stats
                         conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
-                        grainstats_additions[entry_index] = {
-                            "image": filename,
-                            "grain_number": grain_number,
-                            "class_number": class_index,
-                            "subgrain_number": subgrain_index-1,
+                        grainstats_additions_dict = {
                             "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                             "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                             "total_branch_lengths": total_branch_length,
@@ -437,17 +421,28 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                             )
                             * 1e-9,
                         }
+                        grain_crop.stats[class_index][subgrain_index-1].update(grainstats_additions_dict)
+                        # Update additional grainstats stats
+                        grainstats_additions[entry_index] = {
+                            "image": filename,
+                            "grain_number": grain_number,
+                            "class_number": class_index,
+                            "subgrain_number": subgrain_index-1,
+                            **grainstats_additions_dict,
+                        }
                         entry_index += 1
 
-                        # remap the cropped images back onto the original, there are many image crops that we want to
-                        #  remap back onto the original image so we iterate over them, as passed by the function
+                        #print("GrainCrops: ", grain_crop.grain_crop_to_dict())
+
+                        # Remap the cropped images back onto the original, there are many image crops that we want to
+                        #  remap so we iterate over them, as passed by the function
                         for image_name, full_diagnostic_image in all_images.items():
                             crop = disordered_trace_images[image_name]
                             bbox = grain_crop.bbox
                             full_diagnostic_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
-                        disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
-                        disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
-                        disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
+
+                        smoothed_grain_tensor[:, :, class_index] += disordered_trace_images["smoothed_grain"].astype(bool)
+                        pruned_skel_tensor[:, :, class_index] += disordered_trace_images["pruned_skeleton"].astype(bool)
 
                 # when skel too small, pruned to 0's, skan -> ValueError -> skipped
                 except Exception as e:  # pylint: disable=broad-exception-caught
@@ -457,10 +452,17 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         exc_info=e,
                     )
 
+            # Compile disordered tracing
+            grain_crop.disordered_tracing_data = {
+                "smoothed_grain_tensor": smoothed_grain_tensor,
+                "pruned_skeleton_tensor": pruned_skel_tensor,
+            }
+            
+
         # convert stats dict to dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
-    return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
+    return grainstats_additions_df, all_images, disordered_tracing_stats
 
 
 def compile_skan_stats(

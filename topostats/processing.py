@@ -424,12 +424,12 @@ def run_disordered_tracing(
 
     Parameters
     ----------
-    full_image : npt.ndarray
+    full_image : npt.NDArray
         Image containing the grains to pass to the tracing function.
     image_grain_crops : ImageGrainCrops
         ImageGrainCrops object containing the GrainCrops to perform tracing on.
     pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
+        Scaling factor for converting pixel length scales to nanometres, i.e. the number of pixels per nanometres (nm).
     filename : str
         Name of the image.
     basename : Path
@@ -457,7 +457,6 @@ def run_disordered_tracing(
         if grainstats_df is None:
             grainstats_df = create_empty_dataframe(column_set="grainstats")
 
-        disordered_traces = defaultdict()
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
@@ -470,7 +469,6 @@ def run_disordered_tracing(
                     continue
 
                 (
-                    disordered_traces_cropped_data,
                     _disordered_trace_grainstats,
                     disordered_tracing_images,
                     disordered_tracing_stats,
@@ -488,7 +486,6 @@ def run_disordered_tracing(
                 disordered_tracing_stats["basename"] = basename.parent
                 disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
                 # append direction results to dict
-                disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
                 Images(
                     full_image,
@@ -513,7 +510,7 @@ def run_disordered_tracing(
                 else disordered_trace_grainstats
             )
             LOGGER.info(f"[{filename}] : Disordered Tracing stage completed successfully.")
-            return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
+            return resultant_grainstats, disordered_tracing_stats_image
         except ValueError as e:
             LOGGER.info(f"[{filename}] : Disordered tracing failed with ValueError {e}")
 
@@ -523,7 +520,6 @@ def run_disordered_tracing(
                 exc_info=e,
             )
         return (
-            disordered_traces,
             grainstats_df,
             create_empty_dataframe(column_set="disordered_tracing_statistics"),
         )
@@ -1185,7 +1181,7 @@ def process_scan(
         topostats_object["height_profiles"] = height_profiles
 
         # Disordered Tracing
-        disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
+        grainstats_df, disordered_tracing_stats = run_disordered_tracing(
             full_image=topostats_object["image"],
             image_grain_crops=image_grain_crops,
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
@@ -1197,12 +1193,13 @@ def process_scan(
             grainstats_df=grainstats_df,
             plotting_config=plotting_config,
         )
-        topostats_object["disordered_traces"] = disordered_traces_data
+        # TODO: need to find a way to get this back into the .topostats file
+        #topostats_object["disordered_traces"] = disordered_traces_data
 
         # Nodestats
         nodestats, grainstats_df = run_nodestats(
             image=topostats_object["image"],
-            disordered_tracing_data=topostats_object["disordered_traces"],
+            image_grain_crops=image_grain_crops,
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
             core_out_path=core_out_path,
@@ -1215,7 +1212,7 @@ def process_scan(
         # Ordered Tracing
         ordered_tracing, grainstats_df, molstats_df = run_ordered_tracing(
             image=topostats_object["image"],
-            disordered_tracing_data=topostats_object["disordered_traces"],
+            disordered_tracing_data=image_grain_crops,
             nodestats_data=nodestats,
             filename=topostats_object["filename"],
             basename=topostats_object["img_path"],
@@ -1246,7 +1243,7 @@ def process_scan(
         # Curvature Stats
         grain_curvature_stats_dict = run_curvature_stats(
             image=topostats_object["image"],
-            cropped_image_data=topostats_object["disordered_traces"],
+            cropped_image_data=image_grain_crops,
             grain_trace_data=topostats_object["splining"],
             pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
             filename=topostats_object["filename"],
