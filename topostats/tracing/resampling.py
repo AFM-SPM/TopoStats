@@ -35,8 +35,13 @@ def interpolate_between_two_points_distance(
     return new_point
 
 
-def resample_points_regular_interval(points: npt.NDArray, interval: float):
-    """Resample a set of points to be at regular intervals"""
+def resample_points_regular_interval(points: npt.NDArray, interval: float, circular: bool) -> npt.NDArray:
+    """Resample a set of points to be at regular spatial intervals.
+    
+    Note: This is NOT intended to be pure interpolation, as interpolated points would not produce uniformly spaced points."""
+
+    if circular:
+        points = np.concatenate((points, points[0:1]), axis=0)
 
     resampled_points = []
     resampled_points.append(points[0])
