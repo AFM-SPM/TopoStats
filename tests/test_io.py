@@ -546,6 +546,18 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     assert px_to_nm_scaling == 0.8468632812499975
 
 
+def test_load_scan_stp(load_scan_stp: LoadScans) -> None:
+    """Test loading of a .stp file."""
+    load_scan_stp.img_path = load_scan_stp.img_paths[0]
+    load_scan_stp.filename = load_scan_stp.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_stp.load_stp()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (512, 512)
+    assert image.sum() == -15070620.440757688
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == 0.9765625
+
+
 def test_load_scan_top(load_scan_top: LoadScans) -> None:
     """Test loading of a .top file."""
     load_scan_top.img_path = load_scan_top.img_paths[0]
