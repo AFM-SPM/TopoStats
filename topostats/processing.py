@@ -507,7 +507,7 @@ def run_disordered_tracing(
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(
-                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number", "class_number"]
+                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number", "class_number", "subgrain_number"]
                 )
                 if grainstats_df is not None
                 else disordered_trace_grainstats
