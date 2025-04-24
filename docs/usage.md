@@ -368,7 +368,7 @@ an accompanying histogram for each image showing the distribution of pixel heigh
 ### `.topostats` files
 
 TopoStats has implemented its own file format for saving data with the extension `.topostats`. This is an [HDF5][hdf5]
-file that uses a hierarchical structure for storing data. Initiall an independent versioning system was implemented to
+file that uses a hierarchical structure for storing data. Initially an independent versioning system was implemented to
 denote the version of files, however after `0.2` of the file format indicator and release `v2.4.0` of TopoStats we
 switched to storing the version of TopoStats that the file was processed with (this aids with reproducibility and aligns
 with the [FAIR for Research Software Principles][fair4rs]).
