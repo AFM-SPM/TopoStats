@@ -676,5 +676,51 @@ def interpolate_between_two_points_distance(
     return point1 + proportion * (point2 - point1)
 
 
+def resample_points_regular_interval(points: npt.NDArray, interval: float, circular: bool) -> npt.NDArray:
+    """
+    Resample a set of points to be at regular spatial intervals.
 
+    Note: This is NOT intended to be pure interpolation, as interpolated points would not produce uniformly spaced
+    points in cartesian space.
 
+    Parameters
+    ----------
+    points : npt.NDArray
+        The points to resample.
+    interval : float
+        The distance that all returned points should be apart.
+    circular : bool
+        If True, the first and last points will be connected to form a closed loop. If False, the first and last points
+        will not be connected.
+
+    Returns
+    -------
+    npt.NDArray
+        The resampled points, evenly spaced at the specified interval.
+    """
+    if circular:
+        points = np.concatenate((points, points[0:1]), axis=0)
+
+    resampled_points = []
+    resampled_points.append(points[0])
+    current_point_index = 1
+    while True:
+        current_point = resampled_points[-1]
+        next_original_point = points[current_point_index]
+        distance_to_next_splined_point = np.linalg.norm(next_original_point - current_point)
+        # if the distance to the next splined point is less than the interval, then skip to the next point
+        if distance_to_next_splined_point < interval:
+            current_point_index += 1
+            if current_point_index >= len(points):
+                break
+            continue
+        new_interpolated_point = interpolate_between_two_points_distance(
+            point1=current_point, point2=next_original_point, distance=interval
+        )
+        resampled_points.append(new_interpolated_point)
+
+    # if the first and last points are less than 0.5 * the interval apart, then remove the last point
+    if np.linalg.norm(resampled_points[0] - resampled_points[-1]) < 0.5 * interval:
+        resampled_points = resampled_points[:-1]
+
+    return np.array(resampled_points)
