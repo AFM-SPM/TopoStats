@@ -484,3 +484,13 @@ def test_interpolate_between_two_points_distance(
     assert isinstance(interpolated_point, np.ndarray)
     assert interpolated_point.shape == (2,)
     np.testing.assert_allclose(interpolated_point, expected_point, atol=1e-6)
+
+
+def test_resample_points_regular_interval() -> None:
+    """Test the resampling of points at regular intervals."""
+
+    points = np.load(SPLINING_RESOURCES / "molecule_coords_irregular_spacing.npy")
+    resampled_points = resample_points_regular_interval(points, 1.0, circular=True)
+    # check that each point is approximately the right distance apart
+    resampled_distances = np.linalg.norm(resampled_points[1:] - resampled_points[:-1], axis=1)
+    assert np.all(np.isclose(resampled_distances, 1.0, atol=0.01))
