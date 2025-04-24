@@ -646,3 +646,35 @@ def splining_image(
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
     molstats_df.reset_index(drop=True, inplace=True)
     return all_splines_data, splining_stats_df, molstats_df
+
+
+def interpolate_between_two_points_distance(
+    point1: npt.NDArray[np.float32], point2: npt.NDArray[np.float32], distance: np.float32
+) -> npt.NDArray[np.float32]:
+    """
+    Interpolate between two points to create a new point at a set distance between the two.
+
+    Parameters
+    ----------
+    point1 : npt.NDArray[np.float32]
+        The first point.
+    point2 : npt.NDArray[np.float32]
+        The second point.
+    distance : np.float32
+        The distance to interpolate between the two points.
+
+    Returns
+    -------
+    npt.NDArray[np.float32]
+        The new point at the specified distance between the two points.
+    """
+    distance_between_points = np.linalg.norm(point2 - point1)
+    assert (
+        distance_between_points > distance
+    ), f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
+    proportion = distance / distance_between_points
+    return point1 + proportion * (point2 - point1)
+
+
+
+
