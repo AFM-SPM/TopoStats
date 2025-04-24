@@ -97,6 +97,8 @@ splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"
   rolling_window_size: 20.0e-9 # size in nm of the rolling window.
+  rolling_window_resampling: true # Whether to resample the trace or not.
+  rolling_window_resample_regular_spatial_interval: 0.5e-9 # The spatial interval to resample the trace to in nm.
   spline_step_size: 7.0e-9 # The sampling rate of the spline in metres.
   spline_linear_smoothing: 5.0 # The amount of smoothing to apply to linear features.
   spline_circular_smoothing: 5.0 # The amount of smoothing to apply to circular features.

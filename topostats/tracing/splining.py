@@ -262,6 +262,10 @@ class windowTrace:
         The pixel to nm scaling factor, by default 1.
     rolling_window_size : np.float64, optional
         The length of the rolling window too average over, by default 6.0.
+    rolling_window_resampling : bool, optional
+        Whether to resample the rolling window, by default False.
+    rolling_window_resample_regular_spatial_interval : float, optional
+        The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
 
     def __init__(
@@ -269,6 +273,8 @@ class windowTrace:
         mol_ordered_tracing_data: dict,
         pixel_to_nm_scaling: float,
         rolling_window_size: float,
+        rolling_window_resampling: bool = False,
+        rolling_window_resample_regular_spatial_interval_nm: float = 0.5,
     ) -> None:
         """
         Initialise the windowTrace class.
@@ -281,11 +287,19 @@ class windowTrace:
             The pixel to nm scaling factor, by default 1.
         rolling_window_size : np.float64, optional
             The length of the rolling window too average over, by default 6.0.
+        rolling_window_resampling : bool, optional
+            Whether to resample the rolling window, by default False.
+        rolling_window_resample_regular_spatial_interval : float, optional
+            The regular spatial interval (nm) to resample the rolling window, by default 0.5.
         """
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
         self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.rolling_window_size = rolling_window_size / 1e-9  # for nm scaling factor
+        self.rolling_window_resampling = rolling_window_resampling
+        self.rolling_window_resample_regular_spatial_interval_nm = (
+            rolling_window_resample_regular_spatial_interval_nm / 1e-9
+        )  # for nm scaling factor
 
         self.tracing_stats = {
             "contour_length": None,
@@ -342,7 +356,9 @@ class windowTrace:
 
     @staticmethod
     def pool_trace_linear(
-        pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1
+        pixel_trace: npt.NDArray[np.int32],
+        rolling_window_size: np.float64 = 6.0,
+        pixel_to_nm_scaling: float = 1,
     ) -> npt.NDArray[np.float64]:
         """
         Smooth a pixelwise ordered trace of linear molecules via a sliding window.
@@ -419,10 +435,22 @@ class windowTrace:
             splined_trace = self.pool_trace_circular(
                 self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
             )
+            if self.rolling_window_resampling:
+                splined_trace = resample_points_regular_interval(
+                    points=splined_trace,
+                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    circular=True,
+                )
         else:
             splined_trace = self.pool_trace_linear(
                 self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
             )
+            if self.rolling_window_resampling:
+                splined_trace = resample_points_regular_interval(
+                    points=splined_trace,
+                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    circular=False,
+                )
         # compile CL & E2E distance
         self.tracing_stats["contour_length"] = (
             measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
@@ -530,6 +558,8 @@ def splining_image(
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
+    rolling_window_resampling: bool = False,
+    rolling_window_resample_regular_spatial_interval: float = 0.5,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-locals
@@ -559,6 +589,10 @@ def splining_image(
     spline_degree : int
         Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
         small s-value.
+    rolling_window_resampling : bool, optional
+        Whether to resample the rolling window, by default False.
+    rolling_window_resample_regular_spatial_interval : float, optional
+        The regular spatial interval (nm) to resample the rolling window, by default 0.5.
 
     Returns
     -------
@@ -589,6 +623,8 @@ def splining_image(
                         mol_ordered_tracing_data=mol_trace_data,
                         pixel_to_nm_scaling=pixel_to_nm_scaling,
                         rolling_window_size=rolling_window_size,
+                        rolling_window_resampling=rolling_window_resampling,
+                        rolling_window_resample_regular_spatial_interval_nm=rolling_window_resample_regular_spatial_interval,
                     ).run_window_trace()
 
                 # if not doing nodestats ordering, do original TS ordering
