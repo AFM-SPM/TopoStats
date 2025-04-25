@@ -120,7 +120,9 @@ def create_parser() -> arg.ArgumentParser:
         "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
-    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
+    subparsers = parser.add_subparsers(
+        title="program", description="Available programs, listed below:", dest="program"
+    )
 
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
@@ -535,6 +537,20 @@ def create_parser() -> arg.ArgumentParser:
         type=float,
         required=False,
         help="Size in nm of the rolling window",
+    )
+    process_parser.add_argument(
+        "--rolling-window-resampling",
+        dest="rolling_window_resampling",
+        type=bool,
+        required=False,
+        help="Whether to resample the trace or not.",
+    )
+    process_parser.add_argument(
+        "--rolling-window-resample-regular-spatial-interval",
+        dest="rolling_window_resample_regular_spatial_interval",
+        type=float,
+        required=False,
+        help="The spatial interval to resample the trace to in nm.",
     )
     process_parser.add_argument(
         "--splining-step-size",
@@ -1062,6 +1078,20 @@ def create_parser() -> arg.ArgumentParser:
         type=float,
         required=False,
         help="Size in nm of the rolling window",
+    )
+    splining_parser.add_argument(
+        "--rolling-window-resampling",
+        dest="resampling",
+        type=bool,
+        required=False,
+        help="Whether to resample the trace or not.",
+    )
+    splining_parser.add_argument(
+        "--rolling-windown-resample-regular-spatial-interval",
+        dest="resample_regular_spatial_interval",
+        type=float,
+        required=False,
+        help="The spatial interval to resample the trace to in nm.",
     )
     splining_parser.add_argument(
         "--step-size",
