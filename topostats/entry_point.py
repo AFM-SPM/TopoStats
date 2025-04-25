@@ -539,15 +539,15 @@ def create_parser() -> arg.ArgumentParser:
         help="Size in nm of the rolling window",
     )
     process_parser.add_argument(
-        "--rolling-window-resampling",
-        dest="rolling_window_resampling",
+        "--splining-resampling",
+        dest="splining_resampling",
         type=bool,
         required=False,
         help="Whether to resample the trace or not.",
     )
     process_parser.add_argument(
-        "--rolling-window-resample-regular-spatial-interval",
-        dest="rolling_window_resample_regular_spatial_interval",
+        "--splining-resample-regular-spatial-interval",
+        dest="splining_resample_regular_spatial_interval",
         type=float,
         required=False,
         help="The spatial interval to resample the trace to in nm.",
@@ -1080,14 +1080,14 @@ def create_parser() -> arg.ArgumentParser:
         help="Size in nm of the rolling window",
     )
     splining_parser.add_argument(
-        "--rolling-window-resampling",
+        "--resampling",
         dest="resampling",
         type=bool,
         required=False,
         help="Whether to resample the trace or not.",
     )
     splining_parser.add_argument(
-        "--rolling-windown-resample-regular-spatial-interval",
+        "--resample-regular-spatial-interval",
         dest="resample_regular_spatial_interval",
         type=float,
         required=False,
