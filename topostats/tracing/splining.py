@@ -264,7 +264,7 @@ class windowTrace:
         The length of the rolling window too average over, by default 6.0.
     rolling_window_resampling : bool, optional
         Whether to resample the rolling window, by default False.
-    rolling_window_resample_regular_spatial_interval : float, optional
+    rolling_window_resample_regular_spatial_interval_nm : float, optional
         The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
 
@@ -289,7 +289,7 @@ class windowTrace:
             The length of the rolling window too average over, by default 6.0.
         rolling_window_resampling : bool, optional
             Whether to resample the rolling window, by default False.
-        rolling_window_resample_regular_spatial_interval : float, optional
+        rolling_window_resample_regular_spatial_interval_nm : float, optional
             The regular spatial interval (nm) to resample the rolling window, by default 0.5.
         """
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
