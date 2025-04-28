@@ -289,23 +289,16 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
     )
     process_parser.add_argument(
-        "--grains-smallest-grain-size-nm2",
-        dest="grains_smallest_grain_size_nm2",
-        type=float,
-        required=False,
-        help="Size in nm^2 of tiny grains/blobs to remove, must be > 0.0",
-    )
-    process_parser.add_argument(
-        "--grains-absolute-area-threshold-above",
-        dest="grains_absolute_area_threshold_above",
+        "--grains-area-thresholds-above",
+        dest="grains_area_thresholds_above",
         type=float,
         required=False,
         nargs=2,
         help="Above surface (low, high) in nm^2, both low and high should be specified",
     )
     process_parser.add_argument(
-        "--grains-absolute-area-threshold-below",
-        dest="grains_absolute_area_threshold_below",
+        "--grains-area-thresholds-below",
+        dest="grains_area_thresholds_below",
         type=float,
         required=False,
         nargs=2,
@@ -782,23 +775,16 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
     )
     grains_parser.add_argument(
-        "--smallest-grain-size-nm2",
-        dest="smallest_grain_size_nm2",
-        type=float,
-        required=False,
-        help="Size in nm^2 of tiny grains/blobs to remove, must be > 0.0",
-    )
-    grains_parser.add_argument(
-        "--absolute-area-threshold-above",
-        dest="absolute_area_threshold_above",
+        "--area-thresholds-above",
+        dest="area_thresholds_above",
         type=float,
         required=False,
         nargs=2,
         help="Above surface (low, high) in nm^2, both low and high should be specified",
     )
     grains_parser.add_argument(
-        "--absolute-area-threshold-below",
-        dest="absolute_area_threshold_below",
+        "--area-thresholds-below",
+        dest="area_thresholds_below",
         type=float,
         required=False,
         nargs=2,
