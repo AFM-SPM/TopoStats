@@ -289,23 +289,16 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
     )
     process_parser.add_argument(
-        "--grains-smallest-grain-size-nm2",
-        dest="grains_smallest_grain_size_nm2",
-        type=float,
-        required=False,
-        help="Size in nm^2 of tiny grains/blobs to remove, must be > 0.0",
-    )
-    process_parser.add_argument(
-        "--grains-absolute-area-threshold-above",
-        dest="grains_absolute_area_threshold_above",
+        "--grains-area-thresholds-above",
+        dest="grains_area_thresholds_above",
         type=float,
         required=False,
         nargs=2,
         help="Above surface (low, high) in nm^2, both low and high should be specified",
     )
     process_parser.add_argument(
-        "--grains-absolute-area-threshold-below",
-        dest="grains_absolute_area_threshold_below",
+        "--grains-area-thresholds-below",
+        dest="grains_area_thresholds_below",
         type=float,
         required=False,
         nargs=2,
@@ -530,36 +523,36 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for splining. Options 'spline' or 'rolling_window",
     )
     process_parser.add_argument(
-        "--splining-window-size",
-        dest="splining_window_size",
+        "--rolling-window-size",
+        dest="rolling_window_size",
         type=float,
         required=False,
         help="Size in nm of the rolling window",
     )
     process_parser.add_argument(
-        "--splining-step-size",
-        dest="splining_step_size",
+        "--spline-step-size",
+        dest="spline_step_size",
         type=float,
         required=False,
         help="The sampling rate of the spline in metres",
     )
     process_parser.add_argument(
-        "--splining-linear-smoothing",
-        dest="splining_linear_smoothing",
+        "--spline-linear-smoothing",
+        dest="spline_linear_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to linear features",
     )
     process_parser.add_argument(
-        "--splining-circular-smoothing",
-        dest="splining_circular_smoothing",
+        "--spline-circular-smoothing",
+        dest="spline_circular_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to circular features",
     )
     process_parser.add_argument(
-        "--splining-degree",
-        dest="splining_degree",
+        "--spline-degree",
+        dest="spline_degree",
         type=int,
         required=False,
         help="The polynomial degree of the spline",
@@ -782,23 +775,16 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
     )
     grains_parser.add_argument(
-        "--smallest-grain-size-nm2",
-        dest="smallest_grain_size_nm2",
-        type=float,
-        required=False,
-        help="Size in nm^2 of tiny grains/blobs to remove, must be > 0.0",
-    )
-    grains_parser.add_argument(
-        "--absolute-area-threshold-above",
-        dest="absolute_area_threshold_above",
+        "--area-thresholds-above",
+        dest="area_thresholds_above",
         type=float,
         required=False,
         nargs=2,
         help="Above surface (low, high) in nm^2, both low and high should be specified",
     )
     grains_parser.add_argument(
-        "--absolute-area-threshold-below",
-        dest="absolute_area_threshold_below",
+        "--area-thresholds-below",
+        dest="area_thresholds_below",
         type=float,
         required=False,
         nargs=2,
@@ -1057,36 +1043,36 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for splining. Options 'spline' or 'rolling_window",
     )
     splining_parser.add_argument(
-        "--window-size",
-        dest="window_size",
+        "--rolling-window-size",
+        dest="rolling_window_size",
         type=float,
         required=False,
         help="Size in nm of the rolling window",
     )
     splining_parser.add_argument(
-        "--step-size",
-        dest="step_size",
+        "--spline-step-size",
+        dest="spline_step_size",
         type=float,
         required=False,
         help="The sampling rate of the spline in metres",
     )
     splining_parser.add_argument(
-        "--linear-smoothing",
-        dest="linear_smoothing",
+        "--spline-linear-smoothing",
+        dest="spline_linear_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to linear features",
     )
     splining_parser.add_argument(
-        "--circular-smoothing",
-        dest="circular_smoothing",
+        "--spline-circular-smoothing",
+        dest="spline_circular_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to circular features",
     )
     splining_parser.add_argument(
-        "--degree",
-        dest="degree",
+        "--spline-degree",
+        dest="spline_degree",
         type=int,
         required=False,
         help="The polynomial degree of the spline",

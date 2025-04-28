@@ -123,7 +123,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for grains.run, valid values are 'True' or 'False'",
             ),
             "grain_crop_padding": int,
-            "smallest_grain_size_nm2": lambda n: n > 0.0,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -135,8 +134,10 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": lambda n: n > 0,
-                "above": lambda n: n > 0,
+                "below": [lambda n: n > 0],
+                "above": [
+                    lambda n: n > 0,
+                ],
             },
             "threshold_absolute": {
                 "below": Or(
@@ -150,13 +151,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     error=("Invalid value in config for grains.threshold.absolute.below should be type int or float"),
                 ),
             },
-            "absolute_area_threshold": {
+            "area_thresholds": {
                 "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
+                            "Invalid value in config for 'grains.area_thresholds.above', valid values "
                             "are int or null"
                         ),
                     )
@@ -166,7 +167,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
+                            "Invalid value in config for 'grains.area_thresholds.below', valid values "
                             "are int or null"
                         ),
                     )
@@ -190,6 +191,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "remove_disconnected_grains": bool,
             },
             "vetting": {
+                "whole_grain_size_thresholds": Or(
+                    None,
+                    [lambda n: n > 0, lambda n: n > 0],
+                    error="Invalid value in config for 'grainstats.vetting.whole_grain_size_thresholds', this needs to"
+                    "be a list of two positive floats",
+                ),
                 "class_conversion_size_thresholds": Or(
                     None,
                     # List of lists of 3 integers and 2 integers
@@ -235,6 +242,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
                 ),
             },
+            "classes_to_merge": Or(
+                None,
+                [int],
+                error="Invalid value in config for 'grains.classes_to_merge', this needs to be a list of integers.",
+            ),
         },
         "grainstats": {
             "run": Or(
@@ -867,33 +879,13 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "filters",
         },
-        "mask_grains": {
+        "thresholded_grains": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=("Invalid value in config 'mask_grains.image_type', valid values are 'binary' or 'non-binary'"),
-            ),
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-            "mask_cmap": str,
-            "module": "grains",
-        },
-        "labelled_regions_01": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'labelled_regions_01.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -921,24 +913,7 @@ PLOTTING_SCHEMA = Schema(
             "mask_cmap": str,
             "module": "grains",
         },
-        "removed_noise": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=("Invalid value in config 'removed_noise.image_type', valid values are 'binary' or 'non-binary'"),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-            "module": "grains",
-        },
-        "removed_small_objects": {
+        "removed_objects_too_small_to_process": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -958,7 +933,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "grains",
         },
-        "removed_objects_too_small_to_process": {
+        "area_thresholded": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -978,49 +953,14 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "grains",
         },
-        "mask_overlay": {
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=("Invalid value in config 'mask_overlay.image_type', valid values are 'binary' or 'non-binary'"),
-            ),
-            "core_set": True,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-            "module": "grains",
-        },
-        "labelled_regions_02": {
+        "unet": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'labelled_regions_02.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "mask_cmap": str,
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-            "module": "grains",
-        },
-        "bounding_boxes": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'bounding_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                    "Invalid value in config 'unet_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -1031,13 +971,15 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "grains",
         },
-        "unet_tensor": {
+        "vetted": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'unet_tensor.image_type', valid values are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'vetted_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1047,23 +989,7 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "grains",
         },
-        "vetted_tensor": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
-            ),
-            "core_set": bool,
-            "savefig_dpi": Or(
-                lambda n: n > 0,
-                "figure",
-                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
-            ),
-            "module": "grains",
-        },
-        "merged_classes_tensor": {
+        "merged_classes": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -1082,14 +1008,32 @@ PLOTTING_SCHEMA = Schema(
             ),
             "module": "grains",
         },
-        "coloured_boxes": {
+        "mask_overlay": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                    "Invalid value in config 'mask_overlay.image_type', valid values " "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": True,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
+        },
+        "bounding_boxes": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'bounding_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
@@ -1098,7 +1042,6 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "mask_cmap": str,
             "module": "grains",
         },
         "grain_image": {
