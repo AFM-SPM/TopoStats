@@ -566,6 +566,18 @@ def load_scan_gwy() -> LoadScans:
 
 
 @pytest.fixture()
+def load_scan_stp() -> LoadScans:
+    """Instantiate a LoadScans object from a .stp file."""
+    return LoadScans([RESOURCES / "file.stp"], channel=None)
+
+
+@pytest.fixture()
+def load_scan_top() -> LoadScans:
+    """Instantiate a LoadScans object from a .top file."""
+    return LoadScans([RESOURCES / "file.top"], channel=None)
+
+
+@pytest.fixture()
 def load_scan_topostats() -> LoadScans:
     """Instantiate a LoadScans object from a .topostats file."""
     return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")

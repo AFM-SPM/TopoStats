@@ -530,8 +530,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for splining. Options 'spline' or 'rolling_window",
     )
     process_parser.add_argument(
-        "--splining-window-size",
-        dest="splining_window_size",
+        "--rolling-window-size",
+        dest="rolling_window_size",
         type=float,
         required=False,
         help="Size in nm of the rolling window",
@@ -551,29 +551,29 @@ def create_parser() -> arg.ArgumentParser:
         help="The spatial interval to resample the trace to in nm.",
     )
     process_parser.add_argument(
-        "--splining-step-size",
-        dest="splining_step_size",
+        "--spline-step-size",
+        dest="spline_step_size",
         type=float,
         required=False,
         help="The sampling rate of the spline in metres",
     )
     process_parser.add_argument(
-        "--splining-linear-smoothing",
-        dest="splining_linear_smoothing",
+        "--spline-linear-smoothing",
+        dest="spline_linear_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to linear features",
     )
     process_parser.add_argument(
-        "--splining-circular-smoothing",
-        dest="splining_circular_smoothing",
+        "--spline-circular-smoothing",
+        dest="spline_circular_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to circular features",
     )
     process_parser.add_argument(
-        "--splining-degree",
-        dest="splining_degree",
+        "--spline-degree",
+        dest="spline_degree",
         type=int,
         required=False,
         help="The polynomial degree of the spline",
@@ -1071,8 +1071,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for splining. Options 'spline' or 'rolling_window",
     )
     splining_parser.add_argument(
-        "--window-size",
-        dest="window_size",
+        "--rolling-window-size",
+        dest="rolling_window_size",
         type=float,
         required=False,
         help="Size in nm of the rolling window",
@@ -1092,29 +1092,29 @@ def create_parser() -> arg.ArgumentParser:
         help="The spatial interval to resample the trace to in nm.",
     )
     splining_parser.add_argument(
-        "--step-size",
-        dest="step_size",
+        "--spline-step-size",
+        dest="spline_step_size",
         type=float,
         required=False,
         help="The sampling rate of the spline in metres",
     )
     splining_parser.add_argument(
-        "--linear-smoothing",
-        dest="linear_smoothing",
+        "--spline-linear-smoothing",
+        dest="spline_linear_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to linear features",
     )
     splining_parser.add_argument(
-        "--circular-smoothing",
-        dest="circular_smoothing",
+        "--spline-circular-smoothing",
+        dest="spline_circular_smoothing",
         type=float,
         required=False,
         help="The amount of smoothing to apply to circular features",
     )
     splining_parser.add_argument(
-        "--degree",
-        dest="degree",
+        "--spline-degree",
+        dest="spline_degree",
         type=int,
         required=False,
         help="The polynomial degree of the spline",
