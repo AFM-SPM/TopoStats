@@ -140,16 +140,24 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ],
             },
             "threshold_absolute": {
-                "below": Or(
-                    int,
-                    float,
-                    error=("Invalid value in config for grains.threshold.absolute.below should be type int or float"),
-                ),
-                "above": Or(
-                    int,
-                    float,
-                    error=("Invalid value in config for grains.threshold.absolute.below should be type int or float"),
-                ),
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.above should be type int or float"
+                        ),
+                    )
+                ],
             },
             "area_thresholds": {
                 "above": [
@@ -157,8 +165,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.area_thresholds.above', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"
                         ),
                     )
                 ],
@@ -167,8 +174,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.area_thresholds.below', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.below', valid values are int or null"
                         ),
                     )
                 ],
@@ -959,9 +965,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'unet_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'unet_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -977,9 +981,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'vetted_tensor.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1014,9 +1016,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'mask_overlay.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'mask_overlay.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": True,
             "savefig_dpi": Or(
@@ -1033,7 +1033,7 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'bounding_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'bounding_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
