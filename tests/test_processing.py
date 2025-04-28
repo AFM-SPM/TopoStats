@@ -203,7 +203,9 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
-    # Check the data
+    # Check the data (we pop the file version as we are interested in comparing the underlying data)
+    expected_topostats.pop("topostats_file_version")
+    saved_topostats.pop("topostats_file_version")
     assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
 
 
