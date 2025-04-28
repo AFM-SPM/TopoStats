@@ -35,15 +35,13 @@ grains:
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:
-    below: 10.0 # Threshold for grains below the image background
-    above: 1.0 # Threshold for grains above the image background
+    below: [10.0] # Thresholds for grains below the image background. List[float].
+    above: [1.0] # Thresholds for grains above the image background. List[float].
   threshold_absolute:
-    below: -1.0 # Threshold for grains below the image background
-    above: 1.0 # Threshold for grains above the image background
+    below: [-1.0] # Thresholds for grains below the image background. List[float].
+    above: [1.0] # Thresholds for grains above the image background. List[float].
   direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
-  # Thresholding by area
-  smallest_grain_size_nm2: 50 # Size in nm^2 of tiny grains/blobs (noise) to remove, must be > 0.0
-  absolute_area_threshold:
+  area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
@@ -53,6 +51,7 @@ grains:
     lower_norm_bound: -1.0 # Lower bound for normalisation of input data. This should be slightly lower than the minimum desired / expected height of the background.
     remove_disconnected_grains: false # Whether to remove grains in the crop that don't touch the original grain mask.
   vetting:
+    whole_grain_size_thresholds: null # Size thresholds for whole grains in nanometres squared, ie all classes combined. Tuple of 2 floats, ie [low, high] eg [100, 1000] for grains to be between 100 and 1000 nm^2. Can use None to not set an upper/lower bound.
     class_conversion_size_thresholds: null # Class conversion size thresholds, list of tuples of 3 integers and 2 integers, ie list[tuple[tuple[int, int, int], tuple[int, int]]] eg [[[1, 2, 3], [5, 10]]] for each region of class 1 to convert to 2 if smaller than 5 nm^2 and to class 3 if larger than 10 nm^2.
     class_region_number_thresholds: null # Class region number thresholds, list of lists, ie [[class, low, high],] eg [[1, 2, 4], [2, 1, 1]] for class 1 to have 2-4 regions and class 2 to have 1 region. Can use None to not set an upper/lower bound.
     class_size_thresholds: null # Class size thresholds (nm^2), list of tuples of 3 integers, ie [[class, low, high],] eg [[1, 100, 1000], [2, 1000, None]] for class 1 to have 100-1000 nm^2 and class 2 to have 1000-any nm^2. Can use None to not set an upper/lower bound.
@@ -60,6 +59,7 @@ grains:
     class_touching_threshold: 5 # Number of dilation steps to use for detecting touching regions
     keep_largest_labelled_regions_classes: null # Classes to keep the only largest regions for, list of integers eg [1, 2] to keep only the largest regions of class 1 and 2
     class_connection_point_thresholds: null # Class connection point thresholds, [[[class_1, class_2], [min, max]]] eg [[[1, 2], [1, 1]]] for class 1 to have 1 connection point with class 2
+  classes_to_merge: null # Classes to merge into a single combined class. List of lists, eg [[1, 2]] to merge classes 1 and 2. New classes will be appended to the tensor.
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.

@@ -102,16 +102,6 @@ def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection
     assert dict_almost_equal(dummy_image_grain_crop.image_grain_crops_to_dict(), expected)
 
 
-@pytest.mark.parametrize(
-    ("area_thresh_nm", "expected"),
-    [([None, None], grain_array), ([None, 32], grain_array2), ([12, 24], grain_array3), ([32, 44], grain_array4)],
-)
-def test_known_array_threshold(area_thresh_nm, expected) -> None:
-    """Tests that arrays are thresholded on size as expected."""
-    grains = Grains(image=np.zeros((10, 6)), filename="xyz", pixel_to_nm_scaling=2)
-    assert (grains.area_thresholding(grain_array, area_thresh_nm) == expected).all()
-
-
 # def test_random_grains(random_grains: Grains, caplog) -> None:
 #     """Test errors raised when processing images without grains."""
 #     # FIXME : I can see for myself that the error message is logged but the assert fails as caplog.text is empty?
@@ -119,168 +109,409 @@ def test_known_array_threshold(area_thresh_nm, expected) -> None:
 #     assert True
 
 
-def test_remove_small_objects():
-    """Test the remove_small_objects method of the Grains class."""
-    grains_object = Grains(
-        image=None,
-        filename="",
-        pixel_to_nm_scaling=1.0,
-    )
-
-    test_img = np.array(
-        [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 3, 3, 0],
-            [0, 0, 1, 0, 3, 3, 0],
-            [0, 0, 0, 0, 0, 3, 0],
-            [0, 2, 0, 2, 0, 3, 0],
-            [0, 2, 2, 2, 0, 3, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-        ]
-    )
-
-    expected = np.array(
-        [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0, 1, 0],
-            [0, 1, 0, 1, 0, 1, 0],
-            [0, 1, 1, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-        ]
-    )
-
-    grains_object.minimum_grain_size = 5
-    result = grains_object.remove_small_objects(test_img)
-
-    np.testing.assert_array_equal(result, expected)
-
-
 @pytest.mark.parametrize(
-    ("binary_image", "minimum_size_px", "minimum_bbox_size_px", "expected_image"),
+    ("grain_mask_tensor", "area_thresholds", "pixel_to_nm_scaling", "expected_grain_mask_tensor"),
     [
         pytest.param(
-            np.array(
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
-            8,
-            4,
-            np.array(
+            [0.6, 0.8],
+            0.5,
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
-        )
+            id="with_thresholds",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 0, 1, 0, 1],
+                            [1, 0, 1, 1, 1, 0, 1],
+                            [1, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [None, None],
+            1.0,
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 0, 1, 0, 1],
+                            [1, 0, 1, 1, 1, 0, 1],
+                            [1, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="no_thresholds",
+        ),
     ],
 )
-def test_remove_objects_too_small_to_process(
-    binary_image: npt.NDArray, minimum_size_px: int, minimum_bbox_size_px: int, expected_image: npt.NDArray
+def test_area_thresholding_tensor(
+    grain_mask_tensor: npt.NDArray,
+    area_thresholds: list[float],
+    pixel_to_nm_scaling: float,
+    expected_grain_mask_tensor: npt.NDArray,
 ) -> None:
-    """Test the remove_objects_too_small_to_process method of the Grains class."""
-    grains_object = Grains(
-        image=np.array([[0, 0], [0, 0]]),
-        filename="",
-        pixel_to_nm_scaling=1.0,
+    """Test the area_thresholding_tensor method of the Grains class."""
+    result = Grains.area_thresholding_tensor(
+        grain_mask_tensor=grain_mask_tensor, area_thresholds=area_thresholds, pixel_to_nm_scaling=pixel_to_nm_scaling
     )
 
-    result = grains_object.remove_objects_too_small_to_process(
-        image=binary_image, minimum_size_px=minimum_size_px, minimum_bbox_size_px=minimum_bbox_size_px
-    )
-
-    np.testing.assert_array_equal(result, expected_image)
+    np.testing.assert_array_equal(result, expected_grain_mask_tensor)
 
 
 @pytest.mark.parametrize(
-    ("test_labelled_image", "area_thresholds", "expected"),
+    ("grain_mask_tensor", "bbox_size_thresholds", "expected_grain_mask_tensor"),
     [
-        (
-            np.array(
+        pytest.param(
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1],
+                            [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+                            [1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1],
+                            [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0],
+                            [0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
-            [4.0, 6.0],
-            np.array(
+            [2, 2],
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 0, 1, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
+            id="with_thresholds",
         ),
-        (
-            np.array(
+        pytest.param(
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 0, 1, 0, 1],
+                            [1, 0, 1, 1, 1, 0, 1],
+                            [1, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
             [None, None],
-            np.array(
+            np.stack(
                 [
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 3, 3, 0],
-                    [0, 0, 1, 0, 3, 3, 0],
-                    [0, 0, 0, 0, 0, 3, 0],
-                    [0, 2, 0, 2, 0, 3, 0],
-                    [0, 2, 2, 2, 0, 3, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                ]
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 0, 1, 0, 1],
+                            [1, 0, 1, 1, 1, 0, 1],
+                            [1, 0, 1, 0, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 0, 0],
+                            [0, 1, 0, 1, 0, 1, 0],
+                            [0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
             ),
+            id="no_thresholds",
         ),
     ],
 )
-def test_area_thresholding(test_labelled_image, area_thresholds, expected):
-    """Test the area_thresholding() method of the Grains class."""
-    grains_object = Grains(
-        image=None,
-        filename="",
-        pixel_to_nm_scaling=1.0,
+def test_bbox_size_thresholding_tensor(
+    grain_mask_tensor: npt.NDArray, bbox_size_thresholds: list[float], expected_grain_mask_tensor: npt.NDArray
+) -> None:
+    """Test the bbox_size_thresholding_tensor method of the Grains class."""
+    result = Grains.bbox_size_thresholding_tensor(
+        grain_mask_tensor=grain_mask_tensor, bbox_size_thresholds=bbox_size_thresholds
     )
 
-    result = grains_object.area_thresholding(test_labelled_image, area_thresholds=area_thresholds)
-
-    np.testing.assert_array_equal(result, expected)
+    np.testing.assert_array_equal(result, expected_grain_mask_tensor)
 
 
 @pytest.mark.parametrize(
@@ -296,10 +527,9 @@ def test_remove_edge_intersecting_grains(
     """Test that Grains successfully does and doesn't remove edge intersecting grains."""
     # Ensure that a sensible number of grains are found
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
-    grains_config["threshold_absolute"]["above"] = 1.0
+    grains_config["threshold_absolute"]["above"] = [1.0]
     grains_config["threshold_method"] = "absolute"
-    grains_config["smallest_grain_size_nm2"] = 20
-    grains_config["absolute_area_threshold"]["above"] = [20, 10000000]
+    grains_config["area_thresholds"]["above"] = [20, 10000000]
 
     grains = Grains(
         image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
@@ -308,7 +538,7 @@ def test_remove_edge_intersecting_grains(
         **grains_config,
     )
     grains.find_grains()
-    number_of_grains = len(grains.region_properties["above"])
+    number_of_grains = len(grains.image_grain_crops.above.crops)
 
     assert number_of_grains == expected_number_of_grains
 
@@ -321,12 +551,9 @@ def test_remove_edge_intersecting_grains(
         "otsu_threshold_multiplier",
         "threshold_std_dev",
         "threshold_absolute",
-        "absolute_area_threshold",
+        "area_thresholds",
         "direction",
-        "smallest_grain_size_nm2",
         "remove_edge_intersecting_grains",
-        "expected_grain_mask",
-        "expected_labelled_regions",
         "expected_imagegraincrops",
     ),
     [
@@ -339,8 +566,8 @@ def test_remove_edge_intersecting_grains(
                     [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
                     [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
                     [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
-                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
                     [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
                     [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
                 ]
@@ -349,39 +576,10 @@ def test_remove_edge_intersecting_grains(
             "absolute",
             None,
             None,
-            {"above": 0.9, "below": 0.0},
+            {"above": [0.9, 2.5], "below": [0.0]},
             {"above": [1, 10000000], "below": [1, 10000000]},
             "above",
-            1,
             True,
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                    [0, 1, 0, 1, 0, 0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 1, 1, 0, 0, 0, 0, 0, 1, 0],
-                    [0, 0, 1, 0, 6, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-            ).astype(bool),
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 1, 0, 1, 0, 0, 2, 0, 2, 0],
-                    [0, 1, 1, 1, 0, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 3, 3, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 5, 5, 0, 0, 0, 0, 0, 4, 0],
-                    [0, 0, 5, 0, 6, 0, 4, 4, 4, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-            ).astype(np.int32),
             ImageGrainCrops(
                 above=GrainCropsDirection(
                     crops={
@@ -416,6 +614,15 @@ def test_remove_edge_intersecting_grains(
                                             [0, 1, 1, 1, 0],
                                             [0, 1, 0, 1, 0],
                                             [0, 1, 1, 1, 0],
+                                            [0, 0, 0, 0, 0],
+                                        ]
+                                    ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0],
                                         ]
                                     ),
@@ -457,6 +664,15 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -492,6 +708,14 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -505,8 +729,8 @@ def test_remove_edge_intersecting_grains(
                                 [
                                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
                                     [1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                                    [0.0, 0.2, 0.1, 0.2, 1.7, 0.2],
-                                    [0.2, 0.1, 0.2, 0.1, 1.6, 0.1],
+                                    [0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                                    [0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
                                     [1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
                                     [0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
                                 ]
@@ -517,8 +741,8 @@ def test_remove_edge_intersecting_grains(
                                         [
                                             [1, 1, 1, 1, 1, 1],
                                             [1, 1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 0, 1],
-                                            [1, 1, 1, 1, 0, 1],
+                                            [1, 1, 1, 0, 0, 1],
+                                            [1, 1, 1, 0, 0, 1],
                                             [1, 1, 0, 0, 0, 1],
                                             [1, 1, 1, 1, 1, 1],
                                         ]
@@ -527,9 +751,19 @@ def test_remove_edge_intersecting_grains(
                                         [
                                             [0, 0, 0, 0, 0, 0],
                                             [0, 0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 1, 0],
-                                            [0, 0, 0, 0, 1, 0],
+                                            [0, 0, 0, 1, 1, 0],
+                                            [0, 0, 0, 1, 1, 0],
                                             [0, 0, 1, 1, 1, 0],
+                                            [0, 0, 0, 0, 0, 0],
+                                        ]
+                                    ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 0, 0, 0],
+                                            [0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 0, 0, 0],
                                             [0, 0, 0, 0, 0, 0],
                                         ]
                                     ),
@@ -568,6 +802,14 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                            [0, 0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -594,6 +836,13 @@ def test_remove_edge_intersecting_grains(
                                             [0, 0, 0],
                                         ]
                                     ),
+                                    np.array(
+                                        [
+                                            [0, 0, 0],
+                                            [0, 0, 0],
+                                            [0, 0, 0],
+                                        ]
+                                    ),
                                 ],
                                 axis=-1,
                             ),
@@ -609,8 +858,8 @@ def test_remove_edge_intersecting_grains(
                                     [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
                                     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                     [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                                    [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+                                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
+                                    [1, 0, 0, 1, 1, 1, 1, 0, 0, 1],
                                     [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
                                     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                                 ]
@@ -623,9 +872,23 @@ def test_remove_edge_intersecting_grains(
                                     [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                     [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-                                    [0, 1, 1, 0, 0, 0, 0, 0, 1, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+                                    [0, 1, 1, 0, 0, 0, 0, 1, 1, 0],
                                     [0, 0, 1, 0, 1, 0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                ],
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                                 ],
                             ),
@@ -646,12 +909,9 @@ def test_find_grains(
     otsu_threshold_multiplier: float,
     threshold_std_dev: dict,
     threshold_absolute: dict,
-    absolute_area_threshold: dict,
+    area_thresholds: dict,
     direction: str,
-    smallest_grain_size_nm2: int,
     remove_edge_intersecting_grains: bool,
-    expected_grain_mask: npt.NDArray[np.int32],
-    expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class without unet."""
@@ -665,9 +925,8 @@ def test_find_grains(
         otsu_threshold_multiplier=otsu_threshold_multiplier,
         threshold_std_dev=threshold_std_dev,
         threshold_absolute=threshold_absolute,
-        absolute_area_threshold=absolute_area_threshold,
+        area_thresholds=area_thresholds,
         direction=direction,
-        smallest_grain_size_nm2=smallest_grain_size_nm2,
         remove_edge_intersecting_grains=remove_edge_intersecting_grains,
     )
 
@@ -676,17 +935,6 @@ def test_find_grains(
     grains_object.minimum_bbox_size_px = 1
 
     grains_object.find_grains()
-
-    result_removed_small_objects = grains_object.directions[direction]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.directions[direction]["labelled_regions_02"]
-
-    assert result_removed_small_objects.shape == expected_grain_mask.shape
-    assert result_removed_small_objects.dtype == expected_grain_mask.dtype
-    np.testing.assert_array_equal(result_removed_small_objects, expected_grain_mask)
-
-    assert result_labelled_regions.shape == expected_labelled_regions.shape
-    assert result_labelled_regions.dtype == expected_labelled_regions.dtype
-    np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
     # Check the image_grain_crops
     result_image_grain_crops = grains_object.image_grain_crops
@@ -708,7 +956,7 @@ def test_find_grains(
 
 # Find grains with unet - needs mocking
 @pytest.mark.parametrize(
-    ("image", "expected_grain_mask", "expected_labelled_regions", "expected_imagegraincrops"),
+    ("image", "expected_imagegraincrops"),
     [
         pytest.param(
             # Image
@@ -723,34 +971,6 @@ def test_find_grains(
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
                     [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
-            ),
-            # Expected removed small objects tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                    [0, 1, 1, 1, 0, 1, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ]
-            ).astype(bool),
-            # Expected labelled regions tensor
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 3, 0],
-                    [0, 1, 1, 1, 0, 2, 0, 0, 0],
-                    [0, 1, 1, 1, 0, 2, 2, 2, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
                 ]
             ),
             # Expected image grain crops
@@ -907,8 +1127,6 @@ def test_find_grains(
 def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
     image: npt.NDArray[np.float32],
-    expected_grain_mask: npt.NDArray[np.bool_],
-    expected_labelled_regions: npt.NDArray[np.int32],
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
@@ -931,9 +1149,8 @@ def test_find_grains_unet(
             },
             threshold_method="absolute",
             threshold_absolute={"above": 0.9, "below": 0.0},
-            absolute_area_threshold={"above": [1, 10000000], "below": [1, 10000000]},
+            area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
             direction="above",
-            smallest_grain_size_nm2=1,
             remove_edge_intersecting_grains=True,
         )
 
@@ -943,15 +1160,7 @@ def test_find_grains_unet(
 
         grains_object.find_grains()
 
-        result_grain_mask = grains_object.directions["above"]["removed_objects_too_small_to_process"]
-        result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
         result_image_grain_crops = grains_object.image_grain_crops
-
-        assert result_grain_mask.shape == expected_grain_mask.shape
-        assert result_labelled_regions.shape == expected_labelled_regions.shape
-
-        np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
-        np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
 
         result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
 
@@ -971,12 +1180,6 @@ def test_find_grains_no_grains_found():
         ]
     )
 
-    # Expected removed small objects tensor
-    expected_grain_mask = np.zeros_like(image, dtype=bool)
-
-    # Expected labelled regions tensor
-    expected_labelled_regions = np.zeros_like(image, dtype=int)
-
     # Expected image grain crops
     expected_imagegraincrops = ImageGrainCrops(
         above=None,
@@ -991,9 +1194,8 @@ def test_find_grains_no_grains_found():
         unet_config=None,
         threshold_method="absolute",
         threshold_absolute={"above": 0.9, "below": 0.0},
-        absolute_area_threshold={"above": [1, 10000000], "below": [1, 10000000]},
+        area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
         direction="above",
-        smallest_grain_size_nm2=1,
         remove_edge_intersecting_grains=True,
     )
 
@@ -1003,17 +1205,120 @@ def test_find_grains_no_grains_found():
 
     grains_object.find_grains()
 
-    result_grain_mask = grains_object.directions["above"]["removed_objects_too_small_to_process"]
-    result_labelled_regions = grains_object.directions["above"]["labelled_regions_02"]
     result_image_grain_crops = grains_object.image_grain_crops
 
-    assert result_grain_mask.shape == expected_grain_mask.shape
-    assert result_labelled_regions.shape == expected_labelled_regions.shape
-
-    np.testing.assert_array_equal(result_grain_mask, expected_grain_mask)
-    np.testing.assert_array_equal(result_labelled_regions, expected_labelled_regions)
-
     assert result_image_grain_crops == expected_imagegraincrops
+
+
+@pytest.mark.parametrize(
+    ("full_grain_mask_tensor", "expected_full_grain_mask_tensor"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [0, 0, 1, 1, 1, 1, 0, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+        )
+    ],
+)
+def test_tidy_border_tensor(
+    full_grain_mask_tensor: npt.NDArray[np.bool_],
+    expected_full_grain_mask_tensor: npt.NDArray[np.bool_],
+) -> None:
+    """Test the tidy_border_tensor method of the Grains class."""
+    result_full_grain_mask_tensor = Grains.tidy_border_tensor(full_grain_mask_tensor)
+
+    np.testing.assert_array_equal(result_full_grain_mask_tensor, expected_full_grain_mask_tensor)
 
 
 @pytest.mark.parametrize(
@@ -2359,6 +2664,173 @@ def test_vet_numbers_of_regions_single_grain(
 
 
 @pytest.mark.parametrize(
+    ("grain_mask_tensor", "whole_grain_size_thresholds", "expected_passed"),
+    [
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [8, None],
+            False,
+            id="too small",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [None, 5],
+            False,
+            id="too big",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [4, 7],
+            True,
+            id="correct size",
+        ),
+        pytest.param(
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 1, 1, 0, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 1, 0],
+                            [0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            [None, None],
+            True,
+            id="no thresholds",
+        ),
+    ],
+)
+def test_vet_whole_grain_size(
+    grain_mask_tensor: npt.NDArray[np.int32],
+    whole_grain_size_thresholds: dict,
+    expected_passed: bool,
+) -> None:
+    """Test the vet_whole_grain_size method of the Grains class."""
+    result_passed = Grains.vet_whole_grain_size(
+        grain_mask_tensor=grain_mask_tensor,
+        pixel_to_nm_scaling=1.0,
+        whole_grain_size_thresholds=whole_grain_size_thresholds,
+    )
+    assert result_passed == expected_passed
+
+
+@pytest.mark.parametrize(
     ("grain_mask_tensor", "classes_to_convert", "class_touching_threshold", "expected_result_grain_mask_tensor"),
     [
         pytest.param(
@@ -3296,6 +3768,7 @@ def test_merge_classes(
                 )
             },
             {
+                "whole_grain_size_thresholds": None,
                 # Convert class 1 to class 2 if too small, class 3 if too big
                 "class_conversion_size_thresholds": [[(1, 2, 3), (2, 2)]],
                 "class_size_thresholds": None,
@@ -3456,6 +3929,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": None,
                 "class_region_number_thresholds": None,
@@ -3777,6 +4251,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": [(1, 2, 2)],
                 "class_region_number_thresholds": [(2, 2, 2)],
@@ -4082,6 +4557,7 @@ def test_merge_classes(
                 ),
             },
             {
+                "whole_grain_size_thresholds": None,
                 "class_conversion_size_thresholds": None,
                 "class_size_thresholds": None,
                 "class_region_number_thresholds": None,
@@ -5816,6 +6292,144 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
     result_full_mask_tensor = graincropsdirection.full_mask_tensor
 
     np.testing.assert_array_equal(result_full_mask_tensor, expected_full_mask_tensor)
+
+
+@pytest.mark.parametrize(
+    ("image", "thresholds", "threshold_direction", "expected_grain_mask_tensor"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 1.5, 2.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                ]
+            ),
+            [1.0, 2.0],
+            "above",
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="above",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -1.5, -2.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                ]
+            ),
+            [-1.0, -2.0],
+            "below",
+            np.stack(
+                [
+                    np.array(
+                        [
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                    np.array(
+                        [
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 1, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0],
+                        ]
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="below",
+        ),
+    ],
+)
+def test_multi_class_thresholding(
+    image: npt.NDArray,
+    thresholds: list[float],
+    threshold_direction: str,
+    expected_grain_mask_tensor: npt.NDArray,
+) -> None:
+    """Test the multi_class_thresholding function."""
+    grain_mask_tensor = Grains.multi_class_thresholding(
+        image=image,
+        thresholds=thresholds,
+        threshold_direction=threshold_direction,
+        image_name="test_image",
+    )
+
+    np.testing.assert_array_equal(grain_mask_tensor, expected_grain_mask_tensor)
 
 
 @pytest.mark.parametrize(

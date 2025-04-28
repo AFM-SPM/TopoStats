@@ -140,41 +140,17 @@ z_threshed:
   core_set: true
   module: "filters"
 # Grainfinding Troubleshooting Images
-mask_grains:
-  filename: "17-mask_grains"
-  title: "Mask for Grains"
+thresholded_grains:
+  filename: "17-thresholded_grains"
+  title: "Initial Thresholded Grains"
   image_type: "binary"
   mask_cmap: "binary"
-  savefig_dpi: 100
-  core_set: false
-  module: "grains"
-labelled_regions_01:
-  filename: "18-labelled_regions"
-  title: "Labelled Regions"
-  image_type: "binary"
-  mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 tidied_border:
   filename: "19-tidy_borders"
   title: "Tidied Borders"
-  image_type: "binary"
-  mask_cmap: "rainbow"
-  savefig_dpi: 100
-  core_set: false
-  module: "grains"
-removed_noise:
-  filename: "20-noise_removed"
-  title: "Noise removed"
-  image_type: "binary"
-  mask_cmap: "rainbow"
-  savefig_dpi: 100
-  core_set: false
-  module: "grains"
-removed_small_objects:
-  filename: "21-small_objects_removed"
-  title: "Small Objects Removed"
   image_type: "binary"
   mask_cmap: "rainbow"
   savefig_dpi: 100
@@ -188,16 +164,10 @@ removed_objects_too_small_to_process:
   savefig_dpi: 100
   core_set: false
   module: "grains"
-mask_overlay:
-  title: "Masked Objects"
+area_thresholded:
+  filename: "24-area_thresholded"
+  title: "User specified area thresholds applied"
   image_type: "non-binary"
-  savefig_dpi: 100
-  core_set: true
-  module: "grains"
-labelled_regions_02:
-  filename: "23-labelled_regions"
-  title: "Labelled Regions"
-  image_type: "binary"
   mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
@@ -206,32 +176,31 @@ bounding_boxes:
   filename: "25-bounding_boxes"
   title: "Bounding Boxes"
   image_type: "binary"
-  savefig_dpi: 100
+  savefig_dpi: 600
   core_set: false
   module: "grains"
-coloured_boxes:
-  filename: "26-labelled_image_bboxes"
-  title: "Labelled Image with Bounding Boxes"
+mask_overlay:
+  filename: "26-image_with_grains"
+  title: "Image with overlaid mask"
   image_type: "binary"
-  mask_cmap: "rainbow"
-  savefig_dpi: 100
-  core_set: false
+  savefig_dpi: 600
+  core_set: true
   module: "grains"
-unet_tensor:
+unet:
   filename: "27-unet_tensor"
-  title: "U-Net Tensor"
+  title: "UNet Mask"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
-vetted_tensor:
+vetted:
   filename: "28-vetted_tensor"
   title: "Vetted Tensor"
   image_type: "binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
-merged_classes_tensor:
+merged_classes:
   filename: "29-merged_classes_tensor"
   title: "Merged Classes Tensor"
   image_type: "binary"

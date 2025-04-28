@@ -239,15 +239,14 @@ def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.
     return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
-# pylint: disable=unused-argument
+# pylint: disable=too-many-branches
 def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
-    otsu_threshold_multiplier: float = None,
-    threshold_std_dev: dict = None,
-    absolute: dict = None,
-    **kwargs,
-) -> dict[str, float]:
+    otsu_threshold_multiplier: float | None = None,
+    threshold_std_dev: dict[str, list] | None = None,
+    absolute: dict[str, list] | None = None,
+) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
 
@@ -263,39 +262,56 @@ def get_thresholds(  # noqa: C901
         Dict of above and below thresholds for the standard deviation method.
     absolute : tuple
         Dict of below and above thresholds.
-    **kwargs :
-        Dictionary passed to 'topostats.threshold(**kwargs)'.
 
     Returns
     -------
-    dict[str, float]
+    dict[str, list[float]]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
-    thresholds = defaultdict()
+    thresholds: dict[str, list[float]] = defaultdict()
     if threshold_method == "otsu":
-        thresholds["above"] = threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)
+        assert (
+            otsu_threshold_multiplier is not None
+        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
+        thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
     elif threshold_method == "std_dev":
-        try:
-            if threshold_std_dev["below"] is not None:
-                thresholds["below"] = threshold(image, method="mean") - threshold_std_dev["below"] * np.nanstd(image)
-            if threshold_std_dev["above"] is not None:
-                thresholds["above"] = threshold(image, method="mean") + threshold_std_dev["above"] * np.nanstd(image)
-        except TypeError as typeerror:
-            raise typeerror
+        assert (
+            threshold_std_dev is not None
+        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
+        if threshold_std_dev["below"] is not None:
+            thresholds_std_dev_below = []
+            for threshold_std_dev_value in threshold_std_dev["below"]:
+                thresholds_std_dev_below.append(
+                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["below"] = thresholds_std_dev_below
+        if threshold_std_dev["above"] is not None:
+            thresholds_std_dev_above = []
+            for threshold_std_dev_value in threshold_std_dev["above"]:
+                thresholds_std_dev_above.append(
+                    threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["above"] = thresholds_std_dev_above
     elif threshold_method == "absolute":
+        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
         if absolute["below"] is not None:
-            thresholds["below"] = absolute["below"]
+            thresolds_absolute_below = []
+            for threshold_absolute_value in absolute["below"]:
+                thresolds_absolute_below.append(threshold_absolute_value)
+            thresholds["below"] = thresolds_absolute_below
         if absolute["above"] is not None:
-            thresholds["above"] = absolute["above"]
+            thresolds_absolute_above = []
+            for threshold_absolute_value in absolute["above"]:
+                thresolds_absolute_above.append(threshold_absolute_value)
+            thresholds["above"] = thresolds_absolute_above
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(
                 f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
             )
-        if threshold_method not in ["otsu", "std_dev", "absolute"]:
-            raise ValueError(
-                f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
-            )
+        raise ValueError(
+            f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
+        )
     return thresholds
 
 

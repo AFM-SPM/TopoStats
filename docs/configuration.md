@@ -44,7 +44,7 @@ grains:
   threshold_method: absolute
   threshold_absolute:
     above: 1.2
-  absolute_area_threshold:
+  area_thresholds:
     above: [400, 1000]
 ```
 
@@ -82,6 +82,7 @@ above:
 ## Fields
 
 Aside from the comments in YAML file itself the fields are described below.
+
 
 | Section                                              | Sub-Section                                        | Data Type                                          | Default                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | :--------------------------------------------------- | :------------------------------------------------- | :------------------------------------------------- | :-------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -177,6 +178,7 @@ Aside from the comments in YAML file itself the fields are described below.
 |                                                      | `histogram_log_axis`                               | boolean                                            | `false`                     | Whether to plot hisograms using a logarithmic scale or not. Options: `true`, `false`.                                                                                                                                                                                                                                                                                                                                                     |
 | `summary_stats`                                      | `run`                                              | boolean                                            | `true`                      | Whether to generate summary statistical plots of the distribution of different metrics grouped by the image that has been processed.                                                                                                                                                                                                                                                                                                      |
 |                                                      | `config`                                           | str                                                | `null`                      | Path to a summary config YAML file that configures/controls how plotting is done. If one is not specified either the command line argument `--summary_config` value will be used or if that option is not invoked the default `topostats/summary_config.yaml` will be used.                                                                                                                                                               |
+
 
 ## Summary Configuration
 

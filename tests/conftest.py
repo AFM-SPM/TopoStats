@@ -15,6 +15,7 @@ import pandas as pd
 import pytest
 import yaml
 from skimage import draw, filters
+from skimage.measure._regionprops import RegionProperties
 from skimage.morphology import skeletonize
 
 import topostats
@@ -23,7 +24,7 @@ from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainC
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
-from topostats.utils import _get_mask, get_mask, get_thresholds
+from topostats.utils import get_mask, get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -50,10 +51,9 @@ def default_config() -> dict:
     config["filter"]["threshold_method"] = "std_dev"
     config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_method"] = "absolute"
-    config["grains"]["threshold_absolute"]["above"] = 1.0
-    config["grains"]["threshold_absolute"]["below"] = -1.0
-    config["grains"]["smallest_grain_size_nm2"] = 10
-    config["grains"]["absolute_area_threshold"]["above"] = [10, 60000000]
+    config["grains"]["threshold_absolute"]["above"] = [1.0]
+    config["grains"]["threshold_absolute"]["below"] = [-1.0]
+    config["grains"]["area_thresholds"]["above"] = [10, 60000000]
     return config
 
 
@@ -62,8 +62,8 @@ def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["filter"]["remove_scars"]["run"] = True
-    config["grains"]["threshold_std_dev"]["below"] = 1.0
-    config["grains"]["absolute_area_threshold"]["above"] = [500, 800]
+    config["grains"]["threshold_std_dev"]["below"] = [1.0]
+    config["grains"]["area_thresholds"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
     config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
@@ -630,10 +630,12 @@ def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filter
 
 
 @pytest.fixture()
-def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_config: dict) -> Filters:
+def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"], **filter_config
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        threshold_method="otsu",
+        otsu_threshold_multiplier=1.0,
     )
     return minicircle_initial_tilt_removal
 
@@ -642,10 +644,10 @@ def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters, filter_c
 def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0], "above": [1.0]},
     )
     return minicircle_initial_tilt_removal
 
@@ -654,10 +656,10 @@ def minicircle_threshold_stddev(minicircle_initial_tilt_removal: Filters) -> Fil
 def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
     minicircle_initial_tilt_removal.thresholds = get_thresholds(
-        minicircle_initial_tilt_removal.images["initial_tilt_removal"],
+        image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.5, "above": 1.5},
+        absolute={"below": [-1.5], "above": [1.5]},
     )
     return minicircle_initial_tilt_removal
 
@@ -714,7 +716,7 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 
 # Derive fixtures for grain finding
 @pytest.fixture()
-def minicircle_grains(minicircle_grain_gaussian_filter: Grains, grains_config: dict) -> Grains:
+def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
     return Grains(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
@@ -731,7 +733,8 @@ def minicircle_grain_threshold_otsu(minicircle_grains: Grains, grains_config: di
     grains_config["threshold_method"] = "otsu"
     minicircle_grains.thresholds = get_thresholds(
         image=minicircle_grains.image,
-        **grains_config,
+        threshold_method="otsu",
+        otsu_threshold_multiplier=1.0,
     )
     return minicircle_grains
 
@@ -744,7 +747,7 @@ def minicircle_grain_threshold_stddev(minicircle_grains: Grains, grains_config: 
         image=minicircle_grains.image,
         threshold_method="std_dev",
         otsu_threshold_multiplier=None,
-        threshold_std_dev={"below": 10.0, "above": 1.0},
+        threshold_std_dev={"below": [10.0], "above": [1.0]},
         absolute=None,
     )
     return minicircle_grains
@@ -757,20 +760,22 @@ def minicircle_grain_threshold_abs(minicircle_grains: Grains) -> Grains:
         image=minicircle_grains.image,
         threshold_method="absolute",
         otsu_threshold_multiplier=None,
-        absolute={"below": -1.0, "above": 1.0},
+        absolute={"below": [-1.0], "above": [1.0]},
     )
     return minicircle_grains
 
 
 @pytest.fixture()
-def minicircle_grain_mask(minicircle_grain_threshold_abs: Grains) -> Grains:
+def minicircle_grain_traditional_thresholding(minicircle_grain_threshold_abs: Grains) -> Grains:
     """Boolean mask."""
-    minicircle_grain_threshold_abs.directions["above"] = {}
-    minicircle_grain_threshold_abs.directions["above"]["mask_grains"] = _get_mask(
+    minicircle_grain_threshold_abs.mask_images["above"] = {}
+    # Typing conformity
+    assert minicircle_grain_threshold_abs.thresholds is not None
+    minicircle_grain_threshold_abs.mask_images["above"]["thresholded_grains"] = Grains.multi_class_thresholding(
         image=minicircle_grain_threshold_abs.image,
-        thresh=minicircle_grain_threshold_abs.thresholds["above"],
+        thresholds=minicircle_grain_threshold_abs.thresholds["above"],
         threshold_direction="above",
-        img_name=minicircle_grain_threshold_abs.filename,
+        image_name="minicircle_grain_threshold_abs",
     )
     return minicircle_grain_threshold_abs
 
@@ -783,95 +788,54 @@ def minicircle_small_graincrops() -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def minicircle_grain_clear_border(minicircle_grain_mask: np.array) -> Grains:
+def minicircle_grain_clear_border(minicircle_grain_traditional_thresholding: Grains) -> Grains:
     """Cleared borders."""
-    minicircle_grain_mask.directions["above"]["tidied_border"] = minicircle_grain_mask.tidy_border(
-        minicircle_grain_mask.directions["above"]["mask_grains"]
+    minicircle_grain_traditional_thresholding.mask_images["above"]["tidied_border"] = Grains.tidy_border_tensor(
+        minicircle_grain_traditional_thresholding.mask_images["above"]["thresholded_grains"]
     )
-    return minicircle_grain_mask
+    return minicircle_grain_traditional_thresholding
 
 
 @pytest.fixture()
-def minicircle_grain_remove_noise(minicircle_grain_clear_border: Grains) -> Grains:
+def minicircle_grain_remove_objects_too_small_to_process(minicircle_grain_clear_border: Grains) -> Grains:
     """Fixture to test removing noise."""
-    minicircle_grain_clear_border.directions["above"]["removed_noise"] = minicircle_grain_clear_border.remove_noise(
-        minicircle_grain_clear_border.directions["above"]["tidied_border"]
+    area_thresholded = Grains.area_thresholding_tensor(
+        minicircle_grain_clear_border.mask_images["above"]["tidied_border"],
+        area_thresholds=[10 * minicircle_grain_clear_border.pixel_to_nm_scaling**2, None],
+        pixel_to_nm_scaling=minicircle_grain_clear_border.pixel_to_nm_scaling,
+    )
+    minicircle_grain_clear_border.mask_images["above"]["removed_objects_too_small_to_process"] = (
+        Grains.bbox_size_thresholding_tensor(grain_mask_tensor=area_thresholded, bbox_size_thresholds=(5, None))
     )
     return minicircle_grain_clear_border
 
 
 @pytest.fixture()
-def minicircle_grain_labelled_all(minicircle_grain_remove_noise: Grains) -> Grains:
-    """Labelled regions."""
-    minicircle_grain_remove_noise.directions["above"]["labelled_regions_01"] = (
-        minicircle_grain_remove_noise.label_regions(minicircle_grain_remove_noise.directions["above"]["removed_noise"])
-    )
-    return minicircle_grain_remove_noise
-
-
-@pytest.fixture()
-def minicircle_minimum_grain_size(minicircle_grain_labelled_all: Grains) -> Grains:
-    """Minimum grain size."""
-    minicircle_grain_labelled_all.calc_minimum_grain_size(
-        minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"]
-    )
-    return minicircle_grain_labelled_all
-
-
-@pytest.fixture()
-def minicircle_small_objects_removed(minicircle_minimum_grain_size: Grains) -> Grains:
+def minicircle_grain_area_thresholding(minicircle_grain_remove_objects_too_small_to_process: Grains) -> Grains:
     """Small objects removed."""
-    minicircle_minimum_grain_size.directions["above"]["removed_small_objects"] = (
-        minicircle_minimum_grain_size.remove_small_objects(
-            minicircle_minimum_grain_size.directions["above"]["labelled_regions_01"]
+    area_thresholds = [30, 2000]
+    minicircle_grain_remove_objects_too_small_to_process.mask_images["above"]["area_thresholded"] = (
+        Grains.area_thresholding_tensor(
+            grain_mask_tensor=minicircle_grain_remove_objects_too_small_to_process.mask_images["above"][
+                "removed_objects_too_small_to_process"
+            ],
+            area_thresholds=area_thresholds,
+            pixel_to_nm_scaling=minicircle_grain_remove_objects_too_small_to_process.pixel_to_nm_scaling,
         )
     )
-    return minicircle_minimum_grain_size
+
+    return minicircle_grain_remove_objects_too_small_to_process
 
 
 @pytest.fixture()
-def minicircle_area_thresholding(minicircle_grain_labelled_all: Grains) -> Grains:
-    """Small objects removed."""
-    absolute_area_thresholds = [30, 2000]
-    minicircle_grain_labelled_all.directions["above"]["removed_small_objects"] = (
-        minicircle_grain_labelled_all.area_thresholding(
-            image=minicircle_grain_labelled_all.directions["above"]["labelled_regions_01"],
-            area_thresholds=absolute_area_thresholds,
-        )
+def minicircle_grain_area_thresholding_regionprops(
+    minicircle_grain_area_thresholding: Grains,
+) -> list[RegionProperties]:
+    """Region properties of the area thresholded image."""
+    labelled_image = Grains.label_regions(
+        image=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1]
     )
-    return minicircle_grain_labelled_all
-
-
-@pytest.fixture()
-def minicircle_grain_labelled_post_removal(minicircle_small_objects_removed: np.array) -> Grains:
-    """Labelled regions."""
-    minicircle_small_objects_removed.directions["above"]["labelled_regions_02"] = (
-        minicircle_small_objects_removed.label_regions(
-            minicircle_small_objects_removed.directions["above"]["removed_small_objects"]
-        )
-    )
-    return minicircle_small_objects_removed
-
-
-@pytest.fixture()
-def minicircle_grain_region_properties_post_removal(
-    minicircle_grain_labelled_post_removal: np.array,
-) -> np.array:
-    """Region properties."""
-    return minicircle_grain_labelled_post_removal.get_region_properties(
-        minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
-    )
-
-
-@pytest.fixture()
-def minicircle_grain_coloured(minicircle_grain_labelled_post_removal: np.array) -> Grains:
-    """Coloured regions."""
-    minicircle_grain_labelled_post_removal.directions["above"]["coloured_regions"] = (
-        minicircle_grain_labelled_post_removal.colour_regions(
-            minicircle_grain_labelled_post_removal.directions["above"]["labelled_regions_02"]
-        )
-    )
-    return minicircle_grain_labelled_post_removal
+    return Grains.get_region_properties(image=labelled_image)
 
 
 # Derive fixture for grainstats
