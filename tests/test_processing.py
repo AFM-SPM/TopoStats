@@ -202,7 +202,9 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
 
     # Check the keys, this will flag all new keys when adding output stats
     assert expected_topostats.keys() == saved_topostats.keys()
-    # Check the data
+    # Check the data (we pop the file version as we are interested in comparing the underlying data)
+    expected_topostats.pop("topostats_file_version")
+    saved_topostats.pop("topostats_file_version")
     assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
 
 
@@ -224,7 +226,6 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -443,7 +444,6 @@ def test_image_set(
     process_scan_config["plotting"]["image_set"] = image_set
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -481,7 +481,6 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"]["image_set"] = "all"
     process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
-
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -939,7 +938,6 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     img_dict = load_scan_data.img_dict
     unprocessed_image = img_dict["minicircle_small"]["image_original"]
     pixel_to_nm_scaling = img_dict["minicircle_small"]["pixel_to_nm_scaling"]
-
     flattened_image = run_filters(
         unprocessed_image=unprocessed_image,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
@@ -949,7 +947,6 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         filter_config=process_scan_config["filter"],
         plotting_config=process_scan_config["plotting"],
     )
-
     assert isinstance(flattened_image, np.ndarray)
     assert flattened_image.shape == (64, 64)
     assert np.sum(flattened_image) == pytest.approx(1172.6088236592373)

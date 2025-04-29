@@ -365,6 +365,24 @@ each. If this option is `all` then there is also a sub-directory for each image 
 directories `filters`, `grains/below` and `grains/above` which contain additional images from the processing stages and
 an accompanying histogram for each image showing the distribution of pixel heights for that image.
 
+### `.topostats` files
+
+TopoStats has implemented its own file format for saving data with the extension `.topostats`. This is an [HDF5][hdf5]
+file that uses a hierarchical structure for storing data. Initially an independent versioning system was implemented to
+denote the version of files, however after `0.2` of the file format indicator and release `v2.4.0` of TopoStats we
+switched to storing the version of TopoStats that the file was processed with (this aids with reproducibility and aligns
+with the [FAIR for Research Software Principles][fair4rs]).
+
+By saving data in this format it makes it easy to carry out "experiments" on the by re-running processing steps without
+having to re-run the whole pipeline (currently a work in progress).
+
+If you want to look at the structure of these files you can use [h5glance][h5glance] at the command line or load them
+into Notebooks. The structure is fairly self-explanatory as its based on a dictionary structure with descriptive keys
+denoting what the contents are (typically Numpy arrays).
+
+Originally (`< 2.4.0` and upto `0.2`) the structure was orientated around the stage of processing. Subsequent to this
+(`>= 2.4.0`) the unit of organisation became the individual detected grains and their sub-molecules/grains.
+
 ## Summary Plots
 
 By default TopoStats will take the data that has been summarised across all files and generate a series of plots,
@@ -413,3 +431,7 @@ The option `pickle_plots: True` will save to the specified `output_dir` the file
 binary format that saves the plots that have been generated and saved in nested dictionaries so that they can be loaded
 again. The Notebook `notebooks/02-Summary-statistics-and-plots.ipynb` shows how to load these and make simple
 modifications to the the plots.
+
+[fair4rs]: https://www.nature.com/articles/s41597-022-01710-x
+[h5glance]: https://pypi.org/project/h5glance/
+[hdf5]: https://www.hdfgroup.org/solutions/hdf5/

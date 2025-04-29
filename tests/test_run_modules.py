@@ -155,7 +155,24 @@ def test_run_topostats_process_debug(caplog) -> None:
         assert "~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~" in caplog.text
 
 
-def test_filters(caplog) -> None:
+@pytest.mark.parametrize(
+    ("expected_keys"),
+    [
+        pytest.param(
+            [
+                "filename",
+                "image",
+                "image_original",
+                "img_path",
+                "pixel_to_nm_scaling",
+                "topostats_file_version",
+            ],
+            id="file_version <= 2.3",
+        ),
+        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
+    ],
+)
+def test_filters(caplog, expected_keys: dict) -> None:
     """Test running the filters module.
 
     We use the command line entry point to test that _just_ filters runs.
@@ -176,17 +193,28 @@ def test_filters(caplog) -> None:
     assert "[minicircle_small] Filtering completed." in caplog.text
     # Load the output and check the keys
     data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == [
-        "filename",
-        "image",
-        "image_original",
-        "img_path",
-        "pixel_to_nm_scaling",
-        "topostats_file_version",
-    ]
+    assert list(data.keys()) == expected_keys
 
 
-def test_grains(caplog) -> None:
+@pytest.mark.parametrize(
+    ("expected_keys"),
+    [
+        pytest.param(
+            [
+                "filename",
+                "grain_tensors",
+                "image",
+                "image_original",
+                "img_path",
+                "pixel_to_nm_scaling",
+                "topostats_file_version",
+            ],
+            id="file_version <= 2.3",
+        ),
+        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
+    ],
+)
+def test_grains(caplog, expected_keys: dict) -> None:
     """Test running the grains module.
 
     We use the command line entry point to test that _just_ grains runs.
@@ -207,15 +235,7 @@ def test_grains(caplog) -> None:
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check the keys
     data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == [
-        "filename",
-        "grain_tensors",
-        "image",
-        "image_original",
-        "img_path",
-        "pixel_to_nm_scaling",
-        "topostats_file_version",
-    ]
+    assert list(data.keys()) == expected_keys
 
 
 @pytest.mark.xfail(reason="Awaiting update of AFMReader to reconstruct `image_grain_crops` with correct classes")

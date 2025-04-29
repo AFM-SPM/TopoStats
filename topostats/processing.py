@@ -1249,7 +1249,9 @@ def process_scan(
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
-        output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+        output_dir=core_out_path,
+        filename=str(topostats_object["filename"]),
+        topostats_object=topostats_object,
     )
 
     return (
@@ -1322,7 +1324,9 @@ def process_filters(
 
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+            output_dir=core_out_path,
+            filename=str(topostats_object["filename"]),
+            topostats_object=topostats_object,
         )
         return (topostats_object["filename"], True)
     except:  # noqa: E722  # pylint: disable=bare-except
@@ -1371,7 +1375,6 @@ def process_grains(
         plotting_config=plotting_config,
     )
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
-
     # Find Grains using the filtered image
     try:
         image_grain_crops = run_grains(
@@ -1390,7 +1393,9 @@ def process_grains(
             topostats_object["grain_tensors"]["below"] = image_grain_crops.below.full_mask_tensor
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+            output_dir=core_out_path,
+            filename=str(topostats_object["filename"]),
+            topostats_object=topostats_object,
         )
         return (topostats_object["filename"], True)
     except:  # noqa: E722  # pylint: disable=bare-except
@@ -1456,7 +1461,9 @@ def process_grainstats(
             # Save the topostats dictionary object to .topostats file.
             topostats_object["height_profiles"] = height_profiles
             save_topostats_file(
-                output_dir=core_out_path, filename=str(topostats_object["filename"]), topostats_object=topostats_object
+                output_dir=core_out_path,
+                filename=str(topostats_object["filename"]),
+                topostats_object=topostats_object,
             )
             return (topostats_object["filename"], grainstats_df, height_profiles, grain_crops)
         return (

@@ -212,7 +212,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         Arguments.
     """
     config, img_files = _parse_configuration(args)
-
     processing_function = partial(
         process_scan,
         base_dir=config["base_dir"],
