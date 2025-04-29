@@ -12,7 +12,13 @@ import pandas as pd
 import pytest
 
 from topostats.io import dict_almost_equal
-from topostats.tracing.splining import splineTrace, splining_image, windowTrace
+from topostats.tracing.splining import (
+    interpolate_between_two_points_distance,
+    resample_points_regular_interval,
+    splineTrace,
+    splining_image,
+    windowTrace,
+)
 
 BASE_DIR = Path.cwd()
 GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
@@ -432,3 +438,58 @@ def test_pool_trace_linear(
     result_pooled_trace = windowTrace.pool_trace_linear(pixel_trace, rolling_window_size, pixel_to_nm_scaling)
 
     np.testing.assert_allclose(result_pooled_trace, expected_pooled_trace, atol=1e-6)
+
+
+@pytest.mark.parametrize(
+    ("point1", "point2", "distance", "expected_point"),
+    [
+        pytest.param(
+            np.array([0.0, 0.0]),
+            np.array([10.0, 0.0]),
+            5.0,
+            np.array([5.0, 0.0]),
+            id="horizontal_interpolation",
+        ),
+        pytest.param(
+            np.array([0.0, 0.0]),
+            np.array([0.0, 10.0]),
+            5.0,
+            np.array([0.0, 5.0]),
+            id="vertical_interpolation",
+        ),
+        pytest.param(
+            np.array([0.0, 0.0]),
+            np.array([10.0, 10.0]),
+            5.0,
+            np.array([3.535534, 3.535534]),
+            id="diagonal_interpolation",
+        ),
+        pytest.param(
+            np.array([-5.0, 0.0]),
+            np.array([5.0, 0.0]),
+            5.0,
+            np.array([0.0, 0.0]),
+            id="negative_interpolation",
+        ),
+    ],
+)
+def test_interpolate_between_two_points_distance(
+    point1: npt.NDArray[np.float32],
+    point2: npt.NDArray[np.float32],
+    distance: np.float32,
+    expected_point: npt.NDArray[np.float32],
+) -> None:
+    """Test the interpolation between two points."""
+    interpolated_point = interpolate_between_two_points_distance(point1, point2, distance)
+    assert isinstance(interpolated_point, np.ndarray)
+    assert interpolated_point.shape == (2,)
+    np.testing.assert_allclose(interpolated_point, expected_point, atol=1e-6)
+
+
+def test_resample_points_regular_interval() -> None:
+    """Test the resampling of points at regular intervals."""
+    points = np.load(SPLINING_RESOURCES / "molecule_coords_irregular_spacing.npy")
+    resampled_points = resample_points_regular_interval(points, 1.0, circular=True)
+    # check that each point is approximately the right distance apart
+    resampled_distances = np.linalg.norm(resampled_points[1:] - resampled_points[:-1], axis=1)
+    assert np.all(np.isclose(resampled_distances, 1.0, atol=0.01))

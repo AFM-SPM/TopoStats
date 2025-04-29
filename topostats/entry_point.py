@@ -530,6 +530,20 @@ def create_parser() -> arg.ArgumentParser:
         help="Size in nm of the rolling window",
     )
     process_parser.add_argument(
+        "--splining-resampling",
+        dest="splining_resampling",
+        type=bool,
+        required=False,
+        help="Whether to resample the trace or not.",
+    )
+    process_parser.add_argument(
+        "--splining-resample-regular-spatial-interval",
+        dest="splining_resample_regular_spatial_interval",
+        type=float,
+        required=False,
+        help="The spatial interval to resample the trace to in nm.",
+    )
+    process_parser.add_argument(
         "--spline-step-size",
         dest="spline_step_size",
         type=float,
@@ -1048,6 +1062,20 @@ def create_parser() -> arg.ArgumentParser:
         type=float,
         required=False,
         help="Size in nm of the rolling window",
+    )
+    splining_parser.add_argument(
+        "--resampling",
+        dest="resampling",
+        type=bool,
+        required=False,
+        help="Whether to resample the trace or not.",
+    )
+    splining_parser.add_argument(
+        "--resample-regular-spatial-interval",
+        dest="resample_regular_spatial_interval",
+        type=float,
+        required=False,
+        help="The spatial interval to resample the trace to in nm.",
     )
     splining_parser.add_argument(
         "--spline-step-size",

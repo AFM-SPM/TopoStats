@@ -78,6 +78,19 @@ smoothed trace as to not drastically reduce the length of the smoothed trace.
 
 ![difference between window sizes](../_static/images/splining/rw_sizes.png)
 
+##### Resampling
+
+As an optional extra step in the rolling window method, the smoothed coordinates can be resampled to a set of
+coordinates that are evenly spaced in space, ie each coordinate is say 1nm apart. This is not the same as interpolation
+as interpolation is not guaranteed to be evenly spaced.
+
+Using resampling can make the results of curvature measurements more representative of the actual curvature of the
+trace.
+
+![example of unevenly spaced trace coordinates](../_static/images/splining/trace_coords_even_uneven_spacing.png)
+
+![example of curvature using unevenly spaced trace coordinates](../_static/images/splining/trace_coords_even_uneven_spacing_curvature.png)
+
 ## Outputs
 
 The `<image>_<threshold>_ordered_traces` image shows the direction of ordered coordinates.

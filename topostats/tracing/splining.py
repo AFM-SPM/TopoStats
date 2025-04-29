@@ -262,6 +262,10 @@ class windowTrace:
         The pixel to nm scaling factor, by default 1.
     rolling_window_size : np.float64, optional
         The length of the rolling window too average over, by default 6.0.
+    rolling_window_resampling : bool, optional
+        Whether to resample the rolling window, by default False.
+    rolling_window_resample_regular_spatial_interval_nm : float, optional
+        The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
 
     def __init__(
@@ -269,6 +273,8 @@ class windowTrace:
         mol_ordered_tracing_data: dict,
         pixel_to_nm_scaling: float,
         rolling_window_size: float,
+        rolling_window_resampling: bool = False,
+        rolling_window_resample_regular_spatial_interval_nm: float = 0.5,
     ) -> None:
         """
         Initialise the windowTrace class.
@@ -281,11 +287,19 @@ class windowTrace:
             The pixel to nm scaling factor, by default 1.
         rolling_window_size : np.float64, optional
             The length of the rolling window too average over, by default 6.0.
+        rolling_window_resampling : bool, optional
+            Whether to resample the rolling window, by default False.
+        rolling_window_resample_regular_spatial_interval_nm : float, optional
+            The regular spatial interval (nm) to resample the rolling window, by default 0.5.
         """
         self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
         self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.rolling_window_size = rolling_window_size / 1e-9  # for nm scaling factor
+        self.rolling_window_resampling = rolling_window_resampling
+        self.rolling_window_resample_regular_spatial_interval_nm = (
+            rolling_window_resample_regular_spatial_interval_nm / 1e-9
+        )  # for nm scaling factor
 
         self.tracing_stats = {
             "contour_length": None,
@@ -342,7 +356,9 @@ class windowTrace:
 
     @staticmethod
     def pool_trace_linear(
-        pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1
+        pixel_trace: npt.NDArray[np.int32],
+        rolling_window_size: np.float64 = 6.0,
+        pixel_to_nm_scaling: float = 1,
     ) -> npt.NDArray[np.float64]:
         """
         Smooth a pixelwise ordered trace of linear molecules via a sliding window.
@@ -419,10 +435,22 @@ class windowTrace:
             splined_trace = self.pool_trace_circular(
                 self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
             )
+            if self.rolling_window_resampling:
+                splined_trace = resample_points_regular_interval(
+                    points=splined_trace,
+                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    circular=True,
+                )
         else:
             splined_trace = self.pool_trace_linear(
                 self.mol_ordered_trace, self.rolling_window_size, self.pixel_to_nm_scaling
             )
+            if self.rolling_window_resampling:
+                splined_trace = resample_points_regular_interval(
+                    points=splined_trace,
+                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    circular=False,
+                )
         # compile CL & E2E distance
         self.tracing_stats["contour_length"] = (
             measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
@@ -530,6 +558,8 @@ def splining_image(
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
+    rolling_window_resampling: bool = False,
+    rolling_window_resample_regular_spatial_interval: float = 0.5,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-locals
@@ -559,6 +589,10 @@ def splining_image(
     spline_degree : int
         Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
         small s-value.
+    rolling_window_resampling : bool, optional
+        Whether to resample the rolling window, by default False.
+    rolling_window_resample_regular_spatial_interval : float, optional
+        The regular spatial interval (nm) to resample the rolling window, by default 0.5.
 
     Returns
     -------
@@ -589,6 +623,8 @@ def splining_image(
                         mol_ordered_tracing_data=mol_trace_data,
                         pixel_to_nm_scaling=pixel_to_nm_scaling,
                         rolling_window_size=rolling_window_size,
+                        rolling_window_resampling=rolling_window_resampling,
+                        rolling_window_resample_regular_spatial_interval_nm=rolling_window_resample_regular_spatial_interval,
                     ).run_window_trace()
 
                 # if not doing nodestats ordering, do original TS ordering
@@ -646,3 +682,81 @@ def splining_image(
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
     molstats_df.reset_index(drop=True, inplace=True)
     return all_splines_data, splining_stats_df, molstats_df
+
+
+def interpolate_between_two_points_distance(
+    point1: npt.NDArray[np.float32], point2: npt.NDArray[np.float32], distance: np.float32
+) -> npt.NDArray[np.float32]:
+    """
+    Interpolate between two points to create a new point at a set distance between the two.
+
+    Parameters
+    ----------
+    point1 : npt.NDArray[np.float32]
+        The first point.
+    point2 : npt.NDArray[np.float32]
+        The second point.
+    distance : np.float32
+        The distance to interpolate between the two points.
+
+    Returns
+    -------
+    npt.NDArray[np.float32]
+        The new point at the specified distance between the two points.
+    """
+    distance_between_points = np.linalg.norm(point2 - point1)
+    assert (
+        distance_between_points > distance
+    ), f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
+    proportion = distance / distance_between_points
+    return point1 + proportion * (point2 - point1)
+
+
+def resample_points_regular_interval(points: npt.NDArray, interval: float, circular: bool) -> npt.NDArray:
+    """
+    Resample a set of points to be at regular spatial intervals.
+
+    Note: This is NOT intended to be pure interpolation, as interpolated points would not produce uniformly spaced
+    points in cartesian space.
+
+    Parameters
+    ----------
+    points : npt.NDArray
+        The points to resample.
+    interval : float
+        The distance that all returned points should be apart.
+    circular : bool
+        If True, the first and last points will be connected to form a closed loop. If False, the first and last points
+        will not be connected.
+
+    Returns
+    -------
+    npt.NDArray
+        The resampled points, evenly spaced at the specified interval.
+    """
+    if circular:
+        points = np.concatenate((points, points[0:1]), axis=0)
+
+    resampled_points = []
+    resampled_points.append(points[0])
+    current_point_index = 1
+    while True:
+        current_point = resampled_points[-1]
+        next_original_point = points[current_point_index]
+        distance_to_next_splined_point = np.linalg.norm(next_original_point - current_point)
+        # if the distance to the next splined point is less than the interval, then skip to the next point
+        if distance_to_next_splined_point < interval:
+            current_point_index += 1
+            if current_point_index >= len(points):
+                break
+            continue
+        new_interpolated_point = interpolate_between_two_points_distance(
+            point1=current_point, point2=next_original_point, distance=interval
+        )
+        resampled_points.append(new_interpolated_point)
+
+    # if the first and last points are less than 0.5 * the interval apart, then remove the last point
+    if np.linalg.norm(resampled_points[0] - resampled_points[-1]) < 0.5 * interval:
+        resampled_points = resampled_points[:-1]
+
+    return np.array(resampled_points)

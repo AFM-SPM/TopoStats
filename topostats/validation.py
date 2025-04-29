@@ -375,6 +375,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for 'splining.method', valid values are 'spline' or 'rolling_window'",
             ),
             "rolling_window_size": lambda n: n > 0.0,
+            "rolling_window_resampling": bool,
+            "rolling_window_resample_regular_spatial_interval": lambda n: n > 0.0,
             "spline_step_size": lambda n: n > 0.0,
             "spline_linear_smoothing": lambda n: n >= 0.0,
             "spline_circular_smoothing": lambda n: n >= 0.0,
