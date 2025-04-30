@@ -472,6 +472,20 @@ def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -
 
 
 @pytest.fixture()
+def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> topostats.TopoStats:
+    """TopoStats object of example catenanes."""
+    return topostats.TopoStats(
+        image_grain_crops=imagegraincrops_catenanes,
+        filename="example_catenanes.spm",
+        pixel_to_nm_scaling=0.488,
+        topostats_version="2.4.0",
+        img_path=str(GRAINCROP_DIR),
+        image=None,
+        image_original=None,
+    )
+
+
+@pytest.fixture()
 def graincrop_rep_int_0() -> GrainCrop:
     """Rep_Int GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_rep_int_image_0.npy")
@@ -497,6 +511,20 @@ def graincrops_above_rep_int(graincrop_rep_int_0: GrainCrop) -> GrainCropsDirect
 def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> ImageGrainCrops:
     """ImageGrainCrops object of example rep_int."""
     return ImageGrainCrops(above=graincrops_above_rep_int, below=None)
+
+
+@pytest.fixture()
+def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
+    """TopoStats object of example rep_int."""
+    return topostats.TopoStats(
+        image_grain_crops=imagegraincrops_rep_int,
+        filename="example_rep_int.spm",
+        pixel_to_nm_scaling=0.488,
+        topostats_version="2.4.0",
+        img_path=str(GRAINCROP_DIR),
+        image=None,
+        image_original=None,
+    )
 
 
 @pytest.fixture()

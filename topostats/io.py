@@ -22,8 +22,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-import topostats as TopoStats
-from topostats import grains
+from topostats import __release__, grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -1054,9 +1053,11 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     return data_dict
 
 
-def save_topostats_file(output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops) -> None:
+def save_topostats_file(
+    output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops, topostats_version: str = __release__
+) -> None:
     """
-    Save ''ImageGrainCrops'' object to a .topostats (hdf5 format) file.
+    Save ''ImageGrainCrops'' object to a ''.topostats'' (hdf5 format) file.
 
     Parameters
     ----------
@@ -1067,6 +1068,8 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: grain
     topostats_object : dict
         Dictionary of the topostats data to save. Must include a flattened image and pixel to nanometre scaling
         factor. May also include grain masks.
+    topostats_version : str
+        Version to save as, defaults to ''__release__''.
     """
     LOGGER.info(f"[{filename}] : Saving image to .topostats file")
 
@@ -1080,11 +1083,11 @@ def save_topostats_file(output_dir: Path, filename: str, topostats_object: grain
         # Make sure that this is not the case.
         if topostats_object["image"] is not None:
             # Recursively save the topostats object dictionary to the .topostats file
-            if isinstance(topostats_object, dict) and float(".".join(TopoStats.__release__.split(".")[:1])) < 2.4:
-                topostats_object["topostats_file_version"] = TopoStats.__release__
+            if isinstance(topostats_object, dict) and float(".".join(topostats_version.split(".")[:1])) < 2.4:
+                topostats_object["topostats_file_version"] = topostats_version
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
             else:
-                topostats_object["topostats_file_version"] = TopoStats.__release__
+                topostats_object["topostats_version"] = topostats_version
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
 
         else:

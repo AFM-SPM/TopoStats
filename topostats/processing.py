@@ -245,7 +245,6 @@ def run_grains(  # noqa: C901
                     )
 
                     if direction_grain_crops is not None:
-
                         full_mask_tensor = direction_grain_crops.full_mask_tensor
 
                         # Plot image with overlaid masks
