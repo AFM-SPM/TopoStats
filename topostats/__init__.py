@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 
@@ -34,11 +35,12 @@ snoop.install(enabled=False)
 # pylint: disable=too-many-positional-arguments
 
 
+@dataclass
 class TopoStats:
     """
     Class for storing TopoStats objects.
 
-    Parameters
+    Attributes
     ----------
     image_grain_crops : ImageGrainCrops | None
         ImageGrainCrops of processed image.
@@ -56,43 +58,13 @@ class TopoStats:
         TopoStats version.
     """
 
-    def __init__(
-        self,
-        image_grain_crops: ImageGrainCrops | None = None,
-        filename: str | None = None,
-        pixel_to_nm_scaling: str | None = None,
-        img_path: Path | str | None = None,
-        image: npt.NDArray | None = None,
-        image_original: npt.NDArray | None = None,
-        topostats_version: str | None = None,
-    ) -> None:
-        """
-        Initialise the class.
-
-        Parameters
-        ----------
-        image_grain_crops : ImageGrainCrops | None
-            ImageGrainCrops of processed image.
-        filename : str | None
-            Filename.
-        pixel_to_nm_scaling : str | None
-            Pixel to nanometre scaling.
-        img_path : str | None
-            Original path to image.
-        image : npt.NDArray | None
-            Flattened image (post ''Filter()'').
-        image_original : npt.NDArray | None
-            Original image.
-        topostats_version : str | None
-            TopoStats version.
-        """
-        self.image_grain_crops = image_grain_crops
-        self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.img_path = None if img_path is None else Path(img_path)
-        self.topostats_version = topostats_version
-        self.image = image
-        self.image_original = image_original
+    image_grain_crops: ImageGrainCrops | None
+    filename: str | None
+    pixel_to_nm_scaling: str | None
+    img_path: Path | str | None
+    image: npt.NDArray | None
+    image_original: npt.NDArray | None
+    topostats_version: str | None
 
     def __eq__(self, other: object) -> bool:
         """
@@ -130,6 +102,7 @@ class TopoStats:
         ImageGrainCrops
             Image Grain Crops.
         """
+        return self._image_grain_crops
 
     @image_grain_crops.setter
     def image_grain_crops(self, value: ImageGrainCrops):
@@ -153,6 +126,7 @@ class TopoStats:
         str
             Image filename.
         """
+        return self._filename
 
     @filename.setter
     def filename(self, value: str):
@@ -176,6 +150,7 @@ class TopoStats:
         str
             Image ''pixel_to_nm_scaling''.
         """
+        return self._pixel_to_nm_scaling
 
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: str):
@@ -199,6 +174,7 @@ class TopoStats:
         str
             Image img_path.
         """
+        return self._img_path
 
     @img_path.setter
     def img_path(self, value: str):
@@ -210,7 +186,7 @@ class TopoStats:
         value : str
             Image Path for the image.
         """
-        self._img_path = value
+        self._img_path = Path(value)
 
     @property
     def image(self) -> str:
@@ -222,6 +198,7 @@ class TopoStats:
         str
             Image image.
         """
+        return self._image
 
     @image.setter
     def image(self, value: str):
@@ -245,6 +222,7 @@ class TopoStats:
         str
             Original image.
         """
+        return self._image_original
 
     @image_original.setter
     def image_original(self, value: str):
@@ -268,6 +246,7 @@ class TopoStats:
         str
             Version of TopoStats the class was created with.
         """
+        return self._topostats_version
 
     @topostats_version.setter
     def topostats_version(self, value: str):
