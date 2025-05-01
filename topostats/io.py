@@ -22,7 +22,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import __release__, grains
+from topostats import TopoStats, __release__, grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -822,6 +822,8 @@ class LoadScans:
                         self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
+                        print(f"\n{self.image=}\n")
+                        print(f"\n{self.pixel_to_nm_scaling=}\n")
                 except Exception as e:
                     if "Channel" in str(e) and "not found" in str(e):
                         LOGGER.warning(e)  # log the specific error message
@@ -881,15 +883,26 @@ class LoadScans:
         filename : str
             The name of the file.
         """
-        self.img_dict[filename] = {
-            "filename": filename,
-            "img_path": self.img_path.with_name(filename),
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": image,
-            "image": None,
-            "grain_masks": self.grain_masks,
-            "grain_trace_data": self.grain_trace_data,
-        }
+        # self.img_dict[filename] = {
+        #     "filename": filename,
+        #     "img_path": self.img_path.with_name(filename),
+        #     "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+        #     "image_original": image,
+        #     "image": None,
+        #     "grain_masks": self.grain_masks,
+        #     "grain_trace_data": self.grain_trace_data,
+        # }
+        print(f"add_to_dict : \n{image=}\n")
+        self.img_dict[filename] = TopoStats(
+            image_grain_crops=None,
+            filename=filename,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            topostats_version=__release__,
+            img_path=self.img_path.with_name(filename),
+            image=None,
+            image_original=image,
+        )
+        print(f"add_to_dict : \n{dir(self.img_dict[filename])=}\n")
 
     def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
         """
