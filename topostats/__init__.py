@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 
+import numpy as np
 import numpy.typing as npt
 import snoop
 from matplotlib import colormaps
@@ -87,9 +88,9 @@ class TopoStats:
             and self.filename == other.filename
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.topostats_version == other.topostats_version
-            and self.img_path == other.image_path
-            and self.image == other.image
-            and self.image_original == other.image_original
+            and self.img_path == other.img_path
+            and np.all(self.image == other.image)
+            and np.all(self.image_original == other.image_original)
         )
 
     @property
@@ -105,7 +106,7 @@ class TopoStats:
         return self._image_grain_crops
 
     @image_grain_crops.setter
-    def image_grain_crops(self, value: ImageGrainCrops):
+    def image_grain_crops(self, value: ImageGrainCrops) -> None:
         """
         Setter for the ''image_grain_crops'' attribute.
 
@@ -129,7 +130,7 @@ class TopoStats:
         return self._filename
 
     @filename.setter
-    def filename(self, value: str):
+    def filename(self, value: str) -> None:
         """
         Setter for the ''filename'' attribute.
 
@@ -153,7 +154,7 @@ class TopoStats:
         return self._pixel_to_nm_scaling
 
     @pixel_to_nm_scaling.setter
-    def pixel_to_nm_scaling(self, value: str):
+    def pixel_to_nm_scaling(self, value: str) -> None:
         """
         Setter for the ''pixel_to_nm_scaling'' attribute.
 
@@ -165,25 +166,25 @@ class TopoStats:
         self._pixel_to_nm_scaling = value
 
     @property
-    def img_path(self) -> str:
+    def img_path(self) -> Path:
         """
         Getter for the ''img_path'' attribute.
 
         Returns
         -------
-        str
-            Image img_path.
+        Path
+            Path to original image on disk.
         """
         return self._img_path
 
     @img_path.setter
-    def img_path(self, value: str):
+    def img_path(self, value: str | Path) -> None:
         """
         Setter for the ''img_path'' attribute.
 
         Parameters
         ----------
-        value : str
+        value : str | Path
             Image Path for the image.
         """
         self._img_path = Path(value)
@@ -201,7 +202,7 @@ class TopoStats:
         return self._image
 
     @image.setter
-    def image(self, value: str):
+    def image(self, value: str) -> None:
         """
         Setter for the ''image'' attribute.
 
@@ -225,7 +226,7 @@ class TopoStats:
         return self._image_original
 
     @image_original.setter
-    def image_original(self, value: str):
+    def image_original(self, value: str) -> None:
         """
         Setter for the ''image_original'' attribute.
 
@@ -249,7 +250,7 @@ class TopoStats:
         return self._topostats_version
 
     @topostats_version.setter
-    def topostats_version(self, value: str):
+    def topostats_version(self, value: str) -> None:
         """
         Setter for the ''topostats_version'' attribute.
 

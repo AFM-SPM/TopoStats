@@ -18,6 +18,9 @@ GRAINCROP_DIR = RESOURCES / "graincrop"
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 
+SEED = 4092024
+rng = np.random.default_rng(SEED)
+
 
 @pytest.mark.parametrize(
     (
@@ -51,7 +54,7 @@ GRAINCROP_DIR = RESOURCES / "graincrop"
             str(GRAINCROP_DIR),
             None,
             None,
-            id="catenanes v2.4.0",
+            id="rep_int v2.4.0",
         ),
     ],
 )
@@ -79,3 +82,61 @@ def test_topostats_to_dict(
         "image_original": image_original,
     }
     np.testing.assert_array_equal(topostats_object.topostats_to_dict(), expected)
+
+
+@pytest.mark.parametrize(
+    (
+        "topostats_object",
+        "image_grain_crops",
+        "filename",
+        "pixel_to_nm_scaling",
+        "topostats_version",
+        "img_path",
+        "image",
+        "image_original",
+    ),
+    [
+        pytest.param(
+            "topostats_catenanes_2_4_0",
+            "imagegraincrops_catenanes",
+            "example_catenanes.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            rng.random((10, 10)),
+            id="catenane v2.4.0",
+        ),
+        pytest.param(
+            "topostats_rep_int_2_4_0",
+            "imagegraincrops_rep_int",
+            "example_rep_int.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            rng.random((10, 10)),
+            id="tep_int v2.4.0",
+        ),
+    ],
+)
+def test_topostats_eq(
+    topostats_object: topostats.TopoStats,
+    image_grain_crops: ImageGrainCrops,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    topostats_version: str,
+    img_path: str,
+    image: npt.NDArray | None,
+    image_original: npt.NDArray | None,
+    request,
+) -> None:
+    """Test the TopoStats.__eq__ method."""
+    topostats_object = request.getfixturevalue(topostats_object)
+    topostats_object.image = image
+    topostats_object.image_original = image_original
+    image_grain_crops = request.getfixturevalue(image_grain_crops)
+    expected = topostats.TopoStats(
+        image_grain_crops, filename, pixel_to_nm_scaling, img_path, image, image_original, topostats_version
+    )
+    assert topostats_object == expected
