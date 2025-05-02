@@ -21,7 +21,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
+from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, TopoStats, __release__, grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -979,15 +979,15 @@ class LoadScans:
         filename : str
             The name of the file.
         """
-        self.img_dict[filename] = {
-            "filename": filename,
-            "img_path": self.img_path.with_name(filename),
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": image,
-            "image": None,
-            "grain_masks": self.grain_masks,
-            "grain_trace_data": self.grain_trace_data,
-        }
+        self.img_dict[filename] = TopoStats(
+            image_grain_crops=None,
+            filename=filename,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            topostats_version=__release__,
+            img_path=self.img_path.with_name(filename),
+            image=None,
+            image_original=image,
+        )
 
     def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
         """
