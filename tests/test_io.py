@@ -1262,6 +1262,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     (
+        "topostats_version",
         "image",
         "pixel_to_nm_scaling",
         "filename",
@@ -1273,6 +1274,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
     ),
     [
         pytest.param(
+            "0.2",
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             "below_grain_mask_with_grain_trace_data",
@@ -1386,6 +1388,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             id="below_grain_mask_with_grain_trace_data",
         ),
         pytest.param(
+            "0.2",
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             "above_grain_mask_without_grain_trace_data",
@@ -1405,6 +1408,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             id="above_grain_mask_without_grain_trace_data",
         ),
         pytest.param(
+            "0.2",
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             "above_and_below_grain_masks_without_grain_trace_data",
@@ -1423,11 +1427,38 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             },
             id="above_and_below_grain_masks_without_grain_trace_data",
         ),
+        pytest.param(
+            "2.4.0",
+            "imagegraincrops_rep_int",
+            "minicircles",
+            None,  # img_path
+            None,  # grain_mask_above
+            None,  # grain_mask_below
+            None,  # grain_trace_data
+            None,  # data_keys
+            None,
+            id="2.4.0 rep_int",
+            marks=pytest.mark.skip("work in progress"),
+        ),
+        pytest.param(
+            "2.4.0",
+            "imagegraincrops_catenanes",
+            "catenanes",
+            None,  # img_path
+            None,  # grain_mask_above
+            None,  # grain_mask_below
+            None,  # grain_trace_data
+            None,  # data_keys
+            None,
+            id="2.4.0 catenanes",
+            marks=pytest.mark.skip("work in progress"),
+        ),
     ],
 )
 def test_save_and_load_topostats(
     load_scan_topostats_test_file: LoadScans,
     tmp_path: Path,
+    topostats_version: str,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
@@ -1436,39 +1467,52 @@ def test_save_and_load_topostats(
     grain_mask_below: np.ndarray,
     grain_trace_data: dict,
     data_keys: set,
+    request,
 ) -> None:
     """Test saving a .topostats file."""
-    topostats_object = {
-        "filename": filename,
-        "img_path": img_path,
-        "pixel_to_nm_scaling": pixel_to_nm_scaling,
-        "image_original": image,
-        "image": image,
-        "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
-        "grain_trace_data": grain_trace_data,
-    }
+    # Setup topostats_object conditional on version
+    if topostats_version < "2.4.0":
+        topostats_object = {
+            "filename": filename,
+            "img_path": img_path,
+            "pixel_to_nm_scaling": pixel_to_nm_scaling,
+            "image_original": image,
+            "image": image,
+            "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
+            "grain_trace_data": grain_trace_data,
+        }
+    else:
+        # If we are testing >= 2.4.0 then topostats_object should be ImageGrainCrops object which we load from fixture
+        topostats_object = request.getfixturevalue(image)
+    # Save the file
     save_topostats_file(
         output_dir=tmp_path,
         filename="topostats_file_test.topostats",
         topostats_object=topostats_object,
+        topostats_version=topostats_version,
     )
-
-    # Load the saved .topostats file using LoadScans
-    loadscans = load_scan_topostats_test_file
-    loadscans.get_data()
-    assert set(loadscans.img_dict["topostats_file_test"].keys()) == data_keys
-    np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
-    assert pixel_to_nm_scaling == loadscans.img_dict["topostats_file_test"]["pixel_to_nm_scaling"]
-    if grain_mask_above is not None:
-        np.testing.assert_array_equal(
-            grain_mask_above, loadscans.img_dict["topostats_file_test"]["grain_masks"]["above"]
-        )
-    if grain_mask_below is not None:
-        np.testing.assert_array_equal(
-            grain_mask_below, loadscans.img_dict["topostats_file_test"]["grain_masks"]["below"]
-        )
-    if grain_trace_data is not None:
-        np.testing.assert_equal(grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"])
+    # Conditionally test the returned object
+    if topostats_version < "2.4.0":
+        # Load the saved .topostats file using LoadScans
+        loadscans = load_scan_topostats_test_file
+        loadscans.get_data()
+        assert set(loadscans.img_dict["topostats_file_test"].keys()) == data_keys
+        np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
+        assert pixel_to_nm_scaling == loadscans.img_dict["topostats_file_test"]["pixel_to_nm_scaling"]
+        if grain_mask_above is not None:
+            np.testing.assert_array_equal(
+                grain_mask_above, loadscans.img_dict["topostats_file_test"]["grain_masks"]["above"]
+            )
+            if grain_mask_below is not None:
+                np.testing.assert_array_equal(
+                    grain_mask_below, loadscans.img_dict["topostats_file_test"]["grain_masks"]["below"]
+                )
+                if grain_trace_data is not None:
+                    np.testing.assert_equal(
+                        grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"]
+                    )
+    else:
+        assert True
 
 
 @pytest.mark.parametrize(
