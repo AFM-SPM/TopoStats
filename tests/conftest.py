@@ -19,8 +19,11 @@ from skimage.measure._regionprops import RegionProperties
 from skimage.morphology import skeletonize
 
 import topostats
+from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
 from topostats.filters import Filters
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
+
+# from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -472,7 +475,7 @@ def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -
 @pytest.fixture()
 def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> topostats.TopoStats:
     """TopoStats object of example catenanes."""
-    return topostats.TopoStats(
+    return TopoStats(
         image_grain_crops=imagegraincrops_catenanes,
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
@@ -514,7 +517,7 @@ def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> Im
 @pytest.fixture()
 def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
     """TopoStats object of example rep_int."""
-    return topostats.TopoStats(
+    return TopoStats(
         image_grain_crops=imagegraincrops_rep_int,
         filename="example_rep_int.spm",
         pixel_to_nm_scaling=0.488,
@@ -741,10 +744,16 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 @pytest.fixture()
 def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
-    return Grains(
+    # TEMPORARY - This will be replaced when we have all modules working and start passing around TopoStats objects in
+    # their entirety
+    topostats_object = TopoStats(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        img_path=Path.cwd(),
+    )
+    return Grains(
+        topostats_object=topostats_object,
         **grains_config,
     )
 

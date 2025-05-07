@@ -22,7 +22,8 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import TopoStats, __release__, grains
+from topostats import __release__, grains
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
