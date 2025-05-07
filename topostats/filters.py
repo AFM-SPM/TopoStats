@@ -9,7 +9,8 @@ from scipy.optimize import curve_fit
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 
-from topostats import TopoStats, scars
+from topostats import scars
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_mask, get_thresholds
 
@@ -588,5 +589,4 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])
         # Add images to TopoStats object
-        # REVISIT - Do we want to save _all_ the other intermediary images to the TopoStats object?
         self.topostats_object.image = self.images["gaussian_filtered"]

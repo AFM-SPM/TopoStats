@@ -1,6 +1,7 @@
 """Test finding of grains."""
 
 import logging
+from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -8,7 +9,8 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops, validate_full_mask_tensor_shape
+from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.grains import Grains, validate_full_mask_tensor_shape
 from topostats.io import dict_almost_equal
 
 # Pylint returns this error for from skimage.filters import gaussian
@@ -64,40 +66,6 @@ grain_array4 = np.array(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 )
-
-
-def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
-    """Test the GrainCrop.grain_crop_to_dict() method."""
-    expected = {
-        "image": dummy_graincrop.image,
-        "mask": dummy_graincrop.mask,
-        "padding": dummy_graincrop.padding,
-        "bbox": dummy_graincrop.bbox,
-        "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
-        "filename": dummy_graincrop.filename,
-        "stats": dummy_graincrop.stats,
-        "height_profiles": dummy_graincrop.height_profiles,
-    }
-    np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
-
-
-def test_grain_crop_direction_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
-    """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
-    expected = {
-        "crops": dummy_graincropsdirection.crops,
-        "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-    }
-    assert dict_almost_equal(dummy_graincropsdirection.grain_crops_direction_to_dict(), expected)
-
-
-def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
-    """Test the GrainCropDirection.grain_crop_direction_to_dict() method."""
-    dummy_image_grain_crop = ImageGrainCrops(above=dummy_graincropsdirection, below=dummy_graincropsdirection)
-    expected = {
-        "above": dummy_graincropsdirection,
-        "below": dummy_graincropsdirection,
-    }
-    assert dict_almost_equal(dummy_image_grain_crop.image_grain_crops_to_dict(), expected)
 
 
 # def test_random_grains(random_grains: Grains, caplog) -> None:
@@ -529,22 +497,32 @@ def test_remove_edge_intersecting_grains(
     grains_config["threshold_method"] = "absolute"
     grains_config["area_thresholds"]["above"] = [20, 10000000]
 
-    grains = Grains(
+    topostats_object = TopoStats(
         image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
         filename="minicircle_cropped_flattened",
         pixel_to_nm_scaling=0.4940029296875,
+        img_path=Path.cwd(),
+    )
+    grains = Grains(
+        topostats_object=topostats_object,
         **grains_config,
     )
     grains.find_grains()
     number_of_grains = len(grains.image_grain_crops.above.crops)
 
     assert number_of_grains == expected_number_of_grains
+    # Some basic checks of TopoStats object needs expanding
+    assert isinstance(grains.topostats_object, TopoStats)
+    assert isinstance(grains.topostats_object.image_grain_crops, ImageGrainCrops)
+    assert isinstance(grains.topostats_object.image_grain_crops.above, GrainCropsDirection)
+    assert len(grains.topostats_object.image_grain_crops.above.crops) == expected_number_of_grains
 
 
 @pytest.mark.parametrize(
     (
-        "image",
-        "pixel_to_nm_scaling",
+        # "image",
+        # "pixel_to_nm_scaling",
+        "topostats_object",
         "threshold_method",
         "otsu_threshold_multiplier",
         "threshold_std_dev",
@@ -556,21 +534,25 @@ def test_remove_edge_intersecting_grains(
     ),
     [
         pytest.param(
-            np.array(
-                [
-                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                    [0.2, 1.1, 1.0, 1.2, 0.2, 0.1, 1.5, 1.6, 1.7, 0.1],
-                    [0.1, 1.1, 0.2, 1.0, 0.1, 0.2, 1.6, 0.2, 1.6, 0.2],
-                    [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
-                    [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                    [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                    [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
-                    [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
-                    [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
-                    [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
-                ]
+            TopoStats(
+                image=np.array(
+                    [
+                        [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                        [0.2, 1.1, 1.0, 1.2, 0.2, 0.1, 1.5, 1.6, 1.7, 0.1],
+                        [0.1, 1.1, 0.2, 1.0, 0.1, 0.2, 1.6, 0.2, 1.6, 0.2],
+                        [0.2, 1.0, 1.1, 1.1, 0.2, 0.1, 1.6, 1.5, 1.5, 0.1],
+                        [0.1, 0.1, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                        [1.5, 1.5, 0.2, 1.5, 1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
+                        [0.1, 0.1, 0.2, 0.0, 0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                        [0.2, 1.5, 1.5, 0.1, 0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
+                        [0.1, 0.1, 1.5, 0.1, 1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
+                        [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
+                    ]
+                ),
+                pixel_to_nm_scaling=1.0,
+                filename="test_image",
+                img_path=Path.cwd(),
             ),
-            1.0,
             "absolute",
             None,
             None,
@@ -901,8 +883,9 @@ def test_remove_edge_intersecting_grains(
     ],
 )
 def test_find_grains(
-    image: npt.NDArray[np.float32],
-    pixel_to_nm_scaling: float,
+    # image: npt.NDArray[np.float32],
+    # pixel_to_nm_scaling: float,
+    topostats_object: TopoStats,
     threshold_method: str,
     otsu_threshold_multiplier: float,
     threshold_std_dev: dict,
@@ -915,9 +898,7 @@ def test_find_grains(
     """Test the find_grains method of the Grains class without unet."""
     # Initialise the grains object
     grains_object = Grains(
-        image=image,
-        filename="test_image",
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        topostats_object=topostats_object,
         unet_config=None,
         threshold_method=threshold_method,
         otsu_threshold_multiplier=otsu_threshold_multiplier,
@@ -954,22 +935,26 @@ def test_find_grains(
 
 # Find grains with unet - needs mocking
 @pytest.mark.parametrize(
-    ("image", "expected_imagegraincrops"),
+    ("topostats_object", "expected_imagegraincrops"),
     [
         pytest.param(
-            # Image
-            np.array(
-                [
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
-                    [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
-                    [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
-                    [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
-                    [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
+            TopoStats(
+                image=np.array(
+                    [
+                        [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2, 0.1],
+                        [0.1, 1.1, 1.2, 1.0, 0.1, 1.1, 0.2, 1.1, 0.2],
+                        [0.2, 1.2, 1.1, 1.3, 0.2, 1.2, 0.1, 0.2, 0.2],
+                        [0.1, 1.0, 1.2, 1.2, 0.1, 1.1, 1.2, 1.1, 0.1],
+                        [0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.1, 0.2, 0.1],
+                        [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                        [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.2],
+                        [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    ]
+                ),
+                filename="test_image",
+                pixel_to_nm_scaling=1.0,
+                img_path=Path.cwd(),
             ),
             # Expected image grain crops
             ImageGrainCrops(
@@ -1124,18 +1109,15 @@ def test_find_grains(
 )
 def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
-    image: npt.NDArray[np.float32],
+    topostats_object: TopoStats,
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
     with patch("keras.models.load_model") as mock_load_model:
         mock_load_model.return_value = mock_model_5_by_5_single_class
-
         # Initialise the grains object
         grains_object = Grains(
-            image=image,
-            filename="test_image",
-            pixel_to_nm_scaling=1.0,
+            topostats_object=topostats_object,
             unet_config={
                 "model_path": "dummy_model_path",
                 "confidence": 0.5,
@@ -1151,31 +1133,31 @@ def test_find_grains_unet(
             direction="above",
             remove_edge_intersecting_grains=True,
         )
-
         # Override grains' minimum grain size just for this test to allow for small grains in the test image
         grains_object.minimum_grain_size_px = 1
         grains_object.minimum_bbox_size_px = 1
-
         grains_object.find_grains()
-
         result_image_grain_crops = grains_object.image_grain_crops
-
         result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
-
         assert result_image_grain_crops == expected_imagegraincrops
 
 
 def test_find_grains_no_grains_found():
     """Test the find_grains method of the Grains class when no grains are found."""
     # Image
-    image = np.array(
-        [
-            [0.1, 0.1, 0.2, 0.1, 0.1],
-            [0.2, 0.1, 0.1, 0.1, 0.2],
-            [0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.2, 0.1, 0.1, 0.1, 0.2],
-            [0.1, 0.1, 0.2, 0.1, 0.1],
-        ]
+    topostats_object = TopoStats(
+        image=np.array(
+            [
+                [0.1, 0.1, 0.2, 0.1, 0.1],
+                [0.2, 0.1, 0.1, 0.1, 0.2],
+                [0.1, 0.1, 0.1, 0.1, 0.1],
+                [0.2, 0.1, 0.1, 0.1, 0.2],
+                [0.1, 0.1, 0.2, 0.1, 0.1],
+            ]
+        ),
+        filename="test_image",
+        pixel_to_nm_scaling=1.0,
+        img_path=Path.cwd(),
     )
 
     # Expected image grain crops
@@ -1186,9 +1168,7 @@ def test_find_grains_no_grains_found():
 
     # Initialise the grains object
     grains_object = Grains(
-        image=image,
-        filename="test_image",
-        pixel_to_nm_scaling=1.0,
+        topostats_object=topostats_object,
         unet_config=None,
         threshold_method="absolute",
         threshold_absolute={"above": 0.9, "below": 0.0},
@@ -6293,20 +6273,25 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
 
 
 @pytest.mark.parametrize(
-    ("image", "thresholds", "threshold_direction", "expected_grain_mask_tensor"),
+    ("topostats_object", "thresholds", "threshold_direction", "expected_grain_mask_tensor"),
     [
         pytest.param(
-            np.array(
-                [
-                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 1.5, 2.5, 1.5, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                    [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
-                ]
+            TopoStats(
+                image=np.array(
+                    [
+                        [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 1.5, 2.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 1.5, 1.5, 1.5, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                        [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+                    ]
+                ),
+                filename="test_image",
+                pixel_to_nm_scaling=1.0,
+                img_path=Path.cwd(),
             ),
             [1.0, 2.0],
             "above",
@@ -6354,17 +6339,22 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
             id="above",
         ),
         pytest.param(
-            np.array(
-                [
-                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -1.5, -2.5, -1.5, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
-                    [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
-                ]
+            TopoStats(
+                image=np.array(
+                    [
+                        [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -1.5, -2.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -1.5, -1.5, -1.5, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                        [-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1],
+                    ]
+                ),
+                filename="test_image",
+                pixel_to_nm_scaling=1.0,
+                img_path=Path.cwd(),
             ),
             [-1.0, -2.0],
             "below",
@@ -6414,17 +6404,17 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
     ],
 )
 def test_multi_class_thresholding(
-    image: npt.NDArray,
+    topostats_object: TopoStats,
     thresholds: list[float],
     threshold_direction: str,
     expected_grain_mask_tensor: npt.NDArray,
 ) -> None:
     """Test the multi_class_thresholding function."""
     grain_mask_tensor = Grains.multi_class_thresholding(
-        image=image,
+        image=topostats_object.image,
         thresholds=thresholds,
         threshold_direction=threshold_direction,
-        image_name="test_image",
+        image_name=topostats_object.filename,
     )
 
     np.testing.assert_array_equal(grain_mask_tensor, expected_grain_mask_tensor)
