@@ -4,12 +4,14 @@ import logging
 from argparse import Namespace
 from pathlib import Path
 from pprint import pformat
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from scipy.ndimage import convolve
 
+# from topostats.classes import GrainCrop
 from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 
@@ -446,3 +448,86 @@ def coords_2_img(coords, image, ordered=False) -> np.ndarray:
         ]
         comb[np.floor(coords[:, 0]).astype(np.int32), np.floor(coords[:, 1]).astype(np.int32)] = 1
     return comb
+
+
+def update_background_class(
+    grain_mask_tensor: npt.NDArray,
+) -> npt.NDArray[np.bool_]:
+    """
+    Update the background class to reflect the other classes.
+
+    Parameters
+    ----------
+    grain_mask_tensor : npt.NDArray
+        3-D Numpy array of the grain mask tensor.
+
+    Returns
+    -------
+    npt.NDArray
+        3-D Numpy array of image tensor with updated background class.
+    """
+    flattened_mask = flatten_multi_class_tensor(grain_mask_tensor)
+    new_background = np.where(flattened_mask == 0, 1, 0)
+    grain_mask_tensor[:, :, 0] = new_background
+    return grain_mask_tensor.astype(bool)
+
+
+def flatten_multi_class_tensor(grain_mask_tensor: npt.NDArray) -> npt.NDArray:
+    """
+    Flatten a multi-class image tensor to a single binary mask.
+
+    The returned tensor is of boolean type in case there are multiple hits in the same pixel. We dont want to have
+    2s, 3s etc because this would cause issues in labelling and cause erroneous grains within grains.
+
+    Parameters
+    ----------
+    grain_mask_tensor : npt.NDArray
+        Multi class grain mask tensor tensor of shape (N, N, C).
+
+    Returns
+    -------
+    npt.NDArray
+        Combined binary mask of all but the background class (:, :, 0).
+    """
+    assert len(grain_mask_tensor.shape) == 3, f"Tensor not 3D: {grain_mask_tensor.shape}"
+    return np.sum(grain_mask_tensor[:, :, 1:], axis=-1).astype(bool)
+
+
+def construct_full_mask_from_graincrops(
+    graincrops: dict[int, Any], image_shape: tuple[int, int, int]
+) -> npt.NDArray[np.bool_]:
+    """
+    Construct a full mask tensor from the grain crops.
+
+    Parameters
+    ----------
+    graincrops : dict[int, GrainCrop]
+        Dictionary of grain crops.
+    image_shape : tuple[int, int, int]
+        Shape of the original image.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        HxWxC Numpy array of the full mask tensor (H = height, W = width, C = class >= 2).
+    """
+    # Calculate the number of classes from the first grain crop
+    # Check if graincrops is empty
+    if not graincrops:
+        raise ValueError("No grain crops provided to construct the full mask tensor.")
+    num_classes: int = list(graincrops.values())[0].mask.shape[2]
+    full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
+    for _grain_number, graincrop in graincrops.items():
+        bounding_box = graincrop.bbox
+        crop_tensor = graincrop.mask
+
+        # Add the crop to the full mask tensor without overriding anything else, for all classes
+        for class_index in range(crop_tensor.shape[2]):
+            full_mask_tensor[
+                bounding_box[0] : bounding_box[2],
+                bounding_box[1] : bounding_box[3],
+                class_index,
+            ] += crop_tensor[:, :, class_index]
+
+    # Update background class and return
+    return update_background_class(full_mask_tensor)
