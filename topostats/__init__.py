@@ -41,7 +41,7 @@ class TopoStats:
     """
     Class for storing TopoStats objects.
 
-    Attributes
+    Parameters
     ----------
     image_grain_crops : ImageGrainCrops | None
         ImageGrainCrops of processed image.
@@ -50,7 +50,7 @@ class TopoStats:
     pixel_to_nm_scaling : str | None
         Pixel to nanometre scaling.
     img_path : str | None
-        Original path to image.
+        Original path to image, if not specified defaults to current working directory.
     image : npt.NDArray | None
         Flattened image (post ''Filter()'').
     image_original : npt.NDArray | None
@@ -59,13 +59,43 @@ class TopoStats:
         TopoStats version.
     """
 
-    image_grain_crops: ImageGrainCrops | None
-    filename: str | None
-    pixel_to_nm_scaling: str | None
-    img_path: Path | str | None
-    image: npt.NDArray | None
-    image_original: npt.NDArray | None
-    topostats_version: str | None
+    def __init__(
+        self,
+        image_grain_crops: ImageGrainCrops | None = None,
+        filename: str | None = None,
+        pixel_to_nm_scaling: str | None = None,
+        img_path: Path | str | None = None,
+        image: npt.NDArray | None = None,
+        image_original: npt.NDArray | None = None,
+        topostats_version: str | None = None,
+    ):
+        """
+        Initialise the class.
+
+        Parameters
+        ----------
+        image_grain_crops : ImageGrainCrops | None
+            ImageGrainCrops of processed image.
+        filename : str | None
+            Filename.
+        pixel_to_nm_scaling : str | None
+            Pixel to nanometre scaling.
+        img_path : str | None
+            Original path to image, if not specified defaults to current working directory.
+        image : npt.NDArray | None
+            Flattened image (post ''Filter()'').
+        image_original : npt.NDArray | None
+            Original image.
+        topostats_version : str | None
+            TopoStats version.
+        """
+        self.image_grain_crops = image_grain_crops
+        self.filename = filename
+        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.img_path = Path.cwd() if img_path is None else Path(img_path)
+        self.image = image
+        self.image_original = image_original
+        self.topostats_version = topostats_version
 
     def __eq__(self, other: object) -> bool:
         """
@@ -187,6 +217,7 @@ class TopoStats:
         value : str | Path
             Image Path for the image.
         """
+        print(f"\n{value=}\n")
         self._img_path = Path(value)
 
     @property
