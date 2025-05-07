@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 
-from topostats import TopoStats
+from topostats.classes import TopoStats
 from topostats.filters import Filters
 
 # pylint: disable=protected-access
