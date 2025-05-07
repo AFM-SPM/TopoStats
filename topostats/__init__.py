@@ -187,7 +187,7 @@ class TopoStats:
         value : str | Path
             Image Path for the image.
         """
-        self._img_path = Path(value)
+        self._img_path = Path.cwd() if value is None else Path(value)
 
     @property
     def image(self) -> str:
