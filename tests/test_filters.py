@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 
+from topostats import TopoStats
 from topostats.filters import Filters
 
 # pylint: disable=protected-access
@@ -66,9 +67,8 @@ def test_remove_nonlinear_polynomial() -> None:
     # Add some masked points to ensure the fitting algorithm can handle them
     mask = np.zeros((8, 8)).astype(bool)
     mask[3:7, 4] = True
-
-    # Create a dummy filters object as the method is not a static method and needs an instance.
-    filters = Filters(image=image, filename="dummy_input", pixel_to_nm_scaling=1.0)
+    topostats = TopoStats(image_original=image, filename="dummy_input", pixel_to_nm_scaling=1.0, img_path="./")
+    filters = Filters(topostats_object=topostats)
 
     # Remove the trend with the fitting script
     result = filters.remove_nonlinear_polynomial(image=image, mask=mask)
