@@ -250,9 +250,7 @@ def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
     return Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
 
@@ -526,10 +524,9 @@ def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
 @pytest.fixture()
 def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
+    load_scan.get_data()
     filter_obj = Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
     filter_obj.pixel_to_nm_scaling = 0.5
@@ -625,9 +622,7 @@ def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
     return Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
 
