@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 
-from topostats import scars
+from topostats import TopoStats, scars
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_mask, get_thresholds
 
@@ -31,12 +31,10 @@ class Filters:
 
     Parameters
     ----------
-    image : npt.NDArray
-        The raw image from the Atomic Force Microscopy machine.
-    filename : str
-        The filename (used in logging only).
-    pixel_to_nm_scaling : float
-        Value for converting pixels to nanometers.
+    topostats_object : TopoStats
+        TopoStats object with a minimum of ''image_original'', ''filename'', ''pixel_to_nm_scaling'' and
+        ''img_path'' attributes defined. Typically these will be loaded from scanner output files or existing
+        ''.topostats'' files.
     row_alignment_quantile : float
         Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
         flattening of large features.
@@ -61,9 +59,7 @@ class Filters:
 
     def __init__(
         self,
-        image: npt.NDArray,
-        filename: str,
-        pixel_to_nm_scaling: float,
+        topostats_object: TopoStats,
         row_alignment_quantile: float = 0.5,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
@@ -78,12 +74,10 @@ class Filters:
 
         Parameters
         ----------
-        image : npt.NDArray
-            The raw image from the Atomic Force Microscopy machine.
-        filename : str
-            The filename (used in logging only).
-        pixel_to_nm_scaling : float
-            Value for converting pixels to nanometers.
+        topostats_object : TopoStats
+            TopoStats object with a minimum of ''image_original'', ''filename'', ''pixel_to_nm_scaling'' and
+            ''img_path'' attributes defined. Typically these will be loaded from scanner output files or existing
+            ''.topostats'' files.
         row_alignment_quantile : float
             Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
             flattening of large features.
@@ -105,8 +99,10 @@ class Filters:
         remove_scars : dict
             Dictionary containing configuration parameters for the scar removal function.
         """
-        self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.topostats_object = topostats_object
+        self.image = topostats_object.image_original
+        self.filename = topostats_object.filename
+        self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.row_alignment_quantile = row_alignment_quantile
@@ -130,7 +126,7 @@ class Filters:
             }
         self.remove_scars_config = remove_scars
         self.images = {
-            "pixels": image,
+            "pixels": self.image,
             "initial_median_flatten": None,
             "initial_tilt_removal": None,
             "initial_quadratic_removal": None,
@@ -155,9 +151,10 @@ class Filters:
             "threshold": None,
         }
 
-    def median_flatten(
-        self, image: npt.NDArray, mask: npt.NDArray = None, row_alignment_quantile: float = 0.5
-    ) -> npt.NDArray:
+    def median_flatten(self,
+                       image: npt.NDArray,
+                       mask: npt.NDArray = None,
+                       row_alignment_quantile: float = 0.5) -> npt.NDArray:
         """
         Flatten images using median differences.
 
@@ -194,10 +191,8 @@ class Filters:
             if not np.isnan(m):
                 image[row, :] -= m
             else:
-                LOGGER.warning(
-                    """f[{self.filename}] Large grain detected image can not be
-processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information."""
-                )
+                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
+processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information.""")
 
         return image
 
@@ -289,6 +284,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         npt.NDArray
             Image with the polynomial trend subtracted.
         """
+
         # Script has a lot of locals but I feel this is necessary for readability?
         # pylint: disable=too-many-locals
 
@@ -356,8 +352,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         # Unpack the optimised parameters
         a, b, c, d = popt
         LOGGER.debug(
-            f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}"
-        )
+            f"[{self.filename}] : Nonlinear polynomial removal optimal params: const: {a} xy: {b} x: {c} y: {d}")
 
         # Use the optimised parameters to construct a prediction of the underlying surface
         z_pred = model_func(xdata, ydata, a, b, c, d)
@@ -407,7 +402,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
                 cx = -px[1] / (2 * px[0])
                 for row in range(0, image.shape[0]):
                     for col in range(0, image.shape[1]):
-                        image[row, col] -= px[0] * (col - cx) ** 2
+                        image[row, col] -= px[0] * (col - cx)**2
             else:
                 LOGGER.debug(f"[{self.filename}] : Quadratic polyfit returns nan, skipping quadratic removal")
         else:
@@ -488,10 +483,8 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         npt.NDArray
             Numpy array that represent the image after Gaussian filtering.
         """
-        LOGGER.debug(
-            f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
-            f" Gaussian blur (px) : {self.gaussian_size})."
-        )
+        LOGGER.debug(f"[{self.filename}] : Applying Gaussian filter (mode : {self.gaussian_mode};"
+                     f" Gaussian blur (px) : {self.gaussian_size}).")
         return gaussian(
             image,
             sigma=(self.gaussian_size),
@@ -520,14 +513,13 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ...             threshold_method='otsu')
         filter.filter_image()
         """
-        self.images["initial_median_flatten"] = self.median_flatten(
-            self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
-        )
+        self.images["initial_median_flatten"] = self.median_flatten(self.images["pixels"],
+                                                                    mask=None,
+                                                                    row_alignment_quantile=self.row_alignment_quantile)
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
         self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
         self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
-            self.images["initial_quadratic_removal"], mask=None
-        )
+            self.images["initial_quadratic_removal"], mask=None)
 
         # Remove scars
         run_scar_removal = self.remove_scars_config.pop("run")
@@ -543,9 +535,8 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
-        self.images["initial_zero_average_background"] = self.average_background(
-            self.images["initial_scar_removal"], mask=None
-        )
+        self.images["initial_zero_average_background"] = self.average_background(self.images["initial_scar_removal"],
+                                                                                 mask=None)
 
         # Get the thresholds
         try:
@@ -569,12 +560,10 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             row_alignment_quantile=self.row_alignment_quantile,
         )
         self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
-        self.images["masked_quadratic_removal"] = self.remove_quadratic(
-            self.images["masked_tilt_removal"], self.images["mask"]
-        )
+        self.images["masked_quadratic_removal"] = self.remove_quadratic(self.images["masked_tilt_removal"],
+                                                                        self.images["mask"])
         self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
-            self.images["masked_quadratic_removal"], self.images["mask"]
-        )
+            self.images["masked_quadratic_removal"], self.images["mask"])
         # Remove scars
         if run_scar_removal:
             LOGGER.debug(f"[{self.filename}] : Secondary scar removal")
@@ -587,7 +576,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         else:
             LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
-        self.images["final_zero_average_background"] = self.average_background(
-            self.images["secondary_scar_removal"], self.images["mask"]
-        )
+        self.images["final_zero_average_background"] = self.average_background(self.images["secondary_scar_removal"],
+                                                                               self.images["mask"])
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])
+        # Add images to TopoStats object
+        # REVISIT - Do we want to save _all_ the other intermediary images to the TopoStats object?
+        self.topostats_object.image = self.images["gaussian_filtered"]

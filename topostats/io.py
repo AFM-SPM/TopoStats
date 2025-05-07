@@ -636,7 +636,7 @@ class LoadScans:
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
         self.grain_trace_data = {}
-        self.img_dict = {}
+        self.img_dict: dict[str, TopoStats] = {}
         self.MINIMUM_IMAGE_SIZE = 10
 
     def load_spm(self) -> tuple[npt.NDArray, float]:
