@@ -178,16 +178,17 @@ class TopoStats:
         return self._img_path
 
     @img_path.setter
-    def img_path(self, value: str | Path) -> None:
+    def img_path(self, value: str | Path | None) -> None:
         """
         Setter for the ''img_path'' attribute.
 
         Parameters
         ----------
-        value : str | Path
+        value : str | Path | None
             Image Path for the image.
         """
-        self._img_path = Path(value)
+        print(f"\n{value=}\n")
+        self._img_path = Path.cwd() if value is None else Path(value)
 
     @property
     def image(self) -> str:
