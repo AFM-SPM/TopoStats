@@ -13,7 +13,7 @@ import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
-from topostats.grains import GrainCrop
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
@@ -64,14 +64,14 @@ class GrainStats:
 
     Parameters
     ----------
-    grain_crops : dict[int, GrainCrop]
-        Dictionary of GrainCrops to calculate stats for.
+    topostats_object : TopoStats
+        TopoStats object, this should contain the ''ImageGrainCrops'' object which has two attributes ''above'' and
+        ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a (a
+        dictionary of ''GrainCrop'' objects holding the cropped images.
     direction : str
         Direction for which grains have been detected ("above" or "below").
     base_output_dir : Path
         Path to the folder that will store the grain stats output images and data.
-    image_name : str
-        The name of the file being processed.
     edge_detection_method : str
         Method used for detecting the edges of grain masks before calculating statistics on them.
         Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
@@ -86,10 +86,9 @@ class GrainStats:
 
     def __init__(
         self,
-        grain_crops: dict[int, GrainCrop],
+        topostats_object: TopoStats,
         direction: str,
         base_output_dir: str | Path,
-        image_name: str = None,
         edge_detection_method: str = "binary_erosion",
         extract_height_profile: bool = False,
         plot_opts: dict = None,
@@ -100,14 +99,14 @@ class GrainStats:
 
         Parameters
         ----------
-        grain_crops : dict[int, GrainCrop]
-            Dictionary of GrainCrops to calculate stats for.
+        topostats_object : TopoStats
+            TopoStats object, this should contain the ''ImageGrainCrops'' object which has two attributes ''above'' and
+            ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a (a
+            dictionary of ''GrainCrop'' objects holding the cropped images.
         direction : str
-            Direction for which grains have been detected ("above" or "below").
+            Direction for which grains have been detected (''above'' or ''below'').
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
-        image_name : str
-            The name of the file being processed.
         edge_detection_method : str
             Method used for detecting the edges of grain masks before calculating statistics on them.
             Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
@@ -119,11 +118,17 @@ class GrainStats:
             Multiplier to convert the current length scale to metres. Default: 1e-9 for the
             usual AFM length scale of nanometres.
         """
-        self.grain_crops = grain_crops
+        self.topostats_object = topostats_object
+        self.grain_crops = (
+            topostats_object.image_grain_crops.above.crops
+            if direction == "above"
+            else topostats_object.image_grain_crops.below.crops
+        )
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
-        self.image_name = image_name
+        print(f"\n{topostats_object.filename=}\n")
+        self.filename = topostats_object.filename
         self.edge_detection_method = edge_detection_method
         self.extract_height_profile = extract_height_profile
         self.plot_opts = plot_opts
@@ -186,7 +191,7 @@ class GrainStats:
         all_height_profiles: dict[int, npt.NDArray] = {}
         if len(self.grain_crops) == 0:
             LOGGER.warning(
-                f"[{self.image_name}] : No grain crops for this image, grain statistics can not be calculated."
+                f"[{self.filename}] : No grain crops for this image, grain statistics can not be calculated."
             )
             return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), all_height_profiles
 
@@ -235,7 +240,7 @@ class GrainStats:
                     # Skip subgrain if too small to calculate stats for
                     if min(subgrain_tight_shape) < 5:
                         LOGGER.debug(
-                            f"[{self.image_name}] : Skipping subgrain due to being too small "
+                            f"[{self.filename}] : Skipping subgrain due to being too small "
                             f"(size: {subgrain_tight_shape}) to calculate stats for."
                         )
 
@@ -276,7 +281,7 @@ class GrainStats:
                         )
                         all_height_profiles[grain_index][class_index][subgrain_index] = _height_profiles
                         grain_crop.height_profiles[class_index][subgrain_index] = _height_profiles
-                        LOGGER.debug(f"[{self.image_name}] : Height profiles extracted.")
+                        LOGGER.debug(f"[{self.filename}] : Height profiles extracted.")
 
                     # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
                     # from pixel units to nanometres.
@@ -326,7 +331,7 @@ class GrainStats:
             # Create a dataframe from the list of dictionaries
             grainstats_df = pd.DataFrame(grainstats_rows)
         # Change the index column from the arbitrary one to the grain number
-        grainstats_df["image"] = self.image_name
+        grainstats_df["image"] = self.filename
         return (grainstats_df, all_height_profiles)
 
     @staticmethod
