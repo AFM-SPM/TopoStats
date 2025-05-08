@@ -288,3 +288,9 @@ def test_get_cropped_region(dummy_grainstats: GrainStats, length, centre, img_le
     output = dummy_grainstats.get_cropped_region(image, length, centre)
     assert output.shape == (2 * length + 1, 2 * length + 1)
     assert output[expected[0], expected[1]] == 5
+
+
+def test_grainstats_raise_assert_invalid_direction() -> None:
+    """Test an assertion error is raised if ''direction'' argument is invalid."""
+    with pytest.raises(AssertionError):
+        GrainStats(topostats_object=TopoStats(img_path=Path.cwd()), direction="elsewhere", base_output_dir=Path.cwd())
