@@ -119,6 +119,7 @@ class GrainStats:
             usual AFM length scale of nanometres.
         """
         self.topostats_object = topostats_object
+        assert direction in ("above", "below"), f"Invalid direction: {direction}"
         self.grain_crops = (
             topostats_object.image_grain_crops.above.crops
             if direction == "above"
@@ -127,7 +128,6 @@ class GrainStats:
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
-        print(f"\n{topostats_object.filename=}\n")
         self.filename = topostats_object.filename
         self.edge_detection_method = edge_detection_method
         self.extract_height_profile = extract_height_profile
