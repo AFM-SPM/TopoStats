@@ -1,0 +1,164 @@
+topostats.theme
+===============
+
+.. py:module:: topostats.theme
+
+.. autoapi-nested-parse::
+
+   Custom Bruker Nanoscope colorscale.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.theme.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.theme.Colormap
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Colormap(name: str = 'nanoscope')
+
+   
+   Class for setting the COlormap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: name
+      :value: 'nanoscope'
+
+
+
+   .. py:attribute:: cmap
+      :value: None
+
+
+
+   .. py:method:: __str__()
+
+
+   .. py:method:: set(name: str)
+
+      
+      Set the ColorMap.
+
+      :param name: Name of colormap
+      :type name: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cmap()
+
+      
+      Return the matplotlib.cm colormap object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: nanoscope()
+      :staticmethod:
+
+
+      
+      Returns a matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale
+      The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'
+
+      Original Nanoscope.txt
+
+      Gwyddion resource GwyGradient
+      0 0 0 0 1
+      0.124464 0 0 0 1
+      0.236052 0.0670103 0 0 1
+      0.371245 0.253338 0 0 1
+      0.472103 0.392344 0.0721649 0 1
+      0.611588 0.584587 0.334114 0 1
+      0.708155 0.717678 0.515464 0.252575 1
+      0.714052 0.725806 0.527471 0.268 1
+      0.890558 0.969072 0.886843 0.76343 1
+      0.933476 0.987464 0.974227 0.883897 1
+      0.944709 0.992278 0.980523 0.915426 1
+      0.965682 0.995207 0.992278 0.974293 1
+      0.971401 0.996006 0.993565 0.990347 1
+      1 1 1 1 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
