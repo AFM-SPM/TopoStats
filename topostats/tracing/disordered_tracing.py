@@ -11,7 +11,7 @@ from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
 
-from topostats.grains import GrainCrop
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
@@ -37,6 +37,8 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Filename being processed.
     pixel_to_nm_scaling : float
         Pixel to nm scaling.
+    min_skeleton_size : int
+        Minimum skeleton size below which tracing statistics are not calculated.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
     mask_smoothing_params : dict
@@ -103,9 +105,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         self.pruning_params = pruning_params if pruning_params is not None else {"method": "topostats"}
         self.n_grain = n_grain
         # Images
-        self.smoothed_mask = np.zeros_like(image)
-        self.skeleton = np.zeros_like(image)
-        self.pruned_skeleton = np.zeros_like(image)
+        self.smoothed_mask = np.zeros_like(self.image)
+        self.skeleton = np.zeros_like(self.image)
+        self.pruned_skeleton = np.zeros_like(self.image)
         # Trace
         self.disordered_trace = None
 
@@ -322,11 +324,9 @@ def check_pixel_touching_edge(mask: npt.NDArray) -> bool:
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
-    full_image: npt.NDArray,
-    grain_crops: dict[int, GrainCrop],
+    topostats_object: TopoStats,
+    direction: str,
     class_index: int,
-    filename: str,
-    pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
@@ -337,16 +337,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     Parameters
     ----------
-    full_image : npt.NDArray
-        Full image as Numpy Array.
-    grain_crops : dict[int, GrainCrop]
-        Dictionary of grain crops.
+    topostats_object : TopoStats
+        TopoStats object post ''Grains'' so that there are ''GrainCrops'' nested within.
+    direction : str
+        The direction for grains to be analysed, should be either ''above'' or ''below''.
     class_index : int
         Index of the class to trace.
-    filename : str
-        File being processed.
-    pixel_to_nm_scaling : float
-        Pixel to nm scaling.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
     mask_smoothing_params : dict
@@ -363,11 +359,19 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
-    img_base = np.zeros_like(full_image)
+    img_base = np.zeros_like(topostats_object.image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
 
+    assert direction in ("above", "below"), f"Invalid direction: {direction}"
+    grain_crops = (
+        topostats_object.image_grain_crops.above.crops
+        if direction == "above"
+        else topostats_object.image_grain_crops.below.crops
+    )
+    filename = topostats_object.filename
+    pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
     # These are images for diagnostics, edited during tracing to show
     # various steps
     all_images = {
@@ -390,15 +394,17 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 cropped_image=grain_crop_image,
                 cropped_mask=grain_crop_class_mask,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
+                filename=filename,
                 mask_smoothing_params=mask_smoothing_params,
                 skeletonisation_params=skeletonisation_params,
                 pruning_params=pruning_params,
-                filename=filename,
                 min_skeleton_size=min_skeleton_size,
                 n_grain=grain_number,
             )
-            LOGGER.debug(f"[{filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
+            LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
 
+            # Add returned elements to the `GrainCrop`
+            grain_crop.disordered_traces = disordered_trace_images
             if disordered_trace_images is not None:
                 # obtain segment stats
                 try:
@@ -417,24 +423,23 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     total_branch_length = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
                     LOGGER.warning(
-                        f"[{filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
+                        f"[{grain_crop.filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
                     )
                     total_branch_length = 0
                     skan_df = pd.DataFrame()
-
                 disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
 
                 # obtain stats
                 conv_pruned_skeleton = convolve_skeleton(disordered_trace_images["pruned_skeleton"])
                 grainstats_additions[grain_number] = {
-                    "image": filename,
+                    "image": grain_crop.filename,
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length,
                     "grain_width_mean": disorderedTrace.calculate_dna_width(
                         disordered_trace_images["smoothed_grain"],
                         disordered_trace_images["pruned_skeleton"],
-                        pixel_to_nm_scaling,
+                        grain_crop.pixel_to_nm_scaling,
                     )
                     * 1e-9,
                 }
@@ -452,7 +457,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(  # pylint: disable=logging-not-lazy
-                f"[{filename}] : Disordered tracing of grain "
+                f"[{grain_crop.filename}] : Disordered tracing of grain "
                 f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
@@ -662,6 +667,7 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         of coordinates.
     """
     disorderedtrace = disorderedTrace(
+        # grain_crop=grain_crop,
         image=cropped_image,
         mask=cropped_mask,
         filename=filename,
@@ -797,7 +803,7 @@ def pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> 
 # if __name__ == "__main__":
 #     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)
 #     n_grains = len(cropped_images)
-#     LOGGER.info(f"[{filename}] : Calculating statistics for {n_grains} grains.")
+#     LOGGER.info(f"[{grain_crop.filename}] : Calculating statistics for {n_grains} grains.")
 #     # Process in parallel
 #     with Pool(processes=cores) as pool:
 #         results = {}
