@@ -13,7 +13,7 @@ from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
 
-from topostats.grains import GrainCrop
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
@@ -300,11 +300,9 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
-    full_image: npt.NDArray,
-    grain_crops: dict[int, GrainCrop],
+    topostats_object: TopoStats,
+    direction: str,
     class_index: int,
-    filename: str,
-    pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
@@ -315,16 +313,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
 
     Parameters
     ----------
-    full_image : npt.NDArray
-        Full image as Numpy Array.
-    grain_crops : dict[int, GrainCrop]
-        Dictionary of grain crops.
+    topostats_object : TopoStats
+        TopoStats object post ''Graind'' so that there are ''GrainCrops'' nested within.
+    direction : str
+        The direction for grains to be analysed, should be either ''above'' or ''below''.
     class_index : int
         Index of the class to trace.
-    filename : str
-        File being processed.
-    pixel_to_nm_scaling : float
-        Pixel to nm scaling.
     min_skeleton_size : int
         Minimum size of grain in pixels after skeletonisation.
     mask_smoothing_params : dict
@@ -341,11 +335,20 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
-    img_base = np.zeros_like(full_image)
+    img_base = np.zeros_like(topostats_object.image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
 
+    assert direction in ("above", "below"), f"Invalid direction: {direction}"
+    grain_crops = (
+        topostats_object.image_grain_crops.above.crops
+        if direction == "above"
+        else topostats_object.image_grain_crops.below.crops
+    )
+    print(f"\n{grain_crops=}\n")
+    filename = topostats_object.filename
+    pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
     # These are images for diagnostics, edited during tracing to show
     # various steps
     all_images = {
