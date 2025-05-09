@@ -542,6 +542,10 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         npt.NDArray
             Flattened 8-long array describing the values in the binary map around the x,y point.
         """
+        if x == 0 or x >= binary_map.shape[0] or y == 0 or y >= binary_map.shape[1]:
+            raise IndexError(
+                f"One of the pixel coordinates ({x=}, {y=}) are on the edge of the image ({binary_map.shape=})"
+            )
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         return np.delete(local_pixels, 4)
 

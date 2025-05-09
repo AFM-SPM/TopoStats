@@ -7,6 +7,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
+from topostats.classes import GrainCrop
 from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
@@ -197,3 +198,61 @@ def nodestats_catenane(
     nodestats.skeleton = catenane_skeleton
 
     return nodestats
+
+
+@pytest.fixture()
+def grain_crop_curved_line() -> GrainCrop:
+    """GrainCrop of a simple curved line."""
+    return GrainCrop(
+        image=np.array(
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 1, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        ),
+        mask=np.stack(
+            arrays=[
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            ],
+            axis=-1,
+        ),
+        padding=1,
+        bbox=(0, 0, 10, 10),
+        pixel_to_nm_scaling=1,
+        filename="simple slightly curved line",
+    )
