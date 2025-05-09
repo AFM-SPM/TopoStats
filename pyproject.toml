@@ -64,6 +64,7 @@ tests = [
   "pytest-mpl",
   "pytest-regtest==2.3.1",
   "filetype",
+  "syrupy",
 ]
 docs = [
   "Sphinx",
