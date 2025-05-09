@@ -1,5 +1,7 @@
 """Define custom classes for TopoStats."""
 
+from __future__ import annotations
+
 import logging
 import re
 from dataclasses import dataclass
@@ -87,11 +89,12 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
+        self.disordered_traces: dict[str:Any] = {}
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
         """
-        Getter for the image.
+        Getter for the ``image`` attribute.
 
         Returns
         -------
@@ -103,7 +106,7 @@ class GrainCrop:
     @image.setter
     def image(self, value: npt.NDArray[np.float32]):
         """
-        Setter for the image.
+        Setter for the ``image`` attribute.
 
         Parameters
         ----------
@@ -122,7 +125,7 @@ class GrainCrop:
     @property
     def mask(self) -> npt.NDArray[np.bool_]:
         """
-        Getter for the mask.
+        Getter for the ``mask`` attribute.
 
         Returns
         -------
@@ -134,12 +137,12 @@ class GrainCrop:
     @mask.setter
     def mask(self, value: npt.NDArray[np.bool_]) -> None:
         """
-        Setter for the mask.
+        Setter for the ``mask`` attribute.
 
         Parameters
         ----------
         value : npt.NDArray
-            Numpy array of the mask.
+            Numpy array of the ``mask`` attribute.
 
         Raises
         ------
@@ -170,13 +173,12 @@ class GrainCrop:
 
         # Update background class in case the mask has been edited
         value = update_background_class(value)
-
         self._mask: npt.NDArray[np.bool_] = value
 
     @property
     def padding(self) -> int:
         """
-        Getter for the padding.
+        Getter for the ``padding`` attribute.
 
         Returns
         -------
@@ -188,7 +190,7 @@ class GrainCrop:
     @padding.setter
     def padding(self, value: int) -> None:
         """
-        Setter for the padding.
+        Setter for the ``padding`` attribute.
 
         Parameters
         ----------
@@ -209,7 +211,7 @@ class GrainCrop:
     @property
     def bbox(self) -> tuple[int, int, int, int]:
         """
-        Getter for the bounding box.
+        Getter for the bounding box attribute.
 
         Returns
         -------
@@ -226,7 +228,7 @@ class GrainCrop:
     @bbox.setter
     def bbox(self, value: tuple[int, int, int, int]) -> None:
         """
-        Setter for the bounding box.
+        Setter for the bounding box attribute.
 
         Parameters
         ----------
@@ -244,7 +246,7 @@ class GrainCrop:
     @property
     def pixel_to_nm_scaling(self) -> float:
         """
-        Getter for the pixel to nanometre scaling factor.
+        Getter for the pixel to nanometre scaling factor attribute.
 
         Returns
         -------
@@ -256,7 +258,7 @@ class GrainCrop:
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: float) -> None:
         """
-        Setter for the pixel to nanometre scaling factor.
+        Setter for the pixel to nanometre scaling factor attribute.
 
         Parameters
         ----------
@@ -268,31 +270,31 @@ class GrainCrop:
     @property
     def filename(self) -> str:
         """
-        Getter for the filename.
+        Getter for the ``filename`` attribute.
 
         Returns
         -------
         str
-            The image filename.
+            The image ``filename`` attribute.
         """
         return self._filename
 
     @filename.setter
     def filename(self, value: str) -> None:
         """
-        Setter for the filename.
+        Setter for the ``filename`` attribute.
 
         Parameters
         ----------
         value : str
-            Image filename.
+            Image ``filename`` attribute.
         """
         self._filename = value
 
     @property
     def height_profiles(self) -> npt.NDArray:
         """
-        Getter for the height_profile.
+        Getter for the ``height_profile`` attribute.
 
         Returns
         -------
@@ -304,12 +306,12 @@ class GrainCrop:
     @height_profiles.setter
     def height_profiles(self, value: npt.NDArray) -> None:
         """
-        Setter for the height_profile.
+        Setter for the ``height_profile`` attribute.
 
         Parameters
         ----------
         value : str
-            Image height_profile.
+            Image ``height_profile``.
         """
         self._height_profiles = value
 
@@ -336,6 +338,30 @@ class GrainCrop:
             Image stats.
         """
         self._stats = value
+
+    @property
+    def disordered_traces(self) -> dict[str:Any]:
+        """
+        Getter for the ``disordered_traces`` attribute.
+
+        Returns
+        -------
+        dict[str: Any]
+            Returns the value of ``disordered_traces``.
+        """
+        return self._disordered_traces
+
+    @disordered_traces.setter
+    def disordered_traces(self, value: dict[str:Any]) -> None:
+        """
+        Setter for the ``disordered_traces`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str: Any]
+            Value to set for ``disordered_traces``.
+        """
+        self._disordered_traces = value
 
     def __eq__(self, other: object) -> bool:
         """
@@ -633,7 +659,7 @@ class TopoStats:
     img_path : str | None
         Original path to image.
     image : npt.NDArray | None
-        Flattened image (post ''Filter()'').
+        Flattened image (post ``Filter()``).
     image_original : npt.NDArray | None
         Original image.
     topostats_version : str | None
@@ -689,7 +715,7 @@ class TopoStats:
     @image_grain_crops.setter
     def image_grain_crops(self, value: ImageGrainCrops) -> None:
         """
-        Setter for the ''image_grain_crops'' attribute.
+        Setter for the ``image_grain_crops`` attribute.
 
         Parameters
         ----------
@@ -701,7 +727,7 @@ class TopoStats:
     @property
     def filename(self) -> str:
         """
-        Getter for the ''filename'' attribute.
+        Getter for the ``filename`` attribute.
 
         Returns
         -------
@@ -713,7 +739,7 @@ class TopoStats:
     @filename.setter
     def filename(self, value: str) -> None:
         """
-        Setter for the ''filename'' attribute.
+        Setter for the ``filename`` attribute.
 
         Parameters
         ----------
@@ -725,19 +751,19 @@ class TopoStats:
     @property
     def pixel_to_nm_scaling(self) -> str:
         """
-        Getter for the ''pixel_to_nm_scaling'' attribute.
+        Getter for the ``pixel_to_nm_scaling`` attribute.
 
         Returns
         -------
         str
-            Image ''pixel_to_nm_scaling''.
+            Image ``pixel_to_nm_scaling``.
         """
         return self._pixel_to_nm_scaling
 
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: str) -> None:
         """
-        Setter for the ''pixel_to_nm_scaling'' attribute.
+        Setter for the ``pixel_to_nm_scaling`` attribute.
 
         Parameters
         ----------
@@ -749,7 +775,7 @@ class TopoStats:
     @property
     def img_path(self) -> Path:
         """
-        Getter for the ''img_path'' attribute.
+        Getter for the ``img_path`` attribute.
 
         Returns
         -------
@@ -761,7 +787,7 @@ class TopoStats:
     @img_path.setter
     def img_path(self, value: str | Path | None) -> None:
         """
-        Setter for the ''img_path'' attribute.
+        Setter for the ``img_path`` attribute.
 
         Parameters
         ----------
@@ -773,7 +799,7 @@ class TopoStats:
     @property
     def image(self) -> str:
         """
-        Getter for the ''image'' attribute, post filtering.
+        Getter for the ``image`` attribute, post filtering.
 
         Returns
         -------
@@ -785,7 +811,7 @@ class TopoStats:
     @image.setter
     def image(self, value: str) -> None:
         """
-        Setter for the ''image'' attribute.
+        Setter for the ``image`` attribute.
 
         Parameters
         ----------
@@ -797,7 +823,7 @@ class TopoStats:
     @property
     def image_original(self) -> str:
         """
-        Getter for the ''image_original'' attribute.
+        Getter for the ``image_original`` attribute.
 
         Returns
         -------
@@ -809,7 +835,7 @@ class TopoStats:
     @image_original.setter
     def image_original(self, value: str) -> None:
         """
-        Setter for the ''image_original'' attribute.
+        Setter for the ``image_original`` attribute.
 
         Parameters
         ----------
@@ -821,7 +847,7 @@ class TopoStats:
     @property
     def topostats_version(self) -> str:
         """
-        Getter for the ''topostats_version'' attribute, post filtering.
+        Getter for the ``topostats_version`` attribute, post filtering.
 
         Returns
         -------
@@ -833,7 +859,7 @@ class TopoStats:
     @topostats_version.setter
     def topostats_version(self, value: str) -> None:
         """
-        Setter for the ''topostats_version'' attribute.
+        Setter for the ``topostats_version`` attribute.
 
         Parameters
         ----------
@@ -844,11 +870,11 @@ class TopoStats:
 
     def topostats_to_dict(self) -> dict[str, str | ImageGrainCrops | npt.NDArray]:
         """
-        Convert ''TopoStats'' object to dictionary.
+        Convert ``TopoStats`` object to dictionary.
 
         Returns
         -------
         dict[str, str | ImageGrainCrops | npt.NDArray]
-            Dictionary of ''TopoStats'' object.
+            Dictionary of ``TopoStats`` object.
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
