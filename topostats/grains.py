@@ -1206,6 +1206,8 @@ class Grains:
                 Upper bound for normalising the image.
             lower_norm_bound: float
                 Lower bound for normalising the image.
+            confidence: float
+                Confidence threshold for the UNet model. Smaller is more generous, larger is more strict.
 
         Returns
         -------
@@ -1248,7 +1250,7 @@ class Grains:
             predicted_mask = predict_unet(
                 image=graincrop.image,
                 model=unet_model,
-                confidence=0.1,
+                confidence=unet_config["confidence"],
                 model_input_shape=unet_model.input_shape,
                 upper_norm_bound=unet_config["upper_norm_bound"],
                 lower_norm_bound=unet_config["lower_norm_bound"],

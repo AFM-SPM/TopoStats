@@ -195,6 +195,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "upper_norm_bound": float,
                 "lower_norm_bound": float,
                 "remove_disconnected_grains": bool,
+                "confidence": float,
             },
             "vetting": {
                 "whole_grain_size_thresholds": Or(
