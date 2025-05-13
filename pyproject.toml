@@ -63,6 +63,7 @@ tests = [
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
   "pytest-regtest==2.3.1",
+  "pytest-xdist",
   "filetype",
 ]
 docs = [
@@ -86,7 +87,6 @@ dev = [
   "pytest-durations",
   "pytest-icdiff",
   "pytest-testmon",
-  "pytest-xdist",
 ]
 pypi = [
   "build",
@@ -124,7 +124,7 @@ write_to = "topostats/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
+addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers", "--numprocesses=auto"]
 log_level = "INFO"
 log_cli = true
 log_cli_level = "INFO"
