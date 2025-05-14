@@ -857,7 +857,7 @@ def create_parser() -> arg.ArgumentParser:
         dest="unet_confidence",
         type=float,
         required=False,
-        help="Confidence threshold for the UNet model. Smaller is more generous, larger is more strict.",
+        help="Confidence threshold for the UNet model. Smaller is more generous, large is stricter.",
     )
     # Run the relevant function with the arguments
     grains_parser.set_defaults(func=run_modules.grains)
