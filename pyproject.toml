@@ -39,8 +39,8 @@ dependencies = [
   "h5py",
   "keras",
   "matplotlib",
-  "numpy",
-  "numpyencoder",
+  "numpy~=2.0.0",  # Until TensorFlow supports newer versions
+  "numpyencoder @ git+https://github.com/AFM-SPM/numpyencoder@master",
   "pandas",
   "pyyaml",
   "ruamel.yaml",
