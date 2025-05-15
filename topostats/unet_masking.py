@@ -1,7 +1,5 @@
 """Segment grains using a U-Net model."""
 
-from __future__ import annotations
-
 import logging
 
 import keras
@@ -114,6 +112,7 @@ def mean_iou(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32]):
     return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
 
 
+# pylint: disable=too-many-positional-arguments
 def predict_unet(
     image: npt.NDArray[np.float32],
     model: keras.Model,

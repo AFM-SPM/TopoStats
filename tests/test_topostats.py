@@ -1,7 +1,5 @@
 """Tests for the main module components defined in ''__init__.py''."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import numpy as np

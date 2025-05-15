@@ -1,7 +1,5 @@
 """Plotting and summary of TopoStats output statistics."""
 
-from __future__ import annotations
-
 from collections import defaultdict
 
 from importlib import resources
