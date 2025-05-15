@@ -1,7 +1,5 @@
 """Functions for measuring geometric properties of grains."""
 
-from __future__ import annotations
-
 import math
 
 import networkx
@@ -182,6 +180,7 @@ def calculate_shortest_branch_distances(
     return shortest_node_distances, shortest_distances_branch_indexes, shortest_distances_branch_coordinates
 
 
+# pylint: disable=too-many-positional-arguments
 def connect_best_matches(
     network_array_representation: npt.NDArray[np.int32],
     whole_skeleton_graph: networkx.classes.graph.Graph,

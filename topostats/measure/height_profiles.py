@@ -1,7 +1,5 @@
 """Derive height profiles across the images."""
 
-from __future__ import annotations
-
 import logging
 import warnings
 

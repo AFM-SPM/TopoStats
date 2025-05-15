@@ -9,8 +9,6 @@ During testing it was discovered that sorting points prior to derivation of uppe
 so this step was removed.
 """
 
-from __future__ import annotations
-
 import logging
 import warnings
 from collections.abc import Generator
@@ -427,7 +425,8 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     return results
 
 
-def plot_feret(  # pylint: disable=too-many-arguments,too-many-locals # noqa: C901
+# pylint: disable=too-many-arguments,too-many-locals
+def plot_feret(  # noqa: C901
     points: npt.NDArray,
     axis: int = 0,
     plot_points: str | None = "k",

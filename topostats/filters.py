@@ -1,7 +1,5 @@
 """Module for filtering 2D Numpy arrays."""
 
-from __future__ import annotations
-
 import logging
 
 import numpy as np
@@ -515,7 +513,8 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         Examples
         --------
         from topostats.io import LoadScan
-        from topostats.topotracing import Filter, process_scan
+        from topostats.filters import Filter
+        from topostats.processing import process_scan
 
         filter = Filter(image=load_scan.image,
         ...             pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,

@@ -5,8 +5,6 @@ This provide entry points for running TopoStats as a command line programme. Eac
 wrapper which runs various functions from the ''processing'' module in parallel.
 """
 
-from __future__ import annotations
-
 import argparse
 import logging
 import sys

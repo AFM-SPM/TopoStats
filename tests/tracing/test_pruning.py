@@ -1,7 +1,5 @@
 """Test the skeletonize module."""
 
-from __future__ import annotations
-
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -17,6 +15,7 @@ from topostats.tracing.pruning import (
 # pylint: disable=too-many-lines
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 
 @pytest.mark.parametrize(

@@ -13,12 +13,9 @@ issue](https://github.com/AFM-SPM/TopoStats/issues/new/choose) using one of the 
 
 ### Cloning the repository
 
-If you wish to make changes yourself you will have to
-[fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository to your own account and then [clone
-that](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) if you are not
-a member of AFM-SPM Organisation. If you are a member then you can [clone the
-repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) and make
-contributions directly.
+If you wish to make changes yourself you will have to [fork][git_fork] the repository to your own account and then
+[clone that][git_clone] if you are not a member of AFM-SPM Organisation. If you are a member then you can [clone the
+repository][git_clone] and make contributions directly.
 
 ```bash
 # Member of AFM-SPM Organisation
@@ -172,7 +169,9 @@ the file you wish to debug and use the `@snoop` decorator around the function/me
 
 As described in [Parameter Configuration](configuration) options are primarily passed to TopoStats via a
 [YAML](https://yaml.org) configuration file. When introducing new features that require configuration options you will
-have to ensure that the default configuration file (`topostats/default.yaml`) is updated to include your options.
+have to ensure that the default configuration file (`topostats/default.yaml`) is updated to include your options and
+that corresponding arguments are added to the entry point (please refer to [Adding Modules](contributing/adding_modules)
+page which covers this).
 
 Further the `topostats.validation.validate.config()` function, which checks a valid configuration file with all necessary
 fields has been passed when invoking `topostats` sub-commands, will also need updating to include new options in the
@@ -191,3 +190,6 @@ so are provided.
 - [Code Quality Assistance Tips and Tricks, or How to Make Your Code Look Pretty? |
   PyCharm](https://www.jetbrains.com/help/pycharm/tutorial-code-quality-assistance-tips-and-tricks.html#525ee883)
 - [Reformat and rearrange code | PyCharm](https://www.jetbrains.com/help/pycharm/reformat-and-rearrange-code.html)
+
+[git_clone]: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
+[git_fork]: https://docs.github.com/en/get-started/quickstart/fork-a-repo
