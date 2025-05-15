@@ -36,16 +36,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-statements
 
 
-class NodeDict(TypedDict):
-    """Dictionary containing the node information."""
-
-    error: bool
-    pixel_to_nm_scaling: np.float64
-    branch_stats: dict[int, MatchedBranch] | None
-    node_coords: npt.NDArray[np.int32] | None
-    confidence: np.float64 | None
-
-
 class MatchedBranch(TypedDict):
     """
     Dictionary containing the matched branches.
@@ -65,6 +55,16 @@ class MatchedBranch(TypedDict):
     distances: npt.NDArray[np.number]
     fwhm: dict[str, np.float64 | tuple[np.float64]]
     angles: np.float64 | None
+
+
+class NodeDict(TypedDict):
+    """Dictionary containing the node information."""
+
+    error: bool
+    pixel_to_nm_scaling: np.float64
+    branch_stats: dict[int, MatchedBranch] | None
+    node_coords: npt.NDArray[np.int32] | None
+    confidence: np.float64 | None
 
 
 class ImageDict(TypedDict):
