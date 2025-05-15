@@ -21,7 +21,6 @@ authors = [
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Natural Language :: English",
@@ -33,13 +32,13 @@ keywords = [
   "afm",
   "image processing"
 ]
-requires-python = ">=3.9, <3.12"
+requires-python = ">=3.10, <3.12"
 dependencies = [
   "art",
   "AFMReader @ git+https://github.com/AFM-SPM/AFMReader@main",
   "h5py",
   "keras",
-  "matplotlib~=3.9.4",
+  "matplotlib",
   "numpy",
   "numpyencoder",
   "pandas",
@@ -123,7 +122,7 @@ write_to = "topostats/_version.py"
 
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "8.0"
 addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers", "--numprocesses=auto"]
 log_level = "INFO"
 log_cli = true
@@ -148,7 +147,7 @@ omit = [
 
 [tool.black]
 line-length = 120
-target-version = ['py38']
+target-version = ['py310']
 exclude = '''
 
 (
@@ -191,6 +190,7 @@ exclude = [
 ]
 # per-file-ignores = []
 line-length = 120
+
 [tool.ruff.lint]
 select = [
   "A", # flake8-builtins
