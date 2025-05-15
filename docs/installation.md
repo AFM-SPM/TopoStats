@@ -10,8 +10,8 @@ Windows you should use
 You may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install and use TopoStats under the Virtual
-Environment. The versions of Python supported are Python >=3.8 and so when creating your virtual environment you should
-specify this `3.8` as the minimum.
+Environment. The versions of Python supported are Python >=3.10 and <= 3.11 and so when creating your virtual
+environment you should specify this `3.10` as the minimum.
 
 ## Setting up Conda
 
@@ -21,7 +21,7 @@ virtual environment for installing TopoStats for installing and running TopoStat
 as per the instructions printed out, activate the environment.
 
 ```bash
-conda create --name topostats python=3.10
+conda create --name topostats python=3.11
 conda activate topostats
 ```
 
@@ -32,7 +32,7 @@ You are now ready to install TopoStats.
 
 ## Installing TopoStats
 
-There are two options for installing TopoStats depending on your usage
+There are two options for installing TopoStats depending on your usage.
 
 1. [**Python Package Index**](https://pypi.org/) - appropriate if you are just using TopoStats and don't need to dig into
    the code.
@@ -55,7 +55,7 @@ command line. It has a number of sub-commands which can be displayed by invoking
 pip install --upgrade topostats
 ```
 
-You can always install a specific version from PyPI
+You can always install a specific version from PyPI.
 
 ```bash
 pip install topostats==2.0.0
@@ -71,15 +71,12 @@ You may wish to consider cloning and installing TopoStats from GitHub if...
 - You wish to try out new features that have been developed since the last release (if you find problems please create
   an [issue](https://github.com/AFM-SPM/TopoStats/issues)).
 - If you have found an issue in a released version and want to see if it has been fixed in the unreleased version.
-- If you wish to develop and extend TopoStats with new features yourself.
+- If you wish to contribute to the development and extend TopoStats with new features.
 
 There are two options to install from GitHub, which you use will depend on what you want to do.
 
-1. Using PyPI to install directly.
-2. Clone the repository and install from there.
-
-If all you want to do is use the development version of TopoStats then you can use option 1. If you wish to change the
-underlying code you should use option 2.
+1. **Using PyPI to install directly** - use this option if you have no intention of modifying code.
+2. **Clone the repository and install from there** - use this option if you wish to modify code and make contributions.
 
 #### Installing from GitHub using PyPI
 
@@ -91,7 +88,8 @@ pip install git+https://github.com/AFM-SPM/TopoStats.git@main
 ```
 
 You can install any branch on GitHub by modifying the last argument (`@main`) to the branch you wish to install,
-e.g. `@another_branch` would install the `another_branch` (if it existed).
+e.g. `@another_branch` would install the `another_branch` (if it existed). You can even specify specific commits if you
+wish.
 
 #### Cloning the Repository and installing
 
@@ -113,12 +111,12 @@ If you plan to contribute to development by adding features or address an existi
 [issue](https://github.com/AFM-SPM/TopoStats/issues) please refer to the [contributing](contributing) section and pay
 particular attention to the section about installing additional dependencies.
 
-We include [notebooks](notebooks) which show how to use different aspects of TopoStats. If you wish to try these out the
+We include [notebooks](notebooks) which show how to use different aspects of TopoStats. If you wish to try out the
 [Jupyter Noteooks](https://jupyter.org/) then you can install the dependencies that are required from the cloned
 TopoStats repository using...
 
 ```bash
-pip install ".[notebooks]"
+pip install .[notebooks]
 ```
 
 #### Cloning Using GitKraken
@@ -139,7 +137,7 @@ the tests. Install the necessary dependencies to do so with...
 ```bash
 cd TopoStats
 git checkout dev
-pip install ".[tests]"
+pip install .[tests]
 pytest
 ```
 

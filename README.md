@@ -47,6 +47,9 @@ pip install topostats
 For more on installation and how to upgrade please see the [installation
 instructions](https://afm-spm.github.io/TopoStats/main/installation.html).
 
+**NB** The minimum supported version of Python is >=3.10 and because of a constraint in a dependency the maximum
+supported version is <= 3.11 (for now, we hope to support newer versions in the near future).
+
 ## How to Use
 
 ### Tutorials and Examples
@@ -87,7 +90,7 @@ to run the processing again. See the documentation on
 
 ## Contributing
 
-See [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html).
+Please refer to our [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html) documentation.
 
 ## Licence
 
@@ -95,7 +98,8 @@ See [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contribut
 
 ## Citation
 
-Please use the [Citation File Format](https://citation-file-format.github.io/) which is available in this repository.
+If you use TopoStats in your work or research please cite us. There is a [Citation File
+Format](https://citation-file-format.github.io/) in this repository to aid citation.
 
 ### Publications
 
