@@ -1,7 +1,5 @@
 """Order single pixel skeletons with or without NodeStats Statistics."""
 
-from __future__ import annotations
-
 import logging
 from itertools import combinations
 

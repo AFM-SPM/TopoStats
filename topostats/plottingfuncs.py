@@ -1,7 +1,5 @@
 """Plotting data."""
 
-from __future__ import annotations
-
 import logging
 from importlib import resources
 from pathlib import Path

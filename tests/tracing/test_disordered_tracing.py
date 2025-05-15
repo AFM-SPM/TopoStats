@@ -2,8 +2,6 @@
 # ruff: noqa: S301
 """Test the disordered tracing module."""
 
-from __future__ import annotations
-
 import logging
 import pickle as pkl
 from pathlib import Path

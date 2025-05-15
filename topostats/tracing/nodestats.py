@@ -1,7 +1,5 @@
 """Perform Crossing Region Processing and Analysis."""
 
-from __future__ import annotations
-
 import logging
 from itertools import combinations
 from typing import TypedDict
@@ -28,6 +26,7 @@ from topostats.utils import ResolutionError, convolve_skeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-lines

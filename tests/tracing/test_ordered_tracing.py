@@ -20,6 +20,7 @@ DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "d
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 
 GRAINS = {}
 GRAINS["vertical"] = np.asarray(

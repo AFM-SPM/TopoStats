@@ -2,8 +2,6 @@
 # ruff: noqa: S301
 """Fixtures for testing."""
 
-from __future__ import annotations
-
 import importlib.resources as pkg_resources
 import pickle
 from pathlib import Path
