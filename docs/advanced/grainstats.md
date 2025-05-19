@@ -25,7 +25,7 @@ The metrics are briefly summarised in the table below:
 ![Grain Stats image table pt1](../_static/images/grainstats/ts2_gs_metrics.png)
 
 ## The `all_statistics.csv` file
-The `all_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`, and `subgrain_number`, described below. Note that `class_number` will always be 1 if standard grain finding or a binary U-Net model is used for segmentation, but more classes will be included if multi-class segmentation approaches are used. 
+The `all_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`, and `subgrain_number`, described below. Note that `class_number` will always be constant if standard grain finding or a binary U-Net model is used for segmentation, but more classes will be included if multi-class segmentation approaches are used. You can define custom class names within the `grainstats` section of the config file to replace numeric values in the `class_number` column with meaningful labels. This can be particularly useful for downstream analysis of extracted metrics.
 
 | Column Name        | Description                                                                                                                                               |
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
