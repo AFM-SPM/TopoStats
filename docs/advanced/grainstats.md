@@ -25,9 +25,13 @@ The metrics are briefly summarised in the table below:
 ![Grain Stats image table pt1](../_static/images/grainstats/ts2_gs_metrics.png)
 
 ## The `all_statistics.csv` file
+The `all_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`, and `subgrain_number`, described below. Note that `class_number` will always be 1 if standard grain finding or a binary U-Net model is used for segmentation, but more classes will be included if multi-class segmentation approaches are used. 
 
 | Column Name        | Description                                                                                                                                               |
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `grain_number`     | Index of the original grain identified through standard grain finding.                                                                                    |
 | `class_number`     | Class assigned during multi-class segmentation.                                                                                                           |
 | `subgrain_number`  | Index of the sub-region (subgrain) within a grain for a specific class.<br>If multiple regions of the same class are found in one grain, they are numbered sequentially. |                                                                                                        |
+
+A visual example of the labelling procedure is provided below.
+![grain-class-subgrain](../_static/images/grainstats/methods-09.png)
