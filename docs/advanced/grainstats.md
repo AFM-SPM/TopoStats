@@ -2,7 +2,7 @@
 
 ## At a Glance - Measures Objects
 
-TopoStats automatically tries to measure the grains (objects of interest) found in the grain finding section, in your
+TopoStats automatically measures the grains (objects of interest) found in the grain finding section, in your
 AFM images, and outputs them into the `all_statistics.csv` file.
 
 The metrics are briefly summarised in the table below:
@@ -23,3 +23,11 @@ The metrics are briefly summarised in the table below:
 &nbsp;
 
 ![Grain Stats image table pt1](../_static/images/grainstats/ts2_gs_metrics.png)
+
+## The `all_statistics.csv` file
+
+| Column Name        | Description                                                                                                                                               |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `grain_number`     | Index of the original grain identified through standard grain finding.                                                                                    |
+| `class_number`     | Class assigned during multi-class segmentation.                                                                                                           |
+| `subgrain_number`  | Index of the sub-region (subgrain) within a grain for a specific class.<br>If multiple regions of the same class are found in one grain, they are numbered sequentially. |                                                                                                        |
