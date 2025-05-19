@@ -33,5 +33,5 @@ The `all_statistics.csv` file lists metrics for each unique combination of `grai
 | `class_number`     | Class assigned during multi-class segmentation.                                                                                                           |
 | `subgrain_number`  | Index of the sub-region (subgrain) within a grain for a specific class.<br>If multiple regions of the same class are found in one grain, they are numbered sequentially. |                                                                                                        |
 
-A visual example of the labelling procedure is provided below.
+A visual example of the labelling procedure is provided below and is described in greater depth within `grain_finding` documentation.
 ![grain-class-subgrain](../_static/images/grainstats/methods-09.png)
