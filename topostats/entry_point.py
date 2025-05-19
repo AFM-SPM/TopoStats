@@ -345,6 +345,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Whether or not to remove grains that are disconnected from the original mask",
     )
+    process_parser.add_argument(
+        "--unet-confidence",
+        dest="unet_confidence",
+        type=float,
+        required=False,
+        help="Confidence threshold for the UNet model. Smaller is more generous, large is stricter.",
+    )
 
     # Grainstats
     process_parser.add_argument(
@@ -844,6 +851,13 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Whether or not to remove grains that are disconnected from the original mask",
+    )
+    grains_parser.add_argument(
+        "--unet-confidence",
+        dest="unet_confidence",
+        type=float,
+        required=False,
+        help="Confidence threshold for the UNet model. Smaller is more generous, large is stricter.",
     )
     # Run the relevant function with the arguments
     grains_parser.set_defaults(func=run_modules.grains)
