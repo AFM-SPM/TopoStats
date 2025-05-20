@@ -31,11 +31,12 @@ but more classes will be included if multi-class segmentation approaches are use
 the `grainstats` section of the config file to replace numeric values in the `class_number` column with meaningful labels. 
 This can be particularly useful for downstream analysis of extracted metrics.
 
-| Column Name        | Description                                                                                                                                               |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `grain_number`     | Index of the original grain identified through standard grain finding.                                                                                    |
-| `class_number`     | Class assigned during multi-class segmentation.                                                                                                           |
-| `subgrain_number`  | Index of the sub-region (subgrain) within a grain for a specific class.<br>If multiple regions of the same class are found in one grain, they are numbered sequentially. |                                                                                                        |
+| Column Name       | Description                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| `grain_number`    | Index of the original grain identified through standard grain finding.                                                                                                   |
+| `class_number`    | Class assigned during multi-class segmentation.                                                                                                                          |
+| `subgrain_number` | Index of the sub-region (subgrain) within a grain for a specific class.<br>If multiple regions of the same class are found in one grain, they are numbered sequentially. |     |
 
-A visual example of the labelling procedure is provided below and is described in greater depth within `grain_finding` documentation.
+A visual example of the labelling procedure is provided below and is
+described in greater depth within `grain_finding` documentation.
 ![grain-class-subgrain](../_static/images/grainstats/methods-09.png)

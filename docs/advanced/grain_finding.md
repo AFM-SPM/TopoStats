@@ -143,11 +143,12 @@ Here is an example of multi-class masking using a U-Net which was used for one o
 
 ### Vetting steps
 
-TopoStats offers a number of vetting steps that can be used to optimise multi-class masking. These can be found 
+TopoStats offers a number of vetting steps that can be used to optimise multi-class masking. These can be found
 under the `vetting` heading within the `grains` config. Each of the vetting steps is described below, these can
-either be used in isolation or in combination, but will be performed in the order in which they are listed within 
+either be used in isolation or in combination, but will be performed in the order in which they are listed within
 the config file.
 ![vetting](../_static/images/grain_finding/vetting.png)
+
 ## Technical details
 
 ### Details: Multi-class masking
