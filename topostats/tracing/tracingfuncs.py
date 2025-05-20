@@ -1,6 +1,5 @@
 """Miscellaneous tracing functions."""
 
-from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
@@ -467,9 +466,7 @@ def order_branch(binary_image: npt.NDArray, anchor: list):
     return np.array(ordered)
 
 
-def order_branch_from_start(
-    nodeless: npt.NDArray, start: npt.NDArray, max_length: float | np.inf = np.inf
-) -> npt.NDArray:
+def order_branch_from_start(nodeless: npt.NDArray, start: npt.NDArray, max_length: float = np.inf) -> npt.NDArray:
     """
     Order an unbranching skeleton from an end (startpoint) along a specified length.
 

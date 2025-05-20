@@ -1,7 +1,5 @@
 """Tests for feret functions."""
 
-from __future__ import annotations
-
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -12,6 +10,7 @@ from topostats.measure import feret
 # pylint: disable=protected-access
 # pylint: disable=too-many-lines
 # pylint: disable=fixme
+# pylint: disable=too-many-positional-arguments
 
 POINT1 = (0, 0)
 POINT2 = (1, 0)

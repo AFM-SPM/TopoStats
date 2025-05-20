@@ -15,5 +15,6 @@ globs:
 
 ignores:
   - "tmp/"
+  - "paper.md"
 
 fix: true
