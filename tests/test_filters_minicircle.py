@@ -1,10 +1,13 @@
 """Tests of the filters module."""
 
+from collections import defaultdict
+
 # + pylint: disable=invalid-name
 import numpy as np
 import pytest
 
 from topostats.filters import Filters
+from topostats.io import dict_almost_equal
 
 
 def test_median_flatten_unmasked(minicircle_initial_median_flatten: Filters) -> None:
@@ -39,8 +42,8 @@ def test_get_threshold_otsu(minicircle_threshold_otsu: np.array) -> None:
 def test_get_threshold_stddev(minicircle_threshold_stddev: np.array) -> None:
     """Test calculation of threshold."""
     assert isinstance(minicircle_threshold_stddev.thresholds, dict)
-    assert minicircle_threshold_stddev.thresholds == pytest.approx(
-        {"below": [-7.484708050736529], "above": [0.4990958836019106]}
+    assert dict_almost_equal(
+        minicircle_threshold_stddev.thresholds, {"below": [-7.484708050736529], "above": [0.4990958836019106]}
     )
 
 

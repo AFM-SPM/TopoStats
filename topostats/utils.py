@@ -2,7 +2,6 @@
 
 import logging
 from argparse import Namespace
-from collections import defaultdict
 from pathlib import Path
 from pprint import pformat
 
@@ -266,7 +265,7 @@ def get_thresholds(  # noqa: C901
     dict[str, list[float]]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
-    thresholds: dict[str, list[float]] = defaultdict()
+    thresholds: dict[str, list[float]] = {}
     if threshold_method == "otsu":
         assert (
             otsu_threshold_multiplier is not None
