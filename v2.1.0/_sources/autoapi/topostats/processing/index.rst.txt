@@ -1,0 +1,145 @@
+topostats.processing
+====================
+
+.. py:module:: topostats.processing
+
+.. autoapi-nested-parse::
+
+   Functions for procesing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.processing.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.processing.process_scan
+   topostats.processing.check_run_steps
+   topostats.processing.completion_message
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: process_scan(img_path_px2nm: Dict[str, Union[numpy.ndarray, pathlib.Path, float]], base_dir: Union[str, pathlib.Path], filter_config: dict, grains_config: dict, grainstats_config: dict, dnatracing_config: dict, plotting_config: dict, output_dir: Union[str, pathlib.Path] = 'output') -> None
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param img_path_px2nm: A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+   :type img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param dnatracing_config: Dictionary of configuration options for running the DNA Tracing stage.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: Union[str, Path]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None
+
+   
+   Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+   This checks that earlier steps required are enabled.
+
+   :param filter_run: Flag for running Filtering.
+   :type filter_run: bool
+   :param grains_run: Flag for running Grains.
+   :type grains_run: bool
+   :param grainstats_run: Flag for running GrainStats.
+   :type grainstats_run: bool
+   :param dnatracing_run: Flag for running DNA Tracing.
+   :type dnatracing_run: bool
+
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: completion_message(config: Dict, img_files: List, summary_config: Dict, images_processed: int) -> None
+
+   
+   Print a completion message summarising images processed.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param img_files: List of found image paths.
+   :type img_files: list()
+   :param summary_config: Configuration for plotting summary statistics.
+   :type summary_config: dict(
+   :param images_processed: Pandas DataFrame of results.
+   :type images_processed: int
+   :param Results:
+   :param -------:
+   :param None:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
