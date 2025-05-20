@@ -1,7 +1,5 @@
 """Tests of the filters module."""
 
-from collections import defaultdict
-
 # + pylint: disable=invalid-name
 import numpy as np
 import pytest
