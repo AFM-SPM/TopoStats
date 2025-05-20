@@ -282,6 +282,20 @@ def test_load_array() -> None:
             True,
             id="nan equal",
         ),
+        pytest.param(
+            {"a": [0.001, 0.002]},
+            {"a": [0.001, 0.002]},
+            0.001,
+            True,
+            id="Nested lists equal",
+        ),
+        pytest.param(
+            {"a": [0.01, 0.02]},
+            {"a": [0.02, 0.01]},
+            0.0001,
+            False,
+            id="Nested lists not equal",
+        ),
     ],
 )
 def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected: bool) -> None:

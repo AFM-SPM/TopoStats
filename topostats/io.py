@@ -72,6 +72,8 @@ def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa:
     """
     Recursively check if two dictionaries are almost equal with a given absolute tolerance.
 
+    If the values of a dictionary are lists pairwise comparisons are made.
+
     Parameters
     ----------
     dict1 : dict
@@ -107,7 +109,14 @@ def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa:
                 if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
                     LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                     return False
-
+        elif isinstance(dict1[key], list) and isinstance(dict2[key], list):
+            for idx, _ in enumerate(dict1[key]):
+                if not np.isclose(dict1[key][idx], dict2[key][idx], atol=abs_tol):
+                    print(
+                        f"Key {key} type: {type(dict1[key])} not equal at element {idx} : "
+                        f"{dict1[key][idx]} != {dict2[key][idx]}"
+                    )
+                    return False
         elif dict1[key] != dict2[key]:
             LOGGER.debug(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
             return False
