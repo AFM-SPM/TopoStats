@@ -2,7 +2,7 @@
 
 ## At a Glance - Measures Objects
 
-TopoStats automatically tries to measure the grains (objects of interest) found in the grain finding section, in your
+TopoStats automatically measures the grains (objects of interest) found in the grain finding section, in your
 AFM images, and outputs them into the `all_statistics.csv` file.
 
 The metrics are briefly summarised in the table below:
@@ -23,3 +23,22 @@ The metrics are briefly summarised in the table below:
 &nbsp;
 
 ![Grain Stats image table pt1](../_static/images/grainstats/ts2_gs_metrics.png)
+
+## The `all_statistics.csv` file
+
+The `all_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`,
+and `subgrain_number`, described below. Note that `class_number` will always be constant if standard grain finding
+or a binary U-Net model is used for segmentation, but more classes will be included if
+multi-class segmentation approaches are used. You can define custom class names within the `grainstats` section
+of the config file to replace numeric values in the `class_number` column with meaningful labels.
+This can be particularly useful for downstream analysis of extracted metrics.
+
+| Column Name       | Description                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `grain_number`    | Index of the original grain identified through standard grain finding.                                                                                                   |
+| `class_number`    | Class assigned during multi-class segmentation.                                                                                                                          |
+| `subgrain_number` | Index of a sub-region (subgrain) within a grain for a specific class. <br> If multiple regions of the same class are found in one grain, they are numbered sequentially. |
+
+A visual example of the labelling procedure is provided below and is
+described in greater depth within `grain_finding` documentation.
+![grain-class-subgrain](../_static/images/grainstats/methods-09.png)
