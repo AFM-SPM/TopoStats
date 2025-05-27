@@ -381,6 +381,8 @@ def save_folder_grainstats(
     None
         This only saves the dataframes and does not retain them.
     """
+    print(f"@@@@@@@@@@ calling save_folder_grainstats() with output dir {output_dir}, stats_filename {stats_filename}")
+    print(f"@@@@@@@@@@ {all_stats_df.columns}")
     dirs = set(all_stats_df["basename"].values)
     LOGGER.debug(f"Statistics :\n{all_stats_df}")
     for _dir in dirs:

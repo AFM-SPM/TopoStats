@@ -160,6 +160,10 @@ class TopoSum:
         self.label = None
 
         # melt the data given in the init method
+        print(f"@@@@@@@ melting data in plotting.py. self.df.columns: {self.df.columns}")
+        print(f"@@@@@@@ image_id: {self.image_id}")
+        print(f"@@@@@@@ molecule_id: {self.molecule_id}")
+        print(f"@@@@@@@ stat_to_sum: {self.stat_to_sum}")
         self.melted_data = self.melt_data(self.df, stat_to_summarize=self.stat_to_sum, var_to_label=self.var_to_label)
         convert_basename_to_relative_paths(df=self.melted_data)
         self.set_palette()

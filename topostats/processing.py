@@ -219,7 +219,9 @@ def run_grains(  # noqa: C901
                         for grain_number, grain_crop in direction_grain_crops.crops.items():
                             # Crop image plot
                             crop_image = grain_crop.image
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"][
+                                "filename"
+                            ] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
@@ -422,6 +424,8 @@ def run_disordered_tracing(
 
         if grainstats_df is None:
             grainstats_df = create_empty_dataframe(column_set="grainstats")
+            # check no nans in the basename column
+            assert grainstats_df["basename"].notna().all(), "NaN values found in basename column of grainstats_df"
 
         disordered_traces = defaultdict()
         disordered_trace_grainstats = pd.DataFrame()
@@ -452,6 +456,7 @@ def run_disordered_tracing(
                 disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
                 disordered_tracing_stats["threshold"] = direction
                 disordered_tracing_stats["basename"] = basename.parent
+                assert basename.parent is not None, "basename.parent should not be None"
                 disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
@@ -471,6 +476,24 @@ def run_disordered_tracing(
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
             # merge grainstats data with other dataframe
+            # debug save disordered_trace_grainstats to csv
+            disordered_trace_grainstats.to_csv(
+                core_out_path / f"20250527_debug_{filename}_disordered_trace_grainstats.csv", index=False
+            )
+            # debug save grainstats_df to csv
+            grainstats_df.to_csv(core_out_path / f"20250527_debug_{filename}_grainstats.csv", index=False)
+            # check no nans in the basename column
+            if grainstats_df is None:
+                print(
+                    f"@@ grainstats_df is None, using disordered_trace_grainstats instead of merging with grainstats_df"
+                )
+            assert grainstats_df["basename"].notna().all(), "NaN values found in basename column of grainstats_df"
+            assert (
+                "basename" in disordered_trace_grainstats.columns
+            ), "basename column not found in disordered_trace_grainstats"
+            assert (
+                disordered_trace_grainstats["basename"].notna().all()
+            ), "NaN values found in basename column of disordered_trace_grainstats"
             resultant_grainstats = (
                 pd.merge(
                     grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
@@ -478,7 +501,21 @@ def run_disordered_tracing(
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
+            assert (
+                resultant_grainstats["basename"].notna().all()
+            ), "NaN values found in basename column of resultant_grainstats"
             LOGGER.info(f"[{filename}] : Disordered Tracing stage completed successfully.")
+            assert (
+                "basename" in disordered_tracing_stats_image.columns
+            ), "basename column not found in disordered_tracing_stats_image"
+            # check no nans in basename column
+            assert (
+                disordered_tracing_stats_image["basename"].notna().all()
+            ), "NaN values found in basename column of disordered_tracing_stats_image"
+            # check resultant grainstats df has no nans in basename column
+            assert (
+                resultant_grainstats["basename"].notna().all()
+            ), "NaN values found in basename column of resultant_grainstats"
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
         except ValueError as e:
             LOGGER.info(f"[{filename}] : Disordered tracing failed with ValueError {e}")
@@ -488,13 +525,23 @@ def run_disordered_tracing(
                 f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
+            raise e
+
+        empty_df = create_empty_dataframe(column_set="disordered_tracing_statistics")
+        # check no nans in basename of this dataframe
+        assert (
+            empty_df["basename"].notna().all()
+        ), "NaN values found in basename column of disordered_tracing_stats_image"
         return (
             disordered_traces,
             grainstats_df,
-            create_empty_dataframe(column_set="disordered_tracing_statistics"),
+            empty_df,
         )
     LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
-    return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics")
+    empty_df = create_empty_dataframe(column_set="disordered_tracing_statistics")
+    # check no nans in basename of this dataframe
+    assert empty_df["basename"].notna().all(), "NaN values found in basename column of disordered_tracing_stats_image"
+    return None, grainstats_df, empty_df
 
 
 def run_nodestats(  # noqa: C901
@@ -1150,6 +1197,9 @@ def process_scan(
         )
         topostats_object["height_profiles"] = height_profiles
 
+        # check no nans in the grainstats_df col basename
+        assert not grainstats_df["basename"].isna().any(), "basename column contains nans in grainstats_df."
+
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
             full_image=topostats_object["image"],
@@ -1165,6 +1215,9 @@ def process_scan(
         )
         topostats_object["disordered_traces"] = disordered_traces_data
 
+        # check no nans in the grainstats_df col basename
+        assert not grainstats_df["basename"].isna().any(), "basename column contains nans in grainstats_df."
+
         # Nodestats
         nodestats, grainstats_df = run_nodestats(
             image=topostats_object["image"],
@@ -1177,6 +1230,9 @@ def process_scan(
             nodestats_config=nodestats_config,
             grainstats_df=grainstats_df,
         )
+
+        # check no nans in the grainstats_df col basename
+        assert not grainstats_df["basename"].isna().any(), "basename column contains nans in grainstats_df."
 
         # Ordered Tracing
         ordered_tracing, grainstats_df, molstats_df = run_ordered_tracing(
@@ -1194,6 +1250,9 @@ def process_scan(
         topostats_object["ordered_traces"] = ordered_tracing
         topostats_object["nodestats"] = nodestats  # looks weird but ordered adds an extra field
 
+        # check no nans in the grainstats_df col basename
+        assert not grainstats_df["basename"].isna().any(), "basename column contains nans in grainstats_df."
+
         # splining
         splined_data, grainstats_df, molstats_df = run_splining(
             image=topostats_object["image"],
@@ -1208,6 +1267,9 @@ def process_scan(
         )
         # Add grain trace data to topostats object
         topostats_object["splining"] = splined_data
+
+        # check no nans in the grainstats_df col basename
+        assert not grainstats_df["basename"].isna().any(), "basename column contains nans in grainstats_df."
 
         # Curvature Stats
         grain_curvature_stats_dict = run_curvature_stats(
@@ -1252,6 +1314,18 @@ def process_scan(
         filename=str(topostats_object["filename"]),
         topostats_object=topostats_object,
     )
+
+    assert "basename" in grainstats_df.columns, "basename column not found in grainstats_df at end of processing."
+    # check there are no nans in grainstats_df col basename
+    assert (
+        not grainstats_df["basename"].isna().any()
+    ), "basename column contains nans in grainstats_df at end of processing."
+    # check there are no nans in disordered_tracing_stats col basename
+    assert (
+        not disordered_tracing_stats["basename"].isna().any()
+    ), "basename column contains nans in disordered_tracing_stats at end of processing."
+    # check there are no nans in nodestats col basename
+    assert not nodestats["basename"].isna().any(), "basename column contains nans in nodestats at end of processing."
 
     return (
         topostats_object["img_path"],

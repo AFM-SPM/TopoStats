@@ -258,7 +258,17 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result.dropna(axis=1, how="all")
+                assert "basename" in result.columns, "No basename found in results"
+                # save the df to csv
+                print(f"result columns pre nandrop: {result.columns}")
+                print(f"result index pre nandrop: {result.index}")
+                result.to_csv(config["output_dir"] / f"debug_{img.name}_grainstats_before_nandrop.csv")
+                result_dropped_na = result.dropna(axis=1, how="all")
+                print(f"result columns post nandrop: {result.columns}")
+                print(f"result index post nandrop: {result.index}")
+                result_dropped_na.to_csv(config["output_dir"] / f"debug_{img.name}_grainstats_after_nandrop.csv")
+                assert "basename" in result_dropped_na.columns, "No basename found in results"
+                results[str(img)] = result_dropped_na
                 disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
                 mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
                 pbar.update()
@@ -278,20 +288,38 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
 
+    # assert "basename" in image_stats_all_df.columns, "No basename found in image stats results"
     try:
+        print(type(results))
+        print(results)
+        # check each df in results has "basename" in cols
+        no_basename = []
+        has_basename = []
+        for key, df in results.items():
+            if "basename" not in df.columns:
+                no_basename.append(key)
+            else:
+                has_basename.append(key)
+        print(f"Results with basename: {has_basename}")
+        print(f"Results without basename: {no_basename}")
         results = pd.concat(results.values())
+        assert "basename" in results.columns, "No basename found in results"
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
 
     try:
         disordered_trace_results = pd.concat(disordered_trace_results.values())
+        # check "basename" in cols
+        assert "basename" in disordered_trace_results.columns, "No basename found in disordered trace results"
     except ValueError as error:
         LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
         LOGGER.error(error)
 
     try:
         mols_results = pd.concat(mols_results.values())
+        # check "basename" in cols
+        assert "basename" in mols_results.columns, "No basename found in disordered trace results"
     except ValueError as error:
         LOGGER.error("No mols found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
@@ -334,6 +362,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
                 # Plot summaries
+                assert "basename" in results.columns, "No basename found in results"
                 summary_config["df"] = results.reset_index()
                 toposum(summary_config)
             else:

@@ -329,6 +329,7 @@ def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     pd.DataFrame
         Empty Pandas DataFrame.
     """
+    print(f"creating empty dataframe")
     return pd.DataFrame(columns=COLUMN_SETS[column_set])
 
 
