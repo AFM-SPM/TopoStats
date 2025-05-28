@@ -11,10 +11,9 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytest
-from test_io import dict_almost_equal
 
 from topostats.grains import GrainCrop, GrainCropsDirection, ImageGrainCrops
-from topostats.io import LoadScans, hdf5_to_dict
+from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
     check_run_steps,

@@ -1,7 +1,5 @@
 """Prune branches from skeletons."""
 
-from __future__ import annotations
-
 import logging
 from collections.abc import Callable
 
@@ -207,6 +205,7 @@ def _prune_topostats(img: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scalin
 
 
 # Might be worth renaming this to reflect what it does which is prune by length and height
+# pylint: disable=too-many-instance-attributes
 class topostatsPrune:
     """
     Prune spurious skeletal branches based on their length and/or height.
@@ -236,6 +235,7 @@ class topostatsPrune:
     """
 
     # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         img: npt.NDArray,
@@ -410,6 +410,8 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
         Whether to only prune endpoints by height, or all skeleton segments. Default is True.
     """  # numpydoc: ignore=PR01
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         image: npt.NDArray,
