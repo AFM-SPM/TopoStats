@@ -397,6 +397,54 @@ def pad_crop(
     return padded_crop, new_bounding_box
 
 
+def pad_bounding_box_dynamically_at_limits_bounds(
+    bbox: tuple[int, int, int, int],
+    limits: tuple[int, int, int, int],
+    padding: int,
+) -> tuple[int, int, int, int]:
+    """
+    Pad a bounding box within limits. If the padding would exceed the limits bounds, pad in the other direction.
+
+    Parameters
+    ----------
+    bbox : tuple[int, int, int, int]
+        The bounding box to pad.
+    limits : tuple[int, int, int, int]
+        The region to limit the bounding box to in the form (min_row, min_col, max_row, max_col).
+    padding : int
+        The padding to apply to the bounding box.
+
+    Returns
+    -------
+    tuple[int, int, int, int]
+        The new bounding box indices.
+    """
+    # check that the padded size is smaller than the limits
+    proposed_size = (
+        bbox[2] - bbox[0] + 2 * padding,
+        bbox[3] - bbox[1] + 2 * padding,
+    )
+    limits_size = (
+        limits[2] - limits[0],
+        limits[3] - limits[1],
+    )
+    if proposed_size[0] > limits_size[0] or proposed_size[1] > limits_size[1]:
+        raise ValueError(
+            f"Proposed size {proposed_size} is larger than limits size {limits_size}. "
+            "Cannot pad bounding box beyond limits."
+        )
+    pad_up_amount = padding
+    pad_down_amount = padding
+    pad_left_amount = padding
+    pad_right_amount = padding
+    # try padding up, check if hit the top of the limits
+    if bbox[0] - padding < limits[0]:
+        # if so, restrict up padding to the limits and add the remaining padding to the down padding
+        pad_up_amount = bbox[0] - limits[0]
+        # Can safely assume can increase down padding since we checked earlier that the proposed size is smaller than limits
+        pad_down_amount += padding - pad_up_amount
+
+
 def make_crop_square(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
