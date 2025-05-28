@@ -237,40 +237,30 @@ def run_grains(  # noqa: C901
                             full_mask_tensor = direction_grain_crops.full_mask_tensor
                             for grain_number, grain_crop in direction_grain_crops.crops.items():
                                 # Crop image plot
-                                crop_image = grain_crop.image
-                                assert crop_image.shape[0] == crop_image.shape[1]
-                                # hardcode this for now
-                                crop_plotting_size_nm = 150
                                 bbox = grain_crop.bbox
-                                # calculate the difference in the bbox and the crop_plotting_size_nm
-                                bbox_size_px = bbox[2] - bbox[0]
-                                bbox_size_nm = bbox_size_px * pixel_to_nm_scaling
-                                bbox_size_correction_nm = crop_plotting_size_nm - bbox_size_nm
-                                bbox_size_correction_requested_px = int(bbox_size_correction_nm / pixel_to_nm_scaling)
-
-                                resized_crop_image_plot_bbox = pad_bounding_box(
-                                    crop_min_row=bbox[0],
-                                    crop_min_col=bbox[1],
-                                    crop_max_row=bbox[2],
-                                    crop_max_col=bbox[3],
-                                    image_shape=image.shape,
-                                    padding=bbox_size_correction_requested_px / 2,
+                                bbox_centre = ((bbox[0] + bbox[2]) // 2, (bbox[1] + bbox[3]) // 2)
+                                # make the bbox 150nm x 150nm
+                                new_bbox_size_nm = 150
+                                new_bbox_size_px = int(new_bbox_size_nm / pixel_to_nm_scaling)
+                                # dumbly create new bbox
+                                new_bbox = (
+                                    bbox_centre[0] - new_bbox_size_px // 2,
+                                    bbox_centre[1] - new_bbox_size_px // 2,
+                                    bbox_centre[0] + new_bbox_size_px // 2,
+                                    bbox_centre[1] + new_bbox_size_px // 2,
                                 )
 
-                                # check that the resized crop bbox has nm shape (150, 150)
-                                resized_crop_image_plot_bbox_shape_nm = (
-                                    (resized_crop_image_plot_bbox[2] - resized_crop_image_plot_bbox[0])
-                                    * pixel_to_nm_scaling,
-                                    (resized_crop_image_plot_bbox[3] - resized_crop_image_plot_bbox[1])
-                                    * pixel_to_nm_scaling,
-                                )
-                                assert (resized_crop_image_plot_bbox_shape_nm[0] == crop_plotting_size_nm) and (
-                                    resized_crop_image_plot_bbox_shape_nm[1] == crop_plotting_size_nm
-                                ), f"Resized crop bbox shape {resized_crop_image_plot_bbox_shape_nm} does not match requested size {crop_plotting_size_nm} nm"
+                                if new_bbox[0] < 0 or new_bbox[1] < 0:
+                                    LOGGER.warning(
+                                        f"[{filename}] : Grain {grain_number} bbox {new_bbox} is out of bounds, skipping."
+                                    )
+                                    continue
 
-                                crop_image_resized = image[
-                                    resized_crop_image_plot_bbox[0] : resized_crop_image_plot_bbox[2],
-                                    resized_crop_image_plot_bbox[1] : resized_crop_image_plot_bbox[3],
+                                # grab the new image and mask
+                                new_crop_image = image[new_bbox[0] : new_bbox[2], new_bbox[1] : new_bbox[3]]
+                                full_mask_tensor = direction_grain_crops.full_mask_tensor
+                                new_crop_mask_tensor = full_mask_tensor[
+                                    new_bbox[0] : new_bbox[2], new_bbox[1] : new_bbox[3], :
                                 ]
 
                                 plotting_config["plot_dict"]["grain_image"][
@@ -278,26 +268,19 @@ def run_grains(  # noqa: C901
                                 ] = f"{filename}_grain_{grain_number}"
                                 plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                                 Images(
-                                    data=crop_image_resized,
+                                    data=new_crop_image,
                                     **plotting_config["plot_dict"]["grain_image"],
                                 ).plot_and_save()
-                                # Grain mask plot
-                                crop_mask = grain_crop.mask
-                                # Need to correct the mask too, grab the crop from the full mask tensor
-                                crop_mask_tensor_resized = full_mask_tensor[
-                                    resized_crop_image_plot_bbox[0] : resized_crop_image_plot_bbox[2],
-                                    resized_crop_image_plot_bbox[1] : resized_crop_image_plot_bbox[3],
-                                ]
                                 plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
-                                if len(crop_mask_tensor_resized.shape) == 3:
+                                if len(new_crop_mask_tensor.shape) == 3:
                                     # Tensor, iterate over channels
-                                    for tensor_class in range(1, crop_mask_tensor_resized.shape[2]):
+                                    for tensor_class in range(1, new_crop_mask_tensor.shape[2]):
                                         plotting_config["plot_dict"]["grain_mask"][
                                             "filename"
                                         ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                         Images(
-                                            data=crop_image_resized,
-                                            masked_array=crop_mask_tensor_resized[:, :, tensor_class],
+                                            data=new_crop_image,
+                                            masked_array=new_crop_mask_tensor[:, :, tensor_class],
                                             **plotting_config["plot_dict"]["grain_mask"],
                                         ).plot_and_save()
                                 else:
@@ -306,8 +289,8 @@ def run_grains(  # noqa: C901
                                         "filename"
                                     ] = f"{filename}_grain_mask_{grain_number}"
                                     Images(
-                                        data=crop_image_resized,
-                                        masked_array=crop_mask_tensor_resized,
+                                        data=new_crop_image,
+                                        masked_array=new_crop_mask_tensor,
                                         **plotting_config["plot_dict"]["grain_mask"],
                                     ).plot_and_save()
                     # Always plot these plots
