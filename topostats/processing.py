@@ -15,6 +15,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
+from topostats.unet_masking import pad_bounding_box
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
@@ -166,6 +167,7 @@ def run_grains(  # noqa: C901
     """
     if grains_config["run"]:
         grains_config.pop("run")
+        grain_crop_plot_size_nm = grains_config.pop("grain_crop_plot_size_nm")
         try:
             LOGGER.info(f"[{filename}] : *** Grain Finding ***")
             grains = Grains(
@@ -217,16 +219,58 @@ def run_grains(  # noqa: C901
                     if direction_grain_crops is not None:
                         LOGGER.info(f"[{filename}] : Plotting individual grain masks")
                         for grain_number, grain_crop in direction_grain_crops.crops.items():
-                            # Crop image plot
-                            crop_image = grain_crop.image
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
+                            if grain_crop_plot_size_nm == -1:
+                                crop_image = grain_crop.image
+                                crop_mask = grain_crop.mask
+                            else:
+                                # Re-slice the image to get a larger or smaller crop depending on the grain size.
+                                grain_crop_plot_size_px = int(grain_crop_plot_size_nm / pixel_to_nm_scaling)
+                                grain_crop_plot_size_px_half = grain_crop_plot_size_px // 2
+                                # Get the centre of the grain crop bbox
+                                grain_crop_bbox = grain_crop.bbox
+                                # Create a new bbox of one pixel at the centre of the grain crop's original bbox so we can pad it to be the desired size after.
+                                grain_crop_centre = (
+                                    grain_crop_bbox[0] + grain_crop_bbox[2] // 2,
+                                    grain_crop_bbox[1] + grain_crop_bbox[3] // 2,
+                                )
+                                grain_crop_bbox_single_pixel = (
+                                    grain_crop_centre[0] - 1,
+                                    grain_crop_centre[1] - 1,
+                                    grain_crop_centre[0],
+                                    grain_crop_centre[1],
+                                )
+                                # Pad the bbox to the desired size
+                                grain_crop_bbox_resized = pad_bounding_box(
+                                    crop_min_row=grain_crop_bbox_single_pixel[0],
+                                    crop_min_col=grain_crop_bbox_single_pixel[1],
+                                    crop_max_row=grain_crop_bbox_single_pixel[2],
+                                    crop_max_col=grain_crop_bbox_single_pixel[3],
+                                    image_shape=(image.shape[0], image.shape[1]),
+                                    padding=grain_crop_plot_size_px_half,
+                                )
+                                # Crop the image and mask to the new bbox
+                                crop_image = image[
+                                    grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
+                                    grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
+                                ]
+                                full_mask_tensor = direction_grain_crops.full_mask_tensor
+                                crop_mask = full_mask_tensor[
+                                    grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
+                                    grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
+                                    :,
+                                ]
+
+                            # Plot the grain crop without mask
+                            plotting_config["plot_dict"]["grain_image"][
+                                "filename"
+                            ] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
                                 **plotting_config["plot_dict"]["grain_image"],
                             ).plot_and_save()
-                            # Grain mask plot
-                            crop_mask = grain_crop.mask
+                            # Plot the grain crop with mask
                             plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
                             # Tensor, iterate over channels
                             for tensor_class in range(1, crop_mask.shape[2]):
