@@ -314,7 +314,7 @@ def make_bounding_box_square(
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
 
 
-def pad_bounding_box(
+def pad_bounding_box_cutting_off_at_image_bounds(
     crop_min_row: int,
     crop_min_col: int,
     crop_max_row: int,
@@ -378,7 +378,7 @@ def pad_crop(
     np.NDArray
         The padded crop.
     """
-    new_bounding_box = pad_bounding_box(
+    new_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
         crop_min_row=bbox[0],
         crop_min_col=bbox[1],
         crop_max_row=bbox[2],
@@ -441,8 +441,37 @@ def pad_bounding_box_dynamically_at_limits_bounds(
     if bbox[0] - padding < limits[0]:
         # if so, restrict up padding to the limits and add the remaining padding to the down padding
         pad_up_amount = bbox[0] - limits[0]
-        # Can safely assume can increase down padding since we checked earlier that the proposed size is smaller than limits
+        # Can safely assume can increase down padding since we checked earlier that the proposed size is smaller than
+        # limits
         pad_down_amount += padding - pad_up_amount
+    # try padding down, check if hit the bottom of the limits
+    elif bbox[2] + padding > limits[2]:
+        # if so, restrict down padding to the limits and add the remaining padding to the up padding
+        pad_down_amount = limits[2] - bbox[2]
+        # Can safely assume can increase up padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_up_amount += padding - pad_down_amount
+    # try padding left, check if hit the left of the limits
+    if bbox[1] - padding < limits[1]:
+        # if so, restrict left padding to the limits and add the remaining padding to the right padding
+        pad_left_amount = bbox[1] - limits[1]
+        # Can safely assume can increase right padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_right_amount += padding - pad_left_amount
+    # try padding right, check if hit the right of the limits
+    elif bbox[3] + padding > limits[3]:
+        # if so, restrict right padding to the limits and add the remaining padding to the left padding
+        pad_right_amount = limits[3] - bbox[3]
+        # Can safely assume can increase left padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_left_amount += padding - pad_right_amount
+    # Return the new bounding box indices
+    return (
+        bbox[0] - pad_up_amount,
+        bbox[1] - pad_left_amount,
+        bbox[2] + pad_down_amount,
+        bbox[3] + pad_right_amount,
+    )
 
 
 def make_crop_square(
