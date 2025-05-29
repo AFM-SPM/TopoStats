@@ -397,7 +397,7 @@ def pad_crop(
     return padded_crop, new_bounding_box
 
 
-def pad_bounding_box_dynamically_at_limits_bounds(
+def pad_bounding_box_dynamically_at_limits(
     bbox: tuple[int, int, int, int],
     limits: tuple[int, int, int, int],
     padding: int,
