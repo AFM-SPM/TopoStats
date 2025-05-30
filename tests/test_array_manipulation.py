@@ -81,7 +81,7 @@ def test_pad_bounding_box_dynamically_at_limits(
     ),
     [
         pytest.param(
-            (0, 2, 5, 6),
+            (0, 3, 5, 7),
             1.0,
             np.array(
                 [
@@ -175,7 +175,7 @@ def test_pad_bounding_box_dynamically_at_limits(
             id="grain crop 8nm, even centred, restricted at top",
         ),
         pytest.param(
-            (0, 2, 5, 6),
+            (0, 3, 5, 7),
             1.0,
             np.array(
                 [
@@ -266,7 +266,7 @@ def test_pad_bounding_box_dynamically_at_limits(
             id="grain crop 7nm, odd centred, restricted at top",
         ),
         pytest.param(
-            (0, 2, 5, 6),
+            (2, 3, 7, 7),
             1.0,
             np.array(
                 [
