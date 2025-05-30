@@ -430,8 +430,8 @@ def pad_bounding_box_dynamically_at_limits(
     )
     if proposed_size[0] > limits_size[0] or proposed_size[1] > limits_size[1]:
         raise ValueError(
-            f"Proposed size {proposed_size} is larger than limits size {limits_size}. "
-            "Cannot pad bounding box beyond limits."
+            f"Proposed size {proposed_size} px = {bbox} px + ({padding},{padding}) px is larger than limits size"
+            f"{limits_size} px. Cannot pad bounding box beyond limits."
         )
     pad_up_amount = padding
     pad_down_amount = padding

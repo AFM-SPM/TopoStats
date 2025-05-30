@@ -231,8 +231,8 @@ def run_grains(  # noqa: C901
                                 grain_crop_bbox = grain_crop.bbox
                                 # Create a new bbox of one pixel at the centre of the grain crop's original bbox so we can pad it to be the desired size after.
                                 grain_crop_centre = (
-                                    grain_crop_bbox[0] + grain_crop_bbox[2] // 2,
-                                    grain_crop_bbox[1] + grain_crop_bbox[3] // 2,
+                                    (grain_crop_bbox[0] + grain_crop_bbox[2]) // 2,
+                                    (grain_crop_bbox[1] + grain_crop_bbox[3]) // 2,
                                 )
                                 grain_crop_bbox_single_pixel = (
                                     grain_crop_centre[0] - 1,
