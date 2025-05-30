@@ -45,7 +45,6 @@ grains:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
-  grain_crop_plot_size_nm: -1 # Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's defualt bounding box size.
   unet_config:
     model_path: null # Path to a trained U-Net model
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
@@ -65,7 +64,6 @@ grains:
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
-  cropped_size: -1 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
   extract_height_profile: true # Extract height profiles along maximum feret of molecules
   class_names: ["DNA", "Protein"] # The names corresponding to each class of a object identified, please specify merged classes after.
 disordered_tracing:
@@ -114,6 +112,7 @@ plotting:
   savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   savefig_dpi: 100 # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
+  grain_crop_plot_size_nm: -1 # Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.
   image_set: # Options : all, core, filters, grains, grain_crops, disordered_tracing, nodestats, ordered_tracing, splining. Uncomment to include
     # - all
     - core

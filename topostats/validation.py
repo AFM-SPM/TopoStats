@@ -179,11 +179,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     )
                 ],
             },
-            "grain_crop_plot_size_nm": Or(
-                int,
-                float,
-                error=("Invalid value in config for 'grains.grain_crop_plot_size_nm', valid values are int or float"),
-            ),
             "direction": Or(
                 "both",
                 "below",
@@ -269,10 +264,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "edge_detection_method": Or(
                 "binary_erosion",
                 "canny",
-            ),
-            "cropped_size": Or(
-                float,
-                int,
             ),
             "extract_height_profile": Or(
                 True,
@@ -459,6 +450,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "spline16",
                 "spline36",
                 error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
+            ),
+            "grain_crop_plot_size_nm": Or(
+                int,
+                float,
+                error=("Invalid value in config for 'grains.grain_crop_plot_size_nm', valid values are int or float"),
             ),
             "zrange": [float, int, None],
             "colorbar": Or(
@@ -916,9 +912,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -991,9 +985,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1262,9 +1254,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "mask_cmap": str,
             "core_set": bool,
@@ -1376,9 +1366,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "title": str,
             "core_set": bool,

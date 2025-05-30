@@ -12,10 +12,10 @@ import pandas as pd
 from art import tprint
 
 from topostats import __version__
+from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
-from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
@@ -167,7 +167,6 @@ def run_grains(  # noqa: C901
     """
     if grains_config["run"]:
         grains_config.pop("run")
-        grain_crop_plot_size_nm = grains_config.pop("grain_crop_plot_size_nm")
         try:
             LOGGER.info(f"[{filename}] : *** Grain Finding ***")
             grains = Grains(
@@ -191,6 +190,7 @@ def run_grains(  # noqa: C901
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
                 plotting_config.pop("run")
+                grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.mask_images.items():
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
@@ -245,9 +245,7 @@ def run_grains(  # noqa: C901
                                         continue
 
                             # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"][
-                                "filename"
-                            ] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
