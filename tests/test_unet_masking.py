@@ -8,7 +8,13 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
+from topostats.unet_masking import (
+    dice_loss,
+    iou_loss,
+    make_bounding_box_square,
+    pad_bounding_box_cutting_off_at_image_bounds,
+    predict_unet,
+)
 
 # pylint: disable=too-many-positional-arguments
 
@@ -20,7 +26,11 @@ from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square
             np.array([[0, 0], [0, 0]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 0.0, id="perfect match"
         ),
         pytest.param(
-            np.array([[1, 1], [1, 1]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 1.0, id="complete mismatch"
+            np.array([[1, 1], [1, 1]]),
+            np.array([[0, 0], [0, 0]]).astype(np.float32),
+            1e-5,
+            1.0,
+            id="complete mismatch",
         ),
         pytest.param(
             np.array([[1, 0], [0, 0]]).astype(np.float32),
@@ -223,61 +233,3 @@ def test_pad_bounding_box(
         crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape, padding
     )
     assert result == expected_indices
-
-
-@pytest.mark.parametrize(
-    ("bbox", "limits", "padding", "expected_bbox"),
-    [
-        pytest.param(
-            (3, 4, 5, 6),
-            (0, 0, 10, 10),
-            0,
-            (3, 4, 5, 6),
-            id="no padding, within limits",
-        ),
-        pytest.param(
-            (3, 4, 5, 6),
-            (0, 0, 10, 10),
-            2,
-            (1, 2, 7, 8),
-            id="padding within limits",
-        ),
-        pytest.param(
-            (3, 4, 5, 6),
-            (0, 0, 12, 12),
-            4,
-            (0, 0, 10, 10),
-            id="top (min row) padding exceeds limits, expand down to compensate",
-        ),
-        pytest.param(
-            (4, 3, 6, 5),
-            (0, 0, 12, 12),
-            4,
-            (0, 0, 10, 10),
-            id="left (min col) padding exceeds limits, expand right to compensate",
-        ),
-        pytest.param(
-            (5, 4, 8, 7),
-            (0, 0, 10, 10),
-            3,
-            (1, 1, 10, 10),
-            id="bottom (max row) padding exceeds limits, expand up to compensate",
-        ),
-        pytest.param(
-            (4, 5, 7, 8),
-            (0, 0, 10, 10),
-            3,
-            (1, 1, 10, 10),
-            id="right (max col) padding exceeds limits, expand left to compensate",
-        ),
-    ],
-)
-def test_pad_bounding_box_dynamically_at_limits(
-    bbox: tuple[int, int, int, int],
-    limits: tuple[int, int, int, int],
-    padding: int,
-    expected_bbox: tuple[int, int, int, int],
-) -> None:
-    """Test the pad_bounding_box_cutting_off_at_image_bounds method with dynamic limits."""
-    result = pad_bounding_box_dynamically_at_limits(bbox=bbox, limits=limits, padding=padding)
-    assert result == expected_bbox
