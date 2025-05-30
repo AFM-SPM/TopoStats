@@ -258,25 +258,40 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result.dropna(axis=1, how="all")
-                disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
-                mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
+                if isinstance(result, pd.DataFrame) and not result.empty:
+                        results[str(img)] = result.dropna(axis=1, how="all")
+                else:
+                    LOGGER.warning(f"[{str(img)}] Skipping: No grainstats data returned.")
+
+                if isinstance(disordered_trace_result, pd.DataFrame) and not disordered_trace_result.empty:
+                    disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
+                else:
+                    LOGGER.warning(f"[{str(img)}] Skipping: No disordered trace data returned.")
+
+                if isinstance(mols_result, pd.DataFrame) and not mols_result.empty:
+                    mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
+                else:
+                    LOGGER.warning(f"[{str(img)}] Skipping: No molecule tracing data returned.")
+
+                if isinstance(individual_image_stats_df, pd.DataFrame) and not individual_image_stats_df.empty:
+                    image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
+
+                if isinstance(height_profiles, dict):
+                    height_profile_all[str(img)] = height_profiles
+
                 pbar.update()
-
-                # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
-
-                # Combine all height profiles
-                height_profile_all[str(img)] = height_profiles
-
-                # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
     LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_stats.csv.")
+
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
-    image_stats_all_df = pd.concat(image_stats_all.values())
-    image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
+    if image_stats_all:
+        image_stats_all_df = pd.concat(image_stats_all.values())
+        image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
+    else:
+        LOGGER.warning("No image statistics found. Skipping creation of image_stats.csv.")
+        image_stats_all_df = pd.DataFrame()
 
     try:
         results = pd.concat(results.values())
