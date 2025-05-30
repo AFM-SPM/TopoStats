@@ -93,8 +93,7 @@ def re_crop_grain_image_and_mask_to_set_size_nm(
                 f"({target_size_px} px) "
             ) from e
         # If the error is not about the proposed size, re-raise it
-        else:
-            raise e
+        raise e
 
     # Crop the image and mask to the new bbox
     crop_image = full_image[

@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 import pytest
+
 from topostats.array_manipulation import (
     pad_bounding_box_dynamically_at_limits,
     re_crop_grain_image_and_mask_to_set_size_nm,
