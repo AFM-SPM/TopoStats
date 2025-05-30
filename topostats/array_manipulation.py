@@ -21,6 +21,33 @@ def re_crop_grain_image_and_mask_to_set_size_nm(
 ) -> tuple[npt.NDArray[np.float32], npt.NDArray[np.bool_]]:
     """
     Re-crop a grain image and mask to be a target size in nanometres.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file being processed, used for logging.
+    grain_number : int
+        The number of the grain being processed, used for logging.
+    grain_bbox : tuple[int, int, int, int]
+        The bounding box of the grain in the form (min_row, min_col, max_row (exclusive), max_col (exclusive)).
+    pixel_to_nm_scaling : float
+        Pixel to nanometre scaling factor.
+    full_image : npt.NDArray[np.float32]
+        The full image from which to crop the grain image.
+    full_mask_tensor : npt.NDArray[np.bool_]
+        The full mask tensor from which to crop the mask.
+    target_size_nm : float
+        The target size in nanometres to crop the grain image and mask to.
+
+    Returns
+    -------
+    tuple[npt.NDArray[np.float32], npt.NDArray[np.bool_]]
+        The cropped grain image and mask, both as numpy arrays.
+
+    Raises
+    ------
+    ValueError
+        If the target size in nanometres is larger than the full image or mask dimensions.
     """
     # Re-slice the image to get a larger or smaller crop depending on the grain size.
     target_size_px = int(target_size_nm / pixel_to_nm_scaling)

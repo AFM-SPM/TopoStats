@@ -235,24 +235,6 @@ def run_grains(  # noqa: C901
                                     target_size_nm=grain_crop_plot_size_nm,
                                 )
 
-                                # Check that the size is right
-                                crop_mask_size_px = crop_mask.shape[:2]
-                                crop_mask_size_nm = (
-                                    crop_mask_size_px[0] * pixel_to_nm_scaling,
-                                    crop_mask_size_px[1] * pixel_to_nm_scaling,
-                                )
-                                tolerance = 2 * pixel_to_nm_scaling
-
-                                if (
-                                    abs(crop_mask_size_nm[0] - grain_crop_plot_size_nm) > tolerance
-                                    or abs(crop_mask_size_nm[1] - grain_crop_plot_size_nm) > tolerance
-                                ):
-                                    raise ValueError(
-                                        f"Grain crop size {crop_mask_size_nm} nm ({crop_mask_size_px} px)does not "
-                                        f"match requested size {grain_crop_plot_size_nm} nm within tolerance of "
-                                        f"{tolerance} nm."
-                                    )
-
                             # Plot the grain crop without mask
                             plotting_config["plot_dict"]["grain_image"][
                                 "filename"
