@@ -1,0 +1,365 @@
+topostats.run_modules
+=====================
+
+.. py:module:: topostats.run_modules
+
+.. autoapi-nested-parse::
+
+   Run TopoStats modules.
+
+   This provide entry points for running TopoStats as a command line programme. Each function within this module is a
+   wrapper which runs various functions from the ''processing'' module in parallel.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.run_modules.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.run_modules.reconcile_config_args
+   topostats.run_modules._set_logging
+   topostats.run_modules._log_setup
+   topostats.run_modules._parse_configuration
+   topostats.run_modules.process
+   topostats.run_modules.filters
+   topostats.run_modules.grains
+   topostats.run_modules.grainstats
+   topostats.run_modules.disordered_tracing
+   topostats.run_modules.nodestats
+   topostats.run_modules.ordered_tracing
+   topostats.run_modules.splining
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: reconcile_config_args(args: argparse.Namespace | None) -> dict
+
+   
+   Reconcile command line arguments with the default configuration.
+
+   Command line arguments take precedence over the default configuration. If a partial configuration file is specified
+   (with '-c' or '--config-file') the defaults are over-ridden by these values (internally the configuration
+   dictionary is updated with these values). Any other command line arguments take precedence over both the default
+   and those supplied in a configuration file (again the dictionary is updated).
+
+   The final configuration is validated before processing begins.
+
+   :param args: Command line arguments passed into TopoStats.
+   :type args: argparse.Namespace
+
+   :returns: The configuration dictionary.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _set_logging(log_level: str | None) -> None
+
+   
+   Set the logging level.
+
+   :param log_level: String for the desired log-level.
+   :type log_level: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _log_setup(config: dict, args: argparse.Namespace | None, img_files: dict) -> None
+
+   
+   Log the current configuration.
+
+   :param config: Dictionary of configuration options.
+   :type config: dict
+   :param args: Arguments function was invoked with.
+   :type args: argparse.Namespace | None
+   :param img_files: Dictionary of image files that have been found.
+   :type img_files: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, dict]
+
+   
+   Load configurations, validate and check run steps are consistent.
+
+   :param args: Arguments.
+   :type args: argparse.Namespace | None
+
+   :returns: Returns the dictionary of configuration options and a dictionary of image files found on the input path.
+   :rtype: tuple[dict, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process(args: argparse.Namespace | None = None) -> None
+
+   
+   Find and process all files.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: filters(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run filtering.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: grains(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grain finding.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: grainstats(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grainstats.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: disordered_tracing(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grainstats.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: nodestats(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grainstats.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: ordered_tracing(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grainstats.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: splining(args: argparse.Namespace | None = None) -> None
+
+   
+   Load files from disk and run grainstats.
+
+   :param args: Arguments.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

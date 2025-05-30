@@ -1,0 +1,329 @@
+topostats.utils
+===============
+
+.. py:module:: topostats.utils
+
+.. autoapi-nested-parse::
+
+   Utilities
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.utils.LOGGER
+   topostats.utils.ALL_STATISTICS_COLUMNS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.utils.convert_path
+   topostats.utils.find_images
+   topostats.utils.get_out_path
+   topostats.utils.update_config
+   topostats.utils._get_mask
+   topostats.utils.get_mask
+   topostats.utils.get_thresholds
+   topostats.utils.create_empty_dataframe
+   topostats.utils.folder_grainstats
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:data:: ALL_STATISTICS_COLUMNS
+   :value: ('Molecule Number', 'centre_x', 'centre_y', 'radius_min', 'radius_max', 'radius_mean',...
+
+
+.. py:function:: convert_path(path: Union[str, pathlib.Path]) -> pathlib.Path
+
+   
+   Ensure path is Path object.
+
+   :param path: Path to be converted.
+   :type path: Union[str, Path]
+
+   :returns: pathlib Path
+   :rtype: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_images(base_dir: Union[str, pathlib.Path] = None, file_ext: str = '.spm') -> List
+
+   
+   Scan the specified directory for images with the given file extension.
+
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param file_ext: File extension to search for.
+   :type file_ext: str
+
+   :returns: List of files found with the extension in the given directory.
+   :rtype: List
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_out_path(image_path: Union[str, pathlib.Path] = None, base_dir: Union[str, pathlib.Path] = None, output_dir: Union[str, pathlib.Path] = None) -> pathlib.Path
+
+   
+   Adds the image path relative to the base directory to the output directory.
+
+   :param image_path: The path of the current image.
+   :type image_path: Path
+   :param base_dir: Directory to recursively search for files.
+   :type base_dir: Path
+   :param output_dir: The output directory specified in the configuration file.
+   :type output_dir: Path
+
+   :returns: The output path that mirrors the input path structure.
+   :rtype: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_config(config: dict, args: Union[dict, argparse.Namespace]) -> Dict
+
+   
+   Update the configuration with any arguments
+
+   :param config: Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>')
+   :type config: dict
+   :param args: Command line arguments
+   :type args: Namespace
+
+   :returns: Dictionary updated with command arguments.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _get_mask(image: numpy.ndarray, threshold: float, threshold_direction: str, img_name: str = None) -> numpy.ndarray
+
+   
+   Calculate a mask for pixels that exceed the threshold
+
+   :param image: Numpy array representing image.
+   :type image: np.array
+   :param threshold: A float representing the threshold
+   :type threshold: float
+   :param threshold_direction: A string representing the direction that should be thresholded. ("above", "below")
+   :type threshold_direction: str
+   :param img_name: Name of image being processed
+   :type img_name: str
+
+   :returns: Numpy array of image with objects coloured.
+   :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_mask(image: numpy.ndarray, thresholds: dict, img_name: str = None) -> numpy.ndarray
+
+   
+   Mask data that should not be included in flattening.
+
+   :param image: 2D Numpy array of the image to have a mask derived for.
+   :type image: np.ndarray
+   :param thresholds: Dictionary of thresholds, at a bare minimum must have key 'lower' with an associated value, second key is
+                      to have an 'upper' threshold.
+   :type thresholds: dict
+   :param img_name: Image name that is being masked.
+   :type img_name: str
+
+   :returns: 2D Numpy boolean array of points to mask.
+   :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_thresholds(image: numpy.ndarray, threshold_method: str, otsu_threshold_multiplier: float = None, threshold_std_dev: dict = None, absolute: dict = None, **kwargs) -> Dict
+
+   
+   Obtain thresholds for masking data points.
+
+   :param image: 2D Numpy array of image to be masked
+   :type image: np.ndarray
+   :param threshold_method: Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+   :type threshold_method: str
+   :param threshold_std_dev: Dict of upper and lower thresholds for the standard deviation method.
+   :type threshold_std_dev: dict
+   :param absolute: Dict of lower and upper thresholds.
+   :type absolute: tuple
+   :param \*\*kwargs:
+
+   :returns: Dictionary of thresholds, contains keys 'lower' and optionally 'upper'.
+   :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_empty_dataframe(columns: set = ALL_STATISTICS_COLUMNS) -> pandas.DataFrame
+
+   
+   Create an empty data frame for returning when no results are found.
+
+   :param columns: Columns of the empty dataframe.
+   :type columns: list
+
+   :returns: Empty Pandas DataFrame.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: folder_grainstats(output_dir: Union[str, pathlib.Path], base_dir: Union[str, pathlib.Path], all_stats_df: pandas.DataFrame) -> None
+
+   
+   Creates saves a data frame of grain and tracing statictics at the folder level.
+
+   :param output_dir: Path of the output directory head.
+   :type output_dir: Union[str, Path]
+   :param base_dir: Path of the base directory where files were found.
+   :type base_dir: Union[str, Path]
+   :param all_stats_df: The dataframe containing all sample statistics run.
+   :type all_stats_df: pd.DataFrame
+
+   :returns: This only saves the dataframes and does not retain them.
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
