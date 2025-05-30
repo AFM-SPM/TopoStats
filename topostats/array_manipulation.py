@@ -23,26 +23,41 @@ def re_crop_grain_image_and_mask_to_set_size_nm(
     Re-crop a grain image and mask to be a target size in nanometres.
     """
     # Re-slice the image to get a larger or smaller crop depending on the grain size.
-    grain_crop_plot_size_px = int(target_size_nm / pixel_to_nm_scaling)
-    grain_crop_plot_size_px_half = grain_crop_plot_size_px // 2
-    # Create a new bbox of one pixel at the centre of the grain crop's original bbox so we can
-    # pad it to be the desired size after.
-    grain_crop_centre = (
-        (grain_bbox[0] + grain_bbox[2]) // 2,
-        (grain_bbox[1] + grain_bbox[3]) // 2,
-    )
-    grain_crop_bbox_single_pixel = (
-        grain_crop_centre[0] - 1,
-        grain_crop_centre[1] - 1,
-        grain_crop_centre[0],
-        grain_crop_centre[1],
-    )
+    target_size_px = int(target_size_nm / pixel_to_nm_scaling)
+
+    # To create a bbox that is the right size, we can create a small bbox and then pad it.
+    # - find the centroid of the grain bbox
+    # - determine if the target bbox is going to be odd or even centred.
+    #   - If odd centred, we can pad the centre pixel(1x1) bbox by target_size_nm // 2 in each direction
+    #   - If even centred, we can pad the centre pixels(2x2) bbox by target_size_nm // 2 - 1 in each direction.
+
+    if target_size_px % 2 == 0:
+        # Even proposed size, so take the centre 2x2 pixels and pad by half the size minus 1
+        # Get centre 2x2 pixel bbox of grain crop
+        grain_crop_bbox_centre = (
+            grain_bbox[0] + grain_bbox[2] // 2 - 1,
+            grain_bbox[1] + grain_bbox[3] // 2 - 1,
+            grain_bbox[0] + grain_bbox[2] // 2 + 1,
+            grain_bbox[1] + grain_bbox[3] // 2 + 1,
+        )
+        to_pad = target_size_px // 2 - 1
+    else:
+        # Odd proposed size, so take the centre 1x1 pixel and pad by half the size
+        # Get centre 1x1 pixel bbox of grain crop
+        grain_crop_bbox_centre = (
+            grain_bbox[0] + grain_bbox[2] // 2,
+            grain_bbox[1] + grain_bbox[3] // 2,
+            grain_bbox[0] + grain_bbox[2] // 2 + 1,
+            grain_bbox[1] + grain_bbox[3] // 2 + 1,
+        )
+        to_pad = target_size_px // 2
+
     # Pad the bbox to the desired size
     try:
         grain_crop_bbox_resized = pad_bounding_box_dynamically_at_limits(
-            bbox=grain_crop_bbox_single_pixel,
+            bbox=grain_crop_bbox_centre,
             limits=(0, 0, full_image.shape[0], full_image.shape[1]),
-            padding=grain_crop_plot_size_px_half,
+            padding=to_pad,
         )
     except ValueError as e:
         if "Proposed size" in str(e):
