@@ -62,20 +62,20 @@ def re_crop_grain_image_and_mask_to_set_size_nm(
         # Even proposed size, so take the centre 2x2 pixels and pad by half the size minus 1
         # Get centre 2x2 pixel bbox of grain crop
         grain_crop_bbox_centre = (
-            grain_bbox[0] + grain_bbox[2] // 2 - 1,
-            grain_bbox[1] + grain_bbox[3] // 2 - 1,
-            grain_bbox[0] + grain_bbox[2] // 2 + 1,
-            grain_bbox[1] + grain_bbox[3] // 2 + 1,
+            (grain_bbox[0] + grain_bbox[2]) // 2 - 1,
+            (grain_bbox[1] + grain_bbox[3]) // 2 - 1,
+            (grain_bbox[0] + grain_bbox[2]) // 2 + 1,
+            (grain_bbox[1] + grain_bbox[3]) // 2 + 1,
         )
         to_pad = target_size_px // 2 - 1
     else:
         # Odd proposed size, so take the centre 1x1 pixel and pad by half the size
         # Get centre 1x1 pixel bbox of grain crop
         grain_crop_bbox_centre = (
-            grain_bbox[0] + grain_bbox[2] // 2,
-            grain_bbox[1] + grain_bbox[3] // 2,
-            grain_bbox[0] + grain_bbox[2] // 2 + 1,
-            grain_bbox[1] + grain_bbox[3] // 2 + 1,
+            (grain_bbox[0] + grain_bbox[2]) // 2,
+            (grain_bbox[1] + grain_bbox[3]) // 2,
+            (grain_bbox[0] + grain_bbox[2]) // 2 + 1,
+            (grain_bbox[1] + grain_bbox[3]) // 2 + 1,
         )
         to_pad = target_size_px // 2
 
