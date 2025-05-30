@@ -23,6 +23,7 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-positional-arguments
+# pylint: disable=unused-argument
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -122,6 +123,9 @@ class Images:
         Flag to identify image as part of the core image set or not.
     pixel_interpolation : str, optional
         Interpolation to use (default is 'None').
+    grain_crop_plot_size_nm : float, optional
+        Size in nm of the square cropped grain images if using the grains image set. If -1,
+        will use the grain's default bounding box size.
     cmap : str, optional
         Colour map to use (default 'nanoscope', 'afmhot' also available).
     mask_cmap : str
@@ -163,6 +167,7 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
+        grain_crop_plot_size_nm: float = -1,
         cmap: str | None = None,
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -180,7 +185,8 @@ class Images:
         Initialise the class.
 
         There are two key parameters that ensure whether an image is plotted that are passed in from the updated
-        plotting dictionary. These are the ``image_set`` which defines which images to plot. ``all`` images plots everything, or ``core`` only plots the core set.
+        plotting dictionary. These are the ``image_set`` which defines which images to plot. ``all`` images plots
+        everything, or ``core`` only plots the core set.
         There is then the 'core_set' which defines whether an individual images belongs to the 'core_set' or
         not. If it doesn't then it is not plotted when `image_set` is `["core"]`.
 
@@ -212,6 +218,9 @@ class Images:
             Flag to identify image as part of the core image set or not.
         pixel_interpolation : str, optional
             Interpolation to use (default is 'None').
+        grain_crop_plot_size_nm : float, optional
+            Size in nm of the square cropped grain images if using the grains image set. If -1,
+            will use the grain's default bounding box size.
         cmap : str, optional
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
