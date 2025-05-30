@@ -153,6 +153,7 @@ def lists_almost_equal(list1: list, list2: list, abs_tol: float = 1e-9) -> bool:
         True if the lists are almost equal, False otherwise.
 
     Raises
+    ------
     NotImplementedError
         If the items in the lists are not of type int or float.
     """
