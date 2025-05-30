@@ -10,6 +10,62 @@ from topostats.logs.logs import LOGGER_NAME
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
+def re_crop_grain_image_and_mask_to_set_size_nm(
+    filename: str,
+    grain_number: int,
+    grain_bbox: tuple[int, int, int, int],
+    pixel_to_nm_scaling: float,
+    full_image: npt.NDArray[np.float32],
+    full_mask_tensor: npt.NDArray[np.bool_],
+    target_size_nm: float,
+) -> tuple[npt.NDArray[np.float32], npt.NDArray[np.bool_]]:
+    """
+    Re-crop a grain image and mask to be a target size in nanometres.
+    """
+    # Re-slice the image to get a larger or smaller crop depending on the grain size.
+    grain_crop_plot_size_px = int(target_size_nm / pixel_to_nm_scaling)
+    grain_crop_plot_size_px_half = grain_crop_plot_size_px // 2
+    # Create a new bbox of one pixel at the centre of the grain crop's original bbox so we can
+    # pad it to be the desired size after.
+    grain_crop_centre = (
+        (grain_bbox[0] + grain_bbox[2]) // 2,
+        (grain_bbox[1] + grain_bbox[3]) // 2,
+    )
+    grain_crop_bbox_single_pixel = (
+        grain_crop_centre[0] - 1,
+        grain_crop_centre[1] - 1,
+        grain_crop_centre[0],
+        grain_crop_centre[1],
+    )
+    # Pad the bbox to the desired size
+    try:
+        grain_crop_bbox_resized = pad_bounding_box_dynamically_at_limits(
+            bbox=grain_crop_bbox_single_pixel,
+            limits=(0, 0, full_image.shape[0], full_image.shape[1]),
+            padding=grain_crop_plot_size_px_half,
+        )
+    except ValueError as e:
+        if "Proposed size" in str(e):
+            LOGGER.error(
+                f"[{filename}] : Grain {grain_number} crop cannot be plotted at size {target_size_nm} nm: {e}"
+            )
+        else:
+            raise e
+
+    # Crop the image and mask to the new bbox
+    crop_image = full_image[
+        grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
+        grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
+    ]
+    crop_mask = full_mask_tensor[
+        grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
+        grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
+        :,
+    ]
+
+    return crop_image, crop_mask
+
+
 def pad_bounding_box_dynamically_at_limits(
     bbox: tuple[int, int, int, int],
     limits: tuple[int, int, int, int],

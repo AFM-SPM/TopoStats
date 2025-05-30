@@ -15,7 +15,7 @@ from topostats import __version__
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
-from topostats.unet_masking import pad_bounding_box_cutting_off_at_image_bounds, pad_bounding_box_dynamically_at_limits
+from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
@@ -224,52 +224,16 @@ def run_grains(  # noqa: C901
                                 crop_image = grain_crop.image
                                 crop_mask = grain_crop.mask
                             else:
-                                # Re-slice the image to get a larger or smaller crop depending on the grain size.
-                                grain_crop_plot_size_px = int(grain_crop_plot_size_nm / pixel_to_nm_scaling)
-                                grain_crop_plot_size_px_half = grain_crop_plot_size_px // 2
-                                # Get the centre of the grain crop bbox
-                                grain_crop_bbox = grain_crop.bbox
-                                # Create a new bbox of one pixel at the centre of the grain crop's original bbox so we can pad it to be the desired size after.
-                                grain_crop_centre = (
-                                    (grain_crop_bbox[0] + grain_crop_bbox[2]) // 2,
-                                    (grain_crop_bbox[1] + grain_crop_bbox[3]) // 2,
+                                # Resize the grain crop to the requested size
+                                crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
+                                    filename=filename,
+                                    grain_number=grain_number,
+                                    grain_bbox=grain_crop.bbox,
+                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                    full_image=image,
+                                    full_mask_tensor=direction_grain_crops.full_mask_tensor,
+                                    target_size_nm=grain_crop_plot_size_nm,
                                 )
-                                grain_crop_bbox_single_pixel = (
-                                    grain_crop_centre[0] - 1,
-                                    grain_crop_centre[1] - 1,
-                                    grain_crop_centre[0],
-                                    grain_crop_centre[1],
-                                )
-                                # Pad the bbox to the desired size
-                                try:
-                                    grain_crop_bbox_resized = pad_bounding_box_dynamically_at_limits(
-                                        bbox=grain_crop_bbox_single_pixel,
-                                        limits=(0, 0, image.shape[0], image.shape[1]),
-                                        padding=grain_crop_plot_size_px_half,
-                                    )
-                                except ValueError as e:
-                                    if "Proposed size" in str(e):
-                                        LOGGER.error(
-                                            f"[{filename}] : Grain {grain_number} crop cannot be plotted at size {grain_crop_plot_size_nm} nm: {e}"
-                                        )
-                                        continue
-                                    else:
-                                        raise e
-
-                                print(
-                                    f"grain_crop_bbox_resized shape: {grain_crop_bbox_resized} width: {grain_crop_bbox_resized[3] - grain_crop_bbox_resized[1]} height: {grain_crop_bbox_resized[2] - grain_crop_bbox_resized[0]}"
-                                )
-                                # Crop the image and mask to the new bbox
-                                crop_image = image[
-                                    grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
-                                    grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
-                                ]
-                                full_mask_tensor = direction_grain_crops.full_mask_tensor
-                                crop_mask = full_mask_tensor[
-                                    grain_crop_bbox_resized[0] : grain_crop_bbox_resized[2],
-                                    grain_crop_bbox_resized[1] : grain_crop_bbox_resized[3],
-                                    :,
-                                ]
 
                                 # Check that the size is right
                                 crop_mask_size_px = crop_mask.shape[:2]
@@ -284,8 +248,9 @@ def run_grains(  # noqa: C901
                                     or abs(crop_mask_size_nm[1] - grain_crop_plot_size_nm) > tolerance
                                 ):
                                     raise ValueError(
-                                        f"Grain crop size {crop_mask_size_nm} nm does not match requested size {grain_crop_plot_size_nm} nm within tolerance of {tolerance} nm."
-                                        f" Grain crop bbox: {grain_crop_bbox_resized}, grain crop size px: {crop_mask_size_px} px."
+                                        f"Grain crop size {crop_mask_size_nm} nm ({crop_mask_size_px} px)does not "
+                                        f"match requested size {grain_crop_plot_size_nm} nm within tolerance of "
+                                        f"{tolerance} nm."
                                     )
 
                             # Plot the grain crop without mask
