@@ -259,7 +259,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 scan_data_dict.values(),
             ):
                 if isinstance(result, pd.DataFrame) and not result.empty:
-                        results[str(img)] = result.dropna(axis=1, how="all")
+                    results[str(img)] = result.dropna(axis=1, how="all")
                 else:
                     LOGGER.warning(f"[{str(img)}] Skipping: No grainstats data returned.")
 
