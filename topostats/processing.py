@@ -1150,6 +1150,18 @@ def process_scan(
         )
         topostats_object["height_profiles"] = height_profiles
 
+        if grainstats_df is None:
+            LOGGER.warning(f"[{topostats_object['filename']}] : Grainstats dataframe is empty, stopping processing.")
+            # Early return to stop further processing
+            return (
+                topostats_object["img_path"],
+                grainstats_df,
+                height_profiles,
+                {},  # empty image_stats dictionary
+                pd.DataFrame(),  # empty disordered_tracing_stats DataFrame
+                pd.DataFrame(),  # empty molstats_df DataFrame
+            )
+
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
             full_image=topostats_object["image"],
