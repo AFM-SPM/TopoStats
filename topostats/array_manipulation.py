@@ -88,9 +88,11 @@ def re_crop_grain_image_and_mask_to_set_size_nm(
         )
     except ValueError as e:
         if "Proposed size" in str(e):
-            LOGGER.error(
-                f"[{filename}] : Grain {grain_number} crop cannot be plotted at size {target_size_nm} nm: {e}"
-            )
+            raise ValueError(
+                f"[{filename}] : Grain {grain_number} crop cannot be re-cropped at size {target_size_nm} nm "
+                f"({target_size_px} px) "
+            ) from e
+        # If the error is not about the proposed size, re-raise it
         else:
             raise e
 
@@ -131,18 +133,17 @@ def pad_bounding_box_dynamically_at_limits(
         The new bounding box indices.
     """
     # check that the padded size is smaller than the limits
-    proposed_size = (
-        bbox[2] - bbox[0] + 2 * padding,
-        bbox[3] - bbox[1] + 2 * padding,
-    )
-    limits_size = (
-        limits[2] - limits[0],
-        limits[3] - limits[1],
-    )
-    if proposed_size[0] > limits_size[0] or proposed_size[1] > limits_size[1]:
+    bbox_height = bbox[2] - bbox[0]
+    bbox_width = bbox[3] - bbox[1]
+    proposed_height = bbox_height + 2 * padding
+    proposed_width = bbox_width + 2 * padding
+    limits_height = limits[2] - limits[0]
+    limits_width = limits[3] - limits[1]
+    if proposed_height > limits_height or proposed_width > limits_width:
         raise ValueError(
-            f"Proposed size {proposed_size} px = {bbox} px + ({padding},{padding}) px is larger than limits size"
-            f"{limits_size} px. Cannot pad bounding box beyond limits."
+            f"Proposed size {proposed_height}x{proposed_width} px = ({bbox_width}x{bbox_height}) + "
+            f"({2*padding}x{2*padding}) px is larger than limits size "
+            f"({limits_height}x{limits_width}) px. Cannot pad bounding box beyond limits."
         )
     pad_up_amount = padding
     pad_down_amount = padding

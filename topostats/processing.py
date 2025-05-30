@@ -224,16 +224,25 @@ def run_grains(  # noqa: C901
                                 crop_image = grain_crop.image
                                 crop_mask = grain_crop.mask
                             else:
-                                # Resize the grain crop to the requested size
-                                crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
-                                    filename=filename,
-                                    grain_number=grain_number,
-                                    grain_bbox=grain_crop.bbox,
-                                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                    full_image=image,
-                                    full_mask_tensor=direction_grain_crops.full_mask_tensor,
-                                    target_size_nm=grain_crop_plot_size_nm,
-                                )
+                                try:
+                                    # Resize the grain crop to the requested size
+                                    crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
+                                        filename=filename,
+                                        grain_number=grain_number,
+                                        grain_bbox=grain_crop.bbox,
+                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                        full_image=image,
+                                        full_mask_tensor=direction_grain_crops.full_mask_tensor,
+                                        target_size_nm=grain_crop_plot_size_nm,
+                                    )
+                                except ValueError as e:
+                                    if "crop cannot be re-cropped" in str(e):
+                                        LOGGER.error(
+                                            "Crop cannot be re-cropped to requested size, skipping plotting "
+                                            "this grain.",
+                                            exc_info=True,
+                                        )
+                                        continue
 
                             # Plot the grain crop without mask
                             plotting_config["plot_dict"]["grain_image"][
