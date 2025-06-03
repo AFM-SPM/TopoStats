@@ -1,7 +1,5 @@
 """Tests for feret functions."""
 
-from __future__ import annotations
-
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -12,6 +10,7 @@ from topostats.measure import feret
 # pylint: disable=protected-access
 # pylint: disable=too-many-lines
 # pylint: disable=fixme
+# pylint: disable=too-many-positional-arguments
 
 POINT1 = (0, 0)
 POINT2 = (1, 0)
@@ -1352,3 +1351,16 @@ def test_plot_feret(  # pylint: disable=too-many-arguments
         plot_max_feret,
     )
     return fig
+
+
+@pytest.mark.parametrize(
+    ("x", "y", "expected"),
+    [
+        pytest.param(np.array([1, 0]), np.array([1, 0]), np.array([0]), id="identical arrays"),
+        pytest.param(np.array([1, 0]), np.array([0, 1]), np.array([1]), id="inverse arrays"),
+        pytest.param(np.array([1, 2]), np.array([3, 4]), np.array([-2]), id="different arrays"),
+    ],
+)
+def test_cross2d(x: npt.NDArray, y: npt.NDArray, expected: npt.NDArray) -> None:
+    """Test for cross2d."""
+    np.testing.assert_array_equal(feret.cross2d(x, y), expected)

@@ -1,7 +1,5 @@
 """Segment grains using a U-Net model."""
 
-from __future__ import annotations
-
 import logging
 
 import keras
@@ -114,6 +112,7 @@ def mean_iou(y_true: npt.NDArray[np.float32], y_pred: npt.NDArray[np.float32]):
     return tf.reduce_mean((intersect + smooth) / (union - intersect + smooth))
 
 
+# pylint: disable=too-many-positional-arguments
 def predict_unet(
     image: npt.NDArray[np.float32],
     model: keras.Model,
@@ -314,6 +313,7 @@ def make_bounding_box_square(
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
 
 
+# pylint: disable=too-many-positional-arguments
 def pad_bounding_box(
     crop_min_row: int,
     crop_min_col: int,
@@ -358,7 +358,7 @@ def pad_crop(
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
     padding: int,
-) -> np.NDArray:
+) -> npt.NDArray:
     """
     Pad a crop.
 
@@ -375,7 +375,7 @@ def pad_crop(
 
     Returns
     -------
-    np.NDArray
+    npt.NDArray
         The padded crop.
     """
     new_bounding_box = pad_bounding_box(
@@ -401,7 +401,7 @@ def make_crop_square(
     crop: npt.NDArray,
     bbox: tuple[int, int, int, int],
     image_shape: tuple[int, int],
-) -> np.NDArray:
+) -> npt.NDArray:
     """
     Make a crop square.
 
@@ -416,7 +416,7 @@ def make_crop_square(
 
     Returns
     -------
-    np.NDArray
+    npt.NDArray
         The square crop.
     """
     new_bounding_box = make_bounding_box_square(
