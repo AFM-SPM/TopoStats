@@ -232,7 +232,29 @@ def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: 
     """
     base1_base2 = np.asarray(base1) - np.asarray(base2)
     base1_apex = np.asarray(base1) - np.asarray(apex)
-    return np.linalg.norm(np.cross(base1_base2, base1_apex)) / np.linalg.norm(base1_base2)
+    # Ensure arrays are 3-D see note in https://numpy.org/doc/2.0/reference/generated/numpy.cross.html
+    return np.linalg.norm(cross2d(base1_base2, base1_apex)) / np.linalg.norm(base1_base2)
+
+
+def cross2d(x: npt.NDArray, y: npt.NDArray) -> npt.NDArray:
+    """
+    Return the c$ross product of two 2-D arrays of vectors.
+
+    See https://numpy.org/doc/2.0/reference/generated/numpy.cross.html
+
+    Parameters
+    ----------
+    x : npt.NDArray
+        First 2-D array.
+    y : npt.NDArray
+        Second 2-D array.
+
+    Returns
+    -------
+    npt.NDArray
+        Cross product of the two vectors.
+    """
+    return x[..., 0] * y[..., 1] - x[..., 1] * y[..., 0]
 
 
 def _min_feret_coord(
@@ -425,7 +447,7 @@ def get_feret_from_labelim(label_image: npt.NDArray, labels: None | list | set =
     return results
 
 
-# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
 def plot_feret(  # noqa: C901
     points: npt.NDArray,
     axis: int = 0,
