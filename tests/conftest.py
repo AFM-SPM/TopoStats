@@ -467,7 +467,7 @@ def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> topostats.TopoStats:
+def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
         image_grain_crops=imagegraincrops_catenanes,
@@ -509,7 +509,7 @@ def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> Im
 
 
 @pytest.fixture()
-def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
+def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> TopoStats:
     """TopoStats object of example rep_int."""
     return TopoStats(
         image_grain_crops=imagegraincrops_rep_int,

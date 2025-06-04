@@ -11,6 +11,7 @@ import pytest
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
+from topostats.classes import GrainCrop
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
@@ -867,10 +868,21 @@ def test_nodestats_image(
 ) -> None:
     """Test of nodestats_image() method of nodeStats class."""
     # Load the image
-    image = np.load(RESOURCES / image_filename)
-    # load disordered_tracing_crop_data from pickle
+    image = np.load(TRACING_RESOURCES / image_filename)
+
+    # load disordered_tracing_crop_data from pickle and calculate nodestats
     with Path(DISORDERED_TRACING_RESOURCES / disordered_tracing_crop_data_filename).open("rb") as f:
         disordered_tracing_crop_data = pickle.load(f)
+        print(f"\n{disordered_tracing_crop_data=}\n")
+        graincrop = GrainCrop(
+            image=image,
+            padding=1,
+            filename=image_filename,
+            mask=np.zeros_like(image),
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+        )
+        graincrop.skeleton = (disordered_tracing_crop_data["pruned_skeleton"],)
+        graincrop.disordered_traces = disordered_tracing_crop_data
 
     (
         result_nodestats_data,
@@ -878,10 +890,11 @@ def test_nodestats_image(
         result_nodestats_all_images,
         result_nodestats_branch_images,
     ) = nodestats_image(
-        image=image,
-        disordered_tracing_direction_data=disordered_tracing_crop_data,
-        filename="test_image",
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        graincrop=graincrop,
+        # image=image,
+        # disordered_tracing_direction_data=disordered_tracing_crop_data,
+        # filename="test_image",
+        # pixel_to_nm_scaling=pixel_to_nm_scaling,
         node_joining_length=node_joining_length,
         node_extend_dist=node_extend_dist,
         branch_pairing_length=branch_pairing_length,
@@ -893,9 +906,23 @@ def test_nodestats_image(
     # node_centres = result_all_images["node_centres"]
     # connected_nodes = result_all_images["connected_nodes"]
 
+    # print(f"\n{result_nodestats_data.keys()=}\n")
+    # print(f"\n{result_nodestats_data['grain_0'].keys()=}\n")
+    # print(f"\n{result_nodestats_data['grain_1'].keys()=}\n")
+    # # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0]=}")
+    # print(f"\n{dir(result_nodestats_data['grain_0']['node_1']['branch_stats'][0])=}")
+    # print(f"\n{print(result_nodestats_data['grain_0']['node_1']['branch_stats'][0])=}")
+    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].angles=}")
+    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].distances=}")
+    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].heights=}")
+    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].ordered_coords=}")
+    # print(f"\n{result_nodestats_grainstats=}\n")
+    # print(f"\n{result_nodestats_all_images=}\n")
+    # print(f"\n{result_nodestats_branch_images=}\n")
     assert result_nodestats_data == snapshot
     # ns-rse: syrupy doesn't yet support Pandas DataFrames so we convert to string
     #         https://github.com/syrupy-project/syrupy/issues/887
+    # print(f"\n{result_nodestats_grainstats.to_string()=}\n")
     assert result_nodestats_grainstats.to_string() == snapshot
     assert result_nodestats_all_images == snapshot
     assert result_nodestats_branch_images == snapshot
