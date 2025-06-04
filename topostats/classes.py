@@ -32,6 +32,8 @@ class GrainCrop:
         2-D Numpy array of the cropped image.
     mask : npt.NDArray[np.bool_]
         3-D Numpy tensor of the cropped mask.
+    skeleton : npt.NDArray
+        3-D Numpy tensor of the skeletonised mask.
     padding : int
         Padding added to the bounding box of the grain during cropping.
     bbox : tuple[int, int, int, int]
@@ -44,6 +46,8 @@ class GrainCrop:
         3-D Numpy tensor of the height profiles.
     stats : dict[int, dict[int, Any]] | None
         Dictionary of grain statistics.
+    nodes : dict[str, Nodes]
+        Dictionary of grain nodes.
     """
 
     def __init__(
@@ -56,6 +60,7 @@ class GrainCrop:
         filename: str,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
+        nodes: dict[str, Node] | None = None,
     ):
         """
         Initialise the class.
@@ -78,6 +83,8 @@ class GrainCrop:
             3-D Numpy tensor of the height profiles.
         stats : dict[int, dict[int, Any]] | None
             Dictionary of grain statistics.
+        nodes : dict[int, Node]
+            Grain nodes.
         """
         self.padding = padding
         self.image = image
@@ -89,7 +96,10 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
-        self.disordered_traces: dict[str:Any] = {}
+        self.skeleton: npt.NDArray[np.bool_] | None = None
+        self.disordered_traces: dict[int, dict[int, Any]] | None = {}
+        self.nodes: dict[int, Node] | None = {}
+        # self.ordered_traces: dict[int, Any] = {}
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -362,6 +372,30 @@ class GrainCrop:
             Value to set for ``disordered_traces``.
         """
         self._disordered_traces = value
+
+    @property
+    def nodes(self) -> dict[int, Node]:
+        """
+        Getter for the ``nodes`` attribute.
+
+        Returns
+        -------
+        dict[int, Nodes]
+            Returns ``nodes``, a dictionary of Nodes.
+        """
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, value: Node) -> None:
+        """
+        Setter for the ``nodes`` attribute.
+
+        Parameters
+        ----------
+        value : Nodes
+            Value to set for ``nodes``.
+        """
+        self._nodes = value
 
     def __eq__(self, other: object) -> bool:
         """
@@ -878,3 +912,326 @@ class TopoStats:
             Dictionary of ``TopoStats`` object.
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
+
+@dataclass
+class MatchedBranch:
+    """
+    Class for storing matched branches data and attributes.
+
+    Attributes
+    ----------
+    ordered_coords : npt.NDArray[np.int32]
+        Numpy array of ordered co-ordinates.
+    heights : npt.NDArray[np.number]
+        Numpy array of heights.
+    distances : npt.NDArray[np.number]
+        Numpy array of distances.
+    fwhm : dict[str, np.float64 | tuple[np.float64]]
+        ???
+    angles : np.float64
+        Angle between branches ???
+    """
+
+    def __str__(self) -> str:
+        """
+        Readable attributes.
+        """
+        return (
+            f"ordered_coords : {ordered_coords}\n"
+            f"heights : {heights}\n"
+            f"distances : {distances}\n"
+            f"fwhm : {fwhm}\n"
+            f"angles : {angles}"
+        )
+
+    @property
+    def ordered_coords(self) -> npt.NDArray[np.int32]:
+        """
+        Getter for the ``ordered_coords`` attribute.
+
+        Returns
+        -------
+        npt.NDArray[np.int32]
+            Returns the value of ``ordered_coords``.
+        """
+        return self._ordered_coords
+
+    @ordered_coords.setter
+    def ordered_coords(self, value: npt.NDArray[np.int32]) -> None:
+        """
+        Setter for the ``ordered_coords`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray[np.int32]
+            Value to set for ``ordered_coords``.
+        """
+        self._ordered_coords = value
+
+    @property
+    def heights(self) -> npt.NDArray[np.number]:
+        """
+        Getter for the ``heights`` attribute.
+
+        Returns
+        -------
+        npt.NDArray[np.number]
+            Returns the value of ``heights``.
+        """
+        return self._heights
+
+    @heights.setter
+    def heights(self, value: npt.NDArray[np.number]) -> None:
+        """
+        Setter for the ``heights`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray[np.number]
+            Value to set for ``heights``.
+        """
+        self._heights = value
+
+    @property
+    def distances(self) -> npt.NDArray[np.number]:
+        """
+        Getter for the ``distances`` attribute.
+
+        Returns
+        -------
+        npt.NDArray[np.number]
+            Returns the value of ``distances``.
+        """
+        return self._distances
+
+    @distances.setter
+    def distances(self, value: npt.NDArray[np.number]) -> None:
+        """
+        Setter for the ``distances`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray[np.number]
+            Value to set for ``distances``.
+        """
+        self._distances = value
+
+    @property
+    def fwhm(self) -> dict[str, np.float64 | tuple[np.float64]]:
+        """
+        Getter for the ``fwhm`` attribute.
+
+        Returns
+        -------
+        dict[str, np.float64 | tuple[np.float64]]
+            Returns the value of ``fwhm``.
+        """
+        return self._fwhm
+
+    @fwhm.setter
+    def fwhm(self, value: dict[str, np.float64 | tuple[np.float64]]) -> None:
+        """
+        Setter for the ``fwhm`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str, np.float64 | tuple[np.float64]]
+            Value to set for ``fwhm``.
+        """
+        self._fwhm = value
+
+    @property
+    def angles(self) -> np.float64:
+        """
+        Getter for the ``angles`` attribute.
+
+        Returns
+        -------
+        np.float64
+            Returns the value of ``angles``.
+        """
+        return self._angles
+
+    @angles.setter
+    def angles(self, value: np.float64) -> None:
+        """
+        Setter for the ``angles`` attribute.
+
+        Parameters
+        ----------
+        value : np.float64
+            Value to set for ``angles``.
+        """
+        self._angles = value
+
+
+@dataclass
+class Node:
+    """
+    Class for storing Node data and attributes.
+
+    Attributes
+    ----------
+    error : bool
+    pixel_to_nm_scaling : np.float64
+        Pixel to nanometre scaling.
+    branch_stats : dict[int, MatchedBranch]
+        Dictionary of branch statistics.
+    unmatched_branch_stats :
+        Dictionary of unmatched branch statistics.
+    node_coords : dict[str, dict[str, npt.NDArray[np.int32]]]
+        Nested dictionary of node coordinates
+    confidence : np.float64
+        Confidence in ???.
+    reduced_node_area : ???
+        Reduced node area.
+    node_branch_mask : ???
+        ????
+    node_avg_mask : ???
+        ???
+    """
+
+    @property
+    def error(self) -> bool:
+        """
+        Getter for the ``error`` attribute.
+
+        Returns
+        -------
+        bool
+            Returns the value of ``error``.
+        """
+        return self._error
+
+    @error.setter
+    def error(self, value: bool) -> None:
+        """
+        Setter for the ``error`` attribute.
+
+        Parameters
+        ----------
+        value : bool
+            Value to set for ``error``.
+        """
+        self._error = value
+
+    @property
+    def pixel_to_nm_scaling(self) -> np.float64:
+        """
+        Getter for the ``pixel_to_nm_scaling`` attribute.
+
+        Returns
+        -------
+        np.float64
+            Returns the value of ``pixel_to_nm_scaling``.
+        """
+        return self._pixel_to_nm_scaling
+
+    @pixel_to_nm_scaling.setter
+    def pixel_to_nm_scaling(self, value: np.float64) -> None:
+        """
+        Setter for the ``pixel_to_nm_scaling`` attribute.
+
+        Parameters
+        ----------
+        value : np.float64
+            Value to set for ``pixel_to_nm_scaling``.
+        """
+        self._pixel_to_nm_scaling = value
+
+    @property
+    def branch_stats(self) -> dict[int, MatchedBranch]:
+        """
+        Getter for the ``branch_stats`` attribute.
+
+        Returns
+        -------
+        dict[int, MatchedBranch]
+            Returns the value of ``branch_stats``.
+        """
+        return self._branch_stats
+
+    @branch_stats.setter
+    def branch_stats(self, value: dict[int, MatchedBranch]) -> None:
+        """
+        Setter for the ``branch_stats`` attribute.
+
+        Parameters
+        ----------
+        value : dict[int, MatchedBranch]
+            Value to set for ``branch_stats``.
+        """
+        self._branch_stats = value
+
+    @property
+    def node_coords(self) -> npt.NDArray[np.int32]:
+        """
+        Getter for the ``node_coords`` attribute.
+
+        Returns
+        -------
+        npt.NDArray[np.int32]
+            Returns the value of ``node_coords``.
+        """
+        return self._node_coords
+
+    @node_coords.setter
+    def node_coords(self, value: npt.NDArray[np.int32]) -> None:
+        """
+        Setter for the ``node_coords`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray[np.int32]
+            Value to set for ``node_coords``.
+        """
+        self._node_coords = value
+
+    @property
+    def confidence(self) -> np.float64:
+        """
+        Getter for the ``confidence`` attribute.
+
+        Returns
+        -------
+        np.float64
+            Returns the value of ``confidence``.
+        """
+        return self._confidence
+
+    @confidence.setter
+    def confidence(self, value: np.float64) -> None:
+        """
+        Setter for the ``confidence`` attribute.
+
+        Parameters
+        ----------
+        value : np.float64
+            Value to set for ``confidence``.
+        """
+        self._confidence = value
+
+    @property
+    def nodes(self) -> dict[str, dict[str, npt.NDArray[np.int32]]]:
+        """
+        Getter for the ``nodes`` attribute.
+
+        Returns
+        -------
+        dict[str, dict[str, npt.NDArray[np.int32]]]
+            Returns the value of ``nodes``.
+        """
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, value: dict[str, dict[str, npt.NDArray[np.int32]]]) -> None:
+        """
+        Setter for the ``nodes`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str, dict[str, npt.NDArray[np.int32]]]
+            Value to set for ``nodes``.
+        """
+        self._nodes = value

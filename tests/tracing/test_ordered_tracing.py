@@ -12,15 +12,17 @@ import pytest
 from topostats.tracing.ordered_tracing import linear_or_circular, ordered_tracing_image
 
 BASE_DIR = Path.cwd()
-GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
-ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "ordered_tracing"
-NODESTATS_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "nodestats"
-DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
+RESOURCES = BASE_DIR / "tests" / "resources"
+TRACING_RESOURCES = RESOURCES / "TRACING"
+ORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "ordered_tracing"
+NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
+DISORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "disordered_tracing"
 
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
+
 
 GRAINS = {}
 GRAINS["vertical"] = np.asarray(
@@ -294,7 +296,7 @@ def test_ordered_tracing_image(
     # nodestats_direction_data contains both nodestats_data and nodestats_branch_images
 
     # Load the required data
-    image = np.load(GENERAL_RESOURCES / image_filename)
+    image = np.load(TRACING_RESOURCES / image_filename)
 
     with Path.open(DISORDERED_TRACING_RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
         disordered_tracing_direction_data = pickle.load(f)
