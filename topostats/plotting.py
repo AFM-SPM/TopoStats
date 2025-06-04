@@ -1,7 +1,5 @@
 """Plotting and summary of TopoStats output statistics."""
 
-from __future__ import annotations
-
 from collections import defaultdict
 
 from importlib import resources
@@ -346,8 +344,7 @@ for KDE plot being the same. KDE plots cannot be made as there is no variance, s
         """
         plt.savefig(self.output_dir / f"{outfile}.{self.savefig_format}")
         LOGGER.debug(
-            f"[plotting] Plotted {self.stat_to_sum} to : "
-            f"{str(self.output_dir / f'{outfile}.{self.savefig_format}')}"
+            f"[plotting] Plotted {self.stat_to_sum} to : {str(self.output_dir / f'{outfile}.{self.savefig_format}')}"
         )
 
     def _set_label(self, var: str):

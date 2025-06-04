@@ -1,7 +1,5 @@
 """Functions for reading and writing data."""
 
-from __future__ import annotations
-
 import io
 import json
 import logging
@@ -1025,16 +1023,16 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         if isinstance(
             item,
             (
-                list,
-                str,
-                int,
-                float,
-                np.ndarray,
-                Path,
-                dict,
-                grains.GrainCrop,
-                grains.GrainCropsDirection,
-                grains.ImageGrainCrops,
+                list
+                | str
+                | int
+                | float
+                | np.ndarray
+                | Path
+                | dict
+                | grains.GrainCrop
+                | grains.GrainCropsDirection
+                | grains.ImageGrainCrops
             ),
         ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
