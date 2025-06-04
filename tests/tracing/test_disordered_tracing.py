@@ -19,8 +19,9 @@ from topostats.tracing import disordered_tracing
 # pylint: disable=unspecified-encoding
 
 BASE_DIR = Path.cwd()
-DISORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "disordered_tracing"
-GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
+RESOURCES = BASE_DIR / "tests" / "resources"
+TRACING_RESOURCES = RESOURCES / "tracing"
+DISORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "disordered_tracing"
 
 TEST_LABELLED = np.asarray(
     [
@@ -1391,7 +1392,7 @@ def test_trace_image_disordered(
 ) -> None:
     """Test the trace image disordered method."""
     # Load the image
-    image: npt.NDArray[float] = np.load(GENERAL_RESOURCES / image_filename)
+    image: npt.NDArray[float] = np.load(TRACING_RESOURCES / image_filename)
     # Load TopoStats fixture and set image
     topostats_object = request.getfixturevalue(topostats_object)
     topostats_object.image = image

@@ -21,9 +21,10 @@ from topostats.tracing.splining import (
 )
 
 BASE_DIR = Path.cwd()
-GENERAL_RESOURCES = BASE_DIR / "tests" / "resources"
-SPLINING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "splining"
-ORDERED_TRACING_RESOURCES = BASE_DIR / "tests" / "resources" / "tracing" / "ordered_tracing"
+RESOURCES = BASE_DIR / "tests" / "resources"
+TRACING_RESOURCES = RESOURCES / "tracing"
+SPLINING_RESOURCES = TRACING_RESOURCES / "splining"
+ORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "ordered_tracing"
 
 # pylint: disable=unspecified-encoding
 # pylint: disable=too-many-locals
@@ -186,7 +187,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
 ) -> None:
     """Test the splining_image function of the splining module."""
     # Load the data
-    image = np.load(GENERAL_RESOURCES / image_filename)
+    image = np.load(TRACING_RESOURCES / image_filename)
 
     # Load the ordered tracing direction data
     with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
