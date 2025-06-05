@@ -161,7 +161,7 @@ def lists_almost_equal(list1: list, list2: list, abs_tol: float = 1e-9) -> bool:
         LOGGER.debug(f"Lists not same length: {len(list1)} != {len(list2)}")
         return False
     for i, (item1, item2) in enumerate(zip(list1, list2)):
-        if isinstance(item1, (int, float, np.int64)) and isinstance(item2, (int, float, np.int64)):
+        if isinstance(item1, int | float | np.int64)) and isinstance(item2, int | float | np.int64):
             if not np.isclose(item1, item2, atol=abs_tol):
                 LOGGER.debug(f"List item {i} not equal: {item1} != {item2}")
                 return False
