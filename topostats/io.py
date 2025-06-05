@@ -68,11 +68,12 @@ def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> Mutabl
 
 
 # Sylvia: Ruff says too complex but I think breaking this out would be more complex.
+# pylint: disable=too-many-return-statements
 def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa: C901
     """
     Recursively check if two dictionaries are almost equal with a given absolute tolerance.
 
-    If the values of a dictionary are lists pairwise comparisons are made.
+    This should really just be iterative and is an affront to memory usage.
 
     Parameters
     ----------
@@ -88,39 +89,86 @@ def dict_almost_equal(dict1: dict, dict2: dict, abs_tol: float = 1e-9):  # noqa:
     bool
         True if the dictionaries are almost equal, False otherwise.
     """
+    # Ensure both dictionaries share the same keys
     if dict1.keys() != dict2.keys():
         return False
+
+    # Ensure the types of the values are the same
+    for key in dict1:
+        # Sylvia: Pylint complains about calling the type() function in this way, but it is the only way to
+        # ensure that the types of the values in both dictionaries are the same (that I know of).
+        # Replace with better way if you know of one.
+        # pylint: disable=unidiomatic-typecheck
+        if type(dict1[key]) != type(dict2[key]):  # noqa: E721
+            LOGGER.debug(f"Key {key} types not equal: {type(dict1[key])} != {type(dict2[key])}")
+            return False
 
     LOGGER.debug("Comparing dictionaries")
 
     for key in dict1:
         LOGGER.debug(f"Comparing key {key}")
-        if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+        if isinstance(dict1[key], dict):
             if not dict_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
                 return False
-        elif isinstance(dict1[key], np.ndarray) and isinstance(dict2[key], np.ndarray):
+        elif isinstance(dict1[key], np.ndarray):
             if not np.allclose(dict1[key], dict2[key], atol=abs_tol):
                 LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                 return False
-        elif isinstance(dict1[key], float) and isinstance(dict2[key], float):
+        elif isinstance(dict1[key], float):
             # Skip if both values are NaN
             if not (np.isnan(dict1[key]) and np.isnan(dict2[key])):
                 # Check if both values are close
                 if not np.isclose(dict1[key], dict2[key], atol=abs_tol):
                     LOGGER.debug(f"Key {key} type: {type(dict1[key])} not equal: {dict1[key]} != {dict2[key]}")
                     return False
-        elif isinstance(dict1[key], list) and isinstance(dict2[key], list):
-            for idx, _ in enumerate(dict1[key]):
-                if not np.isclose(dict1[key][idx], dict2[key][idx], atol=abs_tol):
-                    print(
-                        f"Key {key} type: {type(dict1[key])} not equal at element {idx} : "
-                        f"{dict1[key][idx]} != {dict2[key][idx]}"
-                    )
-                    return False
+        elif isinstance(dict1[key], list):
+            if not lists_almost_equal(dict1[key], dict2[key], abs_tol=abs_tol):
+                return False
         elif dict1[key] != dict2[key]:
             LOGGER.debug(f"Key {key} not equal: {dict1[key]} != {dict2[key]}")
             return False
 
+    return True
+
+
+def lists_almost_equal(list1: list, list2: list, abs_tol: float = 1e-9) -> bool:
+    """
+    Check if two lists are almost equal with a given absolute tolerance.
+
+    Note: Currently the lists must be flat, the same length and contain only numbers (int or float).
+
+    Parameters
+    ----------
+    list1 : list
+        First list to compare.
+    list2 : list
+        Second list to compare.
+    abs_tol : float
+        Absolute tolerance to check for equality.
+
+    Returns
+    -------
+    bool
+        True if the lists are almost equal, False otherwise.
+
+    Raises
+    ------
+    NotImplementedError
+        If the items in the lists are not of type int or float.
+    """
+    # Check if both lists are the same length and only contain numbers
+    if len(list1) != len(list2):
+        LOGGER.debug(f"Lists not same length: {len(list1)} != {len(list2)}")
+        return False
+    for i, (item1, item2) in enumerate(zip(list1, list2)):
+        if isinstance(item1, int | float | np.int64) and isinstance(item2, int | float | np.int64):
+            if not np.isclose(item1, item2, atol=abs_tol):
+                LOGGER.debug(f"List item {i} not equal: {item1} != {item2}")
+                return False
+        else:
+            raise NotImplementedError(
+                f"Comparison of list items of type {type(item1)} inside a list is not implemented."
+            )
     return True
 
 

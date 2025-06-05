@@ -23,6 +23,7 @@ from topostats.io import (
     get_out_path,
     get_relative_paths,
     hdf5_to_dict,
+    lists_almost_equal,
     load_array,
     load_pkl,
     merge_mappings,
@@ -283,24 +284,78 @@ def test_load_array() -> None:
             id="nan equal",
         ),
         pytest.param(
-            {"a": [0.001, 0.002]},
-            {"a": [0.001, 0.002]},
-            0.001,
+            {"a": [1.01, 2.01]},
+            {"a": [1.0, 2.0]},
+            0.1,
             True,
-            id="Nested lists equal",
+            id="list equal within tolerance",
         ),
         pytest.param(
-            {"a": [0.01, 0.02]},
-            {"a": [0.02, 0.01]},
+            {"a": [1.01, 2.01]},
+            {"a": [1.0, 2.0]},
             0.0001,
             False,
-            id="Nested lists not equal",
+            id="list not equal within strict tolerance",
+        ),
+        pytest.param(
+            {"a": 5.0, "b": 10.0},
+            {"a": {"c": 5.0}, "b": 10.0},
+            0.0001,
+            False,
+            id="dict's matching keys are of different types.",
         ),
     ],
 )
 def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected: bool) -> None:
     """Test that two dictionaries are almost equal."""
     assert dict_almost_equal(dict1, dict2, tolerance) == expected
+
+
+@pytest.mark.parametrize(
+    ("list1", "list2", "tolerance", "expected"),
+    [
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0, 3.0],
+            0.00001,
+            True,
+            id="list exactly equal",
+        ),
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0, 4.0],
+            0.00001,
+            False,
+            id="list not equal: value difference",
+        ),
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0],
+            0.00001,
+            False,
+            id="lists not equal: different lengths",
+        ),
+        pytest.param(
+            [1.00001, 2.00002, 3.00005],
+            [1.0, 2.0, 3.0],
+            0.01,
+            True,
+            id="list equal within tolerance",
+        ),
+    ],
+)
+def test_lists_almost_equal(list1: list, list2: list, tolerance: float, expected: bool) -> None:
+    """Test the lists_almost_equal function."""
+    assert lists_almost_equal(list1, list2, tolerance) == expected
+
+
+def test_lists_almost_equal_notimplemented_error() -> None:
+    """Test that lists_almost_equal raises NotImplementedError for illegal types."""
+    with pytest.raises(NotImplementedError):
+        lists_almost_equal([1, 2, [3]], [1, 2, [3]], 0.00001)
+
+    with pytest.raises(NotImplementedError):
+        lists_almost_equal([1, 2, {3}], [1, 2, {3}], 0.00001)
 
 
 @pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
