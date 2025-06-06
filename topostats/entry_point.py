@@ -120,7 +120,9 @@ def create_parser() -> arg.ArgumentParser:
         "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
-    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
+    subparsers = parser.add_subparsers(
+        title="program", description="Available programs, listed below:", dest="program"
+    )
 
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
@@ -600,6 +602,13 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Colormap to use, options include 'nanoscope', 'afmhot' or any valid Matplotlib colormap.",
+    )
+    process_parser.add_argument(
+        "--grain-crop-plot-size-nm",
+        dest="grain_crop_plot_size_nm",
+        type=float,
+        required=False,
+        help="Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.",
     )
     process_parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     process_parser.add_argument(
