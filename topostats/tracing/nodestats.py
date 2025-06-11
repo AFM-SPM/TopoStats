@@ -2,7 +2,6 @@
 
 import logging
 from itertools import combinations
-from typing import TypedDict
 
 import networkx as nx
 import numpy as np
@@ -12,7 +11,7 @@ from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
 
-from topostats.classes import TopoStats, GrainCrop, MatchedBranch, Node
+from topostats.classes import GrainCrop, MatchedBranch, Node
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
     calculate_shortest_branch_distances,
@@ -240,6 +239,7 @@ class nodeStats:
                            └-> gaussian_fit ???
                            └-> angles
                            └-> fwhm (dictionary of fwhm[float64], half_maxs[list], peaks[list])
+
         Returns
         -------
         tuple[dict, dict]
