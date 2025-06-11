@@ -1,0 +1,233 @@
+topostats.theme
+===============
+
+.. py:module:: topostats.theme
+
+.. autoapi-nested-parse::
+
+   Custom Bruker Nanoscope colorscale.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.theme.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.theme.Colormap
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Colormap(name: str = 'nanoscope')
+
+   
+   Class for setting the Colormap.
+
+   :param name: Name of colormap to use.
+   :type name: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: name
+      :value: 'nanoscope'
+
+
+
+   .. py:attribute:: cmap
+      :value: None
+
+
+
+   .. py:method:: __str__() -> str
+
+      
+      Return string representation of object.
+
+      :returns: String detailing the colormap.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: set_cmap(name: str) -> None
+
+      
+      Set the ColorMap.
+
+      :param name: Name of the colormap to return.
+      :type name: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cmap() -> matplotlib.cm
+
+      
+      Return the matplotlib.cm colormap object.
+
+      :returns: Matplotlib Color map object.
+      :rtype: matplotlib.cm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: nanoscope() -> matplotlib.colors.LinearSegmentedColormap
+      :staticmethod:
+
+
+      
+      Matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale.
+
+      The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'.
+
+      :returns: MatplotLib LinearSegmentedColourmap that replicates Bruker Nanoscope colorscale.
+      :rtype: LinearSegmentedColormap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gwyddion() -> matplotlib.colors.LinearSegmentedColormap
+      :staticmethod:
+
+
+      
+      Set RGBA colour map for the Gwyddion.net colour gradient.
+
+      :returns: The 'gwyddion' colormap.
+      :rtype: LinearSegmentedColormap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: blu() -> matplotlib.colors.ListedColormap
+      :staticmethod:
+
+
+      
+      Set RGBA colour map of just the colour blue.
+
+      :returns: The 'blu' colormap.
+      :rtype: ListedColormap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

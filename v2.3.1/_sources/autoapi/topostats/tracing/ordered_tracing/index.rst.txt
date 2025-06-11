@@ -1,0 +1,791 @@
+topostats.tracing.ordered_tracing
+=================================
+
+.. py:module:: topostats.tracing.ordered_tracing
+
+.. autoapi-nested-parse::
+
+   Order single pixel skeletons with or without NodeStats Statistics.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.ordered_tracing.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.ordered_tracing.OrderedTraceNodestats
+   topostats.tracing.ordered_tracing.OrderedTraceTopostats
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.ordered_tracing.linear_or_circular
+   topostats.tracing.ordered_tracing.ordered_trace_mask
+   topostats.tracing.ordered_tracing.ordered_tracing_image
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: OrderedTraceNodestats(image: numpy.typing.NDArray, nodestats_dict: dict, skeleton: numpy.typing.NDArray, filename: str)
+
+   
+   Order single pixel thick skeleton coordinates via NodeStats results.
+
+   :param image: A cropped image array.
+   :type image: npt.NDArray
+   :param nodestats_dict: The nodestats results for a specific grain.
+   :type nodestats_dict: dict
+   :param skeleton: The pruned skeleton mask array.
+   :type skeleton: npt.NDArray
+   :param filename: The image filename (for logging purposes).
+   :type filename: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: nodestats_dict
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: skeleton
+
+
+   .. py:attribute:: grain_tracing_stats
+
+
+   .. py:attribute:: mol_tracing_stats
+
+
+   .. py:attribute:: images
+
+
+   .. py:attribute:: profiles
+
+
+   .. py:attribute:: img_idx_to_node
+
+
+   .. py:attribute:: ordered_coordinates
+      :value: []
+
+
+
+   .. py:method:: compile_trace(reverse_min_conf_crossing: bool = False) -> tuple[list, numpy.typing.NDArray]
+
+      
+      Obtain the trace and diagnostic crossing trace and molecule trace images.
+
+      This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary
+      to create a continuous trace of the molecule.
+
+      :param reverse_min_conf_crossing: Whether to reverse the stacking order of the lowest confidence crossing in the trace.
+      :type reverse_min_conf_crossing: bool
+
+      :returns: A list of each complete path's ordered coordinates, and labeled crossing image array.
+      :rtype: tuple[list, npt.NDArray]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: compile_images(coord_trace: list, cross_add: numpy.typing.NDArray, crossing_coords: list, fwhms: list) -> None
+
+      
+      Obtain all the diagnostic images based on the produced traces, and values.
+
+      Crossing coords and fwhms are used as arguments as reversing the minimum confidence can modify these.
+
+      :param coord_trace: List of N molecule objects containing 2xM arrays of X, Y coordinates.
+      :type coord_trace: list
+      :param cross_add: A labelled array with segments of the ordered trace.
+      :type cross_add: npt.NDArray
+      :param crossing_coords: A list of I nodes objects containing 2xJ arrays of X, Y coordinates for each crossing branch.
+      :type crossing_coords: list
+      :param fwhms: A list of I nodes objects containing FWHM values for each crossing branch.
+      :type fwhms: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_common_values(ordered_array: numpy.typing.NDArray, common_value_check_array: numpy.typing.NDArray, retain: list = ()) -> numpy.array
+      :staticmethod:
+
+
+      
+      Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.
+
+      :param ordered_array: Coordinate array to remove / retain values from. Will retain its order.
+      :type ordered_array: npt.NDArray
+      :param common_value_check_array: Coordinate array containing any common values to be removed from ordered_array.
+      :type common_value_check_array: npt.NDArray
+      :param retain: List of possible coordinates to keep, by default ().
+      :type retain: list, optional
+
+      :returns: Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_topology(nxyz: numpy.typing.NDArray) -> list
+
+      
+      Obtain a topological classification from ordered XYZ coordinates.
+
+      :param nxyz: A 4xN array of the order index (n), x, y and pseudo z coordinates.
+      :type nxyz: npt.NDArray
+
+      :returns: Topology(s) of the provided traced coordinates.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: trace(ordered_segment_coords: list, both_img: numpy.typing.NDArray, zs: numpy.typing.NDArray, n: int = 100) -> list
+
+      
+      Obtain an ordered trace of each complete path.
+
+      Here a 'complete path' means following and removing connected segments until
+      there are no more segments to follow.
+
+      :param ordered_segment_coords: Ordered coordinates of each labeled segment in 'both_img'.
+      :type ordered_segment_coords: list
+      :param both_img: A skeletonised labeled image of each path segment.
+      :type both_img: npt.NDArray
+      :param zs: Array of pseudo heights of the traces. -1 is lowest, 0 is skeleton, then ascending integers for
+                 levels of overs.
+      :type zs: npt.NDArray
+      :param n: The number of points to use for the simplified traces.
+      :type n: int
+
+      :returns: Ordered trace coordinates of each complete path.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: reduce_rows(array: numpy.typing.NDArray, n: int = 300) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Reduce the number of rows in the array to `n`, keeping the first and last indexes.
+
+      :param array: An array to reduce the number of rows in.
+      :type array: npt.NDArray
+      :param n: The number of indexes in the array to keep, by default 300.
+      :type n: int, optional
+
+      :returns: The `array` reduced to only `n` + 2 elements, or if shorter, the same array.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_trace_segment(remaining_img: numpy.typing.NDArray, ordered_segment_coords: list, coord_idx: int) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Return an ordered segment at the end of the current one.
+
+      Check the branch of given index to see if it contains an endpoint. If it does,
+      the segment coordinates will be returned starting from the endpoint.
+
+      :param remaining_img: A 2D array representing an image composed of connected segments of different integers.
+      :type remaining_img: npt.NDArray
+      :param ordered_segment_coords: A list of 2xN coordinates representing each segment.
+      :type ordered_segment_coords: list
+      :param coord_idx: The index of the current segment to look at. There is an index mismatch between the
+                        remaining_img and ordered_segment_coords by -1.
+      :type coord_idx: int
+
+      :returns: 2xN array of coordinates representing a skeletonised ordered trace segment.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: order_from_end(last_segment_coord: numpy.typing.NDArray, current_segment: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Order the current segment to follow from the end of the previous one.
+
+      :param last_segment_coord: X and Y coordinates of the end of the last segment.
+      :type last_segment_coord: npt.NDArray
+      :param current_segment: A 2xN array of coordinates of the current segment to order.
+      :type current_segment: npt.NDArray
+
+      :returns: * *npt.NDArray* -- The current segment orientated to follow on from the last.
+                * *bool* -- Whether the order has been flipped.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_over_under_img(coord_trace: list, fwhms: list, crossing_coords: list) -> numpy.typing.NDArray
+
+      
+      Obtain a labelled image according to the main trace (=1), under (=2), over (=3).
+
+      :param coord_trace: Ordered coordinate trace of each molecule.
+      :type coord_trace: list
+      :param fwhms: List of full-width half-maximums (FWHMs) for each crossing in the trace.
+      :type fwhms: list
+      :param crossing_coords: The crossing coordinates of each branch crossing.
+      :type crossing_coords: list
+
+      :returns: 2D crossing order labelled image.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_mols_img(coord_trace: list, fwhms: list, crossing_coords: list) -> numpy.typing.NDArray
+
+      
+      Obtain a labelled image according to each molecule traced N=3 -> n=1,2,3.
+
+      :param coord_trace: Ordered coordinate trace of each molecule.
+      :type coord_trace: list
+      :param fwhms: List of full-width half-maximums (FWHMs) for each crossing in the trace.
+      :type fwhms: list
+      :param crossing_coords: The crossing coordinates of each branch crossing.
+      :type crossing_coords: list
+
+      :returns: 2D individual 'molecule' labelled image.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_trace_idxs(fwhms: list) -> tuple[list, list]
+      :staticmethod:
+
+
+      
+      Split under-passing and over-passing indices.
+
+      :param fwhms: List of arrays of full-width half-maximum (FWHM) values for each crossing point.
+      :type fwhms: list
+
+      :returns: All the under, and over indices of the for each node FWHMs in the provided FWHM list.
+      :rtype: tuple[list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: check_node_errorless() -> bool
+
+      
+      Check if an error has occurred while processing the node dictionary.
+
+      :returns: Whether the error is present.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: identify_writhes() -> str | dict
+
+      
+      Identify the writhe topology at each crossing in the image.
+
+      :returns: A string of the whole grain writhe sign, and a dictionary linking each node to it's sign.
+      :rtype: str | dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: writhe_direction(first_vector: numpy.typing.NDArray, second_vector: numpy.typing.NDArray) -> str
+      :staticmethod:
+
+
+      
+      Use the cross product of crossing vectors to determine the writhe sign.
+
+      :param first_vector: An x,y component vector of the overlying strand.
+      :type first_vector: npt.NDArray
+      :param second_vector: An x,y component vector of the underlying strand.
+      :type second_vector: npt.NDArray
+
+      :returns: '+', '-' or '0' for positive, negative, or no writhe.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: run_nodestats_tracing() -> tuple[list, dict, dict]
+
+      
+      Run the nodestats tracing pipeline.
+
+      :returns: A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
+      :rtype: tuple[list, dict, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: OrderedTraceTopostats(image, skeleton)
+
+   
+   Order single pixel thick skeleton coordinates via TopoStats.
+
+   :param image: A cropped image array.
+   :type image: npt.NDArray
+   :param skeleton: The pruned skeleton mask array.
+   :type skeleton: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: skeleton
+
+
+   .. py:attribute:: grain_tracing_stats
+
+
+   .. py:attribute:: mol_tracing_stats
+
+
+   .. py:attribute:: images
+
+
+   .. py:method:: get_ordered_traces(disordered_trace_coords: numpy.typing.NDArray, mol_is_circular: bool) -> list
+      :staticmethod:
+
+
+      
+      Obtain ordered traces from disordered traces.
+
+      :param disordered_trace_coords: A Nx2 array of coordinates to order.
+      :type disordered_trace_coords: npt.NDArray
+      :param mol_is_circular: A flag of whether the molecule has at least one coordinate with only one neighbour.
+      :type mol_is_circular: bool
+
+      :returns: A list of each molecules ordered trace coordinates.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: run_topostats_tracing() -> tuple[list, dict, dict]
+
+      
+      Run the topostats tracing pipeline.
+
+      :returns: A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
+      :rtype: tuple[list, dict, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: linear_or_circular(traces) -> bool
+
+   
+   Determine whether the molecule is circular or linear via >1 points in the local start area.
+
+   This function is sensitive to branches from the skeleton because it is based on whether any given point has zero
+   neighbours or not so the traces should be pruned.
+
+   :param traces: The array of coordinates to be assessed.
+   :type traces: npt.NDArray
+
+   :returns: Whether a molecule is linear or not (True if linear, False otherwise).
+   :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: ordered_trace_mask(ordered_coordinates: numpy.typing.NDArray, shape: tuple) -> numpy.typing.NDArray
+
+   
+   Obtain a mask of the trace coordinates with each trace pixel.
+
+   :param ordered_coordinates: Ordered array of coordinates.
+   :type ordered_coordinates: npt.NDArray
+   :param shape: The shape of the array bounding the coordinates.
+   :type shape: tuple
+
+   :returns: NxM image with each pixel in the ordered trace labeled in ascending order.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: ordered_tracing_image(image: numpy.typing.NDArray, disordered_tracing_direction_data: dict, nodestats_direction_data: dict, filename: str, ordering_method: str, pad_width: int) -> tuple[dict, pandas.DataFrame, pandas.DataFrame, dict]
+
+   
+   Run ordered tracing for an entire image of >=1 grains.
+
+   :param image: Whole FOV image.
+   :type image: npt.NDArray
+   :param disordered_tracing_direction_data: Dictionary result from the disordered traces. Fields used are "original_image" and "pruned_skeleton".
+   :type disordered_tracing_direction_data: dict
+   :param nodestats_direction_data: Dictionary result from the nodestats analysis.
+   :type nodestats_direction_data: dict
+   :param filename: Image filename (for logging purposes).
+   :type filename: str
+   :param ordering_method: The method to order the trace coordinates - "topostats" or "nodestats".
+   :type ordering_method: str
+   :param pad_width: Width to pad the images by.
+   :type pad_width: int
+
+   :returns: Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
+             dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.
+   :rtype: tuple[dict, pd.DataFrame, pd.DataFrame, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
