@@ -19,9 +19,31 @@ from topostats.damage.damage import calculate_defects_and_gap_lengths
         ),
         pytest.param(
             np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+            np.array([10]),
+            np.array([]),
+            id="no gaps, all defect",
+        ),
+        pytest.param(
+            np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
             np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0]),
             np.array([2]),
             np.array([8]),
+            id="one defect in the middle",
+        ),
+        pytest.param(
+            np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            np.array([1, 1, 1, 1, 0, 0, 0, 0, 0, 0]),
+            np.array([4]),
+            np.array([6]),
+            id="one defect at the start",
+        ),
+        pytest.param(
+            np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1]),
+            np.array([4]),
+            np.array([6]),
+            id="one defect at the end",
         ),
     ],
 )

@@ -14,6 +14,7 @@ def calculate_defects_and_gap_lengths(
 
     current_gap_length = 0.0
     current_defect_length = 0.0
+
     for i in range(len(defects_bool)):
 
         if defects_bool[i]:
@@ -32,8 +33,12 @@ def calculate_defects_and_gap_lengths(
     # if the last defect is still open, check if it's connected to the start defect and combine if necessary
     if current_defect_length > 0:
         if defects_bool[0]:
-            # End is connected to start, so combine the lengths into the first defect
-            defect_lengths[0] += current_defect_length
+            # Check if there are any defects in the list, if not, then the whole thing is a defect
+            if len(defect_lengths) == 0:
+                defect_lengths.append(current_defect_length)
+            else:
+                # End is connected to start, so combine the lengths into the first defect
+                defect_lengths[0] += current_defect_length
         else:
             # End is not connected to start, so add as a new defect
             defect_lengths.append(current_defect_length)
