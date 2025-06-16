@@ -15,10 +15,10 @@ def calculate_defects_and_gap_lengths(
     current_gap_length = 0.0
     current_defect_length = 0.0
 
-    for i in range(len(defects_bool)):
+    for index, point in enumerate(defects_bool):
 
-        if defects_bool[i]:
-            current_defect_length += points_distance_to_previous_nm[i]
+        if point:
+            current_defect_length += points_distance_to_previous_nm[index]
             if current_gap_length > 0:
                 # End the current gap
                 gap_lengths.append(current_gap_length)
@@ -28,7 +28,7 @@ def calculate_defects_and_gap_lengths(
                 defect_lengths.append(current_defect_length)
                 current_defect_length = 0.0
             # Continue the gap
-            current_gap_length += points_distance_to_previous_nm[i]
+            current_gap_length += points_distance_to_previous_nm[index]
 
     # if the last defect is still open, check if it's connected to the start defect and combine if necessary
     if current_defect_length > 0:
