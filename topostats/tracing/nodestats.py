@@ -80,18 +80,12 @@ class nodeStats:
 
     Parameters
     ----------
-    filename : str
-        The name of the file being processed. For logging purposes.
-    image : npt.npt.NDArray
-        The array of pixels.
-    mask : npt.npt.NDArray
-        The binary segmentation mask.
+    graincrop : GrainCrop
+        GrainCrop to be analysed.
     smoothed_mask : npt.NDArray
         A smoothed version of the bianary segmentation mask.
     skeleton : npt.NDArray
         A binary single-pixel wide mask of objects in the 'image'.
-    pixel_to_nm_scaling : np.float32
-        The pixel to nm scaling factor.
     n_grain : int
         The grain number.
     node_joining_length : float
@@ -109,12 +103,8 @@ class nodeStats:
     def __init__(
         self,
         graincrop: GrainCrop,
-        # filename: str,
-        # image: npt.NDArray,
-        # mask: npt.NDArray,
         smoothed_mask: npt.NDArray,
         skeleton: npt.NDArray,
-        # pixel_to_nm_scaling: np.float64,
         n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
@@ -128,18 +118,10 @@ class nodeStats:
         ----------
         graincrop : GrainCrop
             Grain crop for nodestatistics are to be calculated.
-        filename : str
-            The name of the file being processed. For logging purposes.
-        image : npt.NDArray
-            The array of pixels.
-        mask : npt.NDArray
-            The binary segmentation mask.
         smoothed_mask : npt.NDArray
             A smoothed version of the bianary segmentation mask.
         skeleton : npt.NDArray
             A binary single-pixel wide mask of objects in the 'image'.
-        pixel_to_nm_scaling : float
-            The pixel to nm scaling factor.
         n_grain : int
             The grain number.
         node_joining_length : float
@@ -153,9 +135,7 @@ class nodeStats:
         pair_odd_branches : bool
             Whether to try and pair odd-branched nodes.
         """
-        # self.filename = filename
-        # self.image = image
-        # self.mask = mask
+        self.graincrop = graincrop
         self.filename = graincrop.filename
         self.image = graincrop.image
         self.mask = graincrop.mask
@@ -1893,14 +1873,8 @@ def nodestats_image(
 
     Parameters
     ----------
-    image : npt.NDArray
-        The array of pixels.
-    disordered_tracing_direction_data : dict
-        The images and bbox coordinates of the pruned skeletons.
-    filename : str
-        The name of the file being processed. For logging purposes.
-    pixel_to_nm_scaling : float
-        The pixel to nm scaling factor.
+    graincrop : GrainCrop
+        GrainCrop of image to be analysed. This should be post-disordered tracing.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
@@ -1918,6 +1892,9 @@ def nodestats_image(
         The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
         an image dictionary of nodestats steps for the entire image, and single grain images.
     """
+    image = GrainCrop.image
+    filename = GrainCrop.filename
+    pixel_to_nm_scaling = GrainCrop.pixel_to_nm_scaling
     # n_grains = len(disordered_tracing_direction_data)
     # img_base = np.zeros_like(image)
     n_grains = len(graincrop.disordered_traces)
