@@ -156,14 +156,19 @@ def test_connect_extended_nodes() -> None:
 def test_connect_extended_nodes_nearest(
     connected_nodes: npt.NDArray[np.number], expected_nodes: npt.NDArray[np.number]
 ) -> None:
-    """Test of connect_extended_nodes_nearest() method of nodeStats class.
-
-    Needs a test for theta topology and figure 8.
-    """
-    nodestats = nodeStats(
-        filename="dummy",
+    """Test of nodeStats.connect_extended_nodes_nearest() method of nodeStats class."""
+    grain_crop = GrainCrop(
         image=np.array([[0, 0, 0], [0, 1.5, 0], [0, 0, 0]]),
-        mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+        mask=np.stack(
+            [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])], axis=1
+        ),
+        filename="dummy",
+        pixel_to_nm_scaling=1,
+        padding=1,
+        bbox=(0, 0, 10, 10),
+    )
+    nodestats = nodeStats(
+        grain_crop=grain_crop,
         smoothed_mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
         skeleton=connected_nodes.astype(bool),
         pixel_to_nm_scaling=np.float64(1.0),

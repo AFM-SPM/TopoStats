@@ -17,6 +17,8 @@ from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
+TRACING_RESOURCES = RESOURCES / "tracing"
+NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
 
 RNG = np.random.default_rng(seed=1000)
 
@@ -143,7 +145,7 @@ def disordered_trace(skeletonize_circular, skeletonize_circular_bool_int) -> dis
 @pytest.fixture()
 def catenane_image() -> npt.NDArray[np.number]:
     """Image of a catenane molecule."""
-    return np.load(RESOURCES / "catenane_image.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_image.npy")
 
 
 @pytest.fixture()
@@ -154,7 +156,7 @@ def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
     Effectively just the skeleton, but
     with the nodes set to 2 while the skeleton is 1 and background is 0.
     """
-    return np.load(RESOURCES / "catenane_node_centre_mask.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_node_centre_mask.npy")
 
 
 @pytest.fixture()
@@ -165,19 +167,50 @@ def catenane_connected_nodes() -> npt.NDArray[np.int32]:
     Effectively just the skeleton, but with the extended nodes
     set to 2 while the skeleton is 1 and background is 0.
     """
-    return np.load(RESOURCES / "catenane_connected_nodes.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_connected_nodes.npy")
+
+
+@pytest.fixture()
+def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
+    """Catenane smoothed mask."""
+    return np.load(NODESTATS_RESOURCES / "catenane_smoothed_mask.npy")
+
+
+@pytest.fixture()
+def catenane_skeleton() -> npt.NDArray[np.bool_]:
+    """Catenane smoothed mask."""
+    return np.load(NODESTATS_RESOURCES / "catenane_skeleton.npy")
+
+
+@pytest.fixture()
+def graincrop_catenane(catenane_image: npt.NDArray[np.number]) -> GrainCrop:
+    """GrainCrop of Catenane post disordered tracing."""
+    # The catenane image isn't square and currently GrainCrop only plays ball with square crops so we pad it with zeros
+    # on one side
+    catenane_image = np.pad(
+        catenane_image, pad_width=((0, 0), (0, catenane_image.shape[0] - catenane_image.shape[1])), mode="constant"
+    )
+    catenane_mask = catenane_image.astype(np.bool).astype(int)
+    catenane_tensor = np.stack([catenane_mask, catenane_mask], axis=-1)
+    return GrainCrop(
+        image=catenane_image,
+        mask=catenane_tensor,
+        filename="test_catenane",
+        padding=1,
+        bbox=(0, 0, 10, 10),
+        pixel_to_nm_scaling=1,
+    )
 
 
 @pytest.fixture()
 def nodestats_catenane(
     catenane_image: npt.NDArray[np.number],
+    catenane_smoothed_mask: npt.NDArray[np.bool_],
+    catenane_skeleton: npt.NDArray[np.bool_],
+    catenane_node_centre_mask: npt.NDArray[np.int32],
+    catenane_connected_nodes: npt.NDArray[np.int32],
 ) -> nodeStats:
     """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
-    catenane_smoothed_mask: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_smoothed_mask.npy")
-    catenane_skeleton: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_skeleton.npy")
-    catenane_node_centre_mask = np.load(RESOURCES / "catenane_node_centre_mask.npy")
-    catenane_connected_nodes = np.load(RESOURCES / "catenane_connected_nodes.npy")
-
     # Create a nodestats object
     nodestats = nodeStats(
         filename="test_catenane",
