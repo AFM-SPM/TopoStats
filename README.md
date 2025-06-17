@@ -56,13 +56,16 @@ supported version is <= 3.11 (for now, we hope to support newer versions in the 
 
 For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/main/usage.html) documentation.
 
-A default configuration is loaded automatically and so the simplest method of processing images is to run
-`topostats process` in the same directory as your scans _after_ having activated the virtual environment in which you have
-installed TopoStats
+A default configuration is loaded automatically that works with `.spm` files. The simplest method of processing images
+is to run `topostats process` in the same directory as your scans _after_ having activated the virtual environment in
+which you have installed TopoStats
 
 ```bash
 topostats process
 ```
+
+If you have files other than `.spm` please refer `topostats --help` and the documentation on how to process those images
+with TopoStats.
 
 If you have your own YAML configuration file (see [Usage : Configuring
 TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`

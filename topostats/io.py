@@ -848,6 +848,7 @@ class LoadScans:
         suffix_to_loader = {
             ".spm": self.load_spm,
             ".jpk": self.load_jpk,
+            ".jpk-qi-image": self.load_jpk,
             ".ibw": self.load_ibw,
             ".gwy": self.load_gwy,
             ".topostats": self.load_topostats,
