@@ -20,6 +20,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-lines
 
 
 class GrainCrop:
@@ -32,8 +33,6 @@ class GrainCrop:
         2-D Numpy array of the cropped image.
     mask : npt.NDArray[np.bool_]
         3-D Numpy tensor of the cropped mask.
-    skeleton : npt.NDArray
-        3-D Numpy tensor of the skeletonised mask.
     padding : int
         Padding added to the bounding box of the grain during cropping.
     bbox : tuple[int, int, int, int]
@@ -42,10 +41,14 @@ class GrainCrop:
         Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
+    skeleton : npt.NDArray[np.bool_]
+        3-D Numpy tensor of the skeletonised mask.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
         3-D Numpy tensor of the height profiles.
     stats : dict[int, dict[int, Any]] | None
         Dictionary of grain statistics.
+    disordered_trace : DisorderedTrace
+        A disordered trace for the current grain.
     nodes : dict[str, Nodes]
         Dictionary of grain nodes.
     """
@@ -58,8 +61,10 @@ class GrainCrop:
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         filename: str,
+        skeleton: npt.NDArray[np.bool_] | None = None,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
+        disordered_trace: DisorderedTrace | None = None,
         nodes: dict[str, Node] | None = None,
     ):
         """
@@ -79,10 +84,14 @@ class GrainCrop:
             Pixel to nanometre scaling factor for the crop.
         filename : str
             Filename of the image from which the crop was taken.
+        skeleton : npt.NDArray[np.bool_]
+            3-D Numpy tensor of the skeletonised mask.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
         stats : dict[int, dict[int, Any]] | None
             Dictionary of grain statistics.
+        disordered_trace : DisorderedTrace
+            A disordered trace for the current grain.
         nodes : dict[int, Node]
             Grain nodes.
         """
@@ -96,10 +105,10 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
-        self.skeleton: npt.NDArray[np.bool_] | None = None
-        self.disordered_traces: dict[int, dict[int, Any]] | None = {}
-        self.nodes: dict[int, Node] | None = {}
-        # self.ordered_traces: dict[int, Any] = {}
+        self.skeleton: npt.NDArray[np.bool_] | None = skeleton
+        self.disordered_trace: DisorderedTrace | None = disordered_trace
+        self.nodes: dict[int, Node] | None = nodes
+        # self.ordered_traces: dict[int, Any] = ordered_traces
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -350,28 +359,28 @@ class GrainCrop:
         self._stats = value
 
     @property
-    def disordered_traces(self) -> dict[str:Any]:
+    def disordered_trace(self) -> DisorderedTrace:
         """
-        Getter for the ``disordered_traces`` attribute.
+        Getter for the ``disordered_trace`` attribute.
 
         Returns
         -------
         dict[str: Any]
-            Returns the value of ``disordered_traces``.
+            Returns the value of ``disordered_trace``.
         """
-        return self._disordered_traces
+        return self._disordered_trace
 
-    @disordered_traces.setter
-    def disordered_traces(self, value: dict[str:Any]) -> None:
+    @disordered_trace.setter
+    def disordered_trace(self, value: DisorderedTrace) -> None:
         """
-        Setter for the ``disordered_traces`` attribute.
+        Setter for the ``disordered_trace`` attribute.
 
         Parameters
         ----------
         value : dict[str: Any]
-            Value to set for ``disordered_traces``.
+            Value to set for ``disordered_trace``.
         """
-        self._disordered_traces = value
+        self._disordered_trace = value
 
     @property
     def nodes(self) -> dict[int, Node]:
@@ -422,6 +431,9 @@ class GrainCrop:
             and self.filename == other.filename
             and self.stats == other.stats
             and self.height_profiles == other.height_profiles
+            and self.disordered_trace == other.disordered_trace
+            and self.skeleton == other.skeleton
+            and self.nodes == other.nodes
         )
 
     def grain_crop_to_dict(self) -> dict[str, Any]:
@@ -435,7 +447,7 @@ class GrainCrop:
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
-    def debug_locate_difference(self, other: object) -> None:
+    def debug_locate_difference(self, other: object) -> None:  # noqa: C901
         """
         Debug function to find the culprit when two GrainCrop objects are not equal.
 
@@ -463,6 +475,14 @@ class GrainCrop:
             raise ValueError("Pixel to nm scaling is different")
         if self.filename != other.filename:
             raise ValueError("Filename is different")
+        if self.height_profiles != other.height_profiles:
+            raise ValueError("Height profiles are different")
+        if self.skeleton != other.skeleton:
+            raise ValueError("Skeleton is different")
+        if self.disordered_trace != other.disordered_trace:
+            raise ValueError("Disordered traces are different")
+        if self.nodes != other.nodes:
+            raise ValueError("Nodes are different")
         LOGGER.info("Cannot find difference between graincrops")
 
 
@@ -483,6 +503,167 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     if len(array.shape) != 3 or array.shape[2] < 2:
         raise ValueError(f"Full mask tensor must be WxHxC with C >= 2 but has shape {array.shape}")
     return array
+
+
+@dataclass()
+class DisorderedTrace:
+    """
+    Dataclass for storing the disordered tracing data.
+
+    Attributes
+    ----------
+    images : dict[str: npt.NDArray]
+        Dictionary of images generated during disordered tracing, should include ''pruned_skeleton'', ..
+    grain_endpoints : npt.int64
+        Number of Grain endpoints.
+    grain_junctions : npt.int64
+        Number of Grain junctions.
+    total_branch_length : float
+        Total branch length in nanometres.
+    grain_width_mean : float
+        Mean grain width in nanometres.
+    """
+
+    images: dict[str : npt.NDArray]
+    grain_endpoints: npt.int64
+    grain_junctions: npt.int64
+    total_branch_length: float
+    grain_width_mean: float
+
+    @property
+    def images(self) -> dict[str, npt.NDArray]:
+        """
+        Getter for the ``images`` attribute.
+
+        Returns
+        -------
+        dict[str, npt.NDArray]
+            Returns the value of ``images``.
+        """
+        return self._images
+
+    @images.setter
+    def images(self, value: dict[str, npt.NDArray]) -> None:
+        """
+        Setter for the ``images`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str, npt.NDArray]
+            Value to set for ``images``.
+        """
+        self._images = value
+
+    @property
+    def grain_endpoints(self) -> npt.int64:
+        """
+        Getter for the ``grain_endpoints`` attribute.
+
+        Returns
+        -------
+        npt.int64
+            Returns the value of ``grain_endpoints``.
+        """
+        return self._grain_endpoints
+
+    @grain_endpoints.setter
+    def grain_endpoints(self, value: npt.int64) -> None:
+        """
+        Setter for the ``grain_endpoints`` attribute.
+
+        Parameters
+        ----------
+        value : npt.int64
+            Value to set for ``grain_endpoints``.
+        """
+        self._grain_endpoints = value
+
+    @property
+    def grain_junctions(self) -> npt.int64:
+        """
+        Getter for the ``grain_junctions`` attribute.
+
+        Returns
+        -------
+        npt.int64
+            Returns the value of ``grain_junctions``.
+        """
+        return self._grain_junctions
+
+    @grain_junctions.setter
+    def grain_junctions(self, value: npt.int64) -> None:
+        """
+        Setter for the ``grain_junctions`` attribute.
+
+        Parameters
+        ----------
+        value : npt.int64
+            Value to set for ``grain_junctions``.
+        """
+        self._grain_junctions = value
+
+    @property
+    def total_branch_length(self) -> float:
+        """
+        Getter for the ``total_branch_length`` attribute.
+
+        The length of all branches in nanometres.
+
+        Returns
+        -------
+        float
+            Returns the value of ``total_branch_length``.
+        """
+        return self._total_branch_length
+
+    @total_branch_length.setter
+    def total_branch_length(self, value: float) -> None:
+        """
+        Setter for the ``total_branch_length`` attribute.
+
+        Parameters
+        ----------
+        value : float
+            Value to set for ``total_branch_length``.
+        """
+        self._total_branch_length = value
+
+    @property
+    def grain_width_mean(self) -> float:
+        """
+        Getter for the ``grain_width_mean`` attribute.
+
+        The mean grain width in nanometers.
+
+        Returns
+        -------
+        float
+            Returns the value of ``grain_width_mean``.
+        """
+        return self._grain_width_mean
+
+    @grain_width_mean.setter
+    def grain_width_mean(self, value: float) -> None:
+        """
+        Setter for the ``grain_width_mean`` attribute.
+
+        Parameters
+        ----------
+        value : float
+            Value to set for ``grain_width_mean``.
+        """
+        self._grain_width_mean = value
+
+    def disordered_trace_to_dict(self) -> dict[str, Any]:
+        """
+        Convert DisorderedTrace to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
 
 @dataclass
@@ -922,7 +1103,7 @@ class MatchedBranch:
     Attributes
     ----------
     ordered_coords : npt.NDArray[np.int32]
-        Numpy array of ordered co-ordinates.
+        Numpy array of ordered coordinates.
     heights : npt.NDArray[np.number]
         Numpy array of heights.
     distances : npt.NDArray[np.number]
@@ -936,13 +1117,18 @@ class MatchedBranch:
     def __str__(self) -> str:
         """
         Readable attributes.
+
+        Returns
+        -------
+        str
+            Set of formatted statistics on matched branches.
         """
         return (
-            f"ordered_coords : {ordered_coords}\n"
-            f"heights : {heights}\n"
-            f"distances : {distances}\n"
-            f"fwhm : {fwhm}\n"
-            f"angles : {angles}"
+            f"ordered_coords : {self.ordered_coords}\n"
+            f"heights : {self.heights}\n"
+            f"distances : {self.distances}\n"
+            f"fwhm : {self.fwhm}\n"
+            f"angles : {self.angles}"
         )
 
     @property
