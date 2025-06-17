@@ -11,7 +11,7 @@ from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
 
-from topostats.classes import TopoStats
+from topostats.classes import DisorderedTrace, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
@@ -403,8 +403,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             )
             LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
 
-            # Add returned elements to the `GrainCrop`
-            grain_crop.disordered_traces = disordered_trace_images
             if disordered_trace_images is not None:
                 # obtain segment stats
                 try:
@@ -420,12 +418,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         filename=filename,
                         grain_number=grain_number,
                     )
-                    total_branch_length = skan_df["branch_distance"].sum() * 1e-9
+                    total_branch_length_nm = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
                     LOGGER.warning(
                         f"[{grain_crop.filename}] : Skeleton for grain {grain_number} has been pruned out of existence."
                     )
-                    total_branch_length = 0
+                    total_branch_length_nm = 0
                     skan_df = pd.DataFrame()
                 disordered_tracing_stats = pd.concat((disordered_tracing_stats, skan_df))
 
@@ -435,7 +433,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "image": grain_crop.filename,
                     "grain_endpoints": np.int64((conv_pruned_skeleton == 2).sum()),
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
-                    "total_branch_lengths": total_branch_length,
+                    "total_branch_lengths": total_branch_length_nm,
                     "grain_width_mean": disorderedTrace.calculate_dna_width(
                         disordered_trace_images["smoothed_grain"],
                         disordered_trace_images["pruned_skeleton"],
@@ -443,6 +441,24 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     )
                     * 1e-9,
                 }
+                # Instantiate a DisorderedTrace object, setting its attributes and add to the GrainCrop.disordered_trace
+                # attribute in the right direction
+                disordered_trace = DisorderedTrace(
+                    images=disordered_trace_images,
+                    grain_endpoints=np.int64((conv_pruned_skeleton == 2).sum()),
+                    grain_junctions=np.int64((conv_pruned_skeleton == 3).sum()),
+                    total_branch_length=total_branch_length_nm,
+                    grain_width_mean=disorderedTrace.calculate_dna_width(
+                        disordered_trace_images["smoothed_grain"],
+                        disordered_trace_images["pruned_skeleton"],
+                        grain_crop.pixel_to_nm_scaling,
+                    )
+                    * 1e-9,
+                )
+                if direction == "above":
+                    topostats_object.image_grain_crops.above.crops[grain_number].disordered_trace = disordered_trace
+                else:
+                    topostats_object.image_grain_crops.below.crops[grain_number].disordered_trace = disordered_trace
 
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function

@@ -1420,6 +1420,10 @@ def test_trace_image_disordered(
 
     assert result_disordered_trace_crop_data == snapshot
     assert result_images == snapshot
+    # Only the catenane set of parameters has  asecond GrainCrop to assess
+    assert topostats_object.image_grain_crops.above.crops[0].disordered_trace == snapshot
+    if request.node.callspec.id == "catenane":
+        assert topostats_object.image_grain_crops.above.crops[1].disordered_trace == snapshot
 
 
 @pytest.mark.parametrize(
