@@ -11,7 +11,7 @@ import pytest
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
-from topostats.classes import GrainCrop, DisorderedTrace
+from topostats.classes import DisorderedTrace, GrainCrop
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
