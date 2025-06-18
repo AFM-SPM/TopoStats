@@ -17,8 +17,9 @@ from skimage.measure._regionprops import RegionProperties
 from skimage.morphology import skeletonize
 
 import topostats
+from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
 from topostats.filters import Filters
-from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
+from topostats.grains import Grains
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -252,9 +253,7 @@ def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
     return Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
 
@@ -470,9 +469,9 @@ def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> topostats.TopoStats:
+def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> TopoStats:
     """TopoStats object of example catenanes."""
-    return topostats.TopoStats(
+    return TopoStats(
         image_grain_crops=imagegraincrops_catenanes,
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
@@ -512,9 +511,9 @@ def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> Im
 
 
 @pytest.fixture()
-def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
+def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> TopoStats:
     """TopoStats object of example rep_int."""
-    return topostats.TopoStats(
+    return TopoStats(
         image_grain_crops=imagegraincrops_rep_int,
         filename="example_rep_int.spm",
         pixel_to_nm_scaling=0.488,
@@ -528,10 +527,9 @@ def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
 @pytest.fixture()
 def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_config: dict) -> Grains:
     """Filters object based on small_array."""
+    load_scan.get_data()
     filter_obj = Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
     filter_obj.pixel_to_nm_scaling = 0.5
@@ -627,9 +625,7 @@ def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
     return Filters(
-        image=load_scan.image,
-        filename=load_scan.filename,
-        pixel_to_nm_scaling=load_scan.pixel_to_nm_scaling,
+        topostats_object=load_scan.img_dict["minicircle_small"],
         **filter_config,
     )
 
@@ -750,10 +746,16 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 @pytest.fixture()
 def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
     """Grains object based on filtered minicircle."""
-    return Grains(
+    # TEMPORARY - This will be replaced when we have all modules working and start passing around TopoStats objects in
+    # their entirety
+    topostats_object = TopoStats(
         image=minicircle_grain_gaussian_filter.images["gaussian_filtered"],
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
+        img_path=Path.cwd(),
+    )
+    return Grains(
+        topostats_object=topostats_object,
         **grains_config,
     )
 
@@ -876,8 +878,14 @@ def dummy_grainstats(
     dummy_graincrops_dict: dict[int, GrainCrop], grainstats_config: dict, tmp_path: Path
 ) -> GrainStats:
     """Grainstats class for testing functions."""
+    image_grain_crops = ImageGrainCrops(
+        above=GrainCropsDirection(crops=dummy_graincrops_dict, full_mask_tensor=np.array([[[0, 1, 2]]])), below=None
+    )
+    topostats_object = TopoStats(
+        image_grain_crops=image_grain_crops, filename="dummy_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+    )
     return GrainStats(
-        grain_crops=dummy_graincrops_dict,
+        topostats_object=topostats_object,
         base_output_dir=tmp_path,
         **grainstats_config,
     )
@@ -890,8 +898,15 @@ def minicircle_grainstats(
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
+    image_grain_crops = ImageGrainCrops(
+        above=GrainCropsDirection(crops=minicircle_small_graincrops, full_mask_tensor=np.array([[[0, 1, 2]]])),
+        below=None,
+    )
+    topostats_object = TopoStats(
+        image_grain_crops=image_grain_crops, filename=None, pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+    )
     return GrainStats(
-        grain_crops=minicircle_small_graincrops,
+        topostats_object=topostats_object,
         base_output_dir=tmp_path,
         plot_opts={
             "grain_image": {"core_set": True},
