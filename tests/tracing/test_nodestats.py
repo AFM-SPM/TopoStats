@@ -11,7 +11,7 @@ import pytest
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
-from topostats.classes import GrainCrop
+from topostats.classes import GrainCrop, DisorderedTrace
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
@@ -160,19 +160,21 @@ def test_connect_extended_nodes_nearest(
     grain_crop = GrainCrop(
         image=np.array([[0, 0, 0], [0, 1.5, 0], [0, 0, 0]]),
         mask=np.stack(
-            [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])], axis=1
+            [np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])], axis=-1
         ),
         filename="dummy",
         pixel_to_nm_scaling=1,
         padding=1,
         bbox=(0, 0, 10, 10),
+        disordered_trace=DisorderedTrace(
+            images={
+                "skeleton": connected_nodes.astype(bool),
+                "smoothed_mask": np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+            }
+        ),
     )
     nodestats = nodeStats(
-        grain_crop=grain_crop,
-        smoothed_mask=np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
-        skeleton=connected_nodes.astype(bool),
-        pixel_to_nm_scaling=np.float64(1.0),
-        n_grain=0,
+        graincrop=grain_crop,
         node_joining_length=0.0,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
