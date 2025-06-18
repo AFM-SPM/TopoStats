@@ -586,6 +586,12 @@ def load_scan_jpk() -> LoadScans:
 
 
 @pytest.fixture()
+def load_scan_jpk_qi() -> LoadScans:
+    """Instantiate a LoadScans object from a .jpk-qi-image file."""
+    return LoadScans([RESOURCES / "file.jpk-qi-image"], channel="height_trace")
+
+
+@pytest.fixture()
 def load_scan_gwy() -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
     return LoadScans([RESOURCES / "file.gwy"], channel="ZSensor")
