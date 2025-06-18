@@ -103,9 +103,9 @@ class nodeStats:
     def __init__(
         self,
         graincrop: GrainCrop,
-        smoothed_mask: npt.NDArray,
-        skeleton: npt.NDArray,
-        n_grain: int,
+        # smoothed_mask: npt.NDArray,
+        # skeleton: npt.NDArray,
+        # n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
         branch_pairing_length: float,
@@ -139,10 +139,20 @@ class nodeStats:
         self.filename = graincrop.filename
         self.image = graincrop.image
         self.mask = graincrop.mask
-        self.smoothed_mask = smoothed_mask  # only used to average traces
-        self.skeleton = skeleton
+        try:
+            self.smoothed_mask = graincrop.disordered_trace.images["smoothed_mask"]  # only used to average traces
+        except AttributeError as e:
+            if "'NoneType' object has no attribute 'images'" in e:
+                raise AttributeError(f"[{self.filename}] : Disordered tracing 'image' not found.") from e
+            raise e
+        try:
+            self.skeleton = graincrop.disordered_trace.images["skeleton"]
+        except AttributeError as e:
+            if "'NoneType' object has no attribute 'images'" in e:
+                raise AttributeError(f"[{self.filename}] : Disordered tracing 'skeleton' not found.") from e
+            raise e
         self.pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
-        self.n_grain = n_grain
+        # self.n_grain = n_grain
         self.node_joining_length = node_joining_length
         self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
@@ -161,7 +171,7 @@ class nodeStats:
         }
 
         self.node_dicts: dict[str, Node] = {}
-        self.image_dict: ImageDict = {
+        self.image_dict: dict[str, dict[str, npt.NDArray]] = {
             "nodes": {},
             "grain": {
                 "grain_image": self.image,
@@ -1892,12 +1902,12 @@ def nodestats_image(
         The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
         an image dictionary of nodestats steps for the entire image, and single grain images.
     """
-    image = GrainCrop.image
-    filename = GrainCrop.filename
+    image = graincrop.image
+    filename = graincrop.filename
     pixel_to_nm_scaling = GrainCrop.pixel_to_nm_scaling
     # n_grains = len(disordered_tracing_direction_data)
     # img_base = np.zeros_like(image)
-    n_grains = len(graincrop.disordered_traces)
+    n_grains = len(graincrop.disordered_trace)
     img_base = np.zeros_like(graincrop.image)
     nodestats_data = {}
 
@@ -1914,25 +1924,26 @@ def nodestats_image(
     LOGGER.info(f"[{graincrop.filename}] : Calculating NodeStats statistics for {n_grains} grains...")
 
     # for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
-    for n_grain, disordered_tracing_grain_data in graincrop.disordered_traces.items():
+    for n_grain, disordered_tracing_grain_data in graincrop.disordered_trace.items():
         nodestats = None  # reset the nodestats variable
         try:
             nodestats = nodeStats(
                 graincrop=graincrop,
                 # image=disordered_tracing_grain_data["original_image"],
                 # mask=disordered_tracing_grain_data["original_grain"],
-                smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
-                skeleton=disordered_tracing_grain_data["pruned_skeleton"],
+                # smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
+                # skeleton=disordered_tracing_grain_data["pruned_skeleton"],
                 # pixel_to_nm_scaling=pixel_to_nm_scaling,
                 # filename=filename,
-                n_grain=n_grain,
+                # n_grain=n_grain,
                 node_joining_length=node_joining_length,
                 node_extend_dist=node_extend_dist,
                 branch_pairing_length=branch_pairing_length,
                 pair_odd_branches=pair_odd_branches,
             )
             nodestats_dict, node_image_dict = nodestats.get_node_stats()
-            LOGGER.debug(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+            # LOGGER.debug(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+            LOGGER.debug(f"[{graincrop.filename}] : Nodestats processed {n_grain} of {n_grains}")
 
             # compile images
             nodestats_images = {
@@ -1959,7 +1970,8 @@ def nodestats_image(
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
-                f"[{filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
+                # f"[{filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
+                f"[{graincrop.filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
             nodestats_data[n_grain] = {}
