@@ -6,7 +6,13 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square, pad_bounding_box, predict_unet
+from topostats.unet_masking import (
+    dice_loss,
+    iou_loss,
+    make_bounding_box_square,
+    pad_bounding_box_cutting_off_at_image_bounds,
+    predict_unet,
+)
 
 # pylint: disable=too-many-positional-arguments
 
@@ -18,7 +24,11 @@ from topostats.unet_masking import dice_loss, iou_loss, make_bounding_box_square
             np.array([[0, 0], [0, 0]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 0.0, id="perfect match"
         ),
         pytest.param(
-            np.array([[1, 1], [1, 1]]), np.array([[0, 0], [0, 0]]).astype(np.float32), 1e-5, 1.0, id="complete mismatch"
+            np.array([[1, 1], [1, 1]]),
+            np.array([[0, 0], [0, 0]]).astype(np.float32),
+            1e-5,
+            1.0,
+            id="complete mismatch",
         ),
         pytest.param(
             np.array([[1, 0], [0, 0]]).astype(np.float32),
@@ -217,5 +227,7 @@ def test_pad_bounding_box(
     expected_indices,
 ) -> None:
     """Test the pad_bounding_box method."""
-    result = pad_bounding_box(crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape, padding)
+    result = pad_bounding_box_cutting_off_at_image_bounds(
+        crop_min_row, crop_min_col, crop_max_row, crop_max_col, image_shape, padding
+    )
     assert result == expected_indices

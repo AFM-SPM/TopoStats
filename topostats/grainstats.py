@@ -77,8 +77,6 @@ class GrainStats:
         Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
     extract_height_profile : bool
         Extract the height profile.
-    cropped_size : float
-        Length of square side (in nm) to crop grains to.
     plot_opts : dict
         Plotting options dictionary for the cropped grains.
     metre_scaling_factor : float
@@ -94,7 +92,6 @@ class GrainStats:
         image_name: str = None,
         edge_detection_method: str = "binary_erosion",
         extract_height_profile: bool = False,
-        cropped_size: float = -1,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
     ):
@@ -116,8 +113,6 @@ class GrainStats:
             Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
         extract_height_profile : bool
             Extract the height profile.
-        cropped_size : float
-            Length of square side (in nm) to crop grains to.
         plot_opts : dict
             Plotting options dictionary for the cropped grains.
         metre_scaling_factor : float
@@ -131,7 +126,6 @@ class GrainStats:
         self.image_name = image_name
         self.edge_detection_method = edge_detection_method
         self.extract_height_profile = extract_height_profile
-        self.cropped_size = cropped_size
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
 

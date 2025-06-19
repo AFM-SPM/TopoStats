@@ -141,8 +141,6 @@ def grainstats_config(default_config: dict) -> dict:
     """Configurations for grainstats."""
     config = default_config["grainstats"]
     config["direction"] = "above"
-    # Set cropped image size to 40nm
-    config["cropped_size"] = 40.0
     config.pop("run")
     config.pop("class_names")
     return config

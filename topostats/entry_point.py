@@ -363,13 +363,6 @@ def create_parser() -> arg.ArgumentParser:
         "'binary_erosion (default)",
     )
     process_parser.add_argument(
-        "--grainstats-cropped-size",
-        dest="grainstats_cropped_size",
-        type=float,
-        required=False,
-        help="Length (in nm) of square cropped images (can take -1 for grain-sized box)",
-    )
-    process_parser.add_argument(
         "--grainstats-extract-height-profile",
         dest="grainstats_extract_height_profile",
         type=bool,
@@ -607,6 +600,13 @@ def create_parser() -> arg.ArgumentParser:
         type=str,
         required=False,
         help="Colormap to use, options include 'nanoscope', 'afmhot' or any valid Matplotlib colormap.",
+    )
+    process_parser.add_argument(
+        "--grain-crop-plot-size-nm",
+        dest="grain_crop_plot_size_nm",
+        type=float,
+        required=False,
+        help="Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.",
     )
     process_parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     process_parser.add_argument(
@@ -874,13 +874,6 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Method of edge detection, do NOT change this unless you are sure of what it will do. Options 'canny' and"
         "'binary_erosion (default)",
-    )
-    grainstats_parser.add_argument(
-        "--cropped-size",
-        dest="cropped_size",
-        type=float,
-        required=False,
-        help="Length (in nm) of square cropped images (can take -1 for grain-sized box)",
     )
     grainstats_parser.add_argument(
         "--extract-height-profile",

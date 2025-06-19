@@ -64,7 +64,6 @@ grains:
 grainstats:
   run: true # Options : true, false
   edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
-  cropped_size: -1 # Length (in nm) of square cropped images (can take -1 for grain-sized box)
   extract_height_profile: true # Extract height profiles along maximum feret of molecules
   class_names: ["DNA", "Protein"] # The names corresponding to each class of a object identified, please specify merged classes after.
 disordered_tracing:
@@ -113,6 +112,7 @@ plotting:
   savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   savefig_dpi: 100 # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
   pixel_interpolation: null # Options : https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html
+  grain_crop_plot_size_nm: -1 # Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.
   image_set: # Options : all, core, filters, grains, grain_crops, disordered_tracing, nodestats, ordered_tracing, splining. Uncomment to include
     # - all
     - core

@@ -265,10 +265,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "binary_erosion",
                 "canny",
             ),
-            "cropped_size": Or(
-                float,
-                int,
-            ),
             "extract_height_profile": Or(
                 True,
                 False,
@@ -454,6 +450,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "spline16",
                 "spline36",
                 error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
+            ),
+            "grain_crop_plot_size_nm": Or(
+                int,
+                float,
+                error=("Invalid value in config for 'grains.grain_crop_plot_size_nm', valid values are int or float"),
             ),
             "zrange": [float, int, None],
             "colorbar": Or(

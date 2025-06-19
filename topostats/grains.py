@@ -20,7 +20,7 @@ from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
     mean_iou,
-    pad_bounding_box,
+    pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
 from topostats.utils import _get_mask, get_thresholds
@@ -1353,7 +1353,7 @@ class Grains:
         region_properties = Grains.get_region_properties(labelled_regions)
         bounding_boxes = {index: region.bbox for index, region in enumerate(region_properties)}
         return {
-            index: pad_bounding_box(
+            index: pad_bounding_box_cutting_off_at_image_bounds(
                 crop_min_row=bbox[0],
                 crop_min_col=bbox[1],
                 crop_max_row=bbox[2],
@@ -1507,7 +1507,7 @@ class Grains:
             bounding_box = region.bbox
 
             # Pad the bounding box
-            bounding_box = pad_bounding_box(
+            bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
                 crop_min_row=bounding_box[0],
                 crop_min_col=bounding_box[1],
                 crop_max_row=bounding_box[2],
@@ -2224,7 +2224,7 @@ class Grains:
             flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
 
             # Pad the mask
-            padded_flat_bounding_box = pad_bounding_box(
+            padded_flat_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
                 crop_min_row=flat_bounding_box[0],
                 crop_min_col=flat_bounding_box[1],
                 crop_max_row=flat_bounding_box[2],

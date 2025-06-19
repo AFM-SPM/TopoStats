@@ -313,8 +313,7 @@ def make_bounding_box_square(
     return new_crop_min_row, new_crop_min_col, new_crop_max_row, new_crop_max_col
 
 
-# pylint: disable=too-many-positional-arguments
-def pad_bounding_box(
+def pad_bounding_box_cutting_off_at_image_bounds(
     crop_min_row: int,
     crop_min_col: int,
     crop_max_row: int,
@@ -378,7 +377,7 @@ def pad_crop(
     npt.NDArray
         The padded crop.
     """
-    new_bounding_box = pad_bounding_box(
+    new_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
         crop_min_row=bbox[0],
         crop_min_col=bbox[1],
         crop_max_row=bbox[2],
