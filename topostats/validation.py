@@ -1,28 +1,32 @@
 """Validation of configuration."""
+
 import logging
 import os
 from pathlib import Path
-from schema import Optional, Or, Schema, SchemaError
+
+from schema import And, Optional, Or, Schema, SchemaError
 
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=line-too-long
+# pylint: disable=too-many-lines
 
 
 def validate_config(config: dict, schema: Schema, config_type: str) -> None:
-    """Validate configuration.
+    """
+    Validate configuration.
 
     Parameters
     ----------
-    config: dict
+    config : dict
         Config dictionary imported by read_yaml() and parsed through clean_config().
-    schema: Schema
+    schema : Schema
         A schema against which the configuration is to be compared.
-    config_type: str
+    config_type : str
+        Description of of configuration being validated.
     """
-
     try:
         schema.validate(config)
         LOGGER.info(f"The {config_type} is valid.")
@@ -52,9 +56,19 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".ibw",
             ".gwy",
             ".topostats",
+            ".stp",
+            ".top",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "loading": {"channel": str},
+        "loading": {
+            "channel": str,
+            "extract": Or(
+                "all",
+                "raw",
+                "filters",
+                error="Invalid value in config for 'extract', valid values are 'all', 'raw' or 'filters'",
+            ),
+        },
         "filter": {
             "run": Or(
                 True,
@@ -80,16 +94,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "below": Or(
                     int,
                     float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
                 ),
                 "above": Or(
                     int,
                     float,
-                    error=(
-                        "Invalid value in config for filter.threshold.absolute.below " "should be type int or float"
-                    ),
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
                 ),
             },
             "gaussian_size": float,
@@ -107,8 +117,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             },
         },
         "grains": {
-            "run": Or(True, False, error="Invalid value in config for grains.run, valid values are 'True' or 'False'"),
-            "smallest_grain_size_nm2": lambda n: n > 0.0,
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for grains.run, valid values are 'True' or 'False'",
+            ),
+            "grain_crop_padding": int,
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -120,33 +134,38 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ),
             "otsu_threshold_multiplier": float,
             "threshold_std_dev": {
-                "below": lambda n: n > 0,
-                "above": lambda n: n > 0,
+                "below": [lambda n: n > 0],
+                "above": [
+                    lambda n: n > 0,
+                ],
             },
             "threshold_absolute": {
-                "below": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
-                "above": Or(
-                    int,
-                    float,
-                    error=(
-                        "Invalid value in config for grains.threshold.absolute.below " "should be type int or float"
-                    ),
-                ),
+                "below": [
+                    Or(
+                        int,
+                        float,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
+                        ),
+                    )
+                ],
+                "above": [
+                    Or(
+                        int,
+                        float,
+                        error=(
+                            "Invalid value in config for grains.threshold.absolute.above should be type int or float"
+                        ),
+                    )
+                ],
             },
-            "absolute_area_threshold": {
+            "area_thresholds": {
                 "above": [
                     Or(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.above', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"
                         ),
                     )
                 ],
@@ -155,8 +174,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         int,
                         None,
                         error=(
-                            "Invalid value in config for 'grains.absolute_area_threshold.below', valid values "
-                            "are int or null"
+                            "Invalid value in config for 'grains.area_thresholds.below', valid values are int or null"
                         ),
                     )
                 ],
@@ -171,6 +189,70 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 True,
                 False,
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
+            ),
+            "unet_config": {
+                "model_path": Or(None, str),
+                "upper_norm_bound": float,
+                "lower_norm_bound": float,
+                "remove_disconnected_grains": bool,
+                "confidence": float,
+            },
+            "vetting": {
+                "whole_grain_size_thresholds": Or(
+                    None,
+                    [lambda n: n > 0, lambda n: n > 0],
+                    error="Invalid value in config for 'grainstats.vetting.whole_grain_size_thresholds', this needs to"
+                    "be a list of two positive floats",
+                ),
+                "class_conversion_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers and 2 integers
+                    [[[int, int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_conversion_size_thresholds', this "
+                    "needs to be a list of lists of 3 integers and 2 integers - [class number, class to convert to "
+                    "if too small, class to convert to if too big] and [minimum size, maximum size]",
+                ),
+                "class_region_number_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_region_number_thresholds', this needs"
+                    "to be a list of lists of 3 integers - class number, minimum region number, maximum region number",
+                ),
+                "class_size_thresholds": Or(
+                    None,
+                    # List of lists of 3 integers
+                    [[int, int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.class_size_thresholds', this needs to be a"
+                    "list of lists of 3 integers - class number, minimum size, maximum size",
+                ),
+                "nearby_conversion_classes_to_convert": Or(
+                    None,
+                    # List of tuples of two integers
+                    [[int, int]],
+                    error="Invalid value in config for 'grainstats.vetting.nearby_conversion_classes_to_convert', this"
+                    "needs to be a list of tuples of two integers",
+                ),
+                "class_touching_threshold": lambda n: n >= 0,
+                "keep_largest_labelled_regions_classes": Or(
+                    None,
+                    # List of integers
+                    [int],
+                    error="Invalid value in config for 'grainstats.vetting.keep_largest_labelled_regions_classes', this"
+                    "needs to be a list of integers",
+                ),
+                "class_connection_point_thresholds": Or(
+                    None,
+                    # List of tuples: list[tuple[[tuple[int, int], tuple[int, int]]]
+                    [[[int, int], [int, int]]],
+                    error="Invalid value in config for 'grainstats.vetting.class_connection_point_thresholds', this"
+                    "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
+                ),
+            },
+            "classes_to_merge": Or(
+                None,
+                [int],
+                error="Invalid value in config for 'grains.classes_to_merge', this needs to be a list of integers.",
             ),
         },
         "grainstats": {
@@ -187,24 +269,129 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 float,
                 int,
             ),
+            "extract_height_profile": Or(
+                True,
+                False,
+                error="Invalid value in config for 'grainstats.extract_height_profile',"
+                "valid values are 'True' or 'False'",
+            ),
+            "class_names": [str],
         },
-        "dnatracing": {
+        "disordered_tracing": {
             "run": Or(
                 True,
                 False,
-                error="Invalid value in config for 'dnatracing.run', valid values are 'True' or 'False'",
+                error="Invalid value in config for 'disordered_tracing.run', valid values are 'True' or 'False'",
             ),
+            "class_index": int,
             "min_skeleton_size": lambda n: n > 0.0,
-            "skeletonisation_method": Or(
-                "zhang",
-                "lee",
-                "thin",
-                "topostats",
-                error="Invalid value in config for 'dnatracing.skeletonisation_method',"
-                "valid values are 'zhang' or 'lee', 'thin' or 'topostats'",
+            "mask_smoothing_params": {
+                "gaussian_sigma": Or(
+                    float,
+                    int,
+                    None,
+                ),
+                "dilation_iterations": Or(
+                    int,
+                    None,
+                ),
+                "holearea_min_max": [
+                    Or(
+                        int,
+                        float,
+                        None,
+                        error=(
+                            "Invalid value in config for 'disordered_tracing.mask_smoothing_params.holearea_min_max', valid values "
+                            "are int, float or null"
+                        ),
+                    ),
+                ],
+            },
+            "skeletonisation_params": {
+                "method": Or(
+                    "zhang",
+                    "lee",
+                    "thin",
+                    "medial_axis",
+                    "topostats",
+                    error="Invalid value in config for 'disordered_tracing.skeletonisation_method',"
+                    "valid values are 'zhang', 'lee', 'thin', 'medial_axis', 'topostats'",
+                ),
+                "height_bias": lambda n: 0 < n <= 1,
+            },
+            "pruning_params": {
+                "method": Or(
+                    "topostats",
+                    error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
+                ),
+                "max_length": lambda n: n >= 0,
+                "method_values": Or("min", "median", "mid"),
+                "method_outlier": Or("abs", "mean_abs", "iqr"),
+                "height_threshold": Or(int, float, None),
+                "only_height_prune_endpoints": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'",
+                ),
+            },
+        },
+        "nodestats": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'nodestats.run', valid values are 'True' or 'False'",
             ),
-            "pad_width": lambda n: n > 0.0,
+            "node_joining_length": float,
+            "node_extend_dist": float,
+            "branch_pairing_length": float,
+            "pair_odd_branches": bool,
+        },
+        "ordered_tracing": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'ordered_tracing.run', valid values are 'True' or 'False'",
+            ),
+            "ordering_method": Or(
+                "nodestats",
+                "original",
+                error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
+            ),
+        },
+        "splining": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'splining.run', valid values are 'True' or 'False'",
+            ),
+            "method": Or(
+                "spline",
+                "rolling_window",
+                error="Invalid value in config for 'splining.method', valid values are 'spline' or 'rolling_window'",
+            ),
+            "rolling_window_size": lambda n: n > 0.0,
+            "rolling_window_resampling": bool,
+            "rolling_window_resample_regular_spatial_interval": lambda n: n > 0.0,
+            "spline_step_size": lambda n: n > 0.0,
+            "spline_linear_smoothing": lambda n: n >= 0.0,
+            "spline_circular_smoothing": lambda n: n >= 0.0,
+            "spline_degree": int,
             # "cores": lambda n: n > 0.0,
+        },
+        "curvature": {
+            "run": Or(
+                True,
+                False,
+                error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
+            ),
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
         "plotting": {
             "run": Or(
@@ -212,12 +399,41 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'plotting.run', valid values are 'True' or 'False'",
             ),
-            "save_format": str,
-            "image_set": Or(
-                "all",
-                "core",
-                error="Invalid value in config for 'plotting.image_set', valid values " "are 'all' or 'core'",
+            "style": And(
+                str,
+                Or(
+                    "topostats.mplstyle",
+                    str,
+                    Path,
+                    None,
+                    error="Invalid value in config for 'plotting.style', valid values are 'topostats.mplstyle' or None",
+                ),
             ),
+            "savefig_format": Or(
+                None,
+                str,
+                error="Invalid value in config for plotting.savefig_formatmust be a value supported by Matplotlib.",
+            ),
+            "savefig_dpi": Or(
+                None,
+                "figure",
+                lambda n: n > 0,
+                error="Invalid value in config for plotting.savefig_dpi, validvalues are 'figure' or floats",
+            ),
+            "image_set": [
+                Or(
+                    "all",
+                    "core",
+                    "filters",
+                    "grains",
+                    "grain_crops",
+                    "disordered_tracing",
+                    "nodestats",
+                    "ordered_tracing",
+                    "splining",
+                    error="Invalid value in config for 'plotting.image_set', valid values are 'all' or 'core'",
+                )
+            ],
             "pixel_interpolation": Or(
                 None,
                 "none",
@@ -239,7 +455,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "spline36",
                 error="Invalid interpolation value. See https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html for options.",
             ),
-            "zrange": list,
+            "zrange": [float, int, None],
             "colorbar": Or(
                 True,
                 False,
@@ -250,24 +466,23 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config plotting.for 'axes', valid values are 'True' or 'False'",
             ),
+            "num_ticks": Or(
+                [None, And(int, lambda n: n > 1)],
+                error="Invalid value in config plotting.for 'num_ticks', valid values are 'null' or integers > 1",
+            ),
             "cmap": Or(
-                "afmhot",
-                "nanoscope",
-                "gwyddion",
-                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope' or 'gwyddion'",
+                None,
+                str,
+                error="Invalid value in config for 'plotting.cmap', valid values are 'afmhot', 'nanoscope', "
+                "'gwyddion' or values supported by Matplotlib",
             ),
             "mask_cmap": str,
             "histogram_log_axis": Or(
                 True,
                 False,
                 error=(
-                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or "
-                    "'False'"
+                    "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'"
                 ),
-            ),
-            "histogram_bins": lambda n: n > 0,
-            "dpi": Or(
-                lambda n: n > 0, "figure", error="Invalid valud in config for 'dpi', valid values are 'figure' or > 0."
             ),
         },
         "summary_stats": {
@@ -298,11 +513,29 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'extracted_channel.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'extracted_channel.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'extracted_channel.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "pixels": {
             "filename": str,
@@ -313,6 +546,25 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'pixels.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'pixels.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "initial_median_flatten": {
             "filename": str,
@@ -326,6 +578,25 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'initial_median_flatten.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "initial_tilt_removal": {
             "filename": str,
@@ -339,6 +610,25 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": Or(
+                "filters",
+                "grains",
+                "grain_crops",
+                "disordered_tracing",
+                "nodestats",
+                "ordered_tracing",
+                "splining",
+                error=(
+                    "Invalid value in config 'initial_tilt_removal.module', valid values "
+                    "are 'filters', 'grains', 'grain_crops', 'disordered_tracing', "
+                    "'nodestats', 'ordered_tracing', or 'splining'"
+                ),
+            ),
         },
         "initial_quadratic_removal": {
             "filename": str,
@@ -352,6 +642,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "initial_scar_removal": {
             "filename": str,
@@ -365,6 +661,31 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
+        },
+        "initial_zero_average_background": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'initial_zero_average_background.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "initial_nonlinear_polynomial_removal": {
             "filename": str,
@@ -378,6 +699,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "mask": {
             "filename": str,
@@ -388,6 +715,12 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config 'mask.image_type', valid values are 'binary' or 'non-binary'",
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "masked_median_flatten": {
             "filename": str,
@@ -401,6 +734,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "masked_tilt_removal": {
             "filename": str,
@@ -414,6 +753,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "masked_quadratic_removal": {
             "filename": str,
@@ -427,6 +772,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "masked_nonlinear_polynomial_removal": {
             "filename": str,
@@ -440,6 +791,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "secondary_scar_removal": {
             "filename": str,
@@ -453,6 +810,12 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "scar_mask": {
             "filename": str,
@@ -466,19 +829,31 @@ PLOTTING_SCHEMA = Schema(
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
-        "zero_average_background": {
+        "final_zero_average_background": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'gaussian_filtered.image_type', valid values "
+                    "Invalid value in config 'final_zero_average_background.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "gaussian_filtered": {
             "filename": str,
@@ -487,47 +862,48 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'gaussian_filtered.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'gaussian_filtered.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
         "z_threshed": {
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'z_threshold.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'z_threshold.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": True,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "filters",
         },
-        "mask_grains": {
+        "thresholded_grains": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'mask_grains.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'mask_grains.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
-        },
-        "labelled_regions_01": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'labelled_regions_01.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "core_set": bool,
+            "mask_cmap": str,
+            "module": "grains",
         },
         "tidied_border": {
             "filename": str,
@@ -535,25 +911,18 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'tidied_border.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
-        },
-        "removed_noise": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'removed_noise.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "core_set": bool,
+            "mask_cmap": str,
+            "module": "grains",
         },
-        "removed_small_objects": {
+        "removed_objects_too_small_to_process": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -564,44 +933,101 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
+        },
+        "area_thresholded": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'removed_objects_too_small_to_process.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
+        },
+        "unet": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'unet_tensor.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
+        },
+        "vetted": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
+        },
+        "merged_classes": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'merged_classes_tensor.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
         },
         "mask_overlay": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'mask_overlay.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'mask_overlay.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": True,
-        },
-        "labelled_regions_02": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'labelled_regions_02.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "core_set": bool,
-        },
-        "coloured_regions": {
-            "filename": str,
-            "title": str,
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'coloured_regions.image_type', valid values "
-                    "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": bool,
+            "module": "grains",
         },
         "bounding_boxes": {
             "filename": str,
@@ -610,24 +1036,243 @@ PLOTTING_SCHEMA = Schema(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'bounding_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'bounding_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grains",
         },
-        "coloured_boxes": {
+        "grain_image": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'grain_image.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "core_set": False,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grain_crops",
+        },
+        "grain_mask": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'grain_mask.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grain_crops",
+        },
+        "grain_mask_image": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'grain_mask_image.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "grain_crops",
+        },
+        "orig_grain": {
             "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'coloured_boxes.image_type', valid values " "are 'binary' or 'non-binary'"
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
+            "module": "disordered_tracing",
         },
-        "all_molecule_traces": {
+        "smoothed_grain": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "module": "disordered_tracing",
+        },
+        "skeleton": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "disordered_tracing",
+        },
+        "pruned_skeleton": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "disordered_tracing",
+        },
+        "branch_indexes": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'branch_indexes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "disordered_tracing",
+        },
+        "branch_types": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "disordered_tracing",
+        },
+        "convolved_skeletons": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'convolved_skeleton.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "nodestats",
+        },
+        "node_centres": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'node_centres.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "nodestats",
+        },
+        "connected_nodes": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_branch_mask.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "nodestats",
+        },
+        "node_area_skeleton": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_area_skeleton.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "nodestats",
+        },
+        "node_branch_mask": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'node_branch_mask.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "nodestats",
+        },
+        "node_avg_mask": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "module": "nodestats",
+        },
+        "node_line_trace": {
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "module": "nodestats",
+        },
+        "ordered_traces": {
             "title": str,
             "image_type": Or(
                 "binary",
@@ -637,47 +1282,133 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "ordered_tracing",
         },
-        "grain_image": {
+        "trace_segments": {
+            "filename": str,
+            "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'grain_image.image_type', valid values " "are 'binary' or 'non-binary'"
-                ),
-            ),
-            "core_set": False,
-        },
-        "grain_mask": {
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=("Invalid value in config 'grain_mask.image_type', valid values " "are 'binary' or 'non-binary'"),
-            ),
-            "core_set": bool,
-        },
-        "grain_mask_image": {
-            "image_type": Or(
-                "binary",
-                "non-binary",
-                error=(
-                    "Invalid value in config 'grain_mask_image.image_type', valid values "
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "ordered_tracing",
         },
-        "single_molecule_trace": {
+        "over_under": {
+            "filename": str,
+            "title": str,
             "image_type": Or(
                 "binary",
                 "non-binary",
                 error=(
-                    "Invalid value in config 'single_molecule_trace.image_type', valid values "
+                    "Invalid value in config 'all_molecule_traces.image_type', valid values "
                     "are 'binary' or 'non-binary'"
                 ),
             ),
+            "mask_cmap": str,
             "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "ordered_tracing",
+        },
+        "all_molecules": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "ordered_tracing",
+        },
+        "fitted_trace": {
+            "filename": str,
+            "title": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'coloured_boxes.image_type', valid values are 'binary' or 'non-binary'"
+                ),
+            ),
+            "mask_cmap": str,
+            "core_set": bool,
+            "savefig_dpi": int,
+            "module": "ordered_tracing",
+        },
+        "splined_trace": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "splining",
+        },
+        "curvature": {
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=("Invalid value in config 'curvature.image_type', valid values are 'binary' or 'non-binary'"),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "splining",
+        },
+        "curvature_individual_grains": {
+            "filename": str,
+            "image_type": Or(
+                "binary",
+                "non-binary",
+                error=(
+                    "Invalid value in config 'curvature_individual_grains.image_type', valid values "
+                    "are 'binary' or 'non-binary'"
+                ),
+            ),
+            "title": str,
+            "core_set": bool,
+            "savefig_dpi": Or(
+                lambda n: n > 0,
+                "figure",
+                error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
+            ),
+            "module": "splining",
         },
     }
 )
@@ -687,17 +1418,18 @@ SUMMARY_SCHEMA = Schema(
         "base_dir": Path,
         "output_dir": Path,
         "csv_file": str,
-        "file_ext": Or(
+        "savefig_format": Or(
             "png",
             "pdf",
             "svg",
-            error=("Invalid value in config 'file_ext', valid values are 'png', 'pdf' or 'svg' "),
-        ),
-        "pickle_plots": Or(
-            True, False, error="Invalid value in config for 'pickle_plots', valid values are 'True' or 'False'"
+            "tiff",
+            "tif",
+            error=("Invalid value in config 'savefig_format', valid values are 'png', 'pdf', 'svg', 'tiff' or 'tif'"),
         ),
         "var_to_label": Or(
-            None, str, error="Invalid value in config for 'var_to_label', valid values are 'None' or a str"
+            None,
+            str,
+            error="Invalid value in config for 'var_to_label', valid values are 'None' or a str",
         ),
         "image_id": str,
         "molecule_id": str,
@@ -749,8 +1481,8 @@ SUMMARY_SCHEMA = Schema(
             Optional("area_cartesian_bbox"),
             Optional("aspect_ratio"),
             Optional("bending_angle"),
-            Optional("contour_length"),
-            Optional("end_to_end_distance"),
+            Optional("total_contour_length"),
+            Optional("average_end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),
             Optional("height_median"),

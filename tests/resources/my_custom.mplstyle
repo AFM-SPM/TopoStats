@@ -1,0 +1,4 @@
+axes.titlesize: 34
+font.size: 5.0
+image.cmap: viridis
+savefig.format: svg

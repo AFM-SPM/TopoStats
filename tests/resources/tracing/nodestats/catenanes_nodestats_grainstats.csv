@@ -1,0 +1,3 @@
+,image,grain_number,num_crossings,avg_crossing_confidence,min_crossing_confidence
+grain_0,test_image,0,4,0.21426594097881008,0.001258249874731443
+grain_1,test_image,1,4,0.21633024904748463,0.1026576999771045

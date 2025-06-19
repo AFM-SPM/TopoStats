@@ -45,10 +45,10 @@ version = ".".join(release.split(".")[:2])
 extensions = [
     "autoapi.extension",
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx_rtd_theme",
     "myst_parser",
@@ -92,6 +92,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
+# -- Options for MyST-parser -------------------------------------------------
+myst_heading_anchors = 3
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -111,6 +113,7 @@ html_theme = "pydata_sphinx_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -204,10 +207,10 @@ numpydoc_class_members_toctree = False
 autoapi_dirs = ["../topostats"]
 
 # sphinx-multiversion https://holzhaus.github.io/sphinx-multiversion/master/configuration.html
-smv_tag_whitelist = r"^v\d+.*$"  # Tags begining with v#
+smv_tag_whitelist = r"^v\d+.*$"  # Tags beginning with v#
 smv_branch_whitelist = r"^main$"  # main branch
-# If testing changes locally comment out the above and the smv_branch_whitelist below instead. Replace the branch name
-# you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
+# If testing changes locally comment out the above and use the smv_branch_whitelist below instead. Replace the branch
+# name you are working on ("ns-rse/466-doc-versions" in the example below) with the branch you are working on and run...
 #
 # cd docs
 # sphinx-multiversion . _build/html

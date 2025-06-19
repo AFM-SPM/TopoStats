@@ -22,9 +22,17 @@ various stages of the processing as well as cropped images of each grain. The am
 configurable.
 
 An schematic overview of the classes and methods that are run in processing files can be found in the
-[workflows](workflows) page along with more detailed information on [installation](installation), [usage](usage),
+[workflow](workflow) page along with more detailed information on [installation](installation), [usage](usage),
 [configuration](configuration) and [contributing](contributing).
 
 If you have questions, please post them on the [discussion](https://github.com/AFM-SPM/TopoStats/discussions), if you
 think you've encountered a bug whilst running the code or suggestions for improvements please create an
 [issue](https://github.com/AFM-SPM/TopoStats/issues) in the GitHub project page.
+
+## Supported File Formats
+
+TopoStats uses the [AFMReader][afmreader] package to load files, please refer to the documentation of AFMReader
+[documentation][afmreader_usage] for supported file formats.
+
+[afmreader]: https://github.com/AFM-SPM/AFMReader
+[afmreader_usage]: https://afm-spm.github.io/AFMReader/usage/

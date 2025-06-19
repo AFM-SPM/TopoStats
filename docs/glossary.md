@@ -27,7 +27,7 @@ Guanine, Adenine and Thymine. It is the genetic material of the vast majority of
 
 ### flattening
 
-The process of removing [tilt](glossary.md#tilt) from an image.
+The process of removing [tilt](#tilt) from an image.
 
 ## G
 
@@ -38,9 +38,9 @@ The process of removing [tilt](glossary.md#tilt) from an image.
 ### GitHub
 
 [GitHub](https://www.github.com) is a website for sharing and collaboratively working on software that is version
-controlled using [Git](glossary.md#git).
+controlled using [Git](#git).
 
-### grains
+### Grain
 
 The name given to DNA/RNA/protein structures observed in scans.
 
@@ -79,7 +79,7 @@ bands. These are removed and the missing values interpolated.
 
 ### skeleton
 
-The single-pixel width outline of a molecule after a [grain](glossary.md#grain) has undergone [tracing](glossary.md#tracing).
+The single-pixel width outline of a molecule after a [grain](#grain) has undergone [tracing](#tracing).
 
 ## T
 
@@ -87,7 +87,7 @@ The single-pixel width outline of a molecule after a [grain](glossary.md#grain) 
 
 ### tracing
 
-The processing step where by a [grain](glossary.md#grain) is reduced to a single pixel or skeleton. Typically a number of
+The processing step where by a [grain](#grain) is reduced to a single pixel or skeleton. Typically a number of
 statistics on the shape, length and curvature are calculated after molecules have been traced.
 
 ## U

@@ -1,8 +1,11 @@
 """Custom Bruker Nanoscope colorscale."""
+
 import logging
+
 import matplotlib as mpl
-from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+import matplotlib.cm
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
 from topostats.logs.logs import LOGGER_NAME
 
@@ -10,44 +13,83 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 class Colormap:
-    """Class for setting the COlormap"""
+    """
+    Class for setting the Colormap.
+
+    Parameters
+    ----------
+    name : str
+        Name of colormap to use.
+    """
 
     def __init__(self, name: str = "nanoscope"):
-        self.name = name
-        self.cmap = None
-        self.set(self.name)
-
-    def __str__(self):
-        return f"TopoStats Colormap: {self.name}"
-
-    def set(self, name: str):
-        """Set the ColorMap.
+        """
+        Initialise the class.
 
         Parameters
         ----------
-        name: str
-            Name of colormap
+        name : str
+            Name of colormap to use.
+        """
+        self.name = name
+        self.cmap = None
+        self.set_cmap(self.name)
+
+    def __str__(self) -> str:
+        """
+        Return string representation of object.
+
+        Returns
+        -------
+        str
+            String detailing the colormap.
+        """
+        return f"TopoStats Colormap: {self.name}"
+
+    def set_cmap(self, name: str) -> None:
+        """
+        Set the ColorMap.
+
+        Parameters
+        ----------
+        name : str
+            Name of the colormap to return.
         """
         if name.lower() == "nanoscope":
             self.cmap = self.nanoscope()
         elif name.lower() == "gwyddion":
             self.cmap = self.gwyddion()
-        elif name.lower() == "blu":
-            self.cmap = self.blu()
+        elif name.lower() == "blue":
+            self.cmap = self.blue()
+        elif name.lower() == "blue_purple_green":
+            self.cmap = self.blue_purple_green()
         else:
             # Get one of the matplotlib colormaps
             self.cmap = mpl.colormaps[name]
         LOGGER.debug(f"[theme] Colormap set to : {name}")
 
-    def get_cmap(self):
-        """Return the matplotlib.cm colormap object"""
+    def get_cmap(self) -> matplotlib.cm:
+        """
+        Return the matplotlib.cm colormap object.
+
+        Returns
+        -------
+        matplotlib.cm
+            Matplotlib Color map object.
+        """
         return self.cmap
 
     @staticmethod
-    def nanoscope():
+    def nanoscope() -> LinearSegmentedColormap:
         """
-        Returns a matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale
-        The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'
+        Matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale.
+
+        The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'.
+
+        Returns
+        -------
+        LinearSegmentedColormap
+            MatplotLib LinearSegmentedColourmap that replicates Bruker Nanoscope colorscale.
         """
         cdict = {
             "red": (
@@ -100,12 +142,18 @@ class Colormap:
             ),
         }
 
-        colormap = LinearSegmentedColormap("nanoscope", cdict)
-        return colormap
+        return LinearSegmentedColormap("nanoscope", cdict)
 
     @staticmethod
-    def gwyddion():
-        """The RGBA colour map for the Gwyddion.net colour gradient."""
+    def gwyddion() -> LinearSegmentedColormap:
+        """
+        Set RGBA colour map for the Gwyddion.net colour gradient.
+
+        Returns
+        -------
+        LinearSegmentedColormap
+            The 'gwyddion' colormap.
+        """
         N = 4  # Number of values
         vals = np.ones((N, 4))  # Initialise the array to be full of 1.0
         vals[0] = [0.0, 0.0, 0.0, 1]
@@ -113,10 +161,32 @@ class Colormap:
         vals[2] = [243 / 256, 194 / 256, 93 / 256, 1.0]
         vals[3] = [1.0, 1.0, 1.0, 1.0]
 
-        colormap = LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
-        return colormap
+        return LinearSegmentedColormap.from_list("gwyddion", vals, N=256)
 
     @staticmethod
-    def blu():
-        "RGBA colour map of just the colour blue."
-        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blu", N=256)
+    def blue() -> ListedColormap:
+        """
+        Set RGBA colour map of just the colour blue.
+
+        Returns
+        -------
+        ListedColormap
+            The 'blue' colormap.
+        """
+        return ListedColormap([[32 / 256, 226 / 256, 205 / 256]], "blue", N=256)
+
+    @staticmethod
+    def blue_purple_green() -> ListedColormap:
+        """
+        RGBA colour map of just the colour blue/purple/green.
+
+        Returns
+        -------
+        ListedColormap
+            The 'blue/purple/green' colormap.
+        """
+        return ListedColormap(
+            [[0 / 256, 157 / 256, 229 / 256], [255 / 256, 100 / 256, 225 / 256], [0 / 256, 1, 139 / 256]],
+            "blue_purple_green",
+            N=3,
+        )

@@ -22,8 +22,10 @@ fail-under=10.0
 # Files or directories to be skipped. They should be base names, not paths.
 ignore=CVS,
        _version.py,
-       dnatracing.py,
-       conf.py
+       dnacurvature.py,
+       conf.py,
+       test_dnacurvature.py,
+       __main__.py
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
@@ -82,6 +84,7 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=C0103,
+        E1131,
         R0801,
         raw-checker-failed,
         bad-inline-option,
@@ -539,10 +542,10 @@ exclude-too-few-public-methods=
 ignored-parents=
 
 # Maximum number of arguments for function / method.
-max-args=7  # Raised this from 5
+max-args=10  # Raised this from 5
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=10
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
@@ -561,7 +564,7 @@ max-parents=7
 max-public-methods=20
 
 # Maximum number of return / yield for function / method body.
-max-returns=6
+max-returns=8
 
 # Maximum number of statements in function / method body.
 max-statements=50

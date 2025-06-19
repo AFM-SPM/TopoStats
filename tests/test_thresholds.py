@@ -1,8 +1,9 @@
-"""Test of thresholds"""
+"""Test of thresholds."""
+
 # pylint: disable=no-name-in-module
-import pytest
 import numpy as np
-from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_yen, threshold_triangle
+import pytest
+from skimage.filters import threshold_mean, threshold_minimum, threshold_otsu, threshold_triangle, threshold_yen
 
 from topostats.thresholds import threshold
 
@@ -20,7 +21,7 @@ def test_threshold_invalid_method(image_random: np.array) -> None:
     image_random : np.array
         Numpy array representing an image.
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         threshold(image_random, method="shoes")
 
 

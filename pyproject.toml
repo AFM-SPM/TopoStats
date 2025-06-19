@@ -2,7 +2,6 @@
 requires = [
   "setuptools>=45",
   "setuptools_scm[toml]>=6.2",
-  "wheel"
   ]
 build-backend = "setuptools.build_meta"
 
@@ -22,8 +21,6 @@ authors = [
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Natural Language :: English",
@@ -35,33 +32,37 @@ keywords = [
   "afm",
   "image processing"
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10, <3.12"
 dependencies = [
-  "igor",
+  "art",
+  "AFMReader @ git+https://github.com/AFM-SPM/AFMReader@main",
+  "h5py",
+  "keras",
   "matplotlib",
-  "numpy>=1.23.4",
+  "numpy~=2.0.0",  # Until TensorFlow supports newer versions
+  "numpyencoder @ git+https://github.com/AFM-SPM/numpyencoder@master",
   "pandas",
-  "pySPM",
   "pyyaml",
   "ruamel.yaml",
   "schema",
   "scikit-image",
   "scipy",
   "seaborn",
-  "tifffile",
+  "skan",
+  "snoop",
+  "tensorflow",
+  "topoly",
   "tqdm",
-  "pyfiglet",
-  "h5py"
 ]
 
 [project.optional-dependencies]
 tests = [
-  "py",
   "pytest",
   "pytest-cov",
-  "pytest-lazy-fixture",
+  "pytest-github-actions-annotate-failures",
   "pytest-mpl",
-  "pytest-regtest",
+  "pytest-regtest==2.3.1",
+  "pytest-xdist",
   "filetype",
 ]
 docs = [
@@ -70,7 +71,6 @@ docs = [
   "numpydoc",
   "pydata_sphinx_theme",
   "sphinx-autoapi",
-  "sphinx-autodoc-typehints",
   "sphinx-multiversion",
   "sphinx_markdown_tables",
   "sphinx_rtd_theme",
@@ -78,20 +78,19 @@ docs = [
   "sphinxcontrib-napoleon",
 ]
 dev = [
-  "Flake8-pyproject",
   "black",
-  "flake8",
-  "flake8-print",
+  "ipython",
   "pre-commit",
   "pylint",
   "pyupgrade",
   "pytest-durations",
-  "pytest-xdist",
+  "pytest-icdiff",
+  "pytest-testmon",
 ]
 pypi = [
   "build",
+  "setuptools_scm[toml]",
   "wheel",
-  "setuptools_scm[toml]"
 ]
 notebooks = [
   "ipython",
@@ -105,27 +104,6 @@ Source = "https://github.com/AFM-SPM/TopoStats"
 Bug_Tracker = "https://github.com/AFM-SPM/TopoStats/issues"
 Documentation = "https://AFM-SPM.github.io/TopoStats"
 
-[tool.flake8]
-max_line_length=120
-docstring-convention= "numpy"
-exclude = [
-  "*.ipynb",
-  ".git",
-  "__pycache__",
-  "docs/conf.py",
-  "build",
-  "dist",
-  "pygwytracing.py",
-  "topostats/plotting.py",
-  "topostats/tracing/tracingfuncs.py",
-  "topostats/tracing/dnatracing.py",
-  "topostats/tracing/tracing_dna.py",
-  "tests/tracing/test_dnatracing.py",
-]
-extend-ignore = [
-    "E501",
-    "T201",
-]
 
 [tool.setuptools]
 include-package-data = true
@@ -137,15 +115,18 @@ exclude = ["tests"]
 namespaces = false
 
 [tool.setuptools.package-data]
-topostats = ["*.yaml"]
+topostats = ["*.yaml", "*.mplstyle"]
 
 [tool.setuptools_scm]
 write_to = "topostats/_version.py"
 
 
 [tool.pytest.ini_options]
-minversion = "7.0"
-addopts = "--cov --mpl"
+minversion = "8.0"
+addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers", "--numprocesses=auto"]
+log_level = "INFO"
+log_cli = true
+log_cli_level = "INFO"
 testpaths = [
     "tests",
 ]
@@ -154,6 +135,7 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning",
     "ignore::UserWarning"
 ]
+xfail_strict = true
 
 [tool.coverage.run]
 source = ["topostats"]
@@ -165,7 +147,7 @@ omit = [
 
 [tool.black]
 line-length = 120
-target-version = ['py38']
+target-version = ['py310']
 exclude = '''
 
 (
@@ -179,6 +161,7 @@ exclude = '''
 
 [tool.ruff]
 exclude = [
+  "*.ipynb",
   ".bzr",
   ".direnv",
   ".eggs",
@@ -192,22 +175,109 @@ exclude = [
   ".svn",
   ".tox",
   ".venv",
+  "__pycache__",
   "__pypackages__",
   "_build",
   "buck-out",
   "build",
   "dist",
+  "docs/conf.py",
   "node_modules",
+  "tests/tracing/test_dnacurvature.py",
+  "topostats/plotting.py",
+  "topostats/tracing/tracingfuncs.py",
   "venv",
 ]
 # per-file-ignores = []
 line-length = 120
-target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+  "A", # flake8-builtins
+  "B", # flake8-bugbear
+  "C", #
+  "D", # pydocstyle
+  "E", # pycodestyle error
+  "F",
+  "I", # isort
+  "NPY", # numpy
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "R",
+  "S", #flake8-bandit
+  "W", # pycodestyle warning
+  "U",
+  "UP", # pyupgrade
+]
+ignore = [
+  "A005",
+  "B905",
+  "E501",
+  "S101",
+  "S403",
+]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["A", "B", "C", "D", "E", "F", "R", "S", "W", "U"]
+fixable = [
+  "A", # flake8-builtins
+  "B", # flake8-bugbear
+  "C", #
+  "D", # pydocstyle
+  "E", # pycodestyle error
+  "F",
+  "I", # isort
+  "NPY", # numpy
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "R",
+  "S", #flake8-bandit
+  "W", # pycodestyle warning
+  "U",
+  "UP", # pyupgrade
+]
 unfixable = []
+
+# Numpy2 deprecation checks
+extend-select = ["NPY201"]
+preview = false
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = true
+
+[tool.codespell]
+skip = '*.spm*,*.mplstyle,*.svg,*.stp,*.top'
+count = ''
+quiet-level = 3
+ignore-words-list = 'OT'
+
+[tool.numpydoc_validation]
+checks = [
+  "all", # Perform all check except those listed below
+  "ES01",
+  "EX01",
+  "PR10", # Conflicts with black formatting
+  "SA01",
+]
+exclude = [  # don't report on objects that match any of these regex
+    "\\.undocumented_method$",
+    "\\.__repr__$",
+    "^test_",
+    "^conftest",
+    "^conf$",
+]
+override_SS05 = [  # override SS05 to allow docstrings starting with these words
+    "^Process ",
+    "^Assess ",
+    "^Access ",
+]
 
 [project.scripts]
 topostats = "topostats.entry_point:entry_point"
-run_topostats = "topostats.entry_point:legacy_run_topostats_entry_point"
-toposum = "topostats.entry_point:legacy_toposum_entry_point"

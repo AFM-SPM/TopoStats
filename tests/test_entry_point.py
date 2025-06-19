@@ -1,181 +1,725 @@
 """Test the entry point of TopoStats and its ability to correctly direct to programs."""
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+
 import pytest
 
+from topostats import run_modules
 from topostats.entry_point import (
     entry_point,
-    legacy_run_topostats_entry_point,
-    legacy_toposum_entry_point,
 )
-from topostats.run_topostats import run_topostats
+from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
+
+# noqa: S108
 
 
 # Test "help" arguments
-@pytest.mark.parametrize("option", ("-h", "--help"))
+@pytest.mark.parametrize("option", [("-h"), ("--help")])
 def test_entry_point_help(capsys, option) -> None:
     """Test the help argument of the general entry point."""
-
     try:
         entry_point(manually_provided_args=[option])
     except SystemExit:
         pass
     output = capsys.readouterr().out
-
-    assert "usage:" in output and "program" in output
-
-
-@pytest.mark.parametrize("option", ("-h", "--help"))
-def test_entry_point_process_help(capsys, option):
-    """Test the help argument of the process program."""
-
-    try:
-        entry_point(manually_provided_args=["process", option])
-    except SystemExit:
-        pass
-    output = capsys.readouterr().out
-
-    assert "usage:" in output and "process" in output
+    assert "usage:" in output
+    assert "program" in output
 
 
-@pytest.mark.parametrize("option", ("-h", "--help"))
-def test_entry_point_summary_help(capsys, option):
-    """Test the help argument of the summary program."""
-
-    try:
-        entry_point(manually_provided_args=["summary", option])
-    except SystemExit:
-        pass
-    output = capsys.readouterr().out
-
-    assert "usage:" in output and "summary" in output
-
-
-# Test that the right functions are returned with the right arguments
 @pytest.mark.parametrize(
-    "options, expected_function, expected_arg_name, expected_arg_value",
+    (("argument", "option")),
     [
-        (
+        pytest.param("process", "-h", id="process with -h"),
+        pytest.param("process", "--help", id="process with --help"),
+        pytest.param("load", "-h", id="load with -h"),
+        pytest.param("load", "--help", id="load with --help"),
+        pytest.param("filter", "-h", id="filter with -h"),
+        pytest.param("filter", "--help", id="filter with --help"),
+        pytest.param("grains", "-h", id="grains with -h"),
+        pytest.param("grains", "--help", id="grains with --help"),
+        pytest.param("grainstats", "-h", id="grainstats with -h"),
+        pytest.param("grainstats", "--help", id="grainstats with --help"),
+        pytest.param("disordered-tracing", "-h", id="disordered_tracing with -h"),
+        pytest.param("disordered-tracing", "--help", id="disordered_tracing with --help"),
+        pytest.param("nodestats", "-h", id="nodestats with -h"),
+        pytest.param("nodestats", "--help", id="nodestats with --help"),
+        pytest.param("ordered-tracing", "-h", id="ordered_tracing with -h"),
+        pytest.param("ordered-tracing", "--help", id="ordered_tracing with --help"),
+        pytest.param("splining", "-h", id="splining with -h"),
+        pytest.param("splining", "--help", id="splining with --help"),
+        pytest.param("summary", "-h", id="summary with -h"),
+        pytest.param("summary", "--help", id="summary with --help"),
+        pytest.param("create-config", "-h", id="create-config with -h"),
+        pytest.param("create-config", "--help", id="create-config with --help"),
+    ],
+)
+def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None:
+    """Test the help argument to the master and sub entry points."""
+    try:
+        entry_point(manually_provided_args=[argument, option])
+    except SystemExit:
+        pass
+    output = capsys.readouterr().out
+
+    assert "usage:" in output
+    assert argument in output
+
+
+@pytest.mark.parametrize(
+    ("options", "expected_function", "expected_args"),
+    [
+        pytest.param(
             [
+                "-c",
+                "dummy/config/dir/config.yaml",
                 "process",
-                "-c dummy/config/dir/config.yaml",
             ],
-            run_topostats,
-            "config_file",
-            " dummy/config/dir/config.yaml",
+            run_modules.process,
+            {"config_file": Path("dummy/config/dir/config.yaml")},
+            id="Process with config file argument",
         ),
-        (
+        pytest.param(
             [
+                "-b",
+                "/tmp/",  # noqa: S108
                 "process",
-                "--config",
+            ],
+            run_modules.process,
+            {"base_dir": Path("/tmp/")},  # noqa: S108
+            id="Process with base dir argument",
+        ),
+        pytest.param(
+            [
+                "-b",
+                "/tmp/",  # noqa: S108
+                "--output-dir",
+                "/tmp/output/",  # noqa: S108
+                "process",
+            ],
+            run_modules.process,
+            {"base_dir": Path("/tmp/"), "output_dir": Path("/tmp/output")},  # noqa: S108
+            id="Process with base dir (short) and output (long) arguments",
+        ),
+        pytest.param(
+            [
+                "-l",
+                "debug",
+                "--cores",
+                "16",
+                "-f",
+                ".spm",
+                "process",
+            ],
+            run_modules.process,
+            {"log_level": "debug", "cores": 16, "file_ext": ".spm"},
+            id="Process with log_level (short), cores (long) and file extension (short) arguments",
+        ),
+        pytest.param(
+            [
+                "create-config",
+                "--filename",
                 "dummy/config/dir/config.yaml",
             ],
-            run_topostats,
-            "config_file",
-            "dummy/config/dir/config.yaml",
+            write_config_with_comments,
+            {"filename": Path("dummy/config/dir/config.yaml")},
+            id="Create config with output filename",
         ),
-        (
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "load",
+            ],
+            run_modules.process,
+            {"config_file": Path("dummy/config/dir/config.yaml")},
+            id="Load with config file argument",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "--base-dir",
+                "./",
+                "-o",
+                "/tmp/",  # noqa: S108
+                "--cores",
+                "12",
+                "load",
+            ],
+            run_modules.process,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "base_dir": Path("./"),
+                "output_dir": Path("/tmp/"),  # noqa: S108
+                "cores": 12,
+            },
+            id="Load with config file (short), base dir (long) and output dir (short) and cores (long) arguments",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "filter",
+                "--row-alignment-quantile",
+                "0.80",
+                "--threshold-method",
+                "otsu",
+            ],
+            run_modules.filters,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "row_alignment_quantile": 0.80,
+                "threshold_method": "otsu",
+            },
+            id="Filter with config file (short) argument, row alignment (long) and threshold method (long)",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "filter",
+                "--gaussian-size",
+                "36",
+                "--remove-scars",
+                "True",
+            ],
+            run_modules.filters,
+            {"config_file": Path("dummy/config/dir/config.yaml"), "gaussian_size": 36, "scars_run": True},
+            id="Filter with config file (short) argument, gaussian size (long) and remove scars (long)",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "filter",
+                "--row-alignment-quantile",
+                "0.80",
+                "--otsu-threshold-multiplier",
+                "2",
+                "--threshold-std-dev-below",
+                "1",
+                "--threshold-std-dev-above",
+                "1.5",
+                "--threshold-absolute-below",
+                "10",
+                "--threshold-absolute-above",
+                "8",
+                "--gaussian-size",
+                "36",
+                "--gaussian-mode",
+                "wrap",
+                "--remove-scars",
+                "True",
+                "--scars-removal-iterations",
+                "42",
+                "--scars-threshold-low",
+                "3",
+                "--scars-threshold-high",
+                "9",
+                "--scars-max-scar-width",
+                "10",
+                "--scars-max-scar-length",
+                "20",
+            ],
+            run_modules.filters,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "row_alignment_quantile": 0.80,
+                "otsu_threshold_multiplier": 2,
+                "threshold_std_dev_below": 1,
+                "threshold_std_dev_above": 1.5,
+                "threshold_absolute_below": 10,
+                "threshold_absolute_above": 8,
+                "gaussian_size": 36,
+                "gaussian_mode": "wrap",
+                "scars_run": True,
+                "scars_threshold_low": 3,
+                "scars_threshold_high": 9,
+                "scars_max_scar_width": 10,
+                "scars_max_scar_length": 20,
+            },
+            id="Filter with config file (short) argument and all options",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "grains",
+                "--grain-crop-padding",
+                "1",
+                "--threshold-method",
+                "absolute",
+                "--otsu-threshold-multiplier",
+                "2.3",
+                "--threshold-std-dev-below",
+                "1.0",
+                "--threshold-std-dev-above",
+                "1.5",
+                "--threshold-absolute-below",
+                "45",
+                "--threshold-absolute-above",
+                "56",
+                "--direction",
+                "both",
+                "--area-thresholds-above",
+                "17",
+                "19",
+                "--area-thresholds-below",
+                "19",
+                "21",
+                "--remove-edge-intersecting-grains",
+                "True",
+                "--unet-model-path",
+                "/tmp/models/",  # noqa: S108
+                "--unet-grain-crop-padding",
+                "10",
+                "--unet-upper-norm-bound",
+                "14",
+                "--unet-lower-norm-bound",
+                "12",
+                "--unet-remove-disconnected-grains",
+                "True",
+                "--unet-confidence",
+                "0.5",
+            ],
+            run_modules.grains,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "grain_crop_padding": 1,
+                "threshold_method": "absolute",
+                "otsu_threshold_multiplier": 2.3,
+                "threshold_std_dev_below": 1.0,
+                "threshold_std_dev_above": 1.5,
+                "threshold_absolute_below": 45,
+                "threshold_absolute_above": 56,
+                "direction": "both",
+                "area_thresholds_above": [17.0, 19.0],
+                "area_thresholds_below": [19.0, 21.0],
+                "remove_edge_intersecting_grains": True,
+                "unet_model_path": Path("/tmp/models/"),  # noqa: S108
+                "unet_grain_crop_padding": 10,
+                "unet_upper_norm_bound": 14,
+                "unet_lower_norm_bound": 12,
+                "unet_remove_disconnected_grains": True,
+                "unet_confidence": 0.5,
+            },
+            id="Grains with config file argument and all options",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "grainstats",
+                "--edge-detection-method",
+                "canny",
+                "--cropped-size",
+                "-1",
+                "--extract-height-profile",
+                "True",
+            ],
+            run_modules.grainstats,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "edge_detection_method": "canny",
+                "cropped_size": -1.0,
+                "extract_height_profile": True,
+            },
+            id="Grainstats with config file argument and all parameters",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "disordered-tracing",
+                "--class-index",
+                "1",
+                "--min-skeleton-size",
+                "15",
+                "--mask-smoothing-params-gaussian-sigma",
+                "1.5",
+                "--mask-smoothing-params-dilation-iterations",
+                "4",
+                "--mask-smoothing-params-holearea-min-max",
+                "2",
+                "3",
+                "--skeletonisation-params-method",
+                "zhang",
+                "--skeletonisation-height-bias",
+                "1.2",
+                "--pruning-params-method",
+                "topostats",
+                "--pruning-params-max-length",
+                "36",
+                "--pruning-params-height-threshold",
+                "42",
+                "--pruning-params-method-values",
+                "mid",
+                "--pruning-params-method-outlier",
+                "iqr",
+            ],
+            run_modules.disordered_tracing,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "class_index": 1,
+                "min_skeleton_size": 15,
+                "mask_smoothing_params_gaussian_sigma": 1.5,
+                "mask_smoothing_params_dilation_iterations": 4,
+                "mask_smoothing_params_holearea_min_max": [2, 3],
+                "skeletonisation_params_method": "zhang",
+                "skeletonisation_height_bias": 1.2,
+                "pruning_params_method": "topostats",
+                "pruning_params_max_length": 36,
+                "pruning_params_height_threshold": 42,
+                "pruning_params_method_values": "mid",
+                "pruning_params_method_outlier": "iqr",
+            },
+            id="Disordered tracing with config file argument and all parameters",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "nodestats",
+                "--node-joining-length",
+                "7",
+                "--node-extend-dist",
+                "4",
+                "--branch-pairing-length",
+                "48",
+                "--pair-odd-branches",
+                "True",
+            ],
+            run_modules.nodestats,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "node_joining_length": 7,
+                "node_extend_dist": 4,
+                "branch_pairing_length": 48,
+                "pair_odd_branches": True,
+            },
+            id="Nodestats with config file and all arguments and all parameters",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "ordered-tracing",
+                "--ordering-method",
+                "nodestats",
+            ],
+            run_modules.ordered_tracing,
+            {"config_file": Path("dummy/config/dir/config.yaml"), "ordering_method": "nodestats"},
+            id="Ordered tracing with config file argument",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "splining",
+                "--method",
+                "spline",
+                "--rolling-window-size",
+                "1",
+                "--resampling",
+                "True",
+                "--resample-regular-spatial-interval",
+                "1.0",
+                "--spline-step-size",
+                "20.2",
+                "--spline-linear-smoothing",
+                "40",
+                "--spline-circular-smoothing",
+                "60",
+                "--spline-degree",
+                "30",
+            ],
+            run_modules.splining,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "method": "spline",
+                "rolling_window_size": 1.0,
+                "resampling": True,
+                "resample_regular_spatial_interval": 1.0,
+                "spline_step_size": 20.2,
+                "spline_linear_smoothing": 40.0,
+                "spline_circular_smoothing": 60.0,
+                "spline_degree": 30,
+            },
+            id="Splining with config file argument and all parameters",
+        ),
+        pytest.param(
+            [
+                "-c",
+                "dummy/config/dir/config.yaml",
+                "process",
+                "--filter-row-alignment-quantile",
+                "0.80",
+                "--filter-otsu-threshold-multiplier",
+                "2",
+                "--filter-threshold-std-dev-below",
+                "1",
+                "--filter-threshold-std-dev-above",
+                "1.5",
+                "--filter-threshold-absolute-below",
+                "10",
+                "--filter-threshold-absolute-above",
+                "8",
+                "--filter-gaussian-size",
+                "36",
+                "--filter-gaussian-mode",
+                "wrap",
+                "--filter-remove-scars",
+                "True",
+                "--filter-scars-removal-iterations",
+                "42",
+                "--filter-scars-threshold-low",
+                "3",
+                "--filter-scars-threshold-high",
+                "9",
+                "--filter-scars-max-scar-width",
+                "10",
+                "--filter-scars-max-scar-length",
+                "20",
+                "--grains-grain-crop-padding",
+                "1",
+                "--grains-threshold-method",
+                "absolute",
+                "--grains-otsu-threshold-multiplier",
+                "2.3",
+                "--grains-threshold-std-dev-below",
+                "1.0",
+                "--grains-threshold-std-dev-above",
+                "1.5",
+                "--grains-threshold-absolute-below",
+                "45",
+                "--grains-threshold-absolute-above",
+                "56",
+                "--grains-direction",
+                "both",
+                "--grains-area-thresholds-above",
+                "17",
+                "19",
+                "--grains-area-thresholds-below",
+                "19",
+                "21",
+                "--grains-remove-edge-intersecting-grains",
+                "True",
+                "--unet-model-path",
+                "/tmp/models/",  # noqa: S108
+                "--unet-grain-crop-padding",
+                "10",
+                "--unet-upper-norm-bound",
+                "14",
+                "--unet-lower-norm-bound",
+                "12",
+                "--unet-remove-disconnected-grains",
+                "True",
+                "--unet-confidence",
+                "0.5",
+                "--grainstats-edge-detection-method",
+                "canny",
+                "--grainstats-cropped-size",
+                "-1",
+                "--grainstats-extract-height-profile",
+                "True",
+                "--disordered-class-index",
+                "1",
+                "--disordered-min-skeleton-size",
+                "15",
+                "--disordered-mask-smoothing-params-gaussian-sigma",
+                "1.5",
+                "--disordered-mask-smoothing-params-dilation-iterations",
+                "4",
+                "--disordered-mask-smoothing-params-holearea-min-max",
+                "2",
+                "3",
+                "--disordered-skeletonisation-params-method",
+                "zhang",
+                "--disordered-skeletonisation-height-bias",
+                "1.2",
+                "--disordered-pruning-params-method",
+                "topostats",
+                "--disordered-pruning-params-max-length",
+                "36",
+                "--disordered-pruning-params-height-threshold",
+                "42",
+                "--disordered-pruning-params-method-values",
+                "mid",
+                "--disordered-pruning-params-method-outlier",
+                "iqr",
+                "--nodestats-node-joining-length",
+                "7",
+                "--nodestats-node-extend-dist",
+                "4",
+                "--nodestats-branch-pairing-length",
+                "48",
+                "--nodestats-pair-odd-branches",
+                "True",
+                "--ordered-ordering-method",
+                "nodestats",
+                "--splining-method",
+                "spline",
+                "--rolling-window-size",
+                "1",
+                "--splining-resampling",
+                "True",
+                "--splining-resample-regular-spatial-interval",
+                "1.0",
+                "--spline-step-size",
+                "20.2",
+                "--spline-linear-smoothing",
+                "40",
+                "--spline-circular-smoothing",
+                "60",
+                "--spline-degree",
+                "30",
+                "--save-plots",
+                "True",
+                "--savefig-format",
+                ".png",
+                "--savefig-dpi",
+                "300",
+                "--cmap",
+                "afmhot",
+                "--warnings",
+                "True",
+            ],
+            run_modules.process,
+            {
+                "config_file": Path("dummy/config/dir/config.yaml"),
+                "filter_row_alignment_quantile": 0.80,
+                "filter_otsu_threshold_multiplier": 2,
+                "filter_threshold_std_dev_below": 1,
+                "filter_threshold_std_dev_above": 1.5,
+                "filter_threshold_absolute_below": 10,
+                "filter_threshold_absolute_above": 8,
+                "filter_gaussian_size": 36,
+                "filter_gaussian_mode": "wrap",
+                "filter_scars_run": True,
+                "filter_scars_threshold_low": 3,
+                "filter_scars_threshold_high": 9,
+                "filter_scars_max_scar_width": 10,
+                "filter_scars_max_scar_length": 20,
+                "grains_grain_crop_padding": 1,
+                "grains_threshold_method": "absolute",
+                "grains_otsu_threshold_multiplier": 2.3,
+                "grains_threshold_std_dev_below": 1.0,
+                "grains_threshold_std_dev_above": 1.5,
+                "grains_threshold_absolute_below": 45,
+                "grains_threshold_absolute_above": 56,
+                "grains_direction": "both",
+                "grains_area_thresholds_above": [17.0, 19.0],
+                "grains_area_thresholds_below": [19.0, 21.0],
+                "grains_remove_edge_intersecting_grains": True,
+                "unet_model_path": Path("/tmp/models/"),  # noqa: S108
+                "unet_grain_crop_padding": 10,
+                "unet_upper_norm_bound": 14,
+                "unet_lower_norm_bound": 12,
+                "unet_remove_disconnected_grains": True,
+                "unet_confidence": 0.5,
+                "grainstats_edge_detection_method": "canny",
+                "grainstats_cropped_size": -1.0,
+                "grainstats_extract_height_profile": True,
+                "disordered_class_index": 1,
+                "disordered_min_skeleton_size": 15,
+                "disordered_mask_smoothing_params_gaussian_sigma": 1.5,
+                "disordered_mask_smoothing_params_dilation_iterations": 4,
+                "disordered_mask_smoothing_params_holearea_min_max": [2, 3],
+                "disordered_skeletonisation_params_method": "zhang",
+                "disordered_skeletonisation_height_bias": 1.2,
+                "disordered_pruning_params_method": "topostats",
+                "disordered_pruning_params_max_length": 36,
+                "disordered_pruning_params_height_threshold": 42,
+                "disordered_pruning_params_method_values": "mid",
+                "disordered_pruning_params_method_outlier": "iqr",
+                "nodestats_node_joining_length": 7,
+                "nodestats_node_extend_dist": 4,
+                "nodestats_branch_pairing_length": 48,
+                "nodestats_pair_odd_branches": True,
+                "ordered_ordering_method": "nodestats",
+                "splining_method": "spline",
+                "rolling_window_size": 1.0,
+                "splining_resampling": True,
+                "splining_resample_regular_spatial_interval": 1.0,
+                "spline_step_size": 20.2,
+                "spline_linear_smoothing": 40.0,
+                "spline_circular_smoothing": 60.0,
+                "spline_degree": 30,
+                "save_plots": True,
+                "savefig_format": ".png",
+                "savefig_dpi": 300,
+                "cmap": "afmhot",
+                "warnings": True,
+            },
+            id="Process with config file argument and all parameters",
+        ),
+        pytest.param(
             [
                 "summary",
-                "-l dummy/config/dir/var_to_label.yaml",
+                "--input-csv",
+                "some.csv",
+                "--config-file",
+                "/tmp/dummy_config.yaml",  # noqa: S108
+                "--var-to-label",
+                "dummy/config/dir/var_to_label.yaml",
+                "--create-config-file",
+                "/tmp/new_config_file.yaml",  # noqa: S108
+                "--create-label-file",
+                "/tmp/new_label_file.yaml",  # noqa: S108
+                "--savefig-format",
+                ".png",
             ],
             run_toposum,
-            "var_to_label",
-            " dummy/config/dir/var_to_label.yaml",
+            {
+                "input_csv": Path("some.csv"),
+                "config_file": Path("/tmp/dummy_config.yaml"),  # noqa: S108
+                "var_to_label": Path("dummy/config/dir/var_to_label.yaml"),
+                "create_config_file": Path("/tmp/new_config_file.yaml"),  # noqa: S108
+                "create_label_file": Path("/tmp/new_label_file.yaml"),  # noqa: S108
+                "savefig_format": ".png",
+            },
+            id="Summary with input csv (long) and label file (short).",
         ),
     ],
 )
-def test_entry_point(
-    options: list, expected_function: Callable, expected_arg_name: str, expected_arg_value: str
-) -> None:
-    """Test the entry point, ensuring the correct function is called for each program, and arguments
-    are carried through."""
-
+def test_entry_points(options: list, expected_function: Callable, expected_args: dict) -> None:
+    """Ensure the correct function is called for each program, and arguments are carried through correctly."""
     returned_args = entry_point(options, testing=True)
     # convert argparse's Namespace object to dictionary
     returned_args_dict = vars(returned_args)
-
     # check that the correct function is collected
     assert returned_args.func == expected_function
-
     # check that the argument has successfully been passed through into the dictionary
-    assert returned_args_dict[expected_arg_name] == expected_arg_value
+    for argument, value in expected_args.items():
+        assert returned_args_dict[argument] == value
 
 
 def test_entry_point_create_config_file(tmp_path: Path) -> None:
     """Test that the entry point is able to produce a default config file when asked to."""
-
-    with pytest.raises(SystemExit):
-        entry_point(manually_provided_args=["process", "--create_config_file", f"{tmp_path}/test_create_config.yaml"])
-
+    entry_point(
+        manually_provided_args=[
+            "create-config",
+            "--filename",
+            "test_create_config.yaml",
+            "--output-dir",
+            f"{tmp_path}",
+        ]
+    )
     assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
 
 
-# Test that the right functions are returned with the right arguments
-@pytest.mark.parametrize(
-    "options, expected_arg_name, expected_arg_value",
-    [
-        (
-            [
-                "-c dummy/config/dir/config.yaml",
-            ],
-            "config_file",
-            " dummy/config/dir/config.yaml",
-        ),
-        (
-            [
-                "--config",
-                "dummy/config/dir/config.yaml",
-            ],
-            "config_file",
-            "dummy/config/dir/config.yaml",
-        ),
-    ],
-)
-def test_legacy_run_topostats_entry_point(options: list, expected_arg_name: str, expected_arg_value: str) -> None:
-    """Test the run_topostats legacy entry point, ensuring the arguments
-    are parsed and carried through correctly."""
-
-    returned_args = legacy_run_topostats_entry_point(options, testing=True)
-    # Convert argparse's Namespace object to dictionary
-    returned_args_dict = vars(returned_args)
-
-    assert returned_args_dict[expected_arg_name] == expected_arg_value
-
-
-def test_legacy_run_topostats_entry_point_create_config_file(tmp_path: Path) -> None:
-    """Test that the run_topostats legacy entry point is able to produce a default config file
-    when asked to."""
-
-    with pytest.raises(SystemExit):
-        legacy_run_topostats_entry_point(
-            args=["--create-config-file", f"{tmp_path}/test_legacy_run_topostats_create_config.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_run_topostats_create_config.yaml").is_file()
-
-
-def test_legacy_toposum_entry_point_create_config_file(tmp_path: Path) -> None:
-    """Test that the toposum legacy entry point is able to produce a default config file
-    when asked to."""
-
-    with pytest.raises(SystemExit):
-        legacy_toposum_entry_point(
-            args=["--create-config-file", f"{tmp_path}/test_legacy_toposum_create_config_file.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_toposum_create_config_file.yaml").is_file()
-
-
-def test_legacy_toposum_entry_point_create_label_file(tmp_path: Path) -> None:
-    """Test that the toposum legacy entry point is able to produce a default label file
-    when asked to."""
-
-    with pytest.raises(SystemExit):
-        legacy_toposum_entry_point(
-            args=["--create-label-file", f"{tmp_path}/test_legacy_toposum_create_label_file.yaml"]
-        )
-
-    assert Path(f"{tmp_path}/test_legacy_toposum_create_label_file.yaml").is_file()
+def test_entry_point_create_simple_config_file(tmp_path: Path) -> None:
+    """Test that the entry point is able to produce a simple config file when asked to."""
+    entry_point(
+        manually_provided_args=[
+            "create-config",
+            "--filename",
+            "test_create_simple_config.yaml",
+            "--output-dir",
+            f"{tmp_path}",
+            "--simple",
+        ]
+    )
+    assert Path(f"{tmp_path}/test_create_simple_config.yaml").is_file()

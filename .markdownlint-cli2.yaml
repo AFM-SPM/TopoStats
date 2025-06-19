@@ -8,10 +8,13 @@ config:
   html:
     allowed_elements:
       - div
+      - br
 
-# Globs
 globs:
   - "**/*.md"
 
-# Fix any fixable errors
-fix: false
+ignores:
+  - "tmp/"
+  - "paper.md"
+
+fix: true

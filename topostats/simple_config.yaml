@@ -1,0 +1,54 @@
+base_dir: ./ # Directory in which to search for data files
+output_dir: ./output # Directory to output results to
+log_level: info # Verbosity of output. Options: warning, error, info, debug
+cores: 2 # Number of CPU cores to utilise for processing multiple files simultaneously.
+file_ext: .spm # File extension of the data files.
+loading:
+  channel: Height # Channel to pull data from in the data files.
+filter:
+  run: true # Options : true, false
+  row_alignment_quantile: 0.5 # lower values may improve flattening of larger features
+  threshold_method: std_dev # Options : otsu, std_dev, absolute
+  threshold_std_dev:
+    below: 10.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for data below the image background
+    above: 1.0 # Threshold for data above the image background
+  gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
+  # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
+  # result in ruining legitimate data.
+  remove_scars:
+    run: false
+grains:
+  run: true # Options : true, false
+  # Thresholding by height
+  threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
+  threshold_std_dev:
+    below: 10.0 # Threshold for grains below the image background
+    above: 1.0 # Threshold for grains above the image background
+  threshold_absolute:
+    below: -1.0 # Threshold for grains below the image background
+    above: 1.0 # Threshold for grains above the image background
+  area_thresholds:
+    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
+grainstats:
+  run: true # Options : true, false
+disordered_tracing:
+  run: true # Options : true, false
+nodestats:
+  run: true # Options : true, false
+ordered_tracing:
+  run: true
+splining:
+  run: true # Options : true, false
+plotting:
+  run: true # Options : true, false
+  savefig_format: null # Options : null, png, svg or pdf. tif is also available although no metadata will be saved. (defaults to png) See https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  savefig_dpi: 100 # Options : null (defaults to the value in topostats/plotting_dictionary.yaml), see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html
+  image_set: core # Options : all, core
+  zrange: [null, null] # low and high height range for core images (can take [null, null]). low <= high
+  colorbar: true # Options : true, false
+  axes: true # Options : true, false (due to off being a bool when parsed)
+  cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
+  mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib

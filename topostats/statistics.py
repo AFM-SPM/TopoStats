@@ -1,11 +1,13 @@
 """Function for calculating statistics about a whole image, for example number of grains or surface roughness."""
 
+import logging
+
 import numpy as np
 import pandas as pd
 
-from topostats.logs.logs import setup_logger, LOGGER_NAME
+from topostats.logs.logs import LOGGER_NAME
 
-LOGGER = setup_logger(LOGGER_NAME)
+LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def image_statistics(
@@ -14,18 +16,21 @@ def image_statistics(
     pixel_to_nm_scaling: float,
     results_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Calculate statistics pertaining to the whole image, for example the size of the image in pixels and
-    metres, the root-mean-squared roughness and the grains per metre squared.
+    """
+    Calculate statistics pertaining to the whole image.
+
+    Calculates the size of the image in pixels and metres, the root-mean-squared roughness and the grains per metre
+    squared.
 
     Parameters
     ----------
-    image: np.ndarray
+    image : np.ndarray
         Numpy 2D image array of the image to calculate stats for.
-    filename: str
+    filename : str
         The name of the file being processed.
-    pixel_to_nm_scaling: float
+    pixel_to_nm_scaling : float
         Float of the scaling factor between pixels and nanometres.
-    results_df: pd.DataFrame
+    results_df : pd.DataFrame
         Pandas DataFrame of statistics pertaining to individual grains including from grainstats and
         dna tracing.
 
@@ -34,9 +39,8 @@ def image_statistics(
     dict
         Dictionary of image statistics.
     """
-
     image_stats = {
-        "Image": filename,
+        "image": filename,
         "image_size_x_m": None,
         "image_size_y_m": None,
         "image_area_m2": None,
@@ -73,20 +77,22 @@ def image_statistics(
         pass
 
     image_stats_df = pd.DataFrame([image_stats])
-    image_stats_df.set_index("Image", inplace=True)
+    image_stats_df.set_index("image", inplace=True)
 
     return image_stats_df
 
 
 def roughness_rms(image: np.ndarray) -> float:
-    """Calculate the root-mean-square roughness of a heightmap image.
+    """
+    Calculate the root-mean-square roughness of a heightmap image.
 
     Parameters
     ----------
-    image: np.ndarray
-        2D numpy array of heightmap data to calculate the roughness of
+    image : np.ndarray
+        2-D numpy array of heightmap data to calculate roughness.
 
-    Returns:
+    Returns
+    -------
     float
         The RMS roughness of the input array.
     """
