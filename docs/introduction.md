@@ -28,3 +28,11 @@ An schematic overview of the classes and methods that are run in processing file
 If you have questions, please post them on the [discussion](https://github.com/AFM-SPM/TopoStats/discussions), if you
 think you've encountered a bug whilst running the code or suggestions for improvements please create an
 [issue](https://github.com/AFM-SPM/TopoStats/issues) in the GitHub project page.
+
+## Supported File Formats
+
+TopoStats uses the [AFMReader][afmreader] package to load files, please refer to the documentation of AFMReader
+[documentation][afmreader_usage] for supported file formats.
+
+[afmreader]: https://github.com/AFM-SPM/AFMReader
+[afmreader_usage]: https://afm-spm.github.io/AFMReader/usage/

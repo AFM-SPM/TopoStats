@@ -23,6 +23,7 @@ from topostats.io import (
     get_out_path,
     get_relative_paths,
     hdf5_to_dict,
+    lists_almost_equal,
     load_array,
     load_pkl,
     merge_mappings,
@@ -282,11 +283,79 @@ def test_load_array() -> None:
             True,
             id="nan equal",
         ),
+        pytest.param(
+            {"a": [1.01, 2.01]},
+            {"a": [1.0, 2.0]},
+            0.1,
+            True,
+            id="list equal within tolerance",
+        ),
+        pytest.param(
+            {"a": [1.01, 2.01]},
+            {"a": [1.0, 2.0]},
+            0.0001,
+            False,
+            id="list not equal within strict tolerance",
+        ),
+        pytest.param(
+            {"a": 5.0, "b": 10.0},
+            {"a": {"c": 5.0}, "b": 10.0},
+            0.0001,
+            False,
+            id="dict's matching keys are of different types.",
+        ),
     ],
 )
 def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected: bool) -> None:
     """Test that two dictionaries are almost equal."""
     assert dict_almost_equal(dict1, dict2, tolerance) == expected
+
+
+@pytest.mark.parametrize(
+    ("list1", "list2", "tolerance", "expected"),
+    [
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0, 3.0],
+            0.00001,
+            True,
+            id="list exactly equal",
+        ),
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0, 4.0],
+            0.00001,
+            False,
+            id="list not equal: value difference",
+        ),
+        pytest.param(
+            [1.0, 2.0, 3.0],
+            [1.0, 2.0],
+            0.00001,
+            False,
+            id="lists not equal: different lengths",
+        ),
+        pytest.param(
+            [1.00001, 2.00002, 3.00005],
+            [1.0, 2.0, 3.0],
+            0.01,
+            True,
+            id="list equal within tolerance",
+        ),
+    ],
+)
+def test_lists_almost_equal(list1: list, list2: list, tolerance: float, expected: bool) -> None:
+    """Test the lists_almost_equal function."""
+    assert lists_almost_equal(list1, list2, tolerance) == expected
+
+
+def test_lists_almost_equal_notimplemented_error() -> None:
+    """Test that lists_almost_equal raises NotImplementedError for illegal types."""
+    with pytest.raises(NotImplementedError):
+        lists_almost_equal([1, 2, [3]], [1, 2, [3]], 0.00001)
+
+    with pytest.raises(NotImplementedError):
+        lists_almost_equal([1, 2, {3}], [1, 2, {3}], 0.00001)
 
 
 @pytest.mark.parametrize("non_existant_file", [("does_not_exist.npy"), ("does_not_exist.np"), ("does_not_exist.csv")])
@@ -505,9 +574,9 @@ def test_load_scan_spm(load_scan_spm: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_spm.load_spm()
     assert isinstance(image, np.ndarray)
     assert image.shape == (1024, 1024)
-    assert image.sum() == 30695369.188316286
+    assert image.sum() == pytest.approx(30695369.188316286)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.4940029296875
+    assert px_to_nm_scaling == pytest.approx(0.4940029296875)
 
 
 def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
@@ -517,9 +586,9 @@ def test_load_scan_ibw(load_scan_ibw: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_ibw.load_ibw()
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
-    assert image.sum() == -218091520.0
+    assert image.sum() == pytest.approx(-218091520.0)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 1.5625
+    assert px_to_nm_scaling == pytest.approx(1.5625)
 
 
 def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
@@ -529,9 +598,21 @@ def test_load_scan_jpk(load_scan_jpk: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_jpk.load_jpk()
     assert isinstance(image, np.ndarray)
     assert image.shape == (256, 256)
-    assert image.sum() == 219242202.8256843
+    assert image.sum() == pytest.approx(219242202.8256843)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 1.2770176335964876
+    assert px_to_nm_scaling == pytest.approx(1.2770176335964876)
+
+
+def test_load_scan_jpk_qi(load_scan_jpk_qi: LoadScans) -> None:
+    """Test loading of JPK Instruments .jpk-qi-image file."""
+    load_scan_jpk_qi.img_path = load_scan_jpk_qi.img_paths[0]
+    load_scan_jpk_qi.filename = load_scan_jpk_qi.img_paths[0].stem
+    image, px_to_nm_scaling = load_scan_jpk_qi.load_jpk()
+    assert isinstance(image, np.ndarray)
+    assert image.shape == (100, 100)
+    assert image.sum() == pytest.approx(31593146.16051172)
+    assert isinstance(px_to_nm_scaling, float)
+    assert px_to_nm_scaling == pytest.approx(4.999999999999986)
 
 
 def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
@@ -541,9 +622,9 @@ def test_load_scan_gwy(load_scan_gwy: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_gwy.load_gwy()
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
-    assert image.sum() == 33836850.232917726
+    assert image.sum() == pytest.approx(33836850.232917726)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.8468632812499975
+    assert px_to_nm_scaling == pytest.approx(0.8468632812499975)
 
 
 def test_load_scan_stp(load_scan_stp: LoadScans) -> None:
@@ -553,9 +634,9 @@ def test_load_scan_stp(load_scan_stp: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_stp.load_stp()
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
-    assert image.sum() == -15070620.440757688
+    assert image.sum() == pytest.approx(-15070620.440757688)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.9765625
+    assert px_to_nm_scaling == pytest.approx(0.9765625)
 
 
 def test_load_scan_top(load_scan_top: LoadScans) -> None:
@@ -565,9 +646,9 @@ def test_load_scan_top(load_scan_top: LoadScans) -> None:
     image, px_to_nm_scaling = load_scan_top.load_top()
     assert isinstance(image, np.ndarray)
     assert image.shape == (512, 512)
-    assert image.sum() == 6034386.429246264
+    assert image.sum() == pytest.approx(6034386.429246264)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.9765625
+    assert px_to_nm_scaling == pytest.approx(0.9765625)
 
 
 @pytest.mark.parametrize(
@@ -603,9 +684,9 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     frames, px_to_nm_scaling = load_scan_asd.load_asd()
     assert isinstance(frames, np.ndarray)
     assert frames.shape == (197, 200, 200)
-    assert frames.sum() == -1368044348.3393068
+    assert frames.sum() == pytest.approx(-1368044348.3393068)
     assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 2.0
+    assert px_to_nm_scaling == pytest.approx(2.0)
 
 
 def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
@@ -617,9 +698,9 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     grain_trace_data = data["grain_trace_data"]
     assert isinstance(data["image"], np.ndarray)
     assert data["image"].shape == (1024, 1024)
-    assert data["image"].sum() == 184140.8593819073
+    assert data["image"].sum() == pytest.approx(184140.8593819073)
     assert isinstance(data["pixel_to_nm_scaling"], float)
-    assert data["pixel_to_nm_scaling"] == 0.4940029296875
+    assert data["pixel_to_nm_scaling"] == pytest.approx(0.4940029296875)
     # Check that the grain mask is loaded correctly
     assert isinstance(above_grain_mask, np.ndarray)
     assert above_grain_mask.sum() == 633746

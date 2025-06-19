@@ -47,19 +47,25 @@ pip install topostats
 For more on installation and how to upgrade please see the [installation
 instructions](https://afm-spm.github.io/TopoStats/main/installation.html).
 
+**NB** The minimum supported version of Python is >=3.10 and because of a constraint in a dependency the maximum
+supported version is <= 3.11 (for now, we hope to support newer versions in the near future).
+
 ## How to Use
 
 ### Tutorials and Examples
 
 For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/main/usage.html) documentation.
 
-A default configuration is loaded automatically and so the simplest method of processing images is to run
-`topostats process` in the same directory as your scans _after_ having activated the virtual environment in which you have
-installed TopoStats
+A default configuration is loaded automatically that works with `.spm` files. The simplest method of processing images
+is to run `topostats process` in the same directory as your scans _after_ having activated the virtual environment in
+which you have installed TopoStats
 
 ```bash
 topostats process
 ```
+
+If you have files other than `.spm` please refer `topostats --help` and the documentation on how to process those images
+with TopoStats.
 
 If you have your own YAML configuration file (see [Usage : Configuring
 TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
@@ -87,7 +93,7 @@ to run the processing again. See the documentation on
 
 ## Contributing
 
-See [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html).
+Please refer to our [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html) documentation.
 
 ## Licence
 
@@ -95,7 +101,8 @@ See [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contribut
 
 ## Citation
 
-Please use the [Citation File Format](https://citation-file-format.github.io/) which is available in this repository.
+If you use TopoStats in your work or research please cite us. There is a [Citation File
+Format](https://citation-file-format.github.io/) in this repository to aid citation.
 
 ### Publications
 

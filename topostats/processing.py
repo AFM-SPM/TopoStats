@@ -1,7 +1,5 @@
 """Functions for processing data."""
 
-from __future__ import annotations
-
 import logging
 from collections import defaultdict
 from pathlib import Path

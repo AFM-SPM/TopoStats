@@ -1,7 +1,5 @@
 """Plotting data."""
 
-from __future__ import annotations
-
 import logging
 from importlib import resources
 from pathlib import Path
@@ -97,7 +95,7 @@ class Images:
 
     Parameters
     ----------
-    data : npt.NDarray
+    data : npt.NDArray
         Numpy array to plot.
     output_dir : str | Path
         Output directory to save the file to.
@@ -107,7 +105,7 @@ class Images:
         Filename of matplotlibrc parameters.
     pixel_to_nm_scaling : float
         The scaling factor showing the real length of 1 pixel in nanometers (nm).
-    masked_array : npt.NDarray
+    masked_array : npt.NDArray
         Optional mask array to overlay onto an image.
     plot_coords : npt.NDArray
         ??? Needs defining.
@@ -154,12 +152,12 @@ class Images:
 
     def __init__(
         self,
-        data: npt.NDarray,
+        data: npt.NDArray,
         output_dir: str | Path,
         filename: str,
         style: str | Path = None,
         pixel_to_nm_scaling: float = 1.0,
-        masked_array: npt.NDarray = None,
+        masked_array: npt.NDArray = None,
         plot_coords: npt.NDArray = None,
         title: str = None,
         image_type: str = "non-binary",
@@ -192,7 +190,7 @@ class Images:
 
         Parameters
         ----------
-        data : npt.NDarray
+        data : npt.NDArray
             Numpy array to plot.
         output_dir : str | Path
             Output directory to save the file to.
@@ -202,7 +200,7 @@ class Images:
             Filename of matplotlibrc parameters.
         pixel_to_nm_scaling : float
             The scaling factor showing the real length of 1 pixel in nanometers (nm).
-        masked_array : npt.NDarray
+        masked_array : npt.NDArray
             Optional mask array to overlay onto an image.
         plot_coords : npt.NDArray
             ??? Needs defining.
@@ -358,7 +356,6 @@ class Images:
             for (_, grain_data_curvature), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
                 grains_curvature_stats_dict.items(), all_grain_smoothed_data.items(), cropped_images.items()
             ):
-
                 # Get the coordinate for the grain to accurately position the points
                 min_row = grain_image_container["bbox"][0]
                 min_col = grain_image_container["bbox"][1]
@@ -370,7 +367,6 @@ class Images:
                     _,
                     molecule_data_smoothed_trace,
                 ) in zip(grain_data_curvature.items(), grain_data_smoothed_trace.items()):
-
                     # Normalise the curvature values to the colourmap bounds
                     normalised_curvature = np.array(molecule_data_curvature)
                     normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
@@ -441,7 +437,6 @@ class Images:
         fig, ax = None, None
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
         if "all" in self.image_set or self.module in self.image_set or self.core_set:
-
             # Iterate over grains
             for (
                 (grain_index, grain_data_curvature),
@@ -464,7 +459,6 @@ class Images:
                 for (_, molecule_data_curvature), (_, molecule_data_smoothed_trace) in zip(
                     grain_data_curvature.items(), grain_data_smoothed_trace.items()
                 ):
-
                     molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
 
                     # Normalise the curvature values to the colourmap bounds
@@ -479,7 +473,6 @@ class Images:
                     cmap = mpl.cm.coolwarm
 
                     for index, point in enumerate(molecule_trace_coords):
-
                         colour = cmap(normalised_curvature[index])
                         if index > 0:
                             previous_point = molecule_trace_coords[index - 1]

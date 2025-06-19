@@ -2,8 +2,6 @@
 # ruff: noqa: S301
 """Fixtures for testing."""
 
-from __future__ import annotations
-
 import importlib.resources as pkg_resources
 import pickle
 from pathlib import Path
@@ -583,6 +581,12 @@ def load_scan_ibw() -> LoadScans:
 def load_scan_jpk() -> LoadScans:
     """Instantiate a LoadScans object from a .jpk file."""
     return LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
+
+
+@pytest.fixture()
+def load_scan_jpk_qi() -> LoadScans:
+    """Instantiate a LoadScans object from a .jpk-qi-image file."""
+    return LoadScans([RESOURCES / "file.jpk-qi-image"], channel="height_trace")
 
 
 @pytest.fixture()

@@ -1,7 +1,5 @@
 """Perform Crossing Region Processing and Analysis."""
 
-from __future__ import annotations
-
 import logging
 from itertools import combinations
 from typing import TypedDict
@@ -28,6 +26,7 @@ from topostats.utils import ResolutionError, convolve_skeleton
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-lines
@@ -35,16 +34,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-nested-blocks
 # pylint: disable=too-many-public-methods
 # pylint: disable=too-many-statements
-
-
-class NodeDict(TypedDict):
-    """Dictionary containing the node information."""
-
-    error: bool
-    pixel_to_nm_scaling: np.float64
-    branch_stats: dict[int, MatchedBranch] | None
-    node_coords: npt.NDArray[np.int32] | None
-    confidence: np.float64 | None
 
 
 class MatchedBranch(TypedDict):
@@ -66,6 +55,16 @@ class MatchedBranch(TypedDict):
     distances: npt.NDArray[np.number]
     fwhm: dict[str, np.float64 | tuple[np.float64]]
     angles: np.float64 | None
+
+
+class NodeDict(TypedDict):
+    """Dictionary containing the node information."""
+
+    error: bool
+    pixel_to_nm_scaling: np.float64
+    branch_stats: dict[int, MatchedBranch] | None
+    node_coords: npt.NDArray[np.int32] | None
+    confidence: np.float64 | None
 
 
 class ImageDict(TypedDict):

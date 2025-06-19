@@ -1,7 +1,5 @@
 """Contains class for calculating the statistics of grains - 2d raster images."""
 
-from __future__ import annotations
-
 import logging
 from pathlib import Path
 from random import randint
@@ -175,7 +173,7 @@ class GrainStats:
         rotation_matrix = np.asarray(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
-    def calculate_stats(self) -> tuple(pd.DataFrame, dict):
+    def calculate_stats(self) -> tuple[pd.DataFrame, dict]:
         """
         Calculate the stats of grains in the labelled image.
 
@@ -467,7 +465,7 @@ class GrainStats:
         return np.array(edges) - centroid
 
     @staticmethod
-    def _calculate_radius(displacements: list[list]) -> npt.NDarray:
+    def _calculate_radius(displacements: list[list]) -> npt.NDArray:
         """
         Calculate the radius of each point from the centroid.
 
@@ -478,7 +476,7 @@ class GrainStats:
 
         Returns
         -------
-        npt.NDarray
+        npt.NDArray
             Array of radii of each point from the centroid.
         """
         return np.array([np.sqrt(radius[0] ** 2 + radius[1] ** 2) for radius in displacements])
