@@ -118,6 +118,7 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
+        print("[trace_dna] Step 1")
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         if check_pixel_touching_edge(self.smoothed_mask):
             LOGGER.warning(
@@ -132,11 +133,13 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
+        print("[trace_dna] Step 3")
         self.pruned_skeleton = prune_skeleton(
             self.image, self.skeleton, self.pixel_to_nm_scaling, **self.pruning_params.copy()
         )
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
+        print("[trace_dna] Step 4")
 
         if self.disordered_trace is None:
             LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
@@ -359,11 +362,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
+    print("\nWE ARE HERE 1\n")
     img_base = np.zeros_like(topostats_object.image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
-
+    print("\nWE ARE HERE 2\n")
     assert direction in ("above", "below"), f"Invalid direction: {direction}"
     grain_crops = (
         topostats_object.image_grain_crops.above.crops
@@ -381,14 +385,19 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         "branch_indexes": img_base.copy(),
         "branch_types": img_base.copy(),
     }
+    print("\nWE ARE HERE 3\n")
 
     # for cropped_image_index, cropped_image in cropped_images.items():
     number_of_grains = len(grain_crops)
     for grain_number, grain_crop in grain_crops.items():
         try:
+            print(f"\nWE ARE HERE 4 (grain : {grain_number})\n")
             grain_crop_tensor = grain_crop.mask
             grain_crop_class_mask = grain_crop_tensor[:, :, class_index]
+            # TODO : Don't need to assign these here should be able to use them directly
             grain_crop_image = grain_crop.image
+            pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
+            print(f"\nWE ARE HERE 5 (grain : {grain_number})\n")
 
             disordered_trace_images: dict | None = disordered_trace_grain(
                 cropped_image=grain_crop_image,
@@ -402,6 +411,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 n_grain=grain_number,
             )
             LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
+            print(f"\nWE ARE HERE 6 (grain : {grain_number})\n")
 
             if disordered_trace_images is not None:
                 # obtain segment stats

@@ -1009,6 +1009,7 @@ class TopoStats:
         value : str | Path | None
             Image Path for the image.
         """
+        print(f"\n{value=}\n")
         self._img_path = Path.cwd() if value is None else Path(value)
 
     @property
