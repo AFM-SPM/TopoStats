@@ -158,6 +158,46 @@ def plotting_config(default_config: dict) -> dict:
 
 
 @pytest.fixture()
+def disordered_tracing_config(default_config: dict) -> dict:
+    """Configuration for disordered tracing."""
+    config = default_config["disordered_tracing"]
+    config.pop("run")
+    return config
+
+
+@pytest.fixture()
+def nodestats_config(default_config: dict) -> dict:
+    """Configuration for disordered tracing."""
+    config = default_config["nodestats"]
+    config.pop("run")
+    return config
+
+
+@pytest.fixture()
+def ordered_tracing_config(default_config: dict) -> dict:
+    """Configuration for disordered tracing."""
+    config = default_config["ordered_tracing"]
+    config.pop("run")
+    return config
+
+
+@pytest.fixture()
+def splining_config(default_config: dict) -> dict:
+    """Configuration for disordered tracing."""
+    config = default_config["splining"]
+    config.pop("run")
+    return config
+
+
+@pytest.fixture()
+def curvature_config(default_config: dict) -> dict:
+    """Configuration for disordered tracing."""
+    config = default_config["curvature"]
+    config.pop("run")
+    return config
+
+
+@pytest.fixture()
 def plotting_config_with_plot_dict(default_config: dict) -> dict:
     """Plotting configuration with plot dict."""
     return default_config["plotting"]
