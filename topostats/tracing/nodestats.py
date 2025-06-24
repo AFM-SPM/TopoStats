@@ -136,6 +136,7 @@ class nodeStats:
             Whether to try and pair odd-branched nodes.
         """
         self.graincrop = graincrop
+        # print(f"\n{graincrop.__dict__=}\n")
         self.filename = graincrop.filename
         self.image = graincrop.image
         self.mask = graincrop.mask
@@ -554,13 +555,15 @@ class nodeStats:
         # This is a numpy array of coords, shape Nx2
         assert self.node_centre_mask is not None, "Node centre mask is not defined."
         node_coords: npt.NDArray[np.int32] = np.argwhere(self.node_centre_mask.copy() == 3)
-
+        print("HAVE WE MADE IT HERE? 1")
         # Check whether average trace resides inside the grain mask
         # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
+        print("HAVE WE MADE IT HERE? 2")
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
+        print("HAVE WE MADE IT HERE? 3")
 
         # Iterate over the nodes and analyse the branches
         matched_branches = None
@@ -568,6 +571,8 @@ class nodeStats:
         avg_image = np.zeros_like(self.image)
         real_node_count = 0
         for node_no, (node_x, node_y) in enumerate(node_coords):
+            print(f"HAVE WE MADE IT HERE? 4 (Node {node_no})")
+
             unmatched_branches = {}
             error = False
 
