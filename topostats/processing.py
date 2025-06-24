@@ -10,6 +10,7 @@ import pandas as pd
 from art import tprint
 
 from topostats import __version__
+from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
@@ -187,6 +188,7 @@ def run_grains(  # noqa: C901
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
                 plotting_config.pop("run")
+                grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.mask_images.items():
                     LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
@@ -215,16 +217,39 @@ def run_grains(  # noqa: C901
                     if direction_grain_crops is not None:
                         LOGGER.info(f"[{filename}] : Plotting individual grain masks")
                         for grain_number, grain_crop in direction_grain_crops.crops.items():
-                            # Crop image plot
-                            crop_image = grain_crop.image
+                            # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
+                            if grain_crop_plot_size_nm == -1:
+                                crop_image = grain_crop.image
+                                crop_mask = grain_crop.mask
+                            else:
+                                try:
+                                    # Resize the grain crop to the requested size
+                                    crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
+                                        filename=filename,
+                                        grain_number=grain_number,
+                                        grain_bbox=grain_crop.bbox,
+                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                                        full_image=image,
+                                        full_mask_tensor=direction_grain_crops.full_mask_tensor,
+                                        target_size_nm=grain_crop_plot_size_nm,
+                                    )
+                                except ValueError as e:
+                                    if "crop cannot be re-cropped" in str(e):
+                                        LOGGER.error(
+                                            "Crop cannot be re-cropped to requested size, skipping plotting "
+                                            "this grain.",
+                                            exc_info=True,
+                                        )
+                                        continue
+
+                            # Plot the grain crop without mask
                             plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
                                 **plotting_config["plot_dict"]["grain_image"],
                             ).plot_and_save()
-                            # Grain mask plot
-                            crop_mask = grain_crop.mask
+                            # Plot the grain crop with mask
                             plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
                             # Tensor, iterate over channels
                             for tensor_class in range(1, crop_mask.shape[2]):

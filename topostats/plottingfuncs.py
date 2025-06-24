@@ -21,6 +21,7 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-positional-arguments
+# pylint: disable=unused-argument
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -120,6 +121,9 @@ class Images:
         Flag to identify image as part of the core image set or not.
     pixel_interpolation : str, optional
         Interpolation to use (default is 'None').
+    grain_crop_plot_size_nm : float, optional
+        Size in nm of the square cropped grain images if using the grains image set. If -1,
+        will use the grain's default bounding box size.
     cmap : str, optional
         Colour map to use (default 'nanoscope', 'afmhot' also available).
     mask_cmap : str
@@ -161,6 +165,7 @@ class Images:
         image_set: str = "core",
         core_set: bool = False,
         pixel_interpolation: str | None = None,
+        grain_crop_plot_size_nm: float = -1,
         cmap: str | None = None,
         mask_cmap: str = "jet_r",
         region_properties: dict = None,
@@ -211,6 +216,9 @@ class Images:
             Flag to identify image as part of the core image set or not.
         pixel_interpolation : str, optional
             Interpolation to use (default is 'None').
+        grain_crop_plot_size_nm : float, optional
+            Size in nm of the square cropped grain images if using the grains image set. If -1,
+            will use the grain's default bounding box size.
         cmap : str, optional
             Colour map to use (default 'nanoscope', 'afmhot' also available).
         mask_cmap : str
