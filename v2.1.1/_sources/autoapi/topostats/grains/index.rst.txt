@@ -1,0 +1,421 @@
+topostats.grains
+================
+
+.. py:module:: topostats.grains
+
+.. autoapi-nested-parse::
+
+   Find grains in an image.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.grains.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.grains.Grains
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Grains(image: numpy.ndarray, filename: str, pixel_to_nm_scaling: float, threshold_method: str = None, otsu_threshold_multiplier: float = None, threshold_std_dev: dict = None, threshold_absolute: dict = None, absolute_area_threshold: dict = {'above': [None, None], 'below': [None, None]}, direction: str = None, smallest_grain_size_nm2: float = None, remove_edge_intersecting_grains: bool = True)
+
+   
+   Find grains in an image.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: threshold_method
+      :value: None
+
+
+
+   .. py:attribute:: otsu_threshold_multiplier
+      :value: None
+
+
+
+   .. py:attribute:: threshold_std_dev
+      :value: None
+
+
+
+   .. py:attribute:: threshold_absolute
+      :value: None
+
+
+
+   .. py:attribute:: absolute_area_threshold
+
+
+   .. py:attribute:: direction
+
+
+   .. py:attribute:: smallest_grain_size_nm2
+      :value: None
+
+
+
+   .. py:attribute:: remove_edge_intersecting_grains
+      :value: True
+
+
+
+   .. py:attribute:: thresholds
+      :value: None
+
+
+
+   .. py:attribute:: images
+
+
+   .. py:attribute:: directions
+
+
+   .. py:attribute:: minimum_grain_size
+      :value: None
+
+
+
+   .. py:attribute:: region_properties
+
+
+   .. py:attribute:: bounding_boxes
+
+
+   .. py:attribute:: grainstats
+      :value: None
+
+
+
+   .. py:method:: tidy_border(image: numpy.array, **kwargs) -> numpy.array
+
+      
+      Remove grains touching the border.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+
+      :returns: Numpy array of image with borders tidied.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: label_regions(image: numpy.array) -> numpy.array
+
+      
+      Label regions.
+
+      This method is used twice, once prior to removal of small regions, and again afterwards, hence requiring an
+      argument of what image to label.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+
+      :returns: Numpy array of image with objects coloured.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_minimum_grain_size(image: numpy.ndarray) -> float
+
+      
+      Calculate the minimum grain size in pixels squared.
+
+      Very small objects are first removed via thresholding before calculating the below extreme.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_noise(image: numpy.ndarray, **kwargs) -> numpy.ndarray
+
+      
+      Removes noise which are objects smaller than the 'smallest_grain_size_nm2'.
+
+      This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+      :param image: 2D Numpy image to be cleaned.
+      :type image: np.ndarray
+
+      :returns: 2D Numpy array of image with objects < smallest_grain_size_nm2 removed.
+      :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_small_objects(image: numpy.array, **kwargs)
+
+      
+      Remove small objects from the input image. Threshold determined by the minimum_grain_size variable of the
+      Grains class which is in pixels squared.
+
+      :param image: 2D Numpy image to remove small objects from.
+      :type image: np.ndarray
+
+      :returns: 2D Numpy array of image with objects < minimum_grain_size removed.
+      :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: area_thresholding(image: numpy.ndarray, area_thresholds: list)
+
+      
+      Removes objects larger and smaller than the specified thresholds.
+
+      :param image: Image array where the background == 0 and grains are labelled as integers > 0.
+      :type image: np.ndarray
+      :param area_thresholds: List of area thresholds (in nanometres squared, not pixels squared), first should be
+                              the lower limit for size, and the second should be the upper limit for size.
+      :type area_thresholds: list
+
+      :returns: Image where grains outside the thresholds have been removed, as a re-numbered labeled image.
+      :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: colour_regions(image: numpy.array, **kwargs) -> numpy.array
+
+      
+      Colour the regions.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+
+      :returns: Numpy array of image with objects coloured.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_region_properties(image: numpy.array, **kwargs) -> List
+      :staticmethod:
+
+
+      
+      Extract the properties of each region.
+
+      :param image: Numpy array representing image
+      :type image: np.array
+
+      :returns: List of region property objects.
+      :rtype: List
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_bounding_boxes(direction) -> Dict
+
+      
+      Derive a list of bounding boxes for each region from the derived region_properties
+
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+
+      :returns: Dictionary of bounding boxes indexed by region area.
+      :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_grains()
+
+      
+      Find grains.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
