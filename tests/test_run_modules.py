@@ -291,3 +291,51 @@ def test_grainstats(caplog) -> None:
         "volume",
     ]
     assert data.shape == (3, 23)
+
+
+def test_bruker_rename(tmp_path: Path, caplog) -> None:
+    """Test renaming of old Bruker files."""
+    # Create 100 dummy test files
+    for x in range(1, 101):
+        test_file = tmp_path / f"test.{x:{0}>3}"
+        test_file.touch(exist_ok=True)
+    # Create a single dummy with .spm extension
+    tmp_spm = tmp_path / "test.spm"
+    tmp_spm.touch(exist_ok=True)
+    caplog.set_level(logging.INFO)
+    entry_point(
+        manually_provided_args=[
+            "--base-dir",
+            f"{tmp_path}",
+            "bruker-rename",  # This is the sub-command we wish to test, it will call run_modules.grains()
+        ]
+    )
+    assert "Total Bruker files found : 101" in caplog.text
+    assert "Old style files found    : 100" in caplog.text
+    assert "test.001 > test.001.spm" in caplog.text
+    assert "test.051 > test.051.spm" in caplog.text
+    assert "test.100 > test.100.spm" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("file_ext"),
+    [
+        pytest.param(".asd", id="asd"),
+        pytest.param(".ibw", id="ibw"),
+        pytest.param(".gwy", id="gwy"),
+        pytest.param(".jpk", id="jpk"),
+        pytest.param(".stp", id="stp"),
+        pytest.param(".top", id="top"),
+        pytest.param(".topostats", id="topostats"),
+    ],
+)
+def test_bruker_rename_assertion_error(file_ext: str) -> None:
+    """Test AssertionError is raised when file_ext for renaming old Bruker files is wrong."""
+    with pytest.raises(AssertionError):
+        entry_point(
+            manually_provided_args=[
+                "--file-ext",
+                file_ext,
+                "bruker-rename",  # This is the sub-command we wish to test, it will call run_modules.grains()
+            ]
+        )

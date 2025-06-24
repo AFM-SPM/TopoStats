@@ -67,6 +67,9 @@ topostats process
 If you have files other than `.spm` please refer `topostats --help` and the documentation on how to process those images
 with TopoStats.
 
+**NB** If your configuration specifies `.spm` (the default) files with the old-style Bruker extension (i.e. `.001`,
+`.002` etc.) will also be processed.
+
 If you have your own YAML configuration file (see [Usage : Configuring
 TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
 and use the argument for `--config <config_file>.yaml` that points to your file with an associated module of

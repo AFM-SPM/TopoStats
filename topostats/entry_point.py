@@ -606,7 +606,8 @@ def create_parser() -> arg.ArgumentParser:
         dest="grain_crop_plot_size_nm",
         type=float,
         required=False,
-        help="Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.",
+        help="Size in nm of the square cropped grain images if using the grains image set. If -1, will "
+        "use the grain's default bounding box size.",
     )
     process_parser.add_argument("-m", "--mask", dest="mask", type=bool, required=False, help="Mask the image.")
     process_parser.add_argument(
@@ -1235,6 +1236,15 @@ def create_parser() -> arg.ArgumentParser:
         help="Matplotlibrc style file to use, currently only one is supported, the 'topostats.mplstyle'.",
     )
     create_matplotlibrc_parser.set_defaults(func=write_config_with_comments)
+
+    # Rename old Bruker files
+    bruker_rename = subparsers.add_parser(
+        "bruker-rename",
+        description="Append the suffix '.spm' to old (numeric) Bruker file extensions.",
+        help="Append the suffix '.spm' to old (numeric) Bruker file extensions.",
+    )
+    # Run the relevant function with the arguments
+    bruker_rename.set_defaults(func=run_modules.bruker_rename)
 
     return parser
 
