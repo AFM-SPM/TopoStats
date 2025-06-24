@@ -253,7 +253,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle,*.svg,*.stp,*.top'
+skip = '*.spm*,*.mplstyle,*.svg,*.stp,*.top,*.002,*.004'
 count = ''
 quiet-level = 3
 ignore-words-list = 'OT'
