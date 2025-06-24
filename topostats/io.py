@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import pickle as pkl
+import re
 import struct
 from collections.abc import MutableMapping
 from datetime import datetime
@@ -411,7 +412,32 @@ def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
         List of files found with the extension in the given directory.
     """
     base_dir = Path("./") if base_dir is None else Path(base_dir)
+    if file_ext == ".spm":
+        return list(base_dir.glob("**/*" + file_ext)) + _find_old_bruker_files(base_dir)
     return list(base_dir.glob("**/*" + file_ext))
+
+
+def _find_old_bruker_files(base_dir: Path) -> list[Path]:
+    r"""
+    Find old Bruker files that have old extensions.
+
+    Older Bruker files have extensions such as ``.001``, ``.002`` rather than ``.spm``. AFMReader can handle these fine
+    but TopoStats needs to include them when finding files.
+
+    Parameters
+    ----------
+    base_dir : Path
+        Directory to search for files.
+
+    Returns
+    -------
+    list[Path]
+        List of files that match the regex ``\.\d+$``.
+    """
+    # Compile regex to match files ending with a period and one or more digits. List comprehension of matches is
+    # returned.
+    OLD_BRUKER_RE = re.compile(r"\.\d+$")
+    return [p for p in base_dir.glob("**/*") if OLD_BRUKER_RE.match(p.suffix)]
 
 
 def save_folder_grainstats(

@@ -177,9 +177,9 @@ program:
   {process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc}
     process             Process AFM images. Additional arguments over-ride defaults or those in the configuration file.
     load                Load and save all images as .topostats files for subsequent processing.
-    filter              WIP DO NOT USE - Load and filter images, saving as .topostats files for subsequent processing.
-    grains              WIP DO NOT USE - Load filtered images from '.topostats' files and detect grains.
-    grainstats          WIP DO NOT USE - Load images with grains from '.topostats' files and calculate statistics.
+    filter              Load and filter images, saving as .topostats files for subsequent processing.
+    grains              Load filtered images from '.topostats' files and detect grains.
+    grainstats          Load images with grains from '.topostats' files and calculate statistics.
     disordered-tracing  WIP DO NOT USE - Skeletonise and prune objects to disordered traces.
     nodestats           WIP DO NOT USE - Calculate node statistics and disentangle molecules.
     ordered-tracing     WIP DO NOT USE - Ordered traces of pruned skeletons.
@@ -303,6 +303,26 @@ topostats --config my_config.yaml process
 ```
 
 On successful completion you should see the same message noted above.
+
+### Renaming Bruker Files
+
+Older Bruker devices output files with somewhat uninformative numerical file extensions (e.g. `.001`, `.002`, `.003`
+etc.). TopoStats will automatically detect and process these if the configuration file is `file_ext: .spm` (or on the
+command line the `--file-ext/-f .spm` option is used). However, for convenience a sub-processor is provided which will
+append the suffix `.spm` to all files found recursively with numerical extensions in the specified directory.
+
+```bash
+topostats --base-dir /path/to/a/directory bruker-rename
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] The YAML configuration file is valid.
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] Total Bruker files found : 5
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] Old style files found    : 5
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] Renaming files...
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] test.002 > test.002.spm
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] test.001 > test.001.spm
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] nested/directory/test.004 > nested/directory/test.004.spm
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] nested/directory/test.999999 > nested/directory/test.999999.spm
+[Tue, 24 Jun 2025 12:18:15] [INFO    ] [topostats] nested/directory/test.003 > nested/directory/test.003.spm
+```
 
 ## Output
 

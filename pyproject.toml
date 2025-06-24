@@ -123,7 +123,7 @@ write_to = "topostats/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers", "--numprocesses=auto"]
+addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
 log_level = "INFO"
 log_cli = true
 log_cli_level = "INFO"
@@ -253,7 +253,7 @@ convention = "numpy"
 fixture-parentheses = true
 
 [tool.codespell]
-skip = '*.spm*,*.mplstyle,*.svg,*.stp,*.top'
+skip = '*.spm*,*.mplstyle,*.svg,*.stp,*.top,*.002,*.004'
 count = ''
 quiet-level = 3
 ignore-words-list = 'OT'

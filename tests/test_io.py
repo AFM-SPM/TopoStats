@@ -14,6 +14,7 @@ import pytest
 from topostats import grains
 from topostats.io import (
     LoadScans,
+    _find_old_bruker_files,
     convert_basename_to_relative_paths,
     dict_almost_equal,
     dict_to_hdf5,
@@ -365,14 +366,51 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
         assert load_array(non_existant_file)
 
 
-def test_find_files() -> None:
-    """Test finding images."""
-    found_images = find_files(base_dir="tests/", file_ext=".spm")
-
+@pytest.mark.parametrize(
+    ("file_ext", "matches", "filenames"),
+    [
+        pytest.param(".spm", 3, ["minicircle.spm", "old_bruker.002", "old_bruker.004"], id="spm"),
+        pytest.param(".asd", 2, ["file.asd", "minicircles.asd"], id="asd"),
+        pytest.param(".gwy", 1, ["file.gwy"], id="gwy"),
+        pytest.param(".ibw", 1, ["minicircle2.ibw"], id="ibw"),
+        pytest.param(".jpk", 1, ["file.jpk"], id="jpk"),
+        pytest.param(".jpk-qi-image", 1, ["file.jpk-qi-image"], id="jpk-qi-image"),
+        pytest.param(".stp", 1, ["file.stp"], id="stp"),
+        pytest.param(".top", 1, ["file.top"], id="top"),
+        pytest.param(
+            ".topostats",
+            3,
+            ["file.topostats", "minicircle_small.topostats", "process_scan_topostats_file_regtest.topostats"],
+            id="topostats",
+        ),
+    ],
+)
+def test_find_files(file_ext: str, matches: int, filenames: str | list[str]) -> None:
+    """Test finding images based on file extension."""
+    found_images = find_files(base_dir=RESOURCES, file_ext=file_ext)
     assert isinstance(found_images, list)
-    assert len(found_images) == 1
-    assert isinstance(found_images[0], Path)
-    assert "minicircle.spm" in str(found_images[0])
+    assert len(found_images) == matches
+    for image in found_images:
+        assert isinstance(image, Path)
+    # Sort expected and found images (converted to str) for comparison
+    found_images = [str(image.name) for image in found_images]
+    found_images.sort()
+    filenames.sort()
+    assert filenames == found_images
+
+
+def test_find_old_bruker_files() -> None:
+    """Test ``_find_old_bruker_files()``."""
+    found_images = _find_old_bruker_files(base_dir=RESOURCES)
+    assert isinstance(found_images, list)
+    assert len(found_images) == 2
+    for image in found_images:
+        assert isinstance(image, Path)
+    found_images = [str(image.name) for image in found_images]
+    found_images.sort()
+    expected = ["old_bruker.002", "old_bruker.004"]
+    expected.sort()
+    assert expected == found_images
 
 
 @pytest.mark.parametrize(
