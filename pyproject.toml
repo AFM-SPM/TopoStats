@@ -64,6 +64,7 @@ tests = [
   "pytest-regtest==2.3.1",
   "pytest-xdist",
   "filetype",
+  "syrupy",
 ]
 docs = [
   "Sphinx",
