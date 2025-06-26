@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 import numpy.typing as npt
-from topostats.damage.damage import calculate_defects_and_gap_lengths
+from topostats.damage.damage import calculate_defects_and_gap_lengths, get_defect_start_end_indexes
 
 
 @pytest.mark.parametrize(
@@ -58,5 +58,57 @@ def test_calculate_defects_and_gap_lengths(
         points_distance_to_previous_nm=points_distance_to_previous_nm,
         defects_bool=defects_bool,
     )
-    assert np.array_equal(defect_lengths, expected_defect_lengths)
-    assert np.array_equal(gap_lengths, expected_gap_lengths)
+    np.testing.assert_array_equal(defect_lengths, expected_defect_lengths)
+    np.testing.assert_array_equal(gap_lengths, expected_gap_lengths)
+
+
+@pytest.mark.parametrize(
+    ("defects_bool", "expected_start_indexes", "expected_end_indexes"),
+    [
+        pytest.param(
+            np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            np.array([]),
+            np.array([]),
+            id="no defects",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+            np.array([]),
+            np.array([]),
+            id="all defects",
+        ),
+        pytest.param(
+            np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0]),
+            np.array([4]),
+            np.array([4]),
+            id="one short defect in the middle",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 1, 0, 0, 0, 0, 0, 0]),
+            np.array([0]),
+            np.array([3]),
+            id="one defect at the start",
+        ),
+        pytest.param(
+            np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1]),
+            np.array([6]),
+            np.array([9]),
+            id="one defect at the end",
+        ),
+        pytest.param(
+            np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1]),
+            np.array([1, 3, 5, 7, 9]),
+            np.array([1, 3, 5, 7, 9]),
+            id="multiple short defects",
+        ),
+    ],
+)
+def test_get_defect_start_end_indexes(
+    defects_bool: npt.NDArray[np.bool_],
+    expected_start_indexes: npt.NDArray[np.int_],
+    expected_end_indexes: npt.NDArray[np.int_],
+) -> None:
+    """Test the get_defect_start_end_indexes function."""
+    start_indexes, end_indexes = get_defect_start_end_indexes(defects_bool=defects_bool)
+    np.testing.assert_array_equal(start_indexes, expected_start_indexes)
+    np.testing.assert_array_equal(end_indexes, expected_end_indexes)
