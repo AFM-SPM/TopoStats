@@ -55,3 +55,35 @@ def calculate_defects_and_gap_lengths(
                 gap_lengths.append(current_gap_length)
 
     return np.array(defect_lengths), np.array(gap_lengths)
+
+
+def get_defect_start_end_indexes(
+    defects_bool: npt.NDArray[np.bool_],
+) -> tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]]:
+    """Get the start and end indexes of defects in a boolean array."""
+    defect_start_indexes = []
+    defect_end_indexes = []
+
+    for index, point in enumerate(defects_bool):
+        previous_point = defects_bool[index - 1] if index > 0 else False
+        if point and not previous_point:
+            defect_start_indexes.append(index)
+        if not point and previous_point:
+            defect_end_indexes.append(index)
+
+
+def calculate_indirect_defect_gap_lengths(
+    points_distance_to_previous_nm: npt.NDArray[np.float64],
+    defects_bool: npt.NDArray[np.bool_],
+) -> npt.NDArray[np.float64]:
+    """Calculate the lengths of indirect defects and gaps."""
+
+    # Need not just distance to next defect, but the distance to any defect start.
+
+    # Need defect start points
+    # Need defect end points
+    # Then calculate the distance from each defect end point to every defect start point
+
+    # Find defect start points
+
+    defect_start_points, defect_end_points = get_defect_start_end_indexes(defects_bool)
