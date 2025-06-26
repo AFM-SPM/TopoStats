@@ -92,19 +92,76 @@ def get_defect_start_end_indexes(
         np.array(defect_end_indexes, dtype=np.int_),
     )
 
+@dataclass
+class Defect:
+
+    """A class to represent a defect in a point cloud.
+
+    Attributes
+    ----------
+    start_index : int
+        The index of the first point of the defect.
+    end_index : int
+        The index of the last point of the defect.
+    length_nm : float
+        The length of the defect in nanometers.
+    """
+    start_index: int
+    end_index: int
+    length_nm: float
+
+
+
+def get_defects(
+    defects_bool: npt.NDArray[np.bool_],
+) -> list[]:
+    """Get the defects as a list of tuples of start and end indexes.
+    
+    Parameters
+    ----------
+    defects_bool : npt.NDArray[np.bool_]
+        A boolean array where True indicates a defect and False indicates no defect.
+    Returns
+    -------
+    list[tuple[int, int]]
+        A list of tuples where each tuple contains the start and end indexes of a defect.
+    """
+    defects = []
+    current_defect
+
+    for index, point in enumerate(defects_bool):
+        previous_point = defects_bool[index - 1]
+        next_point = defects_bool[(index + 1) % len(defects_bool)]
+        if point and not previous_point:
+
+
 
 def calculate_indirect_defect_gap_lengths(
-    points_distance_to_previous_nm: npt.NDArray[np.float64],
-    defects_bool: npt.NDArray[np.bool_],
+    defect_start_end_indexes: tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]],
+    cumulative_distance_nm: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
-    """Calculate the lengths of indirect defects and gaps."""
+    """Calculate the lengths of the gaps between defects for all defects."""
+    defect_start_indexes, defect_end_indexes = defect_start_end_indexes
 
-    # Need not just distance to next defect, but the distance to any defect start.
+    if len(defect_start_indexes) == 0:
+        return np.array([], dtype=np.float64)
 
-    # Need defect start points
-    # Need defect end points
-    # Then calculate the distance from each defect end point to every defect start point
-
-    # Find defect start points
-
-    defect_start_points, defect_end_points = get_defect_start_end_indexes(defects_bool)
+    # For each defect end, calculate the distance to the every defect start
+    gap_lengths = []
+    for defect_end_index in defect_end_indexes:
+        for defect_start_index in defect_start_indexes:
+            # Calculate the distance between the end index and the start index using the cumulative distance
+            if defect_start_index > defect_end_index:
+                # Defect start is later than the end, therefore we can simply subtract the cumulative distances
+                gap_length = cumulative_distance_nm[defect_start_index] - cumulative_distance_nm[defect_end_index]
+                gap_lengths.append(gap_length)
+            else:
+                # The defect start is looped around to the beginning of the array, so we need to add the distance from
+                # the end of the array to the start of the array
+                gap_length = (
+                    cumulative_distance_nm[-1]
+                    - cumulative_distance_nm[defect_end_index]
+                    + cumulative_distance_nm[defect_start_index]
+                )
+                gap_lengths.append(gap_length)
+    return np.array(gap_lengths, dtype=np.float64)
