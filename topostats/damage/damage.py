@@ -1,5 +1,6 @@
 """Functions for damage detection and quantification."""
 
+from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
@@ -92,9 +93,9 @@ def get_defect_start_end_indexes(
         np.array(defect_end_indexes, dtype=np.int_),
     )
 
+
 @dataclass
 class Defect:
-
     """A class to represent a defect in a point cloud.
 
     Attributes
@@ -106,34 +107,103 @@ class Defect:
     length_nm : float
         The length of the defect in nanometers.
     """
+
     start_index: int
     end_index: int
-    length_nm: float
+    length_nm: float | None = None
 
 
+@dataclass
+class DefectGap:
+    """A class to represent a gap between defects in a point cloud.
 
-def get_defects(
+    Attributes
+    ----------
+    start_index : int
+        The index of the first point of the gap.
+    end_index : int
+        The index of the last point of the gap.
+    length_nm : float
+        The length of the gap in nanometers.
+    """
+
+    start_index: int
+    end_index: int
+    length_nm: float | None = None
+
+
+def get_defects_linear(
     defects_bool: npt.NDArray[np.bool_],
-) -> list[]:
+) -> tuple[list[Defect], list[DefectGap]]:
     """Get the defects as a list of tuples of start and end indexes.
-    
+
     Parameters
     ----------
     defects_bool : npt.NDArray[np.bool_]
         A boolean array where True indicates a defect and False indicates no defect.
     Returns
     -------
-    list[tuple[int, int]]
-        A list of tuples where each tuple contains the start and end indexes of a defect.
     """
-    defects = []
-    current_defect
+    defects: list[Defect] = []
+    gaps: list[DefectGap] = []
+    in_defect = False
+    in_gap = False
+    current_defect_gap_start_index = 0
 
     for index, point in enumerate(defects_bool):
-        previous_point = defects_bool[index - 1]
-        next_point = defects_bool[(index + 1) % len(defects_bool)]
-        if point and not previous_point:
 
+        if point:
+            if not in_defect:
+                # Start new defect
+                current_defect_gap_start_index = index
+                in_defect = True
+            if in_gap:
+                # End of the gap
+                gaps.append(
+                    DefectGap(
+                        start_index=current_defect_gap_start_index,
+                        end_index=index - 1,
+                        length_nm=None,  # Length will be calculated later
+                    )
+                )
+                in_gap = False
+        else:
+            if not in_gap:
+                # Start new gap
+                current_defect_gap_start_index = index
+                in_gap = True
+            if in_defect:
+                # End of the defect
+                defects.append(
+                    Defect(
+                        start_index=current_defect_gap_start_index,
+                        end_index=index - 1,
+                        length_nm=None,  # Length will be calculated later
+                    )
+                )
+                in_defect = False
+    # If we are still in a defect or gap at the end of the loop, we need to close it
+    if in_defect:
+        defects.append(
+            Defect(
+                start_index=current_defect_gap_start_index,
+                end_index=len(defects_bool) - 1,
+                length_nm=None,  # Length will be calculated later
+            )
+        )
+    elif in_gap:
+        gaps.append(
+            DefectGap(
+                start_index=current_defect_gap_start_index,
+                end_index=len(defects_bool) - 1,
+                length_nm=None,  # Length will be calculated later
+            )
+        )
+
+    return (
+        defects,
+        gaps,
+    )
 
 
 def calculate_indirect_defect_gap_lengths(
