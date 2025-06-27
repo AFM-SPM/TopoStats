@@ -8,6 +8,9 @@ from topostats.damage.damage import (
     calculate_defects_and_gap_lengths,
     get_defect_start_end_indexes,
     calculate_indirect_defect_gap_lengths,
+    get_defects_linear,
+    Defect,
+    DefectGap,
 )
 
 
@@ -141,7 +144,7 @@ def test_get_defect_start_end_indexes(
             np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]),
             np.array([2.0, 4.0]),
             id="two defects in the middle",
-        )
+        ),
     ],
 )
 def test_calculate_indirect_defect_gap_lengths(
@@ -156,3 +159,24 @@ def test_calculate_indirect_defect_gap_lengths(
         cumulative_distance_nm=cumulative_distance_nm,
     )
     np.testing.assert_array_equal(gap_lengths, expected_indirect_defect_gap_lengths)
+
+
+@pytest.mark.parametrize(
+    ("defects_bool", "expected_defects", "expected_gaps"),
+    [
+        pytest.param(
+            np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            [],
+            [(0, 9)],
+        )
+    ],
+)
+def test_get_defects_linear(
+    defects_bool: npt.NDArray[np.bool_],
+    expected_defects: list[tuple[int, int]],
+    expected_gaps: list[tuple[int, int]],
+) -> None:
+    """Test the get_defects_linear function."""
+    defects, gaps = get_defects_linear(defects_bool=defects_bool)
+    assert defects == expected_defects
+    assert gaps == expected_gaps

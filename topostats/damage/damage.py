@@ -134,7 +134,7 @@ class DefectGap:
 
 def get_defects_linear(
     defects_bool: npt.NDArray[np.bool_],
-) -> tuple[list[Defect], list[DefectGap]]:
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
     """Get the defects as a list of tuples of start and end indexes.
 
     Parameters
@@ -144,8 +144,8 @@ def get_defects_linear(
     Returns
     -------
     """
-    defects: list[Defect] = []
-    gaps: list[DefectGap] = []
+    defects: list[tuple[int, int]] = []
+    gaps: list[tuple[int, int]] = []
     in_defect = False
     in_gap = False
     current_defect_gap_start_index = 0
@@ -159,13 +159,7 @@ def get_defects_linear(
                 in_defect = True
             if in_gap:
                 # End of the gap
-                gaps.append(
-                    DefectGap(
-                        start_index=current_defect_gap_start_index,
-                        end_index=index - 1,
-                        length_nm=None,  # Length will be calculated later
-                    )
-                )
+                gaps.append((current_defect_gap_start_index, index - 1))
                 in_gap = False
         else:
             if not in_gap:
@@ -174,31 +168,13 @@ def get_defects_linear(
                 in_gap = True
             if in_defect:
                 # End of the defect
-                defects.append(
-                    Defect(
-                        start_index=current_defect_gap_start_index,
-                        end_index=index - 1,
-                        length_nm=None,  # Length will be calculated later
-                    )
-                )
+                defects.append((current_defect_gap_start_index, index - 1))
                 in_defect = False
     # If we are still in a defect or gap at the end of the loop, we need to close it
     if in_defect:
-        defects.append(
-            Defect(
-                start_index=current_defect_gap_start_index,
-                end_index=len(defects_bool) - 1,
-                length_nm=None,  # Length will be calculated later
-            )
-        )
+        defects.append((current_defect_gap_start_index, len(defects_bool) - 1))
     elif in_gap:
-        gaps.append(
-            DefectGap(
-                start_index=current_defect_gap_start_index,
-                end_index=len(defects_bool) - 1,
-                length_nm=None,  # Length will be calculated later
-            )
-        )
+        gaps.append((current_defect_gap_start_index, len(defects_bool) - 1))
 
     return (
         defects,
