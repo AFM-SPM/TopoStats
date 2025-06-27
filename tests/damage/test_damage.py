@@ -4,7 +4,11 @@ import pytest
 
 import numpy as np
 import numpy.typing as npt
-from topostats.damage.damage import calculate_defects_and_gap_lengths, get_defect_start_end_indexes
+from topostats.damage.damage import (
+    calculate_defects_and_gap_lengths,
+    get_defect_start_end_indexes,
+    calculate_indirect_defect_gap_lengths,
+)
 
 
 @pytest.mark.parametrize(
@@ -112,3 +116,43 @@ def test_get_defect_start_end_indexes(
     start_indexes, end_indexes = get_defect_start_end_indexes(defects_bool=defects_bool)
     np.testing.assert_array_equal(start_indexes, expected_start_indexes)
     np.testing.assert_array_equal(end_indexes, expected_end_indexes)
+
+
+@pytest.mark.parametrize(
+    ("defect_start_indexes", "defect_end_indexes", "cumulative_distance_nm", "expected_indirect_defect_gap_lengths"),
+    [
+        pytest.param(
+            np.array([]),
+            np.array([]),
+            np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]),
+            np.array([]),
+            id="no defects",
+        ),
+        pytest.param(
+            np.array([4]),
+            np.array([4]),
+            np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]),
+            np.array([9.0]),
+            id="one unit defect in the middle",
+        ),
+        pytest.param(
+            np.array([2, 6]),
+            np.array([3, 7]),
+            np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]),
+            np.array([2.0, 4.0]),
+            id="two defects in the middle",
+        )
+    ],
+)
+def test_calculate_indirect_defect_gap_lengths(
+    defect_start_indexes: npt.NDArray[np.int_],
+    defect_end_indexes: npt.NDArray[np.int_],
+    cumulative_distance_nm: npt.NDArray[np.float64],
+    expected_indirect_defect_gap_lengths: npt.NDArray[np.float64],
+) -> None:
+    """Test the calculate_indirect_defect_gap_lengths function."""
+    gap_lengths = calculate_indirect_defect_gap_lengths(
+        defect_start_end_indexes=(defect_start_indexes, defect_end_indexes),
+        cumulative_distance_nm=cumulative_distance_nm,
+    )
+    np.testing.assert_array_equal(gap_lengths, expected_indirect_defect_gap_lengths)
