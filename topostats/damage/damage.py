@@ -182,6 +182,58 @@ def get_defects_linear(
     )
 
 
+def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    """Get the defects as a list of tuples of start and end indexes, with the array ends connected.
+
+    Parameters
+    ----------
+    defects_bool : npt.NDArray[np.bool_]
+        A boolean array where True indicates a defect and False indicates no defect.
+    Returns
+    -------
+    tuple[list[tuple[int, int]], list[tuple[int, int]]]
+        A tuple containing two lists:
+        - The defects as a list of tuples of start and end indexes.
+        - The gaps as a list of tuples of start and end indexes.
+    """
+    defects, gaps = get_defects_linear(defects_bool)
+
+    # If the first and last points are both defects, combine the first and last defects
+    if defects_bool[0] and defects_bool[-1]:
+        assert len(defects) > 0, "There should be at least one defect if the first and last points are defects."
+        if len(defects) == 1:
+            # The whole array is a defect
+            pass
+        else:
+            # Combine the first and last defects
+            first_defect_start, _ = defects[0]
+            _, last_defect_end = defects[-1]
+            # Update the first defect to include the last defect
+            defects[0] = (first_defect_start, last_defect_end)
+            # Remove the last defect
+            defects.pop()
+
+    # If the first and last points are both gaps, combine the first and last gaps
+    if not defects_bool[0] and not defects_bool[-1]:
+        assert len(gaps) > 0, "There should be at least one gap if the first and last points are gaps."
+        if len(gaps) == 1:
+            # The whole array is a gap
+            pass
+        else:
+            # Combine the first and last gaps
+            first_gap_start, _ = gaps[0]
+            _, last_gap_end = gaps[-1]
+            # Update the first gap to include the last gap
+            gaps[0] = (first_gap_start, last_gap_end)
+            # Remove the last gap
+            gaps.pop()
+
+    return (
+        defects,
+        gaps,
+    )
+
+
 def calculate_indirect_defect_gap_lengths(
     defect_start_end_indexes: tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]],
     cumulative_distance_nm: npt.NDArray[np.float64],
