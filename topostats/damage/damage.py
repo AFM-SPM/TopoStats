@@ -206,10 +206,10 @@ def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tupl
             pass
         else:
             # Combine the first and last defects
-            first_defect_start, _ = defects[0]
-            _, last_defect_end = defects[-1]
+            _, first_defect_end = defects[0]
+            last_defect_start, _ = defects[-1]
             # Update the first defect to include the last defect
-            defects[0] = (first_defect_start, last_defect_end)
+            defects[0] = (last_defect_start, first_defect_end)
             # Remove the last defect
             defects.pop()
 
@@ -221,10 +221,10 @@ def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tupl
             pass
         else:
             # Combine the first and last gaps
-            first_gap_start, _ = gaps[0]
-            _, last_gap_end = gaps[-1]
+            _, first_gap_end = gaps[0]
+            last_gap_start, _ = gaps[-1]
             # Update the first gap to include the last gap
-            gaps[0] = (first_gap_start, last_gap_end)
+            gaps[0] = (last_gap_start, first_gap_end)
             # Remove the last gap
             gaps.pop()
 
@@ -263,3 +263,16 @@ def calculate_indirect_defect_gap_lengths(
                 )
                 gap_lengths.append(gap_length)
     return np.array(gap_lengths, dtype=np.float64)
+
+
+def calculate_defect_gap_lengths(
+    cumulative_distance_nm: npt.NDArray[np.float64],
+    defects: list[tuple[int, int]],
+    gaps: list[tuple[int, int]],
+) -> tuple[list[tuple[int, int, float]], list[tuple[int, int, float]]]:
+    """Calculate the lengths of the defects and gaps."""
+    defect_lengths = []
+    gap_lengths = []
+
+    for start_index, end_index in defects:
+        if start_index == end_index:
