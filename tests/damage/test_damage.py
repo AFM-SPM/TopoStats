@@ -164,11 +164,23 @@ def test_calculate_indirect_defect_gap_lengths(
 @pytest.mark.parametrize(
     ("defects_bool", "expected_defects", "expected_gaps"),
     [
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), [], [(0, 9)], id="all gap"),
+        pytest.param(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), [(0, 9)], [], id="all defect"),
+        pytest.param(np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0]), [(3, 3)], [(0, 2), (4, 9)], id="unit defect in middle"),
+        pytest.param(np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), [(0, 0)], [(1, 9)], id="unit defect at start"),
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]), [(9, 9)], [(0, 8)], id="unit defect at end"),
         pytest.param(
-            np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-            [],
-            [(0, 9)],
-        )
+            np.array([1, 1, 1, 1, 1, 0, 1, 1, 1, 1]),
+            [(0, 4), (6, 9)],
+            [(5, 5)],
+            id="unit gap in middle",
+        ),
+        pytest.param(
+            np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1]),
+            [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9)],
+            [(0, 0), (2, 2), (4, 4), (6, 6), (8, 8)],
+            id="alternating unit defects and gaps",
+        ),
     ],
 )
 def test_get_defects_linear(
