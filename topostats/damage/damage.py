@@ -153,23 +153,23 @@ def get_defects_linear(
     for index, point in enumerate(defects_bool):
 
         if point:
-            if not in_defect:
-                # Start new defect
-                current_defect_gap_start_index = index
-                in_defect = True
             if in_gap:
                 # End of the gap
                 gaps.append((current_defect_gap_start_index, index - 1))
                 in_gap = False
-        else:
-            if not in_gap:
-                # Start new gap
+            if not in_defect:
+                # Start new defect
                 current_defect_gap_start_index = index
-                in_gap = True
+                in_defect = True
+        else:
             if in_defect:
                 # End of the defect
                 defects.append((current_defect_gap_start_index, index - 1))
                 in_defect = False
+            if not in_gap:
+                # Start new gap
+                current_defect_gap_start_index = index
+                in_gap = True
     # If we are still in a defect or gap at the end of the loop, we need to close it
     if in_defect:
         defects.append((current_defect_gap_start_index, len(defects_bool) - 1))
