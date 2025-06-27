@@ -9,6 +9,7 @@ from topostats.damage.damage import (
     get_defect_start_end_indexes,
     calculate_indirect_defect_gap_lengths,
     get_defects_linear,
+    get_defects_circular,
     Defect,
     DefectGap,
 )
@@ -190,5 +191,38 @@ def test_get_defects_linear(
 ) -> None:
     """Test the get_defects_linear function."""
     defects, gaps = get_defects_linear(defects_bool=defects_bool)
+    assert defects == expected_defects
+    assert gaps == expected_gaps
+
+
+@pytest.mark.parametrize(
+    ("defects_bool", "expected_defects", "expected_gaps"),
+    [
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), [], [(0, 9)], id="all gap"),
+        pytest.param(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), [(0, 9)], [], id="all defect"),
+        pytest.param(np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0]), [(3, 3)], [(4, 2)], id="unit defect in middle"),
+        pytest.param(np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), [(0, 0)], [(1, 9)], id="unit defect at start"),
+        pytest.param(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]), [(9, 9)], [(0, 8)], id="unit defect at end"),
+        pytest.param(
+            np.array([1, 1, 1, 1, 1, 0, 1, 1, 1, 1]),
+            [(6, 4)],
+            [(5, 5)],
+            id="unit gap in middle",
+        ),
+        pytest.param(
+            np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1]),
+            [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9)],
+            [(0, 0), (2, 2), (4, 4), (6, 6), (8, 8)],
+            id="alternating unit defects and gaps",
+        ),
+    ],
+)
+def test_get_defects_circular(
+    defects_bool: npt.NDArray[np.bool_],
+    expected_defects: list[tuple[int, int]],
+    expected_gaps: list[tuple[int, int]],
+) -> None:
+    """Test the get_defects_circular function."""
+    defects, gaps = get_defects_circular(defects_bool=defects_bool)
     assert defects == expected_defects
     assert gaps == expected_gaps
