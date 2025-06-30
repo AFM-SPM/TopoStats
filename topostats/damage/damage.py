@@ -273,6 +273,23 @@ def calculate_distance_of_region(
 ) -> float:
     """Calculate the distance of a region in the point cloud.
 
+    Note: This function cannot take a region that is the whole array, since that would imply the start and end be the
+    same point, but this is assumed to be a unit region, not an array-wide region.
+
+    Note to devs: remember that the array is the distance to the previous point. So the distance between
+    points i and j does not include the distance of index i, since that's the distance to the previous point.
+    We do however include half the distance to the previous point for i, since we want to support an approximation
+    for unitary regions
+    ie the distance for the following array with regions marked with X,
+    o--o--X--o--o--X--o--o
+    would be calculated as this distance, marked by |:
+    o--o-|-X--o--o--X-|-o--o
+    since, if you imagine an entire array filled with regions, then this would mean the total distance is equal to
+    the total length of the array (makes sense), else there would be gaps in between the regions
+    A unitary region looks like this:
+    o--o-|-X-|-o--o
+    so it does have length, however if we didn't do this, it would have 0 length!
+
     Parameters
     ----------
     start_index : int
@@ -300,14 +317,14 @@ def calculate_distance_of_region(
     # Get the distance from the start index to the end index
     if start_index <= end_index:
         # Normal case, no wrapping around the end of the array, just sum the distances
-        distance_without_halves = np.sum(distance_to_previous_points_nm[start_index : end_index + 1])
+        distance_without_halves = np.sum(distance_to_previous_points_nm[start_index + 1 : end_index + 1])
         # Add half the distance to the start previous point and half the distance to the end next point
         # Check if at the start or end of array
         if start_index == 0:
             # At the start
             if circular:
                 # If circular, then can take half the distance to the end point of the array since it wraps around
-                start_half_distance = distance_to_previous_points_nm[-1] / 2
+                start_half_distance = distance_to_previous_points_nm[start_index] / 2
                 end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
             else:
                 # If not circular, then we can't add this half distance
@@ -318,15 +335,15 @@ def calculate_distance_of_region(
             if circular:
                 # If circular, then can take half the distance to the start point of the array since it wraps around
                 end_half_distance = distance_to_previous_points_nm[0] / 2
-                start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
+                start_half_distance = distance_to_previous_points_nm[start_index] / 2
             else:
                 # If not circular, then we can't add this half distance
                 end_half_distance = 0.0
-                start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
+                start_half_distance = distance_to_previous_points_nm[start_index] / 2
         else:
             # Normal case
-            start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
-            end_half_distance = distance_to_previous_points_nm[end_index] / 2
+            start_half_distance = distance_to_previous_points_nm[start_index] / 2
+            end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         return distance_without_halves + start_half_distance + end_half_distance
     else:
         if not circular:
@@ -338,14 +355,14 @@ def calculate_distance_of_region(
             )
         # The region wraps around the end of the array
         # Calculate the distance from the start index to the end of the array
-        distance_to_end = np.sum(distance_to_previous_points_nm[start_index:])
+        distance_to_end = np.sum(distance_to_previous_points_nm[start_index + 1 :])
         # Calculate the distance from the start of the array to the end index
         distance_to_start = np.sum(distance_to_previous_points_nm[: end_index + 1])
         # Here we don't need to worry about the indexes of the start and end points since the ends of the array are
         # inside the region.
         # Add the half distances to the start and end points
-        start_half_distance = distance_to_previous_points_nm[-1] / 2
-        end_half_distance = distance_to_previous_points_nm[0] / 2
+        start_half_distance = distance_to_previous_points_nm[start_index] / 2
+        end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
 
