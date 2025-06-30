@@ -298,7 +298,7 @@ def calculate_distance_of_region(
     """
 
     # Get the distance from the start index to the end index
-    if start_index < end_index:
+    if start_index <= end_index:
         # Normal case, no wrapping around the end of the array, just sum the distances
         distance_without_halves = np.sum(distance_to_previous_points_nm[start_index : end_index + 1])
         # Add half the distance to the start previous point and half the distance to the end next point
@@ -308,17 +308,21 @@ def calculate_distance_of_region(
             if circular:
                 # If circular, then can take half the distance to the end point of the array since it wraps around
                 start_half_distance = distance_to_previous_points_nm[-1] / 2
+                end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
             else:
                 # If not circular, then we can't add this half distance
                 start_half_distance = 0.0
+                end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         elif end_index == len(distance_to_previous_points_nm) - 1:
             # End point is at the end of the array
             if circular:
                 # If circular, then can take half the distance to the start point of the array since it wraps around
                 end_half_distance = distance_to_previous_points_nm[0] / 2
+                start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
             else:
                 # If not circular, then we can't add this half distance
                 end_half_distance = 0.0
+                start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
         else:
             # Normal case
             start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
