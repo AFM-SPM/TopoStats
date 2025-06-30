@@ -889,6 +889,8 @@ class LoadScans:
             LOGGER.info(f"Extracting image from {self.img_path}")
             LOGGER.debug(f"File extension : {suffix}")
 
+            OLD_BRUKER_RE = re.compile(r"\.\d+$")
+
             # Check that the file extension is supported
             if suffix in suffix_to_loader:
                 data = None
@@ -922,6 +924,15 @@ class LoadScans:
                     # Otherwise check the size and add image to dictionary
                     else:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
+            elif OLD_BRUKER_RE.match(suffix):
+                # This is an old Bruker file, treat as normal.
+                LOGGER.debug(f"Old Bruker file detected, treating as {suffix_to_loader['.spm'].__name__}")
+                try:
+                    self.image, self.pixel_to_nm_scaling = self.load_spm()
+                except FileNotFoundError:
+                    LOGGER.error(f"File not found : {self.img_path}")
+                    raise
+                self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
                 raise ValueError(
                     f"File type {suffix} not yet supported. Please make an issue at \
