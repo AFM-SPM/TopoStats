@@ -265,14 +265,91 @@ def calculate_indirect_defect_gap_lengths(
     return np.array(gap_lengths, dtype=np.float64)
 
 
-def calculate_defect_gap_lengths(
-    cumulative_distance_nm: npt.NDArray[np.float64],
-    defects: list[tuple[int, int]],
-    gaps: list[tuple[int, int]],
-) -> tuple[list[tuple[int, int, float]], list[tuple[int, int, float]]]:
-    """Calculate the lengths of the defects and gaps."""
-    defect_lengths = []
-    gap_lengths = []
+def calculate_distance_of_region(
+    start_index: int,
+    end_index: int,
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    circular: bool,
+) -> float:
+    """Calculate the distance of a region in the point cloud.
 
-    for start_index, end_index in defects:
-        if start_index == end_index:
+    Parameters
+    ----------
+    start_index : int
+        The index of the first point in the region.
+    end_index : int
+        The index of the last point in the region.
+    distance_to_previous_points_nm : npt.NDArray[np.float64]
+        An array of distances to the previous points in nanometers.
+    circular : bool
+        If True, the array is treated as circular, meaning that the end of the array wraps around to the start.
+        If False, the array is treated as linear, meaning that the end of the array does not wrap around to the start.
+
+    Returns
+    -------
+    float
+        The total distance of the region in nanometers.
+
+    Raises
+    ------
+    ValueError
+        If the start index is greater than the end index in a linear array, since this necessitates wrapping around the
+        end of the array to meet the end index.
+    """
+
+    # Get the distance from the start index to the end index
+    if start_index < end_index:
+        # Normal case, no wrapping around the end of the array, just sum the distances
+        distance_without_halves = np.sum(distance_to_previous_points_nm[start_index : end_index + 1])
+        # Add half the distance to the start previous point and half the distance to the end next point
+        # Check if at the start or end of array
+        if start_index == 0:
+            # At the start
+            if circular:
+                # If circular, then can take half the distance to the end point of the array since it wraps around
+                start_half_distance = distance_to_previous_points_nm[-1] / 2
+            else:
+                # If not circular, then we can't add this half distance
+                start_half_distance = 0.0
+        elif end_index == len(distance_to_previous_points_nm) - 1:
+            # End point is at the end of the array
+            if circular:
+                # If circular, then can take half the distance to the start point of the array since it wraps around
+                end_half_distance = distance_to_previous_points_nm[0] / 2
+            else:
+                # If not circular, then we can't add this half distance
+                end_half_distance = 0.0
+        else:
+            # Normal case
+            start_half_distance = distance_to_previous_points_nm[start_index - 1] / 2
+            end_half_distance = distance_to_previous_points_nm[end_index] / 2
+        return distance_without_halves + start_half_distance + end_half_distance
+    else:
+        if not circular:
+            # This cannot happen, since if the start index is greater than the end index, then we must wrap around to
+            # the start of the array to meet the end index, but cannot in a linear array.
+            raise ValueError(
+                f"Cannot calculate distance of region {start_index} to {end_index} in a linear array. "
+                "Start index cannot be greater than end index in a linear array."
+            )
+        # The region wraps around the end of the array
+        # Calculate the distance from the start index to the end of the array
+        distance_to_end = np.sum(distance_to_previous_points_nm[start_index:])
+        # Calculate the distance from the start of the array to the end index
+        distance_to_start = np.sum(distance_to_previous_points_nm[: end_index + 1])
+        # Here we don't need to worry about the indexes of the start and end points since the ends of the array are
+        # inside the region.
+        # Add the half distances to the start and end points
+        start_half_distance = distance_to_previous_points_nm[-1] / 2
+        end_half_distance = distance_to_previous_points_nm[0] / 2
+        return distance_to_end + distance_to_start + start_half_distance + end_half_distance
+
+
+# def calculate_defect_and_gap_lengths(
+#     distance_to_previous_points_nm: npt.NDArray[np.float64],
+#     defects: list[tuple[int, int]],
+#     gaps: list[tuple[int, int]],
+# ) -> tuple[list[tuple[int, int, float]], list[tuple[int, int, float]]]:
+#     """Calculate the lengths of the defects and gaps."""
+#     defect_lengths = []
+#     gap_lengths = []
