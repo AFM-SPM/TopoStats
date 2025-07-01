@@ -386,7 +386,7 @@ def calculate_indirect_defect_gaps(
                         indirect_gap_length_to_end_of_list = 0.0
                         indirect_gap_length_from_start_of_list = 0.0
                         # Check if it's the last defect in the list
-                        if inner_number == len(ordered_defect_gap_list.defect_gap_list) - 1:
+                        if other_defect_gap_number == len(ordered_defect_gap_list.defect_gap_list) - 1:
                             # If it is, then we skip the adding of lengths until end of the list since there are no
                             # defects/gaps past this one.
                             pass
@@ -416,7 +416,7 @@ def calculate_indirect_defect_gaps(
             else:
                 # We have reached a Defect, so we can stop
                 break
-        for _, this_defect_or_gap in reversed(ordered_defect_gap_list.defect_gap_list):
+        for _, this_defect_or_gap in enumerate(reversed(ordered_defect_gap_list.defect_gap_list)):
             if isinstance(this_defect_or_gap, DefectGap):
                 indirect_gap_length = this_defect_or_gap.length_nm
                 indirect_gaps.append(indirect_gap_length)
