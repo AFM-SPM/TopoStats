@@ -322,6 +322,26 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
+                    DefectGap(0, 9, 10),
+                ],
+            ),
+            True,
+            [],
+            id="No defects, all gap, circular",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(0, 9, 10),
+                ],
+            ),
+            False,
+            [],
+            id="No defects, all gap, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
                     DefectGap(0, 4, 4),
                     Defect(5, 6, 1),
                     DefectGap(7, 8, 2),
@@ -341,6 +361,64 @@ def test_get_defects_and_gaps_from_bool_array(
             True,
             [6.0],
             id="one defect in middle, circular",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    Defect(0, 0, 1),
+                    DefectGap(1, 9, 8),
+                ],
+            ),
+            False,
+            [8.0],
+            id="one defect at start, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    Defect(0, 0, 1),
+                    DefectGap(1, 9, 8),
+                ],
+            ),
+            True,
+            [8.0],
+            id="one defect at start, circular",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(0, 8, 8),
+                    Defect(9, 9, 1),
+                ],
+            ),
+            False,
+            [8.0],
+            id="one defect at end, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(0, 8, 8),
+                    Defect(9, 9, 1),
+                ],
+            ),
+            True,
+            [8.0],
+            id="one defect at end, circular",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(0, 1, 1),
+                    Defect(2, 3, 1),
+                    DefectGap(4, 5, 1),
+                    Defect(6, 7, 2),
+                    DefectGap(8, 9, 1),
+                ]
+            ),
+            False,
+            [1.0, 1.0, 1.0,],
+            id="two defects in middle, linear",
         ),
     ],
 )
