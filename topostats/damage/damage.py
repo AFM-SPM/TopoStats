@@ -456,4 +456,22 @@ def calculate_indirect_defect_gaps(
                         indirect_gaps.append(
                             indirect_gap_length_to_end_of_list + indirect_gap_length_from_start_of_list
                         )
+
+    if not circular:
+        # Add any DefectGaps that are at the ends of the list
+        for _, this_defect_or_gap in enumerate(ordered_defect_gap_list.defect_gap_list):
+            if isinstance(this_defect_or_gap, DefectGap):
+                indirect_gap_length = this_defect_or_gap.length_nm
+                # insert into start of the list
+                indirect_gaps.insert(0, indirect_gap_length)
+            else:
+                # We have reached a Defect, so we can stop
+                break
+        for _, this_defect_or_gap in reversed(ordered_defect_gap_list.defect_gap_list):
+            if isinstance(this_defect_or_gap, DefectGap):
+                indirect_gap_length = this_defect_or_gap.length_nm
+                indirect_gaps.append(indirect_gap_length)
+            else:
+                # We have reached a Defect, so we can stop
+                break
     return indirect_gaps
