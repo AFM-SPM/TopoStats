@@ -216,7 +216,9 @@ def get_defects_and_gaps_linear(
     )
 
 
-def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+def get_defects_and_gaps_circular(
+    defects_bool: npt.NDArray[np.bool_],
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
     """Get the defects as a list of tuples of start and end indexes, with the array ends connected.
 
     Parameters
@@ -230,7 +232,7 @@ def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tupl
         - The defects as a list of tuples of start and end indexes.
         - The gaps as a list of tuples of start and end indexes.
     """
-    defects, gaps = get_defects_linear(defects_bool)
+    defects, gaps = get_defects_and_gaps_linear(defects_bool)
 
     # If the first and last points are both defects, combine the first and last defects
     if defects_bool[0] and defects_bool[-1]:
@@ -368,6 +370,27 @@ def calculate_distance_of_region(
         end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
+def get_defects_and_gaps_from_bool_array(
+    defects_bool: npt.NDArray[np.bool_],
+    circular: bool,
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+) -> OrderedDefectGapList:
+    """Get the Defects and DefectGaps from a boolean array of defects and gaps."""
+
+    if circular:
+        defects_without_lengths, gaps_without_lengths = get_defects_and_gaps_circular(defects_bool=defects_bool)
+    else:
+        defects_without_lengths, gaps_without_lengths = get_defects_and_gaps_linear(defects_bool=defects_bool)
+
+    # Calculate the lengths of the defects and gaps
+    defect_gap_list = calculate_defect_and_gap_lengths(
+        distance_to_previous_points_nm,
+        defects_without_lengths,
+        gaps_without_lengths,
+        circular,
+    )
+
+    return defect_gap_list
 
 def calculate_defect_and_gap_lengths(
     distance_to_previous_points_nm: npt.NDArray[np.float64],
