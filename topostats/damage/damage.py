@@ -71,10 +71,32 @@ class OrderedDefectGapList:
         self.sort_defect_gap_list()
 
     def __eq__(self, other: object) -> bool:
-        """Check if two OrderedDefectGapList objects are equal."""
+        """Check if two OrderedDefectGapList objects are equal.
+
+        Floating-point lengths are compared with a small tolerance to handle precision errors.
+        """
         if not isinstance(other, OrderedDefectGapList):
             return NotImplemented
-        return self.defect_gap_list == other.defect_gap_list
+
+        # Check if lists have the same length
+        if len(self.defect_gap_list) != len(other.defect_gap_list):
+            return False
+
+        # Compare each item with floating-point tolerance
+        for self_item, other_item in zip(self.defect_gap_list, other.defect_gap_list):
+            # Check if items are the same type
+            if type(self_item) != type(other_item):
+                return False
+
+            # Check if start and end indices are equal (these should be exact)
+            if self_item.start_index != other_item.start_index or self_item.end_index != other_item.end_index:
+                return False
+
+            # Check if lengths are approximately equal (with tolerance for floating-point errors)
+            if not np.isclose(self_item.length_nm, other_item.length_nm, rtol=1e-9, atol=1e-12):
+                return False
+
+        return True
 
 
 def get_defects_and_gaps_linear(
