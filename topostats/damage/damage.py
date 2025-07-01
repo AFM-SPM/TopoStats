@@ -5,42 +5,6 @@ import numpy as np
 import numpy.typing as npt
 
 
-def get_defect_start_end_indexes(
-    defects_bool: npt.NDArray[np.bool_],
-) -> tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]]:
-    """Get the start and end indexes of defects in a boolean array.
-
-    Stars and ends are
-    defined as the first and last point of a defect, this can be the same point if the defect is only one point long.
-
-    Parameters
-    ----------
-    defects_bool : npt.NDArray[np.bool_]
-        A boolean array where True indicates a defect and False indicates no defect.
-    Returns
-    -------
-    tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]]
-        A tuple containing two arrays:
-        - The indexes of the starts of defects.
-        - The indexes of the ends of defects.
-    """
-    defect_start_indexes = []
-    defect_end_indexes = []
-
-    for index, point in enumerate(defects_bool):
-        previous_point = defects_bool[index - 1]
-        next_point = defects_bool[(index + 1) % len(defects_bool)]
-        if point and not previous_point:
-            defect_start_indexes.append(index)
-        if point and not next_point:
-            defect_end_indexes.append(index)
-
-    return (
-        np.array(defect_start_indexes, dtype=np.int_),
-        np.array(defect_end_indexes, dtype=np.int_),
-    )
-
-
 @dataclass
 class Defect:
     """A class to represent a defect in a point cloud.
