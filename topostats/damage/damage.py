@@ -268,37 +268,6 @@ def get_defects_circular(defects_bool: npt.NDArray[np.bool_]) -> tuple[list[tupl
     )
 
 
-def calculate_indirect_defect_gap_lengths(
-    defect_start_end_indexes: tuple[npt.NDArray[np.int_], npt.NDArray[np.int_]],
-    cumulative_distance_nm: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Calculate the lengths of the gaps between defects for all defects."""
-    defect_start_indexes, defect_end_indexes = defect_start_end_indexes
-
-    if len(defect_start_indexes) == 0:
-        return np.array([], dtype=np.float64)
-
-    # For each defect end, calculate the distance to the every defect start
-    gap_lengths = []
-    for defect_end_index in defect_end_indexes:
-        for defect_start_index in defect_start_indexes:
-            # Calculate the distance between the end index and the start index using the cumulative distance
-            if defect_start_index > defect_end_index:
-                # Defect start is later than the end, therefore we can simply subtract the cumulative distances
-                gap_length = cumulative_distance_nm[defect_start_index] - cumulative_distance_nm[defect_end_index]
-                gap_lengths.append(gap_length)
-            else:
-                # The defect start is looped around to the beginning of the array, so we need to add the distance from
-                # the end of the array to the start of the array
-                gap_length = (
-                    cumulative_distance_nm[-1]
-                    - cumulative_distance_nm[defect_end_index]
-                    + cumulative_distance_nm[defect_start_index]
-                )
-                gap_lengths.append(gap_length)
-    return np.array(gap_lengths, dtype=np.float64)
-
-
 def calculate_distance_of_region(
     start_index: int,
     end_index: int,
