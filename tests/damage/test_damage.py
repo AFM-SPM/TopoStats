@@ -105,6 +105,16 @@ def test_get_defects_and_gaps_circular(
             id="unit region in middle, linear",
         ),
         pytest.param(
+            0,
+            9,
+            np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            False,
+            13.5,
+            id="region spanning all, linear",
+        ),
+        # Note: we cannot represent a region spanning all in circular, since that would have the same index
+        # for start and end and would be treated as a unit region.
+        pytest.param(
             5,
             6,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),

@@ -189,7 +189,7 @@ def calculate_distance_of_region(
 ) -> float:
     """Calculate the distance of a region in the point cloud.
 
-    Note: This function cannot take a region that is the whole array, since that would imply the start and end be the
+    Note: This function cannot take a circular region that is the whole array, since that would imply the start and end be the
     same point, but this is assumed to be a unit region, not an array-wide region.
 
     Note to devs: remember that the array is the distance to the previous point. So the distance between
@@ -241,24 +241,20 @@ def calculate_distance_of_region(
             if circular:
                 # If circular, then can take half the distance to the end point of the array since it wraps around
                 start_half_distance = distance_to_previous_points_nm[start_index] / 2
-                end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
             else:
                 # If not circular, then we can't add this half distance
                 start_half_distance = 0.0
-                end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
-        elif end_index == len(distance_to_previous_points_nm) - 1:
+        else:
+            start_half_distance = distance_to_previous_points_nm[start_index] / 2
+        if end_index == len(distance_to_previous_points_nm) - 1:
             # End point is at the end of the array
             if circular:
                 # If circular, then can take half the distance to the start point of the array since it wraps around
                 end_half_distance = distance_to_previous_points_nm[0] / 2
-                start_half_distance = distance_to_previous_points_nm[start_index] / 2
             else:
                 # If not circular, then we can't add this half distance
                 end_half_distance = 0.0
-                start_half_distance = distance_to_previous_points_nm[start_index] / 2
         else:
-            # Normal case
-            start_half_distance = distance_to_previous_points_nm[start_index] / 2
             end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         return distance_without_halves + start_half_distance + end_half_distance
     else:
