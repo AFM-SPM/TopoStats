@@ -423,14 +423,9 @@ def calculate_indirect_defect_gaps(
                         indirect_gaps.append(indirect_gap_length)
                     else:
                         if not circular:
-                            # This should not happen since a non-circular array cannot wrap around the end of the array.
-                            raise ValueError(
-                                f"Cannot calculate indirect defect gap between defect {start_defect_gap_number} "
-                                f"and defect {other_defect_gap_number} in a linear array. Since the other defect is "
-                                "before the start defect, this means that the start defect is at the end of the "
-                                "array, but the other defect is at the start of the array, which cannot happen in a "
-                                "linear array."
-                            )
+                            # This would require wrapping around the end of the array, so this proposed gap is not
+                            # valid.
+                            continue
                         # The other defect is before this defect
                         # Sum all the lengths of the regions until the end of the array, then wrap around to the other
                         # defect
