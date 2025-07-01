@@ -5,12 +5,48 @@ import pytest
 import numpy as np
 import numpy.typing as npt
 from topostats.damage.damage import (
+    get_defects_and_gaps_linear,
+    get_defects_and_gaps_circular,
     calculate_distance_of_region,
     calculate_indirect_defect_gaps,
     OrderedDefectGapList,
     Defect,
     DefectGap,
 )
+
+
+@pytest.mark.parametrize(
+    ("defects_bool", "expected_defect_and_gap_list"),
+    [
+        pytest.param(
+            np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.bool_),
+            ([], [(0, 9)]),
+            id="no defects, all gap",
+        ),
+        pytest.param(
+            np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0], dtype=np.bool_),
+            ([(4, 4)], [(0, 3), (5, 9)]),
+            id="one unit defect in middle",
+        ),
+        pytest.param(
+            np.array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0], dtype=np.bool_),
+            ([(2, 3), (6, 7)], [(0, 1), (4, 5), (8, 9)]),
+            id="two defects in middle",
+        ),
+        pytest.param(
+            np.array([1, 1, 1, 0, 0, 0, 0, 1, 1, 1], dtype=np.bool_),
+            ([(0, 2), (7, 9)], [(3, 6)]),
+            id="two defects, at start and end",
+        ),
+    ],
+)
+def test_get_defects_and_gaps_linear(
+    defects_bool: npt.NDArray[np.bool_],
+    expected_defect_and_gap_list: tuple[list[tuple[int, int]], list[tuple[int, int]]],
+) -> None:
+    """Test the get_defects_and_gaps_linear function."""
+    defect_and_gap_list = get_defects_and_gaps_linear(defects_bool=defects_bool)
+    assert defect_and_gap_list == expected_defect_and_gap_list
 
 
 @pytest.mark.parametrize(
