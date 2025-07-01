@@ -110,7 +110,7 @@ class Defect:
 
     start_index: int
     end_index: int
-    length_nm: float | None = None
+    length_nm: float
 
 
 @dataclass
@@ -129,10 +129,44 @@ class DefectGap:
 
     start_index: int
     end_index: int
-    length_nm: float | None = None
+    length_nm: float
 
 
-def get_defects_linear(
+class OrderedDefectGapList:
+    """A class to store defects and gaps in a list ordered by the start index of the defect or gap."""
+
+    def __init__(self, defect_gap_list: list[Defect | DefectGap] | None = None) -> None:
+        """Initialise the class
+
+        Parameters
+        ----------
+        defect_gap_list : list[Defect | DefectGap] | None, optional
+            An optional list of Defect or DefectGap objects to initialize the class with.
+            If provided, the list will be sorted by start index. If None, an empty list is created.
+        """
+        if defect_gap_list is None:
+            self.defect_gap_list: list[Defect | DefectGap] = []
+        else:
+            self.defect_gap_list = defect_gap_list.copy()
+            self.sort_defect_gap_list()
+
+    def sort_defect_gap_list(self) -> None:
+        """Sort the defect and gap list by the start index of the defect or gap."""
+        self.defect_gap_list.sort(key=lambda x: x.start_index)
+
+    def add_item(self, item: Defect | DefectGap) -> None:
+        """Add a defect or gap to the list."""
+        self.defect_gap_list.append(item)
+        self.sort_defect_gap_list()
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two OrderedDefectGapList objects are equal."""
+        if not isinstance(other, OrderedDefectGapList):
+            return NotImplemented
+        return self.defect_gap_list == other.defect_gap_list
+
+
+def get_defects_and_gaps_linear(
     defects_bool: npt.NDArray[np.bool_],
 ) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
     """Get the defects as a list of tuples of start and end indexes.
