@@ -369,11 +369,91 @@ def calculate_distance_of_region(
         return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
 
-# def calculate_defect_and_gap_lengths(
-#     distance_to_previous_points_nm: npt.NDArray[np.float64],
-#     defects: list[tuple[int, int]],
-#     gaps: list[tuple[int, int]],
-# ) -> tuple[list[tuple[int, int, float]], list[tuple[int, int, float]]]:
-#     """Calculate the lengths of the defects and gaps."""
-#     defect_lengths = []
-#     gap_lengths = []
+def calculate_defect_and_gap_lengths(
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    defects_without_lengths: list[tuple[int, int]],
+    gaps_without_lengths: list[tuple[int, int]],
+    circular: bool,
+) -> OrderedDefectGapList:
+    """Calculate the lengths of the defects and gaps."""
+    defect_gap_list = OrderedDefectGapList()
+
+    # Calculate the lengths of the defects
+    for start_index, end_index in defects_without_lengths:
+        length_nm = calculate_distance_of_region(
+            start_index,
+            end_index,
+            distance_to_previous_points_nm,
+            circular,
+        )
+        defect_gap_list.add_item(Defect(start_index, end_index, length_nm))
+
+    # Calculate the lengths of the gaps
+    for start_index, end_index in gaps_without_lengths:
+        length_nm = calculate_distance_of_region(
+            start_index,
+            end_index,
+            distance_to_previous_points_nm,
+            circular,
+        )
+        defect_gap_list.add_item(DefectGap(start_index, end_index, length_nm))
+
+    return defect_gap_list
+
+
+def calculate_indirect_defect_gaps(
+    ordered_defect_gap_list: OrderedDefectGapList,
+    circular: bool,
+) -> list[float]:
+    """Calculate all indirect defect gaps."""
+
+    indirect_gaps = []
+    for start_defect_gap_number, this_defect_or_gap in enumerate(ordered_defect_gap_list.defect_gap_list):
+        if isinstance(this_defect_or_gap, Defect):
+            # Iterate over all other defects
+            for other_defect_gap_number, other_defect_or_gap in enumerate(ordered_defect_gap_list.defect_gap_list):
+                if isinstance(other_defect_or_gap, Defect):
+                    # Iterate over the defects and gaps between the two defects
+                    if other_defect_gap_number > start_defect_gap_number:
+                        # Sum all the lengths of the gaps and defects between the two defects
+                        indirect_gap_length = 0.0
+                        for inner_number in range(start_defect_gap_number + 1, other_defect_gap_number):
+                            inner_defect_or_gap = ordered_defect_gap_list.defect_gap_list[inner_number]
+                            indirect_gap_length += inner_defect_or_gap.length_nm
+                        indirect_gaps.append(indirect_gap_length)
+                    else:
+                        if not circular:
+                            # This should not happen since a non-circular array cannot wrap around the end of the array.
+                            raise ValueError(
+                                f"Cannot calculate indirect defect gap between defect {start_defect_gap_number} "
+                                f"and defect {other_defect_gap_number} in a linear array. Since the other defect is "
+                                "before the start defect, this means that the start defect is at the end of the "
+                                "array, but the other defect is at the start of the array, which cannot happen in a "
+                                "linear array."
+                            )
+                        # The other defect is before this defect
+                        # Sum all the lengths of the regions until the end of the array, then wrap around to the other
+                        # defect
+                        indirect_gap_length_to_end_of_list = 0.0
+                        indirect_gap_length_from_start_of_list = 0.0
+                        # Check if it's the last defect in the list
+                        if inner_number == len(ordered_defect_gap_list.defect_gap_list) - 1:
+                            # If it is, then we skip the adding of lengths until end of the list since there are no
+                            # defects/gaps past this one.
+                            pass
+                        else:
+                            for inner_number in range(
+                                start_defect_gap_number + 1, len(ordered_defect_gap_list.defect_gap_list)
+                            ):
+                                inner_defect_or_gap = ordered_defect_gap_list.defect_gap_list[inner_number]
+                                indirect_gap_length_to_end_of_list += inner_defect_or_gap.length_nm
+
+                        # Calculate length from start of list to other defect
+                        for inner_number in range(0, other_defect_gap_number):
+                            inner_defect_or_gap = ordered_defect_gap_list.defect_gap_list[inner_number]
+                            indirect_gap_length_from_start_of_list += inner_defect_or_gap.length_nm
+
+                        indirect_gaps.append(
+                            indirect_gap_length_to_end_of_list + indirect_gap_length_from_start_of_list
+                        )
+    return indirect_gaps
