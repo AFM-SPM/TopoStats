@@ -361,6 +361,16 @@ def calculate_indirect_defect_gaps(
 ) -> list[float]:
     """Calculate all indirect defect gaps."""
 
+    # If there is only one gap, return an empty list
+    if len(ordered_defect_gap_list.defect_gap_list) == 0:
+        return []
+    if len(ordered_defect_gap_list.defect_gap_list) == 1:
+        if isinstance(ordered_defect_gap_list.defect_gap_list[0], DefectGap):
+            return []
+        # If there is only one defect, return an empty list
+        if isinstance(ordered_defect_gap_list.defect_gap_list[0], Defect):
+            return []
+
     indirect_gaps = []
     for start_defect_gap_number, this_defect_or_gap in enumerate(ordered_defect_gap_list.defect_gap_list):
         if isinstance(this_defect_or_gap, Defect):
