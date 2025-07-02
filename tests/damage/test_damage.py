@@ -1,18 +1,18 @@
 """Test damage functions"""
 
-import pytest
-
 import numpy as np
 import numpy.typing as npt
+import pytest
+
 from topostats.damage.damage import (
-    get_defects_and_gaps_linear,
-    get_defects_and_gaps_circular,
-    calculate_distance_of_region,
-    calculate_indirect_defect_gaps,
-    get_defects_and_gaps_from_bool_array,
-    OrderedDefectGapList,
     Defect,
     DefectGap,
+    OrderedDefectGapList,
+    calculate_distance_of_region,
+    calculate_indirect_defect_gaps,
+    get_defects_and_gaps_circular,
+    get_defects_and_gaps_from_bool_array,
+    get_defects_and_gaps_linear,
 )
 
 
@@ -200,7 +200,6 @@ def test_calculate_distance_of_region(
 
 def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None:
     """Test that an exception is raised for the invalid case of linear array with end-spanning region."""
-
     with pytest.raises(ValueError):
         calculate_distance_of_region(
             start_index=8,
@@ -338,6 +337,16 @@ def test_get_defects_and_gaps_from_bool_array(
             False,
             [],
             id="No defects, all gap, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    Defect(0, 9, 9),
+                ]
+            ),
+            False,
+            [],
+            id="No gaps, all defects, linear",
         ),
         pytest.param(
             OrderedDefectGapList(
