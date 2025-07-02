@@ -417,8 +417,67 @@ def test_get_defects_and_gaps_from_bool_array(
                 ]
             ),
             False,
-            [1.0, 1.0, 1.0,],
+            [
+                1.0,
+                1.0,
+                1.0,
+            ],
             id="two defects in middle, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[Defect(2, 3, 1), DefectGap(4, 5, 1), Defect(6, 7, 1), DefectGap(8, 1, 2)]
+            ),
+            True,
+            [4.0, 1.0, 2.0, 4.0],
+            id="two defects in middle, circular",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(0, 1, 1),
+                    Defect(2, 3, 1),
+                    DefectGap(4, 5, 1),
+                    Defect(6, 7, 1),
+                    DefectGap(8, 9, 1),
+                    Defect(10, 11, 1),
+                    DefectGap(12, 13, 1),
+                ]
+            ),
+            False,
+            [
+                1.0,  # start gap (linear)
+                1.0,
+                3.0,
+                1.0,
+                1.0,  # end gap (linear)
+            ],
+            id="three defects, in the middle, linear",
+        ),
+        pytest.param(
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(12, 1, 1),
+                    Defect(2, 3, 1),
+                    DefectGap(4, 5, 1),
+                    Defect(6, 7, 1),
+                    DefectGap(8, 9, 1),
+                    Defect(10, 11, 1),
+                ]
+            ),
+            True,
+            [
+                5.0,
+                1.0,
+                3.0,
+                3.0,
+                5.0,
+                1.0,
+                1.0,
+                3.0,
+                5.0,
+            ],
+            id="three defects, in the middle, circular",
         ),
     ],
 )
