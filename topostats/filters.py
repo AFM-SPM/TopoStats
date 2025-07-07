@@ -119,14 +119,14 @@ class Filters:
         # Convert to lists since the thresholding function expects lists of thresholds but
         # we don't want to use more than one value for the filters step.
         if threshold_std_dev is None:
-            threshold_std_dev = {"above": 1.0, "below": 1.0}
+            self.threshold_std_dev = {"above": 1.0, "below": 1.0}
         else:
             self.threshold_std_dev = {
                 "above": [threshold_std_dev["above"]],
                 "below": [threshold_std_dev["below"]],
             }
         if threshold_absolute is None:
-            threshold_absolute = {"above": 1.0, "below": 10.0}
+            self.threshold_absolute = {"above": 1.0, "below": 10.0}
         else:
             self.threshold_absolute = {
                 "above": [threshold_absolute["above"]],
@@ -527,7 +527,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
         )
         self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_quadratic_removal"] = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None
+        )
         self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
             self.images["initial_quadratic_removal"], mask=None
         )
@@ -571,7 +573,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["mask"],
             row_alignment_quantile=self.row_alignment_quantile,
         )
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
+        self.images["masked_tilt_removal"] = self.remove_tilt(
+            self.images["masked_median_flatten"], self.images["mask"]
+        )
         self.images["masked_quadratic_removal"] = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
