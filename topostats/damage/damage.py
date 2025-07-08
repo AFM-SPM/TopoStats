@@ -7,7 +7,7 @@ import numpy.typing as npt
 
 @dataclass
 class Defect:
-    """A class to represent a defect in a point cloud.
+    """A class to represent a defect in a trace.
 
     Attributes
     ----------
@@ -22,11 +22,12 @@ class Defect:
     start_index: int
     end_index: int
     length_nm: float
+    position_along_trace_nm: float
 
 
 @dataclass
 class DefectGap:
-    """A class to represent a gap between defects in a point cloud.
+    """A class to represent a gap between defects in a trace.
 
     Attributes
     ----------
@@ -41,6 +42,7 @@ class DefectGap:
     start_index: int
     end_index: int
     length_nm: float
+    position_along_trace_nm: float
 
 
 class OrderedDefectGapList:
@@ -209,7 +211,7 @@ def calculate_distance_of_region(
     distance_to_previous_points_nm: npt.NDArray[np.float64],
     circular: bool,
 ) -> float:
-    """Calculate the distance of a region in the point cloud.
+    """Calculate the distance of a region in the trace.
 
     Note: This function cannot take a circular region that is the whole array, since that would imply the start and end be the
     same point, but this is assumed to be a unit region, not an array-wide region.
@@ -386,7 +388,22 @@ def calculate_defect_and_gap_lengths(
             distance_to_previous_points_nm,
             circular,
         )
-        defect_gap_list.add_item(Defect(start_index, end_index, length_nm))
+        midpoint_index = get_midpoint_index_of_region(
+            start_index,
+            end_index,
+            distance_to_previous_points_nm,
+            circular,
+        )
+        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
+        position_along_trace_nm = np.sum(distance_to_previous_points_nm[: midpoint_index + 1])
+        defect_gap_list.add_item(
+            Defect(
+                start_index=start_index,
+                end_index=end_index,
+                length_nm=length_nm,
+                position_along_trace_nm=position_along_trace_nm,
+            )
+        )
 
     # Calculate the lengths of the gaps
     for start_index, end_index in gaps_without_lengths:
@@ -396,7 +413,23 @@ def calculate_defect_and_gap_lengths(
             distance_to_previous_points_nm,
             circular,
         )
-        defect_gap_list.add_item(DefectGap(start_index, end_index, length_nm))
+        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
+        midpoint_index = get_midpoint_index_of_region(
+            start_index,
+            end_index,
+            distance_to_previous_points_nm,
+            circular,
+        )
+        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
+        position_along_trace_nm = np.sum(distance_to_previous_points_nm[: midpoint_index + 1])
+        defect_gap_list.add_item(
+            DefectGap(
+                start_index=start_index,
+                end_index=end_index,
+                length_nm=length_nm,
+                position_along_trace_nm=position_along_trace_nm,
+            )
+        )
 
     return defect_gap_list
 
