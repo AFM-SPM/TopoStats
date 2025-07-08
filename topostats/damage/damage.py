@@ -323,6 +323,52 @@ def get_defects_and_gaps_from_bool_array(
     return defect_gap_list
 
 
+def get_midpoint_index_of_region(
+    start_index: int,
+    end_index: int,
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    circular: bool,
+) -> int:
+    """
+    Get the midpoint index of a region in a trace.
+
+    Parameters
+    ----------
+    start_index : int
+        The index of the first point in the region.
+    end_index : int
+        The index of the last point in the region.
+    distance_to_previous_points_nm : npt.NDArray[np.float64]
+        An array of distances to the previous points in nanometers.
+    circular : bool
+        If True, the array is treated as circular, meaning that the end of the array wraps around to the start.
+        If False, the array is treated as linear, meaning that the end of the array does not wrap around to the start.
+
+    Returns
+    -------
+    int
+        The midpoint index of the region. If the region has an even number of points, the midpoint is rounded down.
+        If the region is circular, the midpoint is calculated as if the array wraps around.
+    """
+
+    if start_index <= end_index:
+        # Normal case, no wrapping needed.
+        midpoint_index = (start_index + end_index) // 2
+    else:
+        if not circular:
+            # This cannot happen, since if the start index is greater than the end index, then we must wrap around to
+            # the start of the array to meet the end index, but cannot in a linear array.
+            raise ValueError(
+                f"Cannot calculate midpoint index of region {start_index} to {end_index} in a linear array. "
+                "Start index cannot be greater than end index in a linear array."
+            )
+        # the region wraps around the end of the array, calculate the midpoint index as if the array wraps around
+        midpoint_index = (start_index + end_index + len(distance_to_previous_points_nm)) // 2
+        # wrap the index to be within the bounds of the array
+        midpoint_index = midpoint_index % len(distance_to_previous_points_nm)
+    return midpoint_index
+
+
 def calculate_defect_and_gap_lengths(
     distance_to_previous_points_nm: npt.NDArray[np.float64],
     defects_without_lengths: list[tuple[int, int]],
