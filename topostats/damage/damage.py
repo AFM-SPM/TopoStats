@@ -98,6 +98,12 @@ class OrderedDefectGapList:
             if not np.isclose(self_item.length_nm, other_item.length_nm, rtol=1e-9, atol=1e-12):
                 return False
 
+            # Check if position along trace is approximately equal (with tolerance for floating-point errors)
+            if not np.isclose(
+                self_item.position_along_trace_nm, other_item.position_along_trace_nm, rtol=1e-9, atol=1e-12
+            ):
+                return False
+
         return True
 
 
@@ -213,8 +219,8 @@ def calculate_distance_of_region(
 ) -> float:
     """Calculate the distance of a region in the trace.
 
-    Note: This function cannot take a circular region that is the whole array, since that would imply the start and end be the
-    same point, but this is assumed to be a unit region, not an array-wide region.
+    Note: This function cannot take a circular region that is the whole array, since that would imply the start and
+    end be the same point, but this is assumed to be a unit region, not an array-wide region.
 
     Note to devs: remember that the array is the distance to the previous point. So the distance between
     points i and j does not include the distance of index i, since that's the distance to the previous point.
@@ -394,8 +400,13 @@ def calculate_defect_and_gap_lengths(
             distance_to_previous_points_nm,
             circular,
         )
-        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
-        position_along_trace_nm = np.sum(distance_to_previous_points_nm[: midpoint_index + 1])
+        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the
+        # midpoint index.
+        # Note that if ciruclar, then the distance to the previous point at the starting index, is non zero, so we need
+        # to ignore this initial value. If linear, then the initial value is zero, and we can ignore it.
+        # sum indexes from 1 to midpoint_index (inclusive)
+        position_along_trace_nm = np.sum(distance_to_previous_points_nm[1 : midpoint_index + 1])
+
         defect_gap_list.add_item(
             Defect(
                 start_index=start_index,
@@ -413,15 +424,18 @@ def calculate_defect_and_gap_lengths(
             distance_to_previous_points_nm,
             circular,
         )
-        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
+        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the
+        # midpoint index
         midpoint_index = get_midpoint_index_of_region(
             start_index,
             end_index,
             distance_to_previous_points_nm,
             circular,
         )
-        # Calculate the position along the trace in nanometers by summing the distances to previous points up to the midpoint index
-        position_along_trace_nm = np.sum(distance_to_previous_points_nm[: midpoint_index + 1])
+        # Note that if ciruclar, then the distance to the previous point at the starting index, is non zero, so we need
+        # to ignore this initial value. If linear, then the initial value is zero, and we can ignore it.
+        # sum indexes from 1 to midpoint_index (inclusive)
+        position_along_trace_nm = np.sum(distance_to_previous_points_nm[1 : midpoint_index + 1])
         defect_gap_list.add_item(
             DefectGap(
                 start_index=start_index,
