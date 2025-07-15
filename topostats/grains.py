@@ -11,9 +11,13 @@ from typing import Any
 import keras
 import numpy as np
 import numpy.typing as npt
+import skimage
+from PIL import Image
+from scipy.ndimage import binary_closing, binary_opening
 from skimage import morphology
+from skimage.filters import gaussian, hessian, threshold_li
 from skimage.measure import label, regionprops
-from skimage.morphology import binary_dilation
+from skimage.morphology import binary_dilation, closing, disk, opening, remove_small_holes
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.unet_masking import (
@@ -974,6 +978,100 @@ class Grains:
 
         return Grains.update_background_class(grain_mask_tensor)
 
+    def binarize(self, image, threshold=0.1):
+        cleaned = np.where(image < threshold, 0, 1)
+        return cleaned.astype(np.uint8)
+
+    def save_for_testing(self, image, filename: str) -> None:
+        # Convert to uint8 (0 or 255)
+        uint8_array = (image * 255).astype(np.uint8)
+
+        # Save using PIL
+        img = Image.fromarray(uint8_array)
+        img.save(filename)
+
+    def split_ridges(
+        self,
+        open_at_start: bool = True,
+        open_at_end: bool = True,
+        closing_iterations_at_end: int = 1,
+        small_holes_threshold: int | None = 100,
+        gaussian_blurring_sigma: float = 2.0,
+    ) -> npt.NDArray:
+        """
+        Split ridges in the image using Hessian matrix and binary opening.
+
+        Parameters
+        ----------
+        open_at_start : bool
+            Whether to apply opening to the Hessian result at the start.
+        open_at_end : bool
+            Whether to apply opening to the final result.
+        close_at_end : bool
+            Whether to apply closing to the final result.
+        small_holes_threshold : int | None
+            Threshold for removing small holes in pixels. If None, no holes are removed.
+        gaussian_blurring_sigma : float
+            Sigma for Gaussian blurring to smooth the result.
+
+        Returns
+        -------
+        npt.NDArray
+            Numpy array of the full mask tensor with ridges split.
+        """
+        threshold = threshold_li(self.image)
+        threshold_li_result = self.binarize(self.image > threshold)
+
+        # Compute the Hessian matrix to split ridges
+        hessian_result = hessian(self.image, black_ridges=True, sigmas=range(1, 5))
+
+        # Clean the Hessian result
+        cleaned_hessian = self.binarize(hessian_result)
+
+        # Apply opening to the Hessian result if specified
+        if open_at_start:
+            final_hessian = binary_opening(cleaned_hessian, structure=np.ones((3, 3))).astype(np.uint8)
+        else:
+            final_hessian = cleaned_hessian
+
+        # Remove black borders (by filling in white background) by applying a mask
+        final = final_hessian * threshold_li_result
+
+        self.save_for_testing(final, "final.png")
+
+        # Apply opening and closing operations to the final result if specified
+        if open_at_end:
+            final = binary_opening(final, structure=np.ones((4, 4)))
+        self.save_for_testing(final, "final_opened.png")
+        if closing_iterations_at_end > 0:
+            final = binary_closing(final)
+            closing_iterations_at_end -= 1
+        self.save_for_testing(final, "final_closed.png")
+
+        ridges_split = threshold_li_result * final
+        self.save_for_testing(ridges_split, "masked.png")
+
+        # Remove small holes if specified
+        if small_holes_threshold is not None and small_holes_threshold > 0:
+            ridges_split = remove_small_holes(ridges_split, area_threshold=small_holes_threshold)
+            self.save_for_testing(ridges_split, "small_holes.png")
+
+        # Perform closing and opening to smooth the result
+        if closing_iterations_at_end > 0:
+            ridges_split = closing(ridges_split, disk(2))
+            closing_iterations_at_end -= 1
+        opened = opening(ridges_split, disk(2))
+        self.save_for_testing(opened, "opened.png")
+        closed = opened.copy()
+        while closing_iterations_at_end > 0:
+            closed = closing(closed, disk(2))
+            closing_iterations_at_end -= 1
+
+        # Apply Gaussian blurring to further smooth the result
+        blurred = gaussian(opened, sigma=gaussian_blurring_sigma)
+        self.save_for_testing(blurred, "blurred.png")
+        return np.stack((1 - ridges_split, ridges_split), axis=-1)
+
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
@@ -990,22 +1088,40 @@ class Grains:
             absolute=self.threshold_absolute,
         )
 
+        # Set parameters to default for testing
+        use_hassian = True
+        open_at_start = True
+        open_at_end = True
+        closing_iterations_at_end = 0  # number of iterations for closing
+        small_holes_threshold = 0  # in pixels
+        gaussian_blurring_sigma = 2.0  # in pixels
+
         # Create an ImageGrainCrops object to store the grain crops
         image_grain_crops = ImageGrainCrops(above=None, below=None)
         for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.mask_images[direction] = {}
+            if use_hassian:
+                # Split ridges using the Hessian method
+                hassian_full_mask_tensor = self.split_ridges(
+                    open_at_start=open_at_start,
+                    open_at_end=open_at_end,
+                    closing_iterations_at_end=closing_iterations_at_end,
+                    small_holes_threshold=small_holes_threshold,
+                    gaussian_blurring_sigma=gaussian_blurring_sigma,
+                )
+                traditional_full_mask_tensor = hassian_full_mask_tensor.copy()
+            else:
+                # iterate over the thresholds for the current direction
+                direction_thresholds = self.thresholds[direction]
+                traditional_full_mask_tensor = Grains.multi_class_thresholding(
+                    image=self.image,
+                    thresholds=direction_thresholds,
+                    threshold_direction=direction,
+                    image_name=self.filename,
+                )
 
-            # iterate over the thresholds for the current direction
-            direction_thresholds = self.thresholds[direction]
-            traditional_full_mask_tensor = Grains.multi_class_thresholding(
-                image=self.image,
-                thresholds=direction_thresholds,
-                threshold_direction=direction,
-                image_name=self.filename,
-            )
-
-            self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+                self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
             # pre-GrainCrop checks
 
@@ -1036,6 +1152,7 @@ class Grains:
 
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
+            print(f"[{self.filename}] : Traditional shape: {traditional_full_mask_tensor.shape}")
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
                 image=self.image,
@@ -2203,7 +2320,11 @@ class Grains:
         """
         # Flatten the mask tensor
         flat_mask = Grains.flatten_multi_class_tensor(full_mask_tensor)
+        print(skimage.__version__)
+        print(flat_mask.shape)
+        print(full_mask_tensor.shape)
         labelled_flat_full_mask = label(flat_mask)
+        print(labelled_flat_full_mask)
         flat_regionprops_full_mask = regionprops(labelled_flat_full_mask)
         graincrops = {}
         for grain_number, flat_region in enumerate(flat_regionprops_full_mask):
