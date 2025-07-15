@@ -786,6 +786,14 @@ class Grains:
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
+        # Configuration for using Hassian filtering to separate ridges of grains
+        self.use_hassian = True
+        self.open_at_start = True
+        self.open_at_end = True
+        self.closing_iterations_at_end = 0  # number of iterations for closing
+        self.small_holes_threshold = 0  # in pixels
+        self.gaussian_blurring_sigma = 1.0  # in pixels
+
         self.image_grain_crops = ImageGrainCrops(
             above=None,
             below=None,
@@ -997,6 +1005,8 @@ class Grains:
         closing_iterations_at_end: int = 1,
         small_holes_threshold: int | None = 100,
         gaussian_blurring_sigma: float = 2.0,
+        opening_radius: float = 2.0,
+        closing_radius: float = 2.0,
     ) -> npt.NDArray:
         """
         Split ridges in the image using Hessian matrix and binary opening.
@@ -1010,9 +1020,13 @@ class Grains:
         close_at_end : bool
             Whether to apply closing to the final result.
         small_holes_threshold : int | None
-            Threshold for removing small holes in pixels. If None, no holes are removed.
+            Threshold for removing small holes in nanometers. If None, no holes are removed.
         gaussian_blurring_sigma : float
             Sigma for Gaussian blurring to smooth the result.
+        opening_radius : float
+            Radius for the opening operation in nanometers.
+        closing_radius : float
+            Radius for the closing operation in nanometers.
 
         Returns
         -------
@@ -1053,22 +1067,24 @@ class Grains:
 
         # Remove small holes if specified
         if small_holes_threshold is not None and small_holes_threshold > 0:
-            ridges_split = remove_small_holes(ridges_split, area_threshold=small_holes_threshold)
+            ridges_split = remove_small_holes(
+                ridges_split, area_threshold=np.floor(small_holes_threshold * self.pixel_to_nm_scaling)
+            )
             self.save_for_testing(ridges_split, "small_holes.png")
 
         # Perform closing and opening to smooth the result
         if closing_iterations_at_end > 0:
-            ridges_split = closing(ridges_split, disk(2))
+            ridges_split = closing(ridges_split, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
-        opened = opening(ridges_split, disk(2))
+        opened = opening(ridges_split, disk(np.floor(opening_radius * self.pixel_to_nm_scaling)))
         self.save_for_testing(opened, "opened.png")
         closed = opened.copy()
         while closing_iterations_at_end > 0:
-            closed = closing(closed, disk(2))
+            closed = closing(closed, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
 
         # Apply Gaussian blurring to further smooth the result
-        blurred = gaussian(opened, sigma=gaussian_blurring_sigma)
+        blurred = self.binarize(gaussian(opened, sigma=gaussian_blurring_sigma))
         self.save_for_testing(blurred, "blurred.png")
         return np.stack((1 - ridges_split, ridges_split), axis=-1)
 
@@ -1089,26 +1105,21 @@ class Grains:
         )
 
         # Set parameters to default for testing
-        use_hassian = True
-        open_at_start = True
-        open_at_end = True
-        closing_iterations_at_end = 0  # number of iterations for closing
-        small_holes_threshold = 0  # in pixels
-        gaussian_blurring_sigma = 2.0  # in pixels
 
         # Create an ImageGrainCrops object to store the grain crops
         image_grain_crops = ImageGrainCrops(above=None, below=None)
         for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.mask_images[direction] = {}
-            if use_hassian:
+            if self.use_hassian:
                 # Split ridges using the Hessian method
                 hassian_full_mask_tensor = self.split_ridges(
-                    open_at_start=open_at_start,
-                    open_at_end=open_at_end,
-                    closing_iterations_at_end=closing_iterations_at_end,
-                    small_holes_threshold=small_holes_threshold,
-                    gaussian_blurring_sigma=gaussian_blurring_sigma,
+                    open_at_start=self.open_at_start,
+                    open_at_end=self.open_at_end,
+                    closing_iterations_at_end=self.closing_iterations_at_end,
+                    small_holes_threshold=self.small_holes_threshold,
+                    gaussian_blurring_sigma=self.gaussian_blurring_sigma,
+                    opening_radius=1.0,
                 )
                 traditional_full_mask_tensor = hassian_full_mask_tensor.copy()
             else:

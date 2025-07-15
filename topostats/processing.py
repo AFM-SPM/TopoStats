@@ -290,6 +290,7 @@ def run_grains(  # noqa: C901
                                 **plotting_config["plot_dict"][plot_name],
                                 region_properties=full_mask_tensor_class_regionprops,
                             ).plot_and_save()
+
                 plotting_config["run"] = True
             else:
                 # Otherwise, return None and warn that plotting is disabled for grain finding images
