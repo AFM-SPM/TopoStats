@@ -788,11 +788,13 @@ class Grains:
 
         # Configuration for using Hassian filtering to separate ridges of grains
         self.use_hassian = True
-        self.open_at_start = True
-        self.open_at_end = True
-        self.closing_iterations_at_end = 0  # number of iterations for closing
-        self.small_holes_threshold = 0  # in pixels
-        self.gaussian_blurring_sigma = 1.0  # in pixels
+        self.open_at_start = False
+        self.opening_iterations_at_end = 1  # number of iterations for opening
+        self.closing_iterations_at_end = 1  # number of iterations for closing
+        self.small_holes_threshold = 200  # in nm2
+        self.gaussian_blurring_sigma = 0.5  # in pixels
+        self.opening_radius = 1  # in nm
+        self.closing_radius = 1  # in nm
 
         self.image_grain_crops = ImageGrainCrops(
             above=None,
@@ -987,11 +989,35 @@ class Grains:
         return Grains.update_background_class(grain_mask_tensor)
 
     def binarize(self, image, threshold=0.1):
-        cleaned = np.where(image < threshold, 0, 1)
+        """
+        Binarize an image based on a threshold.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Numpy array of the image to binarize.
+        threshold : float
+            Threshold value to binarize the image. Default is 0.1.
+
+        Returns
+        -------
+        npt.NDArray
+            Binarized image as a Numpy array.
+        """
+        cleaned = np.where(image <= threshold, 0, 1)
         return cleaned.astype(np.uint8)
 
     def save_for_testing(self, image, filename: str) -> None:
-        # Convert to uint8 (0 or 255)
+        """
+        Save an image for testing purposes.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Numpy array of the image to save.
+        filename : str
+            Filename to save the image as.
+        """
         uint8_array = (image * 255).astype(np.uint8)
 
         # Save using PIL
@@ -1001,10 +1027,10 @@ class Grains:
     def split_ridges(
         self,
         open_at_start: bool = True,
-        open_at_end: bool = True,
         closing_iterations_at_end: int = 1,
-        small_holes_threshold: int | None = 100,
-        gaussian_blurring_sigma: float = 2.0,
+        opening_iterations_at_end: int = 1,
+        small_holes_threshold: int = 50,
+        gaussian_blurring_sigma: float = 0.0,
         opening_radius: float = 2.0,
         closing_radius: float = 2.0,
     ) -> npt.NDArray:
@@ -1017,8 +1043,8 @@ class Grains:
             Whether to apply opening to the Hessian result at the start.
         open_at_end : bool
             Whether to apply opening to the final result.
-        close_at_end : bool
-            Whether to apply closing to the final result.
+        closing_iterations_at_end : int
+            Number of closing iterations to apply at the end.
         small_holes_threshold : int | None
             Threshold for removing small holes in nanometers. If None, no holes are removed.
         gaussian_blurring_sigma : float
@@ -1044,7 +1070,7 @@ class Grains:
 
         # Apply opening to the Hessian result if specified
         if open_at_start:
-            final_hessian = binary_opening(cleaned_hessian, structure=np.ones((3, 3))).astype(np.uint8)
+            final_hessian = binary_opening(cleaned_hessian, disk(np.floor(opening_radius * self.pixel_to_nm_scaling))).astype(np.uint8)
         else:
             final_hessian = cleaned_hessian
 
@@ -1053,40 +1079,51 @@ class Grains:
 
         self.save_for_testing(final, "final.png")
 
+        # Remove small holes if specified
+        if small_holes_threshold > 0:
+            final = remove_small_holes(
+                final.astype(bool), area_threshold=np.floor(small_holes_threshold * self.pixel_to_nm_scaling)
+            ).astype(np.uint8)
+            self.save_for_testing(final, "small_holes.png")
+
         # Apply opening and closing operations to the final result if specified
-        if open_at_end:
-            final = binary_opening(final, structure=np.ones((4, 4)))
+        if opening_iterations_at_end > 0:
+            final = binary_opening(final, disk(np.floor(opening_radius * self.pixel_to_nm_scaling)))
+            opening_iterations_at_end -= 1
         self.save_for_testing(final, "final_opened.png")
         if closing_iterations_at_end > 0:
-            final = binary_closing(final)
+            final = binary_closing(final, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
         self.save_for_testing(final, "final_closed.png")
 
         ridges_split = threshold_li_result * final
         self.save_for_testing(ridges_split, "masked.png")
 
-        # Remove small holes if specified
-        if small_holes_threshold is not None and small_holes_threshold > 0:
-            ridges_split = remove_small_holes(
-                ridges_split, area_threshold=np.floor(small_holes_threshold * self.pixel_to_nm_scaling)
-            )
-            self.save_for_testing(ridges_split, "small_holes.png")
-
         # Perform closing and opening to smooth the result
         if closing_iterations_at_end > 0:
             ridges_split = closing(ridges_split, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
-        opened = opening(ridges_split, disk(np.floor(opening_radius * self.pixel_to_nm_scaling)))
-        self.save_for_testing(opened, "opened.png")
+        print(f"Opening radius: {np.floor(opening_radius * self.pixel_to_nm_scaling)}")
+        opened = binary_opening(ridges_split, disk(np.floor(opening_radius * self.pixel_to_nm_scaling)))
         closed = opened.copy()
         while closing_iterations_at_end > 0:
-            closed = closing(closed, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
+            closed = binary_closing(closed, disk(np.floor(closing_radius * self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
 
+        opened = remove_small_holes(
+                opened.astype(bool), area_threshold=np.floor(small_holes_threshold * self.pixel_to_nm_scaling ** 2)
+            ).astype(np.uint8)
+        self.save_for_testing(opened, "opened.png")
+
         # Apply Gaussian blurring to further smooth the result
-        blurred = self.binarize(gaussian(opened, sigma=gaussian_blurring_sigma))
+        if gaussian_blurring_sigma > 0:
+            opened = gaussian(opened, sigma=gaussian_blurring_sigma)
+            # np.set_printoptions(threshold=np.inf)
+            # print(f"[{self.filename}] : Gaussian blurring applied {opened.shape} {opened.dtype} {opened}")
+            self.save_for_testing(opened, "opened_gaussian.png")
+        blurred = self.binarize(gaussian(opened, sigma=gaussian_blurring_sigma), threshold=0)
         self.save_for_testing(blurred, "blurred.png")
-        return np.stack((1 - ridges_split, ridges_split), axis=-1)
+        return np.stack((1 - opened, opened), axis=-1)
 
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
@@ -1115,11 +1152,12 @@ class Grains:
                 # Split ridges using the Hessian method
                 hassian_full_mask_tensor = self.split_ridges(
                     open_at_start=self.open_at_start,
-                    open_at_end=self.open_at_end,
+                    opening_iterations_at_end=self.opening_iterations_at_end,
                     closing_iterations_at_end=self.closing_iterations_at_end,
                     small_holes_threshold=self.small_holes_threshold,
                     gaussian_blurring_sigma=self.gaussian_blurring_sigma,
-                    opening_radius=1.0,
+                    opening_radius=self.opening_radius,
+                    closing_radius=self.closing_radius,
                 )
                 traditional_full_mask_tensor = hassian_full_mask_tensor.copy()
             else:
@@ -1160,6 +1198,10 @@ class Grains:
                 area_thresholds=self.area_thresholds[direction],
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
+            traditional_full_mask_tensor[1] = remove_small_holes(
+                traditional_full_mask_tensor.astype(bool), area_threshold=np.floor(self.small_holes_threshold * self.pixel_to_nm_scaling ** 2)
+            ).astype(np.uint8)
+            traditional_full_mask_tensor[0] = 1 - traditional_full_mask_tensor[1]
 
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
@@ -2331,11 +2373,7 @@ class Grains:
         """
         # Flatten the mask tensor
         flat_mask = Grains.flatten_multi_class_tensor(full_mask_tensor)
-        print(skimage.__version__)
-        print(flat_mask.shape)
-        print(full_mask_tensor.shape)
         labelled_flat_full_mask = label(flat_mask)
-        print(labelled_flat_full_mask)
         flat_regionprops_full_mask = regionprops(labelled_flat_full_mask)
         graincrops = {}
         for grain_number, flat_region in enumerate(flat_regionprops_full_mask):
