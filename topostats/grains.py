@@ -722,6 +722,8 @@ class Grains:
                 Upper bound for normalising the image.
             lower_norm_bound : float
                 Lower bound for normalising the image.
+        segmentation_method : str
+            Method for segmenting the image, valid values are 'hessian' and 'thresholding'.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
         otsu_threshold_multiplier : float | None
@@ -741,6 +743,8 @@ class Grains:
             List of tuples of classes to merge.
         vetting : dict | None
             Dictionary of vetting parameters.
+        hessian_ridge_detection_params : dict | None
+            Configuration for using Hessian filtering to separate ridges of grains.
         """
         if unet_config is None:
             unet_config = {
@@ -1039,8 +1043,6 @@ class Grains:
         img = Image.fromarray(uint8_array)
         img.save(filename)
 
-
-
     def split_ridges(
         self,
         open_at_start: bool = True,
@@ -1059,12 +1061,14 @@ class Grains:
         ----------
         open_at_start : bool
             Whether to apply opening to the Hessian result at the start.
-        opening_iterations_at_end : int
-            Number of opening iterations to apply at the end.
         closing_iterations_at_end : int
             Number of closing iterations to apply at the end.
+        opening_iterations_at_end : int
+            Number of opening iterations to apply at the end.
         small_holes_threshold : int | None
             Threshold for removing small holes in nanometers. If None, no holes are removed.
+        hessian_sigmas_nm : list[int] | None
+            List of sigmas in nanometers for the Hessian matrix. If None, default values
         gaussian_blurring_sigma : float
             Sigma for Gaussian blurring to smooth the result in nm.
         opening_radius : float
@@ -1193,9 +1197,7 @@ class Grains:
                     image_name=self.filename,
                 )
             else:
-                raise ValueError(
-                    f"Unknown traditional segmentation method: {self.segmentation_method}"
-                )
+                raise ValueError(f"Unknown traditional segmentation method: {self.segmentation_method}")
 
             self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
