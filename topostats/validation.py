@@ -249,6 +249,25 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "needs to be a list of tuples of two tuples of two integers. Eg [((1, 2), (3, 4))]",
                 ),
             },
+            "hessian_ridge_detection_params": {
+                "use_hessian": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'hessian_ridge_detection_params.use_hessian', valid values are 'True' or 'False'",
+                ),
+                "open_at_start": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'hessian_ridge_detection_params.open_at_start', valid values are 'True' or 'False'",
+                ),
+                "opening_iterations_at_end": int,
+                "closing_iterations_at_end": int,
+                "opening_radius": float,
+                "closing_radius": float,
+                "hessian_sigmas_nm": [float],
+                "small_holes_threshold": float,
+                "gaussian_blurring_sigma": float,
+            },
             "classes_to_merge": Or(
                 None,
                 [int],
