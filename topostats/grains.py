@@ -1228,12 +1228,16 @@ class Grains:
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
+            if self.segmentation_method == "hessian":
+                # Remove small holes in the mask tensor
+                # This is done after the area thresholding to not remove small holes that are actually grains
+                # but rather remove small holes that are not grains.
+                traditional_full_mask_tensor = remove_small_holes(
+                    traditional_full_mask_tensor[:, :, 1].astype(bool),
+                    area_threshold=np.floor(self.small_holes_threshold / (self.pixel_to_nm_scaling**2)),
+                ).astype(np.uint8)
+                traditional_full_mask_tensor[:, :, 0] = 1 - traditional_full_mask_tensor[:, :, 1]
 
-            traditional_full_mask_tensor[:, :, 1] = remove_small_holes(
-                traditional_full_mask_tensor[:, :, 1].astype(bool),
-                area_threshold=np.floor(self.small_holes_threshold / (self.pixel_to_nm_scaling**2)),
-            ).astype(np.uint8)
-            traditional_full_mask_tensor[:, :, 0] = 1 - traditional_full_mask_tensor[:, :, 1]
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
             np.save(f"hessian_results/{self.filename}_hessian.npy", traditional_full_mask_tensor[:, :, 1])
 
