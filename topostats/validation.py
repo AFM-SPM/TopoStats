@@ -123,6 +123,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error="Invalid value in config for grains.run, valid values are 'True' or 'False'",
             ),
             "grain_crop_padding": int,
+            "segmentation_method": Or(
+                "hessian",
+                "thresholding",
+                error=(
+                    "Invalid value in config for 'grains.segmentation_method', valid values "
+                    "are 'hessian' or 'thresholding'"
+                ),
+            ),
             "threshold_method": Or(
                 "absolute",
                 "otsu",
@@ -250,11 +258,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             },
             "hessian_ridge_detection_params": {
-                "use_hessian": Or(
-                    True,
-                    False,
-                    error="Invalid value in config for 'hessian_ridge_detection_params.use_hessian', valid values are 'True' or 'False'",
-                ),
                 "open_at_start": Or(
                     True,
                     False,

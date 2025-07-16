@@ -689,6 +689,7 @@ class Grains:
         pixel_to_nm_scaling: float,
         grain_crop_padding: int = 1,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
+        segmentation_method: str = "thresholding",
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
         threshold_std_dev: dict[str, float | list] | None = None,
@@ -752,6 +753,7 @@ class Grains:
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.segmentation_method = segmentation_method
         self.threshold_method = threshold_method
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         # Ensure thresholds are lists (might not be from passing in CLI args)
@@ -800,11 +802,10 @@ class Grains:
                 "closing_radius": 2.0,
             }
         else:
-            self.use_hessian = hessian_ridge_detection_params["use_hessian"]
             self.open_at_start = hessian_ridge_detection_params["open_at_start"]
             self.opening_iterations_at_end = hessian_ridge_detection_params["opening_iterations_at_end"]
             self.closing_iterations_at_end = hessian_ridge_detection_params["closing_iterations_at_end"]
-            self.hassian_sigmas_nm = hessian_ridge_detection_params["hessian_sigmas_nm"]
+            self.hessian_sigmas_nm = hessian_ridge_detection_params["hessian_sigmas_nm"]
             self.small_holes_threshold = hessian_ridge_detection_params["small_holes_threshold"]
             self.gaussian_blurring_sigma = hessian_ridge_detection_params["gaussian_blurring_sigma"]
             self.opening_radius = hessian_ridge_detection_params["opening_radius"]
@@ -1038,7 +1039,7 @@ class Grains:
         img = Image.fromarray(uint8_array)
         img.save(filename)
 
-    
+
 
     def split_ridges(
         self,
@@ -1046,7 +1047,7 @@ class Grains:
         closing_iterations_at_end: int = 1,
         opening_iterations_at_end: int = 1,
         small_holes_threshold: int = 50,
-        hassian_sigmas_nm: list[int] | None = None,
+        hessian_sigmas_nm: list[int] | None = None,
         gaussian_blurring_sigma: float = 0.0,
         opening_radius: float = 2.0,
         closing_radius: float = 2.0,
@@ -1076,13 +1077,13 @@ class Grains:
         npt.NDArray
             Numpy array of the full mask tensor with ridges split.
         """
-        if hassian_sigmas_nm is None:
-            hassian_sigmas_nm = [1, 2, 3]
+        if hessian_sigmas_nm is None:
+            hessian_sigmas_nm = [1, 2, 3]
         threshold = threshold_li(self.image)
         threshold_li_result = self.binarize(self.image > threshold)
 
         # Compute the Hessian matrix to split ridges
-        sigmas = [nm / self.pixel_to_nm_scaling for nm in hassian_sigmas_nm]
+        sigmas = [nm / self.pixel_to_nm_scaling for nm in hessian_sigmas_nm]
         hessian_result = hessian(self.image, black_ridges=True, sigmas=sigmas)
 
         # Clean the Hessian result
@@ -1169,20 +1170,20 @@ class Grains:
         for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.mask_images[direction] = {}
-            if self.use_hessian:
+            if self.segmentation_method == "hessian":
                 # Split ridges using the Hessian method
-                hassian_full_mask_tensor = self.split_ridges(
+                hessian_full_mask_tensor = self.split_ridges(
                     open_at_start=self.open_at_start,
                     opening_iterations_at_end=self.opening_iterations_at_end,
                     closing_iterations_at_end=self.closing_iterations_at_end,
-                    hassian_sigmas_nm=self.hassian_sigmas_nm,
+                    hessian_sigmas_nm=self.hessian_sigmas_nm,
                     small_holes_threshold=self.small_holes_threshold,
                     gaussian_blurring_sigma=self.gaussian_blurring_sigma,
                     opening_radius=self.opening_radius,
                     closing_radius=self.closing_radius,
                 )
-                traditional_full_mask_tensor = hassian_full_mask_tensor
-            else:
+                traditional_full_mask_tensor = hessian_full_mask_tensor
+            elif self.segmentation_method == "thresholding":
                 # iterate over the thresholds for the current direction
                 direction_thresholds = self.thresholds[direction]
                 traditional_full_mask_tensor = Grains.multi_class_thresholding(
@@ -1191,8 +1192,12 @@ class Grains:
                     threshold_direction=direction,
                     image_name=self.filename,
                 )
+            else:
+                raise ValueError(
+                    f"Unknown traditional segmentation method: {self.segmentation_method}"
+                )
 
-                self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+            self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
             # pre-GrainCrop checks
 

@@ -32,6 +32,8 @@ grains:
   run: true # Options : true, false
   # Thresholding by height
   grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
+  segmentation_method: thresholding # Options : hessian, thresholding
+  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
   threshold_std_dev:
@@ -40,7 +42,15 @@ grains:
   threshold_absolute:
     below: [-1.0] # Thresholds for grains below the image background. List[float].
     above: [1.0] # Thresholds for grains above the image background. List[float].
-  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
+  hessian_ridge_detection_params:
+    open_at_start: true # Whether to open the mask at the start
+    opening_iterations_at_end: 2  # Number of iterations to open the mask at the end
+    closing_iterations_at_end: 1  # Number of iterations to close the mask at the end
+    opening_radius: 0.4  # The radius of the opening to apply to the mask in nm. This is used to remove small features that may be noise.
+    closing_radius: 0.3  # The radius of the closing to apply to the mask in nm. This is used to remove small features that may be noise.
+    hessian_sigmas_nm: [0.6, 1.1, 1.5, 2.0, 2.2] # List of sigmas to use for Hessian ridge detection in nanometres. This should be clustered around the expected width of strands
+    small_holes_threshold: 9.0  # Threshold for small holes in nm^2 to be filled in the mask
+    gaussian_blurring_sigma: 0.0  # The sigma of the Gaussian blurring to apply to the mask before Hessian ridge detection in nm^2.
   area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
