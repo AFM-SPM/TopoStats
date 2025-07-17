@@ -270,6 +270,13 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "hessian_sigmas_nm": [float],
                 "small_holes_threshold": float,
                 "gaussian_blurring_sigma": float,
+                "use_safe_opening": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'hessian_ridge_detection_params.use_safe_opening', valid values are 'True' or 'False'",
+                ),
+                "safe_area_threshold": float,
+                "max_ratio_of_width_to_length": float,
             },
             "classes_to_merge": Or(
                 None,

@@ -44,13 +44,16 @@ grains:
     above: [1.0] # Thresholds for grains above the image background. List[float].
   hessian_ridge_detection_params:
     open_at_start: true # Whether to open the mask at the start
-    opening_iterations_at_end: 2  # Number of iterations to open the mask at the end
-    closing_iterations_at_end: 1  # Number of iterations to close the mask at the end
-    opening_radius: 0.4  # The radius of the opening to apply to the mask in nm. This is used to remove small features that may be noise.
+    opening_iterations_at_end: 1  # Number of iterations to open the mask at the end
+    closing_iterations_at_end: 0  # Number of iterations to close the mask at the end
+    use_safe_opening: false # Whether to use the safe opening method. Recommended for high opening radius values.
+    safe_area_threshold: 2.0  # The area threshold in nm^2 to use for the safe opening method. This is used to maintain large objects that would be removed in opening.
+    max_ratio_of_width_to_length: 1.0  # The maximum ratio of width to length to use for the safe opening method. This is used to only filter out narrow connecting strands
+    opening_radius: 0.6  # The radius of the opening to apply to the mask in nm. This is used to remove small features that may be noise.
     closing_radius: 0.3  # The radius of the closing to apply to the mask in nm. This is used to remove small features that may be noise.
     hessian_sigmas_nm: [0.6, 1.1, 1.5, 2.0, 2.2] # List of sigmas to use for Hessian ridge detection in nanometres. This should be clustered around the expected width of strands
     small_holes_threshold: 9.0  # Threshold for small holes in nm^2 to be filled in the mask
-    gaussian_blurring_sigma: 0.0  # The sigma of the Gaussian blurring to apply to the mask before Hessian ridge detection in nm^2.
+    gaussian_blurring_sigma: 0.0  # The sigma of the Gaussian blurring to apply to the mask after Hessian ridge detection in nm^2. This is used to smooth the mask but is likely to reverse some of the benefit of the ridge separation, even on low values.
   area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
