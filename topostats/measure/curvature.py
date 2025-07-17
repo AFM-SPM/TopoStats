@@ -42,6 +42,49 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
     return angle
 
 
+def total_turn_in_region_radians(
+    trace: npt.NDArray[np.number],
+) -> tuple[float, float]:
+    """
+    Calculate the total turn in radians for a trace.
+
+    Parameters
+    ----------
+    trace : npt.NDArray[np.number]
+        The coordinate trace, in nanometre units.
+
+    Returns
+    -------
+    tuple[float, float]
+        The total left turn and total right turn in radians.
+    """
+    total_left_turn = 0.0
+    total_right_turn = 0.0
+
+    for index, point in enumerate(trace):
+        if index == 0:
+            # no previous point so no angle
+            continue
+        elif index == trace.shape[0] - 1:
+            # no next point so no angle
+            continue
+        else:
+            v1 = point - trace[index - 1]
+            v2 = trace[index + 1] - point
+
+            angle = angle_diff_signed(
+                v1 / np.linalg.norm(v1),
+                v2 / np.linalg.norm(v2),
+            )
+
+            if angle > 0:
+                total_right_turn += angle
+            else:
+                total_left_turn += angle
+
+    return total_left_turn, total_right_turn
+
+
 def discrete_angle_difference_per_nm_circular(
     trace_nm: npt.NDArray[np.number],
 ) -> npt.NDArray[np.number]:
