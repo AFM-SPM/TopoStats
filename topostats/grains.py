@@ -1083,6 +1083,7 @@ class Grains:
         """
         if hessian_sigmas_nm is None:
             hessian_sigmas_nm = [1, 2, 3]
+        # Use Li thresholding to create a binary mask of the image
         threshold = threshold_li(self.image)
         threshold_li_result = self.binarize(self.image > threshold)
 
@@ -1090,7 +1091,7 @@ class Grains:
         sigmas = [nm / self.pixel_to_nm_scaling for nm in hessian_sigmas_nm]
         hessian_result = hessian(self.image, black_ridges=True, sigmas=sigmas)
 
-        # Clean the Hessian result
+        # Clean the Hessian result by thresholding to a binary image
         cleaned_hessian = self.binarize(hessian_result)
 
         # Apply opening to the Hessian result if specified
@@ -1102,54 +1103,40 @@ class Grains:
             final_hessian = cleaned_hessian
 
         # Remove black borders (by filling in white background) by applying a mask
-        final = final_hessian * threshold_li_result
+        ridges_split = final_hessian * threshold_li_result
 
-        self.save_for_testing(final, "final.png")
-
-        # Remove small holes if specified
+        # Remove small holes if specified. This is so that the binary opening does not create small holes
         if small_holes_threshold > 0:
-            final = remove_small_holes(
-                final.astype(bool), area_threshold=np.floor(small_holes_threshold / self.pixel_to_nm_scaling)
+            ridges_split = remove_small_holes(
+                ridges_split.astype(bool), area_threshold=np.floor(small_holes_threshold / self.pixel_to_nm_scaling)
             ).astype(np.uint8)
-            self.save_for_testing(final, "small_holes.png")
 
-        # Apply opening and closing operations to the final result if specified
-        if opening_iterations_at_end > 0:
-            final = binary_opening(final, disk(np.floor(opening_radius / self.pixel_to_nm_scaling)))
+        # Perform closing and opening alternatively to smooth the result the number of times specified
+        while closing_iterations_at_end > 0 and opening_iterations_at_end > 0:
+            ridges_split = binary_opening(ridges_split, disk(np.floor(opening_radius / self.pixel_to_nm_scaling)))
             opening_iterations_at_end -= 1
-        self.save_for_testing(final, "final_opened.png")
-        if closing_iterations_at_end > 0:
-            final = binary_closing(final, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
+            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
-        self.save_for_testing(final, "final_closed.png")
 
-        ridges_split = threshold_li_result * final
-        self.save_for_testing(ridges_split, "masked.png")
-
-        # Perform closing and opening to smooth the result
-        if closing_iterations_at_end > 0:
-            ridges_split = closing(ridges_split, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
-            closing_iterations_at_end -= 1
-        print(f"Opening radius: {np.floor(opening_radius * self.pixel_to_nm_scaling)}")
-        opened = binary_opening(ridges_split, disk(np.floor(opening_radius / self.pixel_to_nm_scaling)))
-        closed = opened.copy()
+        # If there are still iterations left (if more opening needs to be done than closing or vice versa), apply them at the end
+        while opening_iterations_at_end > 0:
+            ridges_split = binary_opening(ridges_split, disk(np.floor(opening_radius / self.pixel_to_nm_scaling)))
+            opening_iterations_at_end -= 1
         while closing_iterations_at_end > 0:
-            closed = binary_closing(closed, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
+            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
 
-        opened = remove_small_holes(
-            opened.astype(bool), area_threshold=np.floor(small_holes_threshold / (self.pixel_to_nm_scaling**2))
-        ).astype(np.uint8)
-        self.save_for_testing(opened, "opened.png")
+        # Again remove small holes in the mask tensor if specified. These can sometimes be created from the binary opening
+        if small_holes_threshold > 0:
+            ridges_split = remove_small_holes(
+                ridges_split.astype(bool), area_threshold=np.floor(small_holes_threshold / (self.pixel_to_nm_scaling**2))
+            ).astype(np.uint8)
 
         # Apply Gaussian blurring to further smooth the result
         if gaussian_blurring_sigma > 0:
-            opened = gaussian(opened, sigma=gaussian_blurring_sigma / self.pixel_to_nm_scaling)
-            # np.set_printoptions(threshold=np.inf)
-            # print(f"[{self.filename}] : Gaussian blurring applied {opened.shape} {opened.dtype} {opened}")
-            self.save_for_testing(opened, "opened_gaussian.png")
+            ridges_split = gaussian(ridges_split, sigma=gaussian_blurring_sigma / self.pixel_to_nm_scaling)
 
-        return np.stack((1 - opened, opened), axis=-1)
+        return np.stack(arrays=(1 - ridges_split, ridges_split), axis=-1)
 
     # Sylvia: This function is more readable and easier to work on if we don't split it up into smaller functions.
     # pylint: disable=too-many-branches
@@ -1228,18 +1215,6 @@ class Grains:
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
-            if self.segmentation_method == "hessian":
-                # Remove small holes in the mask tensor
-                # This is done after the area thresholding to not remove small holes that are actually grains
-                # but rather remove small holes that are not grains.
-                traditional_full_mask_tensor = remove_small_holes(
-                    traditional_full_mask_tensor[:, :, 1].astype(bool),
-                    area_threshold=np.floor(self.small_holes_threshold / (self.pixel_to_nm_scaling**2)),
-                ).astype(np.uint8)
-                traditional_full_mask_tensor[:, :, 0] = 1 - traditional_full_mask_tensor[:, :, 1]
-
-            self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
-            np.save(f"hessian_results/{self.filename}_hessian.npy", traditional_full_mask_tensor[:, :, 1])
 
             print(f"[{self.filename}] : Traditional shape: {traditional_full_mask_tensor.shape}")
             # Extract GrainCrops from the full mask tensor
