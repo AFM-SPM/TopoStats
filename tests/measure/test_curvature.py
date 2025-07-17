@@ -7,6 +7,7 @@ import pytest
 from topostats.io import dict_almost_equal
 from topostats.measure.curvature import (
     angle_diff_signed,
+    total_turn_in_region_radians,
     calculate_curvature_stats_image,
     discrete_angle_difference_per_nm_circular,
     discrete_angle_difference_per_nm_linear,
@@ -32,6 +33,30 @@ from topostats.measure.curvature import (
 def test_angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number], expected_angle: float) -> None:
     """Test the signed angle difference calculation."""
     assert angle_diff_signed(v1, v2) == expected_angle
+
+
+@pytest.mark.parametrize(
+    ("trace", "expected_angles"),
+    [
+        pytest.param(np.array([]), (0.0, 0.0), id="empty trace"),
+        pytest.param(np.array([[1, 0]]), (0.0, 0.0), id="single point"),
+        pytest.param(np.array([[1, 0], [1, 1]]), (0.0, 0.0), id="two points"),
+        pytest.param(np.array([[1, 0], [1, 1], [0, 1]]), (0.0, np.pi / 2), id="three points, right turn"),
+        pytest.param(
+            np.array([[1, 0], [1, 1], [0, 1], [0, 2]]),
+            (np.pi / 2, np.pi / 2),
+            id="four points, right turn then left turn",
+        ),
+    ],
+)
+def test_total_turn_in_region_radians(
+    trace: npt.NDArray[np.number],
+    expected_angles: tuple[float, float],
+) -> None:
+    """Test the total turn in region radians function."""
+    total_left_turn, total_right_turn = total_turn_in_region_radians(trace)
+    assert total_left_turn == expected_angles[0]
+    assert total_right_turn == expected_angles[1]
 
 
 @pytest.mark.parametrize(
