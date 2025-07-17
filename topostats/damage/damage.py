@@ -1,6 +1,7 @@
 """Functions for damage detection and quantification."""
 
 from dataclasses import dataclass
+from topostats.measure.curvature import total_turn_in_region_radians
 import numpy as np
 import numpy.typing as npt
 
@@ -23,6 +24,7 @@ class Defect:
     end_index: int
     length_nm: float
     position_along_trace_nm: float
+    total_turn_radians: tuple[float, float]
 
 
 @dataclass
@@ -43,6 +45,7 @@ class DefectGap:
     end_index: int
     length_nm: float
     position_along_trace_nm: float
+    total_turn_radians: tuple[float, float]
 
 
 class OrderedDefectGapList:
@@ -104,6 +107,10 @@ class OrderedDefectGapList:
             ):
                 return False
 
+            # Check if total turns are approximately equal (with tolerance for floating-point errors)
+            if not np.isclose(self_item.total_turn_radians, other_item.total_turn_radians, rtol=1e-9, atol=1e-12):
+                return False
+
         return True
 
 
@@ -116,8 +123,14 @@ def get_defects_and_gaps_linear(
     ----------
     defects_bool : npt.NDArray[np.bool_]
         A boolean array where True indicates a defect and False indicates no defect.
+
     Returns
     -------
+    tuple[list[tuple[int, int]], list[tuple[int, int]]]
+        A tuple containing two lists:
+        - The defects as a list of tuples of start and end indexes.
+        - The gaps as a list of tuples of start and end indexes.
+        Note: the end index is inclusive, so the defect or gap includes the point at the end index.
     """
     defects: list[tuple[int, int]] = []
     gaps: list[tuple[int, int]] = []
@@ -310,25 +323,77 @@ def calculate_distance_of_region(
 
 def get_defects_and_gaps_from_bool_array(
     defects_bool: npt.NDArray[np.bool_],
+    trace_points_nm: npt.NDArray[np.number],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
 ) -> OrderedDefectGapList:
-    """Get the Defects and DefectGaps from a boolean array of defects and gaps."""
+    """Get the Defects and DefectGaps from a boolean array of defects and gaps.
+
+    Parameters
+    ----------
+    defects_bool : npt.NDArray[np.bool_]
+        A boolean array where True indicates a defect and False indicates no defect.
+    trace_points : npt.NDArray[np.number]
+        The coordinate trace points in nanometre units.
+    circular : bool
+        If True, the trace is treated as circular, meaning that the end of the trace wraps around to the start.
+        If False, the trace is treated as linear, meaning that the end of the trace does not wrap around to the start.
+    distance_to_previous_points_nm : npt.NDArray[np.float64]
+        An array of distances to the previous points in nanometers. This is used to calculate the lengths of the
+        defects and gaps.
+
+    Returns
+    -------
+    OrderedDefectGapList
+        An ordered list of Defect and DefectGap objects, sorted by the start index of the defect or gap.
+    """
 
     if circular:
-        defects_without_lengths, gaps_without_lengths = get_defects_and_gaps_circular(defects_bool=defects_bool)
+        defects, gaps = get_defects_and_gaps_circular(defects_bool=defects_bool)
     else:
-        defects_without_lengths, gaps_without_lengths = get_defects_and_gaps_linear(defects_bool=defects_bool)
+        defects, gaps = get_defects_and_gaps_linear(defects_bool=defects_bool)
 
     # Calculate the lengths of the defects and gaps
     defect_gap_list = calculate_defect_and_gap_lengths(
         distance_to_previous_points_nm,
-        defects_without_lengths,
-        gaps_without_lengths,
+        defects,
+        gaps,
         circular,
     )
 
-    return defect_gap_list
+    # Calculate the total turns for the defects and gaps
+    defect_gap_list_with_turns = calculate_defect_and_gap_turns(
+        defects=defect_gap_list,
+        trace_points=trace_points_nm,
+        circular=circular,
+    )
+
+    # Create an OrderedDefectGapList and add the defects and gaps
+    ordered_defect_gap_list = OrderedDefectGapList()
+    for defect_or_gap in defect_gap_list_with_turns:
+        type_of_region, start_index, end_index, length_nm, position_along_trace_nm, total_turn_radians = defect_or_gap
+        if type_of_region == "defect":
+            ordered_defect_gap_list.add_item(
+                Defect(
+                    start_index=start_index,
+                    end_index=end_index,
+                    length_nm=length_nm,
+                    position_along_trace_nm=position_along_trace_nm,
+                    total_turn_radians=total_turn_radians,
+                )
+            )
+        elif type_of_region == "gap":
+            ordered_defect_gap_list.add_item(
+                DefectGap(
+                    start_index=start_index,
+                    end_index=end_index,
+                    length_nm=length_nm,
+                    position_along_trace_nm=position_along_trace_nm,
+                    total_turn_radians=total_turn_radians,
+                )
+            )
+
+    return ordered_defect_gap_list
 
 
 def get_midpoint_index_of_region(
@@ -382,9 +447,9 @@ def calculate_defect_and_gap_lengths(
     defects_without_lengths: list[tuple[int, int]],
     gaps_without_lengths: list[tuple[int, int]],
     circular: bool,
-) -> OrderedDefectGapList:
+) -> list[tuple[str, int, int, float, float]]:
     """Calculate the lengths of the defects and gaps."""
-    defect_gap_list = OrderedDefectGapList()
+    defects_and_gaps: list[tuple[str, int, int, float, float]] = []
 
     # Calculate the lengths of the defects
     for start_index, end_index in defects_without_lengths:
@@ -407,12 +472,13 @@ def calculate_defect_and_gap_lengths(
         # sum indexes from 1 to midpoint_index (inclusive)
         position_along_trace_nm = np.sum(distance_to_previous_points_nm[1 : midpoint_index + 1])
 
-        defect_gap_list.add_item(
-            Defect(
-                start_index=start_index,
-                end_index=end_index,
-                length_nm=length_nm,
-                position_along_trace_nm=position_along_trace_nm,
+        defects_and_gaps.append(
+            (
+                "defect",
+                start_index,
+                end_index,
+                length_nm,
+                position_along_trace_nm,
             )
         )
 
@@ -436,16 +502,76 @@ def calculate_defect_and_gap_lengths(
         # to ignore this initial value. If linear, then the initial value is zero, and we can ignore it.
         # sum indexes from 1 to midpoint_index (inclusive)
         position_along_trace_nm = np.sum(distance_to_previous_points_nm[1 : midpoint_index + 1])
-        defect_gap_list.add_item(
-            DefectGap(
-                start_index=start_index,
-                end_index=end_index,
-                length_nm=length_nm,
-                position_along_trace_nm=position_along_trace_nm,
+
+        defects_and_gaps.append(
+            (
+                "gap",
+                start_index,
+                end_index,
+                length_nm,
+                position_along_trace_nm,
             )
         )
 
-    return defect_gap_list
+    return defects_and_gaps
+
+
+def calculate_defect_and_gap_turns(
+    defects: list[tuple[str, int, int, float, float]],
+    trace_points: npt.NDArray[np.number],
+    circular: bool,
+) -> list[tuple[str, int, int, float, float, tuple[float, float]]]:
+    """Calculate the total turn in radians for each defect and gap.
+
+    Parameters
+    ----------
+    defects : list[tuple[str, int, int, float, float]]
+        A list of tuples containing the defect or gap type, start index, end index, length in nm, and position along
+        trace in nm.
+    trace_points : npt.NDArray[np.number]
+        The coordinate trace points in nanometre units.
+    circular : bool
+        If True, the trace is treated as circular, meaning that the end of the trace wraps around to the start.
+        If False, the trace is treated as linear, meaning that the end of the trace does not wrap around to the start.
+
+    Returns
+    -------
+    list[tuple[str, int, int, float, float, tuple[float, float]]]
+        A list of tuples containing the defect or gap type, start index, end index, length in nm, position along trace
+        in nm, and a tuple of total left turn and total right turn in radians.
+    """
+    defects_and_gaps_with_turns = []
+
+    for defect_or_gap in defects:
+        type_of_region, start_index, end_index, length_nm, position_along_trace_nm = defect_or_gap
+        # Get the trace points for
+        # the region
+        if start_index <= end_index:
+            trace_region = trace_points[start_index : end_index + 1]
+        else:
+            if not circular:
+                raise ValueError(
+                    f"Cannot calculate turns for region {start_index} to {end_index} in a linear array. "
+                    "Start index cannot be greater than end index in a linear array."
+                )
+            # The region wraps around the end of the array
+            trace_region = np.concatenate((trace_points[start_index:], trace_points[: end_index + 1]))
+        # Calculate the total turn in radians for the region
+        total_left_turn, total_right_turn = total_turn_in_region_radians(trace=trace_region)
+
+        # Append the defect or gap with the total turn
+        defects_and_gaps_with_turns.append(
+            (
+                type_of_region,
+                start_index,
+                end_index,
+                length_nm,
+                position_along_trace_nm,
+                (total_left_turn, total_right_turn),
+            )
+        )
+
+    return defects_and_gaps_with_turns
 
 
 def calculate_indirect_defect_gaps(
