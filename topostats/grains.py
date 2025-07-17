@@ -1010,7 +1010,8 @@ class Grains:
 
         return Grains.update_background_class(grain_mask_tensor)
 
-    def binarize(self, image, threshold=0.1):
+    @staticmethod
+    def binarize(image: npt.NDArray, threshold: float = 0.1):
         """
         Binarize an image based on a threshold.
 
@@ -1029,7 +1030,8 @@ class Grains:
         cleaned = np.where(image <= threshold, 0, 1)
         return cleaned.astype(np.uint8)
 
-    def save_for_testing(self, image, filename: str) -> None:
+    @staticmethod
+    def save_for_testing(image: npt.NDArray, filename: str) -> None:
         """
         Save an image for testing purposes.
 
@@ -1046,12 +1048,12 @@ class Grains:
         img = Image.fromarray(uint8_array)
         img.save(filename)
 
+    @staticmethod
     def safe_opening(
-        self,
         image: np.ndarray,
         radius: float = 1.0,
         safe_area_threshold: float = 2.0,
-        max_ratio_of_width_to_length: float = 1
+        max_ratio_of_width_to_length: float = 1.0,
     ) -> np.ndarray:
         """
         Apply a safe opening operation to the image.
@@ -1081,18 +1083,23 @@ class Grains:
         for i, prop in enumerate(props):
             if prop.major_axis_length == 0:
                 continue
-            if prop.area > safe_area_threshold / (self.pixel_to_nm_scaling ** 2) or (prop.area / (prop.major_axis_length**2)) > max_ratio_of_width_to_length:
+            if (
+                prop.area > safe_area_threshold / (self.pixel_to_nm_scaling**2)
+                or (prop.area / (prop.major_axis_length**2)) > max_ratio_of_width_to_length
+            ):
                 # Remove the large object from the removal mask so it will remain in the image
                 removed[labels == i + 1] = 0
         return image - removed
-    
+
+    @staticmethod
     def apply_opening(
-        self,
         image: np.ndarray,
+        pixel_to_nm_scaling: float = 1.0,
         radius: float = 1.0,
         use_safe_opening: bool = True,
         safe_area_threshold: float = 2.0,
-        max_ratio_of_width_to_length: float = 1):
+        max_ratio_of_width_to_length: float = 1.0,
+    ):
         """
         Apply an opening operation to the image.
 
@@ -1100,6 +1107,8 @@ class Grains:
         ----------
         image : np.ndarray
             Numpy array of the image to process.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
         radius : float
             Radius for the opening operation in nanometers.
         use_safe_opening : bool
@@ -1115,18 +1124,20 @@ class Grains:
             Numpy array of the processed image after opening.
         """
         if use_safe_opening:
-            image = self.safe_opening(
+            image = Grains.safe_opening(
                 image,
-                radius=np.floor(radius / self.pixel_to_nm_scaling),
+                radius=np.floor(radius / pixel_to_nm_scaling),
                 safe_area_threshold=safe_area_threshold,
-                max_ratio_of_width_to_length=max_ratio_of_width_to_length
+                max_ratio_of_width_to_length=max_ratio_of_width_to_length,
             )
         else:
-            image = binary_opening(image, disk(np.floor(radius / self.pixel_to_nm_scaling))).astype(np.uint8)
+            image = binary_opening(image, disk(np.floor(radius / pixel_to_nm_scaling))).astype(np.uint8)
         return image
 
+    @staticmethod
     def split_ridges(
-        self,
+        image: npt.NDArray[np.float64],
+        pixel_to_nm_scaling: float = 1.0,
         open_at_start: bool = True,
         closing_iterations_at_end: int = 1,
         opening_iterations_at_end: int = 1,
@@ -1137,13 +1148,17 @@ class Grains:
         closing_radius: float = 2.0,
         use_safe_opening: bool = True,
         safe_area_threshold: float = 2.0,
-        max_ratio_of_width_to_length: float = 1.0
-    ) -> npt.NDArray:
+        max_ratio_of_width_to_length: float = 1.0,
+    ) -> npt.NDArray[np.bool_]:
         """
         Split ridges in the image using Hessian matrix and binary opening.
 
         Parameters
         ----------
+        image : npt.NDArray[np.float64]
+            Numpy array of the image to process.
+        pixel_to_nm_scaling : float
+            Scaling of pixels to nanometres.
         open_at_start : bool
             Whether to apply opening to the Hessian result at the start.
         closing_iterations_at_end : int
@@ -1160,6 +1175,12 @@ class Grains:
             Radius for the opening operation in nanometers.
         closing_radius : float
             Radius for the closing operation in nanometers.
+        use_safe_opening : bool
+            Whether to use the safe opening method or the standard binary opening.
+        safe_area_threshold : float
+            Threshold for the area of the objects to be removed in nanometers squared.
+        max_ratio_of_width_to_length : float
+            Maximum ratio of width to length for the objects to be removed.
 
         Returns
         -------
@@ -1169,20 +1190,21 @@ class Grains:
         if hessian_sigmas_nm is None:
             hessian_sigmas_nm = [1, 2, 3]
         # Use Li thresholding to create a binary mask of the image
-        threshold = threshold_li(self.image)
-        threshold_li_result = self.binarize(self.image > threshold)
+        threshold = threshold_li(image)
+        threshold_li_result = Grains.binarize(image > threshold)
 
         # Compute the Hessian matrix to split ridges
-        sigmas = [nm / self.pixel_to_nm_scaling for nm in hessian_sigmas_nm]
-        hessian_result = hessian(self.image, black_ridges=True, sigmas=sigmas)
+        sigmas = [nm / pixel_to_nm_scaling for nm in hessian_sigmas_nm]
+        hessian_result = hessian(image, black_ridges=True, sigmas=sigmas)
 
         # Clean the Hessian result by thresholding to a binary image
-        cleaned_hessian = self.binarize(hessian_result)
+        cleaned_hessian = Grains.binarize(hessian_result)
 
         # Apply opening to the Hessian result if specified
         if open_at_start:
-            final_hessian = self.apply_opening(
+            final_hessian = Grains.apply_opening(
                 cleaned_hessian,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 radius=opening_radius,
                 use_safe_opening=use_safe_opening,
                 safe_area_threshold=safe_area_threshold,
@@ -1197,26 +1219,28 @@ class Grains:
         # Remove small holes if specified. This is so that the binary opening does not create small holes
         if small_holes_threshold > 0:
             ridges_split = remove_small_holes(
-                ridges_split.astype(bool), area_threshold=np.floor(small_holes_threshold / self.pixel_to_nm_scaling)
+                ridges_split.astype(bool), area_threshold=np.floor(small_holes_threshold / pixel_to_nm_scaling)
             ).astype(np.uint8)
 
         # Perform closing and opening alternatively to smooth the result the number of times specified
         while closing_iterations_at_end > 0 and opening_iterations_at_end > 0:
-            ridges_split = self.apply_opening(
-                ridges_split,
+            ridges_split = Grains.apply_opening(
+                image=ridges_split,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 radius=opening_radius,
                 use_safe_opening=use_safe_opening,
                 safe_area_threshold=safe_area_threshold,
                 max_ratio_of_width_to_length=max_ratio_of_width_to_length,
             )
             opening_iterations_at_end -= 1
-            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
+            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
 
         # If there are still iterations left (if more opening needs to be done than closing or vice versa), apply them at the end
         while opening_iterations_at_end > 0:
-            ridges_split = self.apply_opening(
-                ridges_split,
+            ridges_split = Grains.apply_opening(
+                image=ridges_split,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
                 radius=opening_radius,
                 use_safe_opening=use_safe_opening,
                 safe_area_threshold=safe_area_threshold,
@@ -1224,19 +1248,19 @@ class Grains:
             )
             opening_iterations_at_end -= 1
         while closing_iterations_at_end > 0:
-            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / self.pixel_to_nm_scaling)))
+            ridges_split = binary_closing(ridges_split, disk(np.floor(closing_radius / pixel_to_nm_scaling)))
             closing_iterations_at_end -= 1
 
         # Again remove small holes in the mask tensor if specified. These can sometimes be created from the binary opening
         if small_holes_threshold > 0:
             ridges_split = remove_small_holes(
                 ridges_split.astype(bool),
-                area_threshold=np.floor(small_holes_threshold / (self.pixel_to_nm_scaling**2)),
+                area_threshold=np.floor(small_holes_threshold / (pixel_to_nm_scaling**2)),
             ).astype(np.uint8)
 
         # Apply Gaussian blurring to further smooth the result
         if gaussian_blurring_sigma > 0:
-            ridges_split = gaussian(ridges_split, sigma=gaussian_blurring_sigma / self.pixel_to_nm_scaling)
+            ridges_split = gaussian(ridges_split, sigma=gaussian_blurring_sigma / pixel_to_nm_scaling)
 
         return np.stack(arrays=(1 - ridges_split, ridges_split), axis=-1)
 
@@ -1266,11 +1290,13 @@ class Grains:
             if self.segmentation_method == "hessian":
                 # Split ridges using the Hessian method
                 hessian_full_mask_tensor = self.split_ridges(
+                    image=self.image,
+                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                     open_at_start=self.open_at_start,
                     opening_iterations_at_end=self.opening_iterations_at_end,
                     closing_iterations_at_end=self.closing_iterations_at_end,
-                    hessian_sigmas_nm=self.hessian_sigmas_nm,
                     small_holes_threshold=self.small_holes_threshold,
+                    hessian_sigmas_nm=self.hessian_sigmas_nm,
                     gaussian_blurring_sigma=self.gaussian_blurring_sigma,
                     opening_radius=self.opening_radius,
                     closing_radius=self.closing_radius,
