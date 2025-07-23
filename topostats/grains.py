@@ -1285,7 +1285,9 @@ class Grains:
             threshold_std_dev=self.threshold_std_dev,
             absolute=self.threshold_absolute,
         )
-        np.save("/Users/sylviawhittleadmin/aran/TopoStats/tests/resources/ridges_test_images/test_image_1.npy", self.image)
+        np.save(
+            "/Users/sylviawhittleadmin/aran/TopoStats/tests/resources/ridges_test_images/test_image_1.npy", self.image
+        )
 
         # Set parameters to default for testing
 
