@@ -804,6 +804,9 @@ class Grains:
                 "gaussian_blurring_sigma": 0.0,
                 "opening_radius": 2.0,
                 "closing_radius": 2.0,
+                "use_safe_opening": False,
+                "safe_area_threshold": 0.0,
+                "max_ratio_of_width_to_length": 1.0,
             }
         else:
             self.open_at_start = hessian_ridge_detection_params["open_at_start"]
@@ -1011,6 +1014,24 @@ class Grains:
         return Grains.update_background_class(grain_mask_tensor)
 
     @staticmethod
+    def save_for_testing(image: npt.NDArray, filename: str) -> None:
+        """
+        Save an image for testing purposes.
+
+        Parameters
+        ----------
+        image : npt.NDArray
+            Numpy array of the image to save.
+        filename : str
+            Filename to save the image as.
+        """
+        uint8_array = (image * 255).astype(np.uint8)
+
+        # Save using PIL
+        img = Image.fromarray(uint8_array)
+        img.save(filename)
+
+    @staticmethod
     def binarize(image: npt.NDArray, threshold: float = 0.1):
         """
         Binarize an image based on a threshold.
@@ -1031,29 +1052,12 @@ class Grains:
         return cleaned.astype(np.uint8)
 
     @staticmethod
-    def save_for_testing(image: npt.NDArray, filename: str) -> None:
-        """
-        Save an image for testing purposes.
-
-        Parameters
-        ----------
-        image : npt.NDArray
-            Numpy array of the image to save.
-        filename : str
-            Filename to save the image as.
-        """
-        uint8_array = (image * 255).astype(np.uint8)
-
-        # Save using PIL
-        img = Image.fromarray(uint8_array)
-        img.save(filename)
-
-    @staticmethod
     def safe_opening(
         image: np.ndarray,
         radius: float = 1.0,
         safe_area_threshold: float = 2.0,
         max_ratio_of_width_to_length: float = 1.0,
+        pixel_to_nm_scaling: float = 1.0,
     ) -> np.ndarray:
         """
         Apply a safe opening operation to the image.
@@ -1084,7 +1088,7 @@ class Grains:
             if prop.major_axis_length == 0:
                 continue
             if (
-                prop.area > safe_area_threshold / (self.pixel_to_nm_scaling**2)
+                prop.area > safe_area_threshold / (pixel_to_nm_scaling**2)
                 or (prop.area / (prop.major_axis_length**2)) > max_ratio_of_width_to_length
             ):
                 # Remove the large object from the removal mask so it will remain in the image
@@ -1129,6 +1133,7 @@ class Grains:
                 radius=np.floor(radius / pixel_to_nm_scaling),
                 safe_area_threshold=safe_area_threshold,
                 max_ratio_of_width_to_length=max_ratio_of_width_to_length,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
             )
         else:
             image = binary_opening(image, disk(np.floor(radius / pixel_to_nm_scaling))).astype(np.uint8)
@@ -1185,7 +1190,8 @@ class Grains:
         Returns
         -------
         npt.NDArray
-            Numpy array of the full mask tensor with ridges split.
+            Numpy array of the full mask tensor with ridges split. The tensor is made of two 2D arrays, one being the
+            identified shapes and the other being the background (the reverse of that).
         """
         if hessian_sigmas_nm is None:
             hessian_sigmas_nm = [1, 2, 3]
@@ -1279,6 +1285,7 @@ class Grains:
             threshold_std_dev=self.threshold_std_dev,
             absolute=self.threshold_absolute,
         )
+        np.save("/Users/sylviawhittleadmin/aran/TopoStats/tests/resources/ridges_test_images/test_image_1.npy", self.image)
 
         # Set parameters to default for testing
 

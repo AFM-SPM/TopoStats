@@ -6562,3 +6562,90 @@ def test_remove_disconnected_grains(
     )
 
     np.testing.assert_array_equal(result_grain_tensor, expected_result_grain_tensor)
+
+@pytest.mark.parametrize(
+    ("image", "pixel_to_nm_scaling", "open_at_start", "closing_iterations_at_end",
+     "opening_iterations_at_end", "small_holes_threshold", "hessian_sigmas_nm",
+     "gaussian_blurring_sigma", "opening_radius", "closing_radius", "use_safe_opening",
+     "safe_area_threshold", "max_ratio_of_width_to_length", "expected_result"),
+    [
+        pytest.param(
+            # image
+            np.load("resources/ridges_test_images/test_image_1.npy"),
+            # pixel_to_nm_scaling
+            2.0,
+            # open_at_start
+            True,
+            # closing_iterations_at_end
+            2,
+            # opening_iterations_at_end
+            1,
+            # small_holes_threshold
+            1,
+            # hessian_sigmas_nm
+            [1, 2],
+            # gaussian_blurring_sigma
+            0.0,
+            # opening_radius
+            0.5,
+            # closing_radius
+            0.5,
+            # use_safe_opening
+            False,
+            # safe_area_threshold
+            0.1,
+            # max_ratio_of_width_to_length
+            2.0,
+            # expected_result
+            np.stack(
+                arrays=[
+                    ~np.array(
+                        np.load("resources/test_images/split_ridges_expected_image_1.npy"),
+                        dtype=np.bool_,
+                    ),
+                    np.array(
+                        np.load("resources/test_images/split_ridges_expected_image_1.npy"),
+                        dtype=np.bool_,
+                    ),
+                ],
+                axis=-1,
+            ),
+            id="testing function with good example",
+        )
+    ],
+)
+
+def test_split_ridges(
+    image: npt.NDArray[np.float64],
+    pixel_to_nm_scaling: float,
+    open_at_start: bool,
+    closing_iterations_at_end: int,
+    opening_iterations_at_end: int,
+    small_holes_threshold: int,
+    hessian_sigmas_nm: list[int] | None,
+    gaussian_blurring_sigma: float,
+    opening_radius: float,
+    closing_radius: float,
+    use_safe_opening: bool,
+    safe_area_threshold: float,
+    max_ratio_of_width_to_length: float,
+    expected_result: npt.NDArray[np.bool_],
+) -> None:
+    """Test the split_ridges method of the Grains class."""
+    result = Grains.split_ridges(
+        image=image,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        open_at_start=open_at_start,
+        closing_iterations_at_end=closing_iterations_at_end,
+        opening_iterations_at_end=opening_iterations_at_end,
+        small_holes_threshold=small_holes_threshold,
+        hessian_sigmas_nm=hessian_sigmas_nm,
+        gaussian_blurring_sigma=gaussian_blurring_sigma,
+        opening_radius=opening_radius,
+        closing_radius=closing_radius,
+        use_safe_opening=use_safe_opening,
+        safe_area_threshold=safe_area_threshold,
+        max_ratio_of_width_to_length=max_ratio_of_width_to_length,
+    )
+
+    np.testing.assert_array_equal(result, expected_result)
