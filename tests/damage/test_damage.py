@@ -13,6 +13,7 @@ from topostats.damage.damage import (
     get_defects_and_gaps_circular,
     get_defects_and_gaps_from_bool_array,
     get_defects_and_gaps_linear,
+    calculate_defect_and_gap_lengths,
 )
 
 
@@ -216,7 +217,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.bool_),
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 13.5, 5.0)]),
+            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 13.5, 5.0, (0.0, 0.0))]),
             id="no defects, all gap, linear",
         ),
         # Note this is a weird case where there isn't a start or end to the gap but we create one at the bounds
@@ -224,21 +225,21 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.bool_),
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 14.5, 5.0)]),
+            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 14.5, 5.0, (0.0, 0.0))]),
             id="no defects, all gap, circular",
         ),
         pytest.param(
             np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.bool_),
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 13.5, 5.0)]),
+            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 13.5, 5.0, (0.0, 0.0))]),
             id="all defects, no gap, linear",
         ),
         pytest.param(
             np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=np.bool_),
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 14.5, 5.0)]),
+            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 14.5, 5.0, (0.0, 0.0))]),
             id="all defects, no gap, circular",
         ),
         pytest.param(
@@ -247,9 +248,9 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 3, 4.3, 1.1),
-                    Defect(4, 4, 1.45, 5.0),
-                    DefectGap(5, 9, 7.75, 9.8),
+                    DefectGap(0, 3, 4.3, 1.1, (0.0, 0.0)),
+                    Defect(4, 4, 1.45, 5.0, (0.0, 0.0)),
+                    DefectGap(5, 9, 7.75, 9.8, (0.0, 0.0)),
                 ]
             ),
             id="one unit defect in middle, linear",
@@ -260,8 +261,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(4, 4, 1.45, 5.0),
-                    DefectGap(5, 3, 13.05, 13.5),
+                    Defect(4, 4, 1.45, 5.0, (0.0, 0.0)),
+                    DefectGap(5, 3, 13.05, 13.5, (0.0, 0.0)),
                 ]
             ),
             id="one unit defect in middle circular",
@@ -272,9 +273,9 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(0, 0, 0.55, 0.0),
-                    DefectGap(1, 8, 12, 5.0),
-                    Defect(9, 9, 0.95, 13.5),
+                    Defect(0, 0, 0.55, 0.0, (0.0, 0.0)),
+                    DefectGap(1, 8, 12, 5.0, (0.0, 0.0)),
+                    Defect(9, 9, 0.95, 13.5, (0.0, 0.0)),
                 ]
             ),
             id="two unit defects, at ends, linear",
@@ -283,7 +284,9 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 1], dtype=np.bool_),
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[DefectGap(1, 8, 12, 5.0), Defect(9, 0, 2.5, 13.5)]),
+            OrderedDefectGapList(
+                defect_gap_list=[DefectGap(1, 8, 12, 5.0, (0.0, 0.0)), Defect(9, 0, 2.5, 13.5, (0.0, 0.0))]
+            ),
             id="two unit defects at ends circular",
         ),
     ],
@@ -317,7 +320,7 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 9, 10, 0.0),
+                    DefectGap(0, 9, 10, 0.0, (0.0, 0.0)),
                 ],
             ),
             True,
@@ -327,7 +330,7 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 9, 10, 0.0),
+                    DefectGap(0, 9, 10, 0.0, (0.0, 0.0)),
                 ],
             ),
             False,
@@ -337,7 +340,7 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(0, 9, 9, 0.0),
+                    Defect(0, 9, 9, 0.0, (0.0, 0.0)),
                 ]
             ),
             False,
@@ -347,9 +350,9 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 4, 4, 0.0),
-                    Defect(5, 6, 1, 0.0),
-                    DefectGap(7, 8, 2, 0.0),
+                    DefectGap(0, 4, 4, 0.0, (0.0, 0.0)),
+                    Defect(5, 6, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(7, 8, 2, 0.0, (0.0, 0.0)),
                 ]
             ),
             False,
@@ -359,8 +362,8 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(5, 6, 1, 0.0),
-                    DefectGap(7, 8, 6, 0.0),
+                    Defect(5, 6, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(7, 8, 6, 0.0, (0.0, 0.0)),
                 ],
             ),
             True,
@@ -370,8 +373,8 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(0, 0, 1, 0.0),
-                    DefectGap(1, 9, 8, 0.0),
+                    Defect(0, 0, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(1, 9, 8, 0.0, (0.0, 0.0)),
                 ],
             ),
             False,
@@ -381,8 +384,8 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(0, 0, 1, 0.0),
-                    DefectGap(1, 9, 8, 0.0),
+                    Defect(0, 0, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(1, 9, 8, 0.0, (0.0, 0.0)),
                 ],
             ),
             True,
@@ -392,8 +395,8 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 8, 8, 0.0),
-                    Defect(9, 9, 1, 0.0),
+                    DefectGap(0, 8, 8, 0.0, (0.0, 0.0)),
+                    Defect(9, 9, 1, 0.0, (0.0, 0.0)),
                 ],
             ),
             False,
@@ -403,8 +406,8 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 8, 8, 0.0),
-                    Defect(9, 9, 1, 0.0),
+                    DefectGap(0, 8, 8, 0.0, (0.0, 0.0)),
+                    Defect(9, 9, 1, 0.0, (0.0, 0.0)),
                 ],
             ),
             True,
@@ -414,11 +417,11 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 1, 1, 0.0),
-                    Defect(2, 3, 1, 0.0),
-                    DefectGap(4, 5, 1, 0.0),
-                    Defect(6, 7, 2, 0.0),
-                    DefectGap(8, 9, 1, 0.0),
+                    DefectGap(0, 1, 1, 0.0, (0.0, 0.0)),
+                    Defect(2, 3, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(4, 5, 1, 0.0, (0.0, 0.0)),
+                    Defect(6, 7, 2, 0.0, (0.0, 0.0)),
+                    DefectGap(8, 9, 1, 0.0, (0.0, 0.0)),
                 ]
             ),
             False,
@@ -432,10 +435,10 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(2, 3, 1, 0.0),
-                    DefectGap(4, 5, 1, 0.0),
-                    Defect(6, 7, 1, 0.0),
-                    DefectGap(8, 1, 2, 0.0),
+                    Defect(2, 3, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(4, 5, 1, 0.0, (0.0, 0.0)),
+                    Defect(6, 7, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(8, 1, 2, 0.0, (0.0, 0.0)),
                 ]
             ),
             True,
@@ -445,13 +448,13 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 1, 1, 0.0),
-                    Defect(2, 3, 1, 0.0),
-                    DefectGap(4, 5, 1, 0.0),
-                    Defect(6, 7, 1, 0.0),
-                    DefectGap(8, 9, 1, 0.0),
-                    Defect(10, 11, 1, 0.0),
-                    DefectGap(12, 13, 1, 0.0),
+                    DefectGap(0, 1, 1, 0.0, (0.0, 0.0)),
+                    Defect(2, 3, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(4, 5, 1, 0.0, (0.0, 0.0)),
+                    Defect(6, 7, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(8, 9, 1, 0.0, (0.0, 0.0)),
+                    Defect(10, 11, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(12, 13, 1, 0.0, (0.0, 0.0)),
                 ]
             ),
             False,
@@ -467,12 +470,12 @@ def test_get_defects_and_gaps_from_bool_array(
         pytest.param(
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(12, 1, 1, 0.0),
-                    Defect(2, 3, 1, 0.0),
-                    DefectGap(4, 5, 1, 0.0),
-                    Defect(6, 7, 1, 0.0),
-                    DefectGap(8, 9, 1, 0.0),
-                    Defect(10, 11, 1, 0.0),
+                    DefectGap(12, 1, 1, 0.0, (0.0, 0.0)),
+                    Defect(2, 3, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(4, 5, 1, 0.0, (0.0, 0.0)),
+                    Defect(6, 7, 1, 0.0, (0.0, 0.0)),
+                    DefectGap(8, 9, 1, 0.0, (0.0, 0.0)),
+                    Defect(10, 11, 1, 0.0, (0.0, 0.0)),
                 ]
             ),
             True,
@@ -500,3 +503,48 @@ def test_calculate_indirect_defect_gaps(
         circular=circular,
     )
     assert indirect_gaps == expected_indirect_gaps
+
+
+@pytest.mark.parametrize(
+    (
+        "distance_to_previous_points_nm",
+        "defects_without_lengths",
+        "gaps_without_lengths",
+        "circular",
+        "expected_defects_with_distances",
+    ),
+    [
+        pytest.param(
+            np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            [],
+            [],
+            False,
+            [],
+            id="no defects or gaps, linear",
+        ),
+        pytest.param(
+            np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            [],
+            [],
+            True,
+            [],
+            id="no defects or gaps, circular",
+        ),
+    ],
+)
+def test_calculate_defect_and_gap_lengths(
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    defects_without_lengths: list[tuple[int, int]],
+    gaps_without_lengths: list[tuple[int, int]],
+    circular: bool,
+    expected_defects_with_distances: list[tuple[str, int, int, float, float]],
+) -> None:
+    """Test the calculate_defect_and_gap_lengths function."""
+
+    defects_and_gaps_with_lengths = calculate_defect_and_gap_lengths(
+        distance_to_previous_points_nm=distance_to_previous_points_nm,
+        defects_without_lengths=defects_without_lengths,
+        gaps_without_lengths=gaps_without_lengths,
+        circular=circular,
+    )
+    assert defects_and_gaps_with_lengths == expected_defects_with_distances
