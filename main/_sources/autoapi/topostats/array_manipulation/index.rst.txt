@@ -1,0 +1,109 @@
+topostats.array_manipulation
+============================
+
+.. py:module:: topostats.array_manipulation
+
+.. autoapi-nested-parse::
+
+   Functions for manipulating numpy arrays.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.array_manipulation.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.array_manipulation.re_crop_grain_image_and_mask_to_set_size_nm
+   topostats.array_manipulation.pad_bounding_box_dynamically_at_limits
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: re_crop_grain_image_and_mask_to_set_size_nm(filename: str, grain_number: int, grain_bbox: tuple[int, int, int, int], pixel_to_nm_scaling: float, full_image: numpy.typing.NDArray[numpy.float32], full_mask_tensor: numpy.typing.NDArray[numpy.bool_], target_size_nm: float) -> tuple[numpy.typing.NDArray[numpy.float32], numpy.typing.NDArray[numpy.bool_]]
+
+   
+   Re-crop a grain image and mask to be a target size in nanometres.
+
+   :param filename: The name of the file being processed, used for logging.
+   :type filename: str
+   :param grain_number: The number of the grain being processed, used for logging.
+   :type grain_number: int
+   :param grain_bbox: The bounding box of the grain in the form (min_row, min_col, max_row (exclusive), max_col (exclusive)).
+   :type grain_bbox: tuple[int, int, int, int]
+   :param pixel_to_nm_scaling: Pixel to nanometre scaling factor.
+   :type pixel_to_nm_scaling: float
+   :param full_image: The full image from which to crop the grain image.
+   :type full_image: npt.NDArray[np.float32]
+   :param full_mask_tensor: The full mask tensor from which to crop the mask.
+   :type full_mask_tensor: npt.NDArray[np.bool_]
+   :param target_size_nm: The target size in nanometres to crop the grain image and mask to.
+   :type target_size_nm: float
+
+   :returns: The cropped grain image and mask, both as numpy arrays.
+   :rtype: tuple[npt.NDArray[np.float32], npt.NDArray[np.bool_]]
+
+   :raises ValueError: If the target size in nanometres is larger than the full image or mask dimensions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: pad_bounding_box_dynamically_at_limits(bbox: tuple[int, int, int, int], limits: tuple[int, int, int, int], padding: int) -> tuple[int, int, int, int]
+
+   
+   Pad a bounding box within limits. If the padding would exceed the limits bounds, pad in the other direction.
+
+   :param bbox: The bounding box to pad.
+   :type bbox: tuple[int, int, int, int]
+   :param limits: The region to limit the bounding box to in the form (min_row, min_col, max_row, max_col).
+   :type limits: tuple[int, int, int, int]
+   :param padding: The padding to apply to the bounding box.
+   :type padding: int
+
+   :returns: The new bounding box indices.
+   :rtype: tuple[int, int, int, int]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
