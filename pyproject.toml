@@ -42,6 +42,7 @@ dependencies = [
   "numpy~=2.0.0",  # Until TensorFlow supports newer versions
   "numpyencoder",
   "pandas",
+  "pillow<=11.1.0",
   "pyyaml",
   "ruamel.yaml",
   "schema",
