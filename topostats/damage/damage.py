@@ -108,7 +108,11 @@ class OrderedDefectGapList:
                 return False
 
             # Check if total turns are approximately equal (with tolerance for floating-point errors)
-            if not np.isclose(self_item.total_turn_radians, other_item.total_turn_radians, rtol=1e-9, atol=1e-12):
+            if not np.isclose(
+                self_item.total_turn_radians[0], other_item.total_turn_radians[0], rtol=1e-9, atol=1e-12
+            ) or not np.isclose(
+                self_item.total_turn_radians[1], other_item.total_turn_radians[1], rtol=1e-9, atol=1e-12
+            ):
                 return False
 
         return True
