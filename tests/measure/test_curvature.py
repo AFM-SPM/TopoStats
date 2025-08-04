@@ -47,6 +47,24 @@ def test_angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number
             (np.pi / 2, np.pi / 2),
             id="four points, right turn then left turn",
         ),
+        pytest.param(
+            np.array(
+                [
+                    (524, 292),
+                    (524, 429),
+                    (1065, 436),
+                    (1063, 291),
+                    (992, 365),
+                    (757, 368),
+                    (757, 203),
+                    (757, 108),
+                    (626, 107),
+                    (524, 203),
+                ]
+            ),
+            (7.844374577835551, 2.376881193972189),
+            id="ten points, many turns",
+        ),
     ],
 )
 def test_total_turn_in_region_radians(
