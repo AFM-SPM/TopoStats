@@ -78,9 +78,9 @@ def total_turn_in_region_radians(
             )
 
             if angle > 0:
-                total_right_turn += angle
+                total_right_turn += abs(angle)
             else:
-                total_left_turn += angle
+                total_left_turn += abs(angle)
 
     return total_left_turn, total_right_turn
 
