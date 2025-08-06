@@ -239,7 +239,17 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 13.5, 5.0, (0.0, 0.0))]),
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(
+                        0,
+                        9,
+                        13.5,
+                        5.0,
+                        (7.844374577835551, 2.376881193972189),
+                    )
+                ]
+            ),
             id="no defects, all gap, linear",
         ),
         # Note this is a weird case where there isn't a start or end to the gap but we create one at the bounds
@@ -248,7 +258,17 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[DefectGap(0, 9, 14.5, 5.0, (0.0, 0.0))]),
+            OrderedDefectGapList(
+                defect_gap_list=[
+                    DefectGap(
+                        0,
+                        9,
+                        14.5,
+                        5.0,
+                        (8.660066501151775, 2.376881193972189),
+                    )
+                ]
+            ),
             id="no defects, all gap, circular",
         ),
         pytest.param(
@@ -256,7 +276,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 13.5, 5.0, (0.0, 0.0))]),
+            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 13.5, 5.0, (7.844374577835551, 2.376881193972189))]),
             id="all defects, no gap, linear",
         ),
         pytest.param(
@@ -264,7 +284,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
-            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 14.5, 5.0, (0.0, 0.0))]),
+            OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 14.5, 5.0, (8.660066501151775, 2.376881193972189))]),
             id="all defects, no gap, circular",
         ),
         pytest.param(
@@ -274,9 +294,9 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
                 defect_gap_list=[
-                    DefectGap(0, 3, 4.3, 1.1, (0.0, 0.0)),
-                    Defect(4, 4, 1.45, 5.0, (0.0, 0.0)),
-                    DefectGap(5, 9, 7.75, 9.8, (0.0, 0.0)),
+                    DefectGap(0, 3, 4.3, 1.1, (5.518473847561982, 0.0)),
+                    Defect(4, 4, 1.45, 5.0, (0.0, 0.7933196031506369)),
+                    DefectGap(5, 9, 7.75, 9.8, (2.3259007302735695, 1.5835615908215521)),
                 ]
             ),
             id="one unit defect in middle, linear",
@@ -288,8 +308,8 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
                 defect_gap_list=[
-                    Defect(4, 4, 1.45, 5.0, (0.0, 0.0)),
-                    DefectGap(5, 3, 13.05, 13.5, (0.0, 0.0)),
+                    Defect(4, 4, 1.45, 5.0, (0.0, 0.7933196031506369)),
+                    DefectGap(5, 3, 13.05, 13.5, (8.660066501151775, 1.5835615908215521)),
                 ]
             ),
             id="one unit defect in middle circular",
@@ -302,7 +322,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             OrderedDefectGapList(
                 defect_gap_list=[
                     Defect(0, 0, 0.55, 0.0, (0.0, 0.0)),
-                    DefectGap(1, 8, 12, 5.0, (0.0, 0.0)),
+                    DefectGap(1, 8, 12, 5.0, (7.844374577835551, 2.376881193972189)),
                     Defect(9, 9, 0.95, 13.5, (0.0, 0.0)),
                 ]
             ),
@@ -314,7 +334,10 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
             OrderedDefectGapList(
-                defect_gap_list=[DefectGap(1, 8, 12, 5.0, (0.0, 0.0)), Defect(9, 0, 2.5, 13.5, (0.0, 0.0))]
+                defect_gap_list=[
+                    DefectGap(1, 8, 12, 5.0, (7.844374577835551, 2.376881193972189)),
+                    Defect(9, 0, 2.5, 13.5, (0.8156919233162236, 0.0)),
+                ]
             ),
             id="two unit defects at ends circular",
         ),
