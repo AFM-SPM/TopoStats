@@ -11,6 +11,8 @@ from topostats.measure.curvature import (
     calculate_curvature_stats_image,
     discrete_angle_difference_per_nm_circular,
     discrete_angle_difference_per_nm_linear,
+    calculate_discrete_angle_difference_linear,
+    calculate_discrete_angle_difference_circular,
 )
 
 
@@ -38,43 +40,187 @@ def test_angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number
 @pytest.mark.parametrize(
     ("trace", "expected_angles"),
     [
-        pytest.param(np.array([]), (0.0, 0.0), id="empty trace"),
-        pytest.param(np.array([[1, 0]]), (0.0, 0.0), id="single point"),
-        pytest.param(np.array([[1, 0], [1, 1]]), (0.0, 0.0), id="two points"),
-        pytest.param(np.array([[1, 0], [1, 1], [0, 1]]), (0.0, np.pi / 2), id="three points, right turn"),
         pytest.param(
-            np.array([[1, 0], [1, 1], [0, 1], [0, 2]]),
-            (np.pi / 2, np.pi / 2),
-            id="four points, right turn then left turn",
+            np.array(
+                [
+                    [-1, -1],
+                    [-1, 1],
+                    [1, 1],
+                    [1, -1],
+                ]
+            ),
+            np.array(
+                [
+                    0.0,
+                    -np.pi / 2,
+                    -np.pi / 2,
+                    0.0,
+                ]
+            ),
+            id="square counter-clockwise",
         ),
         pytest.param(
             np.array(
                 [
-                    (524, 292),
-                    (524, 429),
-                    (1065, 436),
-                    (1063, 291),
-                    (992, 365),
-                    (757, 368),
-                    (757, 203),
-                    (757, 108),
-                    (626, 107),
-                    (524, 203),
+                    [-1, -1],
+                    [1, -1],
+                    [1, 1],
+                    [-1, 1],
                 ]
             ),
-            (7.844374577835551, 2.376881193972189),
-            id="ten points, many turns",
+            np.array(
+                [
+                    0,
+                    np.pi / 2,
+                    np.pi / 2,
+                    0,
+                ]
+            ),
+            id="square clockwise",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [-2, -2],
+                    [2, -2],
+                    [2, 2],
+                    [-2, 2],
+                ]
+            ),
+            np.array(
+                [
+                    0,
+                    np.pi / 2,
+                    np.pi / 2,
+                    0,
+                ]
+            ),
+            id="2 wide square clockwise, remember that we don't care about distance here",
         ),
     ],
 )
+def test_calculate_discrete_angle_difference_linear(
+    trace: npt.NDArray[np.float64],
+    expected_angles: npt.NDArray[np.float64],
+) -> None:
+    """Test the discrete angle difference calculation for linear traces."""
+    angle_differences = calculate_discrete_angle_difference_linear(trace=trace)
+    np.testing.assert_array_equal(angle_differences, expected_angles)
+
+
+@pytest.mark.parametrize(
+    ("trace", "expected_angles"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [-1, -1],
+                    [-1, 1],
+                    [1, 1],
+                    [1, -1],
+                ]
+            ),
+            np.array(
+                [
+                    -np.pi / 2,
+                    -np.pi / 2,
+                    -np.pi / 2,
+                    -np.pi / 2,
+                ]
+            ),
+            id="square counter-clockwise",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [-1, -1],
+                    [1, -1],
+                    [1, 1],
+                    [-1, 1],
+                ]
+            ),
+            np.array(
+                [
+                    np.pi / 2,
+                    np.pi / 2,
+                    np.pi / 2,
+                    np.pi / 2,
+                ]
+            ),
+            id="square clockwise",
+        ),
+        pytest.param(
+            np.array(
+                [
+                    [-2, -2],
+                    [2, -2],
+                    [2, 2],
+                    [-2, 2],
+                ]
+            ),
+            np.array(
+                [
+                    np.pi / 2,
+                    np.pi / 2,
+                    np.pi / 2,
+                    np.pi / 2,
+                ]
+            ),
+            id="2 wide square clockwise",
+        ),
+    ],
+)
+def test_calculate_discrete_angle_difference_circular(
+    trace: npt.NDArray[np.float64],
+    expected_angles: npt.NDArray[np.float64],
+) -> None:
+    """Test the discrete angle difference calculation for circular traces."""
+    angle_differences = calculate_discrete_angle_difference_circular(trace=trace)
+    np.testing.assert_array_equal(angle_differences, expected_angles)
+
+
+@pytest.mark.parametrize(
+    ("angles", "region", "circular", "expected_total_turn"),
+    [
+        pytest.param(np.array([0.0, 1.0, 0.0]), (1, 1), False, (0.0, 1.0), id="linear, one angle, right turn"),
+        pytest.param(np.array([0.0, -1.0, 0.0]), (1, 1), False, (1.0, 0.0), id="linear, one angle, left turn"),
+        pytest.param(
+            np.array([0.0, 1.0, 0.0]),
+            (1, 2),
+            False,
+            (0.0, 1.0),
+            id="linear, two angles, right turn, region touching end",
+        ),
+        pytest.param(
+            np.array([0.0, 1.0, 0.0]),
+            (0, 1),
+            False,
+            (0.0, 1.0),
+            id="linear, two angles, right turn, region touching start",
+        ),
+        pytest.param(
+            np.array([0.0, -1.0, 1.0, 0.0]),
+            (1, 2),
+            False,
+            (1.0, 1.0),
+            id="linear, two angles, both a left & right turn",
+        ),
+        pytest.param(np.array([-1.0, 1.0, -1.0, 1.0]), (2, 1), True, (2.0, 2.0), id="circular, wraps around"),
+    ],
+)
 def test_total_turn_in_region_radians(
-    trace: npt.NDArray[np.number],
-    expected_angles: tuple[float, float],
+    angles: npt.NDArray[np.float64],
+    region: tuple[int, int],
+    circular: bool,
+    expected_total_turn: tuple[float, float],
 ) -> None:
     """Test the total turn in region radians function."""
-    total_left_turn, total_right_turn = total_turn_in_region_radians(trace)
-    assert total_left_turn == expected_angles[0]
-    assert total_right_turn == expected_angles[1]
+    total_turn = total_turn_in_region_radians(
+        angles_radians=angles,
+        region_inclusive=region,
+        circular=circular,
+    )
+    assert total_turn == expected_total_turn
 
 
 @pytest.mark.parametrize(
