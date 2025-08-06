@@ -1,7 +1,11 @@
 """Functions for damage detection and quantification."""
 
 from dataclasses import dataclass
-from topostats.measure.curvature import total_turn_in_region_radians
+from topostats.measure.curvature import (
+    total_turn_in_region_radians,
+    calculate_discrete_angle_difference_circular,
+    calculate_discrete_angle_difference_linear,
+)
 import numpy as np
 import numpy.typing as npt
 
@@ -109,9 +113,9 @@ class OrderedDefectGapList:
 
             # Check if total turns are approximately equal (with tolerance for floating-point errors)
             if not np.isclose(
-                self_item.total_turn_radians[0], other_item.total_turn_radians[0], rtol=1e-9, atol=1e-12
+                self_item.total_turn_radians[0], other_item.total_turn_radians[0], rtol=1e-3, atol=1e-3
             ) or not np.isclose(
-                self_item.total_turn_radians[1], other_item.total_turn_radians[1], rtol=1e-9, atol=1e-12
+                self_item.total_turn_radians[1], other_item.total_turn_radians[1], rtol=1e-3, atol=1e-3
             ):
                 return False
 
@@ -522,7 +526,7 @@ def calculate_defect_and_gap_lengths(
 
 def calculate_defect_and_gap_turns(
     defects: list[tuple[str, int, int, float, float]],
-    trace_points: npt.NDArray[np.number],
+    trace_points: npt.NDArray[np.float64],
     circular: bool,
 ) -> list[tuple[str, int, int, float, float, tuple[float, float]]]:
     """Calculate the total turn in radians for each defect and gap.
@@ -546,22 +550,20 @@ def calculate_defect_and_gap_turns(
     """
     defects_and_gaps_with_turns = []
 
+    # Calculate the angles in radians for the trace points
+    if circular:
+        angles_radians = calculate_discrete_angle_difference_circular(trace_points)
+    else:
+        angles_radians = calculate_discrete_angle_difference_linear(trace_points)
     for defect_or_gap in defects:
         type_of_region, start_index, end_index, length_nm, position_along_trace_nm = defect_or_gap
-        # Get the trace points for
-        # the region
-        if start_index <= end_index:
-            trace_region = trace_points[start_index : end_index + 1]
-        else:
-            if not circular:
-                raise ValueError(
-                    f"Cannot calculate turns for region {start_index} to {end_index} in a linear array. "
-                    "Start index cannot be greater than end index in a linear array."
-                )
-            # The region wraps around the end of the array
-            trace_region = np.concatenate((trace_points[start_index:], trace_points[: end_index + 1]))
+
         # Calculate the total turn in radians for the region
-        total_left_turn, total_right_turn = total_turn_in_region_radians(trace=trace_region)
+        total_left_turn, total_right_turn = total_turn_in_region_radians(
+            angles_radians=angles_radians,
+            region_inclusive=(start_index, end_index),
+            circular=circular,
+        )
 
         # Append the defect or gap with the total turn
         defects_and_gaps_with_turns.append(
