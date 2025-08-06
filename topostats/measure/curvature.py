@@ -42,47 +42,140 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
     return angle
 
 
+
 def total_turn_in_region_radians(
-    trace: npt.NDArray[np.number],
+    angles_radians: npt.NDArray[np.float64],
+    region_inclusive: tuple[int, int],
+    circular: bool = False,
 ) -> tuple[float, float]:
     """
-    Calculate the total turn in radians for a trace.
+    Calculate the total turn in radians for a linear trace in a specified region.
 
     Parameters
     ----------
-    trace : npt.NDArray[np.number]
-        The coordinate trace, in nanometre units.
+    angles_radians : npt.NDArray[np.float64]
+        The discrete angle differences per point in radians.
+    region_inclusive : tuple[int, int]
+        The region of the trace to calculate the total turn for, specified as a tuple of two integers (start, end),
+        where both indices are inclusive.
+    circular : bool, optional
+        If True, the trace is considered circular, meaning the first and last points are connected.
 
     Returns
     -------
     tuple[float, float]
-        The total left turn and total right turn in radians.
+        The total turn in radians for the specified region.
+
+    Raises
+    ------
+    ValueError
+        If the region is not a tuple of two integers or if the indices are out of bounds for the trace.
     """
+    if len(region_inclusive) != 2:
+        raise ValueError("Region must be a tuple of two integers (start, end).")
+    if region_inclusive[0] < 0 or region_inclusive[1] >= angles_radians.shape[0]:
+        raise ValueError("Region indices must be within the bounds of the trace.")
+
     total_left_turn = 0.0
     total_right_turn = 0.0
+    if region_inclusive[0] > region_inclusive[1]:
+        # The start of the region is after the end, so if the trace is circular, then we wrap around.
+        if circular:
+            # Grab the angles from the points to the end of the region and then to the start of the region
+            for _, angle in enumerate(angles_radians[region_inclusive[0] :]):
+                if angle < 0:
+                    total_left_turn += abs(angle)
+                else:
+                    total_right_turn += abs(angle)
+            for angle in angles_radians[: region_inclusive[1] + 1]:
+                if angle < 0:
+                    total_left_turn += abs(angle)
+                else:
+                    total_right_turn += abs(angle)
+        else:
+            raise ValueError("Region start must be less than region end for non-circular traces.")
+    else:
+        # The start of the region is before or the same as the end, so we can just sum the angles in the region
+        for angle in angles_radians[region_inclusive[0] : region_inclusive[1] + 1]:
+            if angle < 0:
+                total_left_turn += abs(angle)
+            else:
+                total_right_turn += abs(angle)
+    return total_left_turn, total_right_turn
 
+
+def calculate_discrete_angle_difference_linear(trace: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    """
+    Calculate the discrete angle difference per point along a linear trace.
+
+    Parameters
+    ----------
+    trace : npt.NDArray[np.float64]
+        The coordinate trace, in any units.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The discrete angle difference per point in radians.
+    """
+    angles = np.zeros(trace.shape[0])
     for index, point in enumerate(trace):
         if index == 0:
-            # no previous point so no angle
-            continue
+            # No previous point so cannot calculate angle
+            angle = 0.0
         elif index == trace.shape[0] - 1:
-            # no next point so no angle
-            continue
+            # No next point so cannot calculate angle, end of trace
+            v1 = point - trace[index - 1]
+            angle = 0.0
         else:
             v1 = point - trace[index - 1]
             v2 = trace[index + 1] - point
 
-            angle = angle_diff_signed(
-                v1 / np.linalg.norm(v1),
-                v2 / np.linalg.norm(v2),
-            )
+            # Normalise vectors to unit length
+            norm_v1 = v1 / np.linalg.norm(v1)
+            norm_v2 = v2 / np.linalg.norm(v2)
 
-            if angle > 0:
-                total_right_turn += abs(angle)
-            else:
-                total_left_turn += abs(angle)
+            # Calculate the signed angle difference between the previous direction and the current direction
+            angle = angle_diff_signed(norm_v1, norm_v2)
+        angles[index] = angle
+    return angles
 
-    return total_left_turn, total_right_turn
+
+def calculate_discrete_angle_difference_circular(trace: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    """
+    Calculate the discrete angle difference per point along a circular trace.
+
+    Parameters
+    ----------
+    trace : npt.NDArray[np.float64]
+        The coordinate trace, in any units.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The discrete angle difference per point in radians.
+    """
+    angles = np.zeros(trace.shape[0])
+    for index, point in enumerate(trace):
+        if index == 0:
+            v1 = point - trace[-1]
+            v2 = trace[index + 1] - point
+        elif index == trace.shape[0] - 1:
+            v1 = point - trace[index - 1]
+            v2 = trace[0] - point
+        else:
+            v1 = point - trace[index - 1]
+            v2 = trace[index + 1] - point
+
+        # Normalise vectors to unit length
+        norm_v1 = v1 / np.linalg.norm(v1)
+        norm_v2 = v2 / np.linalg.norm(v2)
+
+        # Calculate the signed angle difference between the previous direction and the current direction
+        angle = angle_diff_signed(norm_v1, norm_v2)
+        angles[index] = angle
+
+    return angles
 
 
 def discrete_angle_difference_per_nm_circular(
