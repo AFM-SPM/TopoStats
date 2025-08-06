@@ -1,6 +1,6 @@
 """Functions for processing data."""
 
-import logging
+import logging, sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -384,9 +384,11 @@ def run_grainstats(
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
             return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
-        except Exception:
-            LOGGER.info(
-                f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
+        except Exception as e:
+            _, _, e_traceback = sys.exc_info()
+            e_line_no = e_traceback.tb_lineno
+            LOGGER.error(
+                f"[{filename}] : An error occurred whilst calculating grain statistics on line {e_line_no}: {e}\nReturning empty dataframe."
             )
             return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
     else:
