@@ -25,7 +25,7 @@ from topostats.utils import create_empty_dataframe
 # pylint: disable=line-too-long
 # pylint: disable=fixme
 # FIXME : The calculate_stats() and calculate_aspect_ratio() raise this error when linting, could consider putting
-#         variables into dictionar, see example of breaking code out to staticmethod extremes() and returning a
+#         variables into dictionary, see example of breaking code out to staticmethod extremes() and returning a
 #         dictionary of x_min/x_max/y_min/y_max
 # pylint: disable=too-many-locals
 # FIXME : calculate_aspect_ratio raises this error when linting it has 65 statements, recommended not to exceed 50.
@@ -238,6 +238,7 @@ class GrainStats:
                             f"[{self.image_name}] : Skipping subgrain due to being too small "
                             f"(size: {subgrain_tight_shape}) to calculate stats for."
                         )
+                        continue
 
                     # Calculate all the stats
                     points = self.calculate_points(subgrain_only_mask)
