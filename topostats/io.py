@@ -10,6 +10,7 @@ import struct
 from collections.abc import MutableMapping
 from datetime import datetime
 from importlib import resources
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -237,6 +238,17 @@ def write_yaml(
         header = f"# {header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
     else:
         header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+
+    # Add comment to config with topostats version + commit
+    topostats_details = version("topostats").split("+g")
+    topostats_version = topostats_details[0]
+    topostats_commit = "+g" + topostats_details[1].split(".d")[0]
+    topostats_date = topostats_details[1].split(".d")[1]
+    topostats_date_formatted = f"{topostats_date[:4]}-{topostats_date[4:6]}-{topostats_date[6:]}"
+    header += f"# TopoStats version: {topostats_version}\n"
+    header += f"# Commit: {topostats_commit}\n"
+    header += f"# Commit date: {topostats_date_formatted}\n"
+
     output_config.write_text(header, encoding="utf-8")
 
     yaml = YAML(typ="safe")
