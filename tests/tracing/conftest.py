@@ -1,5 +1,6 @@
 """Fixtures for the tracing tests."""
 
+import pickle as pkl
 from pathlib import Path
 
 import numpy as np
@@ -7,8 +8,8 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
-from topostats.tracing.disordered_tracing import disorderedTrace, trace_image_disordered
+from topostats.classes import GrainCrop, TopoStats
+from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
@@ -183,106 +184,40 @@ def catenane_skeleton() -> npt.NDArray[np.bool_]:
 
 
 @pytest.fixture()
-def topostats_catenane(catenane_image: npt.NDArray[np.number], disordered_tracing_config: dict) -> GrainCrop:
+def catenane_post_disordered_trace() -> GrainCrop:
     """TopoStats of Catenane post disordered tracing."""
-    # The catenane image isn't square and currently GrainCrop only plays ball with square crops so we pad it with zeros
-    # on one side
-    catenane_image = np.pad(
-        catenane_image, pad_width=((0, 0), (0, catenane_image.shape[0] - catenane_image.shape[1])), mode="constant"
-    )
-    catenane_mask = catenane_image.astype(np.bool).astype(int)
-    catenane_tensor = np.stack([catenane_mask, catenane_mask], axis=-1)
-    # Add the graincrop to a TopoStats object as this is the unit passed around on which trace_image_disordered and
-    # nodestats runs
-    topostats_object = TopoStats(
-        image_grain_crops=ImageGrainCrops(
-            above=GrainCropsDirection(
-                full_mask_tensor=catenane_tensor,
-                crops={
-                    0: GrainCrop(
-                        image=catenane_image,
-                        mask=catenane_tensor,
-                        filename="test_catenane",
-                        padding=1,
-                        bbox=(0, 0, 10, 10),
-                        pixel_to_nm_scaling=1,
-                    )
-                },
-            ),
-            below=None,
-        ),
-        filename="test_catenane",
-        img_path=None,
-        # pixel_to_nm_scaling=1,
-    )
-    print(f"BEFORE\n{topostats_object.image_grain_crops.above.crops[0].disordered_trace=}\n")
-    print(f"\n{disordered_tracing_config=}\n")
-    (_, _, _, _) = trace_image_disordered(
-        topostats_object=topostats_object,
-        direction="above",
-        **disordered_tracing_config,
-    )
-    # trace_image_disordered(topostats_object=topostats_object, direction="above", **disordered_tracing_config)
-    print("WE SHOULD HAVE DISORDERED TRACES!!!!")
-    print(f"AFTER\n{topostats_object.image_grain_crops.above.crops[0].disordered_trace=}\n")
-    return topostats_object
+    # 2025-07-31 : The same file is saved as...
+    #    catenane_file = NODESTATS_RESOURCES / "catenane_post_disordered_tracing.topostats"
+    # ...once we have sorted loading .topostats files to TopoStats objects we should switch
+    catenane_file = NODESTATS_RESOURCES / "catenane_post_disordered_tracing.pkl"
+    with catenane_file.open("rb") as f:
+        topostats_catenane = pkl.load(f)
+    return topostats_catenane
 
 
 @pytest.fixture()
-def graincrop_catenane(catenane_image: npt.NDArray[np.number]) -> GrainCrop:
+def graincrop_catenane(catenane_post_disordered_trace: TopoStats) -> GrainCrop:
     """GrainCrop of Catenane post disordered tracing."""
-    # The catenane image isn't square and currently GrainCrop only plays ball with square crops so we pad it with zeros
-    # on one side
-    catenane_image = np.pad(
-        catenane_image, pad_width=((0, 0), (0, catenane_image.shape[0] - catenane_image.shape[1])), mode="constant"
-    )
-    catenane_mask = catenane_image.astype(np.bool).astype(int)
-    catenane_tensor = np.stack([catenane_mask, catenane_mask], axis=-1)
-    return GrainCrop(
-        image=catenane_image,
-        mask=catenane_tensor,
-        filename="test_catenane",
-        padding=1,
-        bbox=(0, 0, 10, 10),
-        pixel_to_nm_scaling=1,
-    )
+    return catenane_post_disordered_trace.image_grain_crops.above.crops[0]
 
 
 @pytest.fixture()
 def nodestats_catenane(
-    # catenane_image: npt.NDArray[np.number],
-    # catenane_smoothed_mask: npt.NDArray[np.bool_],
-    # catenane_skeleton: npt.NDArray[np.bool_],
-    topostats_catenane: TopoStats,
-    catenane_node_centre_mask: npt.NDArray[np.int32],
-    catenane_connected_nodes: npt.NDArray[np.int32],
+    graincrop_catenane: GrainCrop,
+    catenane_post_disordered_trace: TopoStats,
 ) -> nodeStats:
     """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
-    # Pull the catenane GrainCrop out of the TopoStats topostats_catenane object
-    print(f"\nTOPOSTATS\n{topostats_catenane.__dict__=}")
-    graincrop_catenane = topostats_catenane.image_grain_crops.above.crops[0]
-    print(f"\nGRAINCROP\n{graincrop_catenane.__dict__=}\n")
+    print(f"\n{graincrop_catenane=}\n")
     # Create a nodestats object
-    nodestats = nodeStats(
-        # filename="test_catenane",
-        # image=catenane_image,
-        # mask=catenane_smoothed_mask,
-        # smoothed_mask=catenane_smoothed_mask,
-        # skeleton=catenane_skeleton,
-        # pixel_to_nm_scaling=np.float64(0.18124609375),
-        # n_grain=1,
+    return nodeStats(
         graincrop=graincrop_catenane,
+        filename=catenane_post_disordered_trace.filename,
+        n_grain=0,
         node_joining_length=7,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
         pair_odd_branches=True,
     )
-
-    nodestats.node_centre_mask = catenane_node_centre_mask
-    nodestats.connected_nodes = catenane_connected_nodes
-    nodestats.skeleton = catenane_skeleton
-
-    return nodestats
 
 
 @pytest.fixture()

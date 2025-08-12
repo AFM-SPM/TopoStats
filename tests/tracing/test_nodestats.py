@@ -179,6 +179,8 @@ def test_connect_extended_nodes_nearest(
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
         pair_odd_branches=True,
+        filename=grain_crop.filename,
+        n_grain=1,
     )
     nodestats.whole_skel_graph = nodestats.skeleton_image_to_graph(nodestats.skeleton)
     result = nodestats.connect_extended_nodes_nearest(connected_nodes, node_extend_dist=8.0)
@@ -192,19 +194,40 @@ def test_find_branch_starts() -> None:
 
 
 # Create nodestats class using the cats image - will allow running the code for diagnostics
-def test_analyse_nodes(nodestats_catenane: nodeStats, snapshot) -> None:
+# def test_analyse_nodes(nodestats_catenane: nodeStats, snapshot) -> None:
+#     """Test of analyse_nodes() method of nodeStats class."""
+#     print(f"\n{nodestats_catenane=}\n")
+#     nodestats_catenane.analyse_nodes(max_branch_length=20)
+
+#     node_dict_result = nodestats_catenane.node_dicts
+#     image_dict_result = nodestats_catenane.image_dict
+
+#     assert node_dict_result == snapshot
+#     assert image_dict_result == snapshot
+#     all_connected_nodes = nodestats_catenane.all_connected_nodes
+#     # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
+#     #         https://github.com/syrupy-project/syrupy/issues/887
+#     assert np.array2string(all_connected_nodes) == snapshot
+
+
+# Create nodestats class using the cats image - will allow running the code for diagnostics
+def test_analyse_nodes(nodestats_catenane: nodeStats, nodestats_config: dict[str, float], snapshot) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
     nodestats_catenane.analyse_nodes(max_branch_length=20)
 
     node_dict_result = nodestats_catenane.node_dicts
     image_dict_result = nodestats_catenane.image_dict
-
-    assert node_dict_result == snapshot
-    assert image_dict_result == snapshot
-    all_connected_nodes = nodestats_catenane.all_connected_nodes
-    # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
-    #         https://github.com/syrupy-project/syrupy/issues/887
-    assert np.array2string(all_connected_nodes) == snapshot
+    # print(f"\n{nodestats_catenane.graincrop.__dir__()=}\n")
+    print(f"\n{nodestats_catenane.graincrop.nodes=}")
+    print(f"\n{nodestats_catenane.graincrop.disordered_trace.images=}")
+    # assert nodestats_catenane.graincrop.nodes == snapshot
+    assert nodestats_catenane.graincrop.nodes == snapshot
+    assert nodestats_catenane.graincrop.disordered_trace.images == snapshot
+    # all_connected_nodes = nodestats_catenane.all_connected_nodes
+    # # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
+    # #         https://github.com/syrupy-project/syrupy/issues/887
+    # assert np.array2string(all_connected_nodes) == snapshot
+    assert False
 
 
 @pytest.mark.parametrize(
