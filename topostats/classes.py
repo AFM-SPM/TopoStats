@@ -530,6 +530,23 @@ class DisorderedTrace:
     total_branch_length: float
     grain_width_mean: float
 
+    def __str__(self) -> str:
+        """
+        Readable attributes.
+
+        Returns
+        -------
+        str
+            Set of formatted statistics on matched branches.
+        """
+        return (
+            f"images : {self.images}\n"
+            f"grain_endpoints : {self.grain_endpoints}\n"
+            f"grain_junctions : {self.grain_junctions}\n"
+            f"total_branch_length : {self.total_branch_length}\n"
+            f"grain_width_mean : {self.grain_width_mean}"
+        )
+
     @property
     def images(self) -> dict[str, npt.NDArray]:
         """
@@ -1278,6 +1295,24 @@ class Node:
     node_avg_mask : ???
         ???
     """
+
+    def __str__(self) -> str:
+        """
+        Readable attributes.
+
+        Returns
+        -------
+        str
+            Set of formatted statistics on matched branches.
+        """
+        return (
+            f"branch_stats : {self.branch_stats}\n"
+            f"distances : {self.confidence}\n"
+            f"node_coords : {self.node_coords}\n"
+            f"nodes : {self.nodes}"
+            f"pixel_to_nm_scaling : {self.pixel_to_nm_scaling}\n"
+            f"error : {self.error}"
+        )
 
     @property
     def error(self) -> bool:

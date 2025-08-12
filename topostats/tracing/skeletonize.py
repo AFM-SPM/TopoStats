@@ -244,7 +244,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         """
         counter = 0
         while not self.skeleton_converged:
-            print(f"Skeletonisation iteration {counter}")
+            print(f"\nSkeletonisation iteration : {counter=}\n")
             self._do_skeletonising_iteration()
             counter += 1
         # When skeleton converged do an additional iteration of thinning to remove hanging points
@@ -269,7 +269,6 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         # Sub-iteration 1 - binary check
         mask_coordinates = np.argwhere(self.mask == 1).tolist()
         for point in mask_coordinates:
-            print(f"[skeletonize] : {point}")
             if self._delete_pixel_subit1(point):
                 pixels_to_delete.append(point)
 
