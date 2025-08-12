@@ -82,10 +82,8 @@ class nodeStats:
     ----------
     graincrop : GrainCrop
         GrainCrop to be analysed.
-    smoothed_mask : npt.NDArray
-        A smoothed version of the bianary segmentation mask.
-    skeleton : npt.NDArray
-        A binary single-pixel wide mask of objects in the 'image'.
+    filename : str
+        Filename grain is derived from.
     n_grain : int
         The grain number.
     node_joining_length : float
@@ -105,7 +103,8 @@ class nodeStats:
         graincrop: GrainCrop,
         # smoothed_mask: npt.NDArray,
         # skeleton: npt.NDArray,
-        # n_grain: int,
+        n_grain: int,
+        filename: str,
         node_joining_length: float,
         node_extend_dist: float,
         branch_pairing_length: float,
@@ -118,10 +117,8 @@ class nodeStats:
         ----------
         graincrop : GrainCrop
             Grain crop for nodestatistics are to be calculated.
-        smoothed_mask : npt.NDArray
-            A smoothed version of the bianary segmentation mask.
-        skeleton : npt.NDArray
-            A binary single-pixel wide mask of objects in the 'image'.
+        filename : str
+            Filename grain is derived from.
         n_grain : int
             The grain number.
         node_joining_length : float
@@ -136,8 +133,7 @@ class nodeStats:
             Whether to try and pair odd-branched nodes.
         """
         self.graincrop = graincrop
-        # print(f"\n{graincrop.__dict__=}\n")
-        self.filename = graincrop.filename
+        self.filename = filename
         self.image = graincrop.image
         self.mask = graincrop.mask
         try:
@@ -153,13 +149,14 @@ class nodeStats:
                 raise AttributeError(f"[{self.filename}] : Disordered tracing 'skeleton' not found.") from e
             raise e
         self.pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
-        # self.n_grain = n_grain
+
+        self.n_grain = n_grain
         self.node_joining_length = node_joining_length
         self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
         self.pair_odd_branches = pair_odd_branches
 
-        self.conv_skelly = np.zeros_like(self.skeleton)
+        self.conv_skeleton = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = np.zeros_like(self.skeleton)
         self.whole_skel_graph: nx.classes.graph.Graph | None = None
@@ -237,20 +234,21 @@ class nodeStats:
             Dictionaries of the node_information and images.
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
-        self.conv_skelly = convolve_skeleton(self.skeleton)
-        if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
+        self.conv_skeleton = convolve_skeleton(self.skeleton)
+        print(f"\n{self.conv_skeleton=}\n")
+        if len(self.conv_skeleton[self.conv_skeleton == 3]) != 0:  # check if any nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
-            # self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            # self.conv_skeleton = self.tidy_branches(self.conv_skeleton, self.image)
             # reset skeleton var as tidy branches may have modified it
-            self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
+            self.skeleton = np.where(self.conv_skeleton != 0, 1, 0)
             # self.image_dict["grain"]["grain_skeleton"] = self.skeleton
             self.graincrop.skeleton = self.skeleton
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
-            self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=self.node_joining_length)
+            self.connected_nodes = self.connect_close_nodes(self.conv_skeleton, node_width=self.node_joining_length)
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
                 self.connected_nodes, node_extend_dist=self.node_extend_dist
@@ -259,10 +257,12 @@ class nodeStats:
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # Begin the hefty crossing analysis
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
+            print("Are we here yet?")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
+        # Add the node dictionary
         return self.node_dicts, self.image_dict
         # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
 
@@ -276,7 +276,7 @@ class nodeStats:
         Parameters
         ----------
         skeleton : npt.NDArray
-            A binary single-pixel wide mask, or result from conv_skelly().
+            A binary single-pixel wide mask, or result from conv_skeleton().
 
         Returns
         -------
@@ -402,7 +402,7 @@ class nodeStats:
             LOGGER.debug(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
+    def connect_close_nodes(self, conv_skeleton: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -410,7 +410,7 @@ class nodeStats:
 
         Parameters
         ----------
-        conv_skelly : npt.NDArray
+        conv_skeleton : npt.NDArray
             A labeled skeleton image with skeleton = 1, endpoints = 2, crossing points =3.
         node_width : float
             The width of the dna in the grain, used to connect close nodes.
@@ -420,8 +420,8 @@ class nodeStats:
         np.ndarray
             The skeleton (label=1) with close nodes connected (label=3).
         """
-        self.connected_nodes = conv_skelly.copy()
-        nodeless = conv_skelly.copy()
+        self.connected_nodes = conv_skeleton.copy()
+        nodeless = conv_skeleton.copy()
         nodeless[(nodeless == 3) | (nodeless == 2)] = 0  # remove node & termini points
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
@@ -553,29 +553,30 @@ class nodeStats:
         """
         # Get coordinates of nodes
         # This is a numpy array of coords, shape Nx2
+        print(f"\n{self.node_centre_mask=}\n")
+        # @ns-rse 2025-08-08 : This only captures some cases, if the array is empty it doesn't work I found there was an
+        # instance where there were no node_coords (i.e. self.node_centre_mask.copy() == 3) returned an empty list so
+        # there are no nodes.
         assert self.node_centre_mask is not None, "Node centre mask is not defined."
         node_coords: npt.NDArray[np.int32] = np.argwhere(self.node_centre_mask.copy() == 3)
-        print("HAVE WE MADE IT HERE? 1")
+        print(f"\n{node_coords=}\n")
         # Check whether average trace resides inside the grain mask
         # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        print("HAVE WE MADE IT HERE? 2")
+        print(f"\n{dilate=}\n")
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
+        print(f"\n{average_trace_advised=}\n")
         LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
-        print("HAVE WE MADE IT HERE? 3")
-
         # Iterate over the nodes and analyse the branches
         matched_branches = None
         branch_image = None
         avg_image = np.zeros_like(self.image)
         real_node_count = 0
         for node_no, (node_x, node_y) in enumerate(node_coords):
-            print(f"HAVE WE MADE IT HERE? 4 (Node {node_no})")
-
             unmatched_branches = {}
             error = False
-
+            print("NODES - Step 1")
             # Get branches relevant to the node
             max_length_px = max_branch_length / (self.pixel_to_nm_scaling * 1)
             reduced_node_area: npt.NDArray[np.int32] = nodeStats.only_centre_branches(
@@ -583,6 +584,7 @@ class nodeStats:
             )
             # Reduced skel graph is a networkx graph of the reduced node area.
             reduced_skel_graph: nx.classes.graph.Graph = nodeStats.skeleton_image_to_graph(reduced_node_area)
+            print("NODES - Step 2")
 
             # Binarise the reduced node area
             branch_mask = reduced_node_area.copy()
@@ -592,6 +594,7 @@ class nodeStats:
 
             # Find the starting coordinates of any branches connected to the node
             branch_start_coords = self.find_branch_starts(reduced_node_area)
+            print("NODES - Step 3")
 
             # Stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
@@ -603,6 +606,7 @@ class nodeStats:
                 try:
                     real_node_count += 1
                     LOGGER.debug(f"Node: {real_node_count}")
+                    print("NODES - Step 4")
 
                     # Analyse the node branches
                     (
@@ -644,6 +648,7 @@ class nodeStats:
                     angles_between_singlet_branch_vectors: npt.NDArray[np.float64] = (
                         nodestats_calc_singlet_angles_result[0]
                     )
+                    print("NODES - Step 5")
 
                     for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
                         unmatched_branches[branch_index] = {"angles": angle}
@@ -672,7 +677,16 @@ class nodeStats:
                 except ResolutionError:
                     LOGGER.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
-
+                print("NODES - Step 6")
+                self.graincrop.nodes[f"node_{real_node_count}"] = {
+                    "error": error,
+                    "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+                    "branch_stats": matched_branches,
+                    "unmatched_branch_stats": unmatched_branches,
+                    "node_coords": node_coords,
+                    "confidence": confidence,
+                }
+                print(f"\n{self.graincrop.nodes[f'node_{real_node_count}']=}\n")
                 # self.node_dicts[f"node_{real_node_count}"] = {
                 #     "error": error,
                 #     "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
@@ -698,7 +712,7 @@ class nodeStats:
                 # self.image_dict["nodes"][f"node_{real_node_count}"] = node_images_dict
                 self.graincrop.nodes[real_node_count] = Node(
                     error=error,
-                    pixel_t0_nm_scaling=self.pixel_to_nm_scaling,
+                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                     branch_stats=matched_branches,
                     unmatched_branch_stats=unmatched_branches,
                     node_coords=node_coords,
@@ -1884,7 +1898,7 @@ def nodestats_image(
     pair_odd_branches: float,
 ) -> tuple:
     """
-    Initialise the nodeStats class.
+    Calculate Node Statistics for a single crop.
 
     Parameters
     ----------
@@ -1952,7 +1966,7 @@ def nodestats_image(
 
             # compile images
             nodestats_images = {
-                "convolved_skeletons": nodestats.conv_skelly,
+                "convolved_skeletons": nodestats.conv_skeleton,
                 "node_centres": nodestats.node_centre_mask,
                 "connected_nodes": nodestats.connected_nodes,
             }

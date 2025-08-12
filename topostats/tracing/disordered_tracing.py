@@ -118,7 +118,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
-        print("[trace_dna] Step 1")
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
         if check_pixel_touching_edge(self.smoothed_mask):
             LOGGER.warning(
@@ -133,13 +132,11 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             method=self.skeletonisation_params["method"],
             height_bias=self.skeletonisation_params["height_bias"],
         ).get_skeleton()
-        print("[trace_dna] Step 3")
         self.pruned_skeleton = prune_skeleton(
             self.image, self.skeleton, self.pixel_to_nm_scaling, **self.pruning_params.copy()
         )
         self.pruned_skeleton = self.remove_touching_edge(self.pruned_skeleton)
         self.disordered_trace = np.argwhere(self.pruned_skeleton == 1)
-        print("[trace_dna] Step 4")
 
         if self.disordered_trace is None:
             LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} failed to Skeletonise.")
@@ -362,12 +359,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     tuple[dict, pd.DataFrame, dict, pd.DataFrame]
         Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
-    print("\nWE ARE HERE 1\n")
     img_base = np.zeros_like(topostats_object.image)
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
-    print("\nWE ARE HERE 2\n")
     assert direction in ("above", "below"), f"Invalid direction: {direction}"
     grain_crops = (
         topostats_object.image_grain_crops.above.crops
@@ -375,34 +370,27 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         else topostats_object.image_grain_crops.below.crops
     )
     filename = topostats_object.filename
-    pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
     # These are images for diagnostics, edited during tracing to show
     # various steps
     all_images = {
-        "smoothed_grain": img_base.copy(),
+        "smoothed_mask": img_base.copy(),
         "skeleton": img_base.copy(),
         "pruned_skeleton": img_base.copy(),
         "branch_indexes": img_base.copy(),
         "branch_types": img_base.copy(),
     }
-    print("\nWE ARE HERE 3\n")
-
     # for cropped_image_index, cropped_image in cropped_images.items():
     number_of_grains = len(grain_crops)
+    print(f"\n{number_of_grains=}\n")
     for grain_number, grain_crop in grain_crops.items():
         try:
-            print(f"\nWE ARE HERE 4 (grain : {grain_number})\n")
             grain_crop_tensor = grain_crop.mask
             grain_crop_class_mask = grain_crop_tensor[:, :, class_index]
-            # TODO : Don't need to assign these here should be able to use them directly
-            grain_crop_image = grain_crop.image
-            pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
-            print(f"\nWE ARE HERE 5 (grain : {grain_number})\n")
 
             disordered_trace_images: dict | None = disordered_trace_grain(
-                cropped_image=grain_crop_image,
+                cropped_image=grain_crop.image,
                 cropped_mask=grain_crop_class_mask,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                pixel_to_nm_scaling=grain_crop.pixel_to_nm_scaling,
                 filename=filename,
                 mask_smoothing_params=mask_smoothing_params,
                 skeletonisation_params=skeletonisation_params,
@@ -411,20 +399,18 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 n_grain=grain_number,
             )
             LOGGER.debug(f"[{grain_crop.filename}] : Disordered Traced grain {grain_number + 1} of {number_of_grains}")
-            print(f"\nWE ARE HERE 6 (grain : {grain_number})\n")
-
             if disordered_trace_images is not None:
                 # obtain segment stats
                 try:
                     skan_skeleton = skan.Skeleton(
-                        np.where(disordered_trace_images["pruned_skeleton"] == 1, grain_crop_image, 0),
-                        spacing=pixel_to_nm_scaling,
+                        np.where(disordered_trace_images["pruned_skeleton"] == 1, grain_crop.image, 0),
+                        spacing=grain_crop.pixel_to_nm_scaling,
                     )
                     skan_df = skan.summarize(skel=skan_skeleton, separator="_")
                     skan_df = compile_skan_stats(
                         skan_df=skan_df,
                         skan_skeleton=skan_skeleton,
-                        image=grain_crop_image,
+                        image=grain_crop.image,
                         filename=filename,
                         grain_number=grain_number,
                     )
@@ -445,7 +431,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     "grain_junctions": np.int64((conv_pruned_skeleton == 3).sum()),
                     "total_branch_lengths": total_branch_length_nm,
                     "grain_width_mean": disorderedTrace.calculate_dna_width(
-                        disordered_trace_images["smoothed_grain"],
+                        disordered_trace_images["smoothed_mask"],
                         disordered_trace_images["pruned_skeleton"],
                         grain_crop.pixel_to_nm_scaling,
                     )
@@ -459,7 +445,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     grain_junctions=np.int64((conv_pruned_skeleton == 3).sum()),
                     total_branch_length=total_branch_length_nm,
                     grain_width_mean=disorderedTrace.calculate_dna_width(
-                        disordered_trace_images["smoothed_grain"],
+                        disordered_trace_images["smoothed_mask"],
                         disordered_trace_images["pruned_skeleton"],
                         grain_crop.pixel_to_nm_scaling,
                     )
@@ -469,7 +455,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     topostats_object.image_grain_crops.above.crops[grain_number].disordered_trace = disordered_trace
                 else:
                     topostats_object.image_grain_crops.below.crops[grain_number].disordered_trace = disordered_trace
-
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function
                 for image_name, full_diagnostic_image in all_images.items():
@@ -713,7 +698,7 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
     return {
         "original_image": cropped_image,
         "original_grain": cropped_mask,
-        "smoothed_grain": disorderedtrace.smoothed_mask,
+        "smoothed_mask": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
         "branch_types": get_skan_image(cropped_image, disorderedtrace.pruned_skeleton, "branch_type"),
