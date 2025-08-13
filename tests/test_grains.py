@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 from unittest.mock import MagicMock, patch
+import pathlib
 
 import numpy as np
 import numpy.typing as npt
@@ -6563,15 +6564,28 @@ def test_remove_disconnected_grains(
 
     np.testing.assert_array_equal(result_grain_tensor, expected_result_grain_tensor)
 
+
 @pytest.mark.parametrize(
-    ("image", "pixel_to_nm_scaling", "open_at_start", "closing_iterations_at_end",
-     "opening_iterations_at_end", "small_holes_threshold", "hessian_sigmas_nm",
-     "gaussian_blurring_sigma", "opening_radius", "closing_radius", "use_safe_opening",
-     "safe_area_threshold", "max_ratio_of_width_to_length", "expected_result"),
+    (
+        "image_path",
+        "pixel_to_nm_scaling",
+        "open_at_start",
+        "closing_iterations_at_end",
+        "opening_iterations_at_end",
+        "small_holes_threshold",
+        "hessian_sigmas_nm",
+        "gaussian_blurring_sigma",
+        "opening_radius",
+        "closing_radius",
+        "use_safe_opening",
+        "safe_area_threshold",
+        "max_ratio_of_width_to_length",
+        "expected_result_path",
+    ),
     [
         pytest.param(
-            # image
-            np.load("resources/ridges_test_images/test_image_1.npy"),
+            # image_path
+            "resources/ridges_test_images/test_image_1.npy",
             # pixel_to_nm_scaling
             2.0,
             # open_at_start
@@ -6596,27 +6610,15 @@ def test_remove_disconnected_grains(
             0.1,
             # max_ratio_of_width_to_length
             2.0,
-            # expected_result
-            np.stack(
-                arrays=[
-                    ~np.array(
-                        np.load("resources/test_images/split_ridges_expected_image_1.npy"),
-                        dtype=np.bool_,
-                    ),
-                    np.array(
-                        np.load("resources/test_images/split_ridges_expected_image_1.npy"),
-                        dtype=np.bool_,
-                    ),
-                ],
-                axis=-1,
-            ),
+            # expected_result_path
+            "resources/ridges_test_images/expected_image_1.npy",
+            # id
             id="testing function with good example",
-        )
+        ),
     ],
 )
-
 def test_split_ridges(
-    image: npt.NDArray[np.float64],
+    image_path: str,
     pixel_to_nm_scaling: float,
     open_at_start: bool,
     closing_iterations_at_end: int,
@@ -6629,9 +6631,13 @@ def test_split_ridges(
     use_safe_opening: bool,
     safe_area_threshold: float,
     max_ratio_of_width_to_length: float,
-    expected_result: npt.NDArray[np.bool_],
+    expected_result_path: str,
 ) -> None:
     """Test the split_ridges method of the Grains class."""
+    here = pathlib.Path(__file__).parent
+    full_path = here / image_path
+    image = np.load(full_path)
+    expected_result = np.load(here / expected_result_path)
     result = Grains.split_ridges(
         image=image,
         pixel_to_nm_scaling=pixel_to_nm_scaling,

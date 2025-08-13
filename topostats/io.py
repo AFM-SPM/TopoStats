@@ -20,7 +20,6 @@ import pandas as pd
 from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
-from argparse import Namespace
 
 from topostats import __release__, grains
 from topostats.logs.logs import LOGGER_NAME
@@ -259,13 +258,7 @@ def write_config_with_comments(args=None) -> None:
     ----------
     args : Namespace
         A Namespace object parsed from argparse with values for 'filename'.
-    """
-    if args is None:
-        args = Namespace()
-        args.config = None
-        args.filename = None
-        args.output_dir = None
-        args.simple = False
+    """      
     filename = "config" if args.filename is None else args.filename
     output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -747,7 +740,6 @@ class LoadScans:
 
         # Add a fallback return or raise if all above fail
         raise ValueError(f"Could not load SPM file: {self.img_path} with channel: {self.channel}")
-
 
     def load_topostats(self, extract: str = "all") -> dict[str, Any] | tuple[npt.NDArray, float, Any]:
         """
