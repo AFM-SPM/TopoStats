@@ -1,0 +1,861 @@
+topostats.tracing.skeletonize
+=============================
+
+.. py:module:: topostats.tracing.skeletonize
+
+.. autoapi-nested-parse::
+
+   Skeletonize molecules.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.skeletonize.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.skeletonize.getSkeleton
+   topostats.tracing.skeletonize.topostatsSkeletonize
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: getSkeleton(image: numpy.typing.NDArray, mask: numpy.typing.NDArray, method: str = 'zhang', height_bias: float = 0.6)
+
+   
+   Class skeletonising images.
+
+   :param image: Image used to generate the mask.
+   :type image: npt.NDArray
+   :param mask: Binary mask of features.
+   :type mask: npt.NDArray
+   :param method: Method for skeletonizing. Options 'zhang' (default), 'lee', 'medial_axis', 'thin' and 'topostats'.
+   :type method: str
+   :param height_bias: Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+                       smiilar to Zhang.
+   :type height_bias: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: mask
+
+
+   .. py:attribute:: method
+      :value: 'zhang'
+
+
+
+   .. py:attribute:: height_bias
+      :value: 0.6
+
+
+
+   .. py:method:: get_skeleton() -> numpy.typing.NDArray
+
+      
+      Skeletonise molecules.
+
+      :returns: Skeletonised version of the binary mask (possibly using criteria from the image).
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_skeletonize() -> collections.abc.Callable
+
+      
+      Determine which skeletonise method to use.
+
+      :returns: Returns the function appropriate for the required skeletonizing method.
+      :rtype: Callable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _skeletonize_zhang(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Use scikit-image implementation of the Zhang skeletonisation method.
+
+      :param mask: Binary array to skeletonise.
+      :type mask: npt.NDArray
+
+      :returns: Mask array reduced to a single pixel thickness.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _skeletonize_lee(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Use scikit-image implementation of the Lee skeletonisation method.
+
+      :param mask: Binary array to skeletonise.
+      :type mask: npt.NDArray
+
+      :returns: Mask array reduced to a single pixel thickness.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _skeletonize_medial_axis(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Use scikit-image implementation of the Medial axis skeletonisation method.
+
+      :param mask: Binary array to skeletonise.
+      :type mask: npt.NDArray
+
+      :returns: Mask array reduced to a single pixel thickness.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _skeletonize_thin(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Use scikit-image implementation of the thinning skeletonisation method.
+
+      :param mask: Binary array to skeletonise.
+      :type mask: npt.NDArray
+
+      :returns: Mask array reduced to a single pixel thickness.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _skeletonize_topostats(image: numpy.typing.NDArray, mask: numpy.typing.NDArray, height_bias: float = 0.6) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Use scikit-image implementation of the Zhang skeletonisation method.
+
+      This method is based on Zhang's method but produces different results (less branches but slightly less
+      accurate).
+
+      :param image: Original image with heights.
+      :type image: npt.NDArray
+      :param mask: Binary array to skeletonise.
+      :type mask: npt.NDArray
+      :param height_bias: Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all
+                          pixels smiilar to Zhang.
+      :type height_bias: float
+
+      :returns: Masked array reduced to a single pixel thickness.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: topostatsSkeletonize(image: numpy.typing.NDArray, mask: numpy.typing.NDArray, height_bias: float = 0.6)
+
+   
+   Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).
+
+   Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel
+   values opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.
+
+   :param image: Original 2D image containing the height data.
+   :type image: npt.NDArray
+   :param mask: Binary image containing the object to be skeletonised. Dimensions should match those of 'image'.
+   :type mask: npt.NDArray
+   :param height_bias: Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+                       smiilar to Zhang.
+   :type height_bias: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: mask
+
+
+   .. py:attribute:: height_bias
+      :value: 0.6
+
+
+
+   .. py:attribute:: skeleton_converged
+      :value: False
+
+
+
+   .. py:attribute:: p2
+      :value: None
+
+
+
+   .. py:attribute:: p3
+      :value: None
+
+
+
+   .. py:attribute:: p4
+      :value: None
+
+
+
+   .. py:attribute:: p5
+      :value: None
+
+
+
+   .. py:attribute:: p6
+      :value: None
+
+
+
+   .. py:attribute:: p7
+      :value: None
+
+
+
+   .. py:attribute:: p8
+      :value: None
+
+
+
+   .. py:attribute:: p9
+      :value: None
+
+
+
+   .. py:attribute:: counter
+      :value: 0
+
+
+
+   .. py:method:: do_skeletonising() -> numpy.typing.NDArray
+
+      
+      Perform skeletonisation.
+
+      :returns: The single pixel thick, skeletonised array.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _do_skeletonising_iteration() -> None
+
+      
+      Obtain the local binary pixel environment and assess the local pixel values.
+
+      This determines whether to delete a point according to the Zhang algorithm.
+
+      Then removes ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1
+      is all pixels smiilar to Zhang.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _delete_pixel_subit1(point: list) -> bool
+
+      
+      Check whether a single point (P1) should be deleted based on its local binary environment.
+
+      (a) 2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.
+      (b) A(P1) = 1, where A(P1) is the # of 01's around P1.
+      (C) P2 * P4 * P6 = 0
+      (d) P4 * P6 * P8 = 0
+
+      :param point: List of [x, y] coordinate positions.
+      :type point: list
+
+      :returns: Indicates whether to delete depending on whether the surrounding points have met the criteria of the binary
+                thin a, b returncount, c and d checks below.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _delete_pixel_subit2(point: list) -> bool
+
+      
+      Check whether a single point (P1) should be deleted based on its local binary environment.
+
+      (a) 2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.
+      (b) A(P1) = 1, where A(P1) is the # of 01's around P1.
+      (c') P2 * P4 * P8 = 0
+      (d') P2 * P6 * P8 = 0
+
+      :param point: List of [x, y] coordinate positions.
+      :type point: list
+
+      :returns: Whether surrounding points have met the criteria of the binary thin a, b returncount, csharp and dsharp
+                checks below.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_a() -> bool
+
+      
+      Check the surrounding area to see if the point lies on the edge of the grain.
+
+      Condition A protects the endpoints (which will be < 2)
+
+      :returns: If point lies on edge of graph and isn't an endpoint.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_b_returncount() -> int
+
+      
+      Count local area 01's in order around P1.
+
+      ??? What does this mean?
+
+      :returns: The number of 01's around P1.
+      :rtype: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_c() -> bool
+
+      
+      Check if p2, p4 or p6 is 0.
+
+      :returns: If p2, p4 or p6 is 0.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_d() -> bool
+
+      
+      Check if p4, p6 or p8 is 0.
+
+      :returns: If p4, p6 or p8 is 0.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_csharp() -> bool
+
+      
+      Check if p2, p4 or p8 is 0.
+
+      :returns: If p2, p4 or p8 is 0.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_thin_check_dsharp() -> bool
+
+      
+      Check if p2, p6 or p8 is 0.
+
+      :returns: If p2, p6 or p8 is 0.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: final_skeletonisation_iteration() -> None
+
+      
+      Remove "hanging" pixels.
+
+      Examples of such pixels are:
+                  [0, 0, 0]               [0, 1, 0]              [0, 0, 0]
+                  [0, 1, 1]               [0, 1, 1]              [0, 1, 1]
+          case 1: [0, 1, 0]   or  case 2: [0, 1, 0]   or case 3: [1, 1, 0]
+
+      This is useful for the future functions that rely on local pixel environment
+      to make assessments about the overall shape/structure of traces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_final_thin_check_a() -> bool
+
+      
+      Assess if local area has 4-connectivity.
+
+      :returns: Logical indicator of whether if any neighbours of the 4-connections have a near pixel.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binary_final_thin_check_b() -> bool
+
+      
+      Assess if local area 4-connectivity is connected to multiple branches.
+
+      :returns: Logical indicator of whether if any neighbours of the 4-connections have a near pixel.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: binary_thin_check_diag() -> bool
+
+      
+      Check if opposite corner diagonals are present.
+
+      :returns: Whether a diagonal exists.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_local_pixels_binary(binary_map: numpy.typing.NDArray, x: int, y: int) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Value of pixels in the local 8-connectivity area around the coordinate (P1) described by x and y.
+
+      P1 must not lie on the edge of the binary map.
+
+      [[p7, p8, p9],    [[0,1,2],
+       [p6, P1, p2], ->  [3,4,5], -> [0,1,2,3,5,6,7,8]
+       [p5, p4, p3]]     [6,7,8]]
+
+      delete P1 to only get local area.
+
+      :param binary_map: Binary mask of image.
+      :type binary_map: npt.NDArray
+      :param x: X coordinate within the binary map.
+      :type x: int
+      :param y: Y coordinate within the binary map.
+      :type y: int
+
+      :returns: Flattened 8-long array describing the values in the binary map around the x,y point.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sort_and_shuffle(arr: numpy.typing.NDArray, seed: int = 23790101) -> tuple[numpy.typing.NDArray, numpy.typing.NDArray]
+      :staticmethod:
+
+
+      
+      Sort array in ascending order and shuffle the order of identical values are the same.
+
+      :param arr: A flattened (1D) array.
+      :type arr: npt.NDArray
+      :param seed: Seed for random number generator.
+      :type seed: int
+
+      :returns: * *npt.NDArray* -- An ascending order array where identical value orders are also shuffled.
+                * *npt.NDArray* -- An ascending order index array of above where identical value orders are also shuffled.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

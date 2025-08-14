@@ -1,0 +1,370 @@
+topostats.plotting
+==================
+
+.. py:module:: topostats.plotting
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.plotting.plotting_config
+   topostats.plotting.extension
+   topostats.plotting.colname2label
+   topostats.plotting.bins
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.plotting.importfromfile
+   topostats.plotting.savestats
+   topostats.plotting.pathman
+   topostats.plotting.labelunitconversion
+   topostats.plotting.dataunitconversion
+   topostats.plotting.plotkde
+   topostats.plotting.plotkde2var
+   topostats.plotting.plothist
+   topostats.plotting.plothist2var
+   topostats.plotting.plotdist
+   topostats.plotting.plotdist2var
+   topostats.plotting.plotviolin
+   topostats.plotting.plotjoint
+   topostats.plotting.plotLinearVsCircular
+   topostats.plotting.computeStats
+
+
+Module Contents
+---------------
+
+.. py:data:: plotting_config
+
+.. py:data:: extension
+   :value: '.png'
+
+
+.. py:data:: colname2label
+
+.. py:function:: importfromfile(path)
+
+   
+   Importing the data needed from the json or csv file specified by the user
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: savestats(path, dataframetosave)
+
+.. py:function:: pathman(path)
+
+   
+   Splitting the path into directory and file name; creating or specifying a directory to save the plots
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: labelunitconversion(plotarg, nm)
+
+   
+   Adding units (m or nm) to the axis labels
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: dataunitconversion(data, plotarg, nm)
+
+   
+   Converting the data based on the unit specified by the user. Only nm and m are supported at the moment.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotkde(df, plotarg, grouparg=None, xmin=None, xmax=None, nm=False, specpath=None)
+
+   
+   Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+   default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+   the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotkde2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False, specpath=None, grouparg=None)
+
+   
+   Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+   default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+   the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plothist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None)
+
+   
+   Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+   default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+   the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plothist2var(df, plotarg, df2=None, plotarg2=None, label1=None, label2=None, xmin=None, xmax=None, nm=False, specpath=None, bins=12)
+
+   
+   Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+   default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path under
+   the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotdist(df, plotarg, grouparg=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None)
+
+   
+   Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots
+   yet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotdist2var(plotarg, plotarg2, df, df2=None, xmin=None, xmax=None, bins=20, nm=False, specpath=None, plotname=None, c1=None, c2=None, extension='.png')
+
+   
+   Dist plot for 2 variables
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotviolin(df, plotarg, grouparg=None, ymin=None, ymax=None, nm=False, specpath=None)
+
+   
+   Creating a violin plot for the chosen variable. Grouping optional. The y axis range can be defined by the user.
+   The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
+   under the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotjoint(df, arg1, arg2, xmin=None, xmax=None, ymin=None, ymax=None, nm=False, specpath=None)
+
+   
+   Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.
+   The default unit is metre, but this can be changed to nanometre by adding 'nm=True'. The default path is the path
+   under the if __name__ == '__main__' line, but this can also be changed using the specpath argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plotLinearVsCircular(contour_lengths_df)
+
+.. py:function:: computeStats(data, columns, min, max)
+
+   
+   Prints out a table of stats, including the standard deviation, standard error, N value, and peak position
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: bins
+   :value: 20
+
+
