@@ -21,7 +21,7 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import TOPOSTATS_COMMIT, TOPOSTATS_DETAILS, __release__, grains
+from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -239,7 +239,7 @@ def write_yaml(
         header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
 
     # Add comment to config with topostats version + commit
-    header += f"# TopoStats version: {TOPOSTATS_DETAILS[0]}\n"
+    header += f"# TopoStats version: {TOPOSTATS_VERSION}\n"
     header += f"# Commit: {TOPOSTATS_COMMIT}\n"
 
     output_config.write_text(header, encoding="utf-8")
