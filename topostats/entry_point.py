@@ -8,7 +8,7 @@ import argparse as arg
 import sys
 from pathlib import Path
 
-from topostats import __version__, log_topostats_version, run_modules
+from topostats import __version__, run_modules
 from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 
@@ -1268,9 +1268,6 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     None
         Does not return anything.
     """
-    # Log topostats version and the commit id
-    log_topostats_version()
-
     # Parse command line options, load config (or default) and update with command line options
     parser = create_parser()
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
