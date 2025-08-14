@@ -23,7 +23,7 @@ from topostats.unet_masking import (
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
-from topostats.utils import _get_mask, get_thresholds
+from topostats.utils import get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -688,8 +688,10 @@ class Grains:
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
-        threshold_std_dev: dict[str, float | list] | None = None,
-        threshold_absolute: dict[str, float | list] | None = None,
+        # threshold_std_dev: dict[str, float | list] | None = None,
+        # threshold_absolute: dict[str, float | list] | None = None,
+        threshold_std_dev: list | None = None,
+        threshold_absolute: list | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
         direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
@@ -752,17 +754,13 @@ class Grains:
         self.otsu_threshold_multiplier = otsu_threshold_multiplier
         # Ensure thresholds are lists (might not be from passing in CLI args)
         if threshold_std_dev is None:
-            threshold_std_dev = {"above": [1.0], "below": [10.0]}
-        if not isinstance(threshold_std_dev["above"], list):
-            threshold_std_dev["above"] = [threshold_std_dev["above"]]
-        if not isinstance(threshold_std_dev["below"], list):
-            threshold_std_dev["below"] = [threshold_std_dev["below"]]
+            threshold_std_dev = [1.0, 10.0]
+        if not isinstance(threshold_std_dev, list):
+            threshold_std_dev[0] = [threshold_std_dev]
         if threshold_absolute is None:
-            threshold_absolute = {"above": [None], "below": [None]}
-        if not isinstance(threshold_absolute["above"], list):
-            threshold_absolute["above"] = [threshold_absolute["above"]]
-        if not isinstance(threshold_absolute["below"], list):
-            threshold_absolute["below"] = [threshold_absolute["below"]]
+            threshold_absolute = [None]
+        if not isinstance(threshold_absolute, list):
+            threshold_absolute[0] = [threshold_absolute]
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
         self.area_thresholds = area_thresholds
@@ -770,7 +768,7 @@ class Grains:
         assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
         self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
-        self.thresholds: dict[str, list[float]] | None = None
+        self.thresholds: list[float] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
@@ -992,16 +990,15 @@ class Grains:
 
         # Create an ImageGrainCrops object to store the grain crops
         image_grain_crops = ImageGrainCrops(above=None, below=None)
-        for direction in self.threshold_directions:
-            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+        for index, direction in enumerate(self.threshold_directions):
+            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[index]})")
             self.mask_images[direction] = {}
 
             # iterate over the thresholds for the current direction
-            direction_thresholds = self.thresholds[direction]
+            direction_thresholds = [self.thresholds[index]]
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=direction_thresholds,
-                threshold_direction=direction,
                 image_name=self.filename,
             )
 
@@ -1140,7 +1137,6 @@ class Grains:
     def multi_class_thresholding(
         image: npt.NDArray,
         thresholds: list[float],
-        threshold_direction: str,
         image_name: str,
     ) -> npt.NDArray[np.bool_]:
         """
@@ -1152,8 +1148,6 @@ class Grains:
             2-D Numpy array of image.
         thresholds : list[float]
             List of thresholds for each class.
-        threshold_direction : str
-            Direction for which the threshold is applied.
         image_name : str
             Name of the image being processed (used in logging).
 
@@ -1167,10 +1161,9 @@ class Grains:
         ).astype(bool)
         for threshold_index, direction_threshold in enumerate(thresholds):
             # mask the grains
-            traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
+            traditional_full_mask_tensor[:, :, threshold_index + 1] = get_mask(
                 image=image,
                 thresh=direction_threshold,
-                threshold_direction=threshold_direction,
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor

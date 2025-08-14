@@ -176,7 +176,8 @@ def update_plotting_config(plotting_config: dict) -> dict:
     return plotting_config
 
 
-def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> npt.NDArray:
+# change name
+def get_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDArray:
     """
     Calculate a mask for pixels that exceed the threshold.
 
@@ -186,8 +187,6 @@ def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_n
         Numpy array representing image.
     thresh : float
         A float representing the threshold.
-    threshold_direction : str
-        A string representing the direction that should be thresholded. ("above", "below").
     img_name : str
         Name of image being processed.
 
@@ -196,44 +195,11 @@ def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_n
     npt.NDArray
         Numpy array of image with objects coloured.
     """
-    if threshold_direction == "above":
+    if thresh > 0:
         LOGGER.debug(f"[{img_name}] : Masking (above) Threshold: {thresh}")
         return image > thresh
     LOGGER.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
     return image < thresh
-    # LOGGER.fatal(f"[{img_name}] : Threshold direction invalid: {threshold_direction}")
-
-
-def get_mask(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.NDArray:
-    """
-    Mask data that should not be included in flattening.
-
-    Parameters
-    ----------
-    image : npt.NDArray
-        2D Numpy array of the image to have a mask derived for.
-    thresholds : dict
-        Dictionary of thresholds, at a bare minimum must have key 'below' with an associated value, second key is
-        to have an 'above' threshold.
-    img_name : str
-        Image name that is being masked.
-
-    Returns
-    -------
-    npt.NDArray
-        2D Numpy boolean array of points to mask.
-    """
-    # Both thresholds are applicable
-    if "below" in thresholds and "above" in thresholds:
-        mask_above = _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
-        mask_below = _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
-        # Masks are combined to remove both the extreme high and extreme low data points.
-        return mask_above + mask_below
-    # Only below threshold is applicable
-    if "below" in thresholds:
-        return _get_mask(image, thresh=thresholds["below"], threshold_direction="below", img_name=img_name)
-    # Only above threshold is applicable
-    return _get_mask(image, thresh=thresholds["above"], threshold_direction="above", img_name=img_name)
 
 
 # pylint: disable=too-many-branches
@@ -241,9 +207,9 @@ def get_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
     otsu_threshold_multiplier: float | None = None,
-    threshold_std_dev: dict[str, list] | None = None,
-    absolute: dict[str, list] | None = None,
-) -> dict[str, list[float]]:
+    threshold_std_dev: list | None = None,
+    absolute: list | None = None,
+) -> list[float]:
     """
     Obtain thresholds for masking data points.
 
@@ -265,42 +231,34 @@ def get_thresholds(  # noqa: C901
     dict[str, list[float]]
         Dictionary of thresholds, contains keys 'below' and optionally 'above'.
     """
-    thresholds: dict[str, list[float]] = {}
+    thresholds: list[float] = []
     if threshold_method == "otsu":
         assert (
             otsu_threshold_multiplier is not None
         ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
-        thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
+        thresholds = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
     elif threshold_method == "std_dev":
         assert (
             threshold_std_dev is not None
         ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
-        if threshold_std_dev["below"] is not None:
-            thresholds_std_dev_below = []
-            for threshold_std_dev_value in threshold_std_dev["below"]:
-                thresholds_std_dev_below.append(
-                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
-                )
-            thresholds["below"] = thresholds_std_dev_below
-        if threshold_std_dev["above"] is not None:
-            thresholds_std_dev_above = []
-            for threshold_std_dev_value in threshold_std_dev["above"]:
-                thresholds_std_dev_above.append(
+        threshold_std_dev_list = []
+        for threshold_std_dev_value in threshold_std_dev:
+            if threshold_std_dev_value > 0:
+                threshold_std_dev_list.append(
                     threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
                 )
-            thresholds["above"] = thresholds_std_dev_above
+            elif threshold_std_dev_value < 0:
+                threshold_std_dev_value = -threshold_std_dev_value
+                threshold_std_dev_list.append(
+                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                )
+        thresholds = threshold_std_dev_list
     elif threshold_method == "absolute":
-        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
-        if absolute["below"] is not None:
-            thresolds_absolute_below = []
-            for threshold_absolute_value in absolute["below"]:
-                thresolds_absolute_below.append(threshold_absolute_value)
-            thresholds["below"] = thresolds_absolute_below
-        if absolute["above"] is not None:
-            thresolds_absolute_above = []
-            for threshold_absolute_value in absolute["above"]:
-                thresolds_absolute_above.append(threshold_absolute_value)
-            thresholds["above"] = thresolds_absolute_above
+        assert (
+            absolute is not None
+        ), "New absolute threshold must be provided when using 'absolute' thresholding method."
+        thresholds = absolute
+
     else:
         if not isinstance(threshold_method, str):
             raise TypeError(

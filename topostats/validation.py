@@ -91,16 +91,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "below": Or(
-                    int,
-                    float,
-                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
-                ),
-                "above": Or(
-                    int,
-                    float,
-                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
-                ),
+                "below": lambda n: n > 0,
+                "above": lambda n: n > 0,
             },
             "gaussian_size": float,
             "gaussian_mode": Or(
@@ -133,32 +125,20 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "otsu_threshold_multiplier": float,
-            "threshold_std_dev": {
-                "below": [lambda n: n > 0],
-                "above": [
-                    lambda n: n > 0,
-                ],
-            },
-            "threshold_absolute": {
-                "below": [
-                    Or(
-                        int,
-                        float,
-                        error=(
-                            "Invalid value in config for grains.threshold.absolute.below should be type int or float"
-                        ),
-                    )
-                ],
-                "above": [
-                    Or(
-                        int,
-                        float,
-                        error=(
-                            "Invalid value in config for grains.threshold.absolute.above should be type int or float"
-                        ),
-                    )
-                ],
-            },
+            "threshold_std_dev": Or(
+                [int],
+                [float],
+                error=(
+                    "Invalid value in config for grains.threshold.threshold_std_dev should be list of type int or float"
+                ),
+            ),
+            "threshold_absolute": Or(
+                [int],
+                [float],
+                error=(
+                    "Invalid value in config for grains.threshold.threshold_absolute should be list of type int or float"
+                ),
+            ),
             "area_thresholds": {
                 "above": [
                     Or(

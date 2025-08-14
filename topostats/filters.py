@@ -120,15 +120,15 @@ class Filters:
             threshold_std_dev = {"above": 1.0, "below": 1.0}
         else:
             self.threshold_std_dev = {
-                "above": [threshold_std_dev["above"]],
-                "below": [threshold_std_dev["below"]],
+                "above": threshold_std_dev["above"],
+                "below": threshold_std_dev["below"],
             }
         if threshold_absolute is None:
             threshold_absolute = {"above": 1.0, "below": 10.0}
         else:
             self.threshold_absolute = {
-                "above": [threshold_absolute["above"]],
-                "below": [threshold_absolute["below"]],
+                "above": threshold_absolute["above"],
+                "below": threshold_absolute["below"],
             }
         self.remove_scars_config = remove_scars
         self.images = {
@@ -551,16 +551,18 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         # Get the thresholds
         try:
-            self.thresholds = get_thresholds(
+            thresholds_list = get_thresholds(
                 image=self.images["initial_zero_average_background"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-                threshold_std_dev=self.threshold_std_dev,
-                absolute=self.threshold_absolute,
+                threshold_std_dev=[self.threshold_std_dev["above"], self.threshold_std_dev["below"]],
+                absolute=self.threshold_absolute["below"] + self.threshold_absolute["above"],
             )
+            # convert thresholds list back into a dictionary
+            self.thresholds = {"above": [thresholds_list[0]], "below": [thresholds_list[1]]}
         except TypeError as type_error:
             raise type_error
-        self.images["mask"] = get_mask(
+        self.images["mask"] = combine_mask_directions(
             image=self.images["initial_zero_average_background"],
             thresholds=self.thresholds,
             img_name=self.filename,
@@ -593,3 +595,34 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])
+
+
+def combine_mask_directions(image: npt.NDArray, thresholds: dict, img_name: str = None) -> npt.NDArray:
+    """
+    Mask data that should not be included in flattening.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2D Numpy array of the image to have a mask derived for.
+    thresholds : list
+        List of thresholds.
+    img_name : str
+        Image name that is being masked.
+
+    Returns
+    -------
+    npt.NDArray
+        2D Numpy boolean array of points to mask.
+    """
+    # Both thresholds are applicable
+    if "below" in thresholds and "above" in thresholds:
+        mask_above = get_mask(image, thresh=thresholds["above"][0], img_name=img_name)
+        mask_below = get_mask(image, thresh=-thresholds["below"][0], img_name=img_name)
+        # Masks are combined to remove both the extreme high and extreme low data points.
+        return mask_above + mask_below
+    # Only below threshold is applicable
+    if "below" in thresholds:
+        return get_mask(image, thresh=-thresholds["below"][0], img_name=img_name)
+    # Only above threshold is applicable
+    return get_mask(image, thresh=thresholds["above"][0], img_name=img_name)
