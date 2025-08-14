@@ -23,10 +23,6 @@ LOGGER = setup_logger()
 __version__ = version("topostats")
 __release__ = ".".join(__version__.split(".")[:-2])
 
-TOPOSTATS_DETAILS = version("topostats").split("+g")
-TOPOSTATS_VERSION = TOPOSTATS_DETAILS[0]
-TOPOSTATS_COMMIT = TOPOSTATS_DETAILS[1].split(".d")[0]
-
 colormaps.register(cmap=Colormap("nanoscope").get_cmap())
 colormaps.register(cmap=Colormap("gwyddion").get_cmap())
 
@@ -273,9 +269,3 @@ class TopoStats:
             Dictionary of ''TopoStats'' object.
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-
-def log_topostats_version() -> None:
-    """Log the TopoStats version, commit and date to system logger."""
-    LOGGER.info(f"TopoStats version : {TOPOSTATS_VERSION}")
-    LOGGER.info(f"Commit            : {TOPOSTATS_COMMIT}")
