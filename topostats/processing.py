@@ -9,6 +9,7 @@ import numpy.typing as npt
 import pandas as pd
 from art import tprint
 
+from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
@@ -1625,6 +1626,8 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
     tprint("TopoStats", font="twisted")
     LOGGER.info(
         f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
+        f"  TopoStats Version           : {TOPOSTATS_VERSION}\n"
+        f"  TopoStats Commit            : {TOPOSTATS_COMMIT}\n"
         f"  Base Directory              : {config['base_dir']}\n"
         f"  File Extension              : {config['file_ext']}\n"
         f"  Files Found                 : {len(img_files)}\n"
