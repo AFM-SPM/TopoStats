@@ -527,7 +527,7 @@ def test_remove_edge_intersecting_grains(
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
     grains_config["threshold_absolute"] = [1.0]
     grains_config["threshold_method"] = "absolute"
-    grains_config["area_thresholds"]["above"] = [20, 10000000]
+    grains_config["area_thresholds"] = [[20, 10000000], [None, None]]
 
     grains = Grains(
         image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
@@ -575,7 +575,7 @@ def test_remove_edge_intersecting_grains(
             None,
             None,
             [0.9, 2.5, -0.0],
-            {"above": [1, 10000000], "below": [1, 10000000]},
+            [[1, 10000000], [1, 10000000]],
             "above",
             True,
             ImageGrainCrops(
@@ -907,7 +907,7 @@ def test_find_grains(
     otsu_threshold_multiplier: float,
     threshold_std_dev: list,
     threshold_absolute: list,
-    area_thresholds: dict,
+    area_thresholds: list,
     direction: str,
     remove_edge_intersecting_grains: bool,
     expected_imagegraincrops: ImageGrainCrops,
@@ -1147,7 +1147,7 @@ def test_find_grains_unet(
             },
             threshold_method="absolute",
             threshold_absolute=[0.9, 0.0],
-            area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
+            area_thresholds=[[1, 10000000], [1, 10000000]],
             direction="above",
             remove_edge_intersecting_grains=True,
         )
@@ -1192,7 +1192,7 @@ def test_find_grains_no_grains_found():
         unet_config=None,
         threshold_method="absolute",
         threshold_absolute=[0.9, 0.0],
-        area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
+        area_thresholds=[[1, 10000000], [1, 10000000]],
         direction="above",
         remove_edge_intersecting_grains=True,
     )

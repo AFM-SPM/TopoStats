@@ -690,7 +690,7 @@ class Grains:
         otsu_threshold_multiplier: float | None = None,
         threshold_std_dev: list | None = None,
         threshold_absolute: list | None = None,
-        area_thresholds: dict[str, list[float | None]] | None = None,
+        area_thresholds: list[list[float | None]] | None = None,
         direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
@@ -744,7 +744,7 @@ class Grains:
                 "lower_norm_bound": 0.0,
             }
         if area_thresholds is None:
-            area_thresholds = {"above": [None, None], "below": [None, None]}
+            area_thresholds = [[None, None], [None, None]]
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
@@ -767,7 +767,8 @@ class Grains:
         self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: list[float] | None = None
-        self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        # self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        self.mask_images: list[dict[str, npt.NDArray]] = []
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
         self.vetting_config = vetting
@@ -914,6 +915,7 @@ class Grains:
         npt.NDArray
             3-D Numpy array with small and large objects removed.
         """
+        print("area_thresholding_tensor AREA THRESHOLDS:", area_thresholds)
         lower_size_limit, upper_size_limit = area_thresholds
         if upper_size_limit is None:
             upper_size_limit = grain_mask_tensor.size * pixel_to_nm_scaling**2
@@ -990,7 +992,7 @@ class Grains:
         image_grain_crops = ImageGrainCrops(above=None, below=None)
         for index, direction in enumerate(self.threshold_directions):
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[index]})")
-            self.mask_images[direction] = {}
+            self.mask_images.append({})
             # Find thresholds for current direction
             direction_thresholds = []
             for threshold in self.thresholds:
@@ -1003,17 +1005,14 @@ class Grains:
                 thresholds=direction_thresholds,
                 image_name=self.filename,
             )
-
-            print("SELF.IMAGE AFTER MULTI_CLASS_")
-
-            self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+            self.mask_images[index]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
             # pre-GrainCrop checks
 
             # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
             if self.remove_edge_intersecting_grains:
                 traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
-            self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
+            self.mask_images[index]["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
             traditional_full_mask_tensor = Grains.area_thresholding_tensor(
@@ -1026,16 +1025,17 @@ class Grains:
                 grain_mask_tensor=traditional_full_mask_tensor,
                 bbox_size_thresholds=(self.minimum_bbox_size_px, None),
             )
-            self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
+            self.mask_images[index]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
+            print("find_grains AREA THRESHOLDS:", self.area_thresholds)
             # Area threshold using user specified thresholds
             traditional_full_mask_tensor = Grains.area_thresholding_tensor(
                 grain_mask_tensor=traditional_full_mask_tensor,
-                area_thresholds=self.area_thresholds[direction],
+                area_thresholds=(self.area_thresholds[index][0], self.area_thresholds[index][1]),
                 pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             )
 
-            self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
+            self.mask_images[index]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
@@ -1076,7 +1076,7 @@ class Grains:
 
                 # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
                 # can be changed when we do a plotting overhaul
-                self.mask_images[direction]["unet"] = full_mask_tensor.copy()
+                self.mask_images[index]["unet"] = full_mask_tensor.copy()
 
                 # Vet the grains
                 if self.vetting_config is not None:
@@ -1092,7 +1092,7 @@ class Grains:
                     graincrops=graincrops_vetted,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[direction]["vetted"] = full_mask_tensor_vetted.copy()
+                self.mask_images[index]["vetted"] = full_mask_tensor_vetted.copy()
 
                 # Mandatory check to remove any objects in any classes that are too small to process
                 graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
@@ -1117,7 +1117,7 @@ class Grains:
                     graincrops=graincrops_merged_classes,
                     image_shape=self.image.shape,
                 )
-                self.mask_images[direction]["merged_classes"] = full_mask_tensor_merged_classes.copy()
+                self.mask_images[index]["merged_classes"] = full_mask_tensor_merged_classes.copy()
 
                 # Store the grain crops
                 if direction == "above":
