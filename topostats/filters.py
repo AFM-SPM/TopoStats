@@ -559,7 +559,10 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
                 absolute=self.threshold_absolute["below"] + self.threshold_absolute["above"],
             )
             # convert thresholds list back into a dictionary
-            self.thresholds = {"above": [thresholds_list[0]], "below": [thresholds_list[1]]}
+            if len(thresholds_list) > 1:
+                self.thresholds = {"above": [thresholds_list[0]], "below": [thresholds_list[1]]}
+            else:
+                self.thresholds = {"above": [thresholds_list[0]], "below": [-thresholds_list[0]]}
         except TypeError as type_error:
             raise type_error
         self.images["mask"] = combine_mask_directions(
@@ -605,8 +608,8 @@ def combine_mask_directions(image: npt.NDArray, thresholds: dict, img_name: str 
     ----------
     image : npt.NDArray
         2D Numpy array of the image to have a mask derived for.
-    thresholds : list
-        List of thresholds.
+    thresholds : dict
+        Dictionary of thresholds.
     img_name : str
         Image name that is being masked.
 

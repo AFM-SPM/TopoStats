@@ -525,7 +525,7 @@ def test_remove_edge_intersecting_grains(
     """Test that Grains successfully does and doesn't remove edge intersecting grains."""
     # Ensure that a sensible number of grains are found
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
-    grains_config["threshold_absolute"]["above"] = [1.0]
+    grains_config["threshold_absolute"] = [1.0]
     grains_config["threshold_method"] = "absolute"
     grains_config["area_thresholds"]["above"] = [20, 10000000]
 
@@ -574,7 +574,7 @@ def test_remove_edge_intersecting_grains(
             "absolute",
             None,
             None,
-            {"above": [0.9, 2.5], "below": [0.0]},
+            [0.9, 2.5, -0.0],
             {"above": [1, 10000000], "below": [1, 10000000]},
             "above",
             True,
@@ -905,8 +905,8 @@ def test_find_grains(
     pixel_to_nm_scaling: float,
     threshold_method: str,
     otsu_threshold_multiplier: float,
-    threshold_std_dev: dict,
-    threshold_absolute: dict,
+    threshold_std_dev: list,
+    threshold_absolute: list,
     area_thresholds: dict,
     direction: str,
     remove_edge_intersecting_grains: bool,
@@ -1146,7 +1146,7 @@ def test_find_grains_unet(
                 "remove_disconnected_grains": False,
             },
             threshold_method="absolute",
-            threshold_absolute={"above": 0.9, "below": 0.0},
+            threshold_absolute=[0.9, 0.0],
             area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
             direction="above",
             remove_edge_intersecting_grains=True,
@@ -1191,7 +1191,7 @@ def test_find_grains_no_grains_found():
         pixel_to_nm_scaling=1.0,
         unet_config=None,
         threshold_method="absolute",
-        threshold_absolute={"above": 0.9, "below": 0.0},
+        threshold_absolute=[0.9, 0.0],
         area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
         direction="above",
         remove_edge_intersecting_grains=True,
@@ -6293,7 +6293,7 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
 
 
 @pytest.mark.parametrize(
-    ("image", "thresholds", "threshold_direction", "expected_grain_mask_tensor"),
+    ("image", "thresholds", "expected_grain_mask_tensor"),
     [
         pytest.param(
             np.array(
@@ -6309,7 +6309,6 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
                 ]
             ),
             [1.0, 2.0],
-            "above",
             np.stack(
                 [
                     np.array(
@@ -6367,7 +6366,6 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
                 ]
             ),
             [-1.0, -2.0],
-            "below",
             np.stack(
                 [
                     np.array(
@@ -6416,14 +6414,12 @@ def test_graincropsdirection_update_full_mask_tensor() -> None:
 def test_multi_class_thresholding(
     image: npt.NDArray,
     thresholds: list[float],
-    threshold_direction: str,
     expected_grain_mask_tensor: npt.NDArray,
 ) -> None:
     """Test the multi_class_thresholding function."""
     grain_mask_tensor = Grains.multi_class_thresholding(
         image=image,
         thresholds=thresholds,
-        threshold_direction=threshold_direction,
         image_name="test_image",
     )
 

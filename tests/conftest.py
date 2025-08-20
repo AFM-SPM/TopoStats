@@ -17,12 +17,12 @@ from skimage.measure._regionprops import RegionProperties
 from skimage.morphology import skeletonize
 
 import topostats
-from topostats.filters import Filters
+from topostats.filters import Filters, combine_mask_directions
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
-from topostats.utils import get_mask, get_thresholds
+from topostats.utils import get_thresholds
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -49,8 +49,7 @@ def default_config() -> dict:
     config["filter"]["threshold_method"] = "std_dev"
     config["filter"]["remove_scars"]["run"] = True
     config["grains"]["threshold_method"] = "absolute"
-    config["grains"]["threshold_absolute"]["above"] = [1.0]
-    config["grains"]["threshold_absolute"]["below"] = [-1.0]
+    config["grains"]["threshold_absolute"] = [1.0]
     config["grains"]["area_thresholds"]["above"] = [10, 60000000]
     return config
 
@@ -60,7 +59,7 @@ def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["filter"]["remove_scars"]["run"] = True
-    config["grains"]["threshold_std_dev"]["below"] = [1.0]
+    config["grains"]["threshold_std_dev"] = [-1.0]
     config["grains"]["area_thresholds"]["above"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
@@ -268,12 +267,16 @@ def test_filters_random(test_filters: Filters, image_random: np.ndarray) -> Filt
 def test_filters_random_with_mask(filter_config: dict, test_filters: Filters, image_random: np.ndarray) -> Filters:
     """Filters class for testing with pixels replaced by random image."""
     test_filters.images["pixels"] = image_random
-    thresholds = get_thresholds(
+    thresholds_list = get_thresholds(
         image=test_filters.images["pixels"],
         threshold_method="otsu",
         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
     )
-    test_filters.images["mask"] = get_mask(image=test_filters.images["pixels"], thresholds=thresholds)
+    if len(thresholds_list) > 1:
+        thresholds = {"above": [thresholds_list[0]], "below": [thresholds_list[1]]}
+    else:
+        thresholds = {"above": [thresholds_list[0]], "below": [-thresholds_list[0]]}
+    test_filters.images["mask"] = combine_mask_directions(image=test_filters.images["pixels"], thresholds=thresholds)
     return test_filters
 
 
@@ -662,11 +665,17 @@ def minicircle_initial_quadratic_removal(minicircle_initial_tilt_removal: Filter
 @pytest.fixture()
 def minicircle_threshold_otsu(minicircle_initial_tilt_removal: Filters) -> Filters:
     """Calculate threshold."""
-    minicircle_initial_tilt_removal.thresholds = get_thresholds(
+    thresholds_list = get_thresholds(
         image=minicircle_initial_tilt_removal.images["initial_tilt_removal"],
         threshold_method="otsu",
         otsu_threshold_multiplier=1.0,
     )
+    if len(thresholds_list) > 1:
+        minicircle_initial_tilt_removal.thresholds = {"above": thresholds_list[0], "below": thresholds_list[1]}
+    elif thresholds_list[0] > 0:
+        minicircle_initial_tilt_removal.thresholds = {"above": thresholds_list[0]}
+    else:
+        minicircle_initial_tilt_removal.thresholds = {"below": thresholds_list[0]}
     return minicircle_initial_tilt_removal
 
 
@@ -697,7 +706,7 @@ def minicircle_threshold_abs(minicircle_initial_tilt_removal: Filters) -> Filter
 @pytest.fixture()
 def minicircle_mask(minicircle_threshold_otsu: Filters) -> Filters:
     """Derive mask based on threshold."""
-    minicircle_threshold_otsu.images["mask"] = get_mask(
+    minicircle_threshold_otsu.images["mask"] = combine_mask_directions(
         image=minicircle_threshold_otsu.images["initial_tilt_removal"],
         thresholds=minicircle_threshold_otsu.thresholds,
     )
@@ -804,7 +813,6 @@ def minicircle_grain_traditional_thresholding(minicircle_grain_threshold_abs: Gr
     minicircle_grain_threshold_abs.mask_images["above"]["thresholded_grains"] = Grains.multi_class_thresholding(
         image=minicircle_grain_threshold_abs.image,
         thresholds=minicircle_grain_threshold_abs.thresholds["above"],
-        threshold_direction="above",
         image_name="minicircle_grain_threshold_abs",
     )
     return minicircle_grain_threshold_abs

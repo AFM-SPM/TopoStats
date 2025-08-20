@@ -18,11 +18,7 @@ from topostats.utils import (
     update_plotting_config,
 )
 
-THRESHOLD_OPTIONS = {
-    "otsu_threshold_multiplier": 1.7,
-    "threshold_std_dev": {"below": 10.0, "above": 1.0},
-    "absolute": {"below": -1.5, "above": 1.5},
-}
+THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": [1.0, 10.0], "absolute": [1.5, -1.5]}
 
 
 def test_convert_path(tmp_path: Path) -> None:
@@ -152,37 +148,31 @@ def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
     """Test of get_thresholds() method otsu threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
 
-    assert isinstance(thresholds, dict)
-    assert thresholds == {"above": [0.8466799787547299]}
+    assert isinstance(thresholds, list)
+    assert thresholds == [0.8466799787547299]
 
 
 @pytest.mark.parametrize(
     ("threshold_config", "expected_thresholds"),
     [
         pytest.param(
-            {
-                "above": [1.0],
-                "below": [10.0],
-            },
-            {"below": [-2.3866804917165663], "above": [0.7886033762450778]},
+            [1.0, -10.0],
+            [0.7886033762450778, -2.3866804917165663],
         ),
         pytest.param(
-            {
-                "above": [1.0, 1.5],
-                "below": [10.0],
-            },
-            {"below": [-2.3866804917165663], "above": [0.7886033762450778, 0.9329344611524253]},
+            [1.0, 1.5, -10.0],
+            [0.7886033762450778, 0.9329344611524253, -2.3866804917165663],
         ),
     ],
 )
 def test_get_thresholds_stddev(
     image_random: np.ndarray,
-    threshold_config: dict[str, list[float]],
-    expected_thresholds: dict[str, list[float]],
+    threshold_config: list[float],
+    expected_thresholds: list[float],
 ) -> None:
     """Test of get_thresholds() method with mean threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config)
-    assert isinstance(thresholds, dict)
+    assert isinstance(thresholds, list)
     assert thresholds == expected_thresholds
 
 
@@ -190,27 +180,21 @@ def test_get_thresholds_stddev(
     ("threshold_config", "expected_thresholds"),
     [
         pytest.param(
-            {
-                "above": [1.5],
-                "below": [-1.5],
-            },
-            {"below": [-1.5], "above": [1.5]},
+            [1.5, -1.5],
+            [1.5, -1.5],
         ),
         pytest.param(
-            {
-                "above": [1.5, 2.0],
-                "below": [-1.5],
-            },
-            {"below": [-1.5], "above": [1.5, 2.0]},
+            [1.5, 2.0, -1.5],
+            [1.5, 2.0, -1.5],
         ),
     ],
 )
 def test_get_thresholds_absolute(
-    image_random: np.ndarray, threshold_config: dict[str, list[float]], expected_thresholds: dict[str, list[float]]
+    image_random: np.ndarray, threshold_config: list[float], expected_thresholds: list[float]
 ) -> None:
     """Test of get_thresholds() method with absolute threshold."""
     thresholds = get_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
-    assert isinstance(thresholds, dict)
+    assert isinstance(thresholds, list)
     assert thresholds == expected_thresholds
 
 

@@ -176,7 +176,6 @@ def update_plotting_config(plotting_config: dict) -> dict:
     return plotting_config
 
 
-# change name
 def get_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDArray:
     """
     Calculate a mask for pixels that exceed the threshold.
@@ -196,9 +195,9 @@ def get_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDA
         Numpy array of image with objects coloured.
     """
     if thresh > 0:
-        LOGGER.debug(f"[{img_name}] : Masking (above) Threshold: {thresh}")
+        LOGGER.debug(f"[{img_name}] : Masking (above) threshold: {thresh}")
         return image > thresh
-    LOGGER.debug(f"[{img_name}] : Masking (below) Threshold: {thresh}")
+    LOGGER.debug(f"[{img_name}] : Masking (below) threshold: {thresh}")
     return image < thresh
 
 

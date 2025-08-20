@@ -688,8 +688,6 @@ class Grains:
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
         otsu_threshold_multiplier: float | None = None,
-        # threshold_std_dev: dict[str, float | list] | None = None,
-        # threshold_absolute: dict[str, float | list] | None = None,
         threshold_std_dev: list | None = None,
         threshold_absolute: list | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
@@ -756,11 +754,11 @@ class Grains:
         if threshold_std_dev is None:
             threshold_std_dev = [1.0, 10.0]
         if not isinstance(threshold_std_dev, list):
-            threshold_std_dev[0] = [threshold_std_dev]
+            threshold_std_dev[0] = threshold_std_dev
         if threshold_absolute is None:
             threshold_absolute = [None]
         if not isinstance(threshold_absolute, list):
-            threshold_absolute[0] = [threshold_absolute]
+            threshold_absolute[0] = threshold_absolute
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
         self.area_thresholds = area_thresholds
@@ -993,14 +991,20 @@ class Grains:
         for index, direction in enumerate(self.threshold_directions):
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[index]})")
             self.mask_images[direction] = {}
-
+            # Find thresholds for current direction
+            direction_thresholds = []
+            for threshold in self.thresholds:
+                abs_threshold = abs(threshold)
+                if abs_threshold > 0:
+                    direction_thresholds.append(threshold)
             # iterate over the thresholds for the current direction
-            direction_thresholds = [self.thresholds[index]]
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=direction_thresholds,
                 image_name=self.filename,
             )
+
+            print("SELF.IMAGE AFTER MULTI_CLASS_")
 
             self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
