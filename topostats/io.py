@@ -1065,18 +1065,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
         if isinstance(
             item,
-            (
-                list
-                | str
-                | int
-                | float
-                | np.ndarray
-                | Path
-                | dict
-                | grains.GrainCrop
-                | grains.GrainCropsDirection
-                | grains.ImageGrainCrops
-            ),
+            (list | str | int | float | np.ndarray | Path | dict | grains.GrainCrop | grains.ImageGrainCrops),
         ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
@@ -1098,9 +1087,6 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
             # Extract ImageGrainCrops
             elif isinstance(item, grains.ImageGrainCrops):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
-            elif isinstance(item, grains.GrainCropsDirection):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
             elif isinstance(item, grains.GrainCrop):

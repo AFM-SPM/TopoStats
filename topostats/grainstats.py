@@ -209,7 +209,7 @@ class GrainStats:
             area_scaling_factor = length_scaling_factor**2
 
             # Create directory for grain's plots
-            output_grain = self.base_output_dir / self.direction / f"grain_{grain_index}"
+            output_grain = self.base_output_dir / str(self.direction) / f"grain_{grain_index}"
 
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
@@ -308,7 +308,7 @@ class GrainStats:
                         * smallest_bounding_width
                         * area_scaling_factor,
                         "aspect_ratio": aspect_ratio,
-                        "threshold": self.direction,
+                        "threshold": str(self.direction),
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }

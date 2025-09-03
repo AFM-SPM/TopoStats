@@ -12,7 +12,8 @@ from skimage.filters import gaussian
 
 from topostats import scars
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import get_mask, get_thresholds
+from topostats.thresholds import threshold
+from topostats.utils import get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -120,15 +121,15 @@ class Filters:
             threshold_std_dev = {"above": 1.0, "below": 1.0}
         else:
             self.threshold_std_dev = {
-                "above": threshold_std_dev["above"],
-                "below": threshold_std_dev["below"],
+                "above": [threshold_std_dev["above"]],
+                "below": [threshold_std_dev["below"]],
             }
         if threshold_absolute is None:
             threshold_absolute = {"above": 1.0, "below": 10.0}
         else:
             self.threshold_absolute = {
-                "above": threshold_absolute["above"],
-                "below": threshold_absolute["below"],
+                "above": [threshold_absolute["above"]],
+                "below": [threshold_absolute["below"]],
             }
         self.remove_scars_config = remove_scars
         self.images = {
@@ -551,18 +552,13 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
 
         # Get the thresholds
         try:
-            thresholds_list = get_thresholds(
+            self.thresholds = get_filter_thresholds(
                 image=self.images["initial_zero_average_background"],
                 threshold_method=self.threshold_method,
                 otsu_threshold_multiplier=self.otsu_threshold_multiplier,
-                threshold_std_dev=[self.threshold_std_dev["above"], self.threshold_std_dev["below"]],
-                absolute=self.threshold_absolute["below"] + self.threshold_absolute["above"],
+                threshold_std_dev=self.threshold_std_dev,
+                absolute=self.threshold_absolute,
             )
-            # convert thresholds list back into a dictionary
-            if len(thresholds_list) > 1:
-                self.thresholds = {"above": [thresholds_list[0]], "below": [thresholds_list[1]]}
-            else:
-                self.thresholds = {"above": [thresholds_list[0]], "below": [-thresholds_list[0]]}
         except TypeError as type_error:
             raise type_error
         self.images["mask"] = combine_mask_directions(
@@ -629,3 +625,79 @@ def combine_mask_directions(image: npt.NDArray, thresholds: dict, img_name: str 
         return get_mask(image, thresh=-thresholds["below"][0], img_name=img_name)
     # Only above threshold is applicable
     return get_mask(image, thresh=thresholds["above"], img_name=img_name)
+
+
+# pylint: disable=too-many-branches
+def get_filter_thresholds(  # noqa: C901
+    image: npt.NDArray,
+    threshold_method: str,
+    otsu_threshold_multiplier: float | None = None,
+    threshold_std_dev: dict[str, list] | None = None,
+    absolute: dict[str, list] | None = None,
+) -> dict[str, list[float]]:
+    """
+    Obtain thresholds for masking data points.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2D Numpy array of image to be masked.
+    threshold_method : str
+        Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+    otsu_threshold_multiplier : float
+        Scaling value for Otsu threshold.
+    threshold_std_dev : dict
+        Dict of above and below thresholds for the standard deviation method.
+    absolute : tuple
+        Dict of below and above thresholds.
+
+    Returns
+    -------
+    dict[str, list[float]]
+        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+    """
+    thresholds: dict[str, list[float]] = {}
+    if threshold_method == "otsu":
+        assert (
+            otsu_threshold_multiplier is not None
+        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
+        thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
+    elif threshold_method == "std_dev":
+        assert (
+            threshold_std_dev is not None
+        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
+        if threshold_std_dev["below"] is not None:
+            thresholds_std_dev_below = []
+            for threshold_std_dev_value in threshold_std_dev["below"]:
+                thresholds_std_dev_below.append(
+                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["below"] = thresholds_std_dev_below
+        if threshold_std_dev["above"] is not None:
+            thresholds_std_dev_above = []
+            for threshold_std_dev_value in threshold_std_dev["above"]:
+                thresholds_std_dev_above.append(
+                    threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
+                )
+            thresholds["above"] = thresholds_std_dev_above
+    elif threshold_method == "absolute":
+        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
+        if absolute["below"] is not None:
+            thresolds_absolute_below = []
+            for threshold_absolute_value in absolute["below"]:
+                thresolds_absolute_below.append(threshold_absolute_value)
+            thresholds["below"] = thresolds_absolute_below
+        if absolute["above"] is not None:
+            thresolds_absolute_above = []
+            for threshold_absolute_value in absolute["above"]:
+                thresolds_absolute_above.append(threshold_absolute_value)
+            thresholds["above"] = thresolds_absolute_above
+    else:
+        if not isinstance(threshold_method, str):
+            raise TypeError(
+                f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
+            )
+        raise ValueError(
+            f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
+        )
+    return thresholds

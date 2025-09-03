@@ -139,8 +139,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "Invalid value in config for grains.threshold.threshold_absolute should be list of type int or float"
                 ),
             ),
-            "area_thresholds": {
-                "above": [
+            "area_thresholds": [
+                [
                     Or(
                         int,
                         None,
@@ -149,7 +149,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         ),
                     )
                 ],
-                "below": [
+                [
                     Or(
                         int,
                         None,
@@ -158,7 +158,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                         ),
                     )
                 ],
-            },
+            ],
             "direction": Or(
                 "both",
                 "below",
