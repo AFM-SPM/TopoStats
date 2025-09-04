@@ -181,7 +181,9 @@ def run_grains(  # noqa: C901
             num_below = 0
             for index, _thresh in enumerate(grains.thresholds):
                 if grains.image_grain_crops.crops is not None:
-                    num_in_threshold = sum(crop.threshold == index for crop in grains.image_grain_crops.crops.values())
+                    num_in_threshold = sum(
+                        crop.threshold_no == index for crop in grains.image_grain_crops.crops.values()
+                    )
                 else:
                     num_in_threshold = 0
                 if grains.thresholds[index] > 0:
@@ -226,7 +228,7 @@ def run_grains(  # noqa: C901
                     if grains.image_grain_crops.crops is not None and grains.image_grain_crops.crops != {}:
                         full_mask_tensor_list = []
                         for i, (key, value) in enumerate(
-                            (k, v) for k, v in grains.image_grain_crops.crops.items() if v.threshold == index
+                            (k, v) for k, v in grains.image_grain_crops.crops.items() if v.threshold_no == index
                         ):
                             direction_grain_crops.crops[i] = value
                             full_mask_tensor_list.append(grains.image_grain_crops.full_mask_tensor[int(key)])
@@ -241,7 +243,7 @@ def run_grains(  # noqa: C901
                         direction_grain_crops.crops = {
                             i: value
                             for i, (_key, value) in enumerate(grains.image_grain_crops.crops.items())
-                            if value.threshold == index
+                            if value.threshold_no == index
                         }
                         direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
                     # direction_grain_crops = ImageGrainCrops(crops=grains.image_grain_crops.crops[index], full_mask_tensor=grains.image_grain_crops.full_mask_tensor[index])
@@ -389,14 +391,14 @@ def run_grainstats(
                 # direction_grain_crops = ImageGrainCrops(crops=image_grain_crops.crops[index], full_mask_tensor=image_grain_crops.full_mask_tensor[index])
                 full_mask_tensor_list = []
                 for i, (key, value) in enumerate(
-                    (k, v) for k, v in image_grain_crops.crops.items() if v.threshold == index
+                    (k, v) for k, v in image_grain_crops.crops.items() if v.threshold_no == index
                 ):
                     direction_grain_crops.crops[i] = value
                     full_mask_tensor_list.append(image_grain_crops.full_mask_tensor[int(key)])
                 direction_grain_crops.crops = {
                     i: value
                     for i, (_key, value) in enumerate(image_grain_crops.crops.items())
-                    if value.threshold == index
+                    if value.threshold_no == index
                 }
                 if full_mask_tensor_list:
                     direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
@@ -516,14 +518,14 @@ def run_disordered_tracing(
                 # for direction, grain_crop_direction in image_grain_crops.__dict__.items():
                 full_mask_tensor_list = []
                 for i, (key, value) in enumerate(
-                    (k, v) for k, v in image_grain_crops.crops.items() if v.threshold == index
+                    (k, v) for k, v in image_grain_crops.crops.items() if v.threshold_no == index
                 ):
                     grain_crop_direction.crops[i] = value
                     full_mask_tensor_list.append(image_grain_crops.full_mask_tensor[int(key)])
                 grain_crop_direction.crops = {
                     i: value
                     for i, (_key, value) in enumerate(image_grain_crops.crops.items())
-                    if value.threshold == index
+                    if value.threshold_no == index
                 }
                 grain_crop_direction.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
                 if grain_crop_direction.crops is None:
