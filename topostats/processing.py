@@ -382,8 +382,7 @@ def run_grainstats(
             direction_grain_crops = ImageGrainCrops(
                 thresholds=image_grain_crops.thresholds, crops=None, full_mask_tensor=None
             )
-            for index, threshold in image_grain_crops.thresholds:
-                # for index in range(len(image_grain_crops.thresholds)):
+            for index, threshold in enumerate(image_grain_crops.thresholds):
                 full_mask_tensor_list = []
                 for i, (key, value) in enumerate(
                     (k, v) for k, v in image_grain_crops.crops.items() if v.threshold_no == index
