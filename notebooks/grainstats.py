@@ -263,7 +263,8 @@ def _(np, plt):
             ax.set_title(title)
         if colorbar:
             fig.colorbar(im, ax=ax, shrink=0.7)
-        plt.show()
+        fig.tight_layout()
+        return fig
     return (show_image,)
 
 
@@ -509,8 +510,11 @@ def _(grains, show_image):
     # Create overlay: background = 0, show image values where mask==1
     overlay = image * mask
 
-    show_image(mask.astype(int), cmap="gray", title="Mask (0 = background, 1 = grains)", colorbar = False)
-    show_image(overlay, cmap="afmhot", title="Image with mask overlay")
+    binary_mask = show_image(mask.astype(int), cmap="gray", title="Mask (0 = background, 1 = grains)", colorbar = False)
+    mask_overlay = show_image(overlay, cmap="afmhot", title="Image with mask overlay")
+
+    # Return both so they render one after the other
+    binary_mask, mask_overlay
     return
 
 
@@ -574,9 +578,11 @@ def _(Grains, filtered_image, grain_config, grains, show_image):
 
     grains_newthreshold.find_grains()
 
-    show_image(grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 1.2", colorbar = False)
+    original_threshold = show_image(grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 1.2", colorbar = False)
 
-    show_image(grains_newthreshold.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 2.0", colorbar = False)
+    new_threshold = show_image(grains_newthreshold.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 2.0", colorbar = False)
+
+    original_threshold, new_threshold
     return
 
 
