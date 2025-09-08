@@ -593,85 +593,6 @@ class ImageGrainCrops:
         )
 
 
-# @dataclass
-# class ImageGrainCropsOld:
-#     """
-#     Dataclass for storing the crops of grains in an image.
-
-#     Attributes
-#     ----------
-#     above : GrainCropDirection | None
-#         Grains in the above direction.
-#     below : GrainCropDirection | None
-#         Grains in the below direction.
-#     """
-
-#     above: GrainCropsDirection | None
-#     below: GrainCropsDirection | None
-
-#     def __eq__(self, other: object) -> bool:
-#         """
-#         Check if two ImageGrainCrops objects are equal.
-
-#         Parameters
-#         ----------
-#         other : object
-#             Object to compare to.
-
-#         Returns
-#         -------
-#         bool
-#             True if the objects are equal, False otherwise.
-#         """
-#         if not isinstance(other, ImageGrainCrops):
-#             return False
-#         return self.above == other.above and self.below == other.below
-
-#     def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-#         """
-#         Convert ImageGrainCrops to dictionary indexed by attributes.
-
-#         Returns
-#         -------
-#         dict[str, Any]
-#             Dictionary indexed by attribute of the grain attributes.
-#         """
-#         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-#     def debug_locate_difference(self, other: object) -> None:
-#         """
-#         Debug function to find the culprit when two ImageGrainCrops objects are not equal.
-
-#         Parameters
-#         ----------
-#         other : object
-#             Object to compare to.
-
-#         Raises
-#         ------
-#         ValueError
-#             If the objects are not equal.
-#         """
-#         if not isinstance(other, ImageGrainCrops):
-#             raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-#         if self.above is not None:
-#             if self.above != other.above:
-#                 LOGGER.info("Above grains are different")
-#                 self.above.debug_locate_difference(other.above)
-#         else:
-#             if other.above is not None:
-#                 raise ValueError("Above grains are different")
-#         if self.below is not None:
-#             if self.below != other.below:
-#                 LOGGER.info("Below grains are different")
-#                 self.below.debug_locate_difference(other.below)
-#         else:
-#             if other.below is not None:
-#                 raise ValueError("Below grains are different")
-
-#         LOGGER.info("Cannot find difference between image grain crops")
-
-
 class Grains:
     """
     Find grains in an image.
@@ -804,7 +725,6 @@ class Grains:
         self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: list[float] | None = None
-        # self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.mask_images: list[dict[str, npt.NDArray]] = []
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
@@ -1026,20 +946,19 @@ class Grains:
         )
 
         # Create an ImageGrainCrops object to store the grain crops
-        # image_grain_crops = ImageGrainCrops(crops=None, full_mask_tensor=None)
-        for index, _thresh in enumerate(self.thresholds):
-            LOGGER.debug(f"[{self.filename}] : Finding grains for threshold with index: ({self.thresholds[index]})")
+        for index, thresh in enumerate(self.thresholds):
+            LOGGER.debug(f"[{self.filename}] : Finding grains for the threshold {self.threshold_std_dev[index]}")
             self.mask_images.append({})
             # Find thresholds for current direction
             direction_thresholds = []
             for thresh in self.thresholds:
                 abs_threshold = abs(thresh)
-                if abs_threshold > 0:
+                if abs_threshold >= 0:
                     direction_thresholds.append(thresh)
             # iterate over the thresholds for the current direction
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
-                thresholds=direction_thresholds,
+                thresholds=self.thresholds,
                 image_name=self.filename,
             )
             self.mask_images[index]["thresholded_grains"] = traditional_full_mask_tensor.copy()
@@ -1156,17 +1075,17 @@ class Grains:
                 )
                 self.mask_images[index]["merged_classes"] = full_mask_tensor_merged_classes.copy()
 
-                # Append the new crops and tensors to ImageGrainCrops
-                # Shift the keys of the new graincrops_merged_classes dict to allow them to be added to the existing crops dict
-                offset = len(self.image_grain_crops.crops)
-                image_grain_crops_crops_shifted = {k + offset: v for k, v in graincrops_merged_classes.items()}
-                self.image_grain_crops.crops.update(image_grain_crops_crops_shifted)
-
-                if self.image_grain_crops.full_mask_tensor.size != 0:
-                    self.image_grain_crops.full_mask_tensor = np.stack(
-                        [self.image_grain_crops.full_mask_tensor, full_mask_tensor_merged_classes], axis=0
+                if self.image_grain_crops.full_mask_tensor.size != 0 and self.image_grain_crops.crops is not None:
+                    # Append the new crops and tensors to ImageGrainCrops
+                    # Shift the keys of the new graincrops_merged_classes dict to allow them to be added to the existing crops dict
+                    offset = len(self.image_grain_crops.crops)
+                    image_grain_crops_crops_shifted = {k + offset: v for k, v in graincrops_merged_classes.items()}
+                    self.image_grain_crops.crops.update(image_grain_crops_crops_shifted)
+                    self.image_grain_crops.full_mask_tensor = np.concatenate(
+                        [self.image_grain_crops.full_mask_tensor, full_mask_tensor_merged_classes], axis=-1
                     )
                 else:
+                    self.image_grain_crops.crops = graincrops_merged_classes
                     self.image_grain_crops.full_mask_tensor = full_mask_tensor_merged_classes
             else:
                 # No grains found
@@ -1200,11 +1119,11 @@ class Grains:
         traditional_full_mask_tensor = np.zeros(
             (image.shape[0], image.shape[1], len(thresholds) + 1), dtype=np.int32
         ).astype(bool)
-        for threshold_index, direction_threshold in enumerate(thresholds):
+        for threshold_index, thresh in enumerate(thresholds):
             # mask the grains
             traditional_full_mask_tensor[:, :, threshold_index + 1] = get_mask(
                 image=image,
-                thresh=direction_threshold,
+                thresh=thresh,
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor

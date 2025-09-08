@@ -1225,21 +1225,12 @@ def process_scan(
         grains_config=grains_config,
     )
 
-    # topostats_object["grain_tensors"] = {}
-    # topostats_object["grain_tensors"]["above"] = (
-    #     image_grain_crops.full_mask_tensor if image_grain_crops.above is not None else None
-    # )
-    # topostats_object["grain_tensors"]["below"] = (
-    #     image_grain_crops.below.full_mask_tensor if image_grain_crops.below is not None else None
-    # )
-
     topostats_object["grain_tensors"] = []
     if image_grain_crops.crops is not None:
         for index, image_grain_crop in enumerate(image_grain_crops.full_mask_tensor):
             topostats_object["grain_tensors"].append(
                 image_grain_crops.full_mask_tensor[index] if image_grain_crop is not None else None
             )
-    # if not all(x is None for x in image_grain_crops.crops):
     if image_grain_crops.crops is not None:
         # Grainstats :
         grainstats_df, height_profiles, _ = run_grainstats(
@@ -1488,10 +1479,6 @@ def process_grains(
             grains_config=grains_config,
         )
         topostats_object["grain_tensors"] = {}
-        # if image_grain_crops.above is not None:
-        #     topostats_object["grain_tensors"]["above"] = image_grain_crops.above.full_mask_tensor
-        # if image_grain_crops.below is not None:
-        #     topostats_object["grain_tensors"]["below"] = image_grain_crops.below.full_mask_tensor
         if image_grain_crops.crops is not None:
             topostats_object["grain_tensors"] = image_grain_crops.full_mask_tensor
         # Save the topostats dictionary object to .topostats file.
