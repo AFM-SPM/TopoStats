@@ -89,8 +89,6 @@ def _(mo):
 def _(Path, find_files):
     # Set the base directory to be current working directory of the Notebook
     BASE_DIR = Path().cwd()
-    # Alternatively if you know where your files are, comment the above line and uncomment the below adjust it for your use.
-    # BASE_DIR = Path("/path/to/where/my/files/are")
     # Adjust the file extension appropriately.
     FILE_EXT = ".spm"
     # Search for *.spm files one directory level up from the current notebooks
@@ -107,7 +105,8 @@ def _(mo):
 @app.cell
 def _(image_files):
     image_files
-    return
+    my_filename = 'minicircle'
+    return (my_filename,)
 
 
 @app.cell(hide_code=True)
@@ -310,11 +309,11 @@ def _(mo):
 
 
 @app.cell
-def _(LoadScans, config, image_files, show_image):
+def _(LoadScans, config, image_files, my_filename, show_image):
     all_scan_data = LoadScans(image_files, **config["loading"])
     all_scan_data.get_data()
 
-    img = all_scan_data.img_dict['minicircle']["image_original"]
+    img = all_scan_data.img_dict[my_filename]["image_original"]
 
     # Plot the loaded scan in its raw format
     show_image(img, cmap="afmhot")
@@ -340,13 +339,13 @@ def _(mo):
 
 
 @app.cell
-def _(Filters, all_scan_data, filter_config):
+def _(Filters, all_scan_data, filter_config, my_filename):
     filter_config["remove_scars"]["run"] = True
 
     filtered_image = Filters(
-        image=all_scan_data.img_dict["minicircle"]["image_original"],
-        filename=all_scan_data.img_dict["minicircle"]["img_path"],
-        pixel_to_nm_scaling=all_scan_data.img_dict["minicircle"]["pixel_to_nm_scaling"],
+        image=all_scan_data.img_dict[my_filename]["image_original"],
+        filename=all_scan_data.img_dict[my_filename]["img_path"],
+        pixel_to_nm_scaling=all_scan_data.img_dict[my_filename]["pixel_to_nm_scaling"],
         row_alignment_quantile=filter_config["row_alignment_quantile"],
         threshold_method=filter_config["threshold_method"],
         otsu_threshold_multiplier=filter_config["otsu_threshold_multiplier"],
