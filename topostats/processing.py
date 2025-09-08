@@ -1,8 +1,6 @@
 """Functions for processing data."""
 
 import logging
-import sys
-import traceback
 from collections import defaultdict
 from pathlib import Path
 
@@ -179,14 +177,16 @@ def run_grains(  # noqa: C901
             # Get number of grains found
             num_above = 0
             num_below = 0
-            for index, _thresh in enumerate(grains.thresholds):
+            for index, thresh in enumerate(grains.thresholds):
                 if grains.image_grain_crops.crops is not None:
                     num_in_threshold = sum(
-                        crop.threshold_no == index for crop in grains.image_grain_crops.crops.values()
+                        crop.threshold_no == index
+                        for crop in grains.image_grain_crops.crops.values()
+                        if grains.thresholds[index] == thresh
                     )
                 else:
                     num_in_threshold = 0
-                if grains.thresholds[index] > 0:
+                if grains_config["threshold_std_dev"][index] > 0:
                     num_above += num_in_threshold
                 else:
                     num_below += num_in_threshold
@@ -204,7 +204,9 @@ def run_grains(  # noqa: C901
                 grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for index, image_arrays in enumerate(grains.mask_images):
-                    LOGGER.debug(f"[{filename}] : Plotting {index} Grain Finding Images")
+                    LOGGER.debug(
+                        f"[{filename}] : Plotting {grains_config['threshold_std_dev'][index]} (index {index}) Grain Finding Images"
+                    )
                     grain_out_path_direction = grain_out_path / f"{index}"
                     # Plot diagnostic full grain images
                     for plot_name, array in image_arrays.items():
@@ -232,20 +234,13 @@ def run_grains(  # noqa: C901
                         ):
                             direction_grain_crops.crops[i] = value
                             full_mask_tensor_list.append(grains.image_grain_crops.full_mask_tensor[int(key)])
-                            # direction_grain_crops.full_mask_tensor = np.concatenate(direction_grain_crops.full_mask_tensor, grains.image_grain_crops.full_mask_tensor[int(key)])
-                        # direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
-                        # direction_grain_crops = ImageGrainCrops(crops={i: value
-                        #                                         for i, (_key, value) in enumerate(grains.image_grain_crops.crops.items())
-                        #                                         if value.threshold == str(index)
-                        #                                         },
-                        #                                         full_mask_tensor=np.stack(full_mask_tensor_list, axis=0)
-                        #                                         )
                         direction_grain_crops.crops = {
                             i: value
                             for i, (_key, value) in enumerate(grains.image_grain_crops.crops.items())
                             if value.threshold_no == index
                         }
-                        direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
+                        if full_mask_tensor_list:
+                            direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=2)
                     # direction_grain_crops = ImageGrainCrops(crops=grains.image_grain_crops.crops[index], full_mask_tensor=grains.image_grain_crops.full_mask_tensor[index])
                     if direction_grain_crops.crops != {}:
                         LOGGER.info(f"[{filename}] : Plotting individual grain masks")
@@ -333,7 +328,7 @@ def run_grains(  # noqa: C901
             return grains.image_grain_crops
     # Otherwise, return None and warn grainstats is disabled
     LOGGER.info(f"[{filename}] Detection of grains disabled, GrainStats will not be run.")
-    return ImageGrainCrops(thresholds=None, crops=None, full_mask_tensor=None)
+    return ImageGrainCrops(thresholds=grains.thresholds, crops=None, full_mask_tensor=None)
 
 
 def run_grainstats(
@@ -387,8 +382,8 @@ def run_grainstats(
             direction_grain_crops = ImageGrainCrops(
                 thresholds=image_grain_crops.thresholds, crops=None, full_mask_tensor=None
             )
-            for index in range(len(image_grain_crops.thresholds)):
-                # direction_grain_crops = ImageGrainCrops(crops=image_grain_crops.crops[index], full_mask_tensor=image_grain_crops.full_mask_tensor[index])
+            for index, threshold in image_grain_crops.thresholds:
+                # for index in range(len(image_grain_crops.thresholds)):
                 full_mask_tensor_list = []
                 for i, (key, value) in enumerate(
                     (k, v) for k, v in image_grain_crops.crops.items() if v.threshold_no == index
@@ -401,15 +396,11 @@ def run_grainstats(
                     if value.threshold_no == index
                 }
                 if full_mask_tensor_list:
-                    direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
-                # direction_grain_crops = ImageGrainCrops(crops={i: value
-                #                                         for i, (_key, value) in enumerate(image_grain_crops.crops.items())
-                #                                         if value.threshold == str(index)
-                #                                         },
-                #                                         full_mask_tensor=np.stack(full_mask_tensor_list, axis=0)
-                #                                         )
+                    direction_grain_crops.full_mask_tensor = np.stack(np.array(full_mask_tensor_list), axis=2)
                 if direction_grain_crops.crops == {} or direction_grain_crops.crops is None:
-                    LOGGER.warning(f"No grains exist for the {index} direction. Skipping grainstats for {index}.")
+                    LOGGER.warning(
+                        f"No grains exist for the threshold {threshold} threshold index {index}. Skipping grainstats for this threshold."
+                    )
                     continue
                 grainstats_calculator = GrainStats(
                     grain_crops=direction_grain_crops.crops,
@@ -424,30 +415,15 @@ def run_grainstats(
             # Create results dataframe from above and below results
             # Appease pylint and ensure that grainstats_df is always created
             grainstats_df = create_empty_dataframe(column_set="grainstats")
-            # if "above" in grainstats_dict and "below" in grainstats_dict:
-            #     grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
-            # elif "above" in grainstats_dict:
-            #     grainstats_df = grainstats_dict["above"]
-            # elif "below" in grainstats_dict:
-            #     grainstats_df = grainstats_dict["below"]
-            # else:
-            #     raise ValueError(
-            #         "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
-            #     )
-            # grainstats_df = pd.concat(grainstats_dict[key] for key in grainstats_dict)
             grainstats_df = pd.concat(grainstats_dict.values())
             grainstats_df["basename"] = basename.parent
             grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
             LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
             LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
             return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
-        except Exception as e:
-            tb = traceback.extract_tb(sys.exc_info()[2])[-1]  # Get last traceback frame
-            line_number = tb.lineno
-            filename_where_it_failed = tb.filename
+        except Exception:
             LOGGER.info(
-                # f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
-                f"[{filename}] : Errors occurred on line {line_number} in {filename_where_it_failed} whilst calculating grain statistics: {type(e).__name__}: {e}. Returning empty dataframe."
+                f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
             )
             return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
     else:
@@ -457,7 +433,7 @@ def run_grainstats(
         return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
-def run_disordered_tracing(
+def run_disordered_tracing(  # noqa: C901
     full_image: npt.NDArray,
     image_grain_crops: ImageGrainCrops,
     pixel_to_nm_scaling: float,
@@ -511,26 +487,26 @@ def run_disordered_tracing(
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
-            grain_crop_direction = ImageGrainCrops(
+            direction_grain_crops = ImageGrainCrops(
                 thresholds=image_grain_crops.thresholds, crops=None, full_mask_tensor=None
             )
-            for index in range(len(image_grain_crops.thresholds)):
-                # for direction, grain_crop_direction in image_grain_crops.__dict__.items():
+            for index, threshold in enumerate(image_grain_crops.thresholds):
                 full_mask_tensor_list = []
                 for i, (key, value) in enumerate(
                     (k, v) for k, v in image_grain_crops.crops.items() if v.threshold_no == index
                 ):
-                    grain_crop_direction.crops[i] = value
+                    direction_grain_crops.crops[i] = value
                     full_mask_tensor_list.append(image_grain_crops.full_mask_tensor[int(key)])
-                grain_crop_direction.crops = {
+                direction_grain_crops.crops = {
                     i: value
                     for i, (_key, value) in enumerate(image_grain_crops.crops.items())
                     if value.threshold_no == index
                 }
-                grain_crop_direction.full_mask_tensor = np.stack(full_mask_tensor_list, axis=0)
-                if grain_crop_direction.crops is None:
+                if full_mask_tensor_list:
+                    direction_grain_crops.full_mask_tensor = np.stack(full_mask_tensor_list, axis=2)
+                if direction_grain_crops.crops is None or direction_grain_crops.crops == {}:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for threshold {index}. Skipping disordered_tracing for this threshold."
+                        f"[{filename}] : No grains exist for the threshold {threshold}. Skipping disordered_tracing for this threshold."
                     )
                     continue
                 (
@@ -540,11 +516,14 @@ def run_disordered_tracing(
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
                     full_image=full_image,
-                    grain_crops=grain_crop_direction.crops,
+                    grain_crops=direction_grain_crops.crops,
                     filename=filename,
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                     **disordered_tracing_config,
                 )
+                if len(_disordered_trace_grainstats.keys()) == 0:
+                    LOGGER.info(f"[{filename}] : All grain skeletons under minimum size, returning empty dataframe.")
+                    return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics")
                 # save per image new grainstats stats
                 _disordered_trace_grainstats["threshold"] = index
                 disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
@@ -638,100 +617,105 @@ def run_nodestats(  # noqa: C901
     if nodestats_config["run"]:
         nodestats_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Nodestats ***")
+        if disordered_tracing_data is not None:
+            if grainstats_df is None:
+                grainstats_df = create_empty_dataframe(column_set="grainstats")
 
-        if grainstats_df is None:
-            grainstats_df = create_empty_dataframe(column_set="grainstats")
-
-        nodestats_whole_data = defaultdict()
-        nodestats_grainstats = pd.DataFrame()
-        try:
-            # run image using directional grain masks
-            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
-                (
-                    nodestats_data,
-                    _nodestats_grainstats,
-                    nodestats_full_images,
-                    nodestats_branch_images,
-                ) = nodestats_image(
-                    image=image,
-                    disordered_tracing_direction_data=disordered_tracing_direction_data,
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **nodestats_config,
-                )
-                # save per image new grainstats stats
-                _nodestats_grainstats["threshold"] = direction
-                nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
-                # append direction results to dict
-                nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
-                # save whole image plots
-                Images(
-                    filename=f"{filename}_{direction}_nodes",
-                    data=image,
-                    masked_array=nodestats_full_images.pop("connected_nodes"),
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["connected_nodes"],
-                ).plot_and_save()
-                for plot_name, image_value in nodestats_full_images.items():
+            nodestats_whole_data = defaultdict()
+            nodestats_grainstats = pd.DataFrame()
+            try:
+                # run image using directional grain masks
+                for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                    (
+                        nodestats_data,
+                        _nodestats_grainstats,
+                        nodestats_full_images,
+                        nodestats_branch_images,
+                    ) = nodestats_image(
+                        image=image,
+                        disordered_tracing_direction_data=disordered_tracing_direction_data,
+                        filename=filename,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        **nodestats_config,
+                    )
+                    # save per image new grainstats stats
+                    _nodestats_grainstats["threshold"] = direction
+                    nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
+                    # append direction results to dict
+                    nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
+                    # save whole image plots
                     Images(
-                        image,
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / str(direction),
-                        **plotting_config["plot_dict"][plot_name],
+                        filename=f"{filename}_{direction}_nodes",
+                        data=image,
+                        masked_array=nodestats_full_images.pop("connected_nodes"),
+                        output_dir=core_out_path,
+                        **plotting_config["plot_dict"]["connected_nodes"],
                     ).plot_and_save()
-                # plot single node images
-                for mol_no, mol_stats in nodestats_data.items():
-                    if mol_stats is not None:
-                        for node_no, single_node_stats in mol_stats.items():
-                            # plot the node and branch_mask images
-                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
-                                node_no
-                            ].items():
-                                Images(
-                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
-                                    masked_array=cropped_image,
-                                    output_dir=tracing_out_path / str(direction) / "nodes",
-                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
-                                    **plotting_config["plot_dict"][cropped_image_type],
-                                ).plot_and_save()
-                            # plot crossing height linetrace
-                            if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
-                                if not single_node_stats["error"]:
-                                    fig, _ = plot_crossing_linetrace_halfmax(
-                                        branch_stats_dict=single_node_stats["branch_stats"],
-                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-                                        title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-                                    )
-                                    fig.savefig(
-                                        tracing_out_path
-                                        / str(direction)
-                                        / "nodes"
-                                        / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
-                                        format="svg",
-                                    )
-            # merge grainstats data with other dataframe
-            resultant_grainstats = (
-                pd.merge(grainstats_df, nodestats_grainstats, how="outer", on=["image", "threshold", "grain_number"])
-                if grainstats_df is not None
-                else nodestats_grainstats
-            )
-            LOGGER.info(f"[{filename}] : NodeStats stage completed successfully.")
-            # merge all image dictionaries
-            return nodestats_whole_data, resultant_grainstats
-        except UnboundLocalError as e:
-            LOGGER.info(
-                f"[{filename}] : NodeStats failed with UnboundLocalError {e} - all skeletons pruned in the Disordered Tracing step."
-            )
+                    for plot_name, image_value in nodestats_full_images.items():
+                        Images(
+                            image,
+                            masked_array=image_value,
+                            output_dir=tracing_out_path / str(direction),
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+                    # plot single node images
+                    for mol_no, mol_stats in nodestats_data.items():
+                        if mol_stats is not None:
+                            for node_no, single_node_stats in mol_stats.items():
+                                # plot the node and branch_mask images
+                                for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                    node_no
+                                ].items():
+                                    Images(
+                                        nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                        masked_array=cropped_image,
+                                        output_dir=tracing_out_path / str(direction) / "nodes",
+                                        filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                        **plotting_config["plot_dict"][cropped_image_type],
+                                    ).plot_and_save()
+                                # plot crossing height linetrace
+                                if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
+                                    if not single_node_stats["error"]:
+                                        fig, _ = plot_crossing_linetrace_halfmax(
+                                            branch_stats_dict=single_node_stats["branch_stats"],
+                                            mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                            title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        )
+                                        fig.savefig(
+                                            tracing_out_path
+                                            / str(direction)
+                                            / "nodes"
+                                            / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
+                                            format="svg",
+                                        )
+                # merge grainstats data with other dataframe
+                resultant_grainstats = (
+                    pd.merge(
+                        grainstats_df, nodestats_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                    )
+                    if grainstats_df is not None
+                    else nodestats_grainstats
+                )
+                LOGGER.info(f"[{filename}] : NodeStats stage completed successfully.")
+                # merge all image dictionaries
+                return nodestats_whole_data, resultant_grainstats
+            except UnboundLocalError as e:
+                LOGGER.info(
+                    f"[{filename}] : NodeStats failed with UnboundLocalError {e} - all skeletons pruned in the Disordered Tracing step."
+                )
 
-        except KeyError as e:
-            LOGGER.info(
-                f"[{filename}] : NodeStats failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
-            )
-        except Exception as e:
-            LOGGER.info(
-                f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
-            )
-        return nodestats_whole_data, grainstats_df
+            except KeyError as e:
+                LOGGER.info(
+                    f"[{filename}] : NodeStats failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+                )
+            except Exception as e:
+                LOGGER.info(
+                    f"[{filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ",
+                    exc_info=e,
+                )
+            return nodestats_whole_data, grainstats_df
+        LOGGER.info(f"[{filename}] : No grains to process, returning empty dataframe.")
+        return None, grainstats_df
     LOGGER.info(f"[{filename}] : Calculation of nodestats disabled, returning empty dataframe.")
     return None, grainstats_df
 
@@ -784,95 +768,102 @@ def run_ordered_tracing(
         ordered_tracing_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
 
-        if grainstats_df is None:
-            grainstats_df = create_empty_dataframe(column_set="grainstats")
+        if disordered_tracing_data is not None:
+            if grainstats_df is None:
+                grainstats_df = create_empty_dataframe(column_set="grainstats")
 
-        ordered_tracing_image_data = defaultdict()
-        ordered_tracing_molstats = pd.DataFrame()
-        ordered_tracing_grainstats = pd.DataFrame()
-        try:
-            # run image using directional grain masks
-            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
-                # Check if there are grains
-                if not disordered_tracing_direction_data:
-                    LOGGER.warning(
-                        f"[{filename}] : No skeletons exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+            ordered_tracing_image_data = defaultdict()
+            ordered_tracing_molstats = pd.DataFrame()
+            ordered_tracing_grainstats = pd.DataFrame()
+            try:
+                # run image using directional grain masks
+                for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
+                    # Check if there are grains
+                    if not disordered_tracing_direction_data:
+                        LOGGER.warning(
+                            f"[{filename}] : No skeletons exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+                        )
+                        raise ValueError(f"No skeletons exist for the {direction} direction")
+                    # if grains are found
+                    (
+                        ordered_tracing_data,
+                        _ordered_tracing_grainstats,
+                        _ordered_tracing_molstats,
+                        ordered_tracing_full_images,
+                    ) = ordered_tracing_image(
+                        image=image,
+                        disordered_tracing_direction_data=disordered_tracing_direction_data,
+                        nodestats_direction_data=nodestats_data[direction],
+                        filename=filename,
+                        **ordered_tracing_config,
                     )
-                    raise ValueError(f"No skeletons exist for the {direction} direction")
-                # if grains are found
-                (
-                    ordered_tracing_data,
-                    _ordered_tracing_grainstats,
-                    _ordered_tracing_molstats,
-                    ordered_tracing_full_images,
-                ) = ordered_tracing_image(
-                    image=image,
-                    disordered_tracing_direction_data=disordered_tracing_direction_data,
-                    nodestats_direction_data=nodestats_data[direction],
-                    filename=filename,
-                    **ordered_tracing_config,
-                )
-                # save per image new grainstats stats
-                _ordered_tracing_grainstats["threshold"] = direction
-                ordered_tracing_grainstats = pd.concat([ordered_tracing_grainstats, _ordered_tracing_grainstats])
-                _ordered_tracing_molstats["threshold"] = direction
-                ordered_tracing_molstats = pd.concat([ordered_tracing_molstats, _ordered_tracing_molstats])
-                # append direction results to dict
-                ordered_tracing_image_data[direction] = ordered_tracing_data
-                # save whole image plots
-                plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
-                Images(
-                    filename=f"{filename}_{direction}_ordered_traces",
-                    data=image,
-                    masked_array=ordered_tracing_full_images.pop("ordered_traces"),
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["ordered_traces"],
-                ).plot_and_save()
-                # save optional diagnostic plots (those with core_set = False)
-                for plot_name, image_value in ordered_tracing_full_images.items():
+                    # save per image new grainstats stats
+                    _ordered_tracing_grainstats["threshold"] = direction
+                    ordered_tracing_grainstats = pd.concat([ordered_tracing_grainstats, _ordered_tracing_grainstats])
+                    _ordered_tracing_molstats["threshold"] = direction
+                    ordered_tracing_molstats = pd.concat([ordered_tracing_molstats, _ordered_tracing_molstats])
+                    # append direction results to dict
+                    ordered_tracing_image_data[direction] = ordered_tracing_data
+                    # save whole image plots
+                    plotting_config["plot_dict"]["ordered_traces"][
+                        "core_set"
+                    ] = True  # fudge around core having own cmap
                     Images(
-                        image,
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / str(direction),
-                        **plotting_config["plot_dict"][plot_name],
+                        filename=f"{filename}_{direction}_ordered_traces",
+                        data=image,
+                        masked_array=ordered_tracing_full_images.pop("ordered_traces"),
+                        output_dir=core_out_path,
+                        **plotting_config["plot_dict"]["ordered_traces"],
                     ).plot_and_save()
-            # merge grainstats data with other dataframe
-            resultant_grainstats = (
-                pd.merge(
-                    grainstats_df, ordered_tracing_grainstats, how="outer", on=["image", "threshold", "grain_number"]
+                    # save optional diagnostic plots (those with core_set = False)
+                    for plot_name, image_value in ordered_tracing_full_images.items():
+                        Images(
+                            image,
+                            masked_array=image_value,
+                            output_dir=tracing_out_path / str(direction),
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+                # merge grainstats data with other dataframe
+                resultant_grainstats = (
+                    pd.merge(
+                        grainstats_df,
+                        ordered_tracing_grainstats,
+                        how="outer",
+                        on=["image", "threshold", "grain_number"],
+                    )
+                    if grainstats_df is not None
+                    else ordered_tracing_grainstats
                 )
-                if grainstats_df is not None
-                else ordered_tracing_grainstats
-            )
-            ordered_tracing_molstats["basename"] = basename.parent
-            LOGGER.info(f"[{filename}] : Ordered Tracing stage completed successfully.")
-            # merge all image dictionaries
-            return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
-        except ValueError as e:
-            LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
-            )
+                ordered_tracing_molstats["basename"] = basename.parent
+                LOGGER.info(f"[{filename}] : Ordered Tracing stage completed successfully.")
+                # merge all image dictionaries
+                return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
+            except ValueError as e:
+                LOGGER.info(
+                    f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
+                )
 
-        except KeyError as e:
-            LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
-            )
+            except KeyError as e:
+                LOGGER.info(
+                    f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+                )
 
-        except Exception as e:
-            LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
-                exc_info=e,
+            except Exception as e:
+                LOGGER.info(
+                    f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                    exc_info=e,
+                )
+            return (
+                ordered_tracing_image_data,
+                grainstats_df,
+                create_empty_dataframe(column_set="mol_statistics"),
             )
-        return (
-            ordered_tracing_image_data,
-            grainstats_df,
-            create_empty_dataframe(column_set="mol_statistics"),
-        )
+        LOGGER.info(f"[{filename}] : No grains to process, returning empty dataframe.")
 
     return None, grainstats_df, create_empty_dataframe(column_set="mol_statistics")
 
 
-def run_splining(
+def run_splining(  # noqa: C901
     image: npt.NDArray,
     ordered_tracing_data: dict,
     pixel_to_nm_scaling: float,
@@ -916,90 +907,93 @@ def run_splining(
         splining_config.pop("run")
         LOGGER.info(f"[{filename}] : *** Splining ***")
 
-        if grainstats_df is None:
-            grainstats_df = create_empty_dataframe(column_set="grainstats")
-        if molstats_df is None:
-            molstats_df = create_empty_dataframe(column_set="mol_statistics")
+        if ordered_tracing_data is not None:
+            if grainstats_df is None:
+                grainstats_df = create_empty_dataframe(column_set="grainstats")
+            if molstats_df is None:
+                molstats_df = create_empty_dataframe(column_set="mol_statistics")
 
-        splined_image_data = defaultdict()
-        splining_grainstats = pd.DataFrame()
-        splining_molstats = pd.DataFrame()
-        try:
-            # run image using directional grain masks
-            for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
-                if not ordered_tracing_direction_data:
-                    LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+            splined_image_data = defaultdict()
+            splining_grainstats = pd.DataFrame()
+            splining_molstats = pd.DataFrame()
+            try:
+                # run image using directional grain masks
+                for direction, ordered_tracing_direction_data in ordered_tracing_data.items():
+                    if not ordered_tracing_direction_data:
+                        LOGGER.warning(
+                            f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                        )
+                        splining_grainstats = create_empty_dataframe(column_set="grainstats")
+                        splining_molstats = create_empty_dataframe(column_set="mol_statistics")
+                        raise ValueError(f"No grains exist for the {direction} direction")
+                    # if grains are found
+                    (
+                        splined_data,
+                        _splining_grainstats,
+                        _splining_molstats,
+                    ) = splining_image(
+                        image=image,
+                        ordered_tracing_direction_data=ordered_tracing_direction_data,
+                        filename=filename,
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                        **splining_config,
                     )
-                    splining_grainstats = create_empty_dataframe(column_set="grainstats")
-                    splining_molstats = create_empty_dataframe(column_set="mol_statistics")
-                    raise ValueError(f"No grains exist for the {direction} direction")
-                # if grains are found
-                (
-                    splined_data,
-                    _splining_grainstats,
-                    _splining_molstats,
-                ) = splining_image(
-                    image=image,
-                    ordered_tracing_direction_data=ordered_tracing_direction_data,
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                    **splining_config,
-                )
-                # save per image new grainstats stats
-                _splining_grainstats["threshold"] = direction
-                splining_grainstats = pd.concat([splining_grainstats, _splining_grainstats])
-                _splining_molstats["threshold"] = direction
-                splining_molstats = pd.concat([splining_molstats, _splining_molstats])
-                # append direction results to dict
-                splined_image_data[direction] = splined_data
-                # Plot traces on each grain individually
-                all_splines = []
-                for _, grain_dict in splined_data.items():
-                    for _, mol_dict in grain_dict.items():
-                        all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
+                    # save per image new grainstats stats
+                    _splining_grainstats["threshold"] = direction
+                    splining_grainstats = pd.concat([splining_grainstats, _splining_grainstats])
+                    _splining_molstats["threshold"] = direction
+                    splining_molstats = pd.concat([splining_molstats, _splining_molstats])
+                    # append direction results to dict
+                    splined_image_data[direction] = splined_data
+                    # Plot traces on each grain individually
+                    all_splines = []
+                    for _, grain_dict in splined_data.items():
+                        for _, mol_dict in grain_dict.items():
+                            all_splines.append(mol_dict["spline_coords"] + mol_dict["bbox"][:2])
 
-                Images(
-                    data=image,
-                    output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_all_splines",
-                    plot_coords=all_splines,
-                    **plotting_config["plot_dict"]["splined_trace"],
-                ).plot_and_save()
-            # merge grainstats data with other dataframe
-            resultant_grainstats = (
-                pd.merge(grainstats_df, splining_grainstats, how="outer", on=["image", "threshold", "grain_number"])
-                if grainstats_df is not None
-                else splining_grainstats
-            )
-            # merge molstats data with other dataframe
-            resultant_molstats = (
-                pd.merge(
-                    molstats_df,
-                    splining_molstats,
-                    how="outer",
-                    on=["image", "threshold", "grain_number", "molecule_number"],
+                    Images(
+                        data=image,
+                        output_dir=core_out_path,
+                        filename=f"{filename}_{direction}_all_splines",
+                        plot_coords=all_splines,
+                        **plotting_config["plot_dict"]["splined_trace"],
+                    ).plot_and_save()
+                # merge grainstats data with other dataframe
+                resultant_grainstats = (
+                    pd.merge(grainstats_df, splining_grainstats, how="outer", on=["image", "threshold", "grain_number"])
+                    if grainstats_df is not None
+                    else splining_grainstats
                 )
-                if molstats_df is not None
-                else splining_molstats
-            )
-            LOGGER.info(f"[{filename}] : Splining stage completed successfully.")
-            # merge all image dictionaries
-            return splined_image_data, resultant_grainstats, resultant_molstats
-        except KeyError as e:
-            LOGGER.info(
-                f"[{filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
-            )
-            return (
-                splined_image_data,
-                grainstats_df,
-                create_empty_dataframe(column_set="mol_statistics"),
-            )
-        except Exception as e:
-            LOGGER.error(
-                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
-            )
-            return splined_image_data, grainstats_df, splining_molstats
+                # merge molstats data with other dataframe
+                resultant_molstats = (
+                    pd.merge(
+                        molstats_df,
+                        splining_molstats,
+                        how="outer",
+                        on=["image", "threshold", "grain_number", "molecule_number"],
+                    )
+                    if molstats_df is not None
+                    else splining_molstats
+                )
+                LOGGER.info(f"[{filename}] : Splining stage completed successfully.")
+                # merge all image dictionaries
+                return splined_image_data, resultant_grainstats, resultant_molstats
+            except KeyError as e:
+                LOGGER.info(
+                    f"[{filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
+                )
+                return (
+                    splined_image_data,
+                    grainstats_df,
+                    create_empty_dataframe(column_set="mol_statistics"),
+                )
+            except Exception as e:
+                LOGGER.error(
+                    f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ",
+                    exc_info=e,
+                )
+                return splined_image_data, grainstats_df, splining_molstats
+        LOGGER.info(f"[{filename}] : No grains to process.")
     return None, grainstats_df, molstats_df
 
 
@@ -1050,41 +1044,45 @@ def run_curvature_stats(
         try:
             curvature_config.pop("run")
             LOGGER.info(f"[{filename}] : *** Curvature Stats ***")
-            all_directions_grains_curvature_stats_dict: dict = {}
-            for direction in grain_trace_data.keys():
-                # Pass the traces to the curvature stats function
-                grains_curvature_stats_dict = calculate_curvature_stats_image(
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                )
+            if grain_trace_data is not None:
+                all_directions_grains_curvature_stats_dict: dict = {}
+                for direction in grain_trace_data.keys():
+                    # Pass the traces to the curvature stats function
+                    grains_curvature_stats_dict = calculate_curvature_stats_image(
+                        all_grain_smoothed_data=grain_trace_data[direction],
+                        pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    )
 
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    filename=f"{filename}_{direction}_curvature",
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["curvature"],
-                ).plot_curvatures(
-                    image=image,
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
+                    Images(
+                        np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                        filename=f"{filename}_{direction}_curvature",
+                        output_dir=core_out_path,
+                        **plotting_config["plot_dict"]["curvature"],
+                    ).plot_curvatures(
+                        image=image,
+                        cropped_images=cropped_image_data[direction],
+                        grains_curvature_stats_dict=grains_curvature_stats_dict,
+                        all_grain_smoothed_data=grain_trace_data[direction],
+                        colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+                    )
 
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    output_dir=tracing_out_path / str(direction) / "curvature",
-                    **plotting_config["plot_dict"]["curvature_individual_grains"],
-                ).plot_curvatures_individual_grains(
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grains_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
+                    Images(
+                        np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                        output_dir=tracing_out_path / str(direction) / "curvature",
+                        **plotting_config["plot_dict"]["curvature_individual_grains"],
+                    ).plot_curvatures_individual_grains(
+                        cropped_images=cropped_image_data[direction],
+                        grains_curvature_stats_dict=grains_curvature_stats_dict,
+                        all_grains_smoothed_data=grain_trace_data[direction],
+                        colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+                    )
 
-                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
+                    all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
 
-            return all_directions_grains_curvature_stats_dict
+                return all_directions_grains_curvature_stats_dict
+            LOGGER.info(f"[{filename}] : No grains to process, returning None.")
+            return None
+
         except Exception as e:
             LOGGER.error(
                 f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e

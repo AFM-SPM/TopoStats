@@ -34,7 +34,7 @@ grains:
   grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0 # Thresholds for data
-  threshold_std_dev: [1.0]
+  threshold_std_dev: [1.0, -1.0]
   threshold_absolute: [1.0]
   direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
   area_thresholds: [[300, 3000], [null, null]] # [above, below] surface [Low, High] in nm^2 (also takes null)
