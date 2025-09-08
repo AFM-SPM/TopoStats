@@ -432,6 +432,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
+            raise e
 
         # convert stats dict to dataframe
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")

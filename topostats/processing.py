@@ -243,7 +243,9 @@ def run_grains(  # noqa: C901
                                         continue
 
                             # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"][
+                                "filename"
+                            ] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
@@ -511,6 +513,7 @@ def run_disordered_tracing(
                 f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
+            raise e
         return (
             disordered_traces,
             grainstats_df,

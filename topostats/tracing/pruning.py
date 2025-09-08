@@ -524,7 +524,10 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             segment = np.where(segments == i, 1, 0)
             if segment.sum() > 2:
                 # sometimes start is not found ?
-                start = np.argwhere(convolve_skeleton(segment) == 2)[0]
+                convolved_segment = convolve_skeleton(segment)
+                convolved_segment_equal_to_2 = convolved_segment == 2
+                convolved_segment_equal_to_2_coords = np.argwhere(convolved_segment_equal_to_2)
+                start = convolved_segment_equal_to_2_coords[0]
                 ordered_coords = order_branch_from_end(segment, start)
                 # if even no. points, average two middles
                 middle_idx, middle_remainder = (len(ordered_coords) + 1) // 2 - 1, (len(ordered_coords) + 1) % 2
