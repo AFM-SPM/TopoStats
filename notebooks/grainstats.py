@@ -45,16 +45,18 @@ def _(mo):
 def _():
     import json
     from pathlib import Path
+
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
-    import pandas as pd
     import seaborn as sns
+
     from topostats.filters import Filters
     from topostats.grains import Grains
     from topostats.grainstats import GrainStats
     from topostats.io import LoadScans, find_files, read_yaml
     from topostats.plottingfuncs import Images
+
     return (
         Filters,
         GrainStats,
@@ -105,7 +107,7 @@ def _(mo):
 @app.cell
 def _(image_files):
     image_files
-    my_filename = 'minicircle'
+    my_filename = "minicircle"
     return (my_filename,)
 
 
@@ -264,6 +266,7 @@ def _(np, plt):
             fig.colorbar(im, ax=ax, shrink=0.7)
         fig.tight_layout()
         return fig
+
     return (show_image,)
 
 
@@ -379,7 +382,9 @@ def _(filtered_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key.""")
+    mo.md(
+        r"""You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key."""
+    )
     return
 
 
@@ -484,7 +489,9 @@ def _(Grains, filtered_image, grain_config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below.""")
+    mo.md(
+        r"""The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below."""
+    )
     return
 
 
@@ -496,7 +503,9 @@ def _(grains):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid.""")
+    mo.md(
+        r"""To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid."""
+    )
     return
 
 
@@ -509,7 +518,7 @@ def _(grains, show_image):
     # Create overlay: background = 0, show image values where mask==1
     overlay = image * mask
 
-    binary_mask = show_image(mask.astype(int), cmap="gray", title="Mask (0 = background, 1 = grains)", colorbar = False)
+    binary_mask = show_image(mask.astype(int), cmap="gray", title="Mask (0 = background, 1 = grains)", colorbar=False)
     mask_overlay = show_image(overlay, cmap="afmhot", title="Image with mask overlay")
 
     # Return both so they render one after the other
@@ -565,8 +574,8 @@ def _(mo):
 
 @app.cell
 def _(Grains, filtered_image, grain_config, grains, show_image):
-    #Setting the absolute threshold to 2.0 rather than 1.2
-    grain_config["threshold_method"]="absolute"
+    # Setting the absolute threshold to 2.0 rather than 1.2
+    grain_config["threshold_method"] = "absolute"
     grain_config["threshold_absolute"]["above"] = [2.0]
     grains_newthreshold = Grains(
         image=filtered_image.images["final_zero_average_background"],
@@ -577,9 +586,19 @@ def _(Grains, filtered_image, grain_config, grains, show_image):
 
     grains_newthreshold.find_grains()
 
-    original_threshold = show_image(grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 1.2", colorbar = False)
+    original_threshold = show_image(
+        grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int),
+        cmap="gray",
+        title="Absolute threshold = 1.2",
+        colorbar=False,
+    )
 
-    new_threshold = show_image(grains_newthreshold.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int), cmap="gray", title="Absolute threshold = 2.0", colorbar = False)
+    new_threshold = show_image(
+        grains_newthreshold.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int),
+        cmap="gray",
+        title="Absolute threshold = 2.0",
+        colorbar=False,
+    )
 
     original_threshold, new_threshold
     return
@@ -607,8 +626,10 @@ def _(mo):
 
 @app.cell
 def _(GrainStats, Grains, grains, grainstats_config, show_image):
-    labelled_regions = Grains.label_regions(grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int))
-    show_image(labelled_regions, cmap = "viridis", colorbar=False)
+    labelled_regions = Grains.label_regions(
+        grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int)
+    )
+    show_image(labelled_regions, cmap="viridis", colorbar=False)
 
     cfg = grainstats_config.copy()
     cfg.pop("class_names", None)
@@ -645,7 +666,9 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example.""")
+    mo.md(
+        r"""Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example."""
+    )
     return
 
 
@@ -657,7 +680,9 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables.""")
+    mo.md(
+        r"""We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables."""
+    )
     return
 
 
@@ -665,15 +690,15 @@ def _(mo):
 def _(grain_stats, plt, sns):
     col = "area"  # or whichever column you wish to plot
 
-    #Violin plot
-    plt.figure(figsize=(6,4))
-    sns.violinplot(y=grain_stats["statistics"][col], inner="box")   # y= for vertical violin
+    # Violin plot
+    plt.figure(figsize=(6, 4))
+    sns.violinplot(y=grain_stats["statistics"][col], inner="box")  # y= for vertical violin
     plt.title(f"Violin plot of {col}")
     plt.ylabel(col)
     plt.show()
 
-    #KDE plot
-    plt.figure(figsize=(6,4))
+    # KDE plot
+    plt.figure(figsize=(6, 4))
     sns.kdeplot(x=grain_stats["statistics"][col], fill=True)
     plt.title(f"KDE of {col}")
     plt.xlabel(col)
@@ -683,16 +708,18 @@ def _(grain_stats, plt, sns):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table.""")
+    mo.md(
+        r"""It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table."""
+    )
     return
 
 
 @app.cell
 def _(grain_stats, plt, sns):
     # Pick two variables
-    xcol, ycol = "aspect_ratio", "height_mean"   # replace with whichever columns you want to plot
+    xcol, ycol = "aspect_ratio", "height_mean"  # replace with whichever columns you want to plot
 
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(6, 6))
     sns.scatterplot(data=grain_stats["statistics"], x=xcol, y=ycol)
     plt.title(f"Scatter plot: {ycol} vs {xcol}")
     plt.xlabel(xcol)

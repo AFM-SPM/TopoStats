@@ -23,25 +23,24 @@ def _(mo):
 
 @app.cell
 def _():
-    import json
+    import pprint
     from pathlib import Path
+
     import marimo as mo
-    import numpy as np
     import matplotlib.pyplot as plt
-    import pandas as pd
-    import seaborn as sns
+    import numpy as np
+
     from topostats.filters import Filters
     from topostats.grains import Grains
     from topostats.grainstats import GrainStats
     from topostats.io import LoadScans, find_files, read_yaml
+    from topostats.measure.curvature import calculate_curvature_stats_image
     from topostats.plottingfuncs import Images
-    from topostats.processing import run_disordered_tracing
     from topostats.tracing.disordered_tracing import trace_image_disordered
     from topostats.tracing.nodestats import nodestats_image
     from topostats.tracing.ordered_tracing import ordered_tracing_image
     from topostats.tracing.splining import splining_image
-    from topostats.measure.curvature import calculate_curvature_stats_image
-    import pprint
+
     pp = pprint.PrettyPrinter(indent=2, width=100, compact=True)
     return (
         Filters,
@@ -136,7 +135,7 @@ def _(
 
     all_scan_data = LoadScans(image_files, **config["loading"])
     all_scan_data.get_data()
-    img = all_scan_data.img_dict['plasmids']["image_original"]
+    img = all_scan_data.img_dict["plasmids"]["image_original"]
 
     filter_config["remove_scars"]["run"] = True
 
@@ -156,20 +155,22 @@ def _(
 
     filtered_image.filter_image()
 
-    grain_config["area_thresholds"]["above"]=[300,30000]
+    grain_config["area_thresholds"]["above"] = [300, 30000]
 
     grains = Grains(
-            image=filtered_image.images["gaussian_filtered"],
-            filename=filtered_image.filename,
-            pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
-            **grain_config,
-        )
+        image=filtered_image.images["gaussian_filtered"],
+        filename=filtered_image.filename,
+        pixel_to_nm_scaling=filtered_image.pixel_to_nm_scaling,
+        **grain_config,
+    )
     grains.find_grains()
 
     mask = grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool)
     image = grains.image
 
-    labelled_regions = Grains.label_regions(grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int))
+    labelled_regions = Grains.label_regions(
+        grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool).astype(int)
+    )
 
     cfg = grainstats_config.copy()
     cfg.pop("class_names", None)
@@ -204,14 +205,13 @@ def _(mo):
 
 @app.cell
 def _(filtered_image, grains, show_image):
-    filtered_image_plot = show_image(
-        filtered_image.images["gaussian_filtered"], 
-        title="Processed image"
-    )
+    filtered_image_plot = show_image(filtered_image.images["gaussian_filtered"], title="Processed image")
 
     grains_mask_plot = show_image(
         grains.mask_images["above"]["merged_classes"][:, :, 1].astype(bool),
-        cmap="gray", title="Grains mask", colorbar=False
+        cmap="gray",
+        title="Grains mask",
+        colorbar=False,
     )
 
     # Return both so they render one after the other
@@ -237,22 +237,26 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`).""")
+    mo.md(
+        r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`)."""
+    )
     return
 
 
 @app.cell
 def _(disordered_tracing_config, grains, image, trace_image_disordered):
-    disordered_traces_cropped_data, disordered_trace_grainstats, disordered_tracing_images, disordered_tracing_stats = trace_image_disordered(
-        full_image=image,
-        grain_crops=grains.image_grain_crops.above.crops,
-        class_index=disordered_tracing_config["class_index"],
-        filename="plasmids",
-        pixel_to_nm_scaling=grains.pixel_to_nm_scaling,
-        min_skeleton_size=disordered_tracing_config["min_skeleton_size"],
-        mask_smoothing_params=disordered_tracing_config["mask_smoothing_params"],
-        skeletonisation_params=disordered_tracing_config["skeletonisation_params"],
-        pruning_params=disordered_tracing_config["pruning_params"],
+    disordered_traces_cropped_data, disordered_trace_grainstats, disordered_tracing_images, disordered_tracing_stats = (
+        trace_image_disordered(
+            full_image=image,
+            grain_crops=grains.image_grain_crops.above.crops,
+            class_index=disordered_tracing_config["class_index"],
+            filename="plasmids",
+            pixel_to_nm_scaling=grains.pixel_to_nm_scaling,
+            min_skeleton_size=disordered_tracing_config["min_skeleton_size"],
+            mask_smoothing_params=disordered_tracing_config["mask_smoothing_params"],
+            skeletonisation_params=disordered_tracing_config["skeletonisation_params"],
+            pruning_params=disordered_tracing_config["pruning_params"],
+        )
     )
     return (disordered_traces_cropped_data,)
 
@@ -283,10 +287,7 @@ def _(disordered_traces_cropped_data, pp):
 
     if isinstance(value, dict):
         print("\nContents of this grain:")
-        pp.pprint({
-            k: f"{type(v).__name__}, shape={getattr(v, 'shape', None)}"
-            for k, v in value.items()
-        })
+        pp.pprint({k: f"{type(v).__name__}, shape={getattr(v, 'shape', None)}" for k, v in value.items()})
     else:
         print("\nValue preview:")
         pp.pprint(value)
@@ -295,17 +296,23 @@ def _(disordered_traces_cropped_data, pp):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image.""")
+    mo.md(
+        r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image."""
+    )
     return
 
 
 @app.cell
 def _(disordered_traces_cropped_data, show_image):
-    grain0_traceimages = disordered_traces_cropped_data['grain_0']
-    grain1_traceimages = disordered_traces_cropped_data['grain_1']
+    grain0_traceimages = disordered_traces_cropped_data["grain_0"]
+    grain1_traceimages = disordered_traces_cropped_data["grain_1"]
 
-    grain0_prunedskel = show_image(grain0_traceimages["skeleton"], cmap = "gray", colorbar=False, title = "Grain 0 - pruned skeleton")
-    grain1_prunedskel = show_image(grain1_traceimages["skeleton"], cmap = "gray", colorbar=False, title = "Grain 1 - pruned skeleton")
+    grain0_prunedskel = show_image(
+        grain0_traceimages["skeleton"], cmap="gray", colorbar=False, title="Grain 0 - pruned skeleton"
+    )
+    grain1_prunedskel = show_image(
+        grain1_traceimages["skeleton"], cmap="gray", colorbar=False, title="Grain 1 - pruned skeleton"
+    )
 
     grain0_prunedskel, grain1_prunedskel
     return
@@ -346,7 +353,7 @@ def _(
         disordered_tracing_direction_data=disordered_traces_cropped_data,
         filename="plasmids",
         pixel_to_nm_scaling=grains.pixel_to_nm_scaling,
-        **nodestats_config
+        **nodestats_config,
     )
 
     node_info, grain_stats_df, image_dict, single_grain_images = node_stats
@@ -384,8 +391,8 @@ def _(mo):
 
 @app.cell
 def _(image_dict, show_image):
-    original_nodes = show_image(image_dict["convolved_skeletons"], cmap = "gray", colorbar = False, title="Original nodes")
-    connected_nodes = show_image(image_dict["connected_nodes"], cmap = "gray", colorbar = False, title="Connected nodes")
+    original_nodes = show_image(image_dict["convolved_skeletons"], cmap="gray", colorbar=False, title="Original nodes")
+    connected_nodes = show_image(image_dict["connected_nodes"], cmap="gray", colorbar=False, title="Connected nodes")
 
     original_nodes, connected_nodes
     return
@@ -414,9 +421,9 @@ def _(
     ordered_tracing_config,
     ordered_tracing_image,
 ):
-    #nodestats output as input for ordered_tracing_image
+    # nodestats output as input for ordered_tracing_image
     nodestats_direction_data = {
-        "stats":  node_stats[0],
+        "stats": node_stats[0],
         "images": node_stats[3],
     }
 
@@ -425,7 +432,7 @@ def _(
         disordered_tracing_direction_data=disordered_traces_cropped_data,
         nodestats_direction_data=nodestats_direction_data,
         filename="plasmids",
-        **ordered_tracing_config
+        **ordered_tracing_config,
     )
 
     return (
@@ -438,7 +445,9 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces.""")
+    mo.md(
+        r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces."""
+    )
     return
 
 
@@ -457,7 +466,7 @@ def _(
 
     # 2. Grain stats DataFrame
     print("\nGrain stats additions DataFrame:")
-    print(grainstats_additions_df.head())   # first rows
+    print(grainstats_additions_df.head())  # first rows
 
     # 3. Mol stats DataFrame
     print("\nMolecule stats DataFrame:")
@@ -471,13 +480,15 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end.""")
+    mo.md(
+        r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end."""
+    )
     return
 
 
 @app.cell
 def _(ordered_trace_full_images, show_image):
-    show_image(ordered_trace_full_images['ordered_traces'], cmap = 'Reds')
+    show_image(ordered_trace_full_images["ordered_traces"], cmap="Reds")
     return
 
 
@@ -508,11 +519,11 @@ def _(
     splining_image,
 ):
     splined_traces, spline_grainstats_df, spline_molstats_df = splining_image(
-        image = image,
-        ordered_tracing_direction_data = all_traces_data,
+        image=image,
+        ordered_tracing_direction_data=all_traces_data,
         filename="plasmids",
         pixel_to_nm_scaling=grains.pixel_to_nm_scaling,
-        **splining_config    
+        **splining_config,
     )
 
     # 1. Splined traces (dict)
@@ -537,7 +548,10 @@ def _(
 
 @app.cell
 def _(plt, splined_traces):
-    plt.plot(splined_traces["grain_0"]["mol_0"]["spline_coords"][:,0], splined_traces["grain_0"]["mol_0"]["spline_coords"][:,1])
+    plt.plot(
+        splined_traces["grain_0"]["mol_0"]["spline_coords"][:, 0],
+        splined_traces["grain_0"]["mol_0"]["spline_coords"][:, 1],
+    )
     plt.title("Splined trace for grain 0")
     plt.xlabel("X coordinates")
     plt.ylabel("Y coordinates")
@@ -561,15 +575,16 @@ def _(mo):
 @app.cell
 def _(calculate_curvature_stats_image, grains, splined_traces):
     curvature_stats = calculate_curvature_stats_image(
-        all_grain_smoothed_data=splined_traces,
-        pixel_to_nm_scaling=grains.pixel_to_nm_scaling
+        all_grain_smoothed_data=splined_traces, pixel_to_nm_scaling=grains.pixel_to_nm_scaling
     )
     return (curvature_stats,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace.""")
+    mo.md(
+        r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace."""
+    )
     return
 
 
@@ -581,7 +596,9 @@ def _(curvature_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions.""")
+    mo.md(
+        r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions."""
+    )
     return
 
 
@@ -610,10 +627,15 @@ def _(
             afm_img = image[x0:x1, y0:y1]
         if afm_img is None:
             afm_img = np.zeros((1, 1), dtype=image.dtype)
-        cropped_images[f"grain_{i}"] = {"image": afm_img, "bbox": b,
-                                        "pad_width": getattr(gc, "pad_width", getattr(gc, "pad", 0))}
+        cropped_images[f"grain_{i}"] = {
+            "image": afm_img,
+            "bbox": b,
+            "pad_width": getattr(gc, "pad_width", getattr(gc, "pad", 0)),
+        }
 
-    img1 = Images(np.zeros((2, 2)), output_dir=".", filename=f"plasmids_{direction}_curvature", save=False, savefig_dpi=300)
+    img1 = Images(
+        np.zeros((2, 2)), output_dir=".", filename=f"plasmids_{direction}_curvature", save=False, savefig_dpi=300
+    )
 
     fig1, ax1 = img1.plot_curvatures(
         image=image,
