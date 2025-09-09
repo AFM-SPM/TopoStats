@@ -369,7 +369,7 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
 @pytest.mark.parametrize(
     ("file_ext", "matches", "filenames"),
     [
-        pytest.param(".spm", 3, ["minicircle.spm", "old_bruker.002", "old_bruker.004"], id="spm"),
+        pytest.param(".spm", 4, ["minicircle.spm", "old_bruker.002", "old_bruker.004", "plasmids.spm"], id="spm"),
         pytest.param(".asd", 2, ["file.asd", "minicircles.asd"], id="asd"),
         pytest.param(".gwy", 1, ["file.gwy"], id="gwy"),
         pytest.param(".ibw", 1, ["minicircle2.ibw"], id="ibw"),
