@@ -380,7 +380,12 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
         pytest.param(
             ".topostats",
             4,
-            ["file.topostats", "minicircle_small.topostats", "process_scan_topostats_file_regtest.topostats", "notebook3_image.topostats"],
+            [
+                "file.topostats",
+                "minicircle_small.topostats",
+                "process_scan_topostats_file_regtest.topostats",
+                "notebook3_image.topostats",
+            ],
             id="topostats",
         ),
     ],
