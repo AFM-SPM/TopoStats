@@ -1,0 +1,110 @@
+topostats.thresholds
+====================
+
+.. py:module:: topostats.thresholds
+
+.. autoapi-nested-parse::
+
+   Functions for calculating thresholds.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.thresholds.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.thresholds.threshold
+   topostats.thresholds._get_threshold
+   topostats.thresholds._threshold_otsu
+   topostats.thresholds._threshold_mean
+   topostats.thresholds._threshold_minimum
+   topostats.thresholds._threshold_yen
+   topostats.thresholds._threshold_triangle
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: threshold(image: numpy.ndarray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float
+
+   
+   Thresholding for producing masks.
+
+   :param method: Method to use for thresholding, currently supported methods are otsu (default), mean and minimum.
+   :type method: str
+   :param \*\*kwargs: Additional keyword arguments to pass to skimage methods.
+   :type \*\*kwargs: dict
+
+   :returns: Threshold of image using specified method.
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _get_threshold(method: str = 'otsu') -> collections.abc.Callable
+
+   
+   Creator component which determines which threshold method to use.
+
+   :param method: Threshold method to use, currently supports otsu (default), mean, minimum, mean yen, and triangle.
+   :type method: str
+
+   :returns: Returns function appropriate for the required threshold method.
+   :rtype: function
+
+   :raises ValueError: Unsupported methods result in ValueError.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _threshold_otsu(image: numpy.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float
+
+.. py:function:: _threshold_mean(image: numpy.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float
+
+.. py:function:: _threshold_minimum(image: numpy.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float
+
+.. py:function:: _threshold_yen(image: numpy.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float
+
+.. py:function:: _threshold_triangle(image: numpy.ndarray, otsu_threshold_multiplier: float = None, **kwargs) -> float
+
