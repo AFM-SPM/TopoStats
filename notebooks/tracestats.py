@@ -47,6 +47,7 @@ def _():
         Filters,
         GrainStats,
         Grains,
+        Images,
         LoadScans,
         Path,
         calculate_curvature_stats_image,
@@ -543,6 +544,20 @@ def _(plt, splined_traces):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    ##Curvature
+
+    Once we have the smooth traces for each molecule, we can calculate the curvature at each point along the molecular backbone. We can then look at how curvature changes at different points along the molecule, determine whether certain features (such as protein binding or damage) affect DNA curvature, and calculate an average curvature value for the entire molecule.
+
+    We make use of the `calculate_curvature_stats_image` function to calculate curvature for all grains identified within our image.
+    """
+    )
+    return
+
+
 @app.cell
 def _(calculate_curvature_stats_image, grains, splined_traces):
     curvature_stats = calculate_curvature_stats_image(
@@ -552,16 +567,34 @@ def _(calculate_curvature_stats_image, grains, splined_traces):
     return (curvature_stats,)
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace.""")
+    return
+
+
 @app.cell
 def _(curvature_stats):
     print(curvature_stats)
     return
 
 
-@app.cell
-def _(curvature_config, curvature_stats, grains, image, np, splined_traces):
-    from topostats.plottingfuncs import Images as TSImages
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions.""")
+    return
 
+
+@app.cell
+def _(
+    Images,
+    curvature_config,
+    curvature_stats,
+    grains,
+    image,
+    np,
+    splined_traces,
+):
     direction = "above"
     crops = grains.image_grain_crops.above.crops
 
@@ -573,14 +606,14 @@ def _(curvature_config, curvature_stats, grains, image, np, splined_traces):
         if afm_img is None:
             afm_img = getattr(gc, "crop", None)
         if afm_img is None and b is not None:
-            x0, y0, x1, y1 = b  # swap if your bbox is (x0,y0,x1,y1)
+            x0, y0, x1, y1 = b
             afm_img = image[x0:x1, y0:y1]
         if afm_img is None:
             afm_img = np.zeros((1, 1), dtype=image.dtype)
         cropped_images[f"grain_{i}"] = {"image": afm_img, "bbox": b,
                                         "pad_width": getattr(gc, "pad_width", getattr(gc, "pad", 0))}
 
-    img1 = TSImages(np.zeros((2, 2)), output_dir=".", filename=f"plasmids_{direction}_curvature", save=False, savefig_dpi=300)
+    img1 = Images(np.zeros((2, 2)), output_dir=".", filename=f"plasmids_{direction}_curvature", save=False, savefig_dpi=300)
 
     fig1, ax1 = img1.plot_curvatures(
         image=image,
