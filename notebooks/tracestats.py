@@ -9,11 +9,11 @@ def _(mo):
     mo.md(
         r"""
     #Walkthrough of DNA tracing in TopoStats
-    Once grain masks have been obtained through TopoStats (as exemplified in the `grainstats.py` notebook), these can be used to obtain DNA traces - smooth contours that sit along molecular backbones. These traces enable extraction of additional features such as DNA topology, height profiles, contour length, number of crossings etc. enabling greater characterisation of DNA than can be obtained through masks alone. 
+    Once grain masks have been obtained through TopoStats (as exemplified in the `grainstats.py` notebook), these can be used to obtain DNA traces - smooth contours that sit along molecular backbones. These traces enable extraction of additional features such as DNA topology, height profiles, contour length, number of crossings etc. enabling greater characterisation of DNA than can be obtained through masks alone.
 
     This notebook builds on the TopoStats foundations (`Filters`, `Grains` and `Grainstats`) described in the `grainstats.py` notebook. We recommend reviewing that notebook first for essential context before proceeding here.
 
-    The full DNA tracing pipeline is described in detail on our [documentation website](https://github.com/AFM-SPM/TopoStats/tree/main/docs/advanced) where the relevant files are [`disordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/disordered_tracing.md), [`ordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/ordered_tracing.md), and [`splining.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/splining.md). 
+    The full DNA tracing pipeline is described in detail on our [documentation website](https://github.com/AFM-SPM/TopoStats/tree/main/docs/advanced) where the relevant files are [`disordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/disordered_tracing.md), [`ordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/ordered_tracing.md), and [`splining.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/splining.md).
 
     You can also see our tracing algorithm in action in [Holmes et al. (2025)](https://www.nature.com/articles/s41467-025-60559-x), where we classify and quantify complex topological DNA structures!
     """

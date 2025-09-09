@@ -90,7 +90,7 @@ def _(mo):
     mo.md(
         r"""
     ##Finding files to process
-    When run from the command line, TopoStats needs to find files to process and the `find_files` function helps with this. It requires the directory path (a folder to search in), and the file extension to look for (this example processes a `.spm` file). The function then returns a list of all files within the directory that have the required file extension. 
+    When run from the command line, TopoStats needs to find files to process and the `find_files` function helps with this. It requires the directory path (a folder to search in), and the file extension to look for (this example processes a `.spm` file). The function then returns a list of all files within the directory that have the required file extension.
 
     To use the `find_files` function within the code block below, it is required that your image files are placed within the same directory as this notebook!
     """
@@ -117,7 +117,7 @@ def _(mo):
 
 @app.cell
 def _(image_files):
-    image_files
+    print(image_files)
     my_filename = "minicircle"
     return (my_filename,)
 
@@ -297,7 +297,6 @@ def _(mo):
 
 @app.cell
 def _(config):
-    loading_config = config["loading"]
     filter_config = config["filter"]
     filter_config["remove_scars"]["run"] = True
     grain_config = config["grains"]
@@ -424,7 +423,7 @@ def _(mo):
 
 @app.cell
 def _(plotting_config):
-    plotting_config
+    print(plotting_config)
     return
 
 
