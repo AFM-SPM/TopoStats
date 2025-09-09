@@ -29,6 +29,17 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    """
+    Grain statistics notebook.
+
+    This Marimo notebook demonstrates how to extract and visualise single-molecule statistics
+    using TopoStats
+    """
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -382,9 +393,7 @@ def _(filtered_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key."""
-    )
+    mo.md(r"""You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key.""")
     return
 
 
@@ -489,9 +498,7 @@ def _(Grains, filtered_image, grain_config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below."""
-    )
+    mo.md(r"""The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below.""")
     return
 
 
@@ -503,9 +510,7 @@ def _(grains):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid."""
-    )
+    mo.md(r"""To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid.""")
     return
 
 
@@ -666,9 +671,7 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example."""
-    )
+    mo.md(r"""Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example.""")
     return
 
 
@@ -680,9 +683,7 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables."""
-    )
+    mo.md(r"""We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables.""")
     return
 
 
@@ -708,9 +709,7 @@ def _(grain_stats, plt, sns):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table."""
-    )
+    mo.md(r"""It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table.""")
     return
 
 
