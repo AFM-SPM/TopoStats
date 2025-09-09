@@ -64,6 +64,16 @@ def _():
     )
 
 
+@app.cell
+def _():
+    """
+    Trace statistics notebook.
+
+    This Marimo notebook demonstrates the TopoStats tracing workflow.
+    """
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -237,9 +247,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`)."""
-    )
+    mo.md(r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`).""")
     return
 
 
@@ -296,9 +304,7 @@ def _(disordered_traces_cropped_data, pp):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image."""
-    )
+    mo.md(r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image.""")
     return
 
 
@@ -445,9 +451,7 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces."""
-    )
+    mo.md(r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces.""")
     return
 
 
@@ -480,9 +484,7 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end."""
-    )
+    mo.md(r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end.""")
     return
 
 
@@ -582,9 +584,7 @@ def _(calculate_curvature_stats_image, grains, splined_traces):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace."""
-    )
+    mo.md(r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace.""")
     return
 
 
@@ -596,9 +596,7 @@ def _(curvature_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions."""
-    )
+    mo.md(r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions.""")
     return
 
 
