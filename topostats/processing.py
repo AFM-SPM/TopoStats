@@ -186,7 +186,10 @@ def run_grains(  # noqa: C901
                     )
                 else:
                     num_in_threshold = 0
-                if grains_config["threshold_std_dev"][index] > 0:
+                threshold_method = {"absolute": "threshold_absolute", "std_dev": "threshold_std_dev"}.get(
+                    grains_config["threshold_method"], "otsu_threshold_multiplier"
+                )
+                if grains_config[threshold_method][index] > 0:
                     num_above += num_in_threshold
                 else:
                     num_below += num_in_threshold
@@ -205,7 +208,7 @@ def run_grains(  # noqa: C901
                 LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
                 for index, image_arrays in enumerate(grains.mask_images):
                     LOGGER.debug(
-                        f"[{filename}] : Plotting {grains_config['threshold_std_dev'][index]} (index {index}) Grain Finding Images"
+                        f"[{filename}] : Plotting {grains_config[threshold_method][index]} (index {index}) Grain Finding Images"
                     )
                     grain_out_path_direction = grain_out_path / f"{index}"
                     # Plot diagnostic full grain images
@@ -1224,6 +1227,10 @@ def process_scan(
         plotting_config=plotting_config,
         grains_config=grains_config,
     )
+
+    if image_grain_crops.crops is not None:
+        print(image_grain_crops.crops[0].mask)
+    # np.save('C:\\Users\\tobya\\Desktop\\ndarray comparisons\\toby-branch-imggraincrops.npy', image_grain_crops.crops)
 
     topostats_object["grain_tensors"] = []
     if image_grain_crops.crops is not None:

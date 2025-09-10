@@ -937,7 +937,7 @@ class Grains:
         LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         assert self.threshold_method is not None, "Threshold method must be specified"  # type safety
         # calculate thresholds based on configuration
-        self.thresholds = get_grain_thresholds(
+        self.thresholds, original_thresholds = get_grain_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
             otsu_threshold_multiplier=self.otsu_threshold_multiplier,
@@ -947,7 +947,7 @@ class Grains:
 
         # Create an ImageGrainCrops object to store the grain crops
         for index, thresh in enumerate(self.thresholds):
-            LOGGER.debug(f"[{self.filename}] : Finding grains for the threshold {self.threshold_std_dev[index]}")
+            LOGGER.debug(f"[{self.filename}] : Finding grains for the threshold {original_thresholds[index]}")
             self.mask_images.append({})
             # Find thresholds for current direction
             direction_thresholds = []
@@ -2469,4 +2469,9 @@ def get_grain_thresholds(  # noqa: C901
         raise ValueError(
             f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
         )
-    return thresholds
+
+    original_thresholds = {"absolute": absolute, "std_dev": threshold_std_dev}.get(
+        threshold_method, otsu_threshold_multiplier
+    )
+
+    return thresholds, original_thresholds
