@@ -260,7 +260,9 @@ class Images:
         self.module = module
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        self.interpolation = (
+            mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
+        )
         cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
@@ -586,8 +588,8 @@ class Images:
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
-            if self.region_properties:
-                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
+            # if self.region_properties:
+            # fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
