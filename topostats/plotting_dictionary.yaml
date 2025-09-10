@@ -182,7 +182,7 @@ bounding_boxes:
 mask_overlay:
   filename: "26-image_with_grains"
   title: "Image with overlaid mask"
-  image_type: "binary"
+  image_type: "non-binary"
   savefig_dpi: 600
   core_set: true
   module: "grains"
