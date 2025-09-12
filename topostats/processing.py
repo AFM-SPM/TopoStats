@@ -338,62 +338,73 @@ def run_grainstats(
         grainstats_config.pop("run")
         class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
+        LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
+        grainstats_dict = {}
+        height_profiles_dict = {}
         try:
-            LOGGER.info(f"[{filename}] : *** Grain Statistics ***")
             grain_plot_dict = {
                 key: value
                 for key, value in plotting_config["plot_dict"].items()
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
-            grainstats_dict = {}
-            height_profiles_dict = {}
+        except Exception as e:
+            LOGGER.error(
+                f"[{filename}] : An error occurred whilst creating a grain plots dictionary: {e}\nReturning empty dataframe."
+            )
+            return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
 
-            # There are two layers to process those above the given threshold and those below
-            grain_crops_direction: GrainCropsDirection
+        # There are two layers to process those above the given threshold and those below
+        grain_crops_direction: GrainCropsDirection
+        try:
             for direction, grain_crops_direction in image_grain_crops.__dict__.items():
                 if grain_crops_direction is None:
                     LOGGER.warning(
                         f"No grains exist for the {direction} direction. Skipping grainstats for {direction}."
                     )
                     continue
-                grainstats_calculator = GrainStats(
-                    grain_crops=grain_crops_direction.crops,
-                    direction=direction,
-                    base_output_dir=grain_out_path,
-                    image_name=filename,
-                    plot_opts=grain_plot_dict,
-                    **grainstats_config,
-                )
-                grainstats_dict[direction], height_profiles_dict[direction] = grainstats_calculator.calculate_stats()
-                grainstats_dict[direction]["threshold"] = direction
-            # Create results dataframe from above and below results
-            # Appease pylint and ensure that grainstats_df is always created
-            grainstats_df = create_empty_dataframe(column_set="grainstats")
-            if "above" in grainstats_dict and "below" in grainstats_dict:
-                grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
-            elif "above" in grainstats_dict:
-                grainstats_df = grainstats_dict["above"]
-            elif "below" in grainstats_dict:
-                grainstats_df = grainstats_dict["below"]
-            else:
-                raise ValueError(
-                    "grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible."
-                )
-            grainstats_df["basename"] = basename.parent
-            grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
-            LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
-            LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
-            return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
-        except Exception:
-            LOGGER.info(
-                f"[{filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
+                try:
+                    grainstats_calculator = GrainStats(
+                        grain_crops=grain_crops_direction.crops,
+                        direction=direction,
+                        base_output_dir=grain_out_path,
+                        image_name=filename,
+                        plot_opts=grain_plot_dict,
+                        **grainstats_config,
+                    )
+                    grainstats_dict[direction], height_profiles_dict[direction] = (
+                        grainstats_calculator.calculate_stats()
+                    )
+                    grainstats_dict[direction]["threshold"] = direction
+                except Exception as e:
+                    LOGGER.error(
+                        f"[{filename}] : An error occurred whilst calculating grain statistics: {e}\nReturning empty dataframe."
+                    )
+                    return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
+        except Exception as e:
+            LOGGER.error(
+                f"[{filename}] : An error occurred whilst trying to iterate over directions: {e}\nReturning empty dataframe."
             )
             return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
-    else:
-        LOGGER.info(
-            f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
-        )
-        return create_empty_dataframe(column_set="grainstats"), {}, {}
+        # Create results dataframe from above and below results
+        # Appease pylint and ensure that grainstats_df is always created
+        grainstats_df = create_empty_dataframe(column_set="grainstats")
+        if "above" in grainstats_dict and "below" in grainstats_dict:
+            grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
+        elif "above" in grainstats_dict:
+            grainstats_df = grainstats_dict["above"]
+        elif "below" in grainstats_dict:
+            grainstats_df = grainstats_dict["below"]
+        else:
+            raise ValueError("grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible.")
+        grainstats_df["basename"] = basename.parent
+        grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
+        LOGGER.info(f"[{filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
+        LOGGER.info(f"[{filename}] : Grainstats stage completed successfully.")
+        return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
+    LOGGER.info(
+        f"[{filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
+    )
+    return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
 def run_disordered_tracing(
