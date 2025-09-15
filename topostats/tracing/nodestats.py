@@ -594,6 +594,7 @@ class nodeStats:
                         branch_under_over_order,
                         confidence,
                         singlet_branch_vectors,
+                        unmatched_branch_start_coords,
                     ) = nodeStats.analyse_node_branches(
                         p_to_nm=self.pixel_to_nm_scaling,
                         reduced_node_area=reduced_node_area,
@@ -628,6 +629,8 @@ class nodeStats:
 
                     for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
                         unmatched_branches[branch_index] = {"angles": angle}
+                        unmatched_branches[branch_index]["vector"] = singlet_branch_vectors[branch_index]
+                        unmatched_branches[branch_index]["start_coords"] = unmatched_branch_start_coords[branch_index]
 
                     # Get the vector of each branch based on ordered_coords. Ordered_coords is only the first N nm
                     # of the branch so this is just a general vibe on what direction a branch is going.
@@ -869,6 +872,7 @@ class nodeStats:
             branch_under_over_order,
             confidence,
             singlet_branch_vectors,
+            branch_start_coords,
         )
 
     @staticmethod
@@ -1577,7 +1581,9 @@ class nodeStats:
             trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = nodeStats.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
-            dist, height_trace = nodeStats.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
+            dist, height_trace = nodeStats.average_uniques(
+                dist, height_trace
+            )  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point  # - 0
