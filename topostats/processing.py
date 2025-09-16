@@ -243,7 +243,9 @@ def run_grains(  # noqa: C901
                                         continue
 
                             # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"][
+                                "filename"
+                            ] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
@@ -588,12 +590,16 @@ def run_nodestats(  # noqa: C901
                 _nodestats_grainstats["threshold"] = direction
                 nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
                 # append direction results to dict
-                nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
+                nodestats_whole_data[direction] = {
+                    "stats": nodestats_data,
+                    "images": nodestats_branch_images,
+                    "full_images": nodestats_full_images,
+                }
                 # save whole image plots
                 Images(
                     filename=f"{filename}_{direction}_nodes",
                     data=image,
-                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    masked_array=nodestats_full_images["connected_nodes"],
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["connected_nodes"],
                 ).plot_and_save()
