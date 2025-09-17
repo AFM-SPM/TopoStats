@@ -12,8 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.config import update_plotting_config
-from topostats.grains import GrainCrop, GrainCropsDirection, ImageGrainCrops
+from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -949,6 +948,15 @@ def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grains wrapper function of processing.py."""
     flattened_image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    topostats_object = TopoStats(
+        image_grain_crops=None,
+        filename="dummy filename",
+        pixel_to_nm_scaling=0.4940029296875,
+        img_path=tmp_path,
+        image=flattened_image,
+        image_original=None,
+        topostats_version=None,
+    )
     grains_config = process_scan_config["grains"]
     grains_config["threshold_method"] = "absolute"
     grains_config["direction"] = "both"
@@ -958,9 +966,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["area_thresholds"]["below"] = [20, 10000000]
 
     imagegraincrops = run_grains(
-        image=flattened_image,
-        pixel_to_nm_scaling=0.4940029296875,
-        filename="dummy filename",
+        topostats_object=topostats_object,
         grain_out_path=tmp_path,
         core_out_path=tmp_path,
         grains_config=grains_config,

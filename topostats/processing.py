@@ -121,9 +121,7 @@ def run_filters(
 
 
 def run_grains(  # noqa: C901
-    image: npt.NDArray,
-    pixel_to_nm_scaling: float,
-    filename: str,
+    topostats_object: TopoStats,
     grain_out_path: Path,
     core_out_path: Path,
     plotting_config: dict,
@@ -134,12 +132,8 @@ def run_grains(  # noqa: C901
 
     Parameters
     ----------
-    image : npt.NDArray
-        2d numpy array image to find grains in.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
-    filename : str
-        Name of file being processed (used in logging).
+    topostats_object : TopoStats
+        TopoStats object for grain detection.
     grain_out_path : Path
         Output path for step-by-step grain finding plots.
     core_out_path : Path
@@ -159,45 +153,46 @@ def run_grains(  # noqa: C901
     if grains_config["run"]:
         grains_config.pop("run")
         try:
-            LOGGER.info(f"[{filename}] : *** Grain Finding ***")
+            LOGGER.info(f"[{topostats_object.filename}] : *** Grain Finding ***")
             grains = Grains(
-                image=image,
-                filename=filename,
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                topostats_object=topostats_object,
                 **grains_config,
             )
             grains.find_grains()
             # Get number of grains found
             num_above = 0 if grains.image_grain_crops.above is None else len(grains.image_grain_crops.above.crops)
             num_below = 0 if grains.image_grain_crops.below is None else len(grains.image_grain_crops.below.crops)
-            LOGGER.info(f"[{filename}] : Grains found: {num_above} above, {num_below} below")
+            LOGGER.info(f"[{topostats_object.filename}] : Grains found: {num_above} above, {num_below} below")
             if num_above == 0 and num_below == 0:
-                LOGGER.warning(f"[{filename}] : No grains found for either direction.")
+                LOGGER.warning(f"[{topostats_object.filename}] : No grains found for either direction.")
         except Exception as e:
             LOGGER.error(
-                f"[{filename}] : An error occurred during grain finding, skipping following steps.", exc_info=e
+                f"[{topostats_object.filename}] : An error occurred during grain finding, skipping following steps.",
+                exc_info=e,
             )
         else:
             # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
                 plotting_config.pop("run")
                 grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
-                LOGGER.info(f"[{filename}] : Plotting Grain Finding Images")
+                LOGGER.info(f"[{topostats_object.filename}] : Plotting Grain Finding Images")
                 for direction, image_arrays in grains.mask_images.items():
-                    LOGGER.debug(f"[{filename}] : Plotting {direction} Grain Finding Images")
+                    LOGGER.debug(f"[{topostats_object.filename}] : Plotting {direction} Grain Finding Images")
                     grain_out_path_direction = grain_out_path / f"{direction}"
                     # Plot diagnostic full grain images
                     for plot_name, array in image_arrays.items():
                         # Tensor, iterate over each channel
                         filename_base = plotting_config["plot_dict"][plot_name]["filename"]
                         for tensor_class in range(1, array.shape[2]):
-                            LOGGER.debug(f"[{filename}] : Plotting {plot_name} image, class {tensor_class}")
+                            LOGGER.debug(
+                                f"[{topostats_object.filename}] : Plotting {plot_name} image, class {tensor_class}"
+                            )
                             plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
                             plotting_config["plot_dict"][plot_name]["filename"] = (
                                 filename_base + f"_class_{tensor_class}"
                             )
                             Images(
-                                data=image,
+                                data=topostats_object.image,
                                 masked_array=array[:, :, tensor_class],
                                 **plotting_config["plot_dict"][plot_name],
                             ).plot_and_save()
@@ -208,7 +203,7 @@ def run_grains(  # noqa: C901
                     else:
                         direction_grain_crops = grains.image_grain_crops.below
                     if direction_grain_crops is not None:
-                        LOGGER.info(f"[{filename}] : Plotting individual grain masks")
+                        LOGGER.info(f"[{topostats_object.filename}] : Plotting individual grain masks")
                         for grain_number, grain_crop in direction_grain_crops.crops.items():
                             # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
                             if grain_crop_plot_size_nm == -1:
@@ -218,11 +213,11 @@ def run_grains(  # noqa: C901
                                 try:
                                     # Resize the grain crop to the requested size
                                     crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
-                                        filename=filename,
+                                        filename=topostats_object.filename,
                                         grain_number=grain_number,
                                         grain_bbox=grain_crop.bbox,
-                                        pixel_to_nm_scaling=pixel_to_nm_scaling,
-                                        full_image=image,
+                                        pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
+                                        full_image=topostats_object.image,
                                         full_mask_tensor=direction_grain_crops.full_mask_tensor,
                                         target_size_nm=grain_crop_plot_size_nm,
                                     )
@@ -236,7 +231,9 @@ def run_grains(  # noqa: C901
                                         continue
 
                             # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"][
+                                "filename"
+                            ] = f"{topostats_object.filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
@@ -248,7 +245,7 @@ def run_grains(  # noqa: C901
                             for tensor_class in range(1, crop_mask.shape[2]):
                                 plotting_config["plot_dict"]["grain_mask"][
                                     "filename"
-                                ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                ] = f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                 Images(
                                     data=crop_image,
                                     masked_array=crop_mask[:, :, tensor_class],
@@ -271,14 +268,14 @@ def run_grains(  # noqa: C901
                             # Set filename for this class
                             plotting_config["plot_dict"][plot_name][
                                 "filename"
-                            ] = f"{filename}_{direction}_masked_overlay_class_{tensor_class}"
+                            ] = f"{topostats_object.filename}_{direction}_masked_overlay_class_{tensor_class}"
                             full_mask_tensor_class = full_mask_tensor[:, :, tensor_class]
                             full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
                             full_mask_tensor_class_regionprops = Grains.get_region_properties(
                                 full_mask_tensor_class_labelled
                             )
                             Images(
-                                data=image,
+                                data=topostats_object.image,
                                 masked_array=full_mask_tensor_class.astype(bool),
                                 **plotting_config["plot_dict"][plot_name],
                                 region_properties=full_mask_tensor_class_regionprops,
@@ -286,11 +283,11 @@ def run_grains(  # noqa: C901
                 plotting_config["run"] = True
             else:
                 # Otherwise, return None and warn that plotting is disabled for grain finding images
-                LOGGER.info(f"[{filename}] : Plotting disabled for Grain Finding Images")
-            LOGGER.info(f"[{filename}] : Grain Finding stage completed successfully.")
+                LOGGER.info(f"[{topostats_object.filename}] : Plotting disabled for Grain Finding Images")
+            LOGGER.info(f"[{topostats_object.filename}] : Grain Finding stage completed successfully.")
             return grains.image_grain_crops
     # Otherwise, return None and warn grainstats is disabled
-    LOGGER.info(f"[{filename}] Detection of grains disabled, GrainStats will not be run.")
+    LOGGER.info(f"[{topostats_object.filename}] Detection of grains disabled, GrainStats will not be run.")
     return ImageGrainCrops(above=None, below=None)
 
 
@@ -1135,9 +1132,7 @@ def process_scan(
 
     # Find Grains :
     image_grain_crops = run_grains(
-        image=topostats_object["image"],
-        pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-        filename=topostats_object["filename"],
+        topostats_object=topostats_object,
         grain_out_path=grain_out_path,
         core_out_path=core_out_path,
         plotting_config=plotting_config,
@@ -1388,16 +1383,13 @@ def process_grains(
     plotting_config = add_pixel_to_nm_to_plotting_config(plotting_config, topostats_object["pixel_to_nm_scaling"])
     # Find Grains using the filtered image
     try:
-        image_grain_crops = run_grains(
-            image=topostats_object["image"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            filename=topostats_object["filename"],
+        run_grains(
+            topostats_object=topostats_object,
             grain_out_path=grain_out_path,
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             grains_config=grains_config,
         )
-        topostats_object["grain_tensors"] = {}
         if image_grain_crops.above is not None:
             topostats_object["grain_tensors"]["above"] = image_grain_crops.above.full_mask_tensor
         if image_grain_crops.below is not None:
