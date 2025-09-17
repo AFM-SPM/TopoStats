@@ -298,7 +298,7 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
                 "file.topostats",
                 "minicircle_small.topostats",
                 "process_scan_topostats_file_regtest.topostats",
-                "notebook3_image.topostats",
+                "catenane_post_disordered_tracing.topostats",
             ],
             id="topostats",
         ),

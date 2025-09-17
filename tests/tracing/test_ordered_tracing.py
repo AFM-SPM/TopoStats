@@ -13,7 +13,7 @@ from topostats.tracing.ordered_tracing import linear_or_circular, ordered_tracin
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
-TRACING_RESOURCES = RESOURCES / "TRACING"
+TRACING_RESOURCES = RESOURCES / "tracing"
 ORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "ordered_tracing"
 NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
 DISORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "disordered_tracing"

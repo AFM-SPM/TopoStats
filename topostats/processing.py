@@ -11,6 +11,7 @@ from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
+from topostats.classes import TopoStats
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
 from topostats.grainstats import GrainStats
@@ -45,9 +46,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def run_filters(
-    unprocessed_image: npt.NDArray,
-    pixel_to_nm_scaling: float,
-    filename: str,
+    topostats_object: TopoStats,
     filter_out_path: Path,
     core_out_path: Path,
     filter_config: dict,
@@ -58,13 +57,8 @@ def run_filters(
 
     Parameters
     ----------
-    unprocessed_image : npt.NDArray
-        Image to be flattened.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometres.
-        ie the number of pixels per nanometre.
-    filename : str
-        File name for the image.
+    topostats_object : TopoStats
+        TopoStats object to be filtered.
     filter_out_path : Path
         Output directory for step-by-step flattening plots.
     core_out_path : Path
@@ -82,19 +76,18 @@ def run_filters(
     """
     if filter_config["run"]:
         filter_config.pop("run")
-        LOGGER.debug(f"[{filename}] Image dimensions: {unprocessed_image.shape}")
-        LOGGER.info(f"[{filename}] : *** Filtering ***")
+        LOGGER.debug(f"[{topostats_object.filename}] Image dimensions: {topostats_object.image_original.shape}")
+        LOGGER.info(f"[{topostats_object.filename}] : *** Filtering ***")
+        # TODO 2025-09-05 : Switch to using TopoStats class
         filters = Filters(
-            image=unprocessed_image,
-            filename=filename,
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            topostats_object=topostats_object,
             **filter_config,
         )
         filters.filter_image()
         # Optionally plot filter stage
         if plotting_config["run"]:
             plotting_config.pop("run")
-            LOGGER.info(f"[{filename}] : Plotting Filtering Images")
+            LOGGER.info(f"[{topostats_object.filename}] : Plotting Filtering Images")
             # Generate plots
             for plot_name, array in filters.images.items():
                 if plot_name not in ["scan_raw"]:
@@ -107,17 +100,17 @@ def run_filters(
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                         Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                     except AttributeError:
-                        LOGGER.info(f"[{filename}] Unable to generate plot : {plot_name}")
+                        LOGGER.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
             plotting_config["run"] = True
         # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
         plot_name = "z_threshed"
         plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
         Images(
             filters.images["gaussian_filtered"],
-            filename=filename,
+            filename=topostats_object.filename,
             **plotting_config["plot_dict"][plot_name],
         ).plot_and_save()
-        LOGGER.info(f"[{filename}] : Filters stage completed successfully.")
+        LOGGER.info(f"[{topostats_object.filename}] : Filters stage completed successfully.")
         return filters.images["gaussian_filtered"]
     # Otherwise, return None and warn that initial processing is disabled.
     LOGGER.error(
@@ -1131,9 +1124,7 @@ def process_scan(
 
     # Flatten Image
     image = run_filters(
-        unprocessed_image=topostats_object["image_original"],
-        pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-        filename=topostats_object["filename"],
+        topostats_object=topostats_object,
         filter_out_path=filter_out_path,
         core_out_path=core_out_path,
         filter_config=filter_config,
@@ -1333,9 +1324,7 @@ def process_filters(
     # Flatten Image
     try:
         image = run_filters(
-            unprocessed_image=topostats_object["image_original"],
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            filename=topostats_object["filename"],
+            topostats_object=topostats_object,
             filter_out_path=filter_out_path,
             core_out_path=core_out_path,
             filter_config=filter_config,
