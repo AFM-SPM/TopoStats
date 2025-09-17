@@ -513,7 +513,7 @@ class DisorderedTrace:
     Attributes
     ----------
     images : dict[str: npt.NDArray]
-        Dictionary of images generated during disordered tracing, should include ''pruned_skeleton'', ..
+        Dictionary of images generated during disordered tracing, should include ''pruned_skeleton''.
     grain_endpoints : npt.int64
         Number of Grain endpoints.
     grain_junctions : npt.int64
