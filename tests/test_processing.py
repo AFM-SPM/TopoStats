@@ -989,10 +989,17 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
     ) as f:
         image_grain_crops = pickle.load(f)
-    grainstats_df, _, grain_crops = run_grainstats(
+    topostats_object = TopoStats(
         image_grain_crops=image_grain_crops,
         filename="dummy filename",
-        basename=RESOURCES,
+        pixel_to_nm_scaling=0.4940029296875,
+        img_path=tmp_path,
+        image=None,
+        image_original=None,
+        topostats_version=None,
+    )
+    grainstats_df, _, grain_crops = run_grainstats(
+        topostats_object=topostats_object,
         grainstats_config=process_scan_config["grainstats"],
         plotting_config=process_scan_config["plotting"],
         grain_out_path=tmp_path,

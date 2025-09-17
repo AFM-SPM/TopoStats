@@ -88,7 +88,7 @@ class GrainStats:
         self,
         topostats_object: TopoStats,
         direction: str,
-        base_output_dir: str | Path,
+        base_output_dir: Path,
         edge_detection_method: str = "binary_erosion",
         extract_height_profile: bool = False,
         plot_opts: dict = None,
@@ -101,7 +101,7 @@ class GrainStats:
         ----------
         topostats_object : TopoStats
             TopoStats object, this should contain the ''ImageGrainCrops'' object which has two attributes ''above'' and
-            ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a (a
+            ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a
             dictionary of ''GrainCrop'' objects holding the cropped images.
         direction : str
             Direction for which grains have been detected (''above'' or ''below'').
