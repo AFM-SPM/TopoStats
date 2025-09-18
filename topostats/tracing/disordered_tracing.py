@@ -427,6 +427,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     )
                     * 1e-9,
                 )
+                # REFACTOR : Won't need this conditional statement once we remove image_grain_crops class
                 if direction == "above":
                     topostats_object.image_grain_crops.above.crops[grain_number].disordered_trace = disordered_trace
                 else:
