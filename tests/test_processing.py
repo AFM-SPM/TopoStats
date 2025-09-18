@@ -5,6 +5,7 @@
 import logging
 import pickle
 from pathlib import Path
+from typing import Any
 
 import filetype
 import h5py
@@ -12,12 +13,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
     check_run_steps,
     process_scan,
+    run_disordered_tracing,
     run_filters,
     run_grains,
     run_grainstats,
@@ -1026,6 +1028,60 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     for grain_crop in grain_crops.values():
         assert isinstance(grain_crop, GrainCrop)
         assert all(x in dir(grain_crop) for x in GRAIN_CROP_ATTRIBUTES)
+
+
+def test_run_disordered_tracing(
+    process_scan_config: dict[str, Any], load_scan_data: LoadScans, tmp_path: Path, caplog
+) -> None:
+    """Test run_disordered_tracing()."""
+    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
+    ) as f:
+        topostats_object.image_grain_crops = pickle.load(f)
+    topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    run_disordered_tracing(
+        topostats_object=topostats_object,
+        core_out_path=tmp_path,
+        tracing_out_path=tmp_path,
+        disordered_tracing_config=process_scan_config["disordered_tracing"],
+        plotting_config=process_scan_config["plotting"],
+    )
+    expected = {
+        0: {
+            "grain_endpoints": 0,
+            "grain_junctions": 4,
+            "total_branch_length": 1.1716095681103254e-07,
+            "grain_width_mean": 5.117318599979457e-09,
+        },
+        3: {
+            "grain_endpoints": 0,
+            "grain_junctions": 0,
+            "total_branch_length": 8.49805509668089e-08,
+            "grain_width_mean": 5.40982849376278e-09,
+        },
+        4: {
+            "grain_endpoints": 0,
+            "grain_junctions": 0,
+            "total_branch_length": 1.0965161327419527e-07,
+            "grain_width_mean": 4.788512127551645e-09,
+        },
+    }
+    assert "Grain 1 skeleton < 10, skipping." in caplog.text
+    assert "Grain 2 skeleton < 10, skipping." in caplog.text
+    assert "Grain 5 skeleton < 10, skipping." in caplog.text
+    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
+        # Skeletons < 10 for these so disordered tracing is skipped
+        if grain not in (1, 2, 5):
+            print(f"\n{grain=}\n")
+            print(f"\n{grain_crop.disordered_trace.__dict__=}\n")
+            assert grain_crop.disordered_trace is not None
+            assert isinstance(grain_crop.disordered_trace, DisorderedTrace)
+            assert isinstance(grain_crop.disordered_trace.images, dict)
+            assert grain_crop.disordered_trace.grain_endpoints == expected[grain]["grain_endpoints"]
+            assert grain_crop.disordered_trace.grain_junctions == expected[grain]["grain_junctions"]
+            assert grain_crop.disordered_trace.total_branch_length == expected[grain]["total_branch_length"]
+            assert grain_crop.disordered_trace.grain_width_mean == expected[grain]["grain_width_mean"]
 
 
 # ns-rse 2024-09-11 : Test disabled as run_dnatracing() has been removed in refactoring, needs updating/replacing to

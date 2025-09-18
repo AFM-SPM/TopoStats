@@ -380,12 +380,8 @@ def run_grainstats(
         return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
-def run_disordered_tracing(
-    full_image: npt.NDArray,
-    image_grain_crops: ImageGrainCrops,
-    pixel_to_nm_scaling: float,
-    filename: str,
-    basename: str,
+def run_disordered_tracing(  # noqa: C901
+    topostats_object: TopoStats,
     core_out_path: Path,
     tracing_out_path: Path,
     disordered_tracing_config: dict,
@@ -397,16 +393,9 @@ def run_disordered_tracing(
 
     Parameters
     ----------
-    full_image : npt.ndarray
-        Image containing the grains to pass to the tracing function.
-    image_grain_crops : ImageGrainCrops
-        ImageGrainCrops object containing the GrainCrops to perform tracing on.
-    pixel_to_nm_scaling : float
-        Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
-    filename : str
-        Name of the image.
-    basename : Path
-        Path to directory containing the image.
+    topostats_object : TopoStats
+        TopoStats object for processing, should have had grain detection performed prior to disordered tracing otherwise
+        there are no grains to trace.
     core_out_path : Path
         Path to save the core disordered trace image to.
     tracing_out_path : Path
@@ -425,7 +414,9 @@ def run_disordered_tracing(
     """
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
-        LOGGER.info(f"[{filename}] : *** Disordered Tracing ***")
+        LOGGER.info(f"[{topostats_object.filename}] : *** Disordered Tracing ***")
+        if topostats_object.image_grain_crops is None:
+            LOGGER.warning(f"[{topostats_object.filename}] : There are no grain crops and there is nothing to trace.")
 
         if grainstats_df is None:
             grainstats_df = create_empty_dataframe(column_set="grainstats")
@@ -435,10 +426,10 @@ def run_disordered_tracing(
         disordered_tracing_stats_image = pd.DataFrame()
         try:
             grain_crop_direction: GrainCropsDirection
-            for direction, grain_crop_direction in image_grain_crops.__dict__.items():
+            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
-                        f"[{filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
+                        f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     continue
 
@@ -448,35 +439,40 @@ def run_disordered_tracing(
                     disordered_tracing_images,
                     disordered_tracing_stats,
                 ) = trace_image_disordered(
-                    full_image=full_image,
-                    grain_crops=grain_crop_direction.crops,
-                    filename=filename,
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    topostats_object=topostats_object,
+                    direction=direction,
                     **disordered_tracing_config,
                 )
                 # save per image new grainstats stats
                 _disordered_trace_grainstats["threshold"] = direction
                 disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
                 disordered_tracing_stats["threshold"] = direction
-                disordered_tracing_stats["basename"] = basename.parent
+                disordered_tracing_stats["basename"] = topostats_object.img_path.parent
                 disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
                 # save plots
                 Images(
-                    full_image,
+                    topostats_object.image,
                     masked_array=disordered_tracing_images.pop("pruned_skeleton"),
                     output_dir=core_out_path,
-                    filename=f"{filename}_{direction}_disordered_trace",
+                    filename=f"{topostats_object.filename}_{direction}_disordered_trace",
                     **plotting_config["plot_dict"]["pruned_skeleton"],
                 ).plot_and_save()
                 for plot_name, image_value in disordered_tracing_images.items():
-                    Images(
-                        full_image,
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / direction,
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
+                    try:
+                        Images(
+                            topostats_object.image,
+                            masked_array=image_value,
+                            output_dir=tracing_out_path / direction,
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+                    except KeyError:
+                        LOGGER.warning(
+                            f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
+                            "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                            "GitHub to report this problem (https://github.com/AFM-SPM/TopoStats/issues/new?template=bug_report.yaml)."
+                        )
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(
@@ -485,14 +481,19 @@ def run_disordered_tracing(
                 if grainstats_df is not None
                 else disordered_trace_grainstats
             )
-            LOGGER.info(f"[{filename}] : Disordered Tracing stage completed successfully.")
+            LOGGER.info(f"[{topostats_object.filename}] : Disordered Tracing stage completed successfully.")
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
         except ValueError as e:
-            LOGGER.info(f"[{filename}] : Disordered tracing failed with ValueError {e}")
+            LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
 
+        except AttributeError as e:
+            if topostats_object.image_grain_stats is None:
+                LOGGER.info(f"[{topostats_object.filename}] : Missing image_grain_crops attribute.")
+            else:
+                LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
         except Exception as e:
             LOGGER.info(
-                f"[{filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                f"[{topostats_object.filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
         return (
@@ -500,15 +501,18 @@ def run_disordered_tracing(
             grainstats_df,
             create_empty_dataframe(column_set="disordered_tracing_statistics"),
         )
-    LOGGER.info(f"[{filename}] Calculation of Disordered Tracing disabled, returning empty dictionary.")
+    LOGGER.info(
+        f"[{topostats_object.filename}] Calculation of Disordered Tracing disabled, returning empty dictionary."
+    )
     return None, grainstats_df, create_empty_dataframe(column_set="disordered_tracing_statistics")
 
 
 def run_nodestats(  # noqa: C901
-    image: npt.NDArray,
-    disordered_tracing_data: dict,
-    pixel_to_nm_scaling: float,
-    filename: str,
+    topostats_object: TopoStats,
+    # image: npt.NDArray,
+    # disordered_tracing_data: dict,
+    # pixel_to_nm_scaling: float,
+    # filename: str,
     core_out_path: Path,
     tracing_out_path: Path,
     nodestats_config: dict,
@@ -1152,11 +1156,7 @@ def process_scan(
 
         # Disordered Tracing
         disordered_traces_data, grainstats_df, disordered_tracing_stats = run_disordered_tracing(
-            full_image=topostats_object["image"],
-            image_grain_crops=image_grain_crops,
-            pixel_to_nm_scaling=topostats_object["pixel_to_nm_scaling"],
-            filename=topostats_object["filename"],
-            basename=topostats_object["img_path"],
+            topostats_object=topostats_object,
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             disordered_tracing_config=disordered_tracing_config,
