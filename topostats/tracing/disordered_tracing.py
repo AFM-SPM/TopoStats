@@ -381,7 +381,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     }
     # for cropped_image_index, cropped_image in cropped_images.items():
     number_of_grains = len(grain_crops)
-    print(f"\n{number_of_grains=}\n")
     for grain_number, grain_crop in grain_crops.items():
         try:
             grain_crop_tensor = grain_crop.mask
@@ -465,6 +464,14 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 disordered_trace_crop_data[f"grain_{grain_number}"] = disordered_trace_images
                 disordered_trace_crop_data[f"grain_{grain_number}"]["bbox"] = grain_crop.bbox
                 disordered_trace_crop_data[f"grain_{grain_number}"]["pad_width"] = grain_crop.padding
+            else:
+                # Not sure why this is required as the GrainCrop definition sets these to None by default but I
+                # encountered errors complaining about the attribute note being set and this seems to solve that.
+                # REFACTOR : Won't need this conditional statement once we remove image_grain_crops class
+                if direction == "above":
+                    topostats_object.image_grain_crops.above.crops[grain_number].disordered_trace = None
+                else:
+                    topostats_object.image_grain_crops.below.crops[grain_number].disordered_trace = None
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

@@ -431,7 +431,7 @@ def run_disordered_tracing(  # noqa: C901
                         f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
                     )
                     continue
-
+                # ns-rse 2025-10-01 - Ultimately remove assignment and returning of values, everything is stored within classes
                 (
                     disordered_traces_cropped_data,
                     _disordered_trace_grainstats,
@@ -472,13 +472,15 @@ def run_disordered_tracing(  # noqa: C901
                             "If you  are NOT using a custom plotting configuration then please raise an issue on"
                             "GitHub to report this problem (https://github.com/AFM-SPM/TopoStats/issues/new?template=bug_report.yaml)."
                         )
-            # merge grainstats data with other dataframe
+            # merge disordered tracing with grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(
                     grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
                 )
-                if grainstats_df is not None
-                else disordered_trace_grainstats
+                # if grainstats_df is not None
+                # else disordered_trace_grainstats
+                if disordered_trace_grainstats.shape != (0, 0)
+                else grainstats_df
             )
             LOGGER.info(f"[{topostats_object.filename}] : Disordered Tracing stage completed successfully.")
             return disordered_traces, resultant_grainstats, disordered_tracing_stats_image
@@ -520,8 +522,7 @@ def run_nodestats(  # noqa: C901
     Parameters
     ----------
     topostats_object : TopoStats
-        TopoStats object for processing, should have had grain detection performed prior to disordered tracing otherwise
-        there are no grains to trace.
+        TopoStats object for processing, should have had disordered tracing performed first.
     core_out_path : Path
         Path to save the core NodeStats image to.
     tracing_out_path : Path
@@ -549,62 +550,63 @@ def run_nodestats(  # noqa: C901
         nodestats_grainstats = pd.DataFrame()
         try:
             # process image using directional grain masks
-            print(f"\n{topostats_object.image_grain_crops.__dict__=}\n")
-            for direction, disordered_tracing_direction_data in topostats_object.image_grain_crops.__dict__.items():
-                #           for direction, disordered_tracing_direction_data in topostats_object.image_grain_crops.__dict__.items():
-                print(f"\n{direction=}\n")
-                print(f"\n{disordered_tracing_direction_data=}\n")
-                print(f"\n{(disordered_tracing_direction_data is not None)=}\n")
-                if disordered_tracing_direction_data is not None:
-                    print(f"\n{disordered_tracing_direction_data.__dict__=}\n")
-                    (
-                        nodestats_data,
-                        _nodestats_grainstats,
-                        nodestats_full_images,
-                        nodestats_branch_images,
-                    ) = nodestats_image(
-                        image=topostats_object.image,
-                        disordered_tracing_direction_data=disordered_tracing_direction_data.crops.disordered_trace,
-                        filename=topostats_object.filename,
-                        pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
-                        **nodestats_config,
+            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
+                if grain_crop_direction is None:
+                    LOGGER.warning(
+                        f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping nodestats tracing for {direction}."
                     )
-                    # save per image new grainstats stats
-                    _nodestats_grainstats["threshold"] = direction
-                    nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
-                    # append direction results to dict
-                    nodestats_whole_data[direction] = {"stats": nodestats_data, "images": nodestats_branch_images}
-                    # save whole image plots
+                    continue
+                # ns-rse 2025-10-01 - Ultimately remove assignment and returning of values, everything is stored
+                # within classes
+                (
+                    nodestats_data,
+                    _nodestats_grainstats,
+                    nodestats_full_images,
+                    nodestats_branch_images,
+                ) = nodestats_image(
+                    topostats_object=topostats_object,
+                    direction=direction,
+                    **nodestats_config,
+                )
+                # save per image new grainstats stats
+                _nodestats_grainstats["threshold"] = direction
+                nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
+                # append direction results to dict
+                nodestats_whole_data[direction] = {
+                    "stats": nodestats_data,
+                    "images": nodestats_branch_images,
+                }
+                # save whole image plots
+                Images(
+                    filename=f"{topostats_object.filename}_{direction}_nodes",
+                    data=topostats_object.image,
+                    masked_array=nodestats_full_images.pop("connected_nodes"),
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["connected_nodes"],
+                ).plot_and_save()
+                for plot_name, image_value in nodestats_full_images.items():
                     Images(
-                        filename=f"{topostats_object.filename}_{direction}_nodes",
-                        data=topostats_object.image,
-                        masked_array=nodestats_full_images.pop("connected_nodes"),
-                        output_dir=core_out_path,
-                        **plotting_config["plot_dict"]["connected_nodes"],
+                        topostats_object.image,
+                        masked_array=image_value,
+                        output_dir=tracing_out_path / direction,
+                        **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
-                    for plot_name, image_value in nodestats_full_images.items():
-                        Images(
-                            topostats_object.image,
-                            masked_array=image_value,
-                            output_dir=tracing_out_path / direction,
-                            **plotting_config["plot_dict"][plot_name],
-                        ).plot_and_save()
-                    # plot single node images
-                    for mol_no, mol_stats in nodestats_data.items():
-                        if mol_stats is not None:
-                            for node_no, single_node_stats in mol_stats.items():
-                                # plot the node and branch_mask images
-                                for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
-                                    node_no
-                                ].items():
-                                    Images(
-                                        nodestats_branch_images[mol_no]["grain"]["grain_image"],
-                                        masked_array=cropped_image,
-                                        output_dir=tracing_out_path / direction / "nodes",
-                                        filename=f"{mol_no}_{node_no}_{cropped_image_type}",
-                                        **plotting_config["plot_dict"][cropped_image_type],
-                                    ).plot_and_save()
-                                    # plot crossing height linetrace
+                # plot single node images
+                for mol_no, mol_stats in nodestats_data.items():
+                    if mol_stats is not None:
+                        for node_no, single_node_stats in mol_stats.items():
+                            # plot the node and branch_mask images
+                            for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
+                                node_no
+                            ].items():
+                                Images(
+                                    nodestats_branch_images[mol_no]["grain"]["grain_image"],
+                                    masked_array=cropped_image,
+                                    output_dir=tracing_out_path / direction / "nodes",
+                                    filename=f"{mol_no}_{node_no}_{cropped_image_type}",
+                                    **plotting_config["plot_dict"][cropped_image_type],
+                                ).plot_and_save()
+                                # plot crossing height linetrace
                                 if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
                                     if not single_node_stats["error"]:
                                         fig, _ = plot_crossing_linetrace_halfmax(
@@ -619,12 +621,10 @@ def run_nodestats(  # noqa: C901
                                             / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
                                             format="svg",
                                         )
-                else:
-                    LOGGER.info(f"[{topostats_object.filename}] : No disordered tracing data for {direction}")
             # merge grainstats data with other dataframe
             resultant_grainstats = (
                 pd.merge(grainstats_df, nodestats_grainstats, how="outer", on=["image", "threshold", "grain_number"])
-                if grainstats_df is not None
+                if grainstats_df.shape != (0, 0)
                 else nodestats_grainstats
             )
             LOGGER.info(f"[{topostats_object.filename}] : NodeStats stage completed successfully.")

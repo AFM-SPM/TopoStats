@@ -11,7 +11,7 @@ from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
 
-from topostats.classes import GrainCrop, MatchedBranch, Node
+from topostats.classes import GrainCrop, MatchedBranch, Node, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
     calculate_shortest_branch_distances,
@@ -80,12 +80,10 @@ class nodeStats:
 
     Parameters
     ----------
-    graincrop : GrainCrop
+    grain_crop : GrainCrop
         GrainCrop to be analysed.
-    filename : str
-        Filename grain is derived from.
     n_grain : int
-        The grain number.
+        Grain being processed.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
@@ -100,11 +98,8 @@ class nodeStats:
 
     def __init__(
         self,
-        graincrop: GrainCrop,
-        # smoothed_mask: npt.NDArray,
-        # skeleton: npt.NDArray,
+        grain_crop: GrainCrop,
         n_grain: int,
-        filename: str,
         node_joining_length: float,
         node_extend_dist: float,
         branch_pairing_length: float,
@@ -115,14 +110,10 @@ class nodeStats:
 
         Parameters
         ----------
-        graincrop : GrainCrop
-            Grain crop for nodestatistics are to be calculated.
-        filename : str
-            Filename grain is derived from.
+        grain_crop : GrainCrop
+            GrainCrop for nodestatistics are to be calculated.
         n_grain : int
-            The grain number.
-        node_joining_length : float
-            The length over which to join skeletal intersections to be counted as one crossing.
+            Grain being processed.
         node_joining_length : float
             The distance over which to join nearby odd-branched nodes.
         node_extend_dist : float
@@ -132,30 +123,29 @@ class nodeStats:
         pair_odd_branches : bool
             Whether to try and pair odd-branched nodes.
         """
-        self.graincrop = graincrop
-        self.filename = filename
-        self.image = graincrop.image
-        self.mask = graincrop.mask
+        self.grain_crop = grain_crop
+        self.grain_crop.nodes = {}
+        self.n_grain = n_grain
+        self.filename = grain_crop.filename
+        self.image = grain_crop.image
+        self.mask = grain_crop.mask
         try:
-            self.smoothed_mask = graincrop.disordered_trace.images["smoothed_mask"]  # only used to average traces
+            self.smoothed_mask = grain_crop.disordered_trace.images["smoothed_mask"]  # only used to average traces
         except AttributeError as e:
-            if "'NoneType' object has no attribute 'images'" in e:
+            if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
                 raise AttributeError(f"[{self.filename}] : Disordered tracing 'image' not found.") from e
             raise e
         try:
-            self.skeleton = graincrop.disordered_trace.images["skeleton"]
+            self.skeleton = grain_crop.disordered_trace.images["skeleton"]
         except AttributeError as e:
-            if "'NoneType' object has no attribute 'images'" in e:
+            if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
                 raise AttributeError(f"[{self.filename}] : Disordered tracing 'skeleton' not found.") from e
             raise e
-        self.pixel_to_nm_scaling = graincrop.pixel_to_nm_scaling
-
-        self.n_grain = n_grain
+        self.pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
         self.node_joining_length = node_joining_length
         self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
         self.pair_odd_branches = pair_odd_branches
-
         self.conv_skeleton = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = np.zeros_like(self.skeleton)
@@ -235,7 +225,6 @@ class nodeStats:
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skeleton = convolve_skeleton(self.skeleton)
-        print(f"\n{self.conv_skeleton=}\n")
         if len(self.conv_skeleton[self.conv_skeleton == 3]) != 0:  # check if any nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
@@ -243,7 +232,7 @@ class nodeStats:
             # reset skeleton var as tidy branches may have modified it
             self.skeleton = np.where(self.conv_skeleton != 0, 1, 0)
             # self.image_dict["grain"]["grain_skeleton"] = self.skeleton
-            self.graincrop.skeleton = self.skeleton
+            self.grain_crop.skeleton = self.skeleton
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
@@ -257,7 +246,6 @@ class nodeStats:
             self.node_centre_mask = self.highlight_node_centres(self.connected_nodes)
             # Begin the hefty crossing analysis
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} analysing found crossings.")
-            print("Are we here yet?")
             self.analyse_nodes(max_branch_length=self.branch_pairing_length)
             self.compile_metrics()
         else:
@@ -553,20 +541,16 @@ class nodeStats:
         """
         # Get coordinates of nodes
         # This is a numpy array of coords, shape Nx2
-        print(f"\n{self.node_centre_mask=}\n")
         # @ns-rse 2025-08-08 : This only captures some cases, if the array is empty it doesn't work I found there was an
         # instance where there were no node_coords (i.e. self.node_centre_mask.copy() == 3) returned an empty list so
         # there are no nodes.
         assert self.node_centre_mask is not None, "Node centre mask is not defined."
         node_coords: npt.NDArray[np.int32] = np.argwhere(self.node_centre_mask.copy() == 3)
-        print(f"\n{node_coords=}\n")
         # Check whether average trace resides inside the grain mask
         # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
-        print(f"\n{dilate=}\n")
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
-        print(f"\n{average_trace_advised=}\n")
         LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
         # Iterate over the nodes and analyse the branches
         matched_branches = None
@@ -576,7 +560,6 @@ class nodeStats:
         for node_no, (node_x, node_y) in enumerate(node_coords):
             unmatched_branches = {}
             error = False
-            print("NODES - Step 1")
             # Get branches relevant to the node
             max_length_px = max_branch_length / (self.pixel_to_nm_scaling * 1)
             reduced_node_area: npt.NDArray[np.int32] = nodeStats.only_centre_branches(
@@ -584,7 +567,6 @@ class nodeStats:
             )
             # Reduced skel graph is a networkx graph of the reduced node area.
             reduced_skel_graph: nx.classes.graph.Graph = nodeStats.skeleton_image_to_graph(reduced_node_area)
-            print("NODES - Step 2")
 
             # Binarise the reduced node area
             branch_mask = reduced_node_area.copy()
@@ -594,7 +576,6 @@ class nodeStats:
 
             # Find the starting coordinates of any branches connected to the node
             branch_start_coords = self.find_branch_starts(reduced_node_area)
-            print("NODES - Step 3")
 
             # Stop processing if nib (node has 2 branches)
             if branch_start_coords.shape[0] <= 2:
@@ -606,7 +587,6 @@ class nodeStats:
                 try:
                     real_node_count += 1
                     LOGGER.debug(f"Node: {real_node_count}")
-                    print("NODES - Step 4")
 
                     # Analyse the node branches
                     (
@@ -648,7 +628,6 @@ class nodeStats:
                     angles_between_singlet_branch_vectors: npt.NDArray[np.float64] = (
                         nodestats_calc_singlet_angles_result[0]
                     )
-                    print("NODES - Step 5")
 
                     for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
                         unmatched_branches[branch_index] = {"angles": angle}
@@ -669,7 +648,7 @@ class nodeStats:
                                 matched_branches[branch_index].angles = angle
                     else:
                         # self.image_dict["grain"]["grain_skeleton"][node_coords[:, 0], node_coords[:, 1]] = 0
-                        self.graincrop.skeleton[node_coords[:, 0], node_coords[:, 1]] = 0
+                        self.grain_crop.skeleton[node_coords[:, 0], node_coords[:, 1]] = 0
 
                     # Eg: length 2 array: [array([ nan, 79.00]), array([79.00, 0.0])]
                     # angles_between_vectors_along_branch
@@ -677,40 +656,10 @@ class nodeStats:
                 except ResolutionError:
                     LOGGER.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
-                print("NODES - Step 6")
-                self.graincrop.nodes[f"node_{real_node_count}"] = {
-                    "error": error,
-                    "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-                    "branch_stats": matched_branches,
-                    "unmatched_branch_stats": unmatched_branches,
-                    "node_coords": node_coords,
-                    "confidence": confidence,
-                }
-                print(f"\n{self.graincrop.nodes[f'node_{real_node_count}']=}\n")
-                # self.node_dicts[f"node_{real_node_count}"] = {
-                #     "error": error,
-                #     "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-                #     "branch_stats": matched_branches,
-                #     "unmatched_branch_stats": unmatched_branches,
-                #     "node_coords": node_coords,
-                #     "confidence": confidence,
-                # }
-                # self.node_dicts[f"node_{real_node_count}"].error = (error,)
-                # self.node_dicts[f"node_{real_node_count}"].pixel_to_nm_scaling = (self.pixel_to_nm_scaling,)
-                # self.node_dicts[f"node_{real_node_count}"].branch_stats = (matched_branches,)
-                # self.node_dicts[f"node_{real_node_count}"].unmatched_branch_stats = (unmatched_branches,)
-                # self.node_dicts[f"node_{real_node_count}"].node_coords = (node_coords,)
-                # self.node_dicts[f"node_{real_node_count}"].confidence = (confidence,)
                 assert reduced_node_area is not None, "Reduced node area is not defined."
                 assert branch_image is not None, "Branch image is not defined."
                 assert avg_image is not None, "Average image is not defined."
-                # node_images_dict: dict[str, npt.NDArray[np.int32]] = {
-                #     "node_area_skeleton": reduced_node_area,
-                #     "node_branch_mask": branch_image,
-                #     "node_avg_mask": avg_image,
-                # }
-                # self.image_dict["nodes"][f"node_{real_node_count}"] = node_images_dict
-                self.graincrop.nodes[real_node_count] = Node(
+                self.grain_crop.nodes[real_node_count] = Node(
                     error=error,
                     pixel_to_nm_scaling=self.pixel_to_nm_scaling,
                     branch_stats=matched_branches,
@@ -1014,9 +963,6 @@ class nodeStats:
                     image, single_branch_img, single_branch_coords, [node_coords[0], node_coords[1]]
                 )
                 masked_image[i]["avg_mask"] = mask
-                # print(f"\n{type(masked_image)=}\n")
-                # print(f"\n{masked_image[i]=}\n")
-                # masked_image[i].avg_mask = mask
             except (
                 AssertionError,
                 IndexError,
@@ -1177,6 +1123,13 @@ class nodeStats:
         norm = np.diag(dot) ** 0.5
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         np.fill_diagonal(cos_angles, 1)  # ensures vector_x • vector_x angles are 0
+        LOGGER.debug(f"\n{vectors=}\n")
+        LOGGER.debug(f"\n{norm=}\n")
+        LOGGER.debug(f"\n{cos_angles=}\n")
+        # ns-rse 2025-09-24 : Sometimes this raise a warning
+        #   /home/neil/work/git/hub/AFM-SPM/TopoStats/topostats/tracing/nodestats.py:1129:
+        #       RuntimeWarning: invalid value encountered in arccos
+        #    return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
     @staticmethod
@@ -1887,11 +1840,8 @@ class nodeStats:
 
 
 def nodestats_image(
-    graincrop: GrainCrop,
-    # image: npt.NDArray,
-    # disordered_tracing_direction_data: dict,
-    # filename: str,
-    # pixel_to_nm_scaling: float,
+    topostats_object: TopoStats,
+    direction: str,
     node_joining_length: float,
     node_extend_dist: float,
     branch_pairing_length: float,
@@ -1902,8 +1852,10 @@ def nodestats_image(
 
     Parameters
     ----------
-    graincrop : GrainCrop
-        GrainCrop of image to be analysed. This should be post-disordered tracing.
+    topostats_object : TopoStats
+        TopoStats object from which grains are extracted.
+    direction : str
+        Direction to run nodestats on.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
@@ -1921,81 +1873,78 @@ def nodestats_image(
         The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
         an image dictionary of nodestats steps for the entire image, and single grain images.
     """
-    image = graincrop.image
-    filename = graincrop.filename
-    pixel_to_nm_scaling = GrainCrop.pixel_to_nm_scaling
-    # n_grains = len(disordered_tracing_direction_data)
-    # img_base = np.zeros_like(image)
-    n_grains = len(graincrop.disordered_trace)
-    img_base = np.zeros_like(graincrop.image)
     nodestats_data = {}
 
     # Images for diagnostics edited during processing
     all_images = {
-        "convolved_skeletons": img_base.copy(),
-        "node_centres": img_base.copy(),
-        "connected_nodes": img_base.copy(),
+        "convolved_skeletons": np.zeros_like(topostats_object.image),
+        "node_centres": np.zeros_like(topostats_object.image),
+        "connected_nodes": np.zeros_like(topostats_object.image),
     }
     nodestats_branch_images = {}
     grainstats_additions = {}
 
-    # LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains...")
-    LOGGER.info(f"[{graincrop.filename}] : Calculating NodeStats statistics for {n_grains} grains...")
-
-    # for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
-    for n_grain, disordered_tracing_grain_data in graincrop.disordered_trace.items():
-        nodestats = None  # reset the nodestats variable
-        try:
-            nodestats = nodeStats(
-                graincrop=graincrop,
-                # image=disordered_tracing_grain_data["original_image"],
-                # mask=disordered_tracing_grain_data["original_grain"],
-                # smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
-                # skeleton=disordered_tracing_grain_data["pruned_skeleton"],
-                # pixel_to_nm_scaling=pixel_to_nm_scaling,
-                # filename=filename,
-                # n_grain=n_grain,
-                node_joining_length=node_joining_length,
-                node_extend_dist=node_extend_dist,
-                branch_pairing_length=branch_pairing_length,
-                pair_odd_branches=pair_odd_branches,
+    grain_crops_direction = (
+        topostats_object.image_grain_crops.above if direction == "above" else topostats_object.image_grain_crops.below
+    )
+    if grain_crops_direction is not None:
+        n_grains = len(grain_crops_direction.crops)
+        LOGGER.info(f"[{topostats_object.filename}] : There are {n_grains} grains for the {direction} direction")
+        for n_grain, grain_crop in grain_crops_direction.crops.items():
+            nodestats = None  # reset the nodestats variable
+            LOGGER.info(
+                f"[{topostats_object.filename}] : Processing {n_grain + 1} of {n_grains} for the {direction} direction"
             )
-            nodestats_dict, node_image_dict = nodestats.get_node_stats()
-            # LOGGER.debug(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
-            LOGGER.debug(f"[{graincrop.filename}] : Nodestats processed {n_grain} of {n_grains}")
+            if grain_crop.disordered_trace is not None:
+                try:
+                    nodestats = nodeStats(
+                        grain_crop=grain_crop,
+                        n_grain=n_grain,
+                        node_joining_length=node_joining_length,
+                        node_extend_dist=node_extend_dist,
+                        branch_pairing_length=branch_pairing_length,
+                        pair_odd_branches=pair_odd_branches,
+                    )
+                    nodestats_dict, node_image_dict = nodestats.get_node_stats()
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1} of "
+                        "{n_grains} for {direction}"
+                    )
 
-            # compile images
-            nodestats_images = {
-                "convolved_skeletons": nodestats.conv_skeleton,
-                "node_centres": nodestats.node_centre_mask,
-                "connected_nodes": nodestats.connected_nodes,
-            }
-            nodestats_branch_images[n_grain] = node_image_dict
+                    # compile images
+                    nodestats_images = {
+                        "convolved_skeletons": nodestats.conv_skeleton,
+                        "node_centres": nodestats.node_centre_mask,
+                        "connected_nodes": nodestats.connected_nodes,
+                    }
+                    nodestats_branch_images[n_grain] = node_image_dict
 
-            # compile metrics
-            grainstats_additions[n_grain] = {
-                "image": filename,
-                "grain_number": int(n_grain.split("_")[-1]),
-            }
-            grainstats_additions[n_grain].update(nodestats.metrics)
-            if nodestats_dict:  # if the grain's nodestats dict is not empty
-                nodestats_data[n_grain] = nodestats_dict
+                    # compile metrics
+                    grainstats_additions[n_grain] = {
+                        "image": topostats_object.filename,
+                        # "grain_number": int(n_grain.split("_")[-1]),
+                        "grain_number": n_grain,
+                    }
+                    grainstats_additions[n_grain].update(nodestats.metrics)
+                    if nodestats_dict:  # if the grain's nodestats dict is not empty
+                        nodestats_data[n_grain] = nodestats_dict
 
-            # remap the cropped images back onto the original
-            for image_name, full_image in all_images.items():
-                crop = nodestats_images[image_name]
-                bbox = disordered_tracing_grain_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+                    # remap the cropped images back onto the original
+                    for image_name, full_image in all_images.items():
+                        crop = nodestats_images[image_name]
+                        full_image[
+                            grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
+                        ] += crop
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(
-                # f"[{filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
-                f"[{graincrop.filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
-                exc_info=e,
-            )
-            nodestats_data[n_grain] = {}
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Nodestats for grain {n_grain} ({direction}) failed."
+                        " Consider raising an issue on GitHub. Error: ",
+                        exc_info=e,
+                    )
+    # nodestats_data[n_grain] = {}
 
-        # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
-        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
+    grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
 
     return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
