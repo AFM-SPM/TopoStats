@@ -215,14 +215,8 @@ def test_analyse_nodes(nodestats_catenane: nodeStats, nodestats_config: dict[str
     """Test of analyse_nodes() method of nodeStats class."""
     nodestats_catenane.analyse_nodes(max_branch_length=20)
 
-    node_dict_result = nodestats_catenane.node_dicts
-    image_dict_result = nodestats_catenane.image_dict
-    # print(f"\n{nodestats_catenane.graincrop.__dir__()=}\n")
-    print(f"\n{nodestats_catenane.graincrop.nodes=}")
-    print(f"\n{nodestats_catenane.graincrop.disordered_trace.images=}")
-    # assert nodestats_catenane.graincrop.nodes == snapshot
-    assert nodestats_catenane.graincrop.nodes == snapshot
-    assert nodestats_catenane.graincrop.disordered_trace.images == snapshot
+    assert nodestats_catenane.grain_crop.nodes == snapshot
+    assert nodestats_catenane.grain_crop.disordered_trace.images == snapshot
     # all_connected_nodes = nodestats_catenane.all_connected_nodes
     # # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
     # #         https://github.com/syrupy-project/syrupy/issues/887

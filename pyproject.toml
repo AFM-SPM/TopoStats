@@ -62,6 +62,7 @@ tests = [
   "pytest-cov",
   "pytest-github-actions-annotate-failures",
   "pytest-mpl",
+  "pytest-profiling",
   "pytest-regtest==2.3.1",
   "pytest-xdist",
   "filetype",
