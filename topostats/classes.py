@@ -1278,6 +1278,7 @@ class Node:
     Attributes
     ----------
     error : bool
+        Whether an error occurred calculating statistics for this node.
     pixel_to_nm_scaling : np.float64
         Pixel to nanometre scaling.
     branch_stats : dict[int, MatchedBranch]
@@ -1290,11 +1291,24 @@ class Node:
         Confidence in ???.
     reduced_node_area : ???
         Reduced node area.
-    node_branch_mask : ???
-        ????
-    node_avg_mask : ???
-        ???
+    node_area_skeleton : npt.NDArray[np.int32]
+        Numpy array of skeleton.
+    node_branch_mask : npt.NDArray[np.int32]
+        Numpy array of branch mask.
+    node_avg_mask : npt.NDArray[np.int32]
+        Numpy array of averaged mask.
     """
+
+    error: bool | None
+    pixel_to_nm_scaling: np.float64 | None
+    branch_stats: dict[int, MatchedBranch] | None
+    unmatched_branch_stats: dict | None
+    node_coords: dict[str, dict[str, npt.NDArray[np.int32]]] | None
+    confidence: np.float64 | None
+    reduced_node_area: np.float64 | None
+    node_area_skeleton: npt.NDArray[np.int32] | None
+    node_branch_mask: npt.NDArray[np.int32] | None
+    node_avg_mask: npt.NDArray[np.int32] | None
 
     def __str__(self) -> str:
         """
@@ -1387,6 +1401,30 @@ class Node:
         self._branch_stats = value
 
     @property
+    def unmatched_branch_stats(self) -> dict[int, MatchedBranch]:
+        """
+        Getter for the ``unmatched_branch_stats`` attribute.
+
+        Returns
+        -------
+        dict[int, MatchedBranch]
+            Returns the value of ``unmatched_branch_stats``.
+        """
+        return self._unmatched_branch_stats
+
+    @unmatched_branch_stats.setter
+    def unmatched_branch_stats(self, value: dict[int, MatchedBranch]) -> None:
+        """
+        Setter for the ``unmatched_branch_stats`` attribute.
+
+        Parameters
+        ----------
+        value : dict[int, MatchedBranch]
+            Value to set for ``unmatched_branch_stats``.
+        """
+        self._unmatched_branch_stats = value
+
+    @property
     def node_coords(self) -> npt.NDArray[np.int32]:
         """
         Getter for the ``node_coords`` attribute.
@@ -1435,25 +1473,97 @@ class Node:
         self._confidence = value
 
     @property
-    def nodes(self) -> dict[str, dict[str, npt.NDArray[np.int32]]]:
+    def reduced_node_area(self) -> dict[str, dict[str, npt.NDArray[np.int32]]]:
         """
-        Getter for the ``nodes`` attribute.
+        Getter for the ``reduced_node_area`` attribute.
 
         Returns
         -------
         dict[str, dict[str, npt.NDArray[np.int32]]]
-            Returns the value of ``nodes``.
+            Returns the value of ``reduced_node_area``.
         """
-        return self._nodes
+        return self._reduced_node_area
 
-    @nodes.setter
-    def nodes(self, value: dict[str, dict[str, npt.NDArray[np.int32]]]) -> None:
+    @reduced_node_area.setter
+    def reduced_node_area(self, value: dict[str, dict[str, npt.NDArray[np.int32]]]) -> None:
         """
-        Setter for the ``nodes`` attribute.
+        Setter for the ``reduced_node_area`` attribute.
 
         Parameters
         ----------
         value : dict[str, dict[str, npt.NDArray[np.int32]]]
-            Value to set for ``nodes``.
+            Value to set for ``reduced_node_area``.
         """
-        self._nodes = value
+        self._reduced_node_area = value
+
+    @property
+    def node_area_skeleton(self) -> type:
+        """
+        Getter for the ``node_area_skeleton`` attribute.
+
+        Returns
+        -------
+        type
+            Returns the value of ``node_area_skeleton``.
+        """
+        return self._node_area_skeleton
+
+    @node_area_skeleton.setter
+    def node_area_skeleton(self, value: type) -> None:
+        """
+        Setter for the ``node_area_skeleton`` attribute.
+
+        Parameters
+        ----------
+        value : type
+            Value to set for ``node_area_skeleton``.
+        """
+        self._node_area_skeleton = value
+
+    @property
+    def node_branch_mask(self) -> type:
+        """
+        Getter for the ``node_branch_mask`` attribute.
+
+        Returns
+        -------
+        type
+            Returns the value of ``node_branch_mask``.
+        """
+        return self._node_branch_mask
+
+    @node_branch_mask.setter
+    def node_branch_mask(self, value: type) -> None:
+        """
+        Setter for the ``node_branch_mask`` attribute.
+
+        Parameters
+        ----------
+        value : type
+            Value to set for ``node_branch_mask``.
+        """
+        self._node_branch_mask = value
+
+    @property
+    def node_avg_mask(self) -> type:
+        """
+        Getter for the ``node_avg_mask`` attribute.
+
+        Returns
+        -------
+        type
+            Returns the value of ``node_avg_mask``.
+        """
+        return self._node_avg_mask
+
+    @node_avg_mask.setter
+    def node_avg_mask(self, value: type) -> None:
+        """
+        Setter for the ``node_avg_mask`` attribute.
+
+        Parameters
+        ----------
+        value : type
+            Value to set for ``node_avg_mask``.
+        """
+        self._node_avg_mask = value

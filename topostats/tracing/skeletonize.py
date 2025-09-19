@@ -244,7 +244,6 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         """
         counter = 0
         while not self.skeleton_converged:
-            print(f"\nSkeletonisation iteration : {counter=}\n")
             self._do_skeletonising_iteration()
             counter += 1
         # When skeleton converged do an additional iteration of thinning to remove hanging points

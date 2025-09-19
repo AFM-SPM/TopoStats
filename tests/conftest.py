@@ -1323,3 +1323,25 @@ def mock_model_5_by_5_single_class() -> MagicMock:
     model_mocker.output_shape = (1, 5, 5, 1)
 
     return model_mocker
+
+
+@pytest.fixture()
+def catenane_topostats() -> TopoStats:
+    """TopoStats object of the catenane image."""
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "tracing" / "nodestats" / "catenane_post_disordered_tracing.pkl", "rb"
+    ) as f:
+        return pickle.load(f)
+
+
+@pytest.fixture()
+def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
+    """TopoStats object of the minicircle (small) image."""
+    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    with Path.open(  # pylint: disable=unspecified-encoding
+        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
+    ) as f:
+        topostats_object.image_grain_crops = pickle.load(f)
+    topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    topostats_object.filename = "minicircle_small"
+    return topostats_object
