@@ -651,11 +651,7 @@ def run_nodestats(  # noqa: C901
 
 # need to add in the molstats here
 def run_ordered_tracing(
-    image: npt.NDArray,
-    disordered_tracing_data: dict,
-    nodestats_data: dict,
-    filename: str,
-    basename: Path,
+    topostats_object: TopoStats,
     core_out_path: Path,
     tracing_out_path: Path,
     ordered_tracing_config: dict,
@@ -667,14 +663,8 @@ def run_ordered_tracing(
 
     Parameters
     ----------
-    image : npt.ndarray
-        Image containing the DNA to pass to the tracing function.
-    disordered_tracing_data : dict
-        Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
-    nodestats_data : dict
-        Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
-    filename : str
-        Name of the image.
+    topostats_object : TopoStats
+        TopoStats object for processing, should have had nodestats processing performed first.
     basename : Path
         The path of the files' parent directory.
     core_out_path : Path
@@ -686,7 +676,8 @@ def run_ordered_tracing(
     plotting_config : dict
         Dictionary configuration for plotting images.
     grainstats_df : pd.DataFrame | None
-        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+        The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty
+        grainstats dataframe is created.
 
     Returns
     -------
@@ -695,7 +686,7 @@ def run_ordered_tracing(
     """
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
-        LOGGER.info(f"[{filename}] : *** Ordered Tracing ***")
+        LOGGER.info(f"[{topostats_object.filename}] : *** Ordered Tracing ***")
 
         if grainstats_df is None:
             grainstats_df = create_empty_dataframe(column_set="grainstats")
@@ -705,13 +696,12 @@ def run_ordered_tracing(
         ordered_tracing_grainstats = pd.DataFrame()
         try:
             # run image using directional grain masks
-            for direction, disordered_tracing_direction_data in disordered_tracing_data.items():
-                # Check if there are grains
-                if not disordered_tracing_direction_data:
+            for direction, grain_crop_direction in topostats_object.image_grains_crops.__dict__.items():
+                if grain_crop_direction is None:
                     LOGGER.warning(
-                        f"[{filename}] : No skeletons exist for the {direction} direction. Skipping ordered_tracing for {direction}."
+                        f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping ordered tracing for {direction}."
                     )
-                    raise ValueError(f"No skeletons exist for the {direction} direction")
+                    continue
                 # if grains are found
                 (
                     ordered_tracing_data,
@@ -719,10 +709,8 @@ def run_ordered_tracing(
                     _ordered_tracing_molstats,
                     ordered_tracing_full_images,
                 ) = ordered_tracing_image(
-                    image=image,
-                    disordered_tracing_direction_data=disordered_tracing_direction_data,
-                    nodestats_direction_data=nodestats_data[direction],
-                    filename=filename,
+                    topostats_object=topostats_object,
+                    direction=direction,
                     **ordered_tracing_config,
                 )
                 # save per image new grainstats stats
@@ -735,8 +723,8 @@ def run_ordered_tracing(
                 # save whole image plots
                 plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
                 Images(
-                    filename=f"{filename}_{direction}_ordered_traces",
-                    data=image,
+                    filename=f"{topostats_object.filename}_{direction}_ordered_traces",
+                    data=topostats_object.image,
                     masked_array=ordered_tracing_full_images.pop("ordered_traces"),
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["ordered_traces"],
@@ -744,7 +732,7 @@ def run_ordered_tracing(
                 # save optional diagnostic plots (those with core_set = False)
                 for plot_name, image_value in ordered_tracing_full_images.items():
                     Images(
-                        image,
+                        data=topostats_object.image,
                         masked_array=image_value,
                         output_dir=tracing_out_path / direction,
                         **plotting_config["plot_dict"][plot_name],
@@ -757,23 +745,23 @@ def run_ordered_tracing(
                 if grainstats_df is not None
                 else ordered_tracing_grainstats
             )
-            ordered_tracing_molstats["basename"] = basename.parent
-            LOGGER.info(f"[{filename}] : Ordered Tracing stage completed successfully.")
+            ordered_tracing_molstats["basename"] = topostats_object.img_path.parent
+            LOGGER.info(f"[{topostats_object.filename}] : Ordered Tracing stage completed successfully.")
             # merge all image dictionaries
             return ordered_tracing_image_data, resultant_grainstats, ordered_tracing_molstats
         except ValueError as e:
             LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
+                f"[{topostats_object.filename}] : Ordered Tracing failed with ValueError {e} - No skeletons exist for the {direction} direction."
             )
 
         except KeyError as e:
             LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
+                f"[{topostats_object.filename}] : Ordered Tracing failed with KeyError {e} - no skeletons found from the Disordered Tracing step."
             )
 
         except Exception as e:
             LOGGER.info(
-                f"[{filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
+                f"[{topostats_object.filename}] : Ordered Tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
         return (
