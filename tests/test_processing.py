@@ -24,6 +24,7 @@ from topostats.processing import (
     run_grains,
     run_grainstats,
     run_nodestats,
+    run_ordered_tracing,
 )
 from topostats.utils import update_plotting_config
 
@@ -1802,3 +1803,55 @@ def test_run_nodestats(  # noqa: C901
                 if node not in (13, 19, 27):
                     assert nodestats.unmatched_branch_stats == expected[grain][node]["unmatched_branch_stats"]
                 np.testing.assert_array_equal(nodestats.node_coords, expected[grain][node]["node_coords"])
+
+
+@pytest.mark.parametrize(
+    ("topostats_path", "sample", "expected"),
+    [
+        pytest.param(
+            RESOURCES / "tracing" / "ordered_tracing" / "minicircle_post_nodestats.topostats",
+            "minicircle_post_nodestats",
+            {
+                0: {"disordered_trace": {}},  # Grain
+            },
+            id="minicircle",
+        ),
+        pytest.param(
+            RESOURCES / "tracing" / "ordered_tracing" / "catenane_post_nodestats.topostats",
+            "catenane_post_nodestats",
+            {
+                0: {"disordered_trace": {}},  # Grain
+            },
+            id="catenane",
+        ),
+    ],
+)
+def test_run_ordered_tracing(
+    topostats_path: Path, expected: dict[str, Any], sample, process_scan_config: dict[str, Any], tmp_path, request
+) -> None:
+    """Test for run_ordered_tracing."""
+    load_scans = LoadScans([topostats_path], channel="height_trace")
+    load_scans.get_data()
+    print(f"\n{load_scans.img_dict.keys()=}\n")
+    topostats_object = load_scans.img_dict[sample]
+
+    topostats_object.filename = topostats_object.filename.replace("_post_nodestats", "")
+    run_ordered_tracing(
+        topostats_object=topostats_object,
+        core_out_path=tmp_path,
+        tracing_out_path=tmp_path,
+        ordered_tracing_config=process_scan_config["ordered_tracing"],
+        plotting_config=process_scan_config["plotting"],
+    )
+    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.item():
+        assert grain_crop.disordered_trace is not None
+
+
+# Sample code for saving objects
+# from topostats.io import save_topostats_file
+
+# save_topostats_file(
+#     output_dir=RESOURCES / "tracing" / "ordered_tracing",
+#     filename="catenane_post_nodestats.topostats",
+#     topostats_object=topostats_object,
+# )

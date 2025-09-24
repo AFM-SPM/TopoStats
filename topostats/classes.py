@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import construct_full_mask_from_graincrops, update_background_class
@@ -48,9 +49,11 @@ class GrainCrop:
     stats : dict[int, dict[int, Any]] | None
         Dictionary of grain statistics.
     disordered_trace : DisorderedTrace
-        A disordered trace for the current grain.
+        A disordered trace for the grain.
     nodes : dict[str, Nodes]
         Dictionary of grain nodes.
+    ordered_trace : OrderedTrace
+        An ordered trace for the grain.
     """
 
     def __init__(
@@ -66,6 +69,7 @@ class GrainCrop:
         stats: dict[int, dict[int, Any]] | None = None,
         disordered_trace: DisorderedTrace | None = None,
         nodes: dict[str, Node] | None = None,
+        ordered_trace: OrderedTrace | None = None,
     ):
         """
         Initialise the class.
@@ -94,6 +98,8 @@ class GrainCrop:
             A disordered trace for the current grain.
         nodes : dict[int, Node]
             Grain nodes.
+        ordered_trace : OrderedTrace
+            An ordered trace for the grain.
         """
         self.padding = padding
         self.image = image
@@ -108,7 +114,7 @@ class GrainCrop:
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
         self.nodes: dict[int, Node] | None = nodes
-        # self.ordered_traces: dict[int, Any] = ordered_traces
+        self.ordered_trace: OrderedTrace | None = ordered_trace
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -406,7 +412,31 @@ class GrainCrop:
         """
         self._nodes = value
 
-    def __eq__(self, other: object) -> bool:
+    @property
+    def ordered_trace(self) -> OrderedTrace:
+        """
+        Getter for the ``ordered_trace`` attribute.
+
+        Returns
+        -------
+        dict[str: Any]
+            Returns the value of ``ordered_trace``.
+        """
+        return self._ordered_trace
+
+    @ordered_trace.setter
+    def ordered_trace(self, value: OrderedTrace) -> None:
+        """
+        Setter for the ``ordered_trace`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str: Any]
+            Value to set for ``ordered_trace``.
+        """
+        self._ordered_trace = value
+
+    def __eq__(self, other: GrainCrop) -> bool:
         """
         Check if two GrainCrop objects are equal.
 
@@ -432,7 +462,7 @@ class GrainCrop:
             and self.stats == other.stats
             and self.height_profiles == other.height_profiles
             and self.disordered_trace == other.disordered_trace
-            and self.skeleton == other.skeleton
+            and np.array_equal(self.skeleton, other.skeleton)
             and self.nodes == other.nodes
         )
 
@@ -545,6 +575,39 @@ class DisorderedTrace:
             f"grain_junctions : {self.grain_junctions}\n"
             f"total_branch_length : {self.total_branch_length}\n"
             f"grain_width_mean : {self.grain_width_mean}"
+        )
+
+    def __eq__(self, other: DisorderedTrace) -> bool:
+        """
+        Check if two DisorderedTrace objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
+        if not isinstance(other, DisorderedTrace):
+            return False
+        # Check whether all images are equal
+        if len(self.images) != len(other.images):
+            return False
+        images_equal: dict[int, bool] = {}
+        for image, array in self.images.items():
+            images_equal[image] = np.array_equal(array, other.images[image])
+        if not all(images_equal):
+            return False
+        all_images_equal = True
+        return (
+            all_images_equal
+            and self.grain_endpoints == other.grain_endpoints
+            and self.grain_junctions == other.grain_junctions
+            and self.total_branch_length == other.total_branch_length
+            and self.grain_width_mean == other.grain_width_mean
         )
 
     @property
@@ -803,9 +866,9 @@ class ImageGrainCrops:
 
     Attributes
     ----------
-    above : GrainCropDirection | None
+    above : GrainCropsDirection | None
         Grains in the above direction.
-    below : GrainCropDirection | None
+    below : GrainCropsDirection | None
         Grains in the below direction.
     """
 
@@ -1026,7 +1089,6 @@ class TopoStats:
         value : str | Path | None
             Image Path for the image.
         """
-        print(f"\n{value=}\n")
         self._img_path = Path.cwd() if value is None else Path(value)
 
     @property
@@ -1567,3 +1629,398 @@ class Node:
             Value to set for ``node_avg_mask``.
         """
         self._node_avg_mask = value
+
+
+@dataclass
+class OrderedTrace:
+    """
+    Class for Ordered Trace data and attributes.
+
+    tracing_stats : dict | None
+        Tracing statistics.
+    grain_molstats : Any | None
+        Grain molecule statistics.
+    ordered_trace_data : dict[int, Molecule]
+        Ordered trace data for the grain indexed by molecule number.
+    molecules : int
+        Number of molecules within the grain.
+    writhe : str
+        The writhe sign, can be either `+`, `-` or `0` for positive, negative or no writhe.
+    """
+
+    ordered_trace_data: dict[int, Molecule] | None
+    tracing_stats: dict | None
+    grain_molstats: Any | None
+    molecules: int | None
+    writhe: str | None
+    pixel_to_nm_scaling: np.float64 | None
+    images: dict[str, npt.NDArray] | None
+    error: bool | None
+
+    def __str__(self) -> str:
+        """
+        Readable attributes.
+
+        Returns
+        -------
+        str
+            Set of formatted statistics on matched branches.
+        """
+        return (
+            f"ordered_trace_data : {self.ordered_trace_data}\n"
+            f"tracing_stats : {self.tracing_stats}\n"
+            f"grain_molstats : {self.grain_molstats}\n"
+            f"pixel_to_nm_scaling : {self.pixel_to_nm_scaling}\n"
+            f"images : {self.images}"
+            f"error : {self.error}"
+        )
+
+    @property
+    def ordered_trace_data(self) -> dict[str, dict[str, Any]]:
+        """
+        Getter for the ``ordered_trace_data`` attribute.
+
+        Returns
+        -------
+        dict[str, dict[str, Any]]
+            Returns the value of ``ordered_trace_data``.
+        """
+        return self._ordered_trace_data
+
+    @ordered_trace_data.setter
+    def ordered_trace_data(self, value: dict[str, dict[str, Any]]) -> None:
+        """
+        Setter for the ``ordered_trace_data`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str, dict[str, Any]]
+            Value to set for ``ordered_trace_data``.
+        """
+        self._ordered_trace_data = value
+
+    @property
+    def tracing_stats(self) -> pd.DataFrame:
+        """
+        Getter for the ``tracing_stats`` attribute.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns the value of ``tracing_stats``.
+        """
+        return self._tracing_stats
+
+    @tracing_stats.setter
+    def tracing_stats(self, value: pd.DataFrame) -> None:
+        """
+        Setter for the ``tracing_stats`` attribute.
+
+        Parameters
+        ----------
+        value : pd.DataFrame
+            Value to set for ``tracing_stats``.
+        """
+        self._tracing_stats = value
+
+    @property
+    def grain_molstats(self) -> pd.DataFrame:
+        """
+        Getter for the ``grain_molstats`` attribute.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns the value of ``grain_molstats``.
+        """
+        return self._grain_molstats
+
+    @grain_molstats.setter
+    def grain_molstats(self, value: pd.DataFrame) -> None:
+        """
+        Setter for the ``grain_molstats`` attribute.
+
+        Parameters
+        ----------
+        value : pd.DataFrame
+            Value to set for ``grain_molstats``.
+        """
+        self._grain_molstats = value
+
+    @property
+    def molecules(self) -> int:
+        """
+        Getter for the ``molecules`` attribute.
+
+        Returns
+        -------
+        int
+            Returns the value of ``molecules``.
+        """
+        return len(self.ordered_trace_data)
+
+    @molecules.setter
+    def molecules(self, value: int) -> None:
+        """
+        Setter for the ``molecules`` attribute.
+
+        Parameters
+        ----------
+        value : int
+            Value to set for ``molecules``.
+        """
+        self._molecules = value
+
+    @property
+    def writhe(self) -> str:
+        """
+        Getter for the ``writhe`` attribute.
+
+        Returns
+        -------
+        str
+            Returns the value of ``writhe``.
+        """
+        return self._writhe
+
+    @writhe.setter
+    def writhe(self, value: str) -> None:
+        """
+        Setter for the ``writhe`` attribute.
+
+        Parameters
+        ----------
+        value : str
+            Value to set for ``writhe``.
+        """
+        self._writhe = value
+
+    @property
+    def pixel_to_nm_scaling(self) -> np.float64:
+        """
+        Getter for the ``pixel_to_nm_scaling`` attribute.
+
+        Returns
+        -------
+        np.float64
+            Returns the value of ``pixel_to_nm_scaling``.
+        """
+        return self._pixel_to_nm_scaling
+
+    @pixel_to_nm_scaling.setter
+    def pixel_to_nm_scaling(self, value: np.float64) -> None:
+        """
+        Setter for the ``pixel_to_nm_scaling`` attribute.
+
+        Parameters
+        ----------
+        value : np.float64
+            Value to set for ``pixel_to_nm_scaling``.
+        """
+        self._pixel_to_nm_scaling = value
+
+    @property
+    def images(self) -> dict[int, npt.NDArray]:
+        """
+        Getter for the ``images`` attribute.
+
+        Returns
+        -------
+        dict[int, npt.NDArray]
+            Returns the value of ``images``.
+        """
+        return self._images
+
+    @images.setter
+    def images(self, value: dict[int, npt.NDArray]) -> None:
+        """
+        Setter for the ``images`` attribute.
+
+        Parameters
+        ----------
+        value : dict[int, npt.NDArray]
+            Value to set for ``images``.
+        """
+        self._images = value
+
+    @property
+    def error(self) -> bool:
+        """
+        Getter for the ``error`` attribute.
+
+        Returns
+        -------
+        bool
+            Returns the value of ``error``.
+        """
+        return self._error
+
+    @error.setter
+    def error(self, value: bool) -> None:
+        """
+        Setter for the ``error`` attribute.
+
+        Parameters
+        ----------
+        value : bool
+            Value to set for ``error``.
+        """
+        self._error = value
+
+
+@dataclass
+class Molecule:
+    """
+    Class for Molecules identified during ordered tracing.
+    """
+
+    circular: str | None
+    topology: str | None
+    topology_flip: Any | None
+    ordered_coords: npt.NDArray | None
+    heights: npt.NDArray | None
+    distances: npt.NDArray | None
+
+    @property
+    def circular(self) -> bool:
+        """
+        Getter for the ``circular`` attribute.
+
+        Returns
+        -------
+        bool
+            Returns the value of ``circular``.
+        """
+        return self._circular
+
+    @circular.setter
+    def circular(self, value: bool) -> None:
+        """
+        Setter for the ``circular`` attribute.
+
+        Parameters
+        ----------
+        value : bool
+            Value to set for ``circular``.
+        """
+        self._circular = value
+
+    @property
+    def topology(self) -> str:
+        """
+        Getter for the ``topology`` attribute.
+
+        Returns
+        -------
+        str
+            Returns the value of ``topology``.
+        """
+        return self._topology
+
+    @topology.setter
+    def topology(self, value: str) -> None:
+        """
+        Setter for the ``topology`` attribute.
+
+        Parameters
+        ----------
+        value : str
+            Value to set for ``topology``.
+        """
+        self._topology = value
+
+    @property
+    def topology_flip(self) -> Any:
+        """
+        Getter for the ``topology_flip`` attribute.
+
+        Returns
+        -------
+        Any
+            Returns the value of ``topology_flip``.
+        """
+        return self._topology_flip
+
+    @topology_flip.setter
+    def topology_flip(self, value: Any) -> None:
+        """
+        Setter for the ``topology_flip`` attribute.
+
+        Parameters
+        ----------
+        value : Any
+            Value to set for ``topology_flip``.
+        """
+        self._topology_flip = value
+
+    @property
+    def ordered_coords(self) -> npt.NDArray:
+        """
+        Getter for the ``ordered_coords`` attribute.
+
+        Returns
+        -------
+        npt.NDArray
+            Returns the value of ``ordered_coords``.
+        """
+        return self._ordered_coords
+
+    @ordered_coords.setter
+    def ordered_coords(self, value: npt.NDArray) -> None:
+        """
+        Setter for the ``ordered_coords`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Value to set for ``ordered_coords``.
+        """
+        self._ordered_coords = value
+
+    @property
+    def heights(self) -> npt.NDArray:
+        """
+        Getter for the ``heights`` attribute.
+
+        Returns
+        -------
+        npt.NDArray
+            Returns the value of ``heights``.
+        """
+        return self._heights
+
+    @heights.setter
+    def heights(self, value: npt.NDArray) -> None:
+        """
+        Setter for the ``heights`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Value to set for ``heights``.
+        """
+        self._heights = value
+
+    @property
+    def distances(self) -> npt.NDArray:
+        """
+        Getter for the ``distances`` attribute.
+
+        Returns
+        -------
+        npt.NDArray
+            Returns the value of ``distances``.
+        """
+        return self._distances
+
+    @distances.setter
+    def distances(self, value: npt.NDArray) -> None:
+        """
+        Setter for the ``distances`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Value to set for ``distances``.
+        """
+        self._distances = value

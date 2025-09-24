@@ -1153,7 +1153,7 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
 
 
 def save_topostats_file(
-    output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops, topostats_version: str = __release__
+    output_dir: Path, filename: str, topostats_object: TopoStats, topostats_version: str = __release__
 ) -> None:
     """
     Save ''ImageGrainCrops'' object to a ''.topostats'' (hdf5 format) file.
@@ -1180,14 +1180,14 @@ def save_topostats_file(
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object["image"] is not None:
+        if topostats_object.image is not None:
             # Recursively save the topostats object dictionary to the .topostats file
             if isinstance(topostats_object, dict) and float(".".join(topostats_version.split(".")[:1])) < 2.4:
                 topostats_object["topostats_file_version"] = topostats_version
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
             else:
-                topostats_object["topostats_version"] = topostats_version
-                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
+                topostats_object.topostats_version = topostats_version
+                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
 
         else:
             raise ValueError(
