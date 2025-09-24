@@ -2,6 +2,7 @@
 
 import logging
 from itertools import combinations
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -9,6 +10,7 @@ import pandas as pd
 from skimage.morphology import dilation, label
 from topoly import jones, translate_code
 
+from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
@@ -24,41 +26,26 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     Parameters
     ----------
-    image : npt.NDArray
-        A cropped image array.
-    nodestats_dict : dict
-        The nodestats results for a specific grain.
-    skeleton : npt.NDArray
-        The pruned skeleton mask array.
-    filename : str
-        The image filename (for logging purposes).
+    grain_crop : GrainCrop
+            Grain crop post nodestats.
     """
 
-    def __init__(
-        self,
-        image: npt.NDArray,
-        nodestats_dict: dict,
-        skeleton: npt.NDArray,
-        filename: str,
-    ) -> None:
+    def __init__(self, grain_crop: GrainCrop) -> None:
         """
         Initialise the OrderedTraceNodestats class.
 
         Parameters
         ----------
-        image : npt.NDArray
-            A cropped image array.
-        nodestats_dict : dict
-            The nodestats results for a specific grain.
-        skeleton : npt.NDArray
-            The pruned skeleton mask array.
-        filename : str
-            The image filename (for logging purposes).
+        grain_crop : GrainCrop
+            Grain crop post nodestats.
         """
-        self.image = image
-        self.nodestats_dict = nodestats_dict
-        self.filename = filename
-        self.skeleton = skeleton
+        self.grain_crop: GrainCrop = grain_crop
+        self.image: npt.NDArray = grain_crop.image
+        if grain_crop.nodes is None:
+            raise AttributeError(f"Node statistics do not exist for a grain within {filename}.")
+        self.nodestats_dict: dict[str, Node] = grain_crop.nodes
+        self.filename: str = grain_crop.filename
+        self.skeleton: npt.NDArray = grain_crop.skeleton
 
         self.grain_tracing_stats = {
             "num_mols": 0,
@@ -67,10 +54,10 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         self.mol_tracing_stats = {"circular": None, "topology": None, "topology_flip": None, "processing": "nodestats"}
 
         self.images = {
-            "over_under": np.zeros_like(image),
-            "all_molecules": np.zeros_like(image),
-            "ordered_traces": np.zeros_like(image),
-            "trace_segments": np.zeros_like(image),
+            "over_under": np.zeros_like(grain_crop.image),
+            "all_molecules": np.zeros_like(grain_crop.image),
+            "ordered_traces": np.zeros_like(grain_crop.image),
+            "trace_segments": np.zeros_like(grain_crop.image),
         }
 
         self.profiles = {}
@@ -652,7 +639,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             return "+"
         return "0"
 
-    def run_nodestats_tracing(self) -> tuple[list, dict, dict]:
+    def run_nodestats_tracing(self) -> tuple[dict[str, dict[str, Any]], dict[str, int | Any], dict]:
         """
         Run the nodestats tracing pipeline.
 
@@ -688,6 +675,12 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                     "mol_stats": self.mol_tracing_stats,
                 }
                 grain_mol_tracing_stats[f"{i}"] = self.mol_tracing_stats
+                self.grain_crop.ordered_trace.tracing_stats[i].circular = linear_or_circular(mol_trace[:, :2])
+                self.grain_crop.ordered_trace.tracing_stats[i].topology = topology[i]
+                self.grain_crop.ordered_trace.tracing_stats[i].topology_flip = topology_flip[i]
+                self.grain_crop.ordered_trace.tracing_stats[i].ordered_coords = mol_trace[:, :2]
+                self.grain_crop.ordered_trace.tracing_stats[i].heights = self.image[mol_trace[:, 0], mol_trace[:, 1]]
+                self.grain_crop.ordered_trace.tracing_stats[i].distances = coord_dist(mol_trace[:, :2])
 
         return ordered_trace_data, self.grain_tracing_stats, grain_mol_tracing_stats, self.images
 
@@ -698,10 +691,8 @@ class OrderedTraceTopostats:
 
     Parameters
     ----------
-    image : npt.NDArray
-        A cropped image array.
-    skeleton : npt.NDArray
-        The pruned skeleton mask array.
+    grain_crop : GrainCrop
+        Grain crop to perform ordered tracing on.
     """
 
     def __init__(
@@ -714,13 +705,12 @@ class OrderedTraceTopostats:
 
         Parameters
         ----------
-        image : npt.NDArray
-            A cropped image array.
-        skeleton : npt.NDArray
-            The pruned skeleton mask array.
+        grain_crop : GrainCrop
+            Grain crop to perform ordered tracing on.
         """
-        self.image = image
-        self.skeleton = skeleton
+        self.grain_crop = grain_crop
+        self.image = grain_crop.image
+        self.skeleton = grain_crop.skeleton
         self.grain_tracing_stats = {
             "num_mols": 1,
             "circular": None,
@@ -792,6 +782,14 @@ class OrderedTraceTopostats:
                 "distances": coord_dist(ordered_trace[0]),
                 "mol_stats": self.mol_tracing_stats,
             }
+            self.grain_crop.ordered_trace.tracing_stats[i].circular = linear_or_circular(mol_trace)
+            self.grain_crop.ordered_trace.tracing_stats[i].topology = topology[i]
+            self.grain_crop.ordered_trace.tracing_stats[i].topology_flip = topology_flip[i]
+            self.grain_crop.ordered_trace.tracing_stats[i].ordered_coords = mol_trace
+            self.grain_crop.ordered_trace.tracing_stats[i].heights = self.image[
+                ordered_trace[0][:, 0], ordered_trace[0][:, 1]
+            ]
+            self.grain_crop.ordered_trace.tracing_stats[i].distances = coord_dist(ordered_trace[0])
 
         return ordered_trace_data, self.grain_tracing_stats, {"0": self.mol_tracing_stats}, self.images
 
@@ -855,10 +853,8 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
 
 # pylint: disable=too-many-locals
 def ordered_tracing_image(
-    image: npt.NDArray,
-    disordered_tracing_direction_data: dict,
-    nodestats_direction_data: dict,
-    filename: str,
+    topostats_object: TopoStats,
+    direction: str,
     ordering_method: str,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
     # pylint: disable=too-many-locals
@@ -867,14 +863,10 @@ def ordered_tracing_image(
 
     Parameters
     ----------
-    image : npt.NDArray
-        Whole FOV image.
-    disordered_tracing_direction_data : dict
-        Dictionary result from the disordered traces. Fields used are "original_image" and "pruned_skeleton".
-    nodestats_direction_data : dict
-        Dictionary result from the nodestats analysis.
-    filename : str
-        Image filename (for logging purposes).
+    topostats_object : TopoStats
+        TopoStats object to have ordered tracing performed on.
+    direction : str
+        Direction for grains to be ordered.
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
 
@@ -885,56 +877,59 @@ def ordered_tracing_image(
         dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.
     """
     ordered_trace_full_images = {
-        "ordered_traces": np.zeros_like(image),
-        "all_molecules": np.zeros_like(image),
-        "over_under": np.zeros_like(image),
-        "trace_segments": np.zeros_like(image),
+        "ordered_traces": np.zeros_like(topostats_object.image),
+        "all_molecules": np.zeros_like(topostats_object.image),
+        "over_under": np.zeros_like(topostats_object.image),
+        "trace_segments": np.zeros_like(topostats_object.image),
     }
     grainstats_additions = {}
     molstats = {}
     all_traces_data = {}
 
-    LOGGER.info(
-        f"[{filename}] : Calculating Ordered Traces and statistics for "
-        f"{len(disordered_tracing_direction_data)} grains..."
+    grain_crop_direction = (
+        topostats_object.image_grain_crops.above if direction == "above" else topostats_object.image_grain_crops.below
     )
-
+    LOGGER.info(
+        f"[{topostats_object.filename}] : Calculating Ordered Traces and statistics for '{direction}' "
+        f" with {len(grain_crop_direction.grain_crops)} grains..."
+    )
     # iterate through disordered_tracing_dict
-    for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
+    for grain_no, grain_crop in grain_crop_direction.items():
         try:
-            # check if want to do nodestats tracing or not
-            if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
-                LOGGER.debug(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
-                nodestats_tracing = OrderedTraceNodestats(
-                    image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
-                    filename=filename,
-                    nodestats_dict=nodestats_direction_data["stats"][grain_no],
-                    skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
+            # check if want to perform tracing based on node statistics
+            if grain_crop.nodes is not None and ordering_method == "nodestats":
+                LOGGER.debug(
+                    f"[{topostats_object.filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats."
                 )
+                nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
                 if nodestats_tracing.check_node_errorless():
                     ordered_traces_data, tracing_stats, grain_molstats, images = (
                         nodestats_tracing.run_nodestats_tracing()
                     )
-                    LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
+                    LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
                     LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
             # if not doing nodestats ordering, do original TS ordering
             else:
-                LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
+                LOGGER.debug(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
                 topostats_tracing = OrderedTraceTopostats(
-                    image=disordered_trace_data["original_image"],
-                    skeleton=disordered_trace_data["pruned_skeleton"],
+                    image=grain_crop.image,
+                    skeleton=grain_crop.skeleton,
+                    # image=disordered_trace_data["original_image"],
+                    # skeleton=disordered_trace_data["pruned_skeleton"],
                 )
                 ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
-                LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
+                LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
 
+            # ns-rse 2025-10-01 - Remove all of this all data will be attributes of the classes
             # compile traces
             all_traces_data[grain_no] = ordered_traces_data
             for mol_no, _ in ordered_traces_data.items():
-                all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
+                all_traces_data[grain_no][mol_no].update({"bbox": grain_crop.bbox})
+                # all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
             # compile metrics
             grainstats_additions[grain_no] = {
-                "image": filename,
+                "image": topostats_object.filename,
                 "grain_number": int(grain_no.split("_")[-1]),
             }
             tracing_stats.pop("circular")
@@ -942,7 +937,7 @@ def ordered_tracing_image(
             # compile molecule metrics
             for mol_no, molstat_values in grain_molstats.items():
                 molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
-                    "image": filename,
+                    "image": topostats_object.filename,
                     "grain_number": int(grain_no.split("_")[-1]),
                     "molecule_number": int(mol_no.split("_")[-1]),  # pylint: disable=use-maxsplit-arg
                 }
@@ -956,7 +951,7 @@ def ordered_tracing_image(
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
-                f"[{filename}] : Ordered tracing for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
+                f"[{topostats_object.filename}] : Ordered tracing for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
             all_traces_data[grain_no] = {}
