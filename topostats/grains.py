@@ -7,6 +7,7 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Any
+from pathlib import Path
 
 import keras
 import numpy as np
@@ -23,6 +24,7 @@ from topostats.unet_masking import (
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
+from topostats.unet_masking_cats_2023 import predict_unet as predict_unet_cats
 from topostats.utils import _get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -998,12 +1000,27 @@ class Grains:
 
             # iterate over the thresholds for the current direction
             direction_thresholds = self.thresholds[direction]
-            traditional_full_mask_tensor = Grains.multi_class_thresholding(
+            # traditional_full_mask_tensor = Grains.multi_class_thresholding(
+            #     image=self.image,
+            #     thresholds=direction_thresholds,
+            #     threshold_direction=direction,
+            #     image_name=self.filename,
+            # )
+
+            # temporarily override with a full image unet mask
+            prediction = predict_unet_cats(
                 image=self.image,
-                thresholds=direction_thresholds,
-                threshold_direction=direction,
-                image_name=self.filename,
+                confidence=0.5,
+                model_image_size=512,
+                image_output_dir=Path(
+                    "/Users/sylvi/topo_data/topostats_2/datasets/topology-plasmids/unet-prediction-debug-images"
+                ),
+                filename=self.filename,
             )
+            # grab the background (inverse)
+            prediction_background = np.invert(prediction)
+            # turn into a tensor
+            traditional_full_mask_tensor = np.stack([prediction_background, prediction], axis=-1)
 
             self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
@@ -1011,7 +1028,9 @@ class Grains:
 
             # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
             if self.remove_edge_intersecting_grains:
-                traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
+                traditional_full_mask_tensor = Grains.tidy_border_tensor(
+                    grain_mask_tensor=traditional_full_mask_tensor
+                )
             self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
 
             # Remove objects with area too small to process
@@ -1429,7 +1448,9 @@ class Grains:
                 continue
 
             lower_threshold, upper_threshold = [
-                vetting_criteria[1:] for vetting_criteria in class_size_thresholds if vetting_criteria[0] == class_index
+                vetting_criteria[1:]
+                for vetting_criteria in class_size_thresholds
+                if vetting_criteria[0] == class_index
             ][0]
 
             if lower_threshold is not None:
@@ -2154,7 +2175,9 @@ class Grains:
         if not graincrops:
             raise ValueError("No grain crops provided to construct the full mask tensor.")
         num_classes: int = list(graincrops.values())[0].mask.shape[2]
-        full_mask_tensor: npt.NDArray[np.bool] = np.zeros((image_shape[0], image_shape[1], num_classes), dtype=np.bool_)
+        full_mask_tensor: npt.NDArray[np.bool] = np.zeros(
+            (image_shape[0], image_shape[1], num_classes), dtype=np.bool_
+        )
         for _grain_number, graincrop in graincrops.items():
             bounding_box = graincrop.bbox
             crop_tensor = graincrop.mask
@@ -2221,7 +2244,9 @@ class Grains:
 
             # Crop the tensor
             # Get the bounding box for the region
-            flat_bounding_box: tuple[int, int, int, int] = tuple(flat_region.bbox)  # min_row, min_col, max_row, max_col
+            flat_bounding_box: tuple[int, int, int, int] = tuple(
+                flat_region.bbox
+            )  # min_row, min_col, max_row, max_col
 
             # Pad the mask
             padded_flat_bounding_box = pad_bounding_box_cutting_off_at_image_bounds(
