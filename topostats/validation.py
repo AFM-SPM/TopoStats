@@ -903,7 +903,6 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "mask_cmap": str,
             "module": "grains",
         },
         "tidied_border": {
@@ -912,7 +911,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -920,7 +921,6 @@ PLOTTING_SCHEMA = Schema(
                 "figure",
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
-            "mask_cmap": str,
             "module": "grains",
         },
         "removed_objects_too_small_to_process": {
@@ -934,7 +934,6 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
-            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -954,7 +953,6 @@ PLOTTING_SCHEMA = Schema(
                     "are 'binary' or 'non-binary'"
                 ),
             ),
-            "mask_cmap": str,
             "core_set": bool,
             "savefig_dpi": Or(
                 lambda n: n > 0,
@@ -985,7 +983,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"
+                ),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1254,7 +1254,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"
+                ),
             ),
             "mask_cmap": str,
             "core_set": bool,
@@ -1366,7 +1368,9 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=("Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"),
+                error=(
+                    "Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"
+                ),
             ),
             "title": str,
             "core_set": bool,

@@ -143,24 +143,23 @@ z_threshed:
 thresholded_grains:
   filename: "17-thresholded_grains"
   title: "Initial Thresholded Grains"
-  image_type: "binary"
-  mask_cmap: "binary"
+  image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 tidied_border:
   filename: "19-tidy_borders"
   title: "Tidied Borders"
-  image_type: "binary"
-  mask_cmap: "rainbow"
+  image_type: "non-binary"
+  # mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 removed_objects_too_small_to_process:
   filename: "22-objects_too_small_removed"
   title: "Objects too small to process removed"
-  image_type: "binary"
-  mask_cmap: "rainbow"
+  image_type: "non-binary"
+  # mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
   module: "grains"
@@ -168,14 +167,14 @@ area_thresholded:
   filename: "24-area_thresholded"
   title: "User specified area thresholds applied"
   image_type: "non-binary"
-  mask_cmap: "rainbow"
+  # mask_cmap: "rainbow"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 bounding_boxes:
   filename: "25-bounding_boxes"
   title: "Bounding Boxes"
-  image_type: "binary"
+  image_type: "non-binary"
   savefig_dpi: 600
   core_set: false
   module: "grains"
@@ -189,21 +188,21 @@ mask_overlay:
 unet:
   filename: "27-unet_tensor"
   title: "UNet Mask"
-  image_type: "binary"
+  image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 vetted:
   filename: "28-vetted_tensor"
   title: "Vetted Tensor"
-  image_type: "binary"
+  image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
 merged_classes:
   filename: "29-merged_classes_tensor"
   title: "Merged Classes Tensor"
-  image_type: "binary"
+  image_type: "non-binary"
   savefig_dpi: 100
   core_set: false
   module: "grains"
