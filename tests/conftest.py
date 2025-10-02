@@ -58,7 +58,7 @@ def process_scan_config() -> dict:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     config["filter"]["remove_scars"]["run"] = True
-    config["grains"]["threshold_std_dev"][1] = -1.0
+    config["grains"]["threshold_std_dev"].append(-1.0)
     config["grains"]["area_thresholds"] = [500, 800]
     config["plotting"]["zrange"] = [0, 3]
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
