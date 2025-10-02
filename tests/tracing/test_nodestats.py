@@ -254,7 +254,7 @@ def test_analyse_nodes(
         )
     ],
 )
-def test_add_branches_to_labelled_image(
+def test_add_branches_to_labelled_image(  # pylint: disable=too-many-positional-arguments
     branch_under_over_order: npt.NDArray[np.int32],
     matched_branches_filename: str,
     masked_image_filename: str,
@@ -351,7 +351,7 @@ def test_add_branches_to_labelled_image(
         )
     ],
 )
-def test_analyse_node_branches(
+def test_analyse_node_branches(  # pylint: disable=too-many-positional-arguments
     p_to_nm: float,
     reduced_node_area_filename: npt.NDArray[np.int32],
     branch_start_coords: npt.NDArray[np.int32],
@@ -500,7 +500,7 @@ def test_analyse_node_branches(
         ),
     ],
 )
-def test_join_matching_branches_through_node(
+def test_join_matching_branches_through_node(  # pylint: disable=too-many-positional-arguments
     pairs: npt.NDArray[np.int32],
     ordered_branches_filename: str,
     reduced_skeleton_graph_filename: str,
@@ -945,7 +945,7 @@ def test_minimum_crossing_confs() -> None:
         ),
     ],
 )
-def test_nodestats_image(
+def test_nodestats_image(  # pylint: disable=too-many-positional-arguments
     image_filename: str,
     pixel_to_nm_scaling: float,
     disordered_tracing_crop_data_filename: str,
@@ -972,7 +972,7 @@ def test_nodestats_image(
         result_nodestats_branch_images,
     ) = nodestats_image(
         image=image,
-        disordered_tracing_direction_data=disordered_tracing_crop_data,
+        disordered_tracing_threshold_data=disordered_tracing_crop_data,
         filename="test_image",
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         node_joining_length=node_joining_length,

@@ -15,7 +15,10 @@ def test_threshold_otsu(minicircle_grain_threshold_otsu: Grains) -> None:
 def test_threshold_stddev(minicircle_grain_threshold_stddev: Grains) -> None:
     """Test threshold calculation."""
     assert isinstance(minicircle_grain_threshold_stddev.thresholds, list)
-    assert minicircle_grain_threshold_stddev.thresholds == pytest.approx([0.9495125861734497, -5.901722094162684])
+    assert minicircle_grain_threshold_stddev.thresholds == [
+        pytest.approx(0.9495125861734497),
+        pytest.approx(-5.901722094162684),
+    ]
 
 
 def test_threshold_abs(minicircle_grain_threshold_abs: Grains) -> None:

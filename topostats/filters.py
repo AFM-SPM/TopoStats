@@ -624,7 +624,7 @@ def combine_mask_directions(image: npt.NDArray, thresholds: dict, img_name: str 
     if "below" in thresholds:
         return get_mask(image, thresh=-thresholds["below"][0], img_name=img_name)
     # Only above threshold is applicable
-    return get_mask(image, thresh=thresholds["above"], img_name=img_name)
+    return get_mask(image, thresh=thresholds["above"][0], img_name=img_name)
 
 
 # pylint: disable=too-many-branches

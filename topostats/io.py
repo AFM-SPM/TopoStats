@@ -56,6 +56,9 @@ def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> Mutabl
     dict
         Merged dictionary.
     """
+    if isinstance(map1, list):
+        print("MAP1:", type(map1), map1)
+        print("MAP2:", type(map2), map2.keys())
     # Iterate over the second mapping
     for key, value in map2.items():
         # If the value is another mapping, then recurse
@@ -1088,7 +1091,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             # Extract ImageGrainCrops
             elif isinstance(item, grains.ImageGrainCrops):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
             elif isinstance(item, grains.GrainCrop):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())

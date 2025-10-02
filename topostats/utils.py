@@ -11,7 +11,6 @@ import pandas as pd
 from scipy.ndimage import convolve
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.thresholds import threshold
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -199,74 +198,6 @@ def get_mask(image: npt.NDArray, thresh: float, img_name: str = None) -> npt.NDA
         return image > thresh
     LOGGER.debug(f"[{img_name}] : Masking (below) threshold: {thresh}")
     return image < thresh
-
-
-# pylint: disable=too-many-branches
-def get_thresholds(  # noqa: C901
-    image: npt.NDArray,
-    threshold_method: str,
-    otsu_threshold_multiplier: float | None = None,
-    threshold_std_dev: list | None = None,
-    absolute: list | None = None,
-) -> list[float]:
-    """
-    Obtain thresholds for masking data points.
-
-    Parameters
-    ----------
-    image : npt.NDArray
-        2D Numpy array of image to be masked.
-    threshold_method : str
-        Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    otsu_threshold_multiplier : float
-        Scaling value for Otsu threshold.
-    threshold_std_dev : dict
-        Dict of above and below thresholds for the standard deviation method.
-    absolute : tuple
-        Dict of below and above thresholds.
-
-    Returns
-    -------
-    dict[str, list[float]]
-        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
-    """
-    thresholds: list[float] = []
-    if threshold_method == "otsu":
-        assert (
-            otsu_threshold_multiplier is not None
-        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
-        thresholds = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
-    elif threshold_method == "std_dev":
-        assert (
-            threshold_std_dev is not None
-        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
-        threshold_std_dev_list = []
-        for threshold_std_dev_value in threshold_std_dev:
-            if threshold_std_dev_value > 0:
-                threshold_std_dev_list.append(
-                    threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
-                )
-            elif threshold_std_dev_value < 0:
-                threshold_std_dev_value = -threshold_std_dev_value
-                threshold_std_dev_list.append(
-                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
-                )
-        thresholds = threshold_std_dev_list
-    elif threshold_method == "absolute":
-        assert (
-            absolute is not None
-        ), "New absolute threshold must be provided when using 'absolute' thresholding method."
-        thresholds = absolute
-
-    else:
-        if not isinstance(threshold_method, str):
-            raise TypeError(
-                f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
-            )
-        raise ValueError(
-            f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
-        )
-    return thresholds
 
 
 def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:

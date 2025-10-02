@@ -66,8 +66,6 @@ class GrainStats:
     ----------
     grain_crops : dict[int, GrainCrop]
         Dictionary of GrainCrops to calculate stats for.
-    direction : str
-        Direction for which grains have been detected ("above" or "below").
     base_output_dir : Path
         Path to the folder that will store the grain stats output images and data.
     image_name : str
@@ -87,7 +85,6 @@ class GrainStats:
     def __init__(
         self,
         grain_crops: dict[int, GrainCrop],
-        direction: str,
         base_output_dir: str | Path,
         image_name: str = None,
         edge_detection_method: str = "binary_erosion",
@@ -102,8 +99,6 @@ class GrainStats:
         ----------
         grain_crops : dict[int, GrainCrop]
             Dictionary of GrainCrops to calculate stats for.
-        direction : str
-            Direction for which grains have been detected ("above" or "below").
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         image_name : str
@@ -120,7 +115,6 @@ class GrainStats:
             usual AFM length scale of nanometres.
         """
         self.grain_crops = grain_crops
-        self.direction = direction
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.image_name = image_name
@@ -209,8 +203,7 @@ class GrainStats:
             area_scaling_factor = length_scaling_factor**2
 
             # Create directory for grain's plots
-            output_grain = self.base_output_dir / str(self.direction) / f"grain_{grain_index}"
-
+            output_grain = self.base_output_dir / f"grain_{grain_index}"
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
                 all_height_profiles[grain_index][class_index] = {}
@@ -238,6 +231,7 @@ class GrainStats:
                             f"[{self.image_name}] : Skipping subgrain due to being too small "
                             f"(size: {subgrain_tight_shape}) to calculate stats for."
                         )
+                        continue
 
                     # Calculate all the stats
                     points = self.calculate_points(subgrain_only_mask)
@@ -308,7 +302,7 @@ class GrainStats:
                         * smallest_bounding_width
                         * area_scaling_factor,
                         "aspect_ratio": aspect_ratio,
-                        "threshold": str(self.direction),
+                        "threshold": grain_crop.threshold_no,
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }
@@ -318,7 +312,6 @@ class GrainStats:
                     for x in ["grain_number", "class_number", "subgrain_number"]:
                         _stats.pop(x)
                     grain_crop.stats[class_index][subgrain_index] = _stats
-
         # Check if the dataframe is empty
         if len(grainstats_rows) == 0:
             grainstats_df = create_empty_dataframe()

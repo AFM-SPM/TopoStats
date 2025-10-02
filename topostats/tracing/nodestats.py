@@ -1826,7 +1826,7 @@ class nodeStats:
 
 def nodestats_image(
     image: npt.NDArray,
-    disordered_tracing_direction_data: dict,
+    disordered_tracing_threshold_data: dict,
     filename: str,
     pixel_to_nm_scaling: float,
     node_joining_length: float,
@@ -1841,7 +1841,7 @@ def nodestats_image(
     ----------
     image : npt.NDArray
         The array of pixels.
-    disordered_tracing_direction_data : dict
+    disordered_tracing_threshold_data : dict
         The images and bbox coordinates of the pruned skeletons.
     filename : str
         The name of the file being processed. For logging purposes.
@@ -1864,7 +1864,7 @@ def nodestats_image(
         The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
         an image dictionary of nodestats steps for the entire image, and single grain images.
     """
-    n_grains = len(disordered_tracing_direction_data)
+    n_grains = len(disordered_tracing_threshold_data)
     img_base = np.zeros_like(image)
     nodestats_data = {}
 
@@ -1879,7 +1879,7 @@ def nodestats_image(
 
     LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains...")
 
-    for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
+    for n_grain, disordered_tracing_grain_data in disordered_tracing_threshold_data.items():
         nodestats = None  # reset the nodestats variable
         try:
             nodestats = nodeStats(

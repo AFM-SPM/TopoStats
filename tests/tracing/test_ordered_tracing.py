@@ -240,7 +240,7 @@ def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "disordered_tracing_direction_data_filename",
+        "disordered_tracing_threshold_data_filename",
         "nodestats_data_filename",
         "nodestats_branch_images_filename",
         "filename",
@@ -278,7 +278,7 @@ def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
 )
 def test_ordered_tracing_image(
     image_filename: str,
-    disordered_tracing_direction_data_filename: str,
+    disordered_tracing_threshold_data_filename: str,
     nodestats_data_filename: str,
     nodestats_branch_images_filename: str,
     filename: str,
@@ -289,15 +289,15 @@ def test_ordered_tracing_image(
 ) -> None:
     """Test the ordered tracing image method of ordered tracing."""
     # disordered_tracing_direction_data is the disordered tracing data
-    # for a particular threshold direction.
+    # for a particular threshold.
 
     # nodestats_direction_data contains both nodestats_data and nodestats_branch_images
 
     # Load the required data
     image = np.load(GENERAL_RESOURCES / image_filename)
 
-    with Path.open(DISORDERED_TRACING_RESOURCES / disordered_tracing_direction_data_filename, "rb") as f:
-        disordered_tracing_direction_data = pickle.load(f)
+    with Path.open(DISORDERED_TRACING_RESOURCES / disordered_tracing_threshold_data_filename, "rb") as f:
+        disordered_tracing_threshold_data = pickle.load(f)
 
     with Path.open(NODESTATS_RESOURCES / nodestats_data_filename, "rb") as f:
         nodestats_data = pickle.load(f)
@@ -314,8 +314,8 @@ def test_ordered_tracing_image(
         result_ordered_tracing_full_images,
     ) = ordered_tracing_image(
         image=image,
-        disordered_tracing_direction_data=disordered_tracing_direction_data,
-        nodestats_direction_data=nodestats_whole_data,
+        disordered_tracing_threshold_data=disordered_tracing_threshold_data,
+        nodestats_threshold_data=nodestats_whole_data,
         filename=filename,
         ordering_method="nodestats",
     )

@@ -13,7 +13,6 @@ from topostats.utils import (
     convert_path,
     convolve_skeleton,
     create_empty_dataframe,
-    get_thresholds,
     update_config,
     update_plotting_config,
 )
@@ -142,72 +141,6 @@ def test_udpate_plotting_config_adding_required_options(plotting_config: dict, t
     assert plotting_config == target_config
     if plotting_config["savefig_dpi"] == 600:
         assert "100 > 600" in caplog.text
-
-
-def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
-    """Test of get_thresholds() method otsu threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
-
-    assert isinstance(thresholds, list)
-    assert thresholds == [0.8466799787547299]
-
-
-@pytest.mark.parametrize(
-    ("threshold_config", "expected_thresholds"),
-    [
-        pytest.param(
-            [1.0, -10.0],
-            [0.7886033762450778, -2.3866804917165663],
-        ),
-        pytest.param(
-            [1.0, 1.5, -10.0],
-            [0.7886033762450778, 0.9329344611524253, -2.3866804917165663],
-        ),
-    ],
-)
-def test_get_thresholds_stddev(
-    image_random: np.ndarray,
-    threshold_config: list[float],
-    expected_thresholds: list[float],
-) -> None:
-    """Test of get_thresholds() method with mean threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config)
-    assert isinstance(thresholds, list)
-    assert thresholds == expected_thresholds
-
-
-@pytest.mark.parametrize(
-    ("threshold_config", "expected_thresholds"),
-    [
-        pytest.param(
-            [1.5, -1.5],
-            [1.5, -1.5],
-        ),
-        pytest.param(
-            [1.5, 2.0, -1.5],
-            [1.5, 2.0, -1.5],
-        ),
-    ],
-)
-def test_get_thresholds_absolute(
-    image_random: np.ndarray, threshold_config: list[float], expected_thresholds: list[float]
-) -> None:
-    """Test of get_thresholds() method with absolute threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
-    assert isinstance(thresholds, list)
-    assert thresholds == expected_thresholds
-
-
-def test_get_thresholds_type_error(image_random: np.ndarray) -> None:
-    """Test a TypeError is raised if a non-string value is passed to get_thresholds()."""
-    with pytest.raises(TypeError):
-        get_thresholds(image=image_random, threshold_method=6.4, **THRESHOLD_OPTIONS)
-
-
-def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
-    """Test a ValueError is raised if an invalid value is passed to get_thresholds()."""
-    with pytest.raises(ValueError):  # noqa: PT011
-        get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
 @pytest.mark.parametrize(

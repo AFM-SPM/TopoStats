@@ -91,8 +91,16 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "above": lambda n: n > 0,
             },
             "threshold_absolute": {
-                "below": lambda n: n > 0,
-                "above": lambda n: n > 0,
+                "below": Or(
+                    int,
+                    float,
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
+                ),
+                "above": Or(
+                    int,
+                    float,
+                    error=("Invalid value in config for filter.threshold.absolute.below should be type int or float"),
+                ),
             },
             "gaussian_size": float,
             "gaussian_mode": Or(
@@ -140,31 +148,12 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 ),
             ),
             "area_thresholds": [
-                [
-                    Or(
-                        int,
-                        None,
-                        error=(
-                            "Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"
-                        ),
-                    )
-                ],
-                [
-                    Or(
-                        int,
-                        None,
-                        error=(
-                            "Invalid value in config for 'grains.area_thresholds.below', valid values are int or null"
-                        ),
-                    )
-                ],
+                Or(
+                    int,
+                    None,
+                    error=("Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"),
+                )
             ],
-            "direction": Or(
-                "both",
-                "below",
-                "above",
-                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
-            ),
             "remove_edge_intersecting_grains": Or(
                 True,
                 False,

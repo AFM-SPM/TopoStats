@@ -50,9 +50,7 @@ threshold method that you want to use. For example if you want to use absolute h
 thresholds of 1.2 for DNA and 2.5 for protein, then you would set this in the `grains` section of the config file:
 
 ```yaml
-threshold_absolute:
-  below: [-1.0] # Thresholds for grains below the image background. List[float].
-  above: [1.2, 2.5] # Thresholds for grains above the image background. List[float].
+threshold_absolute: [1.2, 2.5, -1.0] # Thresholds for grains, positive for above the image background and negative for below. List[float]
 ```
 
 TopoStats will then treat the resulting multiple masks (tensor) as separate classes, as if it were produced by a
@@ -107,10 +105,9 @@ less powerful multi-class segmentation implementations.
 
 Once the mask has been turned into a tensor, the grains are then cropped from the tensor to produce a mini tensor for
 each grain, allowing for easier processing of individual grains. They are stored in `GrainCrop` dataclasses and are held
-in a dictionary within a `GrainCropDirection` dataclass instance, which in turn is held in the `ImageGrainCrops`
-dataclass instance for the whole image.
+in a dictionary within a `ImageGrainCrops` dataclass instance for the whole image.
 
-For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCrop` dataclasses, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
+For more information on the `ImageGrainCrop` and `GrainCrop` dataclasses, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
 
 ## Optional: U-Net mask improvement
 

@@ -1134,48 +1134,41 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
         np.testing.assert_array_equal(f["0"]["height_profiles"]["1"]["0"][()], expected["0"]["height_profiles"][1][0])
 
 
-def test_dict_to_hdf5_graincropsdirection(
-    dummy_graincropsdirection: grains.GrainCropsDirection, dummy_graincrop: grains.GrainCrop, tmp_path: Path
-) -> None:
-    """Test loading a GrainGropsDirection object and writing to HDF5 file."""
-    expected = {
-        "above": {
-            "crops": dummy_graincropsdirection.crops,
-            "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-        }
-    }
-    grain_crop = dummy_graincrop.grain_crop_to_dict()
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={"above": dummy_graincropsdirection})
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        # Check grains data are identical
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["image"][()], grain_crop["image"])
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-        assert f["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-        assert f["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-        assert f["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-        np.testing.assert_array_equal(f["above"]["full_mask_tensor"][()], expected["above"]["full_mask_tensor"])
+# def test_dict_to_hdf5_imagegraincrops(
+#     dummy_imagegraincrop: grains.ImageGrainCrops, dummy_graincrop: grains.GrainCrop, tmp_path: Path
+# ) -> None:
+#     """Test loading an ImageGrainCrops object and writing to HDF5 file."""
+#     expected = {
+#         "crops": dummy_imagegraincrop.crops,
+#         "full_mask_tensor": dummy_imagegraincrop.full_mask_tensor,
+#     }
+#     grain_crop = dummy_graincrop.grain_crop_to_dict()
+#     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
+#         dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={dummy_imagegraincrop})
+#     # Load it back in and check if the dictionary is the same
+#     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
+#         # Check keys are the same
+#         assert sorted(f.keys()) == sorted(expected.keys())
+#         # Check grains data are identical
+#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["image"][()], grain_crop["image"])
+#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
+#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
+#         assert f["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
+#         assert f["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
+#         assert f["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
+#         np.testing.assert_array_equal(f["above"]["full_mask_tensor"][()], expected["above"]["full_mask_tensor"])
 
 
 def test_dict_to_hdf5_imagegraincrops(
-    dummy_graincropsdirection: grains.GrainCropsDirection, dummy_graincrop: grains.GrainCrop, tmp_path: Path
+    dummy_imagegraincrop: grains.ImageGrainCrops, dummy_graincrop: grains.GrainCrop, tmp_path: Path
 ) -> None:
     """Test loading a ImageGrainGrops object and writing to HDF5 file."""
-    image_grain_crops = grains.ImageGrainCrops(above=dummy_graincropsdirection, below=dummy_graincropsdirection)
+    image_grain_crops = dummy_imagegraincrop
     expected = {
         "test": {
-            "above": {
-                "crops": dummy_graincropsdirection.crops,
-                "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-            },
-            "below": {
-                "crops": dummy_graincropsdirection.crops,
-                "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-            },
+            "thresholds": dummy_imagegraincrop.thresholds,
+            "crops": dummy_imagegraincrop.crops,
+            "full_mask_tensor": dummy_imagegraincrop.full_mask_tensor,
         }
     }
     grain_crop = dummy_graincrop.grain_crop_to_dict()
@@ -1187,18 +1180,14 @@ def test_dict_to_hdf5_imagegraincrops(
         assert sorted(f.keys()) == sorted(expected.keys())
         assert sorted(f["test"].keys()) == sorted(expected["test"].keys())
         # Check grains data are identical
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["image"][()], grain_crop["image"])
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-        assert f["test"]["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-        assert f["test"]["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-        assert f["test"]["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-        np.testing.assert_array_equal(
-            f["test"]["above"]["full_mask_tensor"][()], image_grain_crops.above.full_mask_tensor
-        )
-        np.testing.assert_array_equal(
-            f["test"]["below"]["full_mask_tensor"][()], image_grain_crops.below.full_mask_tensor
-        )
+        np.testing.assert_array_equal(f["test"]["crops"]["0"]["image"][()], grain_crop["image"])
+        np.testing.assert_array_equal(f["test"]["crops"]["0"]["mask"][()], grain_crop["mask"])
+        np.testing.assert_array_equal(f["test"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
+        assert f["test"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
+        assert f["test"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
+        assert f["test"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
+        np.testing.assert_array_equal(f["test"]["full_mask_tensor"][()], image_grain_crops.full_mask_tensor)
+        np.testing.assert_array_equal(f["test"]["thresholds"][()], image_grain_crops.thresholds)
 
 
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
