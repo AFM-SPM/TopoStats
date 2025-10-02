@@ -254,55 +254,26 @@ def create_parser() -> arg.ArgumentParser:
         help="Factor for scaling the Otsu threshold during Grain finding.",
     )
     process_parser.add_argument(
-        "--grains-threshold-std-dev-below",
-        dest="grains_threshold_std_dev_below",
-        type=float,
+        "--grains-threshold-std-dev",
+        dest="grains_threshold_std_dev",
+        type=list[float],
         required=False,
-        help="Threshold for data below the image background for std dev method during Grain finding.",
+        help="List of thresholds for data above / below the image background for std dev method during Grain finding.",
     )
     process_parser.add_argument(
-        "--grains-threshold-std-dev-above",
-        dest="grains_threshold_std_dev_above",
-        type=float,
+        "--grains-threshold-absolute",
+        dest="grains_threshold_absolute",
+        type=list[float],
         required=False,
-        help="Threshold for data above the image background for std dev method during Grain finding.",
+        help="List of thresholds for data above / below the image background for absolute method during Grain finding.",
     )
     process_parser.add_argument(
-        "--grains-threshold-absolute-below",
-        dest="grains_threshold_absolute_below",
-        type=float,
-        required=False,
-        help="Threshold for data below the image bacnground dor absolute method during Grain finding",
-    )
-    process_parser.add_argument(
-        "--grains-threshold-absolute-above",
-        dest="grains_threshold_absolute_above",
-        type=float,
-        required=False,
-        help="Threshold for data above the image bacnground dor absolute method during Grain finding",
-    )
-    process_parser.add_argument(
-        "--grains-direction",
-        dest="grains_direction",
-        type=str,
-        required=False,
-        help="Whether to look for grains 'above' pr 'below' thresholds of 'both'",
-    )
-    process_parser.add_argument(
-        "--grains-area-thresholds-above",
-        dest="grains_area_thresholds_above",
-        type=float,
+        "--grains-area-thresholds",
+        dest="grains_area_threshold",
+        type=list[float],
         required=False,
         nargs=2,
-        help="Above surface (low, high) in nm^2, both low and high should be specified",
-    )
-    process_parser.add_argument(
-        "--grains-area-thresholds-below",
-        dest="grains_area_thresholds_below",
-        type=float,
-        required=False,
-        nargs=2,
-        help="Below surface (low, high) in nm^2, both low and high should be specified",
+        help="Above and below surface (low, high) in nm^2, both low and high should be specified",
     )
     process_parser.add_argument(
         "--grains-remove-edge-intersecting-grains",
