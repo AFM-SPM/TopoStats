@@ -20,7 +20,16 @@ from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
 from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT, __release__, grains
-from topostats.classes import TopoStats
+from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
+from topostats.classes import (
+    DisorderedTrace,
+    GrainCrop,
+    GrainCropsDirection,
+    ImageGrainCrops,
+    Node,
+    OrderedTrace,
+    TopoStats,
+)
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -689,6 +698,8 @@ class LoadScans:
             return data
         # Otherwise we are re-running filtering we want the raw/image_original and scaling
         return (data["image_original"], data["pixel_to_nm_scaling"])
+        # @ns-rse 2025-10-03 - switch to returning a topostats object and update tests
+        # return dict_to_topostats(data)
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -1111,6 +1122,111 @@ def save_topostats_file(
             )
 
 
+def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-nested-blocks
+    dictionary: dict[str, Any],
+) -> TopoStats:
+    """
+    Convert a dictionary, typically loaded from HDF5 ``.topostats`` file, to TopoStats object.
+
+    Parameters
+    ----------
+    dictionary : dict[str, Any]
+        Dictionary of TopoStats data. This will typically have been loaded from the HDF5 ``.topostats`` file using
+        `AFMReader <https://afm-spm.github.io/AFMReader>`__.
+
+    Returns
+    -------
+    TopoStats
+        A TopoStat object.
+    """
+    if ("image_grain_crops" in dictionary.keys() and dictionary["image_grain_crops"]) is not None:
+        LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for image_grain_crops")
+        for direction in ["above", "below"]:
+            LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for direction {direction}")
+            if direction in dictionary["image_grain_crops"].keys():
+                # We instantiate GrainCropsDirection outside of the grain loop
+                if direction == "above":
+                    grain_crop_direction_above = GrainCropsDirection(
+                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["above"]["full_mask_tensor"]
+                    )
+                elif direction == "below":
+                    grain_crop_direction_below = GrainCropsDirection(
+                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["below"]["full_mask_tensor"]
+                    )
+                for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
+                    image = crop["image"] if "image" in crop.keys() else None
+                    mask = crop["mask"] if "mask" in crop.keys() else None
+                    padding = crop["padding"] if "padding" in crop.keys() else None
+                    bbox = crop["bbox"] if "bbox" in crop.keys() else None
+                    pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
+                    filename = crop["filename"] if "filename" in crop.keys() else None
+                    skeleton = crop["skeleton"] if "skeleton" in crop.keys() else crop["skeleton"]
+                    height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
+                    stats = crop["stats"] if "stats" in crop.keys() else None
+                    disordered_trace = (
+                        DisorderedTrace(**crop["disordered_trace"]) if "disordered_trace" in crop.keys() else None
+                    )
+                    if "nodes" in crop.keys() and crop["nodes"] is not None:
+                        nodes = {}
+                        for node, node_data in crop["nodes"].items():
+                            nodes[node] = Node(**node_data)
+                    else:
+                        nodes = None
+                    ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+                    if direction == "above":
+                        grain_crop_direction_above.crops[grain] = GrainCrop(
+                            image=image,
+                            mask=mask,
+                            padding=padding,
+                            bbox=bbox,
+                            pixel_to_nm_scaling=pixel_to_nm_scaling,
+                            filename=filename,
+                            skeleton=skeleton,
+                            height_profiles=height_profiles,
+                            stats=stats,
+                            disordered_trace=disordered_trace,
+                            nodes=nodes,
+                            ordered_trace=ordered_trace,
+                        )
+                    if direction == "below":
+                        grain_crop_direction_below.crops[grain] = GrainCrop(
+                            image=image,
+                            mask=mask,
+                            padding=padding,
+                            bbox=bbox,
+                            pixel_to_nm_scaling=pixel_to_nm_scaling,
+                            filename=filename,
+                            skeleton=skeleton,
+                            height_profiles=height_profiles,
+                            stats=stats,
+                            disordered_trace=disordered_trace,
+                            nodes=nodes,
+                            ordered_trace=ordered_trace,
+                        )
+            else:
+                if direction == "above":
+                    grain_crop_direction_above = None
+                elif direction == "below":
+                    grain_crop_direction_below = None
+    else:
+        grain_crop_direction_above = None
+        grain_crop_direction_below = None
+
+    if grain_crop_direction_above is None and grain_crop_direction_below is None:
+        image_grain_crops = None
+    else:
+        image_grain_crops = ImageGrainCrops(above=grain_crop_direction_above, below=grain_crop_direction_below)
+    return TopoStats(
+        image_grain_crops=image_grain_crops,
+        filename=dictionary["filename"],
+        pixel_to_nm_scaling=dictionary["pixel_to_nm_scaling"],
+        img_path=dictionary["img_path"],
+        image=dictionary["image"],
+        image_original=dictionary["image_original"],
+        topostats_version=dictionary["topostats_version"],
+    )
+
+
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
     """
     Pickle objects for working with later.
@@ -1120,7 +1236,7 @@ def save_pkl(outfile: Path, to_pkl: dict) -> None:
     outfile : Path
         Path and filename to save pickle to.
     to_pkl : dict
-        Object to be picled.
+        Object to be pickled.
     """
     with outfile.open(mode="wb", encoding=None) as f:
         pkl.dump(to_pkl, f)
