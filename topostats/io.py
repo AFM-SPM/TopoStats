@@ -21,12 +21,14 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
+from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
     GrainCropsDirection,
     ImageGrainCrops,
+    MatchedBranch,
+    Molecule,
     Node,
     OrderedTrace,
     TopoStats,
@@ -1073,7 +1075,6 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         key = str(key)
 
         # Check if the item is a known datatype
-        # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
         if isinstance(
             item,
             (
@@ -1084,9 +1085,14 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
                 | np.ndarray
                 | Path
                 | dict
-                | grains.GrainCrop
-                | grains.GrainCropsDirection
-                | grains.ImageGrainCrops
+                | DisorderedTrace
+                | GrainCrop
+                | GrainCropsDirection
+                | ImageGrainCrops
+                | MatchedBranch
+                | Molecule
+                | Node
+                | OrderedTrace
             ),
         ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
@@ -1099,7 +1105,6 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item.encode("utf8")
             # Integers, floats and numpy arrays can be added directly to the hdf5 file
-            # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
             elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item
@@ -1107,20 +1112,36 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             elif isinstance(item, Path):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
-            # Extract ImageGrainCrops
-            elif isinstance(item, grains.ImageGrainCrops):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
-            elif isinstance(item, grains.GrainCropsDirection):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
-            elif isinstance(item, grains.GrainCrop):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
+            # All classes defined in the classes submodule must be recursively saved
+            elif isinstance(item, ImageGrainCrops):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
+            elif isinstance(item, GrainCropsDirection):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
+            elif isinstance(item, GrainCrop):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
+            elif isinstance(item, OrderedTrace):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.ordered_trace_to_dict())
+            elif isinstance(item, Node):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.node_to_dict())
+            elif isinstance(item, DisorderedTrace):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.disordered_trace_to_dict())
+            elif isinstance(item, MatchedBranch):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.matched_branch_to_dict())
+            elif isinstance(item, Molecule):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.molecule_to_dict())
+
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
                 open_hdf5_file[group_path + key] = item

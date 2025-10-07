@@ -1194,6 +1194,13 @@ class MatchedBranch:
         Angle between branches ???
     """
 
+    ordered_coords: npt.NDArray[np.int32]
+    heights: npt.NDArray[np.number]
+    distances: npt.NDArray[np.number]
+    fwhm: dict[str, np.float64 | tuple[np.float64]]
+    angles: np.float64
+    # ns-rse 2025-10-07 : Need to add check types of attributes and checks that they are valid
+
     def __str__(self) -> str:
         """
         Readable attributes.
@@ -1331,6 +1338,17 @@ class MatchedBranch:
         """
         self._angles = value
 
+    def matched_branch_to_dict(self) -> dict[str, Any]:
+        """
+        Convert ``MatchedBranch`` to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
 
 @dataclass
 class Node:
@@ -1345,7 +1363,7 @@ class Node:
         Pixel to nanometre scaling.
     branch_stats : dict[int, MatchedBranch]
         Dictionary of branch statistics.
-    unmatched_branch_stats :
+    unmatched_branch_stats : dict[int, Any]
         Dictionary of unmatched branch statistics.
     node_coords : dict[str, dict[str, npt.NDArray[np.int32]]]
         Nested dictionary of node coordinates
@@ -1383,9 +1401,10 @@ class Node:
         """
         return (
             f"branch_stats : {self.branch_stats}\n"
+            f"unmatched_branch_stats : {self.unmatched_branch_stats}\n"
             f"distances : {self.confidence}\n"
             f"node_coords : {self.node_coords}\n"
-            f"nodes : {self.nodes}"
+            f"confidence : {self.confidence}"
             f"pixel_to_nm_scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
         )
@@ -1630,6 +1649,17 @@ class Node:
         """
         self._node_avg_mask = value
 
+    def node_to_dict(self) -> dict[str, Any]:
+        """
+        Convert ``Node`` to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
 
 @dataclass
 class OrderedTrace:
@@ -1646,6 +1676,12 @@ class OrderedTrace:
         Number of molecules within the grain.
     writhe : str
         The writhe sign, can be either `+`, `-` or `0` for positive, negative or no writhe.
+    pixel_to_nm_scaling: np.float64 | None
+        Pixel to nm scaling.
+    images: dict[str, npt.NDArray] | None
+        Images of ???
+    error: bool | None
+        Errors encountered?
     """
 
     ordered_trace_data: dict[int, Molecule] | None
@@ -1867,12 +1903,21 @@ class OrderedTrace:
         """
         self._error = value
 
+    def ordered_trace_to_dict(self) -> dict[str, Any]:
+        """
+        Convert ``OrderedTrace`` to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
 
 @dataclass
 class Molecule:
-    """
-    Class for Molecules identified during ordered tracing.
-    """
+    """Class for Molecules identified during ordered tracing."""
 
     circular: str | None
     topology: str | None
@@ -2024,3 +2069,14 @@ class Molecule:
             Value to set for ``distances``.
         """
         self._distances = value
+
+    def molecule_to_dict(self) -> dict[str, Any]:
+        """
+        Convert ``Molecule`` to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
