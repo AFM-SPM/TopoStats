@@ -1156,11 +1156,11 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                 for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
                     image = crop["image"] if "image" in crop.keys() else None
                     mask = crop["mask"] if "mask" in crop.keys() else None
-                    padding = crop["padding"] if "padding" in crop.keys() else None
+                    padding = int(crop["padding"]) if "padding" in crop.keys() else None
                     bbox = crop["bbox"] if "bbox" in crop.keys() else None
                     pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
                     filename = crop["filename"] if "filename" in crop.keys() else None
-                    skeleton = crop["skeleton"] if "skeleton" in crop.keys() else crop["skeleton"]
+                    skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
                     height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
                     stats = crop["stats"] if "stats" in crop.keys() else None
                     disordered_trace = (
