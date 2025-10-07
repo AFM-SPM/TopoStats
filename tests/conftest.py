@@ -17,7 +17,17 @@ from skimage.measure._regionprops import RegionProperties
 from skimage.morphology import skeletonize
 
 import topostats
-from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import (
+    DisorderedTrace,
+    GrainCrop,
+    GrainCropsDirection,
+    ImageGrainCrops,
+    MatchedBranch,
+    Molecule,
+    Node,
+    OrderedTrace,
+    TopoStats,
+)
 from topostats.filters import Filters
 from topostats.grains import Grains
 from topostats.grainstats import GrainStats
@@ -366,7 +376,119 @@ def random_grains(grains_config: dict, random_filters: Filters) -> Grains:
 
 
 @pytest.fixture()
-def dummy_graincrop() -> GrainCrop:
+def dummy_skeleton() -> npt.NDArray:
+    """Dummy skeleton for testing."""
+    return np.array(
+        np.array(
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        ),
+    )
+
+
+@pytest.fixture()
+def dummy_disordered_trace() -> DisorderedTrace:
+    """Dummy DisorderedTrace for testing."""
+    return DisorderedTrace(
+        images={
+            "pruned_skeleton": np.zeros((5, 5)),
+            "skeleton": np.zeros((5, 5)),
+            "smoothed_mask": np.zeros((5, 5)),
+            "branch_indexes": np.zeros((5, 5)),
+            "branch_types": np.zeros((5, 5)),
+        },
+        grain_endpoints=2,
+        grain_junctions=3,
+        total_branch_length=12.3456789,
+        grain_width_mean=3.14152,
+    )
+
+
+@pytest.fixture()
+def dummy_node(dummy_matched_branch: MatchedBranch) -> Node:
+    """Dummy Node for testing."""
+    return Node(
+        error=False,
+        pixel_to_nm_scaling=1.0,
+        branch_stats={
+            0: dummy_matched_branch,
+            1: dummy_matched_branch,
+        },
+        unmatched_branch_stats={0: 1, 1: 2},
+        # ns-rse 2025-10-07 Need to know what node_coords actually look like
+        node_coords={
+            "0": "something",
+            "1": "something_else",
+        },
+        confidence=0.987654,
+        reduced_node_area=10.987654321,
+        # ns-rse 2025-10-07 Need to know what these attributes look like
+        node_area_skeleton=np.ndarray(5),
+        node_branch_mask=np.ndarray(6),
+        node_avg_mask=np.ndarray(7),
+    )
+
+
+@pytest.fixture()
+def dummy_matched_branch() -> MatchedBranch:
+    """Dummy MatchedBranch for testing."""
+    return MatchedBranch(
+        ordered_coords=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
+        heights=np.array([1, 2, 3, 4, 5]),
+        distances=np.array([0.1, 0.2, 0.1]),
+        fwhm={0: 1.1, 1: 1.2},
+        angles=143.163,
+    )
+
+
+@pytest.fixture()
+def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
+    """Dummy OrderedTrace for testing."""
+    return OrderedTrace(
+        tracing_stats={"a": "b"},
+        grain_molstats={
+            0: {"circular": False, "topology": "a", "toplogy_flip": False, "processing": "nodestats"},
+            1: {"circular": False, "topology": "b", "toplogy_flip": True, "processing": "nodestats"},
+        },
+        ordered_trace_data={0: dummy_molecule, 1: dummy_molecule},
+        molecules=2,
+        writhe="-",
+        pixel_to_nm_scaling=1.0,
+        images=np.array([[1, 2], [3, 4]]),
+        error=True,
+    )
+
+
+@pytest.fixture()
+def dummy_molecule() -> Molecule:
+    """Dummy Molecule for testing."""
+    return Molecule(
+        circular=True,
+        topology="a",
+        topology_flip="maybe",
+        ordered_coords=np.array(4),
+        heights=np.array(4),
+        distances=np.array(4),
+    )
+
+
+@pytest.fixture()
+def dummy_graincrop(
+    dummy_skeleton: npt.NDArray,
+    dummy_disordered_trace: DisorderedTrace,
+    dummy_node: Node,
+    dummy_ordered_trace: OrderedTrace,
+) -> GrainCrop:
     """Dummy GrainCrop object for testing."""
     image = RNG.random(size=(10, 10)).astype(np.float32)
     mask = np.stack(
@@ -411,6 +533,10 @@ def dummy_graincrop() -> GrainCrop:
         filename="dummy",
         stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
         height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
+        skeleton=dummy_skeleton,
+        disordered_trace=dummy_disordered_trace,
+        nodes={0: dummy_node, 1: dummy_node},
+        ordered_trace=dummy_ordered_trace,
     )
 
 

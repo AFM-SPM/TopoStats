@@ -6,7 +6,17 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import (
+    DisorderedTrace,
+    GrainCrop,
+    GrainCropsDirection,
+    ImageGrainCrops,
+    MatchedBranch,
+    Molecule,
+    Node,
+    OrderedTrace,
+    TopoStats,
+)
 from topostats.io import dict_almost_equal
 
 BASE_DIR = Path.cwd()
@@ -20,20 +30,75 @@ SEED = 4092024
 rng = np.random.default_rng(SEED)
 
 
-@pytest.mark.skip(reason="Need to generate a dummy disordered_trace")
+def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
+    """Test the Node.node_to_dict() method."""
+    expected = {
+        "circular": dummy_molecule.circular,
+        "topology": dummy_molecule.topology,
+        "topology_flip": dummy_molecule.topology_flip,
+        "ordered_coords": dummy_molecule.ordered_coords,
+        "heights": dummy_molecule.heights,
+        "distances": dummy_molecule.distances,
+    }
+    assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
+
+
+def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
+    """Test the OrderedTrace.ordered_trace_to_dict() method."""
+    expected = {
+        "tracing_stats": dummy_ordered_trace.tracing_stats,
+        "grain_molstats": dummy_ordered_trace.grain_molstats,
+        "ordered_trace_data": dummy_ordered_trace.ordered_trace_data,
+        "molecules": dummy_ordered_trace.molecules,
+        "writhe": dummy_ordered_trace.writhe,
+        "pixel_to_nm_scaling": dummy_ordered_trace.pixel_to_nm_scaling,
+        "images": dummy_ordered_trace.images,
+        "error": dummy_ordered_trace.error,
+    }
+    assert dict_almost_equal(dummy_ordered_trace.ordered_trace_to_dict(), expected)
+
+
+def test_node_to_dict(dummy_node: Node) -> None:
+    """Test the Node.node_to_dict() method."""
+    expected = {
+        "error": dummy_node.error,
+        "pixel_to_nm_scaling": dummy_node.pixel_to_nm_scaling,
+        "branch_stats": dummy_node.branch_stats,
+        "unmatched_branch_stats": dummy_node.unmatched_branch_stats,
+        "node_coords": dummy_node.node_coords,
+        "confidence": dummy_node.confidence,
+        "reduced_node_area": dummy_node.reduced_node_area,
+        "node_area_skeleton": dummy_node.node_area_skeleton,
+        "node_branch_mask": dummy_node.node_branch_mask,
+        "node_avg_mask": dummy_node.node_avg_mask,
+    }
+    assert dict_almost_equal(dummy_node.node_to_dict(), expected)
+
+
+def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
+    """Test the MatchedBranch.matched_branch_to_dict() method."""
+    expected = {
+        "ordered_coords": dummy_matched_branch.ordered_coords,
+        "heights": dummy_matched_branch.heights,
+        "distances": dummy_matched_branch.distances,
+        "fwhm": dummy_matched_branch.fwhm,
+        "angles": dummy_matched_branch.angles,
+    }
+    assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
+
+
 def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> None:
     """Test the DisorderedTrace.disordered_trace_to_dict() method."""
     expected = {
         "images": dummy_disordered_trace.images,
         "grain_endpoints": dummy_disordered_trace.grain_endpoints,
         "grain_junctions": dummy_disordered_trace.grain_junctions,
-        "total_branch_length_nm": dummy_disordered_trace.total_branch_length_nm,
-        "grain_width_mean_nm": dummy_disordered_trace.grain_width_mean_nm,
+        "total_branch_length": dummy_disordered_trace.total_branch_length,
+        "grain_width_mean": dummy_disordered_trace.grain_width_mean,
     }
     assert dict_almost_equal(dummy_disordered_trace.disordered_trace_to_dict(), expected)
 
 
-@pytest.mark.xfail(reason="Awaiting adding attributes for skeleton, height_profile, disordered traces, nodes.")
 def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop.grain_crop_to_dict() method."""
     expected = {
@@ -45,6 +110,10 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "filename": dummy_graincrop.filename,
         "stats": dummy_graincrop.stats,
         "height_profiles": dummy_graincrop.height_profiles,
+        "skeleton": dummy_graincrop.skeleton,
+        "disordered_trace": dummy_graincrop.disordered_trace,
+        "nodes": dummy_graincrop.nodes,
+        "ordered_trace": dummy_graincrop.ordered_trace,
     }
     np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 
