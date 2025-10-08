@@ -1,5 +1,6 @@
 """Fixtures for the tracing tests."""
 
+import pickle as pkl
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
+from topostats.classes import GrainCrop, TopoStats
 from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.nodestats import nodeStats
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
@@ -16,6 +18,8 @@ from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
+TRACING_RESOURCES = RESOURCES / "tracing"
+NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
 
 RNG = np.random.default_rng(seed=1000)
 
@@ -142,7 +146,7 @@ def disordered_trace(skeletonize_circular, skeletonize_circular_bool_int) -> dis
 @pytest.fixture()
 def catenane_image() -> npt.NDArray[np.number]:
     """Image of a catenane molecule."""
-    return np.load(RESOURCES / "catenane_image.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_image.npy")
 
 
 @pytest.fixture()
@@ -153,7 +157,7 @@ def catenane_node_centre_mask() -> npt.NDArray[np.int32]:
     Effectively just the skeleton, but
     with the nodes set to 2 while the skeleton is 1 and background is 0.
     """
-    return np.load(RESOURCES / "catenane_node_centre_mask.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_node_centre_mask.npy")
 
 
 @pytest.fixture()
@@ -164,36 +168,111 @@ def catenane_connected_nodes() -> npt.NDArray[np.int32]:
     Effectively just the skeleton, but with the extended nodes
     set to 2 while the skeleton is 1 and background is 0.
     """
-    return np.load(RESOURCES / "catenane_connected_nodes.npy")
+    return np.load(NODESTATS_RESOURCES / "catenane_connected_nodes.npy")
+
+
+@pytest.fixture()
+def catenane_smoothed_mask() -> npt.NDArray[np.bool_]:
+    """Catenane smoothed mask."""
+    return np.load(NODESTATS_RESOURCES / "catenane_smoothed_mask.npy")
+
+
+@pytest.fixture()
+def catenane_skeleton() -> npt.NDArray[np.bool_]:
+    """Catenane smoothed mask."""
+    return np.load(NODESTATS_RESOURCES / "catenane_skeleton.npy")
+
+
+@pytest.fixture()
+def catenane_post_disordered_trace() -> GrainCrop:
+    """TopoStats of Catenane post disordered tracing."""
+    # 2025-07-31 : The same file is saved as...
+    #    catenane_file = NODESTATS_RESOURCES / "catenane_post_disordered_tracing.topostats"
+    # ...once we have sorted loading .topostats files to TopoStats objects we should switch
+    catenane_file = NODESTATS_RESOURCES / "catenane_post_disordered_tracing.pkl"
+    with catenane_file.open("rb") as f:
+        topostats_catenane = pkl.load(f)
+    return topostats_catenane
+
+
+@pytest.fixture()
+def graincrop_catenane(catenane_post_disordered_trace: TopoStats) -> GrainCrop:
+    """GrainCrop of Catenane post disordered tracing."""
+    return catenane_post_disordered_trace.image_grain_crops.above.crops[0]
 
 
 @pytest.fixture()
 def nodestats_catenane(
-    catenane_image: npt.NDArray[np.number],
+    graincrop_catenane: GrainCrop,
+    catenane_post_disordered_trace: TopoStats,
 ) -> nodeStats:
     """Fixture for the nodeStats object for a catenated molecule, to be used in analyse_nodes."""
-    catenane_smoothed_mask: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_smoothed_mask.npy")
-    catenane_skeleton: npt.NDArray[np.bool_] = np.load(RESOURCES / "catenane_skeleton.npy")
-    catenane_node_centre_mask = np.load(RESOURCES / "catenane_node_centre_mask.npy")
-    catenane_connected_nodes = np.load(RESOURCES / "catenane_connected_nodes.npy")
-
+    print(f"\n{graincrop_catenane=}\n")
     # Create a nodestats object
-    nodestats = nodeStats(
-        filename="test_catenane",
-        image=catenane_image,
-        mask=catenane_smoothed_mask,
-        smoothed_mask=catenane_smoothed_mask,
-        skeleton=catenane_skeleton,
-        pixel_to_nm_scaling=np.float64(0.18124609375),
-        n_grain=1,
+    return nodeStats(
+        graincrop=graincrop_catenane,
+        filename=catenane_post_disordered_trace.filename,
+        n_grain=0,
         node_joining_length=7,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
         pair_odd_branches=True,
     )
 
-    nodestats.node_centre_mask = catenane_node_centre_mask
-    nodestats.connected_nodes = catenane_connected_nodes
-    nodestats.skeleton = catenane_skeleton
 
-    return nodestats
+@pytest.fixture()
+def grain_crop_curved_line() -> GrainCrop:
+    """GrainCrop of a simple curved line."""
+    return GrainCrop(
+        image=np.array(
+            [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 1, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        ),
+        mask=np.stack(
+            arrays=[
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ]
+                ),
+            ],
+            axis=-1,
+        ),
+        padding=1,
+        bbox=(0, 0, 10, 10),
+        pixel_to_nm_scaling=1,
+        filename="simple slightly curved line",
+    )
