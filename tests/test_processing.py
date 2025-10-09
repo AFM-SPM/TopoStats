@@ -14,7 +14,7 @@ import pandas as pd
 import pytest
 
 from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
-from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
+from topostats.io import LoadScans, dict_almost_equal, dict_to_topostats, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
     check_run_steps,
@@ -1780,6 +1780,15 @@ def test_run_nodestats(  # noqa: C901
         grainstats_df=pd.DataFrame(),
     )
     if topostats_object.filename == "minicircle_small":
+        # ns-rse 2025-10-08 - Uncomment if attributes of nodestats change and we need to update the saved object for
+        # subsequent tests
+        from topostats.io import save_topostats_file
+
+        save_topostats_file(
+            output_dir=RESOURCES / "tracing" / "ordered_tracing",
+            filename="minicircle_post_nodestats.topostats",
+            topostats_object=topostats_object,
+        )
         for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
             # Grains 1, 2, 5 have Skeletons < 10 so disordered tracing is skipped; Grain 4 has no crossover
             if grain not in (1, 2, 4, 5):
@@ -1788,6 +1797,15 @@ def test_run_nodestats(  # noqa: C901
                     assert nodestats.unmatched_branch_stats == expected[grain][node]["unmatched_branch_stats"]
                     np.testing.assert_array_equal(nodestats.node_coords, expected[grain][node]["node_coords"])
     elif topostats_object.filename == "test_catenane":
+        # ns-rse 2025-10-08 - Uncomment if attributes of nodestats change and we need to update the saved object for
+        # subsequent tests
+        from topostats.io import save_topostats_file
+
+        save_topostats_file(
+            output_dir=RESOURCES / "tracing" / "ordered_tracing",
+            filename="catenane_post_nodestats.topostats",
+            topostats_object=topostats_object,
+        )
         for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
             for node, nodestats in grain_crop.nodes.items():
                 assert nodestats.error == expected[grain][node]["error"]
@@ -1832,9 +1850,7 @@ def test_run_ordered_tracing(
     """Test for run_ordered_tracing."""
     load_scans = LoadScans([topostats_path], channel="height_trace")
     load_scans.get_data()
-    print(f"\n{load_scans.img_dict.keys()=}\n")
-    topostats_object = load_scans.img_dict[sample]
-
+    topostats_object = dict_to_topostats(load_scans.img_dict[sample])
     topostats_object.filename = topostats_object.filename.replace("_post_nodestats", "")
     run_ordered_tracing(
         topostats_object=topostats_object,
@@ -1843,11 +1859,13 @@ def test_run_ordered_tracing(
         ordered_tracing_config=process_scan_config["ordered_tracing"],
         plotting_config=process_scan_config["plotting"],
     )
-    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.item():
+    # print(f"\n{topostats_object.image_grain_crops.__dict__()=}\n")
+    # print(f"\n{topostats_object.image_grain_crops.above.__dict__()=}\n")
+    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
         assert grain_crop.disordered_trace is not None
 
 
-# Sample code for saving objects
+# # Sample code for saving objects
 # from topostats.io import save_topostats_file
 
 # save_topostats_file(

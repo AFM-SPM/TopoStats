@@ -628,10 +628,8 @@ class nodeStats:
                     angles_between_singlet_branch_vectors: npt.NDArray[np.float64] = (
                         nodestats_calc_singlet_angles_result[0]
                     )
-
                     for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
                         unmatched_branches[branch_index] = {"angles": angle}
-
                     # Get the vector of each branch based on ordered_coords. Ordered_coords is only the first N nm
                     # of the branch so this is just a general vibe on what direction a branch is going.
                     if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
@@ -673,6 +671,7 @@ class nodeStats:
 
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
+    # ns-rse 2025-10-08 - need to udpate this to work with classes
     # pylint: disable=too-many-arguments
     @staticmethod
     def add_branches_to_labelled_image(
@@ -692,13 +691,8 @@ class nodeStats:
         ----------
         branch_under_over_order : npt.NDArray[np.int32]
             The order of the branches.
-        matched_branches : dict[int, dict[str, MatchedBranch]]
-            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
-            keys:
-            - "ordered_coords" : npt.NDArray[np.int32].
-            - "heights" : npt.NDArray[np.number]. Heights of the branches.
-            - "distances" :
-            - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
+        matched_branches : dict[int, MatchedBranch]
+            Dictionary of ``MatchedBranch`` objects.
         masked_image : dict[int, dict[str, npt.NDArray[np.bool_]]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
@@ -930,7 +924,7 @@ class nodeStats:
             #     fwhm={},
             #     angles=None,
             # )
-            matched_branches[i] = MatchedBranch
+            matched_branches[i] = MatchedBranch()
             masked_image[i] = {}
             # find close ends by rearranging branch coords
             branch_1_coords, branch_2_coords = nodeStats.order_branches(

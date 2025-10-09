@@ -696,7 +696,8 @@ def run_ordered_tracing(
         ordered_tracing_grainstats = pd.DataFrame()
         try:
             # run image using directional grain masks
-            for direction, grain_crop_direction in topostats_object.image_grains_crops.__dict__.items():
+            # print(f"\n{topostats_object.__dict__()=}\n")
+            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping ordered tracing for {direction}."
