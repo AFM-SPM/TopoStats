@@ -119,7 +119,7 @@ def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_r
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "ordered_tracing_direction_data_filename",
+        "ordered_tracing_threshold_data_filename",
         "pixel_to_nm_scaling",
         "splining_method",
         "rolling_window_size",
@@ -171,7 +171,7 @@ def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_r
 )
 def test_splining_image(  # pylint: disable=too-many-positional-arguments
     image_filename: str,
-    ordered_tracing_direction_data_filename: str,
+    ordered_tracing_threshold_data_filename: str,
     pixel_to_nm_scaling: float,
     splining_method: str,
     rolling_window_size: float,
@@ -189,12 +189,12 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
     image = np.load(GENERAL_RESOURCES / image_filename)
 
     # Load the ordered tracing direction data
-    with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
-        ordered_tracing_direction_data = pickle.load(file)
+    with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_threshold_data_filename, "rb") as file:
+        ordered_tracing_threshold_data = pickle.load(file)
 
     result_all_splines_data, result_splining_grainstats, result_molstats_df = splining_image(
         image=image,
-        ordered_tracing_direction_data=ordered_tracing_direction_data,
+        ordered_tracing_threshold_data=ordered_tracing_threshold_data,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         filename=filename,
         method=splining_method,

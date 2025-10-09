@@ -10,7 +10,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.grains import GrainCropsDirection
+from topostats.grains import ImageGrainCrops
 from topostats.io import dict_almost_equal  # pylint: disable=no-name-in-module import-error
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing import disordered_tracing
@@ -1290,7 +1290,7 @@ def test_disordered_trace_grain(
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "graincrops_above",
+        "imagegraincrops",
         "pixel_to_nm_scaling",
         "min_skeleton_size",
         "mask_smoothing_params",
@@ -1302,7 +1302,7 @@ def test_disordered_trace_grain(
     [
         pytest.param(
             "example_catenanes.npy",
-            "graincrops_above_catenanes",
+            "imagegraincrops_catenanes",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1332,7 +1332,7 @@ def test_disordered_trace_grain(
         ),
         pytest.param(
             "example_rep_int.npy",
-            "graincrops_above_rep_int",
+            "imagegraincrops_rep_int",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1364,7 +1364,7 @@ def test_disordered_trace_grain(
 )
 def test_trace_image_disordered(
     image_filename: str,
-    graincrops_above: GrainCropsDirection,
+    imagegraincrops: ImageGrainCrops,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -1377,8 +1377,8 @@ def test_trace_image_disordered(
     """Test the trace image disordered method."""
     # Load the image
     image: npt.NDArray[float] = np.load(GENERAL_RESOURCES / image_filename)
-    # Load GrainCropsDirection (crops are an attribute)
-    graincrops = request.getfixturevalue(graincrops_above)
+    # Load ImageGrainCrops (crops are an attribute)
+    graincrops = request.getfixturevalue(imagegraincrops)
     (
         result_disordered_trace_crop_data,
         _grainstats_additions_df,
@@ -1426,7 +1426,7 @@ def test_trace_image_disordered(
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "graincrops_above",
+        "imagegraincrops",
         "pixel_to_nm_scaling",
         "min_skeleton_size",
         "mask_smoothing_params",
@@ -1436,7 +1436,7 @@ def test_trace_image_disordered(
     [
         pytest.param(
             "example_catenanes.npy",
-            "graincrops_above_catenanes",
+            "imagegraincrops_catenanes",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1464,7 +1464,7 @@ def test_trace_image_disordered(
         ),
         pytest.param(
             "example_rep_int.npy",
-            "graincrops_above_rep_int",
+            "imagegraincrops_rep_int",
             # Pixel to nm scaling
             0.488,
             # Min skeleton size
@@ -1494,7 +1494,7 @@ def test_trace_image_disordered(
 )
 def test_trace_image_disordered_dataframes(
     image_filename: str,
-    graincrops_above: GrainCropsDirection,
+    imagegraincrops: ImageGrainCrops,
     pixel_to_nm_scaling: float,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -1506,8 +1506,8 @@ def test_trace_image_disordered_dataframes(
     """Test the trace image disordered method produces correct dataframes (/csv files)."""
     # Load the image
     full_image = np.load(GENERAL_RESOURCES / image_filename)
-    # Load GrainCropsDirection (crops are an attribute)
-    graincrops = request.getfixturevalue(graincrops_above)
+    # Load ImageGrainCrops (crops are an attribute)
+    graincrops = request.getfixturevalue(imagegraincrops)
 
     (
         _,
