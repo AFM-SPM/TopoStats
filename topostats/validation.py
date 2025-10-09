@@ -85,7 +85,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "are 'absolute', 'otsu' or 'std_dev'"
                 ),
             ),
-            "otsu_threshold_multiplier": float,
+            "threshold_otsu_multiplier": float,
             "threshold_std_dev": {
                 "below": lambda n: n > 0,
                 "above": lambda n: n > 0,
@@ -132,7 +132,7 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "are 'absolute', 'otsu' or 'std_dev'"
                 ),
             ),
-            "otsu_threshold_multiplier": float,
+            "threshold_otsu_multiplier": float,
             "threshold_std_dev": Or(
                 [int],
                 [float],
@@ -147,11 +147,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "Invalid value in config for grains.threshold.threshold_absolute should be list of type int or float"
                 ),
             ),
-            "area_thresholds": [
+            "threshold_areas": [
                 Or(
                     int,
                     None,
-                    error=("Invalid value in config for 'grains.area_thresholds.above', valid values are int or null"),
+                    error=("Invalid value in config for 'grains.threshold_areas', valid values are [int] or [null]"),
                 )
             ],
             "remove_edge_intersecting_grains": Or(

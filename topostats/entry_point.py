@@ -144,8 +144,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for thresholding Filtering. Options are otsu, std_dev, absolute.",
     )
     process_parser.add_argument(
-        "--filter-otsu-threshold-multiplier",
-        dest="filter_otsu_threshold_multiplier",
+        "--filter-threshold-otsu-multiplier",
+        dest="filter_threshold_otsu_multiplier",
         type=float,
         required=False,
         help="Factor for scaling the Otsu threshold during Filtering.",
@@ -247,8 +247,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for thresholding Grain finding. Options are otsu, std_dev, absolute.",
     )
     process_parser.add_argument(
-        "--grains-otsu-threshold-multiplier",
-        dest="grains_otsu_threshold_multiplier",
+        "--grains-threshold-otsu-multiplier",
+        dest="grains_threshold_otsu_multiplier",
         type=float,
         required=False,
         help="Factor for scaling the Otsu threshold during Grain finding.",
@@ -270,8 +270,8 @@ def create_parser() -> arg.ArgumentParser:
         help="List of thresholds for data above / below the image background for absolute method during Grain finding.",
     )
     process_parser.add_argument(
-        "--grains-area-thresholds",
-        dest="grains_area_thresholds",
+        "--grains-threshold-areas",
+        dest="grains_threshold_areas",
         type=float,
         required=False,
         nargs="+",
@@ -623,8 +623,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for thresholding Filtering. Options are otsu, std_dev, absolute.",
     )
     filter_parser.add_argument(
-        "--otsu-threshold-multiplier",
-        dest="otsu_threshold_multiplier",
+        "--threshold-otsu-multiplier",
+        dest="threshold_otsu_multiplier",
         type=float,
         required=False,
         help="Factor for scaling the Otsu threshold during Filtering.",
@@ -728,8 +728,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Method for thresholding Grain finding. Options are otsu, std_dev, absolute.",
     )
     grains_parser.add_argument(
-        "--otsu-threshold-multiplier",
-        dest="otsu_threshold_multiplier",
+        "--threshold-otsu-multiplier",
+        dest="threshold_otsu_multiplier",
         type=float,
         required=False,
         help="Factor for scaling the Otsu threshold during Grain finding.",
@@ -751,8 +751,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Threshold for data above/ below the image background for absolute method during Grain finding",
     )
     grains_parser.add_argument(
-        "--area-thresholds",
-        dest="area_thresholds",
+        "--threshold-areas",
+        dest="threshold_areas",
         type=float,
         required=False,
         nargs=2,

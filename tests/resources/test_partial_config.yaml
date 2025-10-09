@@ -11,7 +11,7 @@ filter:
   run: true # Options : true, false
   row_alignment_quantile: 0.5 # lower values may improve flattening of larger features
   threshold_method: absolute # Options : otsu, std_dev, absolute
-  otsu_threshold_multiplier: 1.0
+  threshold_otsu_multiplier: 1.0
   threshold_std_dev:
     below: 10.0 # Threshold for data below the image background
     above: 1.0 # Threshold for data above the image background
@@ -24,10 +24,10 @@ grains:
   run: true # Options : true, false
   # Thresholding by height
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
-  otsu_threshold_multiplier: 1.0
+  threshold_otsu_multiplier: 1.0
   threshold_std_dev: [1.0, -10.0] # Thresholds for data either side of the image background, positive for above and negative for below
   threshold_absolute: [1.0] # Thresholds for data either side of the image background, positive for above and negative for below
-  area_thresholds: [10, 1000000000] # [Low, High] in nm^2 (also takes null)
+  threshold_areas: [10, 1000000000] # [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   unet_config:
     model_path: null # Path to a trained U-Net model

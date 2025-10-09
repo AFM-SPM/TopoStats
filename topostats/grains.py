@@ -57,7 +57,7 @@ class GrainCrop:
         Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
-    threshold_no : int
+    threshold_idx : int
         Index of threshold used to find graincrop.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
         3-D Numpy tensor of the height profiles.
@@ -73,7 +73,7 @@ class GrainCrop:
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         filename: str,
-        threshold_no: int,
+        threshold_idx: int,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
     ):
@@ -94,7 +94,7 @@ class GrainCrop:
             Pixel to nanometre scaling factor for the crop.
         filename : str
             Filename of the image from which the crop was taken.
-        threshold_no : int
+        threshold_idx : int
             Index of threshold the GrainCrop belongs to.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
@@ -111,7 +111,7 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
-        self.threshold_no = threshold_no
+        self.threshold_idx = threshold_idx
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -428,7 +428,7 @@ class GrainCrop:
             raise ValueError("Pixel to nm scaling is different")
         if self.filename != other.filename:
             raise ValueError("Filename is different")
-        if self.threshold_no != other.threshold_no:
+        if self.threshold_idx != other.threshold_idx:
             raise ValueError("Threshold number is different")
         LOGGER.info("Cannot find difference between graincrops")
 
@@ -453,35 +453,18 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
 
 
 @dataclass
-class ImageGrainCropsThreshold:
-    """
-    Dataclass for storing the crops of grains for a particular threshold.
-
-    Attributes
-    ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean WxHxC arrays of the full mask tensors (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        Grain crops.
-    """
-
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
-
-
-@dataclass
 class ImageGrainCrops:
     """
     Dataclass for storing the crops of grains.
 
     Attributes
     ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        List of boolean WxHxC arrays of the full mask tensors (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        List of dict of grain crops.
     thresholds : list[float]
         List of thresholds from config.
+    crops : dict[int, GrainCrops]
+        List of dict of grain crops.
+    full_mask_tensor : npt.NDArray[np.bool_]
+        List of boolean WxHxC arrays of the full mask tensors (W = width ; H = height; C = class >= 2).
     """
 
     thresholds: list[float]
@@ -615,14 +598,14 @@ class Grains:
             Lower bound for normalising the image.
     threshold_method : str
         Method for determining thershold to mask values, default is 'otsu'.
-    otsu_threshold_multiplier : float | None
+    threshold_otsu_multiplier : float | None
         Factor by which the below threshold is to be scaled prior to masking.
     threshold_std_dev : dict[str, float | list] | None
         Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
         if threshold_method is 'std_dev'.
     threshold_absolute : dict[str, float | list] | None
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-    area_thresholds : list[float | None]
+    threshold_areas : list[float | None]
         List of grain's area thresholds.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
@@ -641,10 +624,10 @@ class Grains:
         grain_crop_padding: int = 1,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
-        otsu_threshold_multiplier: float | None = None,
+        threshold_otsu_multiplier: float | None = None,
         threshold_std_dev: list | None = None,
         threshold_absolute: list | None = None,
-        area_thresholds: list[float | None] | None = None,
+        threshold_areas: list[float | None] | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -672,14 +655,14 @@ class Grains:
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
-        otsu_threshold_multiplier : float | None
+        threshold_otsu_multiplier : float | None
             Factor by which the below threshold is to be scaled prior to masking.
         threshold_std_dev : dict[str, float | list] | None
             Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
             if threshold_method is 'std_dev'.
         threshold_absolute : dict[str, float | list] | None
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-        area_thresholds : list[float | None]
+        threshold_areas : list[float | None]
             List of grain's area thresholds.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
@@ -694,13 +677,13 @@ class Grains:
                 "upper_norm_bound": 1.0,
                 "lower_norm_bound": 0.0,
             }
-        if area_thresholds is None:
-            area_thresholds = [None, None]
+        if threshold_areas is None:
+            threshold_areas = [None, None]
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
-        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_otsu_multiplier = threshold_otsu_multiplier
         # Ensure thresholds are lists (might not be from passing in CLI args)
         if threshold_std_dev is None:
             threshold_std_dev = [1.0, 10.0]
@@ -712,7 +695,7 @@ class Grains:
             threshold_absolute[0] = threshold_absolute
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
-        self.area_thresholds = area_thresholds
+        self.threshold_areas = threshold_areas
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: list[float] | None = None
         self.mask_images: dict[str, npt.NDArray] = {}
@@ -843,7 +826,7 @@ class Grains:
     @staticmethod
     def area_thresholding_tensor(
         grain_mask_tensor: npt.NDArray[np.bool_],
-        area_thresholds: tuple[float | None, float | None],
+        threshold_areas: tuple[float | None, float | None],
         pixel_to_nm_scaling: float,
     ) -> npt.NDArray[np.bool_]:
         """
@@ -853,7 +836,7 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the full mask tensor.
-        area_thresholds : tuple
+        threshold_areas : tuple
             List of area thresholds (in nanometres squared), first is the lower limit for size, second is the upper.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
@@ -863,7 +846,7 @@ class Grains:
         npt.NDArray
             3-D Numpy array with small and large objects removed.
         """
-        lower_size_limit, upper_size_limit = area_thresholds
+        lower_size_limit, upper_size_limit = threshold_areas
         if upper_size_limit is None:
             upper_size_limit = grain_mask_tensor.size * pixel_to_nm_scaling**2
         if lower_size_limit is None:
@@ -930,9 +913,9 @@ class Grains:
         self.thresholds = get_grain_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
-            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+            threshold_otsu_multiplier=self.threshold_otsu_multiplier,
             threshold_std_dev=self.threshold_std_dev,
-            absolute=self.threshold_absolute,
+            threshold_absolute=self.threshold_absolute,
         )
 
         LOGGER.debug(f"[{self.filename}] : Finding grains")
@@ -953,7 +936,7 @@ class Grains:
         # Remove objects with area too small to process
         traditional_full_mask_tensor = Grains.area_thresholding_tensor(
             grain_mask_tensor=traditional_full_mask_tensor,
-            area_thresholds=(self.minimum_grain_size_px * self.pixel_to_nm_scaling**2, None),
+            threshold_areas=(self.minimum_grain_size_px * self.pixel_to_nm_scaling**2, None),
             pixel_to_nm_scaling=self.pixel_to_nm_scaling,
         )
         # Remove objects with bounding box too small to process
@@ -966,7 +949,7 @@ class Grains:
         # Area threshold using user specified thresholds
         traditional_full_mask_tensor = Grains.area_thresholding_tensor(
             grain_mask_tensor=traditional_full_mask_tensor,
-            area_thresholds=(self.area_thresholds[0], self.area_thresholds[1]),
+            threshold_areas=(self.threshold_areas[0], self.threshold_areas[1]),
             pixel_to_nm_scaling=self.pixel_to_nm_scaling,
         )
 
@@ -1197,7 +1180,7 @@ class Grains:
             else:
                 new_graincrops[grain_number] = GrainCrop(
                     image=graincrop.image,
-                    threshold_no=graincrop.threshold_no,
+                    threshold_idx=graincrop.threshold_idx,
                     mask=predicted_mask,
                     padding=graincrop.padding,
                     bbox=graincrop.bbox,
@@ -2012,7 +1995,7 @@ class Grains:
             # If passed all vetting steps, add to the dictionary of passed grain crops
             passed_graincrops[grain_number] = GrainCrop(
                 image=graincrop.image,
-                threshold_no=graincrop.threshold_no,
+                threshold_idx=graincrop.threshold_idx,
                 mask=largest_only_single_grain_mask_tensor,
                 padding=graincrop.padding,
                 bbox=graincrop.bbox,
@@ -2211,7 +2194,7 @@ class Grains:
 
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
-                threshold_no=grain_thresh,
+                threshold_idx=grain_thresh,
                 mask=grain_cropped_tensor,
                 padding=padding,
                 bbox=square_flat_bounding_box,
@@ -2385,9 +2368,9 @@ class Grains:
 def get_grain_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
-    otsu_threshold_multiplier: float | None = None,
+    threshold_otsu_multiplier: float | None = None,
     threshold_std_dev: list | None = None,
-    absolute: list | None = None,
+    threshold_absolute: list | None = None,
 ) -> list[float]:
     """
     Obtain thresholds for masking data points.
@@ -2398,25 +2381,24 @@ def get_grain_thresholds(  # noqa: C901
         2D Numpy array of image to be masked.
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    otsu_threshold_multiplier : float
+    threshold_otsu_multiplier : float
         Scaling value for Otsu threshold.
     threshold_std_dev : dict
         Dict of above and below thresholds for the standard deviation method.
-    absolute : tuple
+    threshold_absolute : tuple
         Dict of below and above thresholds.
 
     Returns
     -------
-    dict[str, list[float]]
-        Dictionary of thresholds, contains keys 'below' and optionally 'above'.
+    list[float]
+        List of calculated thresholds.
     """
-    thresholds: list[float] = []
     if threshold_method == "otsu":
         assert (
-            otsu_threshold_multiplier is not None
+            threshold_otsu_multiplier is not None
         ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
-        thresholds = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
-    elif threshold_method == "std_dev":
+        return [threshold(image, method="otsu", threshold_otsu_multiplier=threshold_otsu_multiplier)]
+    if threshold_method == "std_dev":
         assert (
             threshold_std_dev is not None
         ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
@@ -2431,20 +2413,15 @@ def get_grain_thresholds(  # noqa: C901
                 threshold_std_dev_list.append(
                     threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
                 )
-        thresholds = threshold_std_dev_list
-    elif threshold_method == "absolute":
+        return threshold_std_dev_list
+    if threshold_method == "absolute":
         assert (
-            absolute is not None
+            threshold_absolute is not None
         ), "New absolute threshold must be provided when using 'absolute' thresholding method."
-        thresholds = absolute
+        return threshold_absolute
 
-    else:
-        if not isinstance(threshold_method, str):
-            raise TypeError(
-                f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
-            )
-        raise ValueError(
-            f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'"
+    if not isinstance(threshold_method, str):
+        raise TypeError(
+            f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
         )
-
-    return thresholds
+    raise ValueError(f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'")

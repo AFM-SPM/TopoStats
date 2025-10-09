@@ -9,9 +9,9 @@ from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 from topostats.filters import Filters, get_filter_thresholds
 
 THRESHOLD_OPTIONS = {
-    "otsu_threshold_multiplier": 1.7,
+    "threshold_otsu_multiplier": 1.7,
     "threshold_std_dev": {"below": 10.0, "above": 1.0},
-    "absolute": {"below": -1.5, "above": 1.5},
+    "threshold_absolute": {"below": -1.5, "above": 1.5},
 }
 
 # pylint: disable=protected-access
@@ -200,7 +200,9 @@ def test_get_filter_thresholds_absolute(
     image_random: np.ndarray, threshold_config: list[float], expected_thresholds: list[float]
 ) -> None:
     """Test of get_filter_thresholds() method with absolute threshold."""
-    thresholds = get_filter_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
+    thresholds = get_filter_thresholds(
+        image=image_random, threshold_method="absolute", threshold_absolute=threshold_config
+    )
     assert isinstance(thresholds, dict)
     assert thresholds == expected_thresholds
 

@@ -35,7 +35,7 @@ def test_process_scan_height_profiles(tmp_path, process_scan_config: dict, load_
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"][1] = -0.8
-    process_scan_config["grains"]["area_thresholds"] = [10, 1000000000]
+    process_scan_config["grains"]["threshold_areas"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
     _, _, height_profiles, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -69,7 +69,7 @@ def test_process_scan(regtest, tmp_path, process_scan_config: dict, load_scan_da
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains, above already exist in default config used
     process_scan_config["grains"]["threshold_std_dev"][1] = -0.8
-    process_scan_config["grains"]["area_thresholds"] = [10, 1000000000]
+    process_scan_config["grains"]["threshold_areas"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -861,7 +861,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config = process_scan_config["grains"]
     grains_config["threshold_method"] = "absolute"
     grains_config["threshold_absolute"] = [1.0, -0.4]
-    grains_config["area_thresholds"] = [20, 10000000]
+    grains_config["threshold_areas"] = [20, 10000000]
 
     imagegraincrops = run_grains(
         image=flattened_image,
@@ -874,8 +874,8 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     )
 
     assert isinstance(imagegraincrops, ImageGrainCrops)
-    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_no == 0]) == 6
-    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_no == 1]) == 2
+    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_idx == 0]) == 6
+    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_idx == 1]) == 2
     assert len(imagegraincrops.crops) == 8
     # Floating point errors mean that on different systems, different results are
     # produced for such generous thresholds. This is not an issue for more stringent
@@ -884,6 +884,9 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
+    # with Path.open(
+    #     BASE_DIR / "pkl handling/igc_pickle_output.pkl", "rb"
+    # ) as f:
     with Path.open(  # pylint: disable=unspecified-encoding
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
     ) as f:

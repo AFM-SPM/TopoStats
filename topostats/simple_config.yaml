@@ -26,7 +26,7 @@ grains:
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   threshold_std_dev: [1.0, -10.0] # Thresholds for data either side of the image background, positive for above and negative for below
   threshold_absolute: [1.0] # Thresholds for data either side of the image background, positive for above and negative for below
-  area_thresholds: [10, 1000000000] # [Low, High] in nm^2 (also takes null)
+  threshold_areas: [10, 1000000000] # [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
 disordered_tracing:

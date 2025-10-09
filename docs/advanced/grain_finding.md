@@ -73,9 +73,9 @@ In our thresholded image, you will notice that we have a lot of small grains tha
 image. We can get rid of those with size thresholding. This is where TopoStats will remove grains based on their area,
 leaving only the right size of molecules. You will need to play around with the thresholds to get the right results.
 
-You can set the size threshold using the `area_thresholds` in the config file. This sets the minimum and
+You can set the size threshold using the `threshold_areas` in the config file. This sets the minimum and
 maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
-10nm^2 and 100nm^2, you would set `area_thresholds` to `[10, 100]`.
+10nm^2 and 100nm^2, you would set `threshold_areas` to `[10, 100]`.
 
 ![size_thresholding](../_static/images/grain_finding/grain_finding_size_thresholding.png)
 

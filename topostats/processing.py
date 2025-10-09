@@ -340,11 +340,12 @@ def run_grainstats(
                 thresholds=image_grain_crops.thresholds, crops=None, full_mask_tensor=None
             )
             threshold_grain_crops.crops = {}
+            print("CROP KEYS", image_grain_crops.crops[0].__dict__.keys())
             for index, _ in enumerate(image_grain_crops.thresholds):
                 threshold_grain_crops.crops = {
                     i: value
                     for i, (_key, value) in enumerate(image_grain_crops.crops.items())
-                    if value.threshold_no == index
+                    if value.threshold_idx == index
                 }
                 if threshold_grain_crops.crops == {} or threshold_grain_crops.crops is None:
                     LOGGER.warning(f"No grains exist for threshold {index}. Skipping grainstats for this threshold.")
@@ -441,7 +442,7 @@ def run_disordered_tracing(  # noqa: C901
                 threshold_grain_crops.crops = {
                     i: value
                     for i, (_key, value) in enumerate(image_grain_crops.crops.items())
-                    if value.threshold_no == index
+                    if value.threshold_idx == index
                 }
                 if threshold_grain_crops.crops is None or threshold_grain_crops.crops == {}:
                     LOGGER.warning(
@@ -567,7 +568,7 @@ def run_nodestats(  # noqa: C901
             nodestats_grainstats = pd.DataFrame()
             try:
                 # run image using threshold grain masks
-                for threshold_no, disordered_tracing_threshold_data in disordered_tracing_data.items():
+                for threshold, disordered_tracing_threshold_data in disordered_tracing_data.items():
                     (
                         nodestats_data,
                         _nodestats_grainstats,
@@ -581,10 +582,10 @@ def run_nodestats(  # noqa: C901
                         **nodestats_config,
                     )
                     # save per image new grainstats stats
-                    _nodestats_grainstats["threshold"] = threshold_no
+                    _nodestats_grainstats["threshold"] = threshold
                     nodestats_grainstats = pd.concat([nodestats_grainstats, _nodestats_grainstats])
                     # append threshold results to dict
-                    nodestats_whole_data[threshold_no] = {"stats": nodestats_data, "images": nodestats_branch_images}
+                    nodestats_whole_data[threshold] = {"stats": nodestats_data, "images": nodestats_branch_images}
                     # save whole image plots
                     Images(
                         filename=f"{filename}_nodes",

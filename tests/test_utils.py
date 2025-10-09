@@ -17,7 +17,7 @@ from topostats.utils import (
     update_plotting_config,
 )
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": [1.0, 10.0], "absolute": [1.5, -1.5]}
+THRESHOLD_OPTIONS = {"threshold_otsu_multiplier": 1.7, "threshold_std_dev": [1.0, 10.0], "absolute": [1.5, -1.5]}
 
 
 def test_convert_path(tmp_path: Path) -> None:

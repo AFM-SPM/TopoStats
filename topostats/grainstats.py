@@ -302,7 +302,7 @@ class GrainStats:
                         * smallest_bounding_width
                         * area_scaling_factor,
                         "aspect_ratio": aspect_ratio,
-                        "threshold": grain_crop.threshold_no,
+                        "threshold": grain_crop.threshold_idx,
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }

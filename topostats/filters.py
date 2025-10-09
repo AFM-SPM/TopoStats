@@ -45,7 +45,7 @@ class Filters:
         flattening of large features.
     threshold_method : str
         Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
-    otsu_threshold_multiplier : float
+    threshold_otsu_multiplier : float
         Value for scaling the derived Otsu threshold.
     threshold_std_dev : dict
         If using the 'std_dev' threshold method. Dictionary that contains above and below threshold values for the
@@ -69,7 +69,7 @@ class Filters:
         pixel_to_nm_scaling: float,
         row_alignment_quantile: float = 0.5,
         threshold_method: str = "otsu",
-        otsu_threshold_multiplier: float = 1.7,
+        threshold_otsu_multiplier: float = 1.7,
         threshold_std_dev: dict | None = None,
         threshold_absolute: dict | None = None,
         gaussian_size: float = None,
@@ -92,7 +92,7 @@ class Filters:
             flattening of large features.
         threshold_method : str
             Method for thresholding, default 'otsu', valid options 'otsu', 'std_dev' and 'absolute'.
-        otsu_threshold_multiplier : float
+        threshold_otsu_multiplier : float
             Value for scaling the derived Otsu threshold.
         threshold_std_dev : dict
             If using the 'std_dev' threshold method. Dictionary that contains above and below threshold values for the
@@ -114,7 +114,7 @@ class Filters:
         self.gaussian_mode = gaussian_mode
         self.row_alignment_quantile = row_alignment_quantile
         self.threshold_method = threshold_method
-        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_otsu_multiplier = threshold_otsu_multiplier
         # Convert to lists since the thresholding function expects lists of thresholds but
         # we don't want to use more than one value for the filters step.
         if threshold_std_dev is None:
@@ -555,9 +555,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.thresholds = get_filter_thresholds(
                 image=self.images["initial_zero_average_background"],
                 threshold_method=self.threshold_method,
-                otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+                threshold_otsu_multiplier=self.threshold_otsu_multiplier,
                 threshold_std_dev=self.threshold_std_dev,
-                absolute=self.threshold_absolute,
+                threshold_absolute=self.threshold_absolute,
             )
         except TypeError as type_error:
             raise type_error
@@ -631,9 +631,9 @@ def combine_mask_directions(image: npt.NDArray, thresholds: dict, img_name: str 
 def get_filter_thresholds(  # noqa: C901
     image: npt.NDArray,
     threshold_method: str,
-    otsu_threshold_multiplier: float | None = None,
+    threshold_otsu_multiplier: float | None = None,
     threshold_std_dev: dict[str, list] | None = None,
-    absolute: dict[str, list] | None = None,
+    threshold_absolute: dict[str, list] | None = None,
 ) -> dict[str, list[float]]:
     """
     Obtain thresholds for masking data points.
@@ -644,11 +644,11 @@ def get_filter_thresholds(  # noqa: C901
         2D Numpy array of image to be masked.
     threshold_method : str
         Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
-    otsu_threshold_multiplier : float
+    threshold_otsu_multiplier : float
         Scaling value for Otsu threshold.
     threshold_std_dev : dict
         Dict of above and below thresholds for the standard deviation method.
-    absolute : tuple
+    threshold_absolute : tuple
         Dict of below and above thresholds.
 
     Returns
@@ -659,9 +659,9 @@ def get_filter_thresholds(  # noqa: C901
     thresholds: dict[str, list[float]] = {}
     if threshold_method == "otsu":
         assert (
-            otsu_threshold_multiplier is not None
+            threshold_otsu_multiplier is not None
         ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
-        thresholds["above"] = [threshold(image, method="otsu", otsu_threshold_multiplier=otsu_threshold_multiplier)]
+        thresholds["above"] = [threshold(image, method="otsu", threshold_otsu_multiplier=threshold_otsu_multiplier)]
     elif threshold_method == "std_dev":
         assert (
             threshold_std_dev is not None
@@ -681,15 +681,17 @@ def get_filter_thresholds(  # noqa: C901
                 )
             thresholds["above"] = thresholds_std_dev_above
     elif threshold_method == "absolute":
-        assert absolute is not None, "Absolute thresholds must be provided when using 'absolute' thresholding method."
-        if absolute["below"] is not None:
+        assert (
+            threshold_absolute is not None
+        ), "Absolute thresholds must be provided when using 'absolute' thresholding method."
+        if threshold_absolute["below"] is not None:
             thresolds_absolute_below = []
-            for threshold_absolute_value in absolute["below"]:
+            for threshold_absolute_value in threshold_absolute["below"]:
                 thresolds_absolute_below.append(threshold_absolute_value)
             thresholds["below"] = thresolds_absolute_below
-        if absolute["above"] is not None:
+        if threshold_absolute["above"] is not None:
             thresolds_absolute_above = []
-            for threshold_absolute_value in absolute["above"]:
+            for threshold_absolute_value in threshold_absolute["above"]:
                 thresolds_absolute_above.append(threshold_absolute_value)
             thresholds["above"] = thresolds_absolute_above
     else:

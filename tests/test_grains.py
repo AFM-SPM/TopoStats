@@ -24,7 +24,11 @@ LOGGER.propagate = True
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 
-THRESHOLD_OPTIONS = {"otsu_threshold_multiplier": 1.7, "threshold_std_dev": [1.0, 10.0], "absolute": [1.5, -1.5]}
+THRESHOLD_OPTIONS = {
+    "threshold_otsu_multiplier": 1.7,
+    "threshold_std_dev": [1.0, 10.0],
+    "threshold_absolute": [1.5, -1.5],
+}
 
 grain_array = np.array(
     [
@@ -76,7 +80,7 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "bbox": dummy_graincrop.bbox,
         "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
         "filename": dummy_graincrop.filename,
-        "threshold_no": dummy_graincrop.threshold_no,
+        "threshold_idx": dummy_graincrop.threshold_idx,
         "stats": dummy_graincrop.stats,
         "height_profiles": dummy_graincrop.height_profiles,
     }
@@ -101,7 +105,7 @@ def test_image_grain_crop_to_dict(dummy_imagegraincrop: ImageGrainCrops) -> None
 
 
 @pytest.mark.parametrize(
-    ("grain_mask_tensor", "area_thresholds", "pixel_to_nm_scaling", "expected_grain_mask_tensor"),
+    ("grain_mask_tensor", "threshold_areas", "pixel_to_nm_scaling", "expected_grain_mask_tensor"),
     [
         pytest.param(
             np.stack(
@@ -287,13 +291,13 @@ def test_image_grain_crop_to_dict(dummy_imagegraincrop: ImageGrainCrops) -> None
 )
 def test_area_thresholding_tensor(
     grain_mask_tensor: npt.NDArray,
-    area_thresholds: list[float],
+    threshold_areas: list[float],
     pixel_to_nm_scaling: float,
     expected_grain_mask_tensor: npt.NDArray,
 ) -> None:
     """Test the area_thresholding_tensor method of the Grains class."""
     result = Grains.area_thresholding_tensor(
-        grain_mask_tensor=grain_mask_tensor, area_thresholds=area_thresholds, pixel_to_nm_scaling=pixel_to_nm_scaling
+        grain_mask_tensor=grain_mask_tensor, threshold_areas=threshold_areas, pixel_to_nm_scaling=pixel_to_nm_scaling
     )
 
     np.testing.assert_array_equal(result, expected_grain_mask_tensor)
@@ -520,7 +524,7 @@ def test_remove_edge_intersecting_grains(
     grains_config["remove_edge_intersecting_grains"] = remove_edge_intersecting_grains
     grains_config["threshold_absolute"] = [1.0]
     grains_config["threshold_method"] = "absolute"
-    grains_config["area_thresholds"] = [20, 10000000]
+    grains_config["threshold_areas"] = [20, 10000000]
 
     grains = Grains(
         image=np.load("./tests/resources/minicircle_cropped_flattened.npy"),
@@ -539,10 +543,10 @@ def test_remove_edge_intersecting_grains(
         "image",
         "pixel_to_nm_scaling",
         "threshold_method",
-        "otsu_threshold_multiplier",
+        "threshold_otsu_multiplier",
         "threshold_std_dev",
         "threshold_absolute",
-        "area_thresholds",
+        "threshold_areas",
         "remove_edge_intersecting_grains",
         "expected_imagegraincrops",
     ),
@@ -575,7 +579,7 @@ def test_remove_edge_intersecting_grains(
                     0: GrainCrop(
                         bbox=(0, 0, 5, 5),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -623,7 +627,7 @@ def test_remove_edge_intersecting_grains(
                     1: GrainCrop(
                         bbox=(0, 5, 5, 10),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -671,7 +675,7 @@ def test_remove_edge_intersecting_grains(
                     2: GrainCrop(
                         bbox=(4, 2, 8, 6),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -715,7 +719,7 @@ def test_remove_edge_intersecting_grains(
                     3: GrainCrop(
                         bbox=(4, 4, 10, 10),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -767,7 +771,7 @@ def test_remove_edge_intersecting_grains(
                     4: GrainCrop(
                         bbox=(6, 0, 10, 4),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -811,7 +815,7 @@ def test_remove_edge_intersecting_grains(
                     5: GrainCrop(
                         bbox=(7, 3, 10, 6),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array([[0.1, 0.2, 0.1], [0.1, 1.5, 0.2], [0.1, 0.2, 0.1]]),
@@ -899,10 +903,10 @@ def test_find_grains(
     image: npt.NDArray[np.float32],
     pixel_to_nm_scaling: float,
     threshold_method: str,
-    otsu_threshold_multiplier: float,
+    threshold_otsu_multiplier: float,
     threshold_std_dev: list,
     threshold_absolute: list,
-    area_thresholds: list,
+    threshold_areas: list,
     remove_edge_intersecting_grains: bool,
     expected_imagegraincrops: ImageGrainCrops,
 ) -> None:
@@ -914,10 +918,10 @@ def test_find_grains(
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         unet_config=None,
         threshold_method=threshold_method,
-        otsu_threshold_multiplier=otsu_threshold_multiplier,
+        threshold_otsu_multiplier=threshold_otsu_multiplier,
         threshold_std_dev=threshold_std_dev,
         threshold_absolute=threshold_absolute,
-        area_thresholds=area_thresholds,
+        threshold_areas=threshold_areas,
         remove_edge_intersecting_grains=remove_edge_intersecting_grains,
     )
 
@@ -1002,7 +1006,7 @@ def test_find_grains(
                     0: GrainCrop(
                         bbox=(0, 0, 5, 5),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -1041,7 +1045,7 @@ def test_find_grains(
                     1: GrainCrop(
                         bbox=(0, 4, 5, 9),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -1080,7 +1084,7 @@ def test_find_grains(
                     2: GrainCrop(
                         bbox=(0, 6, 3, 9),
                         filename="test_image",
-                        threshold_no=0,
+                        threshold_idx=0,
                         padding=1,
                         pixel_to_nm_scaling=1.0,
                         image=np.array(
@@ -1141,7 +1145,7 @@ def test_find_grains_unet(
             },
             threshold_method="absolute",
             threshold_absolute=[0.9],
-            area_thresholds=[1, 10000000],
+            threshold_areas=[1, 10000000],
             remove_edge_intersecting_grains=True,
         )
 
@@ -1185,7 +1189,7 @@ def test_find_grains_no_grains_found():
         unet_config=None,
         threshold_method="absolute",
         threshold_absolute=[0.9, -0.0],
-        area_thresholds=[1, 10000000],
+        threshold_areas=[1, 10000000],
         remove_edge_intersecting_grains=True,
     )
 
@@ -1366,7 +1370,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 1: GrainCrop(
                     image=np.array(
@@ -1405,7 +1409,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 2: GrainCrop(
                     image=np.array(
@@ -1438,7 +1442,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             {
@@ -1479,7 +1483,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 1: GrainCrop(
                     image=np.array(
@@ -1518,7 +1522,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 2: GrainCrop(
                     image=np.array(
@@ -1551,7 +1555,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             id="unet, 5x5, multi class, 3 grains",
@@ -1607,7 +1611,7 @@ def test_tidy_border_tensor(
                     padding=1,
                     pixel_to_nm_scaling=1.0,
                     filename="test_image",
-                    threshold_no=0,
+                    threshold_idx=0,
                 )
             },
             # Expected empty graincrops dictionary
@@ -3760,7 +3764,7 @@ def test_merge_classes(
                     bbox=(0, 0, 10, 10),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 )
             },
             {
@@ -3853,7 +3857,7 @@ def test_merge_classes(
                     bbox=(0, 0, 10, 10),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 )
             },
             id="class conversion based on size & class conversion when touching",
@@ -3923,7 +3927,7 @@ def test_merge_classes(
                     bbox=(0, 0, 10, 10),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             {
@@ -4000,7 +4004,7 @@ def test_merge_classes(
                     bbox=(0, 0, 10, 10),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             id="keep largest labelled regions classes",
@@ -4055,7 +4059,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 1 too big
                 1: GrainCrop(
@@ -4104,7 +4108,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too few regions
                 2: GrainCrop(
@@ -4153,7 +4157,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too many regions
                 3: GrainCrop(
@@ -4202,7 +4206,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Correct size class 1 and correct number of regions class 2
                 4: GrainCrop(
@@ -4251,7 +4255,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             {
@@ -4312,7 +4316,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             id="class size & region number thresholds",
@@ -4367,7 +4371,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 1 too big
                 1: GrainCrop(
@@ -4416,7 +4420,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too few regions
                 2: GrainCrop(
@@ -4465,7 +4469,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too many regions
                 3: GrainCrop(
@@ -4514,7 +4518,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Correct size class 1 and correct number of regions class 2
                 4: GrainCrop(
@@ -4563,7 +4567,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             {
@@ -4625,7 +4629,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 1 too big
                 1: GrainCrop(
@@ -4674,7 +4678,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too few regions
                 2: GrainCrop(
@@ -4723,7 +4727,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Class 2 too many regions
                 3: GrainCrop(
@@ -4772,7 +4776,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
                 # Correct size class 1 and correct number of regions class 2
                 4: GrainCrop(
@@ -4821,7 +4825,7 @@ def test_merge_classes(
                     bbox=(0, 0, 6, 6),
                     pixel_to_nm_scaling=1.0,
                     filename="test",
-                    threshold_no=0,
+                    threshold_idx=0,
                 ),
             },
             id="no parameters supplied, no edits",
@@ -4915,7 +4919,7 @@ def test_graincrops_merge_classes() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         )
     }
 
@@ -5010,7 +5014,7 @@ def test_graincrops_merge_classes() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         )
     }
 
@@ -5072,7 +5076,7 @@ def test_graincrops_update_background_class() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
         1: GrainCrop(
             image=np.array(
@@ -5124,7 +5128,7 @@ def test_graincrops_update_background_class() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
     }
 
@@ -5179,7 +5183,7 @@ def test_graincrops_update_background_class() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
         1: GrainCrop(
             image=np.array(
@@ -5231,7 +5235,7 @@ def test_graincrops_update_background_class() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
     }
 
@@ -5295,7 +5299,7 @@ def test_graincrops_remove_objects_too_small_to_process() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
     }
 
@@ -5350,7 +5354,7 @@ def test_graincrops_remove_objects_too_small_to_process() -> None:
             bbox=(0, 0, 7, 7),
             pixel_to_nm_scaling=1.0,
             filename="test",
-            threshold_no=0,
+            threshold_idx=0,
         ),
     }
 
@@ -5407,7 +5411,7 @@ def test_graincrop_init() -> None:
         bbox=(0, 0, 5, 5),
         pixel_to_nm_scaling=1.0,
         filename="test",
-        threshold_no=0,
+        threshold_idx=0,
     )
 
     assert graincrop.image.sum() == 29.6
@@ -5514,7 +5518,7 @@ def test_graincrop_mask_setter(
         bbox=(0, 0, mask_size, mask_size),
         pixel_to_nm_scaling=1.0,
         filename="test",
-        threshold_no=0,
+        threshold_idx=0,
     )
 
     result_graincrop_mask = graincrop.mask
@@ -5578,7 +5582,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -5622,7 +5626,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             True,
             id="equal",
@@ -5670,7 +5674,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -5714,7 +5718,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="image not equal",
@@ -5762,7 +5766,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -5806,7 +5810,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="mask not equal",
@@ -5854,7 +5858,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -5898,7 +5902,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="padding not equal",
@@ -5946,7 +5950,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -5990,7 +5994,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 4, 4),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="padding not equal",
@@ -6038,7 +6042,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -6082,7 +6086,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=2.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="p2nm not equal",
@@ -6130,7 +6134,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             GrainCrop(
                 image=np.array(
@@ -6174,7 +6178,7 @@ def test_graincrop_padding_setter(dummy_graincrop: GrainCrop) -> None:
                 bbox=(0, 0, 5, 5),
                 pixel_to_nm_scaling=1.0,
                 filename="wrong filename",
-                threshold_no=0,
+                threshold_idx=0,
             ),
             False,
             id="filename not equal",
@@ -6249,7 +6253,7 @@ def test_imagegraincrops_update_full_mask_tensor() -> None:
                 bbox=(0, 0, 4, 4),
                 pixel_to_nm_scaling=1.0,
                 filename="test",
-                threshold_no=0,
+                threshold_idx=0,
             )
         },
         full_mask_tensor=np.stack(
@@ -6655,7 +6659,9 @@ def test_get_grain_thresholds_absolute(
     image_random: np.ndarray, threshold_config: list[float], expected_thresholds: list[float]
 ) -> None:
     """Test of get_thresholds() method with absolute threshold."""
-    thresholds = get_grain_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
+    thresholds = get_grain_thresholds(
+        image=image_random, threshold_method="absolute", threshold_absolute=threshold_config
+    )
     assert isinstance(thresholds, list)
     assert thresholds == expected_thresholds
 
