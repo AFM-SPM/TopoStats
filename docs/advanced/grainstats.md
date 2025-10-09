@@ -3,7 +3,7 @@
 ## At a Glance - Measures Objects
 
 TopoStats automatically measures the grains (objects of interest) found in the grain finding section, in your
-AFM images, and outputs them into the `all_statistics.csv` file.
+AFM images, and outputs them into the `grain_statistics.csv` file.
 
 The metrics are briefly summarised in the table below:
 
@@ -24,9 +24,9 @@ The metrics are briefly summarised in the table below:
 
 ![Grain Stats image table pt1](../_static/images/grainstats/ts2_gs_metrics.png)
 
-## The `all_statistics.csv` file
+## The `grain_statistics.csv` file
 
-The `all_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`,
+The `grain_statistics.csv` file lists metrics for each unique combination of `grain_number`, `class_number`,
 and `subgrain_number`, described below. Note that `class_number` will always be constant if standard grain finding
 or a binary U-Net model is used for segmentation, but more classes will be included if
 multi-class segmentation approaches are used. You can define custom class names within the `grainstats` section

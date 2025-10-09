@@ -259,7 +259,7 @@ def test_grainstats(caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check the keys
-    data = pd.read_csv("output/image_stats.csv")
+    data = pd.read_csv("output/image_statistics.csv")
     assert list(data.columns) == [
         "Unnamed: 0",
         "image",
