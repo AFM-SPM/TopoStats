@@ -100,6 +100,9 @@ def create_parser() -> arg.ArgumentParser:
         help="File extension to scan for.",
     )
     parser.add_argument(
+        "--output-stats", dest="output_stats_file", type=str, required=True, help="Full or basic CSV outputs."
+    )
+    parser.add_argument(
         "--channel",
         dest="channel",
         type=str,
