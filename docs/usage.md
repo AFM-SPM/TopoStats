@@ -122,7 +122,7 @@ along with information about how to give feedback, report bugs and cite the soft
   Files Found                 : 1
   Successfully Processed      : 1 (100.0%)
   Configuration               : output/config.yaml
-  All statistics              : output/all_statistics.csv
+  All statistics              : output/grain_statistics.csv
   Distribution Plots          : output/summary_distributions
 
   Email                       : topostats@sheffield.ac.uk
@@ -333,10 +333,10 @@ used your own customised configuration file (specifically if you have modified t
 At the top level of the output directory are a few files produced:
 
 - `config.yaml` : a copy of the configuration used to process the images.
-- `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
-- `all_disordered_segment_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+- `grain_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
+- `branch_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
   statistics.
-- `all_mol_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
+- `molecule_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
 
 **Note:** - If all grains / branch segments of a column have a `None` or `NaN` value, the column will not be present in
 the output `.csv` file.
@@ -362,11 +362,11 @@ one under `level1/a`...
 
 ```bash
 [4.0K Nov 15 14:06]  output
-|-- [ 381 Nov 15 14:06]  output/all_statistics.csv
+|-- [ 381 Nov 15 14:06]  output/grain_statistics.csv
 |-- [ 733 Nov 15 14:06]  output/all_disordered_tracing_statistics.csv
-|-- [ 254 Nov 15 14:06]  output/all_mol_statistics.csv
+|-- [ 254 Nov 15 14:06]  output/molecule_statistics.csv
 |-- [7.4K Nov 15 14:06]  output/config.yaml
-|-- [ 222 Nov 15 14:06]  output/image_stats.csv
+|-- [ 222 Nov 15 14:06]  output/image_statistics.csv
 |-- [4.0K Nov 15 14:06]  output/level1
 |   |-- [4.0K Nov 15 14:06]  output/level1/a
 |   |   |-- [4.0K Nov 15 14:06]  output/level1/a/Processed
@@ -413,13 +413,13 @@ is `output/summary_distributions`. If you have used a custom configuration file 
 `summary_distributions` nested under the directory specified for the `output`, e.g. if you used the current directory as
 output you will have a `summary_distributions` directory present.
 
-Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
+Sometimes you may have a `grain_statistics.csv` from a run and wish to plot distributions of additional statistics that
 were not already plotted. This can be achieved using the command line program `toposum` which is included.
 
 **NB** Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
 configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) (which is built on top of
 [Matplotlib](https://matplotlib.org/)) to produce basic plots, which are not intended for publication. If you want to
-tweak or customise plots it is recommended to load `all_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
+tweak or customise plots it is recommended to load `grain_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
 and generate the plots you want there. A sample notebook is included to show how to do this.
 
 ### Configuring Summary Plots
