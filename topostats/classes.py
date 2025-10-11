@@ -747,133 +747,23 @@ class DisorderedTrace:
 
 
 @dataclass
-class GrainCropsDirection:
-    """
-    Dataclass for storing the crops of grains in a particular imaging direction.
-
-    Attributes
-    ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean WxHxC array of the full mask tensor (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        Grain crops.
-    """
-
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
-
-    def __post_init__(self):
-        """
-        Validate the full mask tensor shape.
-
-        Raises
-        ------
-        ValueError
-            If the full mask tensor shape is invalid.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
-
-    @property
-    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
-        """
-        Getter for the full mask tensor.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        return self._full_mask_tensor
-
-    @full_mask_tensor.setter
-    def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
-        """
-        Setter for the full mask tensor.
-
-        Parameters
-        ----------
-        value : npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two GrainCropsDirection objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            return False
-        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
-
-    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert GrainCropsDirection to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two GrainCropsDirection objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
-        for crop_index, crop in self.crops.items():
-            if crop != other.crops[crop_index]:
-                LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.debug_locate_difference(other.crops[crop_index])
-        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
-            raise ValueError("Full mask tensor is different")
-
-        LOGGER.info("Cannot find difference between graincrops")
-
-    def update_full_mask_tensor(self):
-        """Update the full mask tensor from the grain crops."""
-        self.full_mask_tensor = construct_full_mask_from_graincrops(
-            graincrops=self.crops,
-            image_shape=self.full_mask_tensor.shape[:2],
-        )
-
-
-@dataclass
 class ImageGrainCrops:
     """
     Dataclass for storing the crops of grains in an image.
 
     Attributes
     ----------
-    above : GrainCropsDirection | None
-        Grains in the above direction.
-    below : GrainCropsDirection | None
-        Grains in the below direction.
     """
 
-    above: GrainCropsDirection | None
-    below: GrainCropsDirection | None
+    thresholds: list[float]
+    crops: dict[int, GrainCrop]
+    full_mask_tensor: npt.NDArray[np.bool_]
+
+    def __post_init__(self):
+        if self.full_mask_tensor is None or self.full_mask_tensor.size == 0:
+            self._full_mask_tensor = np.array([], dtype=bool)
+        else:
+            self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor).astype(np.bool_)
 
     def __eq__(self, other: object) -> bool:
         """
@@ -891,7 +781,7 @@ class ImageGrainCrops:
         """
         if not isinstance(other, ImageGrainCrops):
             return False
-        return self.above == other.above and self.below == other.below
+        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
 
     def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
         """
@@ -920,22 +810,29 @@ class ImageGrainCrops:
         """
         if not isinstance(other, ImageGrainCrops):
             raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-        if self.above is not None:
-            if self.above != other.above:
-                LOGGER.info("Above grains are different")
-                self.above.debug_locate_difference(other.above)
-        else:
-            if other.above is not None:
-                raise ValueError("Above grains are different")
-        if self.below is not None:
-            if self.below != other.below:
-                LOGGER.info("Below grains are different")
-                self.below.debug_locate_difference(other.below)
-        else:
-            if other.below is not None:
-                raise ValueError("Below grains are different")
-
+        for crop_index, crop in self.crops.items():
+            if crop != other.crops[crop_index]:
+                LOGGER.info(f"Grain crop {crop_index} is different:")
+                crop.debug_locate_difference(other.crops[crop_index])
+        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
+            raise ValueError("Full mask tensor is different")
+        if self.thresholds != other.thresholds:
+            raise ValueError("Thresholds are different")
         LOGGER.info("Cannot find difference between image grain crops")
+
+    def update_full_mask_tensor(self):
+        """Update the full mask tensor from the grain crops."""
+        if len(self.crops) == 0:
+            self.full_mask_tensor = np.array([], dtype=bool)
+        else:
+            self.full_mask_tensor = construct_full_mask_from_graincrops(
+                graincrops=self.crops,
+                image_shape=(
+                    self.full_mask_tensor.shape[0],
+                    self.full_mask_tensor.shape[1],
+                    self.full_mask_tensor.shape[2],
+                ),
+            )
 
 
 @dataclass
