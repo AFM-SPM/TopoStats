@@ -34,16 +34,10 @@ grains:
   grain_crop_padding: 1 # Padding to apply to grains. Needs to be at least 1, more padding may help with unets.
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
   otsu_threshold_multiplier: 1.0
-  threshold_std_dev:
-    below: [10.0] # Thresholds for grains below the image background. List[float].
-    above: [1.0] # Thresholds for grains above the image background. List[float].
-  threshold_absolute:
-    below: [-1.0] # Thresholds for grains below the image background. List[float].
-    above: [1.0] # Thresholds for grains above the image background. List[float].
+  threshold_std_dev: [1.0]
+  threshold_absolute: [1.0]
   direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
-  area_thresholds:
-    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
-    below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
+  area_thresholds: [300, 3000]
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   unet_config:
     model_path: null # Path to a trained U-Net model
