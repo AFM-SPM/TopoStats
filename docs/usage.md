@@ -335,11 +335,11 @@ At the top level of the output directory are a few files produced:
 - `config.yaml` : a copy of the configuration used to process the images.
 - `grain_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
 
-If the `output_stats_file` option has been set to `full` these files will also be produced:
+If the `output_stats` option has been set to `full` the following additional files will be written to the output directory:
 
-- `branch_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+- `output/branch_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
   statistics.
-- `molecule_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
+- `output/molecule_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
 
 **Note:** - If all grains / branch segments of a column have a `None` or `NaN` value, the column will not be present in
 the output `.csv` file.

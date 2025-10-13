@@ -229,9 +229,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "raw"
 
-    output_full_stats = False
-    if config["output_stats_file"] == "full":
-        output_full_stats = True
+    output_full_stats = config["output_stats"] == "full"
 
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()

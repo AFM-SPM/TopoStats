@@ -100,7 +100,11 @@ def create_parser() -> arg.ArgumentParser:
         help="File extension to scan for.",
     )
     parser.add_argument(
-        "--output-stats", dest="output_stats_file", type=str, required=False, help="Full or basic CSV outputs."
+        "--output-stats",
+        dest="output_stats",
+        type=str,
+        required=False,
+        help="'basic' (image and grain) or 'full' (image, grain, branch and molecule) statistics written to CSV.",
     )
     parser.add_argument(
         "--channel",

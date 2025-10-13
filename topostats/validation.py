@@ -60,8 +60,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".top",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
-        "output_stats_file": Or(
-            "basic", "full", error="Invalid value for 'output_stats_file', valid values are 'full' or 'basic'."
+        "output_stats": Or(
+            "basic", "full", error="Invalid value for 'output_stats', valid values are 'full' or 'basic'."
         ),
         "loading": {
             "channel": str,

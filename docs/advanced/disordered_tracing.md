@@ -130,7 +130,7 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 ### Disordered Segment Statistics
 
-An `branch_statistics.csv` file is produced for each image which measures the following metrics from
+A `branch_statistics.csv` file is produced for each image which measures the following metrics from
 each segment in each pruned skeleton:
 
 | Column Name          | Description                                                                                                                | Data Type |
