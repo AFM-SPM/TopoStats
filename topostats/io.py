@@ -7,10 +7,12 @@ import os
 import pickle as pkl
 import re
 import struct
+from argparse import Namespace
 from collections.abc import MutableMapping
 from datetime import datetime
 from importlib import resources
 from pathlib import Path
+from pkgutil import get_data
 from typing import Any, TypeVar
 
 import h5py
@@ -252,7 +254,7 @@ def write_yaml(
             LOGGER.error(exception)
 
 
-def write_config_with_comments(args=None) -> None:
+def write_config_with_comments(args: Namespace = None) -> None:
     """
     Write a sample configuration with in-line comments.
 
@@ -282,21 +284,27 @@ def write_config_with_comments(args=None) -> None:
     # topostats/<sample_type>_config.yaml
     else:
         try:
-            config = (resources.files(__package__) / f"{args.config}_config.yaml").read_text()
+            config = get_data(package=args.config, resource="default_config.yaml")
         except FileNotFoundError as e:
             raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
 
     if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
-        create_config_path = output_dir / f"{filename}.yaml"
+        config_path = output_dir / f"{filename}.yaml"
     else:
-        create_config_path = output_dir / filename
+        config_path = output_dir / filename
 
-    with create_config_path.open("w", encoding="utf-8") as f:
+    if config is None:
+        raise TypeError(
+            f"Configuration for {args.config} module does not appear to exist.\n"
+            f"Check that package {args.config} is installed in your environment."
+        )
+
+    with config_path.open("w", encoding="utf-8") as f:
         f.write(f"# Config file generated {get_date_time()}\n")
         f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
-        f.write(config)
-    LOGGER.info(f"{logger_msg} : {str(create_config_path)}")
-    LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
+        f.write(str(config))
+
+    LOGGER.info(f"{logger_msg} : {str(config_path)}")
 
 
 def save_array(array: npt.NDArray, outpath: Path, filename: str, array_type: str) -> None:
