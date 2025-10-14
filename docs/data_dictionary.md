@@ -49,7 +49,7 @@ The `grain_statistics.csv` file contains details on each grain that has been det
 
 ## `image_statistics.csv`
 
-The `image_statistics.csv` summarises the metrics
+The `image_statistics.csv` contains summary metrics at the individual scan.
 
 | Column / field / feature | Description                                                                                                                                                                                                                                                                  | Type    | Units |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
