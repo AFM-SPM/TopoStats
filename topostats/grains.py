@@ -1008,19 +1008,28 @@ class Grains:
             # )
 
             # temporarily override with a full image unet mask
-            prediction = predict_unet_cats(
-                image=self.image,
-                confidence=0.5,
-                model_image_size=512,
-                image_output_dir=Path(
-                    "/Users/sylvi/topo_data/topostats_2/datasets/topology-plasmids/unet-prediction-debug-images"
-                ),
-                filename=self.filename,
-            )
-            # grab the background (inverse)
-            prediction_background = np.invert(prediction)
-            # turn into a tensor
-            traditional_full_mask_tensor = np.stack([prediction_background, prediction], axis=-1)
+            print(f"@@@@@@ {self.unet_config['model_path']}")
+            if self.unet_config["model_path"] == "catsnet":
+                prediction = predict_unet_cats(
+                    image=self.image,
+                    confidence=self.unet_config["confidence"],
+                    model_image_size=512,
+                    image_output_dir=Path(
+                        "/Users/sylvi/topo_data/topostats_2/datasets/topology-plasmids/unet-prediction-debug-images"
+                    ),
+                    filename=self.filename,
+                )
+                # grab the background (inverse)
+                prediction_background = np.invert(prediction)
+                # turn into a tensor
+                traditional_full_mask_tensor = np.stack([prediction_background, prediction], axis=-1)
+            else:
+                traditional_full_mask_tensor = Grains.multi_class_thresholding(
+                    image=self.image,
+                    thresholds=direction_thresholds,
+                    threshold_direction=direction,
+                    image_name=self.filename,
+                )
 
             self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
@@ -1074,18 +1083,19 @@ class Grains:
                 # 2 etc.
 
                 # Optionally run a user-supplied u-net model on the grains to improve the segmentation
-                if self.unet_config["model_path"] is not None:
-                    # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
-                    # later on along with all the other hardcoded class 1s.
-                    graincrops = Grains.improve_grain_segmentation_unet(
-                        filename=self.filename,
-                        direction=direction,
-                        unet_config=self.unet_config,
-                        graincrops=traditional_graincrops,
-                    )
-                else:
-                    # otherwise use the traditional graincrops
-                    graincrops = traditional_graincrops
+                # if self.unet_config["model_path"] is not None:
+                #     # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
+                #     # later on along with all the other hardcoded class 1s.
+                #     graincrops = Grains.improve_grain_segmentation_unet(
+                #         filename=self.filename,
+                #         direction=direction,
+                #         unet_config=self.unet_config,
+                #         graincrops=traditional_graincrops,
+                #     )
+                # else:
+
+                # otherwise use the traditional graincrops
+                graincrops = traditional_graincrops
                 # Construct full masks from the crops
                 full_mask_tensor = Grains.construct_full_mask_from_graincrops(
                     graincrops=graincrops,
