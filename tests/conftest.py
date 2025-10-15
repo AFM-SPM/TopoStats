@@ -5,6 +5,7 @@
 import importlib.resources as pkg_resources
 import pickle
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -530,6 +531,7 @@ def dummy_graincrop(
         padding=2,
         bbox=(1, 1, 11, 11),
         pixel_to_nm_scaling=1.0,
+        thresholds=(1, 2),
         filename="dummy",
         stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
         height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
@@ -596,6 +598,7 @@ def graincrop_catenanes_0() -> GrainCrop:
         padding=1,
         bbox=(0, 2, 323, 325),
         pixel_to_nm_scaling=0.488,
+        thresholds=(1, 2),
         filename="example_catenanes",
     )
 
@@ -611,6 +614,7 @@ def graincrop_catenanes_1() -> GrainCrop:
         padding=1,
         bbox=(77, 75, 400, 398),
         pixel_to_nm_scaling=0.488,
+        thresholds=(1, 2),
         filename="example_catenanes",
     )
 
@@ -633,7 +637,7 @@ def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> TopoStats:
+def topostats_catenanes_2_4_0(imagegraincrops_catenanes, default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
         image_grain_crops=imagegraincrops_catenanes,
@@ -643,6 +647,7 @@ def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> TopoStats:
         img_path=str(GRAINCROP_DIR),
         image=None,
         image_original=None,
+        config=default_config,
     )
 
 
@@ -657,6 +662,7 @@ def graincrop_rep_int_0() -> GrainCrop:
         padding=1,
         bbox=(19, 4, 341, 326),
         pixel_to_nm_scaling=0.488,
+        thresholds=(1, 2),
         filename="example_rep",
     )
 
@@ -675,7 +681,7 @@ def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> Im
 
 
 @pytest.fixture()
-def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> TopoStats:
+def topostats_rep_int_2_4_0(imagegraincrops_rep_int, default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of example rep_int."""
     return TopoStats(
         image_grain_crops=imagegraincrops_rep_int,
@@ -685,6 +691,7 @@ def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> TopoStats:
         img_path=str(GRAINCROP_DIR),
         image=None,
         image_original=None,
+        config=default_config,
     )
 
 
@@ -703,9 +710,9 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
 
 # IO fixtures
 @pytest.fixture()
-def load_scan_dummy() -> LoadScans:
+def load_scan_dummy(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a dummy LoadScans object for use in testing `.gwy` IO methods."""
-    return LoadScans(img_paths="dummy", channel="dummy")
+    return LoadScans(img_paths="dummy", channel="dummy", config=default_config)
 
 
 @pytest.fixture()
@@ -730,57 +737,57 @@ def load_scan_data(loading_config: dict) -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_spm() -> LoadScans:
+def load_scan_spm(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .spm file."""
-    return LoadScans([RESOURCES / "minicircle.spm"], channel="Height")
+    return LoadScans([RESOURCES / "minicircle.spm"], channel="Height", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_ibw() -> LoadScans:
+def load_scan_ibw(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .ibw file."""
-    return LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee")
+    return LoadScans([RESOURCES / "minicircle2.ibw"], channel="HeightTracee", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_jpk() -> LoadScans:
+def load_scan_jpk(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .jpk file."""
-    return LoadScans([RESOURCES / "file.jpk"], channel="height_trace")
+    return LoadScans([RESOURCES / "file.jpk"], channel="height_trace", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_jpk_qi() -> LoadScans:
+def load_scan_jpk_qi(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .jpk-qi-image file."""
-    return LoadScans([RESOURCES / "file.jpk-qi-image"], channel="height_trace")
+    return LoadScans([RESOURCES / "file.jpk-qi-image"], channel="height_trace", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_gwy() -> LoadScans:
+def load_scan_gwy(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .gwy file."""
-    return LoadScans([RESOURCES / "file.gwy"], channel="ZSensor")
+    return LoadScans([RESOURCES / "file.gwy"], channel="ZSensor", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_stp() -> LoadScans:
+def load_scan_stp(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .stp file."""
-    return LoadScans([RESOURCES / "file.stp"], channel=None)
+    return LoadScans([RESOURCES / "file.stp"], channel=None, config=default_config)
 
 
 @pytest.fixture()
-def load_scan_top() -> LoadScans:
+def load_scan_top(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .top file."""
-    return LoadScans([RESOURCES / "file.top"], channel=None)
+    return LoadScans([RESOURCES / "file.top"], channel=None, config=default_config)
 
 
 @pytest.fixture()
-def load_scan_topostats() -> LoadScans:
+def load_scan_topostats(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .topostats file."""
-    return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel")
+    return LoadScans([RESOURCES / "file.topostats"], channel="dummy_channel", config=default_config)
 
 
 @pytest.fixture()
-def load_scan_asd() -> LoadScans:
+def load_scan_asd(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .asd file."""
-    return LoadScans([RESOURCES / "file.asd"], channel="TP")
+    return LoadScans([RESOURCES / "file.asd"], channel="TP", config=default_config)
 
 
 # Minicircle fixtures

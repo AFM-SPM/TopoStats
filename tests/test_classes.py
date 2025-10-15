@@ -99,14 +99,21 @@ def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> No
     assert dict_almost_equal(dummy_disordered_trace.disordered_trace_to_dict(), expected)
 
 
+@pytest.mark.skip(reason="2025-10-15 - awaiting tests to be written")
+def test_grain_crop_debug_locate_difference() -> None:
+    """Test the GrainCrop.debug_locate_difference() method."""
+    pass
+
+
 def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop.grain_crop_to_dict() method."""
     expected = {
+        "padding": dummy_graincrop.padding,
         "image": dummy_graincrop.image,
         "mask": dummy_graincrop.mask,
-        "padding": dummy_graincrop.padding,
         "bbox": dummy_graincrop.bbox,
         "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
+        "thresholds": dummy_graincrop.thresholds,
         "filename": dummy_graincrop.filename,
         "stats": dummy_graincrop.stats,
         "height_profiles": dummy_graincrop.height_profiles,
@@ -114,6 +121,7 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "disordered_trace": dummy_graincrop.disordered_trace,
         "nodes": dummy_graincrop.nodes,
         "ordered_trace": dummy_graincrop.ordered_trace,
+        "threshold_method": dummy_graincrop.threshold_method,
     }
     np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 
@@ -141,34 +149,19 @@ def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection
     (
         "topostats_object",
         "image_grain_crops",
-        "filename",
-        "pixel_to_nm_scaling",
-        "topostats_version",
         "img_path",
-        "image",
-        "image_original",
     ),
     [
         pytest.param(
             "topostats_catenanes_2_4_0",
             "imagegraincrops_catenanes",
-            "example_catenanes.spm",
-            0.488,
-            "2.4.0",
             str(GRAINCROP_DIR),
-            None,
-            None,
             id="catenane v2.4.0",
         ),
         pytest.param(
             "topostats_rep_int_2_4_0",
             "imagegraincrops_rep_int",
-            "example_rep_int.spm",
-            0.488,
-            "2.4.0",
             str(GRAINCROP_DIR),
-            None,
-            None,
             id="rep_int v2.4.0",
         ),
     ],
@@ -176,12 +169,7 @@ def test_image_grain_crop_to_dict(dummy_graincropsdirection: GrainCropsDirection
 def test_topostats_to_dict(
     topostats_object: TopoStats,
     image_grain_crops: ImageGrainCrops,
-    filename: str,
-    pixel_to_nm_scaling: float,
-    topostats_version: str,
     img_path: str,
-    image: npt.NDArray | None,
-    image_original: npt.NDArray | None,
     request,
 ) -> None:
     """Test conversion of TopoStats object to dictionary."""
@@ -189,14 +177,16 @@ def test_topostats_to_dict(
     image_grain_crops = request.getfixturevalue(image_grain_crops)
     expected = {
         "image_grain_crops": image_grain_crops,
-        "filename": filename,
-        "pixel_to_nm_scaling": pixel_to_nm_scaling,
-        "topostats_version": topostats_version,
+        "filename": topostats_object.filename,
+        "pixel_to_nm_scaling": topostats_object.pixel_to_nm_scaling,
         "img_path": Path(img_path),
-        "image": image,
-        "image_original": image_original,
+        "image": topostats_object.image,
+        "image_original": topostats_object.image_original,
+        "full_mask_tensor": topostats_object.full_mask_tensor,
+        "topostats_version": topostats_object.topostats_version,
+        "config": topostats_object.config,
     }
-    np.testing.assert_array_equal(topostats_object.topostats_to_dict(), expected)
+    assert topostats_object.topostats_to_dict() == expected
 
 
 @pytest.mark.parametrize(
@@ -209,6 +199,7 @@ def test_topostats_to_dict(
         "img_path",
         "image",
         "image_original",
+        "config",
     ),
     [
         pytest.param(
@@ -220,6 +211,7 @@ def test_topostats_to_dict(
             str(GRAINCROP_DIR),
             rng.random((10, 10)),
             rng.random((10, 10)),
+            "default_config",
             id="catenane v2.4.0",
         ),
         pytest.param(
@@ -231,19 +223,21 @@ def test_topostats_to_dict(
             str(GRAINCROP_DIR),
             rng.random((10, 10)),
             rng.random((10, 10)),
+            "default_config",
             id="tep_int v2.4.0",
         ),
     ],
 )
 def test_topostats_eq(
-    topostats_object: TopoStats,
-    image_grain_crops: ImageGrainCrops,
+    topostats_object: str,
+    image_grain_crops: str,
     filename: str,
     pixel_to_nm_scaling: float,
     topostats_version: str,
     img_path: str,
     image: npt.NDArray | None,
     image_original: npt.NDArray | None,
+    config: str,
     request,
 ) -> None:
     """Test the TopoStats.__eq__ method."""
@@ -251,7 +245,15 @@ def test_topostats_eq(
     topostats_object.image = image
     topostats_object.image_original = image_original
     image_grain_crops = request.getfixturevalue(image_grain_crops)
+    config = request.getfixturevalue(config)
     expected = TopoStats(
-        image_grain_crops, filename, pixel_to_nm_scaling, img_path, image, image_original, topostats_version
+        image_grain_crops=image_grain_crops,
+        filename=filename,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+        img_path=img_path,
+        image=image,
+        image_original=image_original,
+        topostats_version=topostats_version,
+        config=config,
     )
     assert topostats_object == expected
