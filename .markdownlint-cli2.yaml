@@ -9,6 +9,7 @@ config:
     allowed_elements:
       - div
       - br
+      - hr
 
 globs:
   - "**/*.md"

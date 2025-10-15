@@ -230,8 +230,8 @@ orig_grain:
   mask_cmap: "blue"
   core_set: false
   module: "disordered_tracing"
-smoothed_grain:
-  filename: "21-smoothed_grains"
+smoothed_mask:
+  filename: "21-smoothed_mask"
   title: "Image with Gaussian-Smoothed Threshold Mask"
   image_type: "non-binary"
   mask_cmap: "blue"
