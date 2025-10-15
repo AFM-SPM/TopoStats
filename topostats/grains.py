@@ -451,7 +451,7 @@ class Grains:
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
             # Extract GrainCrops from the full mask tensor
-            traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
+            traditional_graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
                 full_mask_tensor=traditional_full_mask_tensor,
                 padding=self.grain_crop_padding,
@@ -684,6 +684,10 @@ class Grains:
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
             else:
+                # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
+                #                      we have setter methods so could just update the .mask attribute in
+                #                      place (could maybe set it above?)
+                # graincrop.mask = predicted_mask
                 new_graincrops[grain_number] = GrainCrop(
                     image=graincrop.image,
                     mask=predicted_mask,
@@ -691,8 +695,13 @@ class Grains:
                     bbox=graincrop.bbox,
                     pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                     filename=graincrop.filename,
-                    height_profiles=None,
-                    stats=None,
+                    height_profiles=graincrop.height_profiles,
+                    stats=graincrop.stats,
+                    disordered_trace=graincrop.disordered_trace,
+                    nodes=graincrop.nodes,
+                    ordered_trace=graincrop.ordered_trace,
+                    threshold_method=graincrop.threshold_method,
+                    thresholds=graincrop.thresholds,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -1497,6 +1506,10 @@ class Grains:
             ):
                 continue
 
+            # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
+            #                      we have setter methods so could just update the .mask attribute in
+            #                      place (could perhaps set directly above?)
+            # graincrop.mask = largest_only_single_grain_mask_tensor
             # If passed all vetting steps, add to the dictionary of passed grain crops
             passed_graincrops[grain_number] = GrainCrop(
                 image=graincrop.image,
@@ -1505,8 +1518,13 @@ class Grains:
                 bbox=graincrop.bbox,
                 pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                 filename=graincrop.filename,
-                height_profiles=None,
-                stats=None,
+                height_profiles=graincrop.height_profiles,
+                stats=graincrop.stats,
+                disordered_trace=graincrop.disordered_trace,
+                nodes=graincrop.nodes,
+                ordered_trace=graincrop.ordered_trace,
+                threshold_method=graincrop.threshold_method,
+                thresholds=graincrop.thresholds,
             )
 
         return passed_graincrops
@@ -1585,8 +1603,8 @@ class Grains:
         # Update background class and return
         return Grains.update_background_class(full_mask_tensor)
 
-    @staticmethod
     def extract_grains_from_full_image_tensor(
+        self,
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
         padding: int,
@@ -1698,6 +1716,11 @@ class Grains:
                 filename=filename,
                 height_profiles=None,
                 stats=None,
+                disordered_trace=None,
+                nodes=None,
+                ordered_trace=None,
+                threshold_method=self.threshold_method,
+                thresholds=self.thresholds,
             )
 
         return graincrops

@@ -695,6 +695,8 @@ class LoadScans:
         Path to a valid AFM scan to load.
     channel : str
         Image channel to extract from the scan.
+    config : dict[str, Any]
+        Dictionary of all configuration options.
     extract : str
         What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
        ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
@@ -705,6 +707,7 @@ class LoadScans:
         self,
         img_paths: list[str | Path],
         channel: str,
+        config: dict[str, Any],
         extract: str = "all",
     ):
         """
@@ -716,6 +719,8 @@ class LoadScans:
             Path to a valid AFM scan to load.
         channel : str
             Image channel to extract from the scan.
+        config : dict[str, Any]
+            Dictionary of all configuration options.
         extract : str
             What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
            ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
@@ -734,6 +739,7 @@ class LoadScans:
         self.grain_trace_data = {}
         self.img_dict: dict[str, TopoStats] = {}
         self.MINIMUM_IMAGE_SIZE = 10
+        self.config = config
 
     def load_spm(self) -> tuple[npt.NDArray, float]:
         """
@@ -1000,6 +1006,7 @@ class LoadScans:
             img_path=self.img_path.with_name(filename),
             image=None,
             image_original=image,
+            config=self.config,
         )
 
     def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
@@ -1278,6 +1285,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                     else:
                         nodes = None
                     ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+                    threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
+                    thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
                     if direction == "above":
                         grain_crop_direction_above.crops[grain] = GrainCrop(
                             image=image,
@@ -1292,6 +1301,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                             disordered_trace=disordered_trace,
                             nodes=nodes,
                             ordered_trace=ordered_trace,
+                            threshold_method=threshold_method,
+                            thresholds=thresholds,
                         )
                     if direction == "below":
                         grain_crop_direction_below.crops[grain] = GrainCrop(
@@ -1307,6 +1318,8 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                             disordered_trace=disordered_trace,
                             nodes=nodes,
                             ordered_trace=ordered_trace,
+                            threshold_method=threshold_method,
+                            thresholds=thresholds,
                         )
             else:
                 if direction == "above":
@@ -1321,6 +1334,7 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         image_grain_crops = None
     else:
         image_grain_crops = ImageGrainCrops(above=grain_crop_direction_above, below=grain_crop_direction_below)
+    config = dictionary["config"] if "config" in dictionary.keys() else None
     return TopoStats(
         image_grain_crops=image_grain_crops,
         filename=dictionary["filename"],
@@ -1329,6 +1343,7 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         image=dictionary["image"],
         image_original=dictionary["image_original"],
         topostats_version=dictionary["topostats_version"],
+        config=config,
     )
 
 

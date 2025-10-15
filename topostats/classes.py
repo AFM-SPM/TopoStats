@@ -22,6 +22,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-lines
+# F811 - redefined-while-unused : we disable this as we want to have getter/setter methods for each attribute
+# ruff: noqa: F811
 
 
 class GrainCrop:
@@ -40,6 +42,8 @@ class GrainCrop:
         Bounding box of the crop including padding.
     pixel_to_nm_scaling : float
         Pixel to nanometre scaling factor for the crop.
+    thresholds : float
+        Thresholds used to find the grain.
     filename : str
         Filename of the image from which the crop was taken.
     skeleton : npt.NDArray[np.bool_]
@@ -54,6 +58,8 @@ class GrainCrop:
         Dictionary of grain nodes.
     ordered_trace : OrderedTrace
         An ordered trace for the grain.
+    threshold_method : str
+        Threshold method used to find grains.
     """
 
     def __init__(
@@ -63,6 +69,7 @@ class GrainCrop:
         padding: int,
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
+        thresholds: list[float],
         filename: str,
         skeleton: npt.NDArray[np.bool_] | None = None,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
@@ -70,6 +77,7 @@ class GrainCrop:
         disordered_trace: DisorderedTrace | None = None,
         nodes: dict[str, Node] | None = None,
         ordered_trace: OrderedTrace | None = None,
+        threshold_method: str | None = None,
     ):
         """
         Initialise the class.
@@ -86,6 +94,8 @@ class GrainCrop:
             Bounding box of the crop including padding.
         pixel_to_nm_scaling : float
             Pixel to nanometre scaling factor for the crop.
+        thresholds : list[float]
+            A list of thresholds used to identify the grain.
         filename : str
             Filename of the image from which the crop was taken.
         skeleton : npt.NDArray[np.bool_]
@@ -96,10 +106,12 @@ class GrainCrop:
             Dictionary of grain statistics.
         disordered_trace : DisorderedTrace
             A disordered trace for the current grain.
-        nodes : dict[int, Node]
+        nodes : dict[int, Node] | None
             Grain nodes.
-        ordered_trace : OrderedTrace
+        ordered_trace : OrderedTrace | None
             An ordered trace for the grain.
+        threshold_method : str
+            Threshold method used to find grains.
         """
         self.padding = padding
         self.image = image
@@ -108,6 +120,7 @@ class GrainCrop:
         self.mask = mask
         self.bbox = bbox
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.thresholds = thresholds
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
@@ -115,6 +128,89 @@ class GrainCrop:
         self.disordered_trace: DisorderedTrace | None = disordered_trace
         self.nodes: dict[int, Node] | None = nodes
         self.ordered_trace: OrderedTrace | None = ordered_trace
+        self.threshold_method: str = threshold_method
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_padding": self._padding,
+            "_image": self._image,
+            "_mask": self._mask,
+            "_bbox": self._bbox,
+            "_pixel_to_nm_scaling": self._pixel_to_nm_scaling,
+            "_thresholds": self._thresholds,
+            "_filename": self._filename,
+            "_height_profiles": self._height_profiles,
+            "_stats": self._stats,
+            "_skeleton": self._skeleton,
+            "_disordered_trace": self._disordered_trace,
+            "_nodes": self._nodes,
+            "_ordered_trace": self._ordered_trace,
+            "_threshold_method": self._threshold_method,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._padding = state["_padding"]
+        self._image = state["_image"]
+        self._mask = state["_mask"]
+        self._bbox = state["_bbox"]
+        self._pixel_to_nm_scaling = state["_pixel_to_nm_scaling"]
+        self._thresholds = state["_thresholds"]
+        self._filename = state["_filename"]
+        self._height_profiles = state["_height_profiles"]
+        self._stats = state["_stats"]
+        self._skeleton = state["_skeleton"]
+        self._disordered_trace = state["_disordered_trace"]
+        self._nodes = state["_nodes"]
+        self._ordered_trace = state["_ordered_trace"]
+        self._threshold_method = state["_threshold_method"]
+
+    def __eq__(self, other: GrainCrop) -> bool:
+        """
+        Check if two GrainCrop objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
+        if not isinstance(other, GrainCrop):
+            return False
+        return (
+            np.array_equal(self.image, other.image)
+            and np.array_equal(self.mask, other.mask)
+            and self.padding == other.padding
+            and self.bbox == other.bbox
+            and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
+            and self.thresholds == other.thresholds
+            and self.filename == other.filename
+            and self.stats == other.stats
+            and self.height_profiles == other.height_profiles
+            and self.disordered_trace == other.disordered_trace
+            and np.array_equal(self.skeleton, other.skeleton)
+            and self.nodes == other.nodes
+            and self.threshold_method == other.threshold_method
+        )
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -293,6 +389,30 @@ class GrainCrop:
         self._pixel_to_nm_scaling = value
 
     @property
+    def thresholds(self) -> list[float]:
+        """
+        Getter for the ``thresholds`` attribute.
+
+        Returns
+        -------
+        list[float]
+            Returns the value of ``thresholds``.
+        """
+        return self._thresholds
+
+    @thresholds.setter
+    def thresholds(self, value: list[float]) -> None:
+        """
+        Setter for the ``thresholds`` attribute.
+
+        Parameters
+        ----------
+        value : list[float]
+            Value to set for ``thresholds``.
+        """
+        self._thresholds = value
+
+    @property
     def filename(self) -> str:
         """
         Getter for the ``filename`` attribute.
@@ -315,6 +435,30 @@ class GrainCrop:
             Image ``filename`` attribute.
         """
         self._filename = value
+
+    @property
+    def skeleton(self) -> npt.NDArray:
+        """
+        Getter for the ``skeleton`` attribute.
+
+        Returns
+        -------
+        npt.NDArray
+            Returns the value of ``skeleton``.
+        """
+        return self._skeleton
+
+    @skeleton.setter
+    def skeleton(self, value: npt.NDArray) -> None:
+        """
+        Setter for the ``skeleton`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Value to set for ``skeleton``.
+        """
+        self._skeleton = value
 
     @property
     def height_profiles(self) -> npt.NDArray:
@@ -436,35 +580,29 @@ class GrainCrop:
         """
         self._ordered_trace = value
 
-    def __eq__(self, other: GrainCrop) -> bool:
+    @property
+    def threshold_method(self) -> list[float]:
         """
-        Check if two GrainCrop objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
+        The ``threshold_method`` used to find the grain.
 
         Returns
         -------
-        bool
-            True if the objects are equal, False otherwise.
+        list[float]
+            Returns the value of ``threshold_method``.
         """
-        if not isinstance(other, GrainCrop):
-            return False
-        return (
-            np.array_equal(self.image, other.image)
-            and np.array_equal(self.mask, other.mask)
-            and self.padding == other.padding
-            and self.bbox == other.bbox
-            and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
-            and self.filename == other.filename
-            and self.stats == other.stats
-            and self.height_profiles == other.height_profiles
-            and self.disordered_trace == other.disordered_trace
-            and np.array_equal(self.skeleton, other.skeleton)
-            and self.nodes == other.nodes
-        )
+        return self._threshold_method
+
+    @threshold_method.setter
+    def threshold_method(self, value: list[float]) -> None:
+        """
+        Setter for the ``threshold_method`` attribute.
+
+        Parameters
+        ----------
+        value : list[float]
+            Value to set for ``threshold_method``.
+        """
+        self._threshold_method = value
 
     def grain_crop_to_dict(self) -> dict[str, Any]:
         """
@@ -477,7 +615,7 @@ class GrainCrop:
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
 
-    def debug_locate_difference(self, other: object) -> None:  # noqa: C901
+    def debug_locate_difference(self, other: object) -> None:  # noqa: C901 # pylint: disable=too-many-branches
         """
         Debug function to find the culprit when two GrainCrop objects are not equal.
 
@@ -494,25 +632,51 @@ class GrainCrop:
         if not isinstance(other, GrainCrop):
             raise ValueError(f"Cannot compare GrainCrop with {type(other)}")
         if not np.array_equal(self.image, other.image):
-            raise ValueError("Image is different")
+            raise ValueError(f"Image is different\n self.image  : {self.image}\n other.image : {other.image}")
         if not np.array_equal(self.mask, other.mask):
-            raise ValueError("Mask is different")
+            raise ValueError(f"Mask is different\n self.mask  : {self.mask}\n other.mask : {other.mask}")
         if self.padding != other.padding:
-            raise ValueError("Padding is different")
+            raise ValueError(f"Padding is different\n self.padding  : {self.padding}\n other.padding : {other.padding}")
         if self.bbox != other.bbox:
-            raise ValueError("Bounding box is different")
+            raise ValueError(f"Bounding box is different\n self.bbox  : {self.bbox}\n other.bbox : {other.bbox}")
         if self.pixel_to_nm_scaling != other.pixel_to_nm_scaling:
-            raise ValueError("Pixel to nm scaling is different")
+            raise ValueError(
+                "Pixel to nm scaling is different\n"
+                f" self.pixel_to_nm_scaling  : {self.pixel_to_nm_scaling}\n"
+                f" other.pixel_to_nm_scaling : {other.pixel_to_nm_scaling}"
+            )
+        if self.thresholds != other.thresholds:
+            raise ValueError(
+                f"Thresholds differ\n self.thresholds  : {self.thresholds}\n other.thresholds : {other.thresholds}"
+            )
         if self.filename != other.filename:
-            raise ValueError("Filename is different")
+            raise ValueError(
+                f"Filename is different\n self.filename  : {self.filename}\n other.filename : {other.filename}"
+            )
         if self.height_profiles != other.height_profiles:
-            raise ValueError("Height profiles are different")
+            raise ValueError(
+                "Height profiles are different\n"
+                f" self.height_profiles  : {self.height_profiles}\n"
+                f" other.height_profiles : {other.height_profiles}"
+            )
         if self.skeleton != other.skeleton:
-            raise ValueError("Skeleton is different")
+            raise ValueError(
+                f"Skeleton is different\n self.skeleton  : {self.skeleton}\n other.skeleton : {other.skeleton}"
+            )
         if self.disordered_trace != other.disordered_trace:
-            raise ValueError("Disordered traces are different")
+            raise ValueError(
+                "Disordered traces are different\n"
+                f" self.disordered_trace  : {self.disordered_trace}\n"
+                f" other.disordered_trace : {other.disordered_trace}"
+            )
         if self.nodes != other.nodes:
-            raise ValueError("Nodes are different")
+            raise ValueError(f"Nodes are different\n self.nodes  : {self.nodes}\n other.nodes : {other.nodes}")
+        if self.threshold_method != other.threshold_method:
+            raise ValueError(
+                "Threshold Method is different\n"
+                f" self.threshold_method  : {self.threshold_method}\n"
+                f" other.threshold_method : {other.threshold_method}"
+            )
         LOGGER.info("Cannot find difference between graincrops")
 
 
@@ -535,7 +699,7 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     return array
 
 
-@dataclass()
+@dataclass
 class DisorderedTrace:
     """
     Dataclass for storing the disordered tracing data.
@@ -554,11 +718,43 @@ class DisorderedTrace:
         Mean grain width in nanometres.
     """
 
-    images: dict[str : npt.NDArray]
-    grain_endpoints: npt.int64
-    grain_junctions: npt.int64
-    total_branch_length: float
-    grain_width_mean: float
+    images: dict[str : npt.NDArray] = None
+    grain_endpoints: npt.int64 = None
+    grain_junctions: npt.int64 = None
+    total_branch_length: float = None
+    grain_width_mean: float = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_images": self._images,
+            "_grain_endpoints": self._grain_endpoints,
+            "_grain_junctions": self._grain_junctions,
+            "_total_branch_length": self._total_branch_length,
+            "_grain_width_mean": self._grain_width_mean,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._images = state["_images"]
+        self._grain_endpoints = state["_grain_endpoints"]
+        self._grain_junctions = state["_grain_junctions"]
+        self._total_branch_length = state["_total_branch_length"]
+        self._grain_width_mean = state["_grain_width_mean"]
 
     def __str__(self) -> str:
         """
@@ -759,8 +955,31 @@ class GrainCropsDirection:
         Grain crops.
     """
 
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
+    crops: dict[int, GrainCrop] = None
+    full_mask_tensor: npt.NDArray[np.bool_] = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {"_crops": self._crops, "_full_mask_tensor": self._full_mask_tensor}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._crops = state["_crops"]
+        self._full_mask_tensor = state["_full_mask_tensor"]
 
     def __post_init__(self):
         """
@@ -772,6 +991,24 @@ class GrainCropsDirection:
             If the full mask tensor shape is invalid.
         """
         self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two GrainCropsDirection objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Object to compare to.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal, False otherwise.
+        """
+        if not isinstance(other, GrainCropsDirection):
+            return False
+        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
 
     @property
     def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
@@ -797,23 +1034,29 @@ class GrainCropsDirection:
         """
         self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
 
-    def __eq__(self, other: object) -> bool:
+    @property
+    def crops(self) -> dict[int, GrainCrop]:
         """
-        Check if two GrainCropsDirection objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
+        Getter for the ``crops`` attribute.
 
         Returns
         -------
-        bool
-            True if the objects are equal, False otherwise.
+        dict[int, GrainCrop]
+            Returns the value of ``crops``.
         """
-        if not isinstance(other, GrainCropsDirection):
-            return False
-        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
+        return self._crops
+
+    @crops.setter
+    def crops(self, value: dict[int, GrainCrop]) -> None:
+        """
+        Setter for the ``crops`` attribute.
+
+        Parameters
+        ----------
+        value : dict[int, GrainCrop]
+            Value to set for ``crops``.
+        """
+        self._crops = value
 
     def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
         """
@@ -872,8 +1115,31 @@ class ImageGrainCrops:
         Grains in the below direction.
     """
 
-    above: GrainCropsDirection | None
-    below: GrainCropsDirection | None
+    above: GrainCropsDirection | None = None
+    below: GrainCropsDirection | None = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {"_above": self._above, "_below": self._below}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._above = state["_above"]
+        self._below = state["_below"]
 
     def __eq__(self, other: object) -> bool:
         """
@@ -892,6 +1158,54 @@ class ImageGrainCrops:
         if not isinstance(other, ImageGrainCrops):
             return False
         return self.above == other.above and self.below == other.below
+
+    @property
+    def above(self) -> GrainCropsDirection:
+        """
+        Getter for the ``above`` attribute.
+
+        Returns
+        -------
+        GrainCropsDirection
+            Returns the value of ``above``.
+        """
+        return self._above
+
+    @above.setter
+    def above(self, value: GrainCropsDirection) -> None:
+        """
+        Setter for the ``above`` attribute.
+
+        Parameters
+        ----------
+        value : GrainCropsDirection
+            Value to set for ``above``.
+        """
+        self._above = value
+
+    @property
+    def below(self) -> GrainCropsDirection:
+        """
+        Getter for the ``below`` attribute.
+
+        Returns
+        -------
+        GrainCropsDirection
+            Returns the value of ``below``.
+        """
+        return self._below
+
+    @below.setter
+    def below(self, value: GrainCropsDirection) -> None:
+        """
+        Setter for the ``below`` attribute.
+
+        Parameters
+        ----------
+        value : GrainCropsDirection
+            Value to set for ``below``.
+        """
+        self._below = value
 
     def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
         """
@@ -957,17 +1271,65 @@ class TopoStats:
         Flattened image (post ``Filter()``).
     image_original : npt.NDArray | None
         Original image.
+    full_mask_tensor : npt.NDArray
+        Tensor mask for the full image.
     topostats_version : str | None
         TopoStats version.
+    config : dict[str, Any] | None
+        Configuration used when processing the grain.
     """
 
-    image_grain_crops: ImageGrainCrops | None
-    filename: str | None
-    pixel_to_nm_scaling: str | None
-    img_path: Path | str | None
-    image: npt.NDArray | None
-    image_original: npt.NDArray | None
-    topostats_version: str | None
+    # @ns-rse 2025-10-10 : This will switch to dict[int, GrainCrop] when we remove ImageGrainCrops and
+    #                      GrainCropsDirection
+    image_grain_crops: ImageGrainCrops | None = None
+    filename: str | None = None
+    pixel_to_nm_scaling: str | None = None
+    img_path: Path | str | None = None
+    image: npt.NDArray | None = None
+    image_original: npt.NDArray | None = None
+    full_mask_tensor: npt.NDArray | None = None
+    topostats_version: str | None = None
+    config: dict[str, Any] | None = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_image_grain_crops": self._image_grain_crops,
+            "_filename": self._filename,
+            "_pixel_to_nm_scaling": self._pixel_to_nm_scaling,
+            "_img_path": self._img_path,
+            "_image": self._image,
+            "_image_original": self._image_original,
+            "_full_mask_tensor": self._full_mask_tensor,
+            "_topostats_version": self._topostats_version,
+            "_config": self._config,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._image_grain_crops = state["_image_grain_crops"]
+        self._filename = state["_filename"]
+        self._pixel_to_nm_scaling = state["_pixel_to_nm_scaling"]
+        self._img_path = state["_img_path"]
+        self._image = state["_image"]
+        self._image_original = state["_image_original"]
+        self._full_mask_tensor = state["_full_mask_tensor"]
+        self._topostats_version = state["_topostats_version"]
+        self._config = state["_config"]
 
     def __eq__(self, other: object) -> bool:
         """
@@ -993,6 +1355,8 @@ class TopoStats:
             and self.img_path == other.img_path
             and np.all(self.image == other.image)
             and np.all(self.image_original == other.image_original)
+            and self.topostats_version == other.topostats_version
+            and self.config == other.config
         )
 
     @property
@@ -1046,7 +1410,7 @@ class TopoStats:
     @property
     def pixel_to_nm_scaling(self) -> str:
         """
-        Getter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Returns
         -------
@@ -1058,7 +1422,7 @@ class TopoStats:
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: str) -> None:
         """
-        Setter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Parameters
         ----------
@@ -1140,6 +1504,30 @@ class TopoStats:
         self._image_original = value
 
     @property
+    def full_mask_tensor(self) -> npt.NDArray:
+        """
+        Getter for the ``full_mask_tensor`` attribute.
+
+        Returns
+        -------
+        npt.NDArray
+            Returns the value of ``full_mask_tensor``.
+        """
+        return self._full_mask_tensor
+
+    @full_mask_tensor.setter
+    def full_mask_tensor(self, value: npt.NDArray) -> None:
+        """
+        Setter for the ``full_mask_tensor`` attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray
+            Value to set for ``full_mask_tensor``.
+        """
+        self._full_mask_tensor = value
+
+    @property
     def topostats_version(self) -> str:
         """
         Getter for the ``topostats_version`` attribute, post filtering.
@@ -1162,6 +1550,32 @@ class TopoStats:
             Topostats version.
         """
         self._topostats_version = value
+
+    @property
+    def config(self) -> dict[str, Any]:
+        """
+        Configuration used when processing the image.
+
+        This includes the method and thresholds for filtering, Gaussian blurring and scar removal.
+
+        Returns
+        -------
+        dict[str, Any]
+            Returns the value of ``filter_config``.
+        """
+        return self._config
+
+    @config.setter
+    def config(self, value: dict[str, Any]) -> None:
+        """
+        Setter for the ``config`` attribute.
+
+        Parameters
+        ----------
+        value : dict[str, Any]
+            Value to set for ``config``.
+        """
+        self._config = value
 
     def topostats_to_dict(self) -> dict[str, str | ImageGrainCrops | npt.NDArray]:
         """
@@ -1194,12 +1608,44 @@ class MatchedBranch:
         Angle between branches ???
     """
 
-    ordered_coords: npt.NDArray[np.int32]
-    heights: npt.NDArray[np.number]
-    distances: npt.NDArray[np.number]
-    fwhm: dict[str, np.float64 | tuple[np.float64]]
-    angles: np.float64
+    ordered_coords: npt.NDArray[np.int32] = None
+    heights: npt.NDArray[np.number] = None
+    distances: npt.NDArray[np.number] = None
+    fwhm: dict[str, np.float64 | tuple[np.float64]] = None
+    angles: np.float64 = None
     # ns-rse 2025-10-07 : Need to add check types of attributes and checks that they are valid
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_ordered_coords": self._ordered_coords,
+            "_heights": self._heights,
+            "_distances": self._distances,
+            "_fwhm": self._fwhm,
+            "_angles": self._angles,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._ordered_coords = state["_ordered_coords"]
+        self._heights = state["_heights"]
+        self._distances = state["_distances"]
+        self._fwhm = state["_fwhm"]
+        self._angles = state["_angles"]
 
     def __str__(self) -> str:
         """
@@ -1379,16 +1825,58 @@ class Node:
         Numpy array of averaged mask.
     """
 
-    error: bool | None
-    pixel_to_nm_scaling: np.float64 | None
-    branch_stats: dict[int, MatchedBranch] | None
-    unmatched_branch_stats: dict | None
-    node_coords: dict[str, dict[str, npt.NDArray[np.int32]]] | None
-    confidence: np.float64 | None
-    reduced_node_area: np.float64 | None
-    node_area_skeleton: npt.NDArray[np.int32] | None
-    node_branch_mask: npt.NDArray[np.int32] | None
-    node_avg_mask: npt.NDArray[np.int32] | None
+    error: bool | None = None
+    pixel_to_nm_scaling: np.float64 | None = None
+    branch_stats: dict[int, MatchedBranch] | None = None
+    unmatched_branch_stats: dict | None = None
+    node_coords: dict[str, dict[str, npt.NDArray[np.int32]]] | None = None
+    confidence: np.float64 | None = None
+    reduced_node_area: np.float64 | None = None
+    node_area_skeleton: npt.NDArray[np.int32] | None = None
+    node_branch_mask: npt.NDArray[np.int32] | None = None
+    node_avg_mask: npt.NDArray[np.int32] | None = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_error": self._error,
+            "_pixel_to_nm_scaling": self._pixel_to_nm_scaling,
+            "_branch_stats": self._branch_stats,
+            "_unmatched_branch_stats": self._unmatched_branch_stats,
+            "_node_coords": self._node_coords,
+            "_confidence": self._confidence,
+            "_reduced_node_area": self._reduced_node_area,
+            "_node_area_skeleton": self._node_area_skeleton,
+            "_node_branch_mask": self._node_branch_mask,
+            "_node_avg_mask": self._node_avg_mask,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._error = state["_error"]
+        self._pixel_to_nm_scaling = state["_pixel_to_nm_scaling"]
+        self._branch_stats = state["_branch_stats"]
+        self._unmatched_branch_stats = state["_unmatched_branch_stats"]
+        self._node_coords = state["_node_coords"]
+        self._confidence = state["_confidence"]
+        self._reduced_node_area = state["_reduced_node_area"]
+        self._node_area_skeleton = state["_node_area_skeleton"]
+        self._node_branch_mask = state["_node_branch_mask"]
+        self._node_avg_mask = state["_node_avg_mask"]
 
     def __str__(self) -> str:
         """
@@ -1436,7 +1924,7 @@ class Node:
     @property
     def pixel_to_nm_scaling(self) -> np.float64:
         """
-        Getter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Returns
         -------
@@ -1448,7 +1936,7 @@ class Node:
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: np.float64) -> None:
         """
-        Setter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Parameters
         ----------
@@ -1684,14 +2172,52 @@ class OrderedTrace:
         Errors encountered?
     """
 
-    ordered_trace_data: dict[int, Molecule] | None
-    tracing_stats: dict | None
-    grain_molstats: Any | None
-    molecules: int | None
-    writhe: str | None
-    pixel_to_nm_scaling: np.float64 | None
-    images: dict[str, npt.NDArray] | None
-    error: bool | None
+    ordered_trace_data: dict[int, Molecule] | None = None
+    tracing_stats: dict | None = None
+    grain_molstats: Any | None = None
+    molecules: int | None = None
+    writhe: str | None = None
+    pixel_to_nm_scaling: np.float64 | None = None
+    images: dict[str, npt.NDArray] | None = None
+    error: bool | None = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_ordered_trace_data": self.ordered_trace_data,
+            "_tracing_stats": self.tracing_stats,
+            "_grain_molstats": self.grain_molstats,
+            "_molecules": self.molecules,
+            "_writhe": self.writhe,
+            "_pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "_images": self.images,
+            "_error": self.error,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._ordered_trace_data = state["ordered_trace_data"]
+        self._tracing_stats = state["tracing_stats"]
+        self._grain_molstats = state["grain_molstats"]
+        self._molecules = state["molecules"]
+        self._writhe = state["writhe"]
+        self._pixel_to_nm_scaling = state["pixel_to_nm_scaling"]
+        self._images = state["images"]
+        self._error = state["error"]
 
     def __str__(self) -> str:
         """
@@ -1834,7 +2360,7 @@ class OrderedTrace:
     @property
     def pixel_to_nm_scaling(self) -> np.float64:
         """
-        Getter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Returns
         -------
@@ -1846,7 +2372,7 @@ class OrderedTrace:
     @pixel_to_nm_scaling.setter
     def pixel_to_nm_scaling(self, value: np.float64) -> None:
         """
-        Setter for the ``pixel_to_nm_scaling`` attribute.
+        Pixel to nm scaling.
 
         Parameters
         ----------
@@ -1919,12 +2445,46 @@ class OrderedTrace:
 class Molecule:
     """Class for Molecules identified during ordered tracing."""
 
-    circular: str | None
-    topology: str | None
-    topology_flip: Any | None
-    ordered_coords: npt.NDArray | None
-    heights: npt.NDArray | None
-    distances: npt.NDArray | None
+    circular: str | None = None
+    topology: str | None = None
+    topology_flip: Any | None = None
+    ordered_coords: npt.NDArray | None = None
+    heights: npt.NDArray | None = None
+    distances: npt.NDArray | None = None
+
+    def __getstate__(self) -> dict[str, Any]:
+        """
+        Get the state of the class.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary of the current state of the classes attributes.
+        """
+        return {
+            "_circular": self._circular,
+            "_topology": self._topology,
+            "_topology_flip": self._topology_flip,
+            "_ordered_coords": self._ordered_coords,
+            "_heights": self._heights,
+            "_distances": self._distances,
+        }
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        """
+        Set the state of the class.
+
+        Parameters
+        ----------
+        state : dict[str, Any]
+            A dictionary holding the state of all parameters for the class.
+        """
+        self._circular = state["_circular"]
+        self._topology = state["_topology"]
+        self._topology_flip = state["_topology_flip"]
+        self._ordered_coords = state["_ordered_coords"]
+        self._heights = state["_heights"]
+        self._distances = state["_distances"]
 
     @property
     def circular(self) -> bool:
