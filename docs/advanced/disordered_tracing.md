@@ -14,7 +14,7 @@ branches.
 ![object mask to pruned skeleton](../_static/images/disordered_tracing/overview.png)
 
 This module measures the number of junctions and endpoints for each pruned skeleton object and appends these columns to
-the `all_statistics.csv`. In addition, the `all_disordered_segment_statistics.csv` file is produced which measures the
+the `grain_statistics.csv`. In addition, the `branch_statistics.csv` file is produced which measures the
 length, type, connections, and pixel value (typically height); minimum, middle, median, mean and standard deviation for
 each skeleton segment between junctions using [Skan](https://skeleton-analysis.org/stable/index.html). The branch types
 are given by:
@@ -130,7 +130,7 @@ For each grain, the following new columns are added to the `grainstats.csv` file
 
 ### Disordered Segment Statistics
 
-An `all_disordered_segment_statistics.csv` file is produced for each image which measures the following metrics from
+A `branch_statistics.csv` file is produced for each image which measures the following metrics from
 each segment in each pruned skeleton:
 
 | Column Name          | Description                                                                                                                | Data Type |
@@ -162,7 +162,7 @@ Images produced by the `plotting.image_set: all` for this module are:
 - `22-original_skeletons` - Skeletonised mask, used to ensure the skeletons follow the underlying structures. Used to
   check if the skeletonisation parameters are suitable.
 - `23-branch_indexes` - An integer mask of the pruned skeleton with branch pixel values matching the index value in the
-  data. Used to cross reference the `all_disordered_segment_statistics.csv` data with an image. Using the default
+  data. Used to cross reference the `branch_statistics.csv` data with an image. Using the default
   colourmap for this (viridris), darker (purple) colours are lower indexes, and brighter (yellow) colours are higher.
 - `24-branch_types` - An integer mask of the pruned skeleton with branch pixel values matching the `branch-type`
   (numbers and definitions in the "At a Glance" section). This can be used to count and check if the skeletonisation

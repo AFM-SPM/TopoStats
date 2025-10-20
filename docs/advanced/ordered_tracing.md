@@ -16,7 +16,7 @@ NodeStats.
 This module orders the disordered trace pixel-by-pixel (`topostats` method) or segment-by-segment (`nodestats` method),
 giving direction to the trace and creating a path to follow. It adds the number of identified molecules (found by
 restarting the trace when using the `nodestats` method) and whether the trace contains endpoints and is therefore
-circular or not to the `all_statistics.csv`.
+circular or not to the `grain_statistics.csv`.
 
 Some quick FYI's:
 
