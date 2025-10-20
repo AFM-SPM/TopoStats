@@ -184,6 +184,7 @@ exclude = [
   "dist",
   "docs/conf.py",
   "node_modules",
+  "notebooks/*.py",
   "tests/tracing/test_dnacurvature.py",
   "topostats/plotting.py",
   "topostats/tracing/tracingfuncs.py",
