@@ -19,11 +19,11 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
+from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
     dict_to_json,
     find_files,
-    merge_mappings,
     read_yaml,
     save_folder_grainstats,
     write_yaml,
@@ -42,7 +42,6 @@ from topostats.processing import (
     run_ordered_tracing,
     run_splining,
 )
-from topostats.utils import update_config, update_plotting_config
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
@@ -57,49 +56,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-nested-blocks
-
-
-def reconcile_config_args(args: argparse.Namespace | None) -> dict:
-    """
-    Reconcile command line arguments with the default configuration.
-
-    Command line arguments take precedence over the default configuration. If a partial configuration file is specified
-    (with '-c' or '--config-file') the defaults are over-ridden by these values (internally the configuration
-    dictionary is updated with these values). Any other command line arguments take precedence over both the default
-    and those supplied in a configuration file (again the dictionary is updated).
-
-    The final configuration is validated before processing begins.
-
-    Parameters
-    ----------
-    args : argparse.Namespace
-        Command line arguments passed into TopoStats.
-
-    Returns
-    -------
-    dict
-        The configuration dictionary.
-    """
-    default_config = read_yaml(resources.files(__package__) / "default_config.yaml")
-    if args is not None:
-        config_file_arg: str | None = args.config_file
-        if config_file_arg is not None:
-            config = read_yaml(config_file_arg)
-            # Merge the loaded config with the default config to fill in any defaults that are missing
-            # Make sure to prioritise the loaded config, so it overrides the default
-            config = merge_mappings(map1=default_config, map2=config)
-        else:
-            # If no config file is provided, use the default config
-            config = default_config
-    else:
-        # If no args are provided, use the default config
-        config = default_config
-
-    # Override the config with command line arguments passed in, eg --output_dir ./output/
-    if args is not None:
-        config = update_config(config, args)
-
-    return config
 
 
 def _set_logging(log_level: str | None) -> None:

@@ -6,7 +6,6 @@ import numpy as np
 import numpy.typing as npt
 from scipy.optimize import curve_fit
 
-# ruff: noqa: disable=no-name-in-module
 # pylint: disable=no-name-in-module
 from skimage.filters import gaussian
 
@@ -16,8 +15,7 @@ from topostats.utils import get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# ruff: noqa: disable=too-many-instance-attributes
-# ruff: noqa: disable=too-many-arguments
+# noqa: PLR0913
 # pylint: disable=fixme
 # pylint: disable=broad-except
 # pylint: disable=too-many-instance-attributes

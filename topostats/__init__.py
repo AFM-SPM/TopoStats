@@ -26,6 +26,8 @@ __release__ = ".".join(__version__.split(".")[:-2])
 TOPOSTATS_DETAILS = version("topostats").split("+g")
 TOPOSTATS_VERSION = TOPOSTATS_DETAILS[0]
 TOPOSTATS_COMMIT = TOPOSTATS_DETAILS[1].split(".d")[0]
+CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
+# https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
 
 colormaps.register(cmap=Colormap("nanoscope").get_cmap())
 colormaps.register(cmap=Colormap("gwyddion").get_cmap())

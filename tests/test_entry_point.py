@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from topostats import run_modules
+from topostats.config import write_config_with_comments
 from topostats.entry_point import (
     entry_point,
 )
-from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 
 # noqa: S108

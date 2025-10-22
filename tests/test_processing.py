@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from topostats.config import update_plotting_config
 from topostats.grains import GrainCrop, GrainCropsDirection, ImageGrainCrops
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
@@ -22,7 +23,6 @@ from topostats.processing import (
     run_grains,
     run_grainstats,
 )
-from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"

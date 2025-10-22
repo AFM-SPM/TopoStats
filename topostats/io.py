@@ -7,11 +7,9 @@ import os
 import pickle as pkl
 import re
 import struct
-from collections.abc import MutableMapping
 from datetime import datetime
-from importlib import resources
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 import h5py
 import numpy as np
@@ -21,51 +19,15 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
+from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
-# https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
-
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-branches
-
-MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
-
-
-def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> MutableMappingType:
-    """
-    Merge two mappings (dictionaries), with priority given to the second mapping.
-
-    Note: Using a Mapping should make this robust to any mapping type, not just dictionaries. MutableMapping was needed
-    as Mapping is not a mutable type, and this function needs to be able to change the dictionaries.
-
-    Parameters
-    ----------
-    map1 : MutableMapping
-        First mapping to merge, with secondary priority.
-    map2 : MutableMapping
-        Second mapping to merge, with primary priority.
-
-    Returns
-    -------
-    dict
-        Merged dictionary.
-    """
-    # Iterate over the second mapping
-    for key, value in map2.items():
-        # If the value is another mapping, then recurse
-        if isinstance(value, MutableMapping):
-            # If the key is not in the first mapping, add it as an empty dictionary before recursing
-            map1[key] = merge_mappings(map1.get(key, {}), value)
-        else:
-            # Else simply add / override the key value pair
-            map1[key] = value
-    return map1
 
 
 # Sylvia: Ruff says too complex but I think breaking this out would be more complex.
@@ -250,53 +212,6 @@ def write_yaml(
             yaml.dump(config, f)
         except YAMLError as exception:
             LOGGER.error(exception)
-
-
-def write_config_with_comments(args=None) -> None:
-    """
-    Write a sample configuration with in-line comments.
-
-    This function is not designed to be used interactively but can be, just call it without any arguments and it will
-    write a configuration to './config.yaml'.
-
-    Parameters
-    ----------
-    args : Namespace
-        A Namespace object parsed from argparse with values for 'filename'.
-    """
-    filename = "config" if args.filename is None else args.filename
-    output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    logger_msg = "A sample configuration has been written to"
-    # If no config or default is requested we load the default_config.yaml
-    if args.config is None or args.config == "default":
-        if args.simple:
-            config_path = resources.files(__package__) / "simple_config.yaml"
-        else:
-            config_path = resources.files(__package__) / "default_config.yaml"
-        config = config_path.read_text()
-    elif args.config == "topostats.mplstyle":
-        config = (resources.files(__package__) / "topostats.mplstyle").read_text()
-        logger_msg = "A sample matplotlibrc parameters file has been written to"
-    # Otherwise we have scope for loading different configs based on the argument, add future dictionaries to
-    # topostats/<sample_type>_config.yaml
-    else:
-        try:
-            config = (resources.files(__package__) / f"{args.config}_config.yaml").read_text()
-        except FileNotFoundError as e:
-            raise UserWarning(f"There is no configuration for samples of type : {args.config}") from e
-
-    if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
-        create_config_path = output_dir / f"{filename}.yaml"
-    else:
-        create_config_path = output_dir / filename
-
-    with create_config_path.open("w", encoding="utf-8") as f:
-        f.write(f"# Config file generated {get_date_time()}\n")
-        f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
-        f.write(config)
-    LOGGER.info(f"{logger_msg} : {str(create_config_path)}")
-    LOGGER.info(CONFIG_DOCUMENTATION_REFERENCE)
 
 
 def save_array(array: npt.NDArray, outpath: Path, filename: str, array_type: str) -> None:

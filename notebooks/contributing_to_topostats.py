@@ -23,6 +23,7 @@ def _():
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
+    import numpy.typing as npt
     from scipy.signal import find_peaks
 
     from topostats.io import hdf5_to_dict
@@ -80,8 +81,29 @@ def _(mo):
 
 @app.cell
 def _(data_dict, np, plt):
-    def show_image(arr, cmap="afmhot", size=(8, 8), colorbar=True, title=None):
-        """Display a 2D NumPy array as an image."""
+    def show_image(
+        arr: npt.NDArray,
+        cmap: str = "afmhot",
+        size: tuple[int] = (8, 8),
+        colorbar: bool = True,
+        title: str | None = None,
+    ) -> tuple:
+        """
+        Display a 2D NumPy array as an image.
+
+        Parameters
+        ----------
+        arr : npt.NDArray
+            2D array to plot.
+        cmap : str
+            Colormap to use in plot.
+        size : tuple[int]
+            Size to plot image as.
+        colorbar : bool
+            Whether to include a scale colorbar.
+        title : str | None
+            Title to include in plot.
+        """
         arr = np.asarray(arr)
         if arr.ndim != 2:
             raise ValueError(f"Expected 2D array, got shape {arr.shape}")
