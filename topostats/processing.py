@@ -295,7 +295,7 @@ def run_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     grain_out_path: Path,
-) -> tuple[pd.DataFrame, dict[int : npt.NDArray], dict[int, GrainCrop]]:
+) -> tuple[pd.DataFrame, dict[int, npt.NDArray], dict[int, GrainCrop]]:
     """
     Calculate grain statistics for an image and optionally plots the results.
 
@@ -424,7 +424,6 @@ def run_disordered_tracing(  # noqa: C901
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
-            grain_crop_direction: GrainCropsDirection
             for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
@@ -446,7 +445,7 @@ def run_disordered_tracing(  # noqa: C901
                 _disordered_trace_grainstats["threshold"] = direction
                 disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
                 disordered_tracing_stats["threshold"] = direction
-                disordered_tracing_stats["basename"] = topostats_object.img_path.parent
+                disordered_tracing_stats["basename"] = Path(topostats_object.img_path).parent
                 disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
@@ -665,8 +664,6 @@ def run_ordered_tracing(
     ----------
     topostats_object : TopoStats
         TopoStats object for processing, should have had nodestats processing performed first.
-    basename : Path
-        The path of the files' parent directory.
     core_out_path : Path
         Path to save the core ordered tracing image to.
     tracing_out_path : Path
@@ -1146,7 +1143,7 @@ def process_scan(
         )
 
         # Nodestats
-        nodestats, grainstats_df = run_nodestats(
+        _, grainstats_df = run_nodestats(
             topostats_object=topostats_object,
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
@@ -1157,11 +1154,7 @@ def process_scan(
 
         # Ordered Tracing
         _, grainstats_df, molstats_df = run_ordered_tracing(
-            image=topostats_object.image,
-            disordered_tracing_data=topostats_object["disordered_traces"],
-            nodestats_data=nodestats,
-            filename=topostats_object.filename,
-            basename=topostats_object.img_path,
+            topostats_object=topostats_object,
             core_out_path=core_out_path,
             tracing_out_path=tracing_out_path,
             ordered_tracing_config=ordered_tracing_config,
