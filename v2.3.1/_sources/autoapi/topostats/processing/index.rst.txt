@@ -1,0 +1,562 @@
+topostats.processing
+====================
+
+.. py:module:: topostats.processing
+
+.. autoapi-nested-parse::
+
+   Functions for processing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.processing.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.processing.run_filters
+   topostats.processing.run_grains
+   topostats.processing.run_grainstats
+   topostats.processing.run_disordered_tracing
+   topostats.processing.run_nodestats
+   topostats.processing.run_ordered_tracing
+   topostats.processing.run_splining
+   topostats.processing.run_curvature_stats
+   topostats.processing.get_out_paths
+   topostats.processing.process_scan
+   topostats.processing.check_run_steps
+   topostats.processing.completion_message
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: run_filters(unprocessed_image: numpy.typing.NDArray, pixel_to_nm_scaling: float, filename: str, filter_out_path: pathlib.Path, core_out_path: pathlib.Path, filter_config: dict, plotting_config: dict) -> numpy.typing.NDArray | None
+
+   
+   Filter and flatten an image. Optionally plots the results, returning the flattened image.
+
+   :param unprocessed_image: Image to be flattened.
+   :type unprocessed_image: npt.NDArray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: File name for the image.
+   :type filename: str
+   :param filter_out_path: Output directory for step-by-step flattening plots.
+   :type filter_out_path: Path
+   :param core_out_path: General output directory for outputs such as the flattened image.
+   :type core_out_path: Path
+   :param filter_config: Dictionary of configuration for the Filters class to use when initialised.
+   :type filter_config: dict
+   :param plotting_config: Dictionary of configuration for plotting output images.
+   :type plotting_config: dict
+
+   :returns: Either a numpy array of the flattened image, or None if an error occurs or
+             flattening is disabled in the configuration.
+   :rtype: npt.NDArray | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grains(image: numpy.typing.NDArray, pixel_to_nm_scaling: float, filename: str, grain_out_path: pathlib.Path, core_out_path: pathlib.Path, plotting_config: dict, grains_config: dict) -> dict | None
+
+   
+   Identify grains (molecules) and optionally plots the results.
+
+   :param image: 2d numpy array image to find grains in.
+   :type image: npt.NDArray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of file being processed (used in logging).
+   :type filename: str
+   :param grain_out_path: Output path for step-by-step grain finding plots.
+   :type grain_out_path: Path
+   :param core_out_path: General output directory for outputs such as the flattened image with grain masks overlaid.
+   :type core_out_path: Path
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+   :param grains_config: Dictionary of configuration for the Grains class to use when initialised.
+   :type grains_config: dict
+
+   :returns: Either None in the case of error or grain finding being disabled or a dictionary
+             with keys of "above" and or "below" containing binary masks depicting where grains
+             have been detected.
+   :rtype: dict | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grainstats(image: numpy.typing.NDArray, pixel_to_nm_scaling: float, grain_masks: dict, filename: str, basename: pathlib.Path, grainstats_config: dict, plotting_config: dict, grain_out_path: pathlib.Path)
+
+   
+   Calculate grain statistics for an image and optionally plots the results.
+
+   :param image: 2D numpy array image for grain statistics calculations.
+   :type image: npt.NDArray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+                       boolean arrays indicating the pixels that have been masked as grains.
+   :type grain_masks: dict
+   :param filename: Name of the image.
+   :type filename: str
+   :param basename: Path to directory containing the image.
+   :type basename: Path
+   :param grainstats_config: Dictionary of configuration for the GrainStats class to be used when initialised.
+   :type grainstats_config: dict
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+   :param grain_out_path: Directory to save optional grain statistics visual information to.
+   :type grain_out_path: Path
+
+   :returns: A pandas DataFrame containing the statsistics for each grain. The index is the
+             filename and grain number.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_disordered_tracing(image: numpy.typing.NDArray, grain_masks: dict, pixel_to_nm_scaling: float, filename: str, basename: str, core_out_path: pathlib.Path, tracing_out_path: pathlib.Path, disordered_tracing_config: dict, plotting_config: dict, grainstats_df: pandas.DataFrame = None) -> dict
+
+   
+   Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
+
+   :param image: Image containing the grains to pass to the tracing function.
+   :type image: npt.ndarray
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2D Numpy boolean arrays indicating the pixels
+                       that have been masked as grains.
+   :type grain_masks: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of the image.
+   :type filename: str
+   :param basename: Path to directory containing the image.
+   :type basename: Path
+   :param core_out_path: Path to save the core disordered trace image to.
+   :type core_out_path: Path
+   :param tracing_out_path: Path to save the optional, diagnostic disordered trace images to.
+   :type tracing_out_path: Path
+   :param disordered_tracing_config: Dictionary configuration for obtaining a disordered trace representation of the grains.
+   :type disordered_tracing_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param grainstats_df: The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+   :type grainstats_df: pd.DataFrame | None
+
+   :returns: Dictionary of "grain_<index>" keys and Nx2 coordinate arrays of the disordered grain trace.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_nodestats(image: numpy.typing.NDArray, disordered_tracing_data: dict, pixel_to_nm_scaling: float, filename: str, core_out_path: pathlib.Path, tracing_out_path: pathlib.Path, nodestats_config: dict, plotting_config: dict, grainstats_df: pandas.DataFrame = None) -> tuple[dict, pandas.DataFrame]
+
+   
+   Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
+
+   :param image: Image containing the DNA to pass to the tracing function.
+   :type image: npt.ndarray
+   :param disordered_tracing_data: Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+   :type disordered_tracing_data: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of the image.
+   :type filename: str
+   :param core_out_path: Path to save the core NodeStats image to.
+   :type core_out_path: Path
+   :param tracing_out_path: Path to save optional, diagnostic NodeStats images to.
+   :type tracing_out_path: Path
+   :param nodestats_config: Dictionary configuration for analysing the crossing points.
+   :type nodestats_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param grainstats_df: The grain statistics dataframe to bee added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+   :type grainstats_df: pd.DataFrame | None
+
+   :returns: A NodeStats analysis dictionary and grainstats metrics dataframe.
+   :rtype: tuple[dict, pd.DataFrame]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_ordered_tracing(image: numpy.typing.NDArray, disordered_tracing_data: dict, nodestats_data: dict, filename: str, basename: pathlib.Path, core_out_path: pathlib.Path, tracing_out_path: pathlib.Path, ordered_tracing_config: dict, plotting_config: dict, grainstats_df: pandas.DataFrame = None) -> tuple
+
+   
+   Order coordinates of traces, adding results to statistics data frames and optionally plot results.
+
+   :param image: Image containing the DNA to pass to the tracing function.
+   :type image: npt.ndarray
+   :param disordered_tracing_data: Dictionary of skeletonised and pruned grain masks. Result from "run_disordered_tracing".
+   :type disordered_tracing_data: dict
+   :param nodestats_data: Dictionary of images and statistics from the NodeStats analysis. Result from "run_nodestats".
+   :type nodestats_data: dict
+   :param filename: Name of the image.
+   :type filename: str
+   :param basename: The path of the files' parent directory.
+   :type basename: Path
+   :param core_out_path: Path to save the core ordered tracing image to.
+   :type core_out_path: Path
+   :param tracing_out_path: Path to save optional, diagnostic ordered trace images to.
+   :type tracing_out_path: Path
+   :param ordered_tracing_config: Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+   :type ordered_tracing_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param grainstats_df: The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+   :type grainstats_df: pd.DataFrame | None
+
+   :returns: A NodeStats analysis dictionary and grainstats metrics dataframe.
+   :rtype: tuple[dict, pd.DataFrame]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_splining(image: numpy.typing.NDArray, ordered_tracing_data: dict, pixel_to_nm_scaling: float, filename: str, core_out_path: pathlib.Path, splining_config: dict, plotting_config: dict, grainstats_df: pandas.DataFrame = None, molstats_df: pandas.DataFrame = None) -> tuple
+
+   
+   Smooth the ordered trace coordinates, adding results to statistics data frames and optionally plot results.
+
+   :param image: Image containing the DNA to pass to the tracing function.
+   :type image: npt.NDArray
+   :param ordered_tracing_data: Dictionary of ordered coordinates. Result from "run_ordered_tracing".
+   :type ordered_tracing_data: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of the image.
+   :type filename: str
+   :param core_out_path: Path to save the core ordered tracing image to.
+   :type core_out_path: Path
+   :param splining_config: Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+   :type splining_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param grainstats_df: The grain statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+   :type grainstats_df: pd.DataFrame | None
+   :param molstats_df: The molecule statistics dataframe to be added to. This optional argument defaults to `None` in which case an empty grainstats dataframe is created.
+   :type molstats_df: pd.DataFrame | None
+
+   :returns: A smooth curve analysis dictionary and grainstats metrics dataframe.
+   :rtype: tuple[dict, pd.DataFrame]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_curvature_stats(image: numpy.ndarray, cropped_image_data: dict, grain_trace_data: dict, pixel_to_nm_scaling: float, filename: str, core_out_path: pathlib.Path, tracing_out_path: pathlib.Path, curvature_config: dict, plotting_config: dict) -> dict | None
+
+   
+   Calculate curvature statistics for the traced DNA molecules.
+
+   Currently only works on simple traces, not branched traces.
+
+   :param image: AFM image, for plotting purposes.
+   :type image: np.ndarray
+   :param cropped_image_data: Dictionary containing cropped images.
+   :type cropped_image_data: dict
+   :param grain_trace_data: Dictionary of grain trace data.
+   :type grain_trace_data: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: Name of the image.
+   :type filename: str
+   :param core_out_path: Path to save the core curvature image to.
+   :type core_out_path: Path
+   :param tracing_out_path: Path to save the optional, diagnostic curvature images to.
+   :type tracing_out_path: Path
+   :param curvature_config: Dictionary of configuration for running the curvature stats.
+   :type curvature_config: dict
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+
+   :returns: Dictionary containing curvature statistics.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_out_paths(image_path: pathlib.Path, base_dir: pathlib.Path, output_dir: pathlib.Path, filename: str, plotting_config: dict)
+
+   
+   Determine components of output paths for a given image and plotting config.
+
+   :param image_path: Path of the image being processed.
+   :type image_path: Path
+   :param base_dir: Path of the data folder.
+   :type base_dir: Path
+   :param output_dir: Base output directory for output data.
+   :type output_dir: Path
+   :param filename: Name of the image being processed.
+   :type filename: str
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+
+   :returns: Core output path for general file outputs, filter output path for flattening related files and
+             grain output path for grain finding related files.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process_scan(topostats_object: dict, base_dir: str | pathlib.Path, filter_config: dict, grains_config: dict, grainstats_config: dict, disordered_tracing_config: dict, nodestats_config: dict, ordered_tracing_config: dict, splining_config: dict, curvature_config: dict, plotting_config: dict, output_dir: str | pathlib.Path = 'output') -> tuple[dict, pandas.DataFrame, dict]
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param topostats_object: A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's path and it's
+                            pixel to namometre scaling value.
+   :type topostats_object: dict[str, Union[npt.NDArray, Path, float]]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: str | Path
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param disordered_tracing_config: Dictionary configuration for obtaining a disordered trace representation of the grains.
+   :type disordered_tracing_config: dict
+   :param nodestats_config: Dictionary of configuration options for running the NodeStats stage.
+   :type nodestats_config: dict
+   :param ordered_tracing_config: Dictionary configuration for obtaining an ordered trace representation of the skeletons.
+   :type ordered_tracing_config: dict
+   :param splining_config: Dictionary of configuration options for running the splining stage.
+   :type splining_config: dict
+   :param curvature_config: Dictionary of configuration options for running the curvature stats stage.
+   :type curvature_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: str | Path
+
+   :returns: TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+             and dictionary containing general image statistics.
+   :rtype: tuple[dict, pd.DataFrame, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, disordered_tracing_run: bool, nodestats_run: bool, ordered_tracing_run: bool, splining_run: bool) -> None
+
+   
+   Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+   This checks that earlier steps required are enabled.
+
+   :param filter_run: Flag for running Filtering.
+   :type filter_run: bool
+   :param grains_run: Flag for running Grains.
+   :type grains_run: bool
+   :param grainstats_run: Flag for running GrainStats.
+   :type grainstats_run: bool
+   :param disordered_tracing_run: Flag for running Disordered Tracing.
+   :type disordered_tracing_run: bool
+   :param nodestats_run: Flag for running NodeStats.
+   :type nodestats_run: bool
+   :param ordered_tracing_run: Flag for running Ordered Tracing.
+   :type ordered_tracing_run: bool
+   :param splining_run: Flag for running DNA Tracing.
+   :type splining_run: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None
+
+   
+   Print a completion message summarising images processed.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param img_files: List of found image paths.
+   :type img_files: list
+   :param summary_config: Configuration for plotting summary statistics.
+   :type summary_config: dict
+   :param images_processed: Pandas DataFrame of results.
+   :type images_processed: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

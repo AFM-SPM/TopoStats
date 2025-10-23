@@ -1,0 +1,155 @@
+curvature
+=========
+
+.. py:module:: curvature
+
+.. autoapi-nested-parse::
+
+   Calculate various curvature metrics for traces.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   curvature.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   curvature.angle_diff_signed
+   curvature.discrete_angle_difference_per_nm_circular
+   curvature.discrete_angle_difference_per_nm_linear
+   curvature.calculate_curvature_stats_image
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: angle_diff_signed(v1: numpy.typing.NDArray[numpy.number], v2: numpy.typing.NDArray[numpy.number])
+
+   
+   Calculate the signed angle difference between two point vecrtors in 2D space.
+
+   Positive angles are clockwise, negative angles are counterclockwise.
+
+   :param v1: First vector.
+   :type v1: npt.NDArray[np.number]
+   :param v2: Second vector.
+   :type v2: npt.NDArray[np.number]
+
+   :returns: The signed angle difference in radians.
+   :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: discrete_angle_difference_per_nm_circular(trace_nm: numpy.typing.NDArray[numpy.number]) -> numpy.typing.NDArray[numpy.number]
+
+   
+   Calculate the discrete angle difference per nm along a trace.
+
+   :param trace_nm: The coordinate trace, in nanometre units.
+   :type trace_nm: npt.NDArray[np.number]
+
+   :returns: The discrete angle difference per nm.
+   :rtype: npt.NDArray[np.number]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: discrete_angle_difference_per_nm_linear(trace_nm: numpy.typing.NDArray[numpy.number]) -> numpy.typing.NDArray[numpy.number]
+
+   
+   Calculate the discrete angle difference per nm along a trace.
+
+   :param trace_nm: The coordinate trace, in nanometre units.
+   :type trace_nm: npt.NDArray[np.number]
+
+   :returns: The discrete angle difference per nm.
+   :rtype: npt.NDArray[np.number]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: calculate_curvature_stats_image(all_grain_smoothed_data: dict, pixel_to_nm_scaling: float) -> dict
+
+   
+   Perform curvature analysis for a whole image of grains.
+
+   :param all_grain_smoothed_data: Dictionary containing grain traces in pixel units.
+   :type all_grain_smoothed_data: dict
+   :param pixel_to_nm_scaling: Pixel to nm scaling factor.
+   :type pixel_to_nm_scaling: float
+
+   :returns: The curvature statistics for each grain. Indexes are grain indexes.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
