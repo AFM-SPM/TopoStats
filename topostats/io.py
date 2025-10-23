@@ -35,7 +35,6 @@ from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-branches
@@ -608,10 +607,10 @@ class LoadScans:
     ----------
     img_paths : list[str, Path]
         Path to a valid AFM scan to load.
-    channel : str
-        Image channel to extract from the scan.
     config : dict[str, Any]
         Dictionary of all configuration options.
+    channel : str
+        Image channel to extract from the scan.
     extract : str
         What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
        ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
@@ -621,9 +620,9 @@ class LoadScans:
     def __init__(
         self,
         img_paths: list[str | Path],
-        channel: str,
         config: dict[str, Any],
-        extract: str = "all",
+        channel: str | None = None,
+        extract: str | None = None,
     ):
         """
         Initialise the class.
@@ -632,10 +631,10 @@ class LoadScans:
         ----------
         img_paths : list[str | Path]
             Path to a valid AFM scan to load.
-        channel : str
-            Image channel to extract from the scan.
         config : dict[str, Any]
             Dictionary of all configuration options.
+        channel : str
+            Image channel to extract from the scan.
         extract : str
             What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
            ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
@@ -643,9 +642,9 @@ class LoadScans:
         """
         self.img_paths = img_paths
         self.img_path = None
-        self.channel = channel
+        self.channel = config["loading"]["channel"] if channel is None else channel
         self.channel_data = None
-        self.extract = extract
+        self.extract = config["loading"]["extract"] if extract is None else extract
         self.filename = None
         self.suffix = None
         self.image = None
@@ -975,7 +974,9 @@ class LoadScans:
         return img_dict
 
 
-def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:  # noqa: C901
+def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
+    open_hdf5_file: h5py.File, group_path: str, dictionary: dict
+) -> None:
     """
     Recursively save a dictionary to an open hdf5 file.
 
@@ -1020,7 +1021,8 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                item = np.array(item)
+                if any(x is None for x in item):
+                    item = np.array([np.nan if x is None else x for x in item])
                 open_hdf5_file[group_path + key] = item
             # Strings need to be encoded to bytes
             elif isinstance(item, str):

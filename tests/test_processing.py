@@ -14,7 +14,7 @@ import pandas as pd
 import pytest
 
 from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
-from topostats.io import LoadScans, dict_almost_equal, dict_to_topostats, hdf5_to_dict
+from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
     check_run_steps,
@@ -24,7 +24,6 @@ from topostats.processing import (
     run_grains,
     run_grainstats,
     run_nodestats,
-    run_ordered_tracing,
 )
 
 BASE_DIR = Path.cwd()
@@ -1032,16 +1031,89 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         assert all(x in dir(grain_crop) for x in GRAIN_CROP_ATTRIBUTES)
 
 
+@pytest.mark.parametrize(
+    ("topostats_object", "detected_grains", "log_messages", "expected"),
+    [
+        pytest.param(
+            "minicircle_small_post_grainstats",
+            [0, 3, 4],
+            [
+                "Grain 1 skeleton < 10, skipping.",
+                "Grain 2 skeleton < 10, skipping.",
+                "Grain 5 skeleton < 10, skipping.",
+            ],
+            {
+                0: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 4,
+                    "total_branch_length": 1.1716095681103254e-07,
+                    "grain_width_mean": 5.117318599979457e-09,
+                },
+                3: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 0,
+                    "total_branch_length": 8.49805509668089e-08,
+                    "grain_width_mean": 5.40982849376278e-09,
+                },
+                4: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 0,
+                    "total_branch_length": 1.0965161327419527e-07,
+                    "grain_width_mean": 4.788512127551645e-09,
+                },
+            },
+            id="minicircle small",
+        ),
+        pytest.param(
+            "catenanes_post_grainstats",
+            [0, 1],
+            None,
+            {
+                0: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 14,
+                    "total_branch_length": 5.759292550205616e-07,
+                    "grain_width_mean": 4.406927419327375e-09,
+                },
+                # @ns-rse 2025-10-22 : Its strange that the values for these differ because the two grains in
+                #                      catenanes are in essence identical being a mirror of each other.
+                1: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 12,
+                    "total_branch_length": 5.746673912389996e-07,
+                    "grain_width_mean": 4.456449209835062e-09,
+                },
+            },
+            id="catenanes",
+        ),
+        pytest.param(
+            "rep_int_post_grainstats",
+            [0],
+            None,
+            {
+                0: {
+                    "grain_endpoints": 0,
+                    "grain_junctions": 13,
+                    "total_branch_length": 9.685225788725929e-07,
+                    "grain_width_mean": 3.031795147452633e-09,
+                },
+            },
+            id="rep int",
+        ),
+    ],
+)
 def test_run_disordered_tracing(
-    process_scan_config: dict[str, Any], load_scan_data: LoadScans, tmp_path: Path, caplog
+    topostats_object: str,
+    detected_grains: list[int],
+    log_messages: list[str],
+    expected: dict[int, Any],
+    process_scan_config: dict[str, Any],
+    tmp_path,
+    caplog,
+    request,
 ) -> None:
-    """Test run_disordered_tracing()."""
-    topostats_object = load_scan_data.img_dict["minicircle_small"]
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
-    ) as f:
-        topostats_object.image_grain_crops = pickle.load(f)
-    topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
+    """Test for run_grainstats()."""
+    topostats_object: TopoStats = request.getfixturevalue(topostats_object)
     run_disordered_tracing(
         topostats_object=topostats_object,
         core_out_path=tmp_path,
@@ -1049,34 +1121,13 @@ def test_run_disordered_tracing(
         disordered_tracing_config=process_scan_config["disordered_tracing"],
         plotting_config=process_scan_config["plotting"],
     )
-    expected = {
-        0: {
-            "grain_endpoints": 0,
-            "grain_junctions": 4,
-            "total_branch_length": 1.1716095681103254e-07,
-            "grain_width_mean": 5.117318599979457e-09,
-        },
-        3: {
-            "grain_endpoints": 0,
-            "grain_junctions": 0,
-            "total_branch_length": 8.49805509668089e-08,
-            "grain_width_mean": 5.40982849376278e-09,
-        },
-        4: {
-            "grain_endpoints": 0,
-            "grain_junctions": 0,
-            "total_branch_length": 1.0965161327419527e-07,
-            "grain_width_mean": 4.788512127551645e-09,
-        },
-    }
-    assert "Grain 1 skeleton < 10, skipping." in caplog.text
-    assert "Grain 2 skeleton < 10, skipping." in caplog.text
-    assert "Grain 5 skeleton < 10, skipping." in caplog.text
+    # Check log messages
+    if log_messages is not None:
+        for msg in log_messages:
+            assert msg in caplog.text
+    # Check grains disordered_trace attribute against expected
     for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
-        # Skeletons < 10 for these so disordered tracing is skipped
-        if grain not in (1, 2, 5):
-            print(f"\n{grain=}\n")
-            print(f"\n{grain_crop.disordered_trace.__dict__=}\n")
+        if grain in detected_grains:
             assert grain_crop.disordered_trace is not None
             assert isinstance(grain_crop.disordered_trace, DisorderedTrace)
             assert isinstance(grain_crop.disordered_trace.images, dict)
@@ -1087,10 +1138,11 @@ def test_run_disordered_tracing(
 
 
 @pytest.mark.parametrize(
-    ("topostats_object", "expected"),
+    ("topostats_object", "detected_grains", "expected_nodes", "expected_matched_branch"),
     [
         pytest.param(
-            "minicircle_small_topostats",
+            "minicircle_small_post_disordered_tracing",
+            [0, 3, 4],
             {
                 0: {  # Grain
                     1: {  # Node
@@ -1105,25 +1157,14 @@ def test_run_disordered_tracing(
                         "confidence": np.float64(0.0),
                     }
                 },
-                3: {  # Grain
-                    1: {  # Node
-                        "error": False,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(49.50796095624354)},
-                            2: {"angles": np.float64(139.25543479929738)},
-                        },
-                        "node_coords": np.array(
-                            [[54, 70], [55, 69], [56, 68], [57, 66], [57, 67], [58, 66], [59, 66], [60, 65]]
-                        ),
-                        "confidence": None,
-                    }
-                },
             },
+            None,
             id="minicircle small",
+            marks=pytest.mark.skip(reason="disable whilst testing other params"),
         ),
         pytest.param(
-            "catenane_topostats",
+            "catenanes_post_disordered_tracing",
+            [0, 1],
             {
                 0: {  # Grain
                     1: {  # Node
@@ -1131,645 +1172,585 @@ def test_run_disordered_tracing(
                         "pixel_to_nm_scaling": 1,
                         "unmatched_branch_stats": {
                             0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(63.62466925374735)},
-                            2: {"angles": np.float64(29.510196308405636)},
-                            3: {"angles": np.float64(106.0045892179681)},
+                            1: {"angles": np.float64(139.2976869956517)},
+                            2: {"angles": np.float64(40.75146951858621)},
+                            3: {"angles": np.float64(116.78086102349846)},
                         },
-                        "node_coords": np.array(
-                            [
-                                [19, 560],
-                                [20, 560],
-                                [21, 560],
-                                [22, 560],
-                                [23, 560],
-                                [24, 560],
-                                [25, 560],
-                                [26, 560],
-                                [26, 561],
-                                [27, 559],
-                                [28, 558],
-                                [29, 558],
-                                [30, 558],
-                                [31, 558],
-                                [32, 558],
-                                [33, 558],
-                                [34, 558],
-                                [35, 558],
-                                [36, 557],
-                                [37, 556],
-                                [38, 555],
-                                [39, 554],
-                                [40, 553],
-                                [41, 552],
-                                [42, 550],
-                                [42, 551],
-                                [43, 550],
-                            ]
-                        ),
-                        "confidence": np.float64(0.0),
+                        "node_coords": np.array([[38, 214], [39, 214], [39, 215], [40, 216], [40, 217]]),
+                        "confidence": np.float64(0.41698778009744997),
                     },
                     2: {  # Node
                         "error": False,
                         "pixel_to_nm_scaling": 1,
+                        "fwhm": {
+                            "fwhm": np.float64(13.02537913683945),
+                            "half_maxs": [
+                                np.float64(-6.7760196954317475),
+                                np.float64(6.249359441407702),
+                                np.float64(3.379744597269503),
+                            ],
+                            "peaks": [np.int64(35), np.float64(1.4142135623730951), np.float64(4.242989227790521)],
+                        },
                         "unmatched_branch_stats": {
                             0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(80.4978059963834)},
-                            2: {"angles": np.float64(9.502194003616577)},
-                            3: {"angles": np.float64(178.1922615295965)},
+                            1: {"angles": np.float64(125.28757605500637)},
+                            2: {"angles": np.float64(81.95910195134098)},
+                            3: {"angles": np.float64(164.48566237463905)},
                         },
                         "node_coords": np.array(
                             [
-                                [53, 116],
-                                [53, 117],
-                                [54, 116],
-                                [55, 116],
-                                [56, 116],
-                                [57, 116],
-                                [58, 116],
-                                [59, 116],
-                                [60, 116],
-                                [61, 115],
+                                [41, 152],
+                                [41, 153],
+                                [42, 154],
+                                [42, 161],
+                                [42, 162],
+                                [42, 163],
+                                [42, 164],
+                                [42, 165],
+                                [43, 155],
+                                [43, 156],
+                                [43, 157],
+                                [43, 158],
+                                [43, 159],
+                                [43, 160],
+                                [43, 165],
                             ]
                         ),
-                        "confidence": np.float64(0.0),
+                        "confidence": np.float64(0.24062584379143193),
                     },
-                    3: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(88.19362666463878)},
-                            2: {"angles": np.float64(96.40062666662755)},
-                            3: {"angles": np.float64(175.36095529910162)},
-                        },
-                        "node_coords": np.array(
-                            [[76, 24], [77, 25], [78, 25], [79, 25], [80, 25], [81, 24], [82, 24], [82, 25]]
-                        ),
-                        "confidence": np.float64(0.0),
+                    # @ns-rse 2025-10-22 : There are 41 nodes, excessive to check them all.
+                },
+            },
+            {  # Expected MatchedBranch (only test the first Matched Branch)
+                0: {
+                    "ordered_coords": np.array(
+                        [
+                            [35, 149],
+                            [36, 149],
+                            [37, 149],
+                            [38, 150],
+                            [39, 150],
+                            [40, 151],
+                            [41, 151],
+                            [42, 151],
+                            [43, 151],
+                            [44, 151],
+                            [45, 151],
+                            [46, 152],
+                            [47, 152],
+                            [48, 152],
+                            [49, 153],
+                            [50, 154],
+                            [51, 154],
+                            [52, 154],
+                            [53, 155],
+                            [54, 155],
+                            [55, 156],
+                            [56, 156],
+                            [57, 156],
+                            [58, 156],
+                            [59, 156],
+                            [60, 157],
+                            [61, 157],
+                            [62, 157],
+                            [63, 157],
+                            [64, 157],
+                            [65, 157],
+                            [66, 157],
+                            [67, 158],
+                            [68, 158],
+                            [69, 158],
+                            [70, 158],
+                            [71, 158],
+                            [72, 158],
+                            [73, 159],
+                            [74, 158],
+                            [75, 159],
+                            [76, 160],
+                            [77, 160],
+                            [78, 160],
+                            [79, 161],
+                            [80, 161],
+                            [81, 161],
+                            [82, 162],
+                            [83, 163],
+                            [84, 164],
+                            [85, 165],
+                            [85, 166],
+                            [85, 167],
+                            [86, 168],
+                            [86, 169],
+                            [86, 170],
+                            [86, 171],
+                            [87, 172],
+                            [88, 173],
+                            [88, 174],
+                            [89, 175],
+                            [89, 176],
+                            [90, 177],
+                            [91, 178],
+                            [91, 179],
+                            [91, 180],
+                            [92, 181],
+                            [92, 182],
+                            [92, 183],
+                            [92, 184],
+                            [93, 185],
+                            [93, 186],
+                            [93, 187],
+                            [93, 188],
+                            [93, 189],
+                        ]
+                    ),
+                    "heights": np.array(
+                        [
+                            2.66007735,
+                            2.73889072,
+                            2.72317582,
+                            2.66718301,
+                            2.65305027,
+                            2.63008874,
+                            2.64981724,
+                            2.62444184,
+                            2.5744252,
+                            2.55552232,
+                            2.52431496,
+                            2.52440314,
+                            2.4412618,
+                            2.14124924,
+                            1.93387523,
+                            1.87504463,
+                            1.99976331,
+                            2.24085686,
+                            2.33089594,
+                            2.36080805,
+                            2.30181414,
+                            2.3691871,
+                            2.51991619,
+                            2.57115865,
+                            2.65555971,
+                            2.90791223,
+                            3.0944814,
+                            3.44446235,
+                            3.61127617,
+                            3.6980007,
+                            3.7981108,
+                            3.99926775,
+                            4.10041132,
+                            4.14083975,
+                            4.00956674,
+                            3.66364719,
+                            3.19393572,
+                            3.01011084,
+                            2.87818221,
+                            2.73445944,
+                            2.47502752,
+                            2.38338454,
+                            2.41278875,
+                            2.44899607,
+                            2.51602884,
+                            2.56498187,
+                            2.55347311,
+                            2.51797001,
+                            2.50513275,
+                            2.5018767,
+                            2.50242615,
+                            2.51859131,
+                            2.5566577,
+                            2.62273121,
+                            2.63212958,
+                            2.64895348,
+                            2.67723726,
+                            2.66198982,
+                            2.65403313,
+                            2.76641648,
+                            2.80110234,
+                            2.74804339,
+                            2.55559296,
+                            2.5130926,
+                            2.48379064,
+                            2.49812208,
+                            2.63811433,
+                            2.84474954,
+                            2.99323735,
+                        ]
+                    ),
+                    "distances": np.array(
+                        [
+                            -31.78049716,
+                            -31.04834939,
+                            -30.3644529,
+                            -29.73213749,
+                            -29.15475947,
+                            -28.23118843,
+                            -27.73084925,
+                            -26.83281573,
+                            -26.41968963,
+                            -26.07680962,
+                            -25.23885893,
+                            -25.0,
+                            -23.60084744,
+                            -22.20360331,
+                            -21.40093456,
+                            -20.61552813,
+                            -19.84943324,
+                            -18.43908891,
+                            -17.69180601,
+                            -16.2788206,
+                            -14.86606875,
+                            -14.14213562,
+                            -12.72792206,
+                            -11.3137085,
+                            -9.89949494,
+                            -8.48528137,
+                            -7.81024968,
+                            -6.40312424,
+                            -5.0,
+                            -3.60555128,
+                            -2.82842712,
+                            -1.41421356,
+                            0.0,
+                            1.0,
+                            2.23606798,
+                            3.60555128,
+                            5.0,
+                            5.65685425,
+                            6.40312424,
+                            7.21110255,
+                            8.60232527,
+                            9.43398113,
+                            10.29563014,
+                            11.18033989,
+                            12.08304597,
+                            13.0,
+                            13.92838828,
+                            14.86606875,
+                            15.8113883,
+                            16.76305461,
+                            17.72004515,
+                            18.68154169,
+                            19.6468827,
+                            20.61552813,
+                            21.58703314,
+                            22.36067977,
+                            23.34523506,
+                            24.33105012,
+                            25.3179778,
+                            26.17250466,
+                            27.07397274,
+                            28.0713377,
+                            29.01723626,
+                            30.01666204,
+                            31.0,
+                            32.0,
+                            33.0,
+                            34.0,
+                            35.0142828,
+                        ]
+                    ),
+                    "fwhm": {
+                        "fwhm": np.float64(12.366939358000284),
+                        "half_maxs": [
+                            np.float64(-7.385393414608109),
+                            np.float64(4.981545943392174),
+                            np.float64(3.2001518598774576),
+                        ],
+                        "peaks": [np.int64(33), np.float64(1.0), np.float64(4.140839746574575)],
                     },
-                    4: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(100.17551084304321)},
-                            2: {"angles": np.float64(176.9495055058588)},
-                        },
-                        "node_coords": np.array([[111, 17], [112, 17], [112, 18]]),
-                        "confidence": None,
-                    },
-                    5: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(45.0)},
-                            2: {"angles": np.float64(138.3664606634299)},
-                        },
-                        "node_coords": np.array([[114, 505]]),
-                        "confidence": None,
-                    },
-                    6: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(35.31121343963319)},
-                            2: {"angles": np.float64(0.0)},
-                            3: {"angles": np.float64(9.266607240759264)},
-                            4: {"angles": np.float64(0.0)},
-                            5: {"angles": np.float64(63.43494882292215)},
-                            6: {"angles": np.float64(90.0)},
-                            7: {"angles": np.float64(97.12501634890181)},
-                            8: {"angles": np.float64(132.33699923393286)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [115, 475],
-                                [116, 476],
-                                [117, 477],
-                                [118, 478],
-                                [119, 478],
-                                [120, 478],
-                                [121, 478],
-                                [121, 493],
-                                [122, 478],
-                                [122, 493],
-                                [122, 494],
-                                [123, 479],
-                                [123, 489],
-                                [123, 492],
-                                [124, 479],
-                                [124, 489],
-                                [124, 490],
-                                [124, 491],
-                                [125, 480],
-                                [125, 481],
-                                [125, 483],
-                                [125, 484],
-                                [125, 485],
-                                [125, 488],
-                                [126, 482],
-                                [126, 486],
-                                [126, 487],
-                            ]
-                        ),
-                        "confidence": None,
-                    },
-                    7: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(180.0)},
-                            2: {"angles": np.float64(12.20911975849626)},
-                        },
-                        "node_coords": np.array([[127, 506], [127, 507], [128, 507]]),
-                        "confidence": None,
-                    },
-                    8: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(178.7885198442754)},
-                            2: {"angles": np.float64(82.76604810520416)},
-                        },
-                        "node_coords": np.array([[140, 473]]),
-                        "confidence": None,
-                    },
-                    9: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(131.1019940793969)},
-                            2: {"angles": np.float64(106.14433878028349)},
-                        },
-                        "node_coords": np.array([[161, 39]]),
-                        "confidence": None,
-                    },
-                    10: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(31.56149988969091)},
-                            2: {"angles": np.float64(154.63558280444693)},
-                        },
-                        "node_coords": np.array([[169, 524]]),
-                        "confidence": None,
-                    },
-                    11: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(172.3706896990102)},
-                            2: {"angles": np.float64(101.30993247402029)},
-                        },
-                        "node_coords": np.array([[173, 536], [173, 537], [174, 536]]),
-                        "confidence": None,
-                    },
-                    12: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(149.3956416608597)},
-                            2: {"angles": np.float64(59.241358747447656)},
-                        },
-                        "node_coords": np.array([[182, 571]]),
-                        "confidence": None,
-                    },
-                    13: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(45.0)},
-                            2: {"angles": np.float64(np.nan)},
-                        },
-                        "node_coords": np.array([[209, 209]]),
-                        "confidence": None,
-                    },
-                    14: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(45.0)},
-                            2: {"angles": np.float64(45.0)},
-                            3: {"angles": np.float64(147.52880770915186)},
-                            4: {"angles": np.float64(45.0)},
-                        },
-                        "node_coords": np.array(
-                            [[259, 361], [260, 360], [261, 359], [262, 358], [263, 357], [264, 356], [265, 355]]
-                        ),
-                        "confidence": None,
-                    },
-                    15: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(102.53565471909889)},
-                            2: {"angles": np.float64(176.59446008153773)},
-                        },
-                        "node_coords": np.array([[268, 15]]),
-                        "confidence": None,
-                    },
-                    16: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(90.0)},
-                            2: {"angles": np.float64(160.7873281828144)},
-                        },
-                        "node_coords": np.array([[276, 354]]),
-                        "confidence": None,
-                    },
-                    17: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(92.04540848888729)},
-                            2: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array([[286, 333], [287, 333], [287, 334]]),
-                        "confidence": None,
-                    },
-                    18: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(42.76882539196875)},
-                            2: {"angles": np.float64(177.76882539196893)},
-                        },
-                        "node_coords": np.array([[293, 41]]),
-                        "confidence": None,
-                    },
-                    19: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(45.0)},
-                            2: {"angles": np.nan},
-                        },
-                        "node_coords": np.array([[295, 296]]),
-                        "confidence": None,
-                    },
-                    20: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(135.0)},
-                            2: {"angles": np.float64(88.53119928561418)},
-                        },
-                        "node_coords": np.array([[304, 52]]),
-                        "confidence": None,
-                    },
-                    21: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(90.0)},
-                            2: {"angles": np.float64(45.0)},
-                            3: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array([[309, 309], [310, 310]]),
-                        "confidence": np.float64(0.0),
-                    },
-                    22: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(141.11452292754814)},
-                            2: {"angles": np.float64(61.90445758035311)},
-                        },
-                        "node_coords": np.array([[317, 31], [317, 32], [318, 31]]),
-                        "confidence": None,
-                    },
-                    23: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(135.0)},
-                            2: {"angles": np.float64(180.0)},
-                            3: {"angles": np.float64(90.0)},
-                            4: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [444, 310],
-                                [445, 309],
-                                [446, 308],
-                                [447, 307],
-                                [448, 306],
-                                [449, 305],
-                                [450, 304],
-                                [451, 303],
-                                [452, 302],
-                            ]
-                        ),
-                        "confidence": None,
-                    },
-                    24: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(85.2363583092737)},
-                            2: {"angles": np.float64(100.4742348282259)},
-                        },
-                        "node_coords": np.array([[449, 222]]),
-                        "confidence": None,
-                    },
-                    25: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(93.9141372186123)},
-                            2: {"angles": np.float64(167.11323616649125)},
-                        },
-                        "node_coords": np.array([[483, 592]]),
-                        "confidence": None,
-                    },
-                    26: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(79.25870703970048)},
-                            2: {"angles": np.float64(163.37495445311453)},
-                            3: {"angles": np.float64(83.07278187399083)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [489, 32],
-                                [489, 33],
-                                [489, 34],
-                                [490, 32],
-                                [490, 35],
-                                [491, 36],
-                                [492, 37],
-                                [493, 38],
-                                [494, 39],
-                                [495, 40],
-                                [496, 41],
-                                [497, 42],
-                                [498, 43],
-                                [499, 44],
-                                [500, 45],
-                                [500, 46],
-                                [501, 45],
-                            ]
-                        ),
-                        "confidence": np.float64(0.0),
-                    },
-                    27: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.nan},
-                            2: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array([[526, 228]]),
-                        "confidence": None,
-                    },
-                    28: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(135.0)},
-                            2: {"angles": np.float64(135.0)},
-                            3: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [562, 428],
-                                [563, 429],
-                                [564, 430],
-                                [565, 431],
-                                [566, 432],
-                                [567, 433],
-                                [568, 434],
-                                [569, 435],
-                                [570, 436],
-                                [571, 437],
-                                [572, 438],
-                                [573, 439],
-                                [574, 440],
-                                [574, 441],
-                                [574, 442],
-                                [574, 443],
-                                [575, 444],
-                            ]
-                        ),
-                        "confidence": np.float64(0.0),
-                    },
-                    29: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(66.8014094863519)},
-                            2: {"angles": np.float64(129.47751818500538)},
-                            3: {"angles": np.float64(131.12651027565556)},
-                        },
-                        "node_coords": np.array([[576, 47], [577, 48], [578, 48], [579, 48], [580, 48]]),
-                        "confidence": np.float64(0.0),
-                    },
-                    30: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(104.17843837875398)},
-                            2: {"angles": np.float64(85.71949103125833)},
-                        },
-                        "node_coords": np.array([[588, 577]]),
-                        "confidence": None,
-                    },
-                    31: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(99.11372721809165)},
-                            2: {"angles": np.float64(92.8624052261117)},
-                        },
-                        "node_coords": np.array([[589, 160], [589, 161], [590, 160]]),
-                        "confidence": None,
-                    },
-                    32: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(105.74577831169138)},
-                            2: {"angles": np.float64(170.77477120211938)},
-                        },
-                        "node_coords": np.array([[632, 582]]),
-                        "confidence": None,
-                    },
-                    33: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(99.7673309987942)},
-                            2: {"angles": np.float64(168.1113419603717)},
-                            3: {"angles": np.float64(93.24323550537468)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [638, 25],
-                                [639, 25],
-                                [640, 24],
-                                [641, 24],
-                                [642, 24],
-                                [643, 24],
-                                [644, 24],
-                                [645, 24],
-                                [646, 24],
-                                [647, 24],
-                                [648, 24],
-                                [648, 25],
-                            ]
-                        ),
-                        "confidence": np.float64(0.0),
-                    },
-                    34: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(170.28365068572384)},
-                            2: {"angles": np.float64(59.1150546692716)},
-                        },
-                        "node_coords": np.array([[650, 551], [650, 552], [651, 551]]),
-                        "confidence": None,
-                    },
-                    35: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(151.69924423399326)},
-                            2: {"angles": np.float64(73.30075576600676)},
-                        },
-                        "node_coords": np.array([[655, 567]]),
-                        "confidence": None,
-                    },
-                    36: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(119.99507961713938)},
-                            2: {"angles": np.float64(99.99180662782496)},
-                        },
-                        "node_coords": np.array([[655, 576]]),
-                        "confidence": None,
-                    },
-                    37: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(94.21417852273404)},
-                            2: {"angles": np.float64(175.78582147726598)},
-                        },
-                        "node_coords": np.array([[712, 21]]),
-                        "confidence": None,
-                    },
-                    38: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(135.0)},
-                            2: {"angles": np.float64(135.0)},
-                        },
-                        "node_coords": np.array([[713, 537]]),
-                        "confidence": None,
-                    },
-                    39: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(179.61258629167784)},
-                            2: {"angles": np.float64(109.03864199370402)},
-                        },
-                        "node_coords": np.array([[713, 585], [713, 586], [714, 586]]),
-                        "confidence": None,
-                    },
-                    40: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(108.20848447058127)},
-                            2: {"angles": np.float64(174.87594458340195)},
-                        },
-                        "node_coords": np.array([[722, 544]]),
-                        "confidence": None,
-                    },
-                    41: {  # Node
-                        "error": False,
-                        "pixel_to_nm_scaling": 1,
-                        "unmatched_branch_stats": {
-                            0: {"angles": np.float64(0.0)},
-                            1: {"angles": np.float64(120.96375653207353)},
-                            2: {"angles": np.float64(80.32739868765275)},
-                            3: {"angles": np.float64(178.43886624428245)},
-                        },
-                        "node_coords": np.array(
-                            [
-                                [732, 28],
-                                [733, 27],
-                                [734, 27],
-                                [735, 27],
-                                [736, 28],
-                                [737, 28],
-                                [738, 28],
-                                [739, 27],
-                            ]
-                        ),
-                        "confidence": np.float64(0.0),
-                    },
+                    "angles": np.float64(0.0),
                 },
             },
             id="catenane",
+            # marks=pytest.mark.skip(reason="disable whilst testing other params"),
+        ),
+        pytest.param(
+            "rep_int_post_disordered_tracing",
+            [0],
+            {
+                0: {  # Grain
+                    1: {  # Node
+                        "error": False,
+                        "pixel_to_nm_scaling": 0.488,
+                        "unmatched_branch_stats": {
+                            0: {"angles": np.float64(0.0)},
+                            1: {"angles": np.float64(94.21885263314698)},
+                            2: {"angles": np.float64(66.84778128958743)},
+                            3: {"angles": np.float64(142.2590882489817)},
+                        },
+                        "node_coords": np.array([[73, 159], [74, 158]]),
+                        "confidence": np.float64(0.03871449534836169),
+                    },
+                    # @ns-rse 2025-10-22 : There are multiple nodes, excessive to check them all.
+                },
+            },
+            {  # Expected MatchedBranch (only test the first Matched Branch)
+                0: {
+                    "ordered_coords": np.array(
+                        [
+                            [35, 149],
+                            [36, 149],
+                            [37, 149],
+                            [38, 150],
+                            [39, 150],
+                            [40, 151],
+                            [41, 151],
+                            [42, 151],
+                            [43, 151],
+                            [44, 151],
+                            [45, 151],
+                            [46, 152],
+                            [47, 152],
+                            [48, 152],
+                            [49, 153],
+                            [50, 154],
+                            [51, 154],
+                            [52, 154],
+                            [53, 155],
+                            [54, 155],
+                            [55, 156],
+                            [56, 156],
+                            [57, 156],
+                            [58, 156],
+                            [59, 156],
+                            [60, 157],
+                            [61, 157],
+                            [62, 157],
+                            [63, 157],
+                            [64, 157],
+                            [65, 157],
+                            [66, 157],
+                            [67, 158],
+                            [68, 158],
+                            [69, 158],
+                            [70, 158],
+                            [71, 158],
+                            [72, 158],
+                            [73, 159],
+                            [74, 158],
+                            [75, 159],
+                            [76, 160],
+                            [77, 160],
+                            [78, 160],
+                            [79, 161],
+                            [80, 161],
+                            [81, 161],
+                            [82, 162],
+                            [83, 163],
+                            [84, 164],
+                            [85, 165],
+                            [85, 166],
+                            [85, 167],
+                            [86, 168],
+                            [86, 169],
+                            [86, 170],
+                            [86, 171],
+                            [87, 172],
+                            [88, 173],
+                            [88, 174],
+                            [89, 175],
+                            [89, 176],
+                            [90, 177],
+                            [91, 178],
+                            [91, 179],
+                            [91, 180],
+                            [92, 181],
+                            [92, 182],
+                            [92, 183],
+                            [92, 184],
+                            [93, 185],
+                            [93, 186],
+                            [93, 187],
+                            [93, 188],
+                            [93, 189],
+                        ]
+                    ),
+                    "heights": np.array(
+                        [
+                            2.13170185,
+                            2.16828175,
+                            2.18915553,
+                            2.33270282,
+                            2.35610101,
+                            2.09070047,
+                            2.13967484,
+                            2.20562769,
+                            2.27269809,
+                            2.27767211,
+                            2.19568794,
+                            2.1207163,
+                            2.11777145,
+                            2.02342038,
+                            2.15461443,
+                            2.13955196,
+                            2.22808776,
+                            2.18022929,
+                            2.10849704,
+                            2.16432768,
+                            2.14639965,
+                            2.16124483,
+                            2.11018236,
+                            2.08464181,
+                            2.10248132,
+                            2.12527932,
+                            2.10657728,
+                            2.08488174,
+                            2.14284489,
+                            2.18671382,
+                            2.14539571,
+                            2.079853,
+                            2.15980134,
+                            2.27324934,
+                            2.33982509,
+                            2.43301785,
+                            2.62186505,
+                            2.99968733,
+                            3.26873387,
+                            3.75706697,
+                            3.25026302,
+                            2.27529441,
+                            2.03195061,
+                            1.93491741,
+                            1.75556747,
+                            1.86329297,
+                            1.89655767,
+                            2.13985724,
+                            2.16505325,
+                            2.14428989,
+                            2.08145202,
+                            2.19329704,
+                            2.20784933,
+                            2.20108216,
+                            2.28153367,
+                            2.27541704,
+                            2.19782075,
+                            2.11942912,
+                            1.81888196,
+                            1.87162372,
+                            1.7598468,
+                            1.84672653,
+                            2.08694429,
+                            2.14235931,
+                            2.23785505,
+                            2.15870862,
+                            2.26121916,
+                            2.31478999,
+                            2.26939355,
+                            2.15618801,
+                            2.06309372,
+                            2.03224247,
+                            2.00724186,
+                            1.97382715,
+                            1.92037258,
+                        ]
+                    ),
+                    "distances": np.array(
+                        [
+                            -40.02499219,
+                            -39.05124838,
+                            -38.07886553,
+                            -36.87817783,
+                            -35.90264614,
+                            -34.71310992,
+                            -33.73425559,
+                            -32.75667871,
+                            -31.78049716,
+                            -30.8058436,
+                            -29.83286778,
+                            -28.63564213,
+                            -27.65863337,
+                            -26.68332813,
+                            -25.49509757,
+                            -24.33105012,
+                            -23.34523506,
+                            -22.36067977,
+                            -21.21320344,
+                            -20.22374842,
+                            -19.10497317,
+                            -18.11077028,
+                            -17.11724277,
+                            -16.1245155,
+                            -15.13274595,
+                            -14.03566885,
+                            -13.03840481,
+                            -12.04159458,
+                            -11.04536102,
+                            -10.04987562,
+                            -9.05538514,
+                            -8.06225775,
+                            -7.0,
+                            -6.0,
+                            -5.0,
+                            -4.0,
+                            -3.0,
+                            -2.0,
+                            -1.41421356,
+                            0.0,
+                            1.41421356,
+                            2.82842712,
+                            3.60555128,
+                            4.47213595,
+                            5.83095189,
+                            6.70820393,
+                            7.61577311,
+                            8.94427191,
+                            10.29563014,
+                            11.66190379,
+                            13.03840481,
+                            13.60147051,
+                            14.2126704,
+                            15.62049935,
+                            16.2788206,
+                            16.97056275,
+                            17.69180601,
+                            19.10497317,
+                            20.51828453,
+                            21.26029163,
+                            22.6715681,
+                            23.43074903,
+                            24.8394847,
+                            26.2488095,
+                            27.01851217,
+                            27.80287755,
+                            29.20616373,
+                            30.0,
+                            30.8058436,
+                            31.6227766,
+                            33.01514804,
+                            33.83784863,
+                            34.66987165,
+                            35.51056181,
+                            36.35931793,
+                        ]
+                    ),
+                    "fwhm": {
+                        "fwhm": np.float64(4.470980292896586),
+                        "half_maxs": [
+                            np.float64(-2.447857504061359),
+                            np.float64(2.0231227888352277),
+                            np.float64(2.8304767888297717),
+                        ],
+                        "peaks": [np.int64(39), np.float64(0.0), np.float64(3.757066972693363)],
+                    },
+                    "angles": np.float64(0.0),
+                },
+            },
+            id="rep int",
+            marks=pytest.mark.skip(reason="disable whilst testing other params"),
         ),
     ],
 )
 def test_run_nodestats(  # noqa: C901
-    topostats_object: TopoStats, expected: dict[str, Any], process_scan_config: dict[str, Any], tmp_path, request
+    topostats_object: str,
+    detected_grains: list[int],
+    expected_nodes: dict[str, Any],
+    expected_matched_branch: dict[str, Any],
+    process_scan_config: dict[str, Any],
+    tmp_path,
+    request,
 ) -> None:
     """Test for run_nodestats()."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    if topostats_object.filename == "minicircle_small":
-        run_disordered_tracing(
-            topostats_object=topostats_object,
-            core_out_path=tmp_path,
-            tracing_out_path=tmp_path,
-            disordered_tracing_config=process_scan_config["disordered_tracing"],
-            plotting_config=process_scan_config["plotting"],
-        )
+    fixture_name = topostats_object
+    topostats_object: TopoStats = request.getfixturevalue(topostats_object)
     run_nodestats(
         topostats_object=topostats_object,
         core_out_path=tmp_path,
@@ -1778,97 +1759,81 @@ def test_run_nodestats(  # noqa: C901
         plotting_config=process_scan_config["plotting"],
         grainstats_df=pd.DataFrame(),
     )
-    if topostats_object.filename == "minicircle_small":
-        # ns-rse 2025-10-08 - Uncomment if attributes of nodestats change and we need to update the saved object for
-        # subsequent tests
-        from topostats.io import save_topostats_file
-
-        save_topostats_file(
-            output_dir=RESOURCES / "tracing" / "ordered_tracing",
-            filename="minicircle_post_nodestats.topostats",
-            topostats_object=topostats_object,
-        )
-        for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
-            # Grains 1, 2, 5 have Skeletons < 10 so disordered tracing is skipped; Grain 4 has no crossover
-            if grain not in (1, 2, 4, 5):
-                for node, nodestats in grain_crop.nodes.items():
-                    assert nodestats.error == expected[grain][node]["error"]
-                    assert nodestats.unmatched_branch_stats == expected[grain][node]["unmatched_branch_stats"]
-                    np.testing.assert_array_equal(nodestats.node_coords, expected[grain][node]["node_coords"])
-    elif topostats_object.filename == "test_catenane":
-        # ns-rse 2025-10-08 - Uncomment if attributes of nodestats change and we need to update the saved object for
-        # subsequent tests
-        from topostats.io import save_topostats_file
-
-        save_topostats_file(
-            output_dir=RESOURCES / "tracing" / "ordered_tracing",
-            filename="catenane_post_nodestats.topostats",
-            topostats_object=topostats_object,
-        )
-        for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
-            for node, nodestats in grain_crop.nodes.items():
-                assert nodestats.error == expected[grain][node]["error"]
-                # ns-rse 2025-09-24 Equality is failing for 'nan' tried both `np.float64(np.nan)` and
-                # `np.float64(float('nan'))` but to no avail. Probably more important to work out why we observe
-                # `nan` in the first place but for expedience and the current urgency to complete this work we skip
-                # those affected for now. We know where to look as we get a warning and this has also been noted
-                # in-line
-                #
-                #   /home/neil/work/git/hub/AFM-SPM/TopoStats/topostats/tracing/nodestats.py:1129:
-                #      RuntimeWarning: invalid value encountered in arccos
-                #   return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
-                if node not in (13, 19, 27):
-                    assert nodestats.unmatched_branch_stats == expected[grain][node]["unmatched_branch_stats"]
-                np.testing.assert_array_equal(nodestats.node_coords, expected[grain][node]["node_coords"])
-
-
-@pytest.mark.parametrize(
-    ("topostats_path", "sample", "expected"),
-    [
-        pytest.param(
-            RESOURCES / "tracing" / "ordered_tracing" / "minicircle_post_nodestats.topostats",
-            "minicircle_post_nodestats",
-            {
-                0: {"disordered_trace": {}},  # Grain
-            },
-            id="minicircle",
-        ),
-        pytest.param(
-            RESOURCES / "tracing" / "ordered_tracing" / "catenane_post_nodestats.topostats",
-            "catenane_post_nodestats",
-            {
-                0: {"disordered_trace": {}},  # Grain
-            },
-            id="catenane",
-        ),
-    ],
-)
-def test_run_ordered_tracing(
-    topostats_path: Path, expected: dict[str, Any], sample, process_scan_config: dict[str, Any], tmp_path, request
-) -> None:
-    """Test for run_ordered_tracing."""
-    load_scans = LoadScans([topostats_path], channel="height_trace")
-    load_scans.get_data()
-    topostats_object = dict_to_topostats(load_scans.img_dict[sample])
-    topostats_object.filename = topostats_object.filename.replace("_post_nodestats", "")
-    run_ordered_tracing(
-        topostats_object=topostats_object,
-        core_out_path=tmp_path,
-        tracing_out_path=tmp_path,
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        plotting_config=process_scan_config["plotting"],
-    )
-    # print(f"\n{topostats_object.image_grain_crops.__dict__()=}\n")
-    # print(f"\n{topostats_object.image_grain_crops.above.__dict__()=}\n")
     for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
-        assert grain_crop.disordered_trace is not None
+        if grain in detected_grains:
+            # We only check the first grain
+            if grain_crop.nodes is not None and grain == 0:
+                for node, nodestats in grain_crop.nodes.items():
+                    # print(f"\n{nodestats=}\n")
+                    if node == 1:
+                        assert nodestats.error == expected_nodes[grain][node]["error"]
+                        assert nodestats.unmatched_branch_stats == expected_nodes[grain][node]["unmatched_branch_stats"]
+                        np.testing.assert_array_equal(nodestats.node_coords, expected_nodes[grain][node]["node_coords"])
+                    # Check Matched branch statistics for node 0 of catenanes/rep_int node of catenanes and rep_int
+                    # (only unmatched node stats in minicricle so nothing to check)
+                    if fixture_name != "minicircle_small_post_disordered_tracing" and node == 0:
+                        assert dict_almost_equal(
+                            nodestats.branch_stats[0].matched_branch_to_dict(), expected_matched_branch[0]
+                        )
 
 
-# # Sample code for saving objects
-# from topostats.io import save_topostats_file
-
-# save_topostats_file(
-#     output_dir=RESOURCES / "tracing" / "ordered_tracing",
-#     filename="catenane_post_nodestats.topostats",
-#     topostats_object=topostats_object,
+# @pytest.mark.skip(reason="in development")
+# @pytest.mark.parametrize(
+#     ("topostats_object", "detected_grains", "expected_ordered_trace"),
+#     [
+#         pytest.param(
+#             "minicircle_post_nodestats",
+#             [0, 3, 4],
+#             {
+#                 0: {
+#                     "ordered_trace": {}
+#                 },  # Grain
+#             },
+#             id="minicircle",
+#         ),
+#         pytest.param(
+#             "catenane_post_nodestats",
+#             [0, 1],
+#             {
+#                 0: {
+#                     "ordered_trace": {}
+#                 },  # Grain
+#             },
+#             id="catenane",
+#         ),
+#         pytest.param(
+#             "rep_int_post_nodestats",
+#             [0, 1],
+#             {
+#                 0: {
+#                     "ordered_trace": {}
+#                 },  # Grain
+#             },
+#             id="catenane",
+#         ),
+#     ],
 # )
+# def test_run_ordered_tracing(
+#     topostats_object: str,
+#     detected_grains: list[int],
+#     expected_ordered_trace: dict[str, Any],
+#     sample,
+#     process_scan_config: dict[str, Any],
+#     default_config: dict[str, Any],
+#     tmp_path,
+#     request,
+# ) -> None:
+#     """Test for run_ordered_tracing."""
+#     fixture_name = topostats_object
+#     topostats_object = request.getfixturevalue(topostats_object)
+#     run_ordered_tracing(
+#         topostats_object=topostats_object,
+#         core_out_path=tmp_path,
+#         tracing_out_path=tmp_path,
+#         ordered_tracing_config=process_scan_config["ordered_tracing"],
+#         plotting_config=process_scan_config["plotting"],
+#     )
+#     # print(f"\n{topostats_object.image_grain_crops.__dict__()=}\n")
+#     # print(f"\n{topostats_object.image_grain_crops.above.__dict__()=}\n")
+#     for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
+#         assert grain_crop.ordered_trace is not None

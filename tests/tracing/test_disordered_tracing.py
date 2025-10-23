@@ -1285,6 +1285,7 @@ def test_disordered_trace_grain(
     np.testing.assert_array_equal(result_branch_types, expected_branch_types)
 
 
+# @ns-rse 2025-10-23 - replace loading of pickles here with fixtures of TopoStats objects
 @pytest.mark.parametrize(
     ("mask", "expected_return"),
     [
@@ -1417,6 +1418,17 @@ def test_trace_image_disordered(
     # variable_skeleton = result_all_images["skeleton"]
     # variable_pruned_skeleton = result_all_images["pruned_skeleton"]
     # variable_branch_types = result_all_images["branch_types"]
+
+    # # Update expected values - CHECK RESULTS WITH EXPERT BEFORE UPDATING
+    # # Pickle result_disordered_crop_data
+
+    # with open(DISORDERED_TRACING_RESOURCES / expected_disordered_crop_data_filename, "wb") as f:
+    # with open(Path("tmp/") / expected_disordered_crop_data_filename, "wb") as f:
+    #     print(f"SAVING TO \n{expected_disordered_crop_data_filename=}\n")
+    #     pkl.dump(result_disordered_trace_crop_data, f)
+    # # Save result_all_images as a pickle
+    # with open(DISORDERED_TRACING_RESOURCES / expected_all_images_filename, "wb") as f:
+    #     pkl.dump(result_images, f)
 
     assert result_disordered_trace_crop_data == snapshot
     assert result_images == snapshot

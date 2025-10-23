@@ -43,7 +43,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         self.image: npt.NDArray = grain_crop.image
         if grain_crop.nodes is None:
             raise AttributeError(f"Node statistics do not exist for a grain within {grain_crop.filename}.")
-        print(f"\n{grain_crop.nodes=}\n")
         self.nodestats_dict: dict[str, Node] = grain_crop.nodes
         self.filename: str = grain_crop.filename
         self.skeleton: npt.NDArray = grain_crop.skeleton
@@ -97,7 +96,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             for stats in self.nodestats_dict.values()
         ]
         # ns-rse 2025-10-09 - Not sure why the above (and others here) use nested list comprehension and then unpack
-        # them, suspect the nesting can be removed in the above and the below becomes redundant but haven't time to check
+        # them, suspect the nesting can be removed in the above and the below becomes redundant but haven't time to
+        # check
         node_coords = [lst for lst in node_coords if lst]
 
         crossing_coords = [
@@ -973,7 +973,8 @@ def ordered_tracing_image(
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
-                f"[{topostats_object.filename}] : Ordered tracing for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
+                f"[{topostats_object.filename}] : Ordered tracing for {grain_no} failed."
+                "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
             all_traces_data[grain_no] = {}

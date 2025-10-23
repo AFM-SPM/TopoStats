@@ -123,7 +123,7 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "ordered_trace": dummy_graincrop.ordered_trace,
         "threshold_method": dummy_graincrop.threshold_method,
     }
-    np.testing.assert_array_equal(dummy_graincrop.grain_crop_to_dict(), expected)
+    assert dict_almost_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 
 
 def test_grain_crop_direction_to_dict(dummy_graincropsdirection: GrainCropsDirection) -> None:
@@ -179,7 +179,7 @@ def test_topostats_to_dict(
         "image_grain_crops": image_grain_crops,
         "filename": topostats_object.filename,
         "pixel_to_nm_scaling": topostats_object.pixel_to_nm_scaling,
-        "img_path": Path(img_path),
+        "img_path": img_path,
         "image": topostats_object.image,
         "image_original": topostats_object.image_original,
         "full_mask_tensor": topostats_object.full_mask_tensor,
