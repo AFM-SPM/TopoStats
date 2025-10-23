@@ -367,7 +367,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
         disordered_trace_results.reset_index(inplace=True)
-        disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+        disordered_trace_results.set_index(["image", "grain_number"], inplace=True)
         disordered_trace_results.to_csv(config["output_dir"] / "all_disordered_segment_statistics.csv", index=True)
         save_folder_grainstats(
             config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
@@ -378,7 +378,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
         mols_results.reset_index(drop=True, inplace=True)
-        mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+        mols_results.set_index(["image", "grain_number"], inplace=True)
         mols_results.to_csv(config["output_dir"] / "all_mol_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
         mols_results.reset_index(inplace=True)  # So we can access unique image names

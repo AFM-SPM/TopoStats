@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.grains import GrainCrop, ImageGrainCrops
+from topostats.grains import GrainCrop
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -863,7 +863,7 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["threshold_absolute"] = [1.0, -0.4]
     grains_config["threshold_areas"] = [20, 10000000]
 
-    imagegraincrops = run_grains(
+    crops, full_mask_tensor = run_grains(
         image=flattened_image,
         pixel_to_nm_scaling=0.4940029296875,
         filename="dummy filename",
@@ -873,10 +873,11 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         plotting_config=process_scan_config["plotting"],
     )
 
-    assert isinstance(imagegraincrops, ImageGrainCrops)
-    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_idx == 0]) == 6
-    assert len([crop for crop in imagegraincrops.crops.values() if crop.threshold_idx == 1]) == 2
-    assert len(imagegraincrops.crops) == 8
+    assert isinstance(crops, dict)
+    assert isinstance(full_mask_tensor, np.ndarray)
+    assert len([crop for crop in crops.values() if crop.threshold_idx == 0]) == 6
+    assert len([crop for crop in crops.values() if crop.threshold_idx == 1]) == 2
+    assert len(crops) == 8
     # Floating point errors mean that on different systems, different results are
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
@@ -884,15 +885,10 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    # with Path.open(
-    #     BASE_DIR / "pkl handling/igc_pickle_output.pkl", "rb"
-    # ) as f:
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
-    ) as f:
-        image_grain_crops = pickle.load(f)
+    with Path.open(RESOURCES / "minicircle_cropped_graincrops.pkl", "rb") as f:  # pylint: disable=unspecified-encoding
+        grain_crops = pickle.load(f)
     grainstats_df, _, grain_crops = run_grainstats(
-        image_grain_crops=image_grain_crops,
+        crops=grain_crops,
         filename="dummy filename",
         basename=RESOURCES,
         grainstats_config=process_scan_config["grainstats"],

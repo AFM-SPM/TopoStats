@@ -1134,62 +1134,6 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
         np.testing.assert_array_equal(f["0"]["height_profiles"]["1"]["0"][()], expected["0"]["height_profiles"][1][0])
 
 
-# def test_dict_to_hdf5_imagegraincrops(
-#     dummy_imagegraincrop: grains.ImageGrainCrops, dummy_graincrop: grains.GrainCrop, tmp_path: Path
-# ) -> None:
-#     """Test loading an ImageGrainCrops object and writing to HDF5 file."""
-#     expected = {
-#         "crops": dummy_imagegraincrop.crops,
-#         "full_mask_tensor": dummy_imagegraincrop.full_mask_tensor,
-#     }
-#     grain_crop = dummy_graincrop.grain_crop_to_dict()
-#     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-#         dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={dummy_imagegraincrop})
-#     # Load it back in and check if the dictionary is the same
-#     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-#         # Check keys are the same
-#         assert sorted(f.keys()) == sorted(expected.keys())
-#         # Check grains data are identical
-#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["image"][()], grain_crop["image"])
-#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-#         np.testing.assert_array_equal(f["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-#         assert f["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-#         assert f["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-#         assert f["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-#         np.testing.assert_array_equal(f["above"]["full_mask_tensor"][()], expected["above"]["full_mask_tensor"])
-
-
-def test_dict_to_hdf5_imagegraincrops(
-    dummy_imagegraincrop: grains.ImageGrainCrops, dummy_graincrop: grains.GrainCrop, tmp_path: Path
-) -> None:
-    """Test loading a ImageGrainGrops object and writing to HDF5 file."""
-    image_grain_crops = dummy_imagegraincrop
-    expected = {
-        "test": {
-            "thresholds": dummy_imagegraincrop.thresholds,
-            "crops": dummy_imagegraincrop.crops,
-            "full_mask_tensor": dummy_imagegraincrop.full_mask_tensor,
-        }
-    }
-    grain_crop = dummy_graincrop.grain_crop_to_dict()
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={"test": image_grain_crops})
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        assert sorted(f["test"].keys()) == sorted(expected["test"].keys())
-        # Check grains data are identical
-        np.testing.assert_array_equal(f["test"]["crops"]["0"]["image"][()], grain_crop["image"])
-        np.testing.assert_array_equal(f["test"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-        np.testing.assert_array_equal(f["test"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-        assert f["test"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-        assert f["test"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-        assert f["test"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-        np.testing.assert_array_equal(f["test"]["full_mask_tensor"][()], image_grain_crops.full_mask_tensor)
-        np.testing.assert_array_equal(f["test"]["thresholds"][()], image_grain_crops.thresholds)
-
-
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
     """Test loading a nested dictionary with arrays from HDF5 format with group path as default."""
     to_save = {
@@ -1375,8 +1319,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         "pixel_to_nm_scaling",
         "filename",
         "img_path",
-        "grain_mask_above",
-        "grain_mask_below",
+        "grain_masks",
         "grain_trace_data",
         "data_keys",
     ),
@@ -1387,100 +1330,85 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             3.14159265,
             "below_grain_mask_with_grain_trace_data",
             "./below_grain_mask_with_grain_trace_data.topostats",
-            None,
             np.zeros((10, 10)),
             {
-                "above": {
-                    "ordered_traces": {
-                        "0": np.array(
-                            [
-                                [0, 1],
-                                [1, 0],
-                                [2, 2],
-                            ]
-                        ),
-                        "1": np.array(
-                            [
-                                [0, 0],
-                                [2, 1],
-                                [3, 0],
-                            ]
-                        ),
-                    },
-                    "cropped_images": {
-                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
-                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
-                    },
-                    "ordered_trace_heights": {
-                        "0": np.array([5, 2, 3]),
-                        "1": np.array([5, 7, 10]),
-                    },
-                    "ordered_trace_cumulative_distances": {
-                        "0": np.array([0, 1.41, 2.41]),
-                        "1": np.array([0, 1, 2]),
-                    },
-                    "splined_traces": {
-                        "0": np.array(
-                            [
-                                [0, 1],
-                                [1, 0],
-                                [2, 2],
-                            ]
-                        ),
-                        "1": np.array(
-                            [
-                                [0, 0],
-                                [2, 1],
-                                [3, 0],
-                            ]
-                        ),
-                    },
+                "ordered_traces": {
+                    "0": np.array(
+                        [
+                            [0, 1],
+                            [1, 0],
+                            [2, 2],
+                        ]
+                    ),
+                    "1": np.array(
+                        [
+                            [0, 0],
+                            [2, 1],
+                            [3, 0],
+                        ]
+                    ),
+                    "2": np.array(
+                        [
+                            [0, 1],
+                            [1, 0],
+                            [2, 2],
+                        ]
+                    ),
+                    "3": np.array(
+                        [
+                            [0, 0],
+                            [2, 1],
+                            [3, 0],
+                        ]
+                    ),
                 },
-                "below": {
-                    "ordered_traces": {
-                        "0": np.array(
-                            [
-                                [0, 1],
-                                [1, 0],
-                                [2, 2],
-                            ]
-                        ),
-                        "1": np.array(
-                            [
-                                [0, 0],
-                                [2, 1],
-                                [3, 0],
-                            ]
-                        ),
-                    },
-                    "cropped_images": {
-                        "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
-                        "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
-                    },
-                    "ordered_trace_heights": {
-                        "0": np.array([5, 2, 3]),
-                        "1": np.array([5, 7, 10]),
-                    },
-                    "ordered_trace_cumulative_distances": {
-                        "0": np.array([0, 1.41, 2.41]),
-                        "1": np.array([0, 1, 2]),
-                    },
-                    "splined_traces": {
-                        "0": np.array(
-                            [
-                                [0, 1],
-                                [1, 0],
-                                [2, 2],
-                            ]
-                        ),
-                        "1": np.array(
-                            [
-                                [0, 0],
-                                [2, 1],
-                                [3, 0],
-                            ]
-                        ),
-                    },
+                "cropped_images": {
+                    "0": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                    "1": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                    "2": np.array([[0, 1, 2], [1, 2, 3], [2, 2, 1]]),
+                    "3": np.array([[0, 1, 3], [2, 2, 4], [3, 4, 5]]),
+                },
+                "ordered_trace_heights": {
+                    "0": np.array([5, 2, 3]),
+                    "1": np.array([5, 7, 10]),
+                    "2": np.array([5, 2, 3]),
+                    "3": np.array([5, 7, 10]),
+                },
+                "ordered_trace_cumulative_distances": {
+                    "0": np.array([0, 1.41, 2.41]),
+                    "1": np.array([0, 1, 2]),
+                    "2": np.array([0, 1.41, 2.41]),
+                    "3": np.array([0, 1, 2]),
+                },
+                "splined_traces": {
+                    "0": np.array(
+                        [
+                            [0, 1],
+                            [1, 0],
+                            [2, 2],
+                        ]
+                    ),
+                    "1": np.array(
+                        [
+                            [0, 0],
+                            [2, 1],
+                            [3, 0],
+                        ]
+                    ),
+                    "2": np.array(
+                        [
+                            [0, 1],
+                            [1, 0],
+                            [2, 2],
+                        ]
+                    ),
+                    "3": np.array(
+                        [
+                            [0, 0],
+                            [2, 1],
+                            [3, 0],
+                        ]
+                    ),
                 },
             },
             {
@@ -1501,12 +1429,10 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             3.14159265,
             "above_grain_mask_without_grain_trace_data",
             "./above_grain_mask_without_grain_trace_data.topostats",
-            np.zeros((10, 10)),
             None,
             None,
             {
                 "filename",
-                "grain_masks",
                 "image",
                 "image_original",
                 "img_path",
@@ -1522,7 +1448,6 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             "above_and_below_grain_masks_without_grain_trace_data",
             "./above_and_below_grain_masks_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
-            np.zeros((10, 10)),
             None,
             {
                 "filename",
@@ -1537,11 +1462,10 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         ),
         pytest.param(
             "2.4.0",
-            "imagegraincrops_rep_int",
+            "crops_rep_int",
             "minicircles",
             None,  # img_path
-            None,  # grain_mask_above
-            None,  # grain_mask_below
+            None,  # grain_masks
             None,  # grain_trace_data
             None,  # data_keys
             None,
@@ -1550,11 +1474,10 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         ),
         pytest.param(
             "2.4.0",
-            "imagegraincrops_catenanes",
+            "crops_catenanes",
             "catenanes",
             None,  # img_path
-            None,  # grain_mask_above
-            None,  # grain_mask_below
+            None,  # grain_masks
             None,  # grain_trace_data
             None,  # data_keys
             None,
@@ -1571,8 +1494,7 @@ def test_save_and_load_topostats(
     pixel_to_nm_scaling: float,
     filename: str,
     img_path: str,
-    grain_mask_above: np.ndarray,
-    grain_mask_below: np.ndarray,
+    grain_masks: np.ndarray,
     grain_trace_data: dict,
     data_keys: set,
     request,
@@ -1586,11 +1508,11 @@ def test_save_and_load_topostats(
             "pixel_to_nm_scaling": pixel_to_nm_scaling,
             "image_original": image,
             "image": image,
-            "grain_masks": {"above": grain_mask_above, "below": grain_mask_below},
+            "grain_masks": grain_masks,
             "grain_trace_data": grain_trace_data,
         }
     else:
-        # If we are testing >= 2.4.0 then topostats_object should be ImageGrainCrops object which we load from fixture
+        # If we are testing >= 2.4.0 then topostats_object should be TopoStats object which we load from fixture
         topostats_object = request.getfixturevalue(image)
     # Save the file
     save_topostats_file(
@@ -1607,18 +1529,10 @@ def test_save_and_load_topostats(
         assert set(loadscans.img_dict["topostats_file_test"].keys()) == data_keys
         np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
         assert pixel_to_nm_scaling == loadscans.img_dict["topostats_file_test"]["pixel_to_nm_scaling"]
-        if grain_mask_above is not None:
-            np.testing.assert_array_equal(
-                grain_mask_above, loadscans.img_dict["topostats_file_test"]["grain_masks"]["above"]
-            )
-            if grain_mask_below is not None:
-                np.testing.assert_array_equal(
-                    grain_mask_below, loadscans.img_dict["topostats_file_test"]["grain_masks"]["below"]
-                )
-                if grain_trace_data is not None:
-                    np.testing.assert_equal(
-                        grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"]
-                    )
+        if grain_masks is not None:
+            np.testing.assert_array_equal(grain_masks, loadscans.img_dict["topostats_file_test"]["grain_masks"])
+            if grain_trace_data is not None:
+                np.testing.assert_equal(grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"])
     else:
         assert True
 
@@ -1627,13 +1541,13 @@ def test_save_and_load_topostats(
     ("dictionary", "target"),
     [
         pytest.param(
-            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
-            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            {"a": [1, 2, 3], "b": [4, 5, 6]},
+            {"a": [1, 2, 3], "b": [4, 5, 6]},
             id="dictionary and lists",
         ),
         pytest.param(
-            {"above": {"a": np.asarray([1, 2, 3]), "b": np.asarray([4, 5, 6])}},
-            {"above": {"a": [1, 2, 3], "b": [4, 5, 6]}},
+            {"a": np.asarray([1, 2, 3]), "b": np.asarray([4, 5, 6])},
+            {"a": [1, 2, 3], "b": [4, 5, 6]},
             id="dictionary and numpy arrays",
         ),
     ],

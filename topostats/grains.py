@@ -5,7 +5,6 @@
 import logging
 import re
 import sys
-from dataclasses import dataclass
 from typing import Any
 
 import keras
@@ -452,128 +451,6 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     return array
 
 
-@dataclass
-class ImageGrainCrops:
-    """
-    Dataclass for storing the crops of grains.
-
-    Attributes
-    ----------
-    thresholds : list[float]
-        List of thresholds from config.
-    crops : dict[int, GrainCrops]
-        List of dict of grain crops.
-    full_mask_tensor : npt.NDArray[np.bool_]
-        List of boolean WxHxC arrays of the full mask tensors (W = width ; H = height; C = class >= 2).
-    """
-
-    thresholds: list[float]
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
-
-    def __post_init__(self):
-        """
-        Validate the full mask tensor shape.
-
-        Raises
-        ------
-        ValueError
-            If the full mask tensor shape is invalid.
-        """
-        if self.full_mask_tensor is None or self.full_mask_tensor.size == 0:
-            self._full_mask_tensor = np.array([], dtype=np.bool_)
-        else:
-            self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor).astype(bool)
-
-    @property
-    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
-        """
-        Getter for the full mask tensor.
-
-        Returns
-        -------
-        list[npt.NDArray]
-            List of numpy arrays of the full mask tensors.
-        """
-        return self._full_mask_tensor
-
-    @full_mask_tensor.setter
-    def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
-        """
-        Setter for the full mask tensor.
-
-        Parameters
-        ----------
-        value : list[npt.NDArray]
-            Numpy array of the full mask tensor.
-        """
-        if value is None:
-            self._full_mask_tensor = np.array([], dtype=np.bool_)
-        else:
-            self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two ImageGrainCrops objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            return False
-        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
-
-    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert ImageGrainCrops to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two ImageGrainCrops objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-        for crop_index, crop in self.crops.items():
-            if crop != other.crops[crop_index]:
-                LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.debug_locate_difference(other.crops[crop_index])
-        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
-            raise ValueError("Full mask tensor is different")
-
-        LOGGER.info("Cannot find difference between graincrops")
-
-    def update_full_mask_tensor(self):
-        """Update the full mask tensor from the grain crops."""
-        self.full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-            graincrops=self.crops,
-            image_shape=self.full_mask_tensor.shape[:2],
-        )
-
-
 class Grains:
     """
     Find grains in an image.
@@ -600,11 +477,11 @@ class Grains:
         Method for determining thershold to mask values, default is 'otsu'.
     threshold_otsu_multiplier : float | None
         Factor by which the below threshold is to be scaled prior to masking.
-    threshold_std_dev : dict[str, float | list] | None
-        Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+    threshold_std_dev : list[float | None] | None
+        List of factors by which standard deviation is multiplied to derive the threshold
         if threshold_method is 'std_dev'.
-    threshold_absolute : dict[str, float | list] | None
-        Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+    threshold_absolute : list[float | None] | None
+        List of absolute thresholds for grain finding.
     threshold_areas : list[float | None]
         List of grain's area thresholds.
     remove_edge_intersecting_grains : bool
@@ -657,11 +534,11 @@ class Grains:
             Method for determining thershold to mask values, default is 'otsu'.
         threshold_otsu_multiplier : float | None
             Factor by which the below threshold is to be scaled prior to masking.
-        threshold_std_dev : dict[str, float | list] | None
-            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+        threshold_std_dev : list[float | None] | None
+            List of factors by which standard deviation is multiplied to derive the threshold
             if threshold_method is 'std_dev'.
-        threshold_absolute : dict[str, float | list] | None
-            Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+        threshold_absolute : list[float | None] | None
+            List of absolute thresholds for grain finding.
         threshold_areas : list[float | None]
             List of grain's area thresholds.
         remove_edge_intersecting_grains : bool
@@ -709,11 +586,8 @@ class Grains:
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
-        self.image_grain_crops = ImageGrainCrops(
-            crops=None,
-            full_mask_tensor=None,
-            thresholds=None,
-        )
+        self.crops = None
+        self.full_mask_tensor = None
 
     @staticmethod
     def get_region_properties(image: npt.NDArray, **kwargs) -> list:
@@ -1034,23 +908,12 @@ class Grains:
             )
             self.mask_images["merged_classes"] = full_mask_tensor_merged_classes.copy()
 
-            if self.image_grain_crops.full_mask_tensor.size != 0 and self.image_grain_crops.crops is not None:
-                # Append the new crops and tensors to ImageGrainCrops
-                # Shift the keys of the new graincrops_merged_classes dict to allow them to be added to the existing crops dict
-                offset = len(self.image_grain_crops.crops)
-                image_grain_crops_crops_shifted = {k + offset: v for k, v in graincrops_merged_classes.items()}
-                self.image_grain_crops.crops.update(image_grain_crops_crops_shifted)
-                self.image_grain_crops.full_mask_tensor = np.concatenate(
-                    [self.image_grain_crops.full_mask_tensor, full_mask_tensor_merged_classes], axis=-1
-                )
-            else:
-                self.image_grain_crops.crops = graincrops_merged_classes
-                self.image_grain_crops.full_mask_tensor = full_mask_tensor_merged_classes
+            self.crops = graincrops_merged_classes
+            self.full_mask_tensor = full_mask_tensor_merged_classes
         else:
             # No grains found
-            self.image_grain_crops.crops = None
-            self.image_grain_crops.full_mask_tensor = None
-        self.image_grain_crops.thresholds = self.thresholds
+            self.crops = None
+            self.full_mask_tensor = None
 
     @staticmethod
     def multi_class_thresholding(

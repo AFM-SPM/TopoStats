@@ -18,7 +18,7 @@ from skimage.morphology import skeletonize
 
 import topostats
 from topostats.filters import Filters, combine_mask_directions, get_filter_thresholds
-from topostats.grains import GrainCrop, Grains, ImageGrainCrops, get_grain_thresholds
+from topostats.grains import GrainCrop, Grains, get_grain_thresholds
 from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
@@ -380,9 +380,9 @@ def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def dummy_imagegraincrop(dummy_graincrops_dict: dict[int, GrainCrop]) -> ImageGrainCrops:
-    """Dummy ImageGrainCrops object for testing."""
-    full_mask_tensor = np.stack(
+def dummy_full_mask_tensor() -> npt.NDArray[np.bool_]:
+    """Dummy full mask tensor for testing."""
+    return np.stack(
         [
             np.array(
                 [
@@ -415,7 +415,6 @@ def dummy_imagegraincrop(dummy_graincrops_dict: dict[int, GrainCrop]) -> ImageGr
         ],
         axis=-1,
     ).astype(np.bool_)
-    return ImageGrainCrops(thresholds=[1, -1], full_mask_tensor=full_mask_tensor, crops=dummy_graincrops_dict)
 
 
 @pytest.fixture()
@@ -451,21 +450,23 @@ def graincrop_catenanes_1() -> GrainCrop:
 
 
 @pytest.fixture()
-def imagegraincrops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop) -> ImageGrainCrops:
-    """ImageGrainCrop object of example catenanes."""
-    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_full_mask_tensor.npy")
-    return ImageGrainCrops(
-        thresholds=[1, -1],
-        crops={0: graincrop_catenanes_0, 1: graincrop_catenanes_1},
-        full_mask_tensor=full_mask_tensor,
-    )
+def crops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop) -> dict[int, GrainCrop]:
+    """Crops dictionary of example catenanes."""
+    return {0: graincrop_catenanes_0, 1: graincrop_catenanes_1}
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(imagegraincrops_catenanes) -> topostats.TopoStats:
+def full_mask_tensor_catenanes() -> npt.NDArray[np.bool_]:
+    """Full mask tensor array of example catenanes."""
+    return np.load(GRAINCROP_DIR / "example_catenanes_full_mask_tensor.npy")
+
+
+@pytest.fixture()
+def topostats_catenanes_2_4_0(crops_catenanes, full_mask_tensor_catenanes) -> topostats.TopoStats:
     """TopoStats object of example catenanes."""
     return topostats.TopoStats(
-        image_grain_crops=imagegraincrops_catenanes,
+        crops=crops_catenanes,
+        full_mask_tensor=full_mask_tensor_catenanes,
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
@@ -492,17 +493,23 @@ def graincrop_rep_int_0() -> GrainCrop:
 
 
 @pytest.fixture()
-def imagegraincrops_rep_int(graincrop_rep_int_0: GrainCrop) -> ImageGrainCrops:
-    """ImageGrainCrops object of example rep_int."""
-    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_full_mask_tensor.npy")
-    return ImageGrainCrops(thresholds=[1, -1], crops={0: graincrop_rep_int_0}, full_mask_tensor=full_mask_tensor)
+def crops_rep_int(graincrop_rep_int_0: GrainCrop) -> dict[int, GrainCrop]:
+    """Crops dictionary of example rep_int."""
+    return {0: graincrop_rep_int_0}
 
 
 @pytest.fixture()
-def topostats_rep_int_2_4_0(imagegraincrops_rep_int) -> topostats.TopoStats:
+def full_mask_tensor_rep_int() -> npt.NDArray[np.bool_]:
+    """Full mask tensor array of example rep_int."""
+    return np.load(GRAINCROP_DIR / "example_rep_int_full_mask_tensor.npy")
+
+
+@pytest.fixture()
+def topostats_rep_int_2_4_0(crops_rep_int, full_mask_tensor_rep_int) -> topostats.TopoStats:
     """TopoStats object of example rep_int."""
     return topostats.TopoStats(
-        image_grain_crops=imagegraincrops_rep_int,
+        crops=crops_rep_int,
+        full_mask_tensor=full_mask_tensor_rep_int,
         filename="example_rep_int.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
