@@ -211,6 +211,7 @@ def _(mo):
       cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
       mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
       histogram_log_axis: false # Options : true, false
+      number_grain_plots: true # Add grain numbers next to each grain mask in images with mask overlays. Options : true, false
     summary_stats:
       run: true # Whether to make summary plots for output data
       config: null
