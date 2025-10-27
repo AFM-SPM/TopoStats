@@ -625,6 +625,13 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Whether to ignore warnings.",
     )
+    process_parser.add_argument(
+        "--number-masks",
+        dest="number_grains",
+        type=bool,
+        required=False,
+        help="Add numbers to each grain mask in outputted mask images.",
+    )
     # Run the relevant function with the arguments
     process_parser.set_defaults(func=run_modules.process)
 
