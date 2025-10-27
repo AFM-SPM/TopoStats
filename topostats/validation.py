@@ -488,6 +488,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'"
                 ),
             ),
+            "number_grains": Or(
+                True,
+                False,
+                error=("Invalid value in config for 'plotting.number_grain_plots', valid values are 'True' or 'False'"),
+            ),
         },
         "summary_stats": {
             "run": Or(
