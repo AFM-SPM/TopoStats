@@ -235,15 +235,33 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `topostats create-config` sub-command. It
-takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
-it will write the current default configuration to that file.
+a sample configuration file in your current working directory using the `topostats create-config` sub-command. There are
+a number of arguments available. They key one is `--config` which defines what configuration file is written and
+currently has three possible options `default`, `simple`, `mplstyle` or `var_to_label`. See `topostats create-config ---help`
+for descriptions of other available options. **NB** if `--filename` is omitted then the value of `--config` determines
+the filename the configuration is written to as shown below.
 
 ```bash
-topostats create-config --filename my_config.yaml
-ls -l
-my_config.yaml
-sample_image_scan_2022-12-08-1204.spm
+topostats create-config --config default --filename my_default_config.yaml
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] A sample configuration has been written to : my_default_config.yaml
+topostats create-config --config default
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] A sample configuration has been written to : default_config.yaml
+❱ topostats create-config --config simple
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] A sample configuration has been written to : simple_config.yaml
+❱ topostats create-config --config mplstyle
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] A sample configuration has been written to : topostats.mplstyle
+topostats create-config --config var_to_label
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] A sample configuration has been written to : var_to_label.yaml
 ```
 
 You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
@@ -276,8 +294,10 @@ ones you may want to change are....
 - `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
   gets images for all stages, `core` saves only a subset of images.
 
-Most of the other configuration options can be left on their default values for now. Once you have made any changes save
-the file and return to your terminal.
+Most of the other configuration options can be left on their default values for now but the file is fully commented and
+should you wish to change settings you should read these comments.
+
+Once you have made any changes save the file and return to your terminal.
 
 ### Running TopoStats with `my_config.yaml`
 
@@ -309,7 +329,9 @@ On successful completion you should see the same message noted above.
 Older Bruker devices output files with somewhat uninformative numerical file extensions (e.g. `.001`, `.002`, `.003`
 etc.). TopoStats will automatically detect and process these if the configuration file is `file_ext: .spm` (or on the
 command line the `--file-ext/-f .spm` option is used). However, for convenience a sub-processor is provided which will
-append the suffix `.spm` to all files found recursively with numerical extensions in the specified directory.
+append the suffix `.spm` to all files found recursively with numerical extensions in the specified directory. You can
+specify the `--base-dir /path/to/a/directory` if you are not already in the same directory as the files, otherwise it
+will use the current directory. You then use the sub-command `bruker-rename`.
 
 ```bash
 topostats --base-dir /path/to/a/directory bruker-rename
