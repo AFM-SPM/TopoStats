@@ -3,7 +3,7 @@
 """Fixtures for testing."""
 
 import importlib.resources as pkg_resources
-import pickle
+import pickle as pkl
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -42,12 +42,13 @@ from topostats.utils import get_mask, get_thresholds
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 GRAINCROP_DIR = RESOURCES / "graincrop"
+TRACING_RESOURCES = RESOURCES / "tracing"
+NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
 
 RNG = np.random.default_rng(seed=1000)
 SMALL_ARRAY_SIZE = (10, 10)
 THRESHOLD = 0.5
 CHANNEL = "Height"
-
 
 # ruff: noqa: D401
 
@@ -427,10 +428,7 @@ def dummy_node(dummy_matched_branch: MatchedBranch) -> Node:
         },
         unmatched_branch_stats={0: 1, 1: 2},
         # ns-rse 2025-10-07 Need to know what node_coords actually look like
-        node_coords={
-            "0": "something",
-            "1": "something_else",
-        },
+        node_coords=np.array([[0, 0], [0, 1]]),
         confidence=0.987654,
         reduced_node_area=10.987654321,
         # ns-rse 2025-10-07 Need to know what these attributes look like
@@ -465,7 +463,12 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
         molecules=2,
         writhe="-",
         pixel_to_nm_scaling=1.0,
-        images=np.array([[1, 2], [3, 4]]),
+        images={
+            "all_molecules": np.zeros((2, 2)),
+            "ordered_traces": np.zeros((2, 2)),
+            "over_under": np.zeros((2, 2)),
+            "trace_segments": np.zeros((2, 2)),
+        },
         error=True,
     )
 
@@ -716,22 +719,22 @@ def load_scan_dummy(default_config: dict[str, Any]) -> LoadScans:
 
 
 @pytest.fixture()
-def load_scan_topostats_test_file(tmp_path: Path, loading_config: dict) -> LoadScans:
+def load_scan_topostats_test_file(tmp_path: Path, default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object for a temporarily saved test .topostats file."""
-    loading_config["extract"] = "all"
-    return LoadScans([tmp_path / "topostats_file_test.topostats"], **loading_config)
+    default_config["extract"] = "all"
+    return LoadScans([tmp_path / "topostats_file_test.topostats"], config=default_config)
 
 
 @pytest.fixture()
-def load_scan(loading_config: dict) -> LoadScans:
+def load_scan(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a small .topostats image file."""
-    return LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
+    return LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], config=default_config)
 
 
 @pytest.fixture()
-def load_scan_data(loading_config: dict) -> LoadScans:
+def load_scan_data(default_config: dict) -> LoadScans:
     """Instance of a LoadScans object after applying the get_data func."""
-    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], **loading_config)
+    scan_data = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], config=default_config)
     scan_data.get_data()
     return scan_data
 
@@ -989,7 +992,7 @@ def minicircle_grain_traditional_thresholding(minicircle_grain_threshold_abs: Gr
 def minicircle_small_graincrops() -> dict[int, GrainCrop]:
     """Dictionary of graincrops for the minicircle_small image."""
     with Path.open(RESOURCES / "minicircle_small_graincrops.pkl", "rb") as f:  # pylint: disable=unspecified-encoding
-        return pickle.load(f)
+        return pkl.load(f)
 
 
 @pytest.fixture()
@@ -1294,7 +1297,6 @@ def pruning_skeleton() -> dict:
 
 ## Helper function visualising for generating skeletons and heights
 
-
 # import matplotlib.pyplot as plt
 # def pruned_plot(gen_shape: dict) -> None:
 #     """Plot the original skeleton, its derived height and the pruned skeleton."""
@@ -1318,7 +1320,6 @@ def pruning_skeleton() -> dict:
 #     ax4.imshow(pruned_skeleton)
 #     ax4.set_title("Pruned Skeleton")
 #     plt.show()
-
 
 # pruned_plot(pruning_skeleton_loop1())
 # pruned_plot(pruning_skeleton_loop2())
@@ -1458,15 +1459,17 @@ def mock_model_5_by_5_single_class() -> MagicMock:
     return model_mocker
 
 
+# @ns-rse 2025-10-22 : Can we remove this and use one of the fixtures below?
 @pytest.fixture()
 def catenane_topostats() -> TopoStats:
     """TopoStats object of the catenane image."""
     with Path.open(  # pylint: disable=unspecified-encoding
         RESOURCES / "tracing" / "nodestats" / "catenane_post_disordered_tracing.pkl", "rb"
     ) as f:
-        return pickle.load(f)
+        return pkl.load(f)
 
 
+# @ns-rse 2025-10-22 : Can we remove this and use one of the fixtures below?
 @pytest.fixture()
 def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
     """TopoStats object of the minicircle (small) image."""
@@ -1474,7 +1477,151 @@ def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
     with Path.open(  # pylint: disable=unspecified-encoding
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
     ) as f:
-        topostats_object.image_grain_crops = pickle.load(f)
+        topostats_object.image_grain_crops = pkl.load(f)
     topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
     topostats_object.filename = "minicircle_small"
     return topostats_object
+
+
+# We have three sets of pickled TopoStats objects (as file sizes blow up in uncompressed HDF5 .topostats) as the
+# amount of data increases.
+# These are loaded as fixtures from which different stages can be extracted and used in the tests of ordered tracing,
+# nodestats and disordered tracing.
+#
+# - minicircle_small
+# - catenane
+# - rep_int
+#
+# available post...
+#
+# - grainstats
+# - disordered_tracing
+# - nodestats
+# - ordered_tracing
+#
+# Various attributes are also extracted to make them available for some of the unit tests.
+#
+# @ns-rse 2025-10-22 : # Historically tests for these stages of processing are a) incomplete; b) messy with pickles
+# loaded in functions rather than being loaded as fixtures which can be reused and it all needs cleaning up at some
+# point. This goes some way to rectifying that but can be improved upon.
+#
+# At some point in the future we should consider replacing this with a pickle after _all_ processing has been done. Can
+# then simply drop the attribute from the class prior to running tests. Don't have those yet as still working through
+# adding classes for ordered tracing, splining and curvature.
+
+
+##### Minicircle Small #####
+@pytest.fixture()
+def minicircle_small_post_grainstats() -> GrainCrop:
+    """TopoStats of Minicircle Small post disordered tracing."""
+    minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_grainstats.pkl"
+    with minicircle_small_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def minicircle_small_post_disordered_tracing() -> GrainCrop:
+    """TopoStats of Minicircle Small post disordered tracing."""
+    minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_disordered_tracing.pkl"
+    with minicircle_small_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def minicircle_small_post_nodestats() -> GrainCrop:
+    """TopoStats of Minicircle Small post disordered tracing."""
+    minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_nodestats.pkl"
+    with minicircle_small_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def minicircle_small_post_ordered_tracing() -> GrainCrop:
+    """TopoStats of Minicircle Small post ordered tracing."""
+    minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_ordered_tracing.pkl"
+    with minicircle_small_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats) -> GrainCrop:
+    """GrainCrop of Minicircle Small post disordered tracing."""
+    return minicircle_small_post_disordered_trace.image_grain_crops.above.crops[0]
+
+
+##### Catenane #####
+@pytest.fixture()
+def catenanes_post_grainstats() -> GrainCrop:
+    """TopoStats of Catenanes post disordered tracing."""
+    catenanes_file = TRACING_RESOURCES / "catenanes_post_grainstats.pkl"
+    with catenanes_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def catenanes_post_disordered_tracing() -> GrainCrop:
+    """TopoStats of Catenanes post disordered tracing."""
+    catenanes_file = TRACING_RESOURCES / "catenanes_post_disordered_tracing.pkl"
+    with catenanes_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def catenanes_post_nodestats() -> GrainCrop:
+    """TopoStats of Catenanes post disordered tracing."""
+    catenanes_file = TRACING_RESOURCES / "catenanes_post_nodestats.pkl"
+    with catenanes_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def catenanes_post_ordered_tracing() -> GrainCrop:
+    """TopoStats of Catenanes post ordered tracing."""
+    catenanes_file = TRACING_RESOURCES / "catenanes_post_ordered_tracing.pkl"
+    with catenanes_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def graincrop_catenanes(catenanes_post_disordered_trace: TopoStats) -> GrainCrop:
+    """GrainCrop of Catenanes post disordered tracing."""
+    return catenanes_post_disordered_trace.image_grain_crops.above.crops[0]
+
+
+##### Rep_Int #####
+@pytest.fixture()
+def rep_int_post_grainstats() -> GrainCrop:
+    """TopoStats of Rep Int post disordered tracing."""
+    rep_int_file = TRACING_RESOURCES / "rep_int_post_grainstats.pkl"
+    with rep_int_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def rep_int_post_disordered_tracing() -> GrainCrop:
+    """TopoStats of Rep Int post disordered tracing."""
+    rep_int_file = TRACING_RESOURCES / "rep_int_post_disordered_tracing.pkl"
+    with rep_int_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def rep_int_post_nodestats() -> GrainCrop:
+    """TopoStats of Rep Int post disordered tracing."""
+    rep_int_file = TRACING_RESOURCES / "rep_int_post_nodestats.pkl"
+    with rep_int_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def rep_int_post_ordered_tracing() -> GrainCrop:
+    """TopoStats of Rep Int post ordered tracing."""
+    rep_int_file = TRACING_RESOURCES / "rep_int_post_ordered_tracing.pkl"
+    with rep_int_file.open("rb") as f:
+        return pkl.load(f)  # noqa: S301
+
+
+@pytest.fixture()
+def graincrop_rep_int(rep_int_post_disordered_trace: TopoStats) -> GrainCrop:
+    """GrainCrop of Rep Int post disordered tracing."""
+    return rep_int_post_disordered_trace.image_grain_crops.above.crops[0]
