@@ -149,7 +149,7 @@ class Images:
         Number of bins for histograms to use.
     savefig_dpi : str | float, optional
         The resolution of the saved plot (default 'figure').
-    number_grains : bool
+    number_grain_plots : bool
             Optionally number each grain in a plot.
     """
 
@@ -181,7 +181,7 @@ class Images:
         histogram_log_axis: bool = True,
         histogram_bins: int | None = None,
         savefig_dpi: str | float | None = None,
-        number_grains: bool = False,
+        number_grain_plots: bool = False,
     ) -> None:
         """
         Initialise the class.
@@ -247,7 +247,7 @@ class Images:
             Number of bins for histograms to use.
         savefig_dpi : str | float, optional
             The resolution of the saved plot (default 'figure').
-        number_grains : bool
+        number_grain_plots : bool
             Optionally number each grain in a plot.
         """
         if style is None:
@@ -280,7 +280,7 @@ class Images:
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
         self.savefig_dpi = mpl.rcParams["savefig.dpi"] if savefig_dpi is None else savefig_dpi
-        self.number_grains = number_grains
+        self.number_grain_plots = number_grain_plots
 
     def plot_histogram_and_save(self) -> tuple | None:
         """
@@ -595,8 +595,8 @@ class Images:
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
             if self.region_properties:
                 fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
-                if self.number_grains:
-                    fig, ax = number_grain_plots(
+                if self.number_grain_plots:
+                    fig, ax = add_grain_plot_numbers(
                         fig,
                         ax,
                         shape,
@@ -662,7 +662,7 @@ def add_bounding_boxes_to_plot(fig, ax, shape: tuple, region_properties: list, p
     return fig, ax
 
 
-def number_grain_plots(
+def add_grain_plot_numbers(
     fig, ax, shape: tuple, region_properties: list, pixel_to_nm_scaling: float, offset: tuple
 ) -> tuple:
     """
@@ -671,7 +671,7 @@ def number_grain_plots(
     Parameters
     ----------
     fig : plt.figure.Figure
-        Matplotlib.pyplot figure object.
+        ``Matplotlib.pyplot`` figure object of labelled grains to be numbered.
     ax : plt.axes._subplots.AxesSubplot
         Matplotlib.pyplot axes object.
     shape : tuple
