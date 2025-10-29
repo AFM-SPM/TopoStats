@@ -60,6 +60,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".top",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
+        "output_stats": Or(
+            "basic", "full", error="Invalid value for 'output_stats', valid values are 'full' or 'basic'."
+        ),
         "loading": {
             "channel": str,
             "extract": Or(
@@ -484,6 +487,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error=(
                     "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'"
                 ),
+            ),
+            "number_grains": Or(
+                True,
+                False,
+                error=("Invalid value in config for 'plotting.number_grain_plots', valid values are 'True' or 'False'"),
             ),
         },
         "summary_stats": {

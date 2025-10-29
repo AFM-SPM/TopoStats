@@ -1,9 +1,7 @@
 """Utilities."""
 
 import logging
-from argparse import Namespace
 from pathlib import Path
-from pprint import pformat
 from typing import Any
 
 import numpy as np
@@ -16,7 +14,6 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.thresholds import threshold
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
 
 COLUMN_SETS = {
     "grainstats": (
@@ -94,88 +91,6 @@ def convert_path(path: str | Path) -> Path:
         Pathlib object of path.
     """
     return Path().cwd() if path == "./" else Path(path).expanduser()
-
-
-def update_config(config: dict, args: dict | Namespace) -> dict:
-    """
-    Update the configuration with any arguments.
-
-    Parameters
-    ----------
-    config : dict
-        Dictionary of configuration (typically read from YAML file specified with '-c/--config <filename>').
-    args : Namespace
-        Command line arguments.
-
-    Returns
-    -------
-    dict
-        Dictionary updated with command arguments.
-    """
-    args = vars(args) if isinstance(args, Namespace) else args
-
-    config_keys = config.keys()
-    for arg_key, arg_value in args.items():
-        if isinstance(arg_value, dict):
-            update_config(config, arg_value)
-        else:
-            if arg_key in config_keys and arg_value is not None:
-                original_value = config[arg_key]
-                config[arg_key] = arg_value
-                LOGGER.debug(f"Updated config config[{arg_key}] : {original_value} > {arg_value} ")
-    if "base_dir" in config.keys():
-        config["base_dir"] = convert_path(config["base_dir"])
-    if "output_dir" in config.keys():
-        config["output_dir"] = convert_path(config["output_dir"])
-    return config
-
-
-def update_plotting_config(plotting_config: dict) -> dict:
-    """
-    Update the plotting config for each of the plots in plot_dict.
-
-    Ensures that each entry has all the plotting configuration values that are needed.
-
-    Parameters
-    ----------
-    plotting_config : dict
-        Plotting configuration to be updated.
-
-    Returns
-    -------
-    dict
-        Updated plotting configuration.
-    """
-    main_config = plotting_config.copy()
-    for opt in ["plot_dict", "run"]:
-        main_config.pop(opt)
-    LOGGER.debug(
-        f"Main plotting options that need updating/adding to plotting dict :\n{pformat(main_config, indent=4)}"
-    )
-    for image, options in plotting_config["plot_dict"].items():
-        main_config_temp = main_config.copy()
-        LOGGER.debug(f"Dictionary for image : {image}")
-        LOGGER.debug(f"{pformat(options, indent=4)}")
-        # First update options with values that exist in main_config
-        # We must however be careful not to update the colourmap for diagnostic traces
-        if (
-            not plotting_config["plot_dict"][image]["core_set"]
-            and "mask_cmap" in plotting_config["plot_dict"][image].keys()
-        ):
-            main_config_temp.pop("mask_cmap")
-        plotting_config["plot_dict"][image] = update_config(options, main_config_temp)
-        LOGGER.debug(f"Updated values :\n{pformat(plotting_config['plot_dict'][image])}")
-        # Then combine the remaining key/values we need from main_config that don't already exist
-        for key_main, value_main in main_config_temp.items():
-            if key_main not in plotting_config["plot_dict"][image]:
-                plotting_config["plot_dict"][image][key_main] = value_main
-        LOGGER.debug(f"After adding missing configuration options :\n{pformat(plotting_config['plot_dict'][image])}")
-        # Make it so that binary images do not have the user-defined z-scale
-        # applied, but non-binary images do.
-        if plotting_config["plot_dict"][image]["image_type"] == "binary":
-            plotting_config["plot_dict"][image]["zrange"] = [None, None]
-
-    return plotting_config
 
 
 def _get_mask(image: npt.NDArray, thresh: float, threshold_direction: str, img_name: str = None) -> npt.NDArray:

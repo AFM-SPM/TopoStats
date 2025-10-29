@@ -3,9 +3,9 @@
 Output from TopoStats includes two sets of statistics in ASCII text `.csv` files. The tables below detail the columns of
 these files, the data types, a description and their units where appropriate.
 
-## `all_statistics.csv`
+## `grain_statistics.csv`
 
-The `all_statistics.csv` file contains details on each grain that has been detected and traced and has the following fields.
+The `grain_statistics.csv` file contains details on each grain that has been detected and traced and has the following fields.
 
 | Column / field / feature      | Description                                                                                                                                                                                                          | Type      | Units |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----- |
@@ -47,9 +47,9 @@ The `all_statistics.csv` file contains details on each grain that has been detec
 | `total_contour_length`        | The total length along the splined trace of all identified molecules.                                                                                                                                                | `float`   | m     |
 | `average_end_to_end_distance` | The average distance from two endpoints of the spline of all identified linear molecules.                                                                                                                            | `float`   | m     |
 
-## `image_stats.csv`
+## `image_statistics.csv`
 
-The `image_stats.csv` summarises the metrics
+The `image_statistics.csv` contains summary metrics at the individual scan.
 
 | Column / field / feature | Description                                                                                                                                                                                                                                                                  | Type    | Units |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----- |
@@ -66,9 +66,9 @@ The `image_stats.csv` summarises the metrics
 | `grains_per_m2_below`    | Density of grains below lower threshold.                                                                                                                                                                                                                                     | `int`   | N/A   |
 | `rms_roughness`          | Root Mean Square Roughness, the square root of the mean squared heights across the surface ([Surface Roughness](https://www.sciencedirect.com/topics/materials-science/surface-roughness); [Surface roughness (Wikipedia)](https://en.wikipedia.org/wiki/Surface_roughness)) | `float` | N/A   |
 
-## `all_disordered_segment_statistics.csv`
+## `branch_statistics.csv`
 
 Please refer to the specific sections on output from running [Disordered Segment Statistics
 Tracing](advanced/disordered_tracing.md#disordered-segment-statistics) section of the [Disordered
-Tracing](advanced/disordered_tracing.md) page for the data dictionary of the `all_disordered_segment_statistics.csv`
+Tracing](advanced/disordered_tracing.md) page for the data dictionary of the `branch_statistics.csv`
 output.

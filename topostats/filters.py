@@ -16,7 +16,7 @@ from topostats.utils import get_mask, get_thresholds
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-# ruff: noqa: disable=PLR0913
+# noqa: PLR0913
 # pylint: disable=fixme
 # pylint: disable=broad-except
 # pylint: disable=too-many-instance-attributes

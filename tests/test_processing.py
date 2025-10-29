@@ -14,6 +14,7 @@ import pandas as pd
 import pytest
 
 from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.config import update_plotting_config
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
     LOGGER_NAME,
@@ -25,7 +26,6 @@ from topostats.processing import (
     run_grainstats,
     run_nodestats,
 )
-from topostats.utils import update_plotting_config
 
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests/resources"
@@ -1161,7 +1161,7 @@ def test_run_disordered_tracing(
             },
             None,
             id="minicircle small",
-            marks=pytest.mark.skip(reason="disable whilst testing other params"),
+            # marks=pytest.mark.skip(reason="disable whilst testing other params"),
         ),
         pytest.param(
             "catenanes_post_disordered_tracing",
@@ -1736,7 +1736,7 @@ def test_run_disordered_tracing(
                 },
             },
             id="rep int",
-            marks=pytest.mark.skip(reason="disable whilst testing other params"),
+            # marks=pytest.mark.skip(reason="disable whilst testing other params"),
         ),
     ],
 )

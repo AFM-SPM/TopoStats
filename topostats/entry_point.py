@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from topostats import __version__, log_topostats_version, run_modules
-from topostats.io import write_config_with_comments
+from topostats.config import update_module, write_config_with_comments
 from topostats.plotting import run_toposum
 
 # pylint: disable=too-many-lines
@@ -100,6 +100,13 @@ def create_parser() -> arg.ArgumentParser:
         help="File extension to scan for.",
     )
     parser.add_argument(
+        "--output-stats",
+        dest="output_stats",
+        type=str,
+        required=False,
+        help="'basic' (image and grain) or 'full' (image, grain, branch and molecule) statistics written to CSV.",
+    )
+    parser.add_argument(
         "--channel",
         dest="channel",
         type=str,
@@ -120,7 +127,7 @@ def create_parser() -> arg.ArgumentParser:
         "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
-    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
+    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="module")
 
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
@@ -617,6 +624,13 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Whether to ignore warnings.",
+    )
+    process_parser.add_argument(
+        "--number-masks",
+        dest="number_grains",
+        type=bool,
+        required=False,
+        help="Add numbers to each grain mask in outputted mask images.",
     )
     # Run the relevant function with the arguments
     process_parser.set_defaults(func=run_modules.process)
@@ -1194,7 +1208,7 @@ def create_parser() -> arg.ArgumentParser:
         dest="config",
         type=str,
         default=None,
-        help="Configuration to use, currently only one is supported, the 'default'.",
+        help="Configuration to use, currently 'default' and 'simple' are supported.",
     )
     create_config_parser.add_argument(
         "-s",
@@ -1276,9 +1290,11 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
 
     # No program specified, print help and exit
-    if not args.program:
+    if not args.module:
         parser.print_help()
         sys.exit()
+    else:
+        update_module(args=args)
 
     if testing:
         return args

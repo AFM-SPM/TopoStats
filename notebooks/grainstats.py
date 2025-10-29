@@ -211,6 +211,7 @@ def _(mo):
       cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
       mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
       histogram_log_axis: false # Options : true, false
+      number_grain_plots: true # Add grain numbers next to each grain mask in images with mask overlays. Options : true, false
     summary_stats:
       run: true # Whether to make summary plots for output data
       config: null
@@ -263,8 +264,29 @@ def _(config, json):
 
 @app.cell
 def _(np, plt):
-    def show_image(arr, cmap="afmhot", size=(8, 8), colorbar=True, title=None):
-        """Display a 2D NumPy array as an image."""
+    def show_image(
+        arr: npt.NDArray,
+        cmap: str = "afmhot",
+        size: tuple[int] = (8, 8),
+        colorbar: bool = True,
+        title: str | None = None,
+    ) -> tuple:
+        """
+        Display a 2D NumPy array as an image.
+
+        Parameters
+        ----------
+        arr : npt.NDArray
+            2D array to plot.
+        cmap : str
+            Colormap to use in plot.
+        size : tuple[int]
+            Size to plot image as.
+        colorbar : bool
+            Whether to include a scale colorbar.
+        title : str | None
+            Title to include in plot.
+        """
         arr = np.asarray(arr)
         if arr.ndim != 2:
             raise ValueError(f"Expected 2D array, got shape {arr.shape}")
@@ -546,7 +568,7 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    The grains config enables users to play around with parameters to optimise masking for their individual use cases, it is printed below to show which parameters can be configured. 
+    The grains config enables users to play around with parameters to optimise masking for their individual use cases, it is printed below to show which parameters can be configured.
 
     The thresholds can be used in different ways based on the `direction` you want to detect grains. Typically for molecular
     imaging where the DNA or protein is raised above the background you will want to look for objects above the surface, using the `above`

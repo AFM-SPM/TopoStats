@@ -186,6 +186,7 @@ exclude = [
   "dist",
   "docs/conf.py",
   "node_modules",
+  "notebooks/*.py",
   "tests/tracing/test_dnacurvature.py",
   "topostats/plotting.py",
   "topostats/tracing/tracingfuncs.py",
@@ -275,6 +276,7 @@ exclude = [  # don't report on objects that match any of these regex
     "^test_",
     "^conftest",
     "^conf$",
+    "^notebooks/*.py$"
 ]
 override_SS05 = [  # override SS05 to allow docstrings starting with these words
     "^Process ",
