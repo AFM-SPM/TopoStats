@@ -52,3 +52,4 @@ plotting:
   axes: true # Options : true, false (due to off being a bool when parsed)
   cmap: null # Colormap/colourmap to use (default is 'nanoscope' which is used if null, other options are 'afmhot', 'viridis' etc.)
   mask_cmap: blue_purple_green # Options : blu, jet_r and any in matplotlib
+  number_grains: true # Add grain numbers next to each grain mask in images with mask overlays. Options : true, false
