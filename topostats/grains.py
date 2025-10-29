@@ -549,7 +549,7 @@ class Grains:
             else:
                 # No grains found
                 self.image_grain_crops = ImageGrainCrops(above=None, below=None)
-        self.topostats_object.image_grain_crops = self.image_grain_crops
+        self.topostats_object.grain_crops = self.image_grain_crops
 
     @staticmethod
     def multi_class_thresholding(

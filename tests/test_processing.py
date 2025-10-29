@@ -976,14 +976,14 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         plotting_config=process_scan_config["plotting"],
     )
 
-    assert isinstance(topostats_object.image_grain_crops, ImageGrainCrops)
-    assert isinstance(topostats_object.image_grain_crops.above, GrainCropsDirection)
-    assert len(topostats_object.image_grain_crops.above.crops) == 6
+    assert isinstance(topostats_object.grain_crops, ImageGrainCrops)
+    assert isinstance(topostats_object.grain_crops.above, GrainCropsDirection)
+    assert len(topostats_object.grain_crops.above.crops) == 6
     # Floating point errors mean that on different systems, different results are
     # produced for such generous thresholds. This is not an issue for more stringent
     # thresholds.
-    assert isinstance(topostats_object.image_grain_crops.below, GrainCropsDirection)
-    assert len(topostats_object.image_grain_crops.below.crops) == 2
+    assert isinstance(topostats_object.grain_crops.below, GrainCropsDirection)
+    assert len(topostats_object.grain_crops.below.crops) == 2
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
@@ -1126,7 +1126,7 @@ def test_run_disordered_tracing(
         for msg in log_messages:
             assert msg in caplog.text
     # Check grains disordered_trace attribute against expected
-    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
+    for grain, grain_crop in topostats_object.grain_crops.above.crops.items():
         if grain in detected_grains:
             assert grain_crop.disordered_trace is not None
             assert isinstance(grain_crop.disordered_trace, DisorderedTrace)
@@ -1759,7 +1759,7 @@ def test_run_nodestats(  # noqa: C901
         plotting_config=process_scan_config["plotting"],
         grainstats_df=pd.DataFrame(),
     )
-    for grain, grain_crop in topostats_object.image_grain_crops.above.crops.items():
+    for grain, grain_crop in topostats_object.grain_crops.above.crops.items():
         if grain in detected_grains:
             # We only check the first grain
             if grain_crop.nodes is not None and grain == 0:

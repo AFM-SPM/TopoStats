@@ -1477,7 +1477,7 @@ def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
     with Path.open(  # pylint: disable=unspecified-encoding
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
     ) as f:
-        topostats_object.image_grain_crops = pkl.load(f)
+        topostats_object.grain_crops = pkl.load(f)
     topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
     topostats_object.filename = "minicircle_small"
     return topostats_object
@@ -1546,7 +1546,7 @@ def minicircle_small_post_ordered_tracing() -> GrainCrop:
 @pytest.fixture()
 def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats) -> GrainCrop:
     """GrainCrop of Minicircle Small post disordered tracing."""
-    return minicircle_small_post_disordered_trace.image_grain_crops.above.crops[0]
+    return minicircle_small_post_disordered_trace.grain_crops.above.crops[0]
 
 
 ##### Catenane #####
@@ -1585,7 +1585,7 @@ def catenanes_post_ordered_tracing() -> GrainCrop:
 @pytest.fixture()
 def graincrop_catenanes(catenanes_post_disordered_trace: TopoStats) -> GrainCrop:
     """GrainCrop of Catenanes post disordered tracing."""
-    return catenanes_post_disordered_trace.image_grain_crops.above.crops[0]
+    return catenanes_post_disordered_trace.grain_crops.above.crops[0]
 
 
 ##### Rep_Int #####
@@ -1624,4 +1624,4 @@ def rep_int_post_ordered_tracing() -> GrainCrop:
 @pytest.fixture()
 def graincrop_rep_int(rep_int_post_disordered_trace: TopoStats) -> GrainCrop:
     """GrainCrop of Rep Int post disordered tracing."""
-    return rep_int_post_disordered_trace.image_grain_crops.above.crops[0]
+    return rep_int_post_disordered_trace.grain_crops.above.crops[0]

@@ -334,7 +334,7 @@ def run_grainstats(
             # REFACTOR : Remove GrainCropsDirection (i.e. remove for loop)
             # There are two layers to process those above the given threshold and those below
             grain_crops_direction: GrainCropsDirection
-            for direction, grain_crops_direction in topostats_object.image_grain_crops.__dict__.items():
+            for direction, grain_crops_direction in topostats_object.grain_crops.__dict__.items():
                 if grain_crops_direction is None:
                     LOGGER.warning(
                         f"[{topostats_object.filename}] No grains exist for the {direction} direction. Skipping grainstats for {direction}."
@@ -414,7 +414,7 @@ def run_disordered_tracing(  # noqa: C901
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{topostats_object.filename}] : *** Disordered Tracing ***")
-        if topostats_object.image_grain_crops is None:
+        if topostats_object.grain_crops is None:
             LOGGER.warning(f"[{topostats_object.filename}] : There are no grain crops and there is nothing to trace.")
 
         if grainstats_df is None:
@@ -424,7 +424,7 @@ def run_disordered_tracing(  # noqa: C901
         disordered_trace_grainstats = pd.DataFrame()
         disordered_tracing_stats_image = pd.DataFrame()
         try:
-            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
+            for direction, grain_crop_direction in topostats_object.grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
@@ -549,7 +549,7 @@ def run_nodestats(  # noqa: C901
         nodestats_grainstats = pd.DataFrame()
         try:
             # process image using directional grain masks
-            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
+            for direction, grain_crop_direction in topostats_object.grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping nodestats tracing for {direction}."
@@ -694,7 +694,7 @@ def run_ordered_tracing(
         try:
             # run image using directional grain masks
             # print(f"\n{topostats_object.__dict__()=}\n")
-            for direction, grain_crop_direction in topostats_object.image_grain_crops.__dict__.items():
+            for direction, grain_crop_direction in topostats_object.grain_crops.__dict__.items():
                 if grain_crop_direction is None:
                     LOGGER.warning(
                         f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping ordered tracing for {direction}."

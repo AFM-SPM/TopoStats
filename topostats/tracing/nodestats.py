@@ -35,7 +35,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-public-methods
 # pylint: disable=too-many-statements
 
-
 # class MatchedBranch(TypedDict):
 #     """
 #     Dictionary containing the matched branches.
@@ -56,7 +55,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 #     fwhm: dict[str, np.float64 | tuple[np.float64]]
 #     angles: np.float64 | None
 
-
 # class NodeDict(TypedDict):
 #     """Dictionary containing the node information."""
 
@@ -65,7 +63,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 #     branch_stats: dict[int, MatchedBranch] | None
 #     node_coords: npt.NDArray[np.int32] | None
 #     confidence: np.float64 | None
-
 
 # class ImageDict(TypedDict):
 #     """Dictionary containing the image information."""
@@ -1879,7 +1876,7 @@ def nodestats_image(
     grainstats_additions = {}
 
     grain_crops_direction = (
-        topostats_object.image_grain_crops.above if direction == "above" else topostats_object.image_grain_crops.below
+        topostats_object.grain_crops.above if direction == "above" else topostats_object.grain_crops.below
     )
     if grain_crops_direction is not None:
         n_grains = len(grain_crops_direction.crops)
