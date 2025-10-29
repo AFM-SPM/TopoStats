@@ -232,7 +232,7 @@ def test_plot_curvatures(tmp_path: Path) -> None:
     ("masked_array", "axes_colorbar", "use_region_properties"),
     [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
 )
-def test_save_figure(
+def test_save_figure(  # pylint: disable=too-many-positional-arguments
     masked_array: np.ndarray,
     axes_colorbar: bool,
     use_region_properties: bool,
@@ -352,7 +352,7 @@ def test_plot_and_save_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1],
+        data=minicircle_grain_area_thresholding.mask_images["area_thresholded"][:, :, 1],
         output_dir=tmp_path,
         filename="bounding_box",
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
@@ -389,7 +389,7 @@ def test_plot_and_save_non_square_bounding_box(
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
     fig, _ = Images(
-        data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, 0:512, 1],
+        data=minicircle_grain_area_thresholding.mask_images["area_thresholded"][:, 0:512, 1],
         output_dir=tmp_path,
         filename="non-square-bounding-box.png",
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,

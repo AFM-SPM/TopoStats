@@ -385,9 +385,13 @@ def remove_scars(
 
     Returns
     -------
-    self.img
+    self.img : npt.NDArray
         The original 2-D image with scars removed, unless the config has run set to False, in which case it
         will not remove the scars.
+
+    first_marked_mask : npt.NDArray
+        A boolean image of pixels that determine which values were first flagged as scars and removed from the original
+        image.
     """
     LOGGER.info(f"[{filename}] : Removing scars")
 
