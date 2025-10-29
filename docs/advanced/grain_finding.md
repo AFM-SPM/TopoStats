@@ -50,9 +50,7 @@ threshold method that you want to use. For example if you want to use absolute h
 thresholds of 1.2 for DNA and 2.5 for protein, then you would set this in the `grains` section of the config file:
 
 ```yaml
-threshold_absolute:
-  below: [-1.0] # Thresholds for grains below the image background. List[float].
-  above: [1.2, 2.5] # Thresholds for grains above the image background. List[float].
+threshold_absolute: [1.2, 2.5, -1.0] # Thresholds for grains, positive for above the image background and negative for below. List[float]
 ```
 
 TopoStats will then treat the resulting multiple masks (tensor) as separate classes, as if it were produced by a
@@ -75,9 +73,9 @@ In our thresholded image, you will notice that we have a lot of small grains tha
 image. We can get rid of those with size thresholding. This is where TopoStats will remove grains based on their area,
 leaving only the right size of molecules. You will need to play around with the thresholds to get the right results.
 
-You can set the size threshold using the `area_thresholds` in the config file. This sets the minimum and
+You can set the size threshold using the `threshold_areas` in the config file. This sets the minimum and
 maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
-10nm^2 and 100nm^2, you would set `area_thresholds` to `[10, 100]`.
+10nm^2 and 100nm^2, you would set `threshold_areas` to `[10, 100]`.
 
 ![size_thresholding](../_static/images/grain_finding/grain_finding_size_thresholding.png)
 
@@ -107,10 +105,9 @@ less powerful multi-class segmentation implementations.
 
 Once the mask has been turned into a tensor, the grains are then cropped from the tensor to produce a mini tensor for
 each grain, allowing for easier processing of individual grains. They are stored in `GrainCrop` dataclasses and are held
-in a dictionary within a `GrainCropDirection` dataclass instance, which in turn is held in the `ImageGrainCrops`
-dataclass instance for the whole image.
+in a dictionary within a `TopoStats` object instance.
 
-For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCrop` dataclasses, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
+For more information on the `GrainCrop` dataclass, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
 
 ## Optional: U-Net mask improvement
 

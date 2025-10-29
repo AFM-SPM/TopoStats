@@ -11,7 +11,7 @@ import numpy.typing as npt
 import snoop
 from matplotlib import colormaps
 
-from .grains import ImageGrainCrops
+from .grains import GrainCrop, Grains
 from .logs.logs import setup_logger
 from .theme import Colormap
 
@@ -47,8 +47,10 @@ class TopoStats:
 
     Attributes
     ----------
-    image_grain_crops : ImageGrainCrops | None
-        ImageGrainCrops of processed image.
+    crops : dict[int, GrainCrop]
+        Dictionary of GrainCrop instances.
+    full_mask_tensor : npt.NDArray[np.bool_]
+        Array of mask tensors.
     filename : str | None
         Filename.
     pixel_to_nm_scaling : str | None
@@ -63,7 +65,8 @@ class TopoStats:
         TopoStats version.
     """
 
-    image_grain_crops: ImageGrainCrops | None
+    crops: dict[int, GrainCrop]
+    full_mask_tensor: npt.NDArray[np.bool_]
     filename: str | None
     pixel_to_nm_scaling: str | None
     img_path: Path | str | None
@@ -87,8 +90,13 @@ class TopoStats:
         """
         if not isinstance(other, TopoStats):
             return False
+
+        for _index, (self_crop, other_crop) in enumerate(zip(self.crops.values(), other.crops.values())):
+            crops_equal = np.array_equal(self_crop.mask, other_crop.mask) and self_crop == other_crop
+
         return (
-            self.image_grain_crops == other.image_grain_crops
+            crops_equal
+            and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
             and self.filename == other.filename
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.topostats_version == other.topostats_version
@@ -98,28 +106,52 @@ class TopoStats:
         )
 
     @property
-    def image_grain_crops(self) -> ImageGrainCrops:
+    def crops(self) -> dict[int, GrainCrop]:
         """
-        Getter for the Image Grain Crops.
+        Getter for the GrainCrops dict.
 
         Returns
         -------
-        ImageGrainCrops
-            Image Grain Crops.
+         dict[int, GrainCrop]
+             Dictionary of GrainCrops.
         """
-        return self._image_grain_crops
+        return self._crops
 
-    @image_grain_crops.setter
-    def image_grain_crops(self, value: ImageGrainCrops) -> None:
+    @crops.setter
+    def crops(self, value: dict[int, GrainCrop]) -> None:
         """
-        Setter for the ''image_grain_crops'' attribute.
+        Setter for the GrainCrops dict attribute.
 
         Parameters
         ----------
-        value : ImageGrainCrops
-            Image Grain Crops for the image.
+        value : dict[int, GrainCrop]
+            Dictionary of GrainCrops.
         """
-        self._image_grain_crops = value
+        self._crops = value
+
+    @property
+    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
+        """
+        Getter for the full mask tensor array.
+
+        Returns
+        -------
+        npt.NDArray[np.bool_]
+            Array of mask tensors.
+        """
+        return self._full_mask_tensor
+
+    @full_mask_tensor.setter
+    def full_mask_tensor(self, value: npt.NDArray[np.bool_]) -> None:
+        """
+        Setter for the full mask tensor array attribute.
+
+        Parameters
+        ----------
+        value : npt.NDArray[np.bool_]
+            Array of mask tensors.
+        """
+        self._full_mask_tensor = value
 
     @property
     def filename(self) -> str:
@@ -265,16 +297,23 @@ class TopoStats:
         """
         self._topostats_version = value
 
-    def topostats_to_dict(self) -> dict[str, str | ImageGrainCrops | npt.NDArray]:
+    def topostats_to_dict(self) -> dict[str, str | dict[int, GrainCrop] | npt.NDArray]:
         """
         Convert ''TopoStats'' object to dictionary.
 
         Returns
         -------
-        dict[str, str | ImageGrainCrops | npt.NDArray]
+        dict[str, str | npt.NDArray]
             Dictionary of ''TopoStats'' object.
         """
         return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
+
+    def update_full_mask_tensor(self) -> None:
+        """Update the full mask tensor from the grain crops."""
+        self.full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+            graincrops=self.crops,
+            image_shape=self.full_mask_tensor.shape[:2],
+        )
 
 
 def log_topostats_version() -> None:

@@ -90,8 +90,8 @@ filter_parser.add_argument(
     help="Method for thresholding Filtering. Options are otsu, std_dev, absolute.",
 )
 filter_parser.add_argument(
-    "--otsu-threshold-multiplier",
-    dest="otsu_threshold_multiplier",
+    "--threshold-otsu-multiplier",
+    dest="threshold_otsu_multiplier",
     type=float,
     required=False,
     help="Factor for scaling the Otsu threshold during Filtering.",

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # Configuration
 
 Configuration for TopoStats is done using a [YAML](https://yaml.org/) configuration file that is specified on the
@@ -42,10 +44,8 @@ filter:
     run: true
 grains:
   threshold_method: absolute
-  threshold_absolute:
-    above: 1.2
-  area_thresholds:
-    above: [400, 1000]
+  threshold_absolute: 1.2
+  threshold_areas: [400, 1000]
 ```
 
 ## Using a custom configuration
@@ -114,7 +114,6 @@ Aside from the comments in YAML file itself the fields are described below.
 |                                                      | `otsu_threshold_multiplier`                        |                                                    | `1.0`                       | Factor by which the derived Otsu Threshold should be scaled.                                                                                                                                                                                                                                                                                                                                                                              |
 |                                                      | `threshold_std_dev`                                | dictionary                                         | `10.0, 1.0`                 | A pair of values that scale the standard deviation, after scaling the standard deviation `below` is subtracted from the image mean to give the below/lower threshold and the `above` is added to the image mean to give the above/upper threshold. These values should _always_ be positive.                                                                                                                                              |
 |                                                      | `threshold_absolute`                               | dictionary                                         | `-1.0, 1.0`                 | Below (first), above (second) absolute threshold for separating grains from the image background.                                                                                                                                                                                                                                                                                                                                         |
-|                                                      | `direction`                                        |                                                    | `above`                     | Defines whether to look for grains above or below thresholds or both. Options: `above`, `below`, `both`                                                                                                                                                                                                                                                                                                                                   |
 |                                                      | `smallest_grain_size`                              | int                                                | `50`                        | Catch-all value for the minimum size of grains. Measured in nanometres squared. All grains with area below than this value are removed.                                                                                                                                                                                                                                                                                                   |
 |                                                      | `absolute_area_threshold`                          | dictionary                                         | `[300, 3000], [null, null]` | Area thresholds for above the image background (first) and below the image background (second), which grain sizes are permitted, measured in nanometres squared. All grains outside this area range are removed.                                                                                                                                                                                                                          |
 |                                                      | `remove_edge_intersecting_grains`                  | boolean                                            | `true`                      | Whether to remove grains that intersect the image border. _Do not change this unless you know what you are doing_. This will ruin any statistics relating to grain size, shape and DNA traces.                                                                                                                                                                                                                                            |

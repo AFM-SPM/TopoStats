@@ -11,14 +11,9 @@ from topostats.utils import (
     convert_path,
     convolve_skeleton,
     create_empty_dataframe,
-    get_thresholds,
 )
 
-THRESHOLD_OPTIONS = {
-    "otsu_threshold_multiplier": 1.7,
-    "threshold_std_dev": {"below": 10.0, "above": 1.0},
-    "absolute": {"below": -1.5, "above": 1.5},
-}
+THRESHOLD_OPTIONS = {"threshold_otsu_multiplier": 1.7, "threshold_std_dev": [1.0, 10.0], "absolute": [1.5, -1.5]}
 
 
 def test_convert_path(tmp_path: Path) -> None:
@@ -28,84 +23,6 @@ def test_convert_path(tmp_path: Path) -> None:
 
     assert isinstance(converted_path, Path)
     assert tmp_path == converted_path
-
-
-def test_get_thresholds_otsu(image_random: np.ndarray) -> None:
-    """Test of get_thresholds() method otsu threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
-
-    assert isinstance(thresholds, dict)
-    assert thresholds == {"above": [0.8466799787547299]}
-
-
-@pytest.mark.parametrize(
-    ("threshold_config", "expected_thresholds"),
-    [
-        pytest.param(
-            {
-                "above": [1.0],
-                "below": [10.0],
-            },
-            {"below": [-2.3866804917165663], "above": [0.7886033762450778]},
-        ),
-        pytest.param(
-            {
-                "above": [1.0, 1.5],
-                "below": [10.0],
-            },
-            {"below": [-2.3866804917165663], "above": [0.7886033762450778, 0.9329344611524253]},
-        ),
-    ],
-)
-def test_get_thresholds_stddev(
-    image_random: np.ndarray,
-    threshold_config: dict[str, list[float]],
-    expected_thresholds: dict[str, list[float]],
-) -> None:
-    """Test of get_thresholds() method with mean threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config)
-    assert isinstance(thresholds, dict)
-    assert thresholds == expected_thresholds
-
-
-@pytest.mark.parametrize(
-    ("threshold_config", "expected_thresholds"),
-    [
-        pytest.param(
-            {
-                "above": [1.5],
-                "below": [-1.5],
-            },
-            {"below": [-1.5], "above": [1.5]},
-        ),
-        pytest.param(
-            {
-                "above": [1.5, 2.0],
-                "below": [-1.5],
-            },
-            {"below": [-1.5], "above": [1.5, 2.0]},
-        ),
-    ],
-)
-def test_get_thresholds_absolute(
-    image_random: np.ndarray, threshold_config: dict[str, list[float]], expected_thresholds: dict[str, list[float]]
-) -> None:
-    """Test of get_thresholds() method with absolute threshold."""
-    thresholds = get_thresholds(image=image_random, threshold_method="absolute", absolute=threshold_config)
-    assert isinstance(thresholds, dict)
-    assert thresholds == expected_thresholds
-
-
-def test_get_thresholds_type_error(image_random: np.ndarray) -> None:
-    """Test a TypeError is raised if a non-string value is passed to get_thresholds()."""
-    with pytest.raises(TypeError):
-        get_thresholds(image=image_random, threshold_method=6.4, **THRESHOLD_OPTIONS)
-
-
-def test_get_thresholds_value_error(image_random: np.ndarray) -> None:
-    """Test a ValueError is raised if an invalid value is passed to get_thresholds()."""
-    with pytest.raises(ValueError):  # noqa: PT011
-        get_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)
 
 
 @pytest.mark.parametrize(

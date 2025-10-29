@@ -5,7 +5,6 @@
 import logging
 import re
 import sys
-from dataclasses import dataclass
 from typing import Any
 
 import keras
@@ -16,6 +15,7 @@ from skimage.measure import label, regionprops
 from skimage.morphology import binary_dilation
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.thresholds import threshold
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
@@ -23,7 +23,7 @@ from topostats.unet_masking import (
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
-from topostats.utils import _get_mask, get_thresholds
+from topostats.utils import get_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -56,6 +56,8 @@ class GrainCrop:
         Pixel to nanometre scaling factor for the crop.
     filename : str
         Filename of the image from which the crop was taken.
+    threshold_idx : int
+        Index of threshold used to find graincrop.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
         3-D Numpy tensor of the height profiles.
     stats : dict[int, dict[int, Any]] | None
@@ -70,6 +72,7 @@ class GrainCrop:
         bbox: tuple[int, int, int, int],
         pixel_to_nm_scaling: float,
         filename: str,
+        threshold_idx: int,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
     ):
@@ -90,6 +93,8 @@ class GrainCrop:
             Pixel to nanometre scaling factor for the crop.
         filename : str
             Filename of the image from which the crop was taken.
+        threshold_idx : int
+            Index of threshold the GrainCrop belongs to.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
         stats : dict[int, dict[int, Any]] | None
@@ -105,6 +110,7 @@ class GrainCrop:
         self.filename = filename
         self.height_profiles = height_profiles
         self.stats = stats
+        self.threshold_idx = threshold_idx
 
     @property
     def image(self) -> npt.NDArray[np.float32]:
@@ -421,6 +427,8 @@ class GrainCrop:
             raise ValueError("Pixel to nm scaling is different")
         if self.filename != other.filename:
             raise ValueError("Filename is different")
+        if self.threshold_idx != other.threshold_idx:
+            raise ValueError("Threshold number is different")
         LOGGER.info("Cannot find difference between graincrops")
 
 
@@ -441,198 +449,6 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     if len(array.shape) != 3 or array.shape[2] < 2:
         raise ValueError(f"Full mask tensor must be WxHxC with C >= 2 but has shape {array.shape}")
     return array
-
-
-@dataclass
-class GrainCropsDirection:
-    """
-    Dataclass for storing the crops of grains in a particular imaging direction.
-
-    Attributes
-    ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean WxHxC array of the full mask tensor (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        Grain crops.
-    """
-
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
-
-    def __post_init__(self):
-        """
-        Validate the full mask tensor shape.
-
-        Raises
-        ------
-        ValueError
-            If the full mask tensor shape is invalid.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
-
-    @property
-    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
-        """
-        Getter for the full mask tensor.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        return self._full_mask_tensor
-
-    @full_mask_tensor.setter
-    def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
-        """
-        Setter for the full mask tensor.
-
-        Parameters
-        ----------
-        value : npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two GrainCropsDirection objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            return False
-        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
-
-    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert GrainCropsDirection to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two GrainCropsDirection objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
-        for crop_index, crop in self.crops.items():
-            if crop != other.crops[crop_index]:
-                LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.debug_locate_difference(other.crops[crop_index])
-        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
-            raise ValueError("Full mask tensor is different")
-
-        LOGGER.info("Cannot find difference between graincrops")
-
-    def update_full_mask_tensor(self):
-        """Update the full mask tensor from the grain crops."""
-        self.full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-            graincrops=self.crops,
-            image_shape=self.full_mask_tensor.shape[:2],
-        )
-
-
-@dataclass
-class ImageGrainCrops:
-    """
-    Dataclass for storing the crops of grains in an image.
-
-    Attributes
-    ----------
-    above : GrainCropDirection | None
-        Grains in the above direction.
-    below : GrainCropDirection | None
-        Grains in the below direction.
-    """
-
-    above: GrainCropsDirection | None
-    below: GrainCropsDirection | None
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two ImageGrainCrops objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            return False
-        return self.above == other.above and self.below == other.below
-
-    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert ImageGrainCrops to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two ImageGrainCrops objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-        if self.above is not None:
-            if self.above != other.above:
-                LOGGER.info("Above grains are different")
-                self.above.debug_locate_difference(other.above)
-        else:
-            if other.above is not None:
-                raise ValueError("Above grains are different")
-        if self.below is not None:
-            if self.below != other.below:
-                LOGGER.info("Below grains are different")
-                self.below.debug_locate_difference(other.below)
-        else:
-            if other.below is not None:
-                raise ValueError("Below grains are different")
-
-        LOGGER.info("Cannot find difference between image grain crops")
 
 
 class Grains:
@@ -659,17 +475,15 @@ class Grains:
             Lower bound for normalising the image.
     threshold_method : str
         Method for determining thershold to mask values, default is 'otsu'.
-    otsu_threshold_multiplier : float | None
+    threshold_otsu_multiplier : float | None
         Factor by which the below threshold is to be scaled prior to masking.
-    threshold_std_dev : dict[str, float | list] | None
-        Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+    threshold_std_dev : list[float | None] | None
+        List of factors by which standard deviation is multiplied to derive the threshold
         if threshold_method is 'std_dev'.
-    threshold_absolute : dict[str, float | list] | None
-        Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-    area_thresholds : dict[str, list[float | None]]
-        Dictionary of above and below grain's area thresholds.
-    direction : str
-        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+    threshold_absolute : list[float | None] | None
+        List of absolute thresholds for grain finding.
+    threshold_areas : list[float | None]
+        List of grain's area thresholds.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
@@ -687,11 +501,10 @@ class Grains:
         grain_crop_padding: int = 1,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
-        otsu_threshold_multiplier: float | None = None,
-        threshold_std_dev: dict[str, float | list] | None = None,
-        threshold_absolute: dict[str, float | list] | None = None,
-        area_thresholds: dict[str, list[float | None]] | None = None,
-        direction: str | None = None,
+        threshold_otsu_multiplier: float | None = None,
+        threshold_std_dev: list | None = None,
+        threshold_absolute: list | None = None,
+        threshold_areas: list[float | None] | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -719,17 +532,15 @@ class Grains:
                 Lower bound for normalising the image.
         threshold_method : str
             Method for determining thershold to mask values, default is 'otsu'.
-        otsu_threshold_multiplier : float | None
+        threshold_otsu_multiplier : float | None
             Factor by which the below threshold is to be scaled prior to masking.
-        threshold_std_dev : dict[str, float | list] | None
-            Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+        threshold_std_dev : list[float | None] | None
+            List of factors by which standard deviation is multiplied to derive the threshold
             if threshold_method is 'std_dev'.
-        threshold_absolute : dict[str, float | list] | None
-            Dictionary of absolute 'below' and 'above' thresholds for grain finding.
-        area_thresholds : dict[str, list[float | None]]
-            Dictionary of above and below grain's area thresholds.
-        direction : str
-            Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+        threshold_absolute : list[float | None] | None
+            List of absolute thresholds for grain finding.
+        threshold_areas : list[float | None]
+            List of grain's area thresholds.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
@@ -743,35 +554,28 @@ class Grains:
                 "upper_norm_bound": 1.0,
                 "lower_norm_bound": 0.0,
             }
-        if area_thresholds is None:
-            area_thresholds = {"above": [None, None], "below": [None, None]}
+        if threshold_areas is None:
+            threshold_areas = [None, None]
         self.image = image
         self.filename = filename
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.threshold_method = threshold_method
-        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_otsu_multiplier = threshold_otsu_multiplier
         # Ensure thresholds are lists (might not be from passing in CLI args)
         if threshold_std_dev is None:
-            threshold_std_dev = {"above": [1.0], "below": [10.0]}
-        if not isinstance(threshold_std_dev["above"], list):
-            threshold_std_dev["above"] = [threshold_std_dev["above"]]
-        if not isinstance(threshold_std_dev["below"], list):
-            threshold_std_dev["below"] = [threshold_std_dev["below"]]
+            threshold_std_dev = [1.0, 10.0]
+        if not isinstance(threshold_std_dev, list):
+            threshold_std_dev[0] = threshold_std_dev
         if threshold_absolute is None:
-            threshold_absolute = {"above": [None], "below": [None]}
-        if not isinstance(threshold_absolute["above"], list):
-            threshold_absolute["above"] = [threshold_absolute["above"]]
-        if not isinstance(threshold_absolute["below"], list):
-            threshold_absolute["below"] = [threshold_absolute["below"]]
+            threshold_absolute = [None]
+        if not isinstance(threshold_absolute, list):
+            threshold_absolute[0] = threshold_absolute
         self.threshold_std_dev = threshold_std_dev
         self.threshold_absolute = threshold_absolute
-        self.area_thresholds = area_thresholds
-        # Only detect grains for the desired direction
-        assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
-        self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
+        self.threshold_areas = threshold_areas
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
-        self.thresholds: dict[str, list[float]] | None = None
-        self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        self.thresholds: list[float] | None = None
+        self.mask_images: dict[str, npt.NDArray] = {}
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
         self.vetting_config = vetting
@@ -782,10 +586,8 @@ class Grains:
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
-        self.image_grain_crops = ImageGrainCrops(
-            above=None,
-            below=None,
-        )
+        self.crops = None
+        self.full_mask_tensor = None
 
     @staticmethod
     def get_region_properties(image: npt.NDArray, **kwargs) -> list:
@@ -898,7 +700,7 @@ class Grains:
     @staticmethod
     def area_thresholding_tensor(
         grain_mask_tensor: npt.NDArray[np.bool_],
-        area_thresholds: tuple[float | None, float | None],
+        threshold_areas: tuple[float | None, float | None],
         pixel_to_nm_scaling: float,
     ) -> npt.NDArray[np.bool_]:
         """
@@ -908,7 +710,7 @@ class Grains:
         ----------
         grain_mask_tensor : npt.NDArray
             3-D Numpy array of the full mask tensor.
-        area_thresholds : tuple
+        threshold_areas : tuple
             List of area thresholds (in nanometres squared), first is the lower limit for size, second is the upper.
         pixel_to_nm_scaling : float
             Scaling of pixels to nanometres.
@@ -918,7 +720,7 @@ class Grains:
         npt.NDArray
             3-D Numpy array with small and large objects removed.
         """
-        lower_size_limit, upper_size_limit = area_thresholds
+        lower_size_limit, upper_size_limit = threshold_areas
         if upper_size_limit is None:
             upper_size_limit = grain_mask_tensor.size * pixel_to_nm_scaling**2
         if lower_size_limit is None:
@@ -982,165 +784,141 @@ class Grains:
         LOGGER.debug(f"[{self.filename}] : Thresholding method (grains) : {self.threshold_method}")
         assert self.threshold_method is not None, "Threshold method must be specified"  # type safety
         # calculate thresholds based on configuration
-        self.thresholds = get_thresholds(
+        self.thresholds = get_grain_thresholds(
             image=self.image,
             threshold_method=self.threshold_method,
-            otsu_threshold_multiplier=self.otsu_threshold_multiplier,
+            threshold_otsu_multiplier=self.threshold_otsu_multiplier,
             threshold_std_dev=self.threshold_std_dev,
-            absolute=self.threshold_absolute,
+            threshold_absolute=self.threshold_absolute,
         )
 
-        # Create an ImageGrainCrops object to store the grain crops
-        image_grain_crops = ImageGrainCrops(above=None, below=None)
-        for direction in self.threshold_directions:
-            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
-            self.mask_images[direction] = {}
+        LOGGER.debug(f"[{self.filename}] : Finding grains")
+        traditional_full_mask_tensor = Grains.multi_class_thresholding(
+            image=self.image,
+            thresholds=self.thresholds,
+            image_name=self.filename,
+        )
+        self.mask_images["thresholded_grains"] = traditional_full_mask_tensor.copy()
 
-            # iterate over the thresholds for the current direction
-            direction_thresholds = self.thresholds[direction]
-            traditional_full_mask_tensor = Grains.multi_class_thresholding(
-                image=self.image,
-                thresholds=direction_thresholds,
-                threshold_direction=direction,
-                image_name=self.filename,
-            )
+        # pre-GrainCrop checks
 
-            self.mask_images[direction]["thresholded_grains"] = traditional_full_mask_tensor.copy()
+        # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
+        if self.remove_edge_intersecting_grains:
+            traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
+        self.mask_images["tidied_border"] = traditional_full_mask_tensor.copy()
 
-            # pre-GrainCrop checks
+        # Remove objects with area too small to process
+        traditional_full_mask_tensor = Grains.area_thresholding_tensor(
+            grain_mask_tensor=traditional_full_mask_tensor,
+            threshold_areas=(self.minimum_grain_size_px * self.pixel_to_nm_scaling**2, None),
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+        )
+        # Remove objects with bounding box too small to process
+        traditional_full_mask_tensor = Grains.bbox_size_thresholding_tensor(
+            grain_mask_tensor=traditional_full_mask_tensor,
+            bbox_size_thresholds=(self.minimum_bbox_size_px, None),
+        )
+        self.mask_images["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
-            # Tidy border - done here and not in vetting to not make vetting dependent on image size argument.
-            if self.remove_edge_intersecting_grains:
-                traditional_full_mask_tensor = Grains.tidy_border_tensor(grain_mask_tensor=traditional_full_mask_tensor)
-            self.mask_images[direction]["tidied_border"] = traditional_full_mask_tensor.copy()
+        # Area threshold using user specified thresholds
+        traditional_full_mask_tensor = Grains.area_thresholding_tensor(
+            grain_mask_tensor=traditional_full_mask_tensor,
+            threshold_areas=(self.threshold_areas[0], self.threshold_areas[1]),
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+        )
 
-            # Remove objects with area too small to process
-            traditional_full_mask_tensor = Grains.area_thresholding_tensor(
-                grain_mask_tensor=traditional_full_mask_tensor,
-                area_thresholds=(self.minimum_grain_size_px * self.pixel_to_nm_scaling**2, None),
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-            )
-            # Remove objects with bounding box too small to process
-            traditional_full_mask_tensor = Grains.bbox_size_thresholding_tensor(
-                grain_mask_tensor=traditional_full_mask_tensor,
-                bbox_size_thresholds=(self.minimum_bbox_size_px, None),
-            )
-            self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
+        self.mask_images["area_thresholded"] = traditional_full_mask_tensor.copy()
 
-            # Area threshold using user specified thresholds
-            traditional_full_mask_tensor = Grains.area_thresholding_tensor(
-                grain_mask_tensor=traditional_full_mask_tensor,
-                area_thresholds=self.area_thresholds[direction],
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-            )
+        # Extract GrainCrops from the full mask tensor
+        traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
+            image=self.image,
+            full_mask_tensor=traditional_full_mask_tensor,
+            padding=self.grain_crop_padding,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            filename=self.filename,
+        )
 
-            self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
+        # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
+        if len(traditional_graincrops) > 0:
+            # Grains found
 
-            # Extract GrainCrops from the full mask tensor
-            traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
-                image=self.image,
-                full_mask_tensor=traditional_full_mask_tensor,
-                padding=self.grain_crop_padding,
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-                filename=self.filename,
-            )
+            # Create a tensor out of the grain mask of shape NxNx2, where the two classes are a binary background
+            # mask and the second is a binary grain mask. This is because we want to support multiple classes, and
+            # so we standardise so that the first layer is background mask, then feature mask 1, then feature mask
+            # 2 etc.
 
-            # If there are no grains, then later steps will fail, so skip the stages if no grains are found.
-            if len(traditional_graincrops) > 0:
-                # Grains found
-
-                # Create a tensor out of the grain mask of shape NxNx2, where the two classes are a binary background
-                # mask and the second is a binary grain mask. This is because we want to support multiple classes, and
-                # so we standardise so that the first layer is background mask, then feature mask 1, then feature mask
-                # 2 etc.
-
-                # Optionally run a user-supplied u-net model on the grains to improve the segmentation
-                if self.unet_config["model_path"] is not None:
-                    # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
-                    # later on along with all the other hardcoded class 1s.
-                    graincrops = Grains.improve_grain_segmentation_unet(
-                        filename=self.filename,
-                        direction=direction,
-                        unet_config=self.unet_config,
-                        graincrops=traditional_graincrops,
-                    )
-                else:
-                    # otherwise use the traditional graincrops
-                    graincrops = traditional_graincrops
-                # Construct full masks from the crops
-                full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-                    graincrops=graincrops,
-                    image_shape=self.image.shape,
+            # Optionally run a user-supplied u-net model on the grains to improve the segmentation
+            if self.unet_config["model_path"] is not None:
+                # Run unet segmentation on only the class 1 layer of the labelled_regions_02. Need to make this configurable
+                # later on along with all the other hardcoded class 1s.
+                graincrops = Grains.improve_grain_segmentation_unet(
+                    filename=self.filename,
+                    unet_config=self.unet_config,
+                    graincrops=traditional_graincrops,
                 )
-
-                # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
-                # can be changed when we do a plotting overhaul
-                self.mask_images[direction]["unet"] = full_mask_tensor.copy()
-
-                # Vet the grains
-                if self.vetting_config is not None:
-                    graincrops_vetted = Grains.vet_grains(
-                        graincrops=graincrops,
-                        **self.vetting_config,
-                    )
-                else:
-                    graincrops_vetted = graincrops
-                graincrops_vetted = Grains.graincrops_update_background_class(graincrops=graincrops_vetted)
-
-                full_mask_tensor_vetted = Grains.construct_full_mask_from_graincrops(
-                    graincrops=graincrops_vetted,
-                    image_shape=self.image.shape,
-                )
-                self.mask_images[direction]["vetted"] = full_mask_tensor_vetted.copy()
-
-                # Mandatory check to remove any objects in any classes that are too small to process
-                graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
-                    graincrops=graincrops_vetted,
-                    min_object_size=self.minimum_grain_size_px,
-                    min_object_bbox_size=self.minimum_bbox_size_px,
-                )
-                graincrops_removed_too_small_to_process = Grains.graincrops_update_background_class(
-                    graincrops=graincrops_removed_too_small_to_process
-                )
-
-                # Merge classes as specified by the user
-                graincrops_merged_classes = Grains.graincrops_merge_classes(
-                    graincrops=graincrops_removed_too_small_to_process,
-                    classes_to_merge=self.classes_to_merge,
-                )
-                graincrops_merged_classes = Grains.graincrops_update_background_class(
-                    graincrops=graincrops_merged_classes
-                )
-
-                full_mask_tensor_merged_classes = Grains.construct_full_mask_from_graincrops(
-                    graincrops=graincrops_merged_classes,
-                    image_shape=self.image.shape,
-                )
-                self.mask_images[direction]["merged_classes"] = full_mask_tensor_merged_classes.copy()
-
-                # Store the grain crops
-                if direction == "above":
-                    image_grain_crops.above = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                elif direction == "below":
-                    image_grain_crops.below = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                else:
-                    raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
-                self.image_grain_crops = image_grain_crops
             else:
-                # No grains found
-                self.image_grain_crops = ImageGrainCrops(above=None, below=None)
+                # otherwise use the traditional graincrops
+                graincrops = traditional_graincrops
+            # Construct full masks from the crops
+            full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                graincrops=graincrops,
+                image_shape=self.image.shape,
+            )
+
+            # Set the unet tensor regardless of if the unet model was run, since the plotting expects it
+            # can be changed when we do a plotting overhaul
+            self.mask_images["unet"] = full_mask_tensor.copy()
+
+            # Vet the grains
+            if self.vetting_config is not None:
+                graincrops_vetted = Grains.vet_grains(
+                    graincrops=graincrops,
+                    **self.vetting_config,
+                )
+            else:
+                graincrops_vetted = graincrops
+            graincrops_vetted = Grains.graincrops_update_background_class(graincrops=graincrops_vetted)
+
+            full_mask_tensor_vetted = Grains.construct_full_mask_from_graincrops(
+                graincrops=graincrops_vetted,
+                image_shape=self.image.shape,
+            )
+            self.mask_images["vetted"] = full_mask_tensor_vetted.copy()
+
+            # Mandatory check to remove any objects in any classes that are too small to process
+            graincrops_removed_too_small_to_process = Grains.graincrops_remove_objects_too_small_to_process(
+                graincrops=graincrops_vetted,
+                min_object_size=self.minimum_grain_size_px,
+                min_object_bbox_size=self.minimum_bbox_size_px,
+            )
+            graincrops_removed_too_small_to_process = Grains.graincrops_update_background_class(
+                graincrops=graincrops_removed_too_small_to_process
+            )
+
+            # Merge classes as specified by the user
+            graincrops_merged_classes = Grains.graincrops_merge_classes(
+                graincrops=graincrops_removed_too_small_to_process,
+                classes_to_merge=self.classes_to_merge,
+            )
+            graincrops_merged_classes = Grains.graincrops_update_background_class(graincrops=graincrops_merged_classes)
+
+            full_mask_tensor_merged_classes = Grains.construct_full_mask_from_graincrops(
+                graincrops=graincrops_merged_classes,
+                image_shape=self.image.shape,
+            )
+            self.mask_images["merged_classes"] = full_mask_tensor_merged_classes.copy()
+
+            self.crops = graincrops_merged_classes
+            self.full_mask_tensor = full_mask_tensor_merged_classes
+        else:
+            # No grains found
+            self.crops = None
+            self.full_mask_tensor = None
 
     @staticmethod
     def multi_class_thresholding(
         image: npt.NDArray,
         thresholds: list[float],
-        threshold_direction: str,
         image_name: str,
     ) -> npt.NDArray[np.bool_]:
         """
@@ -1152,8 +930,6 @@ class Grains:
             2-D Numpy array of image.
         thresholds : list[float]
             List of thresholds for each class.
-        threshold_direction : str
-            Direction for which the threshold is applied.
         image_name : str
             Name of the image being processed (used in logging).
 
@@ -1165,12 +941,11 @@ class Grains:
         traditional_full_mask_tensor = np.zeros(
             (image.shape[0], image.shape[1], len(thresholds) + 1), dtype=np.int32
         ).astype(bool)
-        for threshold_index, direction_threshold in enumerate(thresholds):
+        for threshold_index, thresh in enumerate(thresholds):
             # mask the grains
-            traditional_full_mask_tensor[:, :, threshold_index + 1] = _get_mask(
+            traditional_full_mask_tensor[:, :, threshold_index + 1] = get_mask(
                 image=image,
-                thresh=direction_threshold,
-                threshold_direction=threshold_direction,
+                thresh=thresh,
                 img_name=image_name,
             ).astype(bool)
         # Update background class in the full mask tensor
@@ -1181,7 +956,6 @@ class Grains:
     def improve_grain_segmentation_unet(
         graincrops: dict[int, GrainCrop],
         filename: str,
-        direction: str,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None],
     ) -> dict[int, GrainCrop]:
         """
@@ -1193,8 +967,6 @@ class Grains:
             Dictionary of grain crops.
         filename : str
             File being processed (used in logging).
-        direction : str
-            Direction of threshold for which bounding boxes are being calculated.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
             Configuration for the UNet model.
             model_path: str
@@ -1213,7 +985,7 @@ class Grains:
         dict[int, GrainCrop]
             Dictionary of (hopefully) improved grain crops.
         """
-        LOGGER.debug(f"[{filename}] : Running UNet model on {direction} grains")
+        LOGGER.debug(f"[{filename}] : Running UNet model on grains")
 
         # When debugging, you might find that the custom_objects are incorrect. This is entirely based on what the model used
         # for its loss during training and so this will need to be changed a lot.
@@ -1271,6 +1043,7 @@ class Grains:
             else:
                 new_graincrops[grain_number] = GrainCrop(
                     image=graincrop.image,
+                    threshold_idx=graincrop.threshold_idx,
                     mask=predicted_mask,
                     padding=graincrop.padding,
                     bbox=graincrop.bbox,
@@ -2085,6 +1858,7 @@ class Grains:
             # If passed all vetting steps, add to the dictionary of passed grain crops
             passed_graincrops[grain_number] = GrainCrop(
                 image=graincrop.image,
+                threshold_idx=graincrop.threshold_idx,
                 mask=largest_only_single_grain_mask_tensor,
                 padding=graincrop.padding,
                 bbox=graincrop.bbox,
@@ -2210,6 +1984,13 @@ class Grains:
             # Get a flattened binary mask for the whole grain and no other grains
             flattened_grain_binary_mask = labelled_flat_full_mask == flat_region.label
 
+            # Find threshold used for grain
+            overlaps = [
+                (c, np.any(full_mask_tensor[:, :, c] & flattened_grain_binary_mask))
+                for c in range(full_mask_tensor.shape[2])
+            ]
+            grain_thresh = next(c for c, has_overlap in overlaps if has_overlap) - 1
+
             # For each class, set all pixels to zero that are not in the current region
             grain_tensor_full_mask = np.zeros_like(full_mask_tensor).astype(bool)
             for class_index in range(1, full_mask_tensor.shape[2]):
@@ -2276,6 +2057,7 @@ class Grains:
 
             graincrops[grain_number] = GrainCrop(
                 image=grain_cropped_image,
+                threshold_idx=grain_thresh,
                 mask=grain_cropped_tensor,
                 padding=padding,
                 bbox=square_flat_bounding_box,
@@ -2443,3 +2225,66 @@ class Grains:
                     predicted_grain_tensor[predicted_mask_region_mask, channel] = 0
 
         return predicted_grain_tensor
+
+
+# pylint: disable=too-many-branches
+def get_grain_thresholds(  # noqa: C901
+    image: npt.NDArray,
+    threshold_method: str,
+    threshold_otsu_multiplier: float | None = None,
+    threshold_std_dev: list | None = None,
+    threshold_absolute: list | None = None,
+) -> list[float]:
+    """
+    Obtain thresholds for masking data points.
+
+    Parameters
+    ----------
+    image : npt.NDArray
+        2D Numpy array of image to be masked.
+    threshold_method : str
+        Method for thresholding, 'otsu', 'std_dev' or 'absolute' are valid options.
+    threshold_otsu_multiplier : float
+        Scaling value for Otsu threshold.
+    threshold_std_dev : dict
+        Dict of above and below thresholds for the standard deviation method.
+    threshold_absolute : tuple
+        Dict of below and above thresholds.
+
+    Returns
+    -------
+    list[float]
+        List of calculated thresholds.
+    """
+    if threshold_method == "otsu":
+        assert (
+            threshold_otsu_multiplier is not None
+        ), "Otsu threshold multiplier must be provided when using 'otsu' thresholding method."
+        return [threshold(image, method="otsu", threshold_otsu_multiplier=threshold_otsu_multiplier)]
+    if threshold_method == "std_dev":
+        assert (
+            threshold_std_dev is not None
+        ), "Standard deviation thresholds must be provided when using 'std_dev' thresholding method."
+        threshold_std_dev_list = []
+        for threshold_std_dev_value in threshold_std_dev:
+            if threshold_std_dev_value >= 0:
+                threshold_std_dev_list.append(
+                    threshold(image, method="mean") + threshold_std_dev_value * np.nanstd(image)
+                )
+            elif threshold_std_dev_value < 0:
+                threshold_std_dev_value = -threshold_std_dev_value
+                threshold_std_dev_list.append(
+                    threshold(image, method="mean") - threshold_std_dev_value * np.nanstd(image)
+                )
+        return threshold_std_dev_list
+    if threshold_method == "absolute":
+        assert (
+            threshold_absolute is not None
+        ), "New absolute threshold must be provided when using 'absolute' thresholding method."
+        return threshold_absolute
+
+    if not isinstance(threshold_method, str):
+        raise TypeError(
+            f"threshold_method ({threshold_method}) should be a string. Valid values : 'otsu' 'std_dev' 'absolute'"
+        )
+    raise ValueError(f"threshold_method ({threshold_method}) is invalid. Valid values : 'otsu' 'std_dev' 'absolute'")

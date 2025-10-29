@@ -250,7 +250,6 @@ def test_no_grains(caplog, tmp_path: Path) -> None:
     grainstats = GrainStats(
         grain_crops={},
         image_name="random",
-        direction="above",
         base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()

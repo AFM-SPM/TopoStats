@@ -858,8 +858,8 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
 # pylint: disable=too-many-locals
 def ordered_tracing_image(
     image: npt.NDArray,
-    disordered_tracing_direction_data: dict,
-    nodestats_direction_data: dict,
+    disordered_tracing_threshold_data: dict,
+    nodestats_threshold_data: dict,
     filename: str,
     ordering_method: str,
 ) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
@@ -871,9 +871,9 @@ def ordered_tracing_image(
     ----------
     image : npt.NDArray
         Whole FOV image.
-    disordered_tracing_direction_data : dict
+    disordered_tracing_threshold_data : dict
         Dictionary result from the disordered traces. Fields used are "original_image" and "pruned_skeleton".
-    nodestats_direction_data : dict
+    nodestats_threshold_data : dict
         Dictionary result from the nodestats analysis.
     filename : str
         Image filename (for logging purposes).
@@ -898,20 +898,20 @@ def ordered_tracing_image(
 
     LOGGER.info(
         f"[{filename}] : Calculating Ordered Traces and statistics for "
-        f"{len(disordered_tracing_direction_data)} grains..."
+        f"{len(disordered_tracing_threshold_data)} grains..."
     )
 
     # iterate through disordered_tracing_dict
-    for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
+    for grain_no, disordered_trace_data in disordered_tracing_threshold_data.items():
         try:
             # check if want to do nodestats tracing or not
-            if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
+            if grain_no in list(nodestats_threshold_data["stats"].keys()) and ordering_method == "nodestats":
                 LOGGER.debug(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
                 nodestats_tracing = OrderedTraceNodestats(
-                    image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
+                    image=nodestats_threshold_data["images"][grain_no]["grain"]["grain_image"],
                     filename=filename,
-                    nodestats_dict=nodestats_direction_data["stats"][grain_no],
-                    skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
+                    nodestats_dict=nodestats_threshold_data["stats"][grain_no],
+                    skeleton=nodestats_threshold_data["images"][grain_no]["grain"]["grain_skeleton"],
                 )
                 if nodestats_tracing.check_node_errorless():
                     ordered_traces_data, tracing_stats, grain_molstats, images = (
@@ -919,7 +919,7 @@ def ordered_tracing_image(
                     )
                     LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
+                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_threshold_data['stats'][grain_no]['error']}")
             # if not doing nodestats ordering, do original TS ordering
             else:
                 LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")

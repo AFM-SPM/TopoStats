@@ -6,7 +6,13 @@ import numpy as np
 import pytest
 from skimage.filters import gaussian  # pylint: disable=no-name-in-module
 
-from topostats.filters import Filters
+from topostats.filters import Filters, get_filter_thresholds
+
+THRESHOLD_OPTIONS = {
+    "threshold_otsu_multiplier": 1.7,
+    "threshold_std_dev": {"below": 10.0, "above": 1.0},
+    "threshold_absolute": {"below": -1.5, "above": 1.5},
+}
 
 # pylint: disable=protected-access
 
@@ -129,3 +135,85 @@ def test_gaussian_filter(small_array_filters: Filters, filter_config: dict) -> N
     )
     assert isinstance(small_array_filters.images["gaussian_filtered"], np.ndarray)
     np.testing.assert_array_equal(small_array_filters.images["gaussian_filtered"], target)
+
+
+def test_get_filter_thresholds_otsu(image_random: np.ndarray) -> None:
+    """Test of get_filter_thresholds() method otsu threshold."""
+    thresholds = get_filter_thresholds(image=image_random, threshold_method="otsu", **THRESHOLD_OPTIONS)
+
+    assert isinstance(thresholds, dict)
+    assert thresholds == {"above": [0.8466799787547299]}
+
+
+@pytest.mark.parametrize(
+    ("threshold_config", "expected_thresholds"),
+    [
+        pytest.param(
+            {
+                "above": [1.0],
+                "below": [10.0],
+            },
+            {"below": [-2.3866804917165663], "above": [0.7886033762450778]},
+        ),
+        pytest.param(
+            {
+                "above": [1.0, 1.5],
+                "below": [10.0],
+            },
+            {"below": [-2.3866804917165663], "above": [0.7886033762450778, 0.9329344611524253]},
+        ),
+    ],
+)
+def test_get_filter_thresholds_stddev(
+    image_random: np.ndarray,
+    threshold_config: list[float],
+    expected_thresholds: list[float],
+) -> None:
+    """Test of get_filter_thresholds() method with mean threshold."""
+    thresholds = get_filter_thresholds(
+        image=image_random, threshold_method="std_dev", threshold_std_dev=threshold_config
+    )
+    assert isinstance(thresholds, dict)
+    assert thresholds == expected_thresholds
+
+
+@pytest.mark.parametrize(
+    ("threshold_config", "expected_thresholds"),
+    [
+        pytest.param(
+            {
+                "above": [1.5],
+                "below": [-1.5],
+            },
+            {"below": [-1.5], "above": [1.5]},
+        ),
+        pytest.param(
+            {
+                "above": [1.5, 2.0],
+                "below": [-1.5],
+            },
+            {"below": [-1.5], "above": [1.5, 2.0]},
+        ),
+    ],
+)
+def test_get_filter_thresholds_absolute(
+    image_random: np.ndarray, threshold_config: list[float], expected_thresholds: list[float]
+) -> None:
+    """Test of get_filter_thresholds() method with absolute threshold."""
+    thresholds = get_filter_thresholds(
+        image=image_random, threshold_method="absolute", threshold_absolute=threshold_config
+    )
+    assert isinstance(thresholds, dict)
+    assert thresholds == expected_thresholds
+
+
+def test_get_filter_thresholds_type_error(image_random: np.ndarray) -> None:
+    """Test a TypeError is raised if a non-string value is passed to get_filter_thresholds()."""
+    with pytest.raises(TypeError):
+        get_filter_thresholds(image=image_random, threshold_method=6.4, **THRESHOLD_OPTIONS)
+
+
+def test_get_filter_thresholds_value_error(image_random: np.ndarray) -> None:
+    """Test a ValueError is raised if an invalid value is passed to get_filter_thresholds()."""
+    with pytest.raises(ValueError):  # noqa: PT011
+        get_filter_thresholds(image=image_random, threshold_method="mean", **THRESHOLD_OPTIONS)

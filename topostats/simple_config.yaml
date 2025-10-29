@@ -13,7 +13,7 @@ filter:
     below: 10.0 # Threshold for data below the image background
     above: 1.0 # Threshold for data above the image background
   threshold_absolute:
-    below: -1.0 # Threshold for data below the image background
+    below: 1.0 # Threshold for data below the image background
     above: 1.0 # Threshold for data above the image background
   gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
   # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
@@ -24,14 +24,9 @@ grains:
   run: true # Options : true, false
   # Thresholding by height
   threshold_method: std_dev # Options : std_dev, otsu, absolute, unet
-  threshold_std_dev:
-    below: 10.0 # Threshold for grains below the image background
-    above: 1.0 # Threshold for grains above the image background
-  threshold_absolute:
-    below: -1.0 # Threshold for grains below the image background
-    above: 1.0 # Threshold for grains above the image background
-  area_thresholds:
-    above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
+  threshold_std_dev: [1.0, -10.0] # Thresholds for data either side of the image background, positive for above and negative for below
+  threshold_absolute: [1.0] # Thresholds for data either side of the image background, positive for above and negative for below
+  threshold_areas: [10, 1000000000] # [Low, High] in nm^2 (also takes null)
 grainstats:
   run: true # Options : true, false
 disordered_tracing:
