@@ -905,7 +905,7 @@ def ordered_tracing_image(
     all_traces_data = {}
 
     grain_crop_direction = (
-        topostats_object.image_grain_crops.above if direction == "above" else topostats_object.image_grain_crops.below
+        topostats_object.grain_crops.above if direction == "above" else topostats_object.grain_crops.below
     )
     LOGGER.info(
         f"[{topostats_object.filename}] : Calculating Ordered Traces and statistics for '{direction}' "

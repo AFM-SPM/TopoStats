@@ -704,146 +704,14 @@ class DisorderedTrace:
 
 
 @dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
-class GrainCropsDirection:
-    """
-    Dataclass for storing the crops of grains in a particular imaging direction.
-
-    Attributes
-    ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean WxHxC array of the full mask tensor (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        Grain crops.
-    """
-
-    crops: dict[int, GrainCrop] | None = None
-    full_mask_tensor: npt.NDArray[np.bool_] | None = None
-
-    def __post_init__(self):
-        """
-        Validate the full mask tensor shape.
-
-        Raises
-        ------
-        ValueError
-            If the full mask tensor shape is invalid.
-        """
-        self.full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
-
-    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert GrainCropsDirection to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two GrainCropsDirection objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
-        for crop_index, crop in self.crops.items():
-            if crop != other.crops[crop_index]:
-                LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.debug_locate_difference(other.crops[crop_index])
-        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
-            raise ValueError("Full mask tensor is different")
-
-        LOGGER.info("Cannot find difference between graincrops")
-
-    def update_full_mask_tensor(self):
-        """Update the full mask tensor from the grain crops."""
-        self.full_mask_tensor = construct_full_mask_from_graincrops(
-            graincrops=self.crops,
-            image_shape=self.full_mask_tensor.shape[:2],
-        )
-
-
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
-class ImageGrainCrops:
-    """
-    Dataclass for storing the crops of grains in an image.
-
-    Attributes
-    ----------
-    above : GrainCropsDirection | None
-        Grains in the above direction.
-    below : GrainCropsDirection | None
-        Grains in the below direction.
-    """
-
-    above: GrainCropsDirection | None = None
-    below: GrainCropsDirection | None = None
-
-    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert ImageGrainCrops to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two ImageGrainCrops objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-        if self.above is not None:
-            if self.above != other.above:
-                LOGGER.info("Above grains are different")
-                self.above.debug_locate_difference(other.above)
-        else:
-            if other.above is not None:
-                raise ValueError("Above grains are different")
-        if self.below is not None:
-            if self.below != other.below:
-                LOGGER.info("Below grains are different")
-                self.below.debug_locate_difference(other.below)
-        else:
-            if other.below is not None:
-                raise ValueError("Below grains are different")
-
-        LOGGER.info("Cannot find difference between image grain crops")
-
-
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
 class TopoStats:
     """
     Class for storing TopoStats objects.
 
     Attributes
     ----------
-    image_grain_crops : ImageGrainCrops | None
-        ImageGrainCrops of processed image.
+    grain_crops : dict[int, GrainCrop] | None
+        Dictionary of ``GrainCrop`` objects.
     filename : str | None
         Filename.
     pixel_to_nm_scaling : str | None
@@ -862,9 +730,7 @@ class TopoStats:
         Configuration used when processing the grain.
     """
 
-    # @ns-rse 2025-10-10 : This will switch to dict[int, GrainCrop] when we remove ImageGrainCrops and
-    #                      GrainCropsDirection
-    image_grain_crops: ImageGrainCrops | None = None
+    grain_crops: dict[int, GrainCrop] | None = None
     filename: str | None = None
     pixel_to_nm_scaling: float | None = None
     img_path: Path | str | None = None
@@ -874,13 +740,13 @@ class TopoStats:
     topostats_version: str | None = None
     config: dict[str, Any] | None = None
 
-    def topostats_to_dict(self) -> dict[str, str | ImageGrainCrops | npt.NDArray]:
+    def topostats_to_dict(self) -> dict[str, str | npt.NDArray | dict[str | int, GrainCrop | Any]]:
         """
         Convert ``TopoStats`` object to dictionary.
 
         Returns
         -------
-        dict[str, str | ImageGrainCrops | npt.NDArray]
+        dict[str, str | npt.NDArray | dict[str | int, GrainCrop | Any]]
             Dictionary of ``TopoStats`` object.
         """
         return dict(self.__dict__)

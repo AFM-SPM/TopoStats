@@ -26,7 +26,6 @@ LOGGER.propagate = True
 # Specify the absolute and relattive tolerance for floating point comparison
 TOLERANCE = {"atol": 1e-07, "rtol": 1e-07}
 
-
 grain_array = np.array(
     [
         [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
@@ -66,7 +65,6 @@ grain_array4 = np.array(
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ]
 )
-
 
 # def test_random_grains(random_grains: Grains, caplog) -> None:
 #     """Test errors raised when processing images without grains."""
@@ -513,9 +511,9 @@ def test_remove_edge_intersecting_grains(
     assert number_of_grains == expected_number_of_grains
     # Some basic checks of TopoStats object needs expanding
     assert isinstance(grains.topostats_object, TopoStats)
-    assert isinstance(grains.topostats_object.image_grain_crops, ImageGrainCrops)
-    assert isinstance(grains.topostats_object.image_grain_crops.above, GrainCropsDirection)
-    assert len(grains.topostats_object.image_grain_crops.above.crops) == expected_number_of_grains
+    assert isinstance(grains.topostats_object.grain_crops, ImageGrainCrops)
+    assert isinstance(grains.topostats_object.grain_crops.above, GrainCropsDirection)
+    assert len(grains.topostats_object.grain_crops.above.crops) == expected_number_of_grains
 
 
 @pytest.mark.parametrize(

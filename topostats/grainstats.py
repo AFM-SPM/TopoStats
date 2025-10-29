@@ -35,7 +35,6 @@ from topostats.utils import create_empty_dataframe
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-
 GRAIN_STATS_COLUMNS = [
     "grain_number",
     "centre_x",
@@ -121,9 +120,9 @@ class GrainStats:
         self.topostats_object = topostats_object
         assert direction in ("above", "below"), f"Invalid direction: {direction}"
         self.grain_crops = (
-            topostats_object.image_grain_crops.above.crops
+            topostats_object.grain_crops.above.crops
             if direction == "above"
-            else topostats_object.image_grain_crops.below.crops
+            else topostats_object.grain_crops.below.crops
         )
         self.direction = direction
         self.base_output_dir = Path(base_output_dir)
