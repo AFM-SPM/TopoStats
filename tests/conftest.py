@@ -21,8 +21,6 @@ import topostats
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
-    GrainCropsDirection,
-    ImageGrainCrops,
     MatchedBranch,
     Molecule,
     Node,
@@ -552,45 +550,6 @@ def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def dummy_graincropsdirection(dummy_graincrops_dict: dict[int, GrainCrop]) -> GrainCropsDirection:
-    """Dummy GrainCropsDirection object for testing."""
-    full_mask_tensor = np.stack(
-        [
-            np.array(
-                [
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                ]
-            ),
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                ],
-            ),
-        ],
-        axis=-1,
-    ).astype(np.bool_)
-    return GrainCropsDirection(full_mask_tensor=full_mask_tensor, crops=dummy_graincrops_dict)
-
-
-@pytest.fixture()
 def graincrop_catenanes_0() -> GrainCrop:
     """Catenanes GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_0.npy")
@@ -623,27 +582,16 @@ def graincrop_catenanes_1() -> GrainCrop:
 
 
 @pytest.fixture()
-def graincrops_above_catenanes(
-    graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop
-) -> GrainCropsDirection:
-    """GrainCropsDirection object of example catenanes."""
-    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_full_mask_tensor.npy")
-    return GrainCropsDirection(
-        crops={0: graincrop_catenanes_0, 1: graincrop_catenanes_1}, full_mask_tensor=full_mask_tensor
-    )
+def graincrops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop) -> dict[str, GrainCrop]:
+    """Dictionary of ``GrainCrop`` for catenanes image."""
+    return {0: graincrop_catenanes_0, 1: graincrop_catenanes_1}
 
 
 @pytest.fixture()
-def imagegraincrops_catenanes(graincrops_above_catenanes: GrainCropsDirection) -> ImageGrainCrops:
-    """ImageGrainCrops object of example catenanes."""
-    return ImageGrainCrops(above=graincrops_above_catenanes, below=None)
-
-
-@pytest.fixture()
-def topostats_catenanes_2_4_0(imagegraincrops_catenanes, default_config: dict[str, Any]) -> TopoStats:
+def topostats_catenanes_2_4_0(graincrops_catenanes: dict[int, GrainCrop], default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
-        image_grain_crops=imagegraincrops_catenanes,
+        grain_crops=graincrops_catenanes,
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
@@ -671,23 +619,16 @@ def graincrop_rep_int_0() -> GrainCrop:
 
 
 @pytest.fixture()
-def graincrops_above_rep_int(graincrop_rep_int_0: GrainCrop) -> GrainCropsDirection:
-    """GrainCropsDirection object of example rep_int."""
-    full_mask_tensor: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_full_mask_tensor.npy")
-    return GrainCropsDirection(crops={0: graincrop_rep_int_0}, full_mask_tensor=full_mask_tensor)
+def graincrops_rep_int(graincrop_rep_int_0: GrainCrop) -> dict[int, GrainCrop]:
+    """Dictionary of ``GrainCrop`` for rep_int image."""
+    return {0: graincrop_rep_int_0}
 
 
 @pytest.fixture()
-def imagegraincrops_rep_int(graincrops_above_rep_int: GrainCropsDirection) -> ImageGrainCrops:
-    """ImageGrainCrops object of example rep_int."""
-    return ImageGrainCrops(above=graincrops_above_rep_int, below=None)
-
-
-@pytest.fixture()
-def topostats_rep_int_2_4_0(imagegraincrops_rep_int, default_config: dict[str, Any]) -> TopoStats:
+def topostats_rep_int_2_4_0(graincrops_rep_int: dict[int, GrainCrop], default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of example rep_int."""
     return TopoStats(
-        image_grain_crops=imagegraincrops_rep_int,
+        grain_crops=graincrops_rep_int,
         filename="example_rep_int.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
@@ -1052,11 +993,8 @@ def dummy_grainstats(
     dummy_graincrops_dict: dict[int, GrainCrop], grainstats_config: dict, tmp_path: Path
 ) -> GrainStats:
     """Grainstats class for testing functions."""
-    image_grain_crops = ImageGrainCrops(
-        above=GrainCropsDirection(crops=dummy_graincrops_dict, full_mask_tensor=np.array([[[0, 1, 2]]])), below=None
-    )
     topostats_object = TopoStats(
-        image_grain_crops=image_grain_crops, filename="dummy_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+        grain_crops=dummy_graincrops_dict, filename="dummy_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
     )
     return GrainStats(
         topostats_object=topostats_object,
@@ -1072,12 +1010,8 @@ def minicircle_grainstats(
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
-    image_grain_crops = ImageGrainCrops(
-        above=GrainCropsDirection(crops=minicircle_small_graincrops, full_mask_tensor=np.array([[[0, 1, 2]]])),
-        below=None,
-    )
     topostats_object = TopoStats(
-        image_grain_crops=image_grain_crops, filename=None, pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+        grain_crops=minicircle_small_graincrops, filename=None, pixel_to_nm_scaling=1.0, img_path=Path.cwd()
     )
     return GrainStats(
         topostats_object=topostats_object,
