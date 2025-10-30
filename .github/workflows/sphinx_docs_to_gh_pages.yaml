@@ -3,6 +3,8 @@ name: Sphinx docs to gh-pages
 
 on:
   pull_request:
+    types:
+      - [closed]
     branches:
       - main
     # Uncomment if only tagged releases are to have documentation built
