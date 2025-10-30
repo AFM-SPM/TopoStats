@@ -13,7 +13,7 @@ from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import construct_full_mask_from_graincrops, update_background_class
+from topostats.utils import update_background_class
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -750,6 +750,34 @@ class TopoStats:
             Dictionary of ``TopoStats`` object.
         """
         return dict(self.__dict__)
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two ``TopoStats`` objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Other ``TopoStats`` object to compare to.
+
+        Returns
+        -------
+        bool
+            ``True`` if the objects are equal, ``False`` otherwise.
+        """
+        if not isinstance(other, TopoStats):
+            return False
+        return (
+            self.grain_crops == other.grain_crops
+            and self.filename == other.filename
+            and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
+            and self.img_path == other.img_path
+            and self.topostats_version == other.topostats_version
+            and self.config == other.config
+            and np.array_equal(self.image, other.image)
+            and np.array_equal(self.image_original, other.image_original)
+            and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
+        )
 
 
 @dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
