@@ -12,8 +12,7 @@ from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import binary_dilation
 
-# from topostats import GrainCrop, ImageGrainCrops, TopoStats
-from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.unet_masking import (
     iou_loss,
@@ -194,10 +193,7 @@ class Grains:
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
-        self.image_grain_crops = ImageGrainCrops(
-            above=None,
-            below=None,
-        )
+        self.grain_crops = {}
 
     @staticmethod
     def get_region_properties(image: npt.NDArray, **kwargs) -> list:
@@ -404,8 +400,6 @@ class Grains:
             absolute=self.threshold_absolute,
         )
 
-        # Create an ImageGrainCrops object to store the grain crops
-        image_grain_crops = ImageGrainCrops(above=None, below=None)
         for direction in self.threshold_directions:
             LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
             self.mask_images[direction] = {}
@@ -531,25 +525,14 @@ class Grains:
                     image_shape=self.image.shape,
                 )
                 self.mask_images[direction]["merged_classes"] = full_mask_tensor_merged_classes.copy()
-
-                # Store the grain crops
-                if direction == "above":
-                    image_grain_crops.above = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                elif direction == "below":
-                    image_grain_crops.below = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                else:
-                    raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
-                self.image_grain_crops = image_grain_crops
+                self.grain_crops = graincrops_merged_classes
+                self.topostats_object.grain_crops = graincrops_merged_classes
+                self.topostats_object.full_mask_tensor = full_mask_tensor_merged_classes
             else:
                 # No grains found
-                self.image_grain_crops = ImageGrainCrops(above=None, below=None)
-        self.topostats_object.grain_crops = self.image_grain_crops
+                self.grain_crops = None
+                # self.topostats_object.grain_crops = self.grain_crops
+                self.topostats_object.full_mask_tensor = None
 
     @staticmethod
     def multi_class_thresholding(

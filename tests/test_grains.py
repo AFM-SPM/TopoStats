@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.classes import GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import GrainCrop, TopoStats
 from topostats.grains import Grains, validate_full_mask_tensor_shape
 from topostats.io import dict_almost_equal
 
@@ -506,14 +506,13 @@ def test_remove_edge_intersecting_grains(
         **grains_config,
     )
     grains.find_grains()
-    number_of_grains = len(grains.image_grain_crops.above.crops)
-
-    assert number_of_grains == expected_number_of_grains
+    print(f"\n{topostats_object.grain_crops=}\n")
+    assert len(topostats_object.grain_crops) == expected_number_of_grains
     # Some basic checks of TopoStats object needs expanding
-    assert isinstance(grains.topostats_object, TopoStats)
-    assert isinstance(grains.topostats_object.grain_crops, ImageGrainCrops)
-    assert isinstance(grains.topostats_object.grain_crops.above, GrainCropsDirection)
-    assert len(grains.topostats_object.grain_crops.above.crops) == expected_number_of_grains
+    assert isinstance(topostats_object, TopoStats)
+    assert isinstance(topostats_object.grain_crops, dict)
+    assert isinstance(topostats_object.grain_crops[0], GrainCrop)
+    assert len(topostats_object.grain_crops) == expected_number_of_grains
 
 
 @pytest.mark.parametrize(
@@ -528,7 +527,7 @@ def test_remove_edge_intersecting_grains(
         "area_thresholds",
         "direction",
         "remove_edge_intersecting_grains",
-        "expected_imagegraincrops",
+        "expected_graincrops",
     ),
     [
         pytest.param(
@@ -550,6 +549,53 @@ def test_remove_edge_intersecting_grains(
                 pixel_to_nm_scaling=1.0,
                 filename="test_image",
                 img_path=Path.cwd(),
+                full_mask_tensor=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                                [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+                                [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
+                                [1, 0, 0, 1, 1, 1, 1, 0, 0, 1],
+                                [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+                                [0, 1, 0, 1, 0, 0, 1, 0, 1, 0],
+                                [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+                                [0, 1, 1, 0, 0, 0, 0, 1, 1, 0],
+                                [0, 0, 1, 0, 1, 0, 1, 1, 1, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            ],
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            ],
+                        ),
+                    ],
+                    axis=-1,
+                ).astype(np.bool_),
             ),
             "absolute",
             None,
@@ -558,330 +604,278 @@ def test_remove_edge_intersecting_grains(
             {"above": [1, 10000000], "below": [1, 10000000]},
             "above",
             True,
-            ImageGrainCrops(
-                above=GrainCropsDirection(
-                    crops={
-                        0: GrainCrop(
-                            bbox=(0, 0, 5, 5),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.1, 0.1, 0.2, 0.1, 0.1],
-                                    [0.2, 1.1, 1.0, 1.2, 0.2],
-                                    [0.1, 1.1, 0.2, 1.0, 0.1],
-                                    [0.2, 1.0, 1.1, 1.1, 0.2],
-                                    [0.1, 0.1, 0.2, 0.1, 0.1],
-                                ]
-                            ),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 0, 1, 0, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 1, 0, 1, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        1: GrainCrop(
-                            bbox=(0, 5, 5, 10),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.2, 0.1, 0.2, 0.1, 0.2],
-                                    [0.1, 1.5, 1.6, 1.7, 0.1],
-                                    [0.2, 1.6, 0.2, 1.6, 0.2],
-                                    [0.1, 1.6, 1.5, 1.5, 0.1],
-                                    [0.2, 0.1, 0.2, 0.1, 0.2],
-                                ]
-                            ),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 0, 1, 0, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 1, 0, 1, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        2: GrainCrop(
-                            bbox=(4, 2, 8, 6),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.2, 0.1, 0.1, 0.2],
-                                    [0.2, 1.5, 1.5, 0.1],
-                                    [0.2, 0.0, 0.0, 0.2],
-                                    [1.5, 0.1, 0.2, 0.1],
-                                ]
-                            ),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1],
-                                            [1, 0, 0, 1],
-                                            [1, 1, 1, 1],
-                                            [1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0],
-                                            [0, 1, 1, 0],
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        3: GrainCrop(
-                            bbox=(4, 4, 10, 10),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                                    [1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
-                                    [0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
-                                    [0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
-                                    [1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
-                                    [0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
-                                ]
-                            ),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1, 1, 1],
-                                            [1, 1, 0, 0, 0, 1],
-                                            [1, 1, 1, 0, 0, 1],
-                                            [1, 1, 1, 0, 0, 1],
-                                            [1, 1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0, 0],
-                                            [0, 0, 1, 1, 1, 0],
-                                            [0, 0, 0, 1, 1, 0],
-                                            [0, 0, 0, 1, 1, 0],
-                                            [0, 0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0, 0],
-                                            [0, 0, 0, 1, 0, 0],
-                                            [0, 0, 0, 1, 0, 0],
-                                            [0, 0, 0, 0, 0, 0],
-                                            [0, 0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        4: GrainCrop(
-                            bbox=(6, 0, 10, 4),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.1, 0.1, 0.2, 0.0],
-                                    [0.2, 1.5, 1.5, 0.1],
-                                    [0.1, 0.1, 1.5, 0.1],
-                                    [0.2, 0.1, 0.2, 0.1],
-                                ]
-                            ),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1],
-                                            [1, 0, 0, 1],
-                                            [1, 1, 0, 1],
-                                            [1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0],
-                                            [0, 1, 1, 0],
-                                            [0, 0, 1, 0],
-                                            [0, 0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                            [0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        5: GrainCrop(
-                            bbox=(7, 3, 10, 6),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array([[0.1, 0.2, 0.1], [0.1, 1.5, 0.2], [0.1, 0.2, 0.1]]),
-                            thresholds=None,
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1],
-                                            [1, 0, 1],
-                                            [1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0],
-                                            [0, 1, 0],
-                                            [0, 0, 0],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0],
-                                            [0, 0, 0],
-                                            [0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                    },
-                    full_mask_tensor=np.stack(
+            {
+                0: GrainCrop(
+                    bbox=(0, 0, 5, 5),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.1, 0.1, 0.2, 0.1, 0.1],
+                            [0.2, 1.1, 1.0, 1.2, 0.2],
+                            [0.1, 1.1, 0.2, 1.0, 0.1],
+                            [0.2, 1.0, 1.1, 1.1, 0.2],
+                            [0.1, 0.1, 0.2, 0.1, 0.1],
+                        ]
+                    ),
+                    thresholds=None,
+                    mask=np.stack(
                         [
                             np.array(
                                 [
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                    [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
-                                    [1, 0, 0, 0, 1, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 1, 1, 0, 0, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1],
-                                    [1, 0, 0, 1, 1, 1, 1, 0, 0, 1],
-                                    [1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
                                 ]
                             ),
                             np.array(
                                 [
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                                    [0, 1, 0, 1, 0, 0, 1, 0, 1, 0],
-                                    [0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
-                                    [0, 1, 1, 0, 0, 0, 0, 1, 1, 0],
-                                    [0, 0, 1, 0, 1, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                ],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
                             ),
                             np.array(
                                 [
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                ],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
                             ),
                         ],
                         axis=-1,
-                    ).astype(np.bool_),
+                    ),
                 ),
-                below=None,
-            ),
+                1: GrainCrop(
+                    bbox=(0, 5, 5, 10),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.2, 0.1, 0.2, 0.1, 0.2],
+                            [0.1, 1.5, 1.6, 1.7, 0.1],
+                            [0.2, 1.6, 0.2, 1.6, 0.2],
+                            [0.1, 1.6, 1.5, 1.5, 0.1],
+                            [0.2, 0.1, 0.2, 0.1, 0.2],
+                        ]
+                    ),
+                    thresholds=None,
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+                2: GrainCrop(
+                    bbox=(4, 2, 8, 6),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.2, 0.1, 0.1, 0.2],
+                            [0.2, 1.5, 1.5, 0.1],
+                            [0.2, 0.0, 0.0, 0.2],
+                            [1.5, 0.1, 0.2, 0.1],
+                        ]
+                    ),
+                    thresholds=None,
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1],
+                                    [1, 0, 0, 1],
+                                    [1, 1, 1, 1],
+                                    [1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 1, 1, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+                3: GrainCrop(
+                    bbox=(4, 4, 10, 10),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
+                            [1.5, 0.1, 2.0, 1.9, 1.8, 0.1],
+                            [0.0, 0.2, 0.1, 2.6, 1.7, 0.2],
+                            [0.2, 0.1, 0.2, 2.7, 1.6, 0.1],
+                            [1.5, 0.2, 1.3, 1.4, 1.5, 0.2],
+                            [0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
+                        ]
+                    ),
+                    thresholds=None,
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1, 1],
+                                    [1, 1, 0, 0, 0, 1],
+                                    [1, 1, 1, 0, 0, 1],
+                                    [1, 1, 1, 0, 0, 1],
+                                    [1, 1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 1, 1, 1, 0],
+                                    [0, 0, 0, 1, 1, 0],
+                                    [0, 0, 0, 1, 1, 0],
+                                    [0, 0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 1, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+                4: GrainCrop(
+                    bbox=(6, 0, 10, 4),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.1, 0.1, 0.2, 0.0],
+                            [0.2, 1.5, 1.5, 0.1],
+                            [0.1, 0.1, 1.5, 0.1],
+                            [0.2, 0.1, 0.2, 0.1],
+                        ]
+                    ),
+                    thresholds=None,
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1],
+                                    [1, 0, 0, 1],
+                                    [1, 1, 0, 1],
+                                    [1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 1, 1, 0],
+                                    [0, 0, 1, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                    [0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+                5: GrainCrop(
+                    bbox=(7, 3, 10, 6),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array([[0.1, 0.2, 0.1], [0.1, 1.5, 0.2], [0.1, 0.2, 0.1]]),
+                    thresholds=None,
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1],
+                                    [1, 0, 1],
+                                    [1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0],
+                                    [0, 1, 0],
+                                    [0, 0, 0],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0],
+                                    [0, 0, 0],
+                                    [0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+            },
             id="absolute, above 0.9, remove edge, smallest grain 1",
         ),
     ],
@@ -897,7 +891,7 @@ def test_find_grains(
     area_thresholds: dict,
     direction: str,
     remove_edge_intersecting_grains: bool,
-    expected_imagegraincrops: ImageGrainCrops,
+    expected_graincrops: dict[int, GrainCrop],
 ) -> None:
     """Test the find_grains method of the Grains class without unet."""
     # Initialise the grains object
@@ -919,34 +913,18 @@ def test_find_grains(
 
     grains_object.find_grains()
 
-    # Check the image_grain_crops
-    result_image_grain_crops = grains_object.image_grain_crops
-    result_above = result_image_grain_crops.above
-    expected_above = expected_imagegraincrops.above
+    # Check the grain_crops match
     for _index, (expected_graincrop, result_graincrop) in enumerate(
-        zip(expected_above.crops.values(), result_above.crops.values())
+        zip(expected_graincrops.values(), grains_object.grain_crops.values())
     ):
         result_graincrop_mask = result_graincrop.mask
         expected_graincrop_mask = expected_graincrop.mask
         assert np.array_equal(result_graincrop_mask, expected_graincrop_mask)
-        # @ns-rse 2025-10-15 : Equailty of masks passes above but they are different objects in memory so
-        #                      this fails, now that we are using GrainCrop classes which are instantiated
-        #                      at different points.
-        # assert result_graincrop == expected_graincrop
-    result_full_mask_tensor = result_above.full_mask_tensor
-    expected_full_mask_tensor = expected_above.full_mask_tensor
-    assert np.array_equal(result_full_mask_tensor, expected_full_mask_tensor)
-    # @ns-rse 2025-10-15 : Equailty of tensors passes above but the following aredifferent objects in
-    #                      memory so this fails, now that we are using GrainCrop classes which are
-    #                      instantiated at different points. Wary of spending time on this as we intend to
-    #                      remove ImageGrainCrops
-    # assert result_above == expected_above
-    # assert result_image_grain_crops == expected_imagegraincrops
 
 
 # Find grains with unet - needs mocking
 @pytest.mark.parametrize(
-    ("topostats_object", "expected_imagegraincrops"),
+    ("topostats_object", "expected_graincrops"),
     [
         pytest.param(
             TopoStats(
@@ -966,160 +944,155 @@ def test_find_grains(
                 filename="test_image",
                 pixel_to_nm_scaling=1.0,
                 img_path=Path.cwd(),
+                full_mask_tensor=np.stack(
+                    [
+                        np.array(
+                            [
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 0, 0, 0, 1, 0, 1, 0, 1],
+                                [1, 0, 1, 0, 1, 0, 1, 1, 1],
+                                [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            ]
+                        ),
+                        np.array(
+                            [
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 1, 1, 1, 0, 1, 0, 1, 0],
+                                [0, 1, 0, 1, 0, 1, 0, 0, 0],
+                                [0, 1, 1, 1, 0, 1, 1, 1, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            ]
+                        ),
+                    ],
+                    axis=-1,
+                ).astype(bool),
             ),
-            # Expected image grain crops
-            ImageGrainCrops(
-                above=GrainCropsDirection(
-                    full_mask_tensor=np.stack(
+            # Expected grain crops
+            {
+                0: GrainCrop(
+                    bbox=(0, 0, 5, 5),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.1, 0.2, 0.1],
+                            [0.1, 1.1, 1.2, 1.0, 0.1],
+                            [0.2, 1.2, 1.1, 1.3, 0.2],
+                            [0.1, 1.0, 1.2, 1.2, 0.1],
+                            [0.1, 0.1, 0.2, 0.2, 0.1],
+                        ]
+                    ),
+                    thresholds={"below": [0.0], "above": [0.9]},
+                    threshold_method="absolute",
+                    mask=np.stack(
                         [
                             np.array(
                                 [
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 0, 0, 0, 1, 0, 1, 0, 1],
-                                    [1, 0, 1, 0, 1, 0, 1, 1, 1],
-                                    [1, 0, 0, 0, 1, 0, 0, 0, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
                                 ]
                             ),
                             np.array(
                                 [
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 1, 1, 1, 0, 1, 0, 1, 0],
-                                    [0, 1, 0, 1, 0, 1, 0, 0, 0],
-                                    [0, 1, 1, 1, 0, 1, 1, 1, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
                                 ]
                             ),
                         ],
                         axis=-1,
-                    ).astype(bool),
-                    crops={
-                        0: GrainCrop(
-                            bbox=(0, 0, 5, 5),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.1, 0.2, 0.1, 0.2, 0.1],
-                                    [0.1, 1.1, 1.2, 1.0, 0.1],
-                                    [0.2, 1.2, 1.1, 1.3, 0.2],
-                                    [0.1, 1.0, 1.2, 1.2, 0.1],
-                                    [0.1, 0.1, 0.2, 0.2, 0.1],
-                                ]
-                            ),
-                            thresholds={"below": [0.0], "above": [0.9]},
-                            threshold_method="absolute",
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 0, 1, 0, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 1, 0, 1, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        1: GrainCrop(
-                            bbox=(0, 4, 5, 9),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.1, 0.2, 0.2, 0.2, 0.1],
-                                    [0.1, 1.1, 0.2, 1.1, 0.2],
-                                    [0.2, 1.2, 0.1, 0.2, 0.2],
-                                    [0.1, 1.1, 1.2, 1.1, 0.1],
-                                    [0.1, 0.1, 0.1, 0.2, 0.1],
-                                ]
-                            ),
-                            thresholds={"below": [0.0], "above": [0.9]},
-                            threshold_method="absolute",
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1, 1, 1],
-                                            [1, 0, 1, 0, 1],
-                                            [1, 0, 1, 1, 1],
-                                            [1, 0, 0, 0, 1],
-                                            [1, 1, 1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0, 0, 0],
-                                            [0, 1, 0, 1, 0],
-                                            [0, 1, 0, 0, 0],
-                                            [0, 1, 1, 1, 0],
-                                            [0, 0, 0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                        2: GrainCrop(
-                            bbox=(0, 6, 3, 9),
-                            filename="test_image",
-                            padding=1,
-                            pixel_to_nm_scaling=1.0,
-                            image=np.array(
-                                [
-                                    [0.2, 0.2, 0.1],
-                                    [0.2, 1.1, 0.2],
-                                    [0.1, 0.2, 0.2],
-                                ]
-                            ),
-                            thresholds={"below": [0.0], "above": [0.9]},
-                            threshold_method="absolute",
-                            mask=np.stack(
-                                [
-                                    np.array(
-                                        [
-                                            [1, 1, 1],
-                                            [1, 0, 1],
-                                            [1, 1, 1],
-                                        ]
-                                    ),
-                                    np.array(
-                                        [
-                                            [0, 0, 0],
-                                            [0, 1, 0],
-                                            [0, 0, 0],
-                                        ]
-                                    ),
-                                ],
-                                axis=-1,
-                            ),
-                        ),
-                    },
+                    ),
                 ),
-                below=None,
-            ),
+                1: GrainCrop(
+                    bbox=(0, 4, 5, 9),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.1, 0.2, 0.2, 0.2, 0.1],
+                            [0.1, 1.1, 0.2, 1.1, 0.2],
+                            [0.2, 1.2, 0.1, 0.2, 0.2],
+                            [0.1, 1.1, 1.2, 1.1, 0.1],
+                            [0.1, 0.1, 0.1, 0.2, 0.1],
+                        ]
+                    ),
+                    thresholds={"below": [0.0], "above": [0.9]},
+                    threshold_method="absolute",
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1, 1, 1],
+                                    [1, 0, 1, 0, 1],
+                                    [1, 0, 1, 1, 1],
+                                    [1, 0, 0, 0, 1],
+                                    [1, 1, 1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0, 0, 0],
+                                    [0, 1, 0, 1, 0],
+                                    [0, 1, 0, 0, 0],
+                                    [0, 1, 1, 1, 0],
+                                    [0, 0, 0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+                2: GrainCrop(
+                    bbox=(0, 6, 3, 9),
+                    filename="test_image",
+                    padding=1,
+                    pixel_to_nm_scaling=1.0,
+                    image=np.array(
+                        [
+                            [0.2, 0.2, 0.1],
+                            [0.2, 1.1, 0.2],
+                            [0.1, 0.2, 0.2],
+                        ]
+                    ),
+                    thresholds={"below": [0.0], "above": [0.9]},
+                    threshold_method="absolute",
+                    mask=np.stack(
+                        [
+                            np.array(
+                                [
+                                    [1, 1, 1],
+                                    [1, 0, 1],
+                                    [1, 1, 1],
+                                ]
+                            ),
+                            np.array(
+                                [
+                                    [0, 0, 0],
+                                    [0, 1, 0],
+                                    [0, 0, 0],
+                                ]
+                            ),
+                        ],
+                        axis=-1,
+                    ),
+                ),
+            },
             id="unet, 5x5, multi class, 3 grains",
         ),
     ],
@@ -1127,7 +1100,7 @@ def test_find_grains(
 def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
     topostats_object: TopoStats,
-    expected_imagegraincrops: ImageGrainCrops,
+    expected_graincrops: dict[int, GrainCrop],
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
     with patch("keras.models.load_model") as mock_load_model:
@@ -1154,12 +1127,12 @@ def test_find_grains_unet(
         grains_object.minimum_grain_size_px = 1
         grains_object.minimum_bbox_size_px = 1
         grains_object.find_grains()
-        result_image_grain_crops = grains_object.image_grain_crops
         # @ns-rse 2025-10-15 : we should have an independent test of this method that checks it passes when
         #                      the two are the same and fails when elements differ, skeleton added to
         #                      test_classes.py and marked as skipping for now.
-        result_image_grain_crops.debug_locate_difference(expected_imagegraincrops)
-        assert result_image_grain_crops == expected_imagegraincrops
+        for grain, graincrop in topostats_object.grain_crops.items():
+            graincrop.debug_locate_difference(expected_graincrops[grain])
+        assert topostats_object.grain_crops == expected_graincrops
 
 
 def test_find_grains_no_grains_found():
@@ -1179,13 +1152,6 @@ def test_find_grains_no_grains_found():
         pixel_to_nm_scaling=1.0,
         img_path=Path.cwd(),
     )
-
-    # Expected image grain crops
-    expected_imagegraincrops = ImageGrainCrops(
-        above=None,
-        below=None,
-    )
-
     # Initialise the grains object
     grains_object = Grains(
         topostats_object=topostats_object,
@@ -1202,10 +1168,9 @@ def test_find_grains_no_grains_found():
     grains_object.minimum_bbox_size_px = 1
 
     grains_object.find_grains()
-
-    result_image_grain_crops = grains_object.image_grain_crops
-
-    assert result_image_grain_crops == expected_imagegraincrops
+    assert grains_object.grain_crops is None
+    assert topostats_object.grain_crops is None
+    assert topostats_object.full_mask_tensor is None
 
 
 @pytest.mark.parametrize(
@@ -6202,146 +6167,6 @@ def test_validate_full_mask_tensor_shape() -> None:
         validate_full_mask_tensor_shape(np.zeros((3, 3, 1)))
 
     assert validate_full_mask_tensor_shape(np.zeros((3, 3, 2))) is not None
-
-
-def test_graincropsdirection_init(dummy_graincrop: GrainCrop) -> None:
-    """Test the GrainCropsDirection class initialisation."""
-    graincropsdirection = GrainCropsDirection(
-        crops={
-            0: dummy_graincrop,
-            1: dummy_graincrop,
-        },
-        full_mask_tensor=np.zeros((10, 10, 2)).astype(bool),
-    )
-
-    assert len(graincropsdirection.crops) == 2
-    assert graincropsdirection.full_mask_tensor.shape == (10, 10, 2)
-
-
-def test_graincropsdirection_update_full_mask_tensor() -> None:
-    """Test the update_full_mask_tensor method of the GrainCropsDirection class."""
-    # Create a graincropsdirection instance
-    graincropsdirection = GrainCropsDirection(
-        crops={
-            0: GrainCrop(
-                image=np.array(
-                    [
-                        [1.1, 1.2, 1.3, 1.4],
-                        [1.5, 1.6, 1.7, 1.8],
-                        [1.9, 2.0, 2.1, 2.2],
-                        [2.3, 2.4, 2.5, 2.6],
-                    ]
-                ),
-                thresholds=None,
-                mask=np.stack(
-                    [
-                        np.array(
-                            [
-                                [1, 1, 1, 1],
-                                [1, 1, 0, 1],
-                                [1, 0, 1, 1],
-                                [1, 1, 1, 1],
-                            ]
-                        ),
-                        np.array(
-                            [
-                                [0, 0, 0, 0],
-                                [0, 0, 1, 0],
-                                [0, 1, 0, 0],
-                                [0, 0, 0, 0],
-                            ]
-                        ),
-                    ],
-                    axis=-1,
-                ).astype(bool),
-                padding=1,
-                bbox=(0, 0, 4, 4),
-                pixel_to_nm_scaling=1.0,
-                filename="test",
-            )
-        },
-        full_mask_tensor=np.stack(
-            [
-                np.array(
-                    [
-                        [1, 1, 1, 1, 1, 1],
-                        [1, 1, 0, 1, 1, 1],
-                        [1, 0, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1],
-                    ]
-                ),
-                np.array(
-                    [
-                        [0, 0, 0, 0, 0, 0],
-                        [0, 0, 1, 0, 0, 0],
-                        [0, 1, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0],
-                    ]
-                ),
-            ],
-            axis=-1,
-        ).astype(bool),
-    )
-
-    # Edit the grain so the full mask tensor needs to be updated
-    graincropsdirection.crops[0].mask = np.stack(
-        [
-            np.array(
-                [
-                    [1, 1, 1, 1],
-                    [1, 0, 0, 1],
-                    [1, 0, 0, 1],
-                    [1, 1, 1, 1],
-                ]
-            ),
-            np.array(
-                [
-                    [0, 0, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 1, 1, 0],
-                    [0, 0, 0, 0],
-                ]
-            ),
-        ],
-        axis=-1,
-    ).astype(bool)
-
-    # Update the full mask tensor
-    graincropsdirection.update_full_mask_tensor()
-
-    expected_full_mask_tensor = np.stack(
-        [
-            np.array(
-                [
-                    [1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 1, 1, 1],
-                    [1, 0, 0, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1],
-                ]
-            ),
-            np.array(
-                [
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 0, 0],
-                    [0, 1, 1, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                ]
-            ),
-        ],
-        axis=-1,
-    ).astype(bool)
-
-    result_full_mask_tensor = graincropsdirection.full_mask_tensor
-
-    np.testing.assert_array_equal(result_full_mask_tensor, expected_full_mask_tensor)
 
 
 @pytest.mark.parametrize(
