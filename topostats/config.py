@@ -69,6 +69,7 @@ def update_module(
     args: Namespace,
     topostats_modules: tuple = (
         "bruker-rename",
+        "create-config",
         "curvature",
         "disordered_tracing",
         "filter",
@@ -135,7 +136,7 @@ def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> Mutabl
     return map1
 
 
-def write_config_with_comments(args: Namespace = None) -> None:
+def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
     """
     Write a sample configuration with in-line comments.
 
@@ -147,35 +148,45 @@ def write_config_with_comments(args: Namespace = None) -> None:
     args : Namespace
         A Namespace object parsed from argparse with values for 'filename'.
     """
-    filename = "config" if args.filename is None else args.filename
     output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     logger_msg = "A sample configuration has been written to"
     # Update args.module
-    # config.update_module(args.config)
+    update_module(args)
     if args.config == "default" or args.config is None:
         try:
             config = get_data(package=args.module, resource="default_config.yaml")
+            filename = "default_config.yaml" if args.filename is None else args.filename
         except FileNotFoundError as exc:
             raise (
-                FileNotFoundError(f"There is no configuration for module {args.module} called 'default_config.yaml")
+                FileNotFoundError(f"There is no configuration for module {args.module} called 'default_config.yaml'")
             ) from exc
     elif args.config == "simple":
         try:
             config = get_data(package=args.module, resource="simple_config.yaml")
+            filename = "simple_config.yaml" if args.filename is None else args.filename
         except FileNotFoundError as exc:
             raise (
-                FileNotFoundError(f"There is no configuration for module {args.module} called 'simple_config.yaml")
+                FileNotFoundError(f"There is no configuration for module {args.module} called 'simple_config.yaml'")
             ) from exc
-    elif args.config == "topostats.mplstyle":
+    elif args.config == "mplstyle":
         try:
             config = get_data(package=args.module, resource="topostats.mplstyle")
+            filename = "topostats.mplstyle" if args.filename is None else args.filename
         except FileNotFoundError as exc:
             raise (
-                FileNotFoundError(f"There is no configuration for module {args.module} called 'topostats.mplstyle")
+                FileNotFoundError(f"There is no configuration for module {args.module} called 'topostats.mplstyle'")
+            ) from exc
+    elif args.config == "var_to_label":
+        try:
+            config = get_data(package=args.module, resource="var_to_label.yaml")
+            filename = "var_to_label.yaml" if args.filename is None else args.filename
+        except FileNotFoundError as exc:
+            raise (
+                FileNotFoundError(f"There is no configuration for module {args.module} called 'var_to_label.yaml'")
             ) from exc
     else:
-        valid_config = ["default", "simple", "topostats.mplstyle"]
+        valid_config = ["default", "simple", "mplstyle", "var_to_label"]
         raise ValueError(f"Invalid configuration file option, valid options are\n{valid_config}")
 
     if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
@@ -183,10 +194,13 @@ def write_config_with_comments(args: Namespace = None) -> None:
     else:
         config_path = output_dir / filename
 
-    with config_path.open("w", encoding="utf-8") as f:
-        f.write(f"# Config file generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"# {CONFIG_DOCUMENTATION_REFERENCE}")
-        f.write(str(config))
+    try:
+        with config_path.open("w", encoding="utf-8") as f:
+            f.write(f"# Config file generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"{CONFIG_DOCUMENTATION_REFERENCE}")
+            f.write(config.decode("utf-8"))
+    except AttributeError as e:
+        raise e
 
     LOGGER.info(f"{logger_msg} : {str(config_path)}")
 
