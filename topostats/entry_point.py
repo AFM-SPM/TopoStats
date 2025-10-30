@@ -626,8 +626,8 @@ def create_parser() -> arg.ArgumentParser:
         help="Whether to ignore warnings.",
     )
     process_parser.add_argument(
-        "--number-masks",
-        dest="number_grains",
+        "--number-grain-plots",
+        dest="number_grain_plots",
         type=bool,
         required=False,
         help="Add numbers to each grain mask in outputted mask images.",
