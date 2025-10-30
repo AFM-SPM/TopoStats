@@ -19,11 +19,21 @@ from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, grains
+from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__
+from topostats.classes import (
+    DisorderedTrace,
+    GrainCrop,
+    GrainCropsDirection,
+    ImageGrainCrops,
+    MatchedBranch,
+    Molecule,
+    Node,
+    OrderedTrace,
+    TopoStats,
+)
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
 
 # pylint: disable=broad-except
 # pylint: disable=too-many-lines
@@ -597,6 +607,8 @@ class LoadScans:
     ----------
     img_paths : list[str, Path]
         Path to a valid AFM scan to load.
+    config : dict[str, Any]
+        Dictionary of all configuration options.
     channel : str
         Image channel to extract from the scan.
     extract : str
@@ -608,8 +620,9 @@ class LoadScans:
     def __init__(
         self,
         img_paths: list[str | Path],
-        channel: str,
-        extract: str = "all",
+        config: dict[str, Any],
+        channel: str | None = None,
+        extract: str | None = None,
     ):
         """
         Initialise the class.
@@ -618,6 +631,8 @@ class LoadScans:
         ----------
         img_paths : list[str | Path]
             Path to a valid AFM scan to load.
+        config : dict[str, Any]
+            Dictionary of all configuration options.
         channel : str
             Image channel to extract from the scan.
         extract : str
@@ -627,17 +642,18 @@ class LoadScans:
         """
         self.img_paths = img_paths
         self.img_path = None
-        self.channel = channel
+        self.channel = config["loading"]["channel"] if channel is None else channel
         self.channel_data = None
-        self.extract = extract
+        self.extract = config["loading"]["extract"] if extract is None else extract
         self.filename = None
         self.suffix = None
         self.image = None
         self.pixel_to_nm_scaling = None
         self.grain_masks = {}
         self.grain_trace_data = {}
-        self.img_dict = {}
+        self.img_dict: dict[str, TopoStats] = {}
         self.MINIMUM_IMAGE_SIZE = 10
+        self.config = config
 
     def load_spm(self) -> tuple[npt.NDArray, float]:
         """
@@ -688,6 +704,8 @@ class LoadScans:
             return data
         # Otherwise we are re-running filtering we want the raw/image_original and scaling
         return (data["image_original"], data["pixel_to_nm_scaling"])
+        # @ns-rse 2025-10-03 - switch to returning a topostats object and update tests
+        # return dict_to_topostats(data)
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -894,15 +912,16 @@ class LoadScans:
         filename : str
             The name of the file.
         """
-        self.img_dict[filename] = {
-            "filename": filename,
-            "img_path": self.img_path.with_name(filename),
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "image_original": image,
-            "image": None,
-            "grain_masks": self.grain_masks,
-            "grain_trace_data": self.grain_trace_data,
-        }
+        self.img_dict[filename] = TopoStats(
+            image_grain_crops=None,
+            filename=filename,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            topostats_version=__release__,
+            img_path=self.img_path.with_name(filename),
+            image=None,
+            image_original=image,
+            config=self.config,
+        )
 
     def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
         """
@@ -955,7 +974,9 @@ class LoadScans:
         return img_dict
 
 
-def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -> None:  # noqa: C901
+def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
+    open_hdf5_file: h5py.File, group_path: str, dictionary: dict
+) -> None:
     """
     Recursively save a dictionary to an open hdf5 file.
 
@@ -977,7 +998,6 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         key = str(key)
 
         # Check if the item is a known datatype
-        # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
         if isinstance(
             item,
             (
@@ -988,22 +1008,27 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
                 | np.ndarray
                 | Path
                 | dict
-                | grains.GrainCrop
-                | grains.GrainCropsDirection
-                | grains.ImageGrainCrops
+                | DisorderedTrace
+                | GrainCrop
+                | GrainCropsDirection
+                | ImageGrainCrops
+                | MatchedBranch
+                | Molecule
+                | Node
+                | OrderedTrace
             ),
         ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                item = np.array(item)
+                if any(x is None for x in item):
+                    item = np.array([np.nan if x is None else x for x in item])
                 open_hdf5_file[group_path + key] = item
             # Strings need to be encoded to bytes
             elif isinstance(item, str):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item.encode("utf8")
             # Integers, floats and numpy arrays can be added directly to the hdf5 file
-            # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
             elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = item
@@ -1011,20 +1036,36 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             elif isinstance(item, Path):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
-            # Extract ImageGrainCrops
-            elif isinstance(item, grains.ImageGrainCrops):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
-            elif isinstance(item, grains.GrainCropsDirection):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
-            elif isinstance(item, grains.GrainCrop):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
+            # All classes defined in the classes submodule must be recursively saved
+            elif isinstance(item, ImageGrainCrops):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
+            elif isinstance(item, GrainCropsDirection):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
+            elif isinstance(item, GrainCrop):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
+            elif isinstance(item, OrderedTrace):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.ordered_trace_to_dict())
+            elif isinstance(item, Node):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.node_to_dict())
+            elif isinstance(item, DisorderedTrace):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.disordered_trace_to_dict())
+            elif isinstance(item, MatchedBranch):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.matched_branch_to_dict())
+            elif isinstance(item, Molecule):
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.molecule_to_dict())
+
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
                 open_hdf5_file[group_path + key] = item
@@ -1067,7 +1108,7 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
 
 
 def save_topostats_file(
-    output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops, topostats_version: str = __release__
+    output_dir: Path, filename: str, topostats_object: TopoStats, topostats_version: str = __release__
 ) -> None:
     """
     Save ''ImageGrainCrops'' object to a ''.topostats'' (hdf5 format) file.
@@ -1094,20 +1135,133 @@ def save_topostats_file(
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object["image"] is not None:
+        if topostats_object.image is not None:
             # Recursively save the topostats object dictionary to the .topostats file
             if isinstance(topostats_object, dict) and float(".".join(topostats_version.split(".")[:1])) < 2.4:
                 topostats_object["topostats_file_version"] = topostats_version
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
             else:
-                topostats_object["topostats_version"] = topostats_version
-                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
+                topostats_object.topostats_version = topostats_version
+                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
 
         else:
             raise ValueError(
                 "TopoStats object dictionary does not contain an 'image'. \
                  TopoStats objects must be saved with a flattened image."
             )
+
+
+def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-nested-blocks
+    dictionary: dict[str, Any],
+) -> TopoStats:
+    """
+    Convert a dictionary, typically loaded from HDF5 ``.topostats`` file, to TopoStats object.
+
+    Parameters
+    ----------
+    dictionary : dict[str, Any]
+        Dictionary of TopoStats data. This will typically have been loaded from the HDF5 ``.topostats`` file using
+        `AFMReader <https://afm-spm.github.io/AFMReader>`__.
+
+    Returns
+    -------
+    TopoStats
+        A TopoStat object.
+    """
+    if ("image_grain_crops" in dictionary.keys() and dictionary["image_grain_crops"]) is not None:
+        LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for image_grain_crops")
+        for direction in ["above", "below"]:
+            LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for direction {direction}")
+            if direction in dictionary["image_grain_crops"].keys():
+                # We instantiate GrainCropsDirection outside of the grain loop
+                if direction == "above":
+                    grain_crop_direction_above = GrainCropsDirection(
+                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["above"]["full_mask_tensor"]
+                    )
+                elif direction == "below":
+                    grain_crop_direction_below = GrainCropsDirection(
+                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["below"]["full_mask_tensor"]
+                    )
+                for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
+                    image = crop["image"] if "image" in crop.keys() else None
+                    mask = crop["mask"] if "mask" in crop.keys() else None
+                    padding = int(crop["padding"]) if "padding" in crop.keys() else None
+                    bbox = crop["bbox"] if "bbox" in crop.keys() else None
+                    pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
+                    filename = crop["filename"] if "filename" in crop.keys() else None
+                    skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
+                    height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
+                    stats = crop["stats"] if "stats" in crop.keys() else None
+                    disordered_trace = (
+                        DisorderedTrace(**crop["disordered_trace"]) if "disordered_trace" in crop.keys() else None
+                    )
+                    if "nodes" in crop.keys() and crop["nodes"] is not None:
+                        nodes = {}
+                        for node, node_data in crop["nodes"].items():
+                            nodes[node] = Node(**node_data)
+                    else:
+                        nodes = None
+                    ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+                    threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
+                    thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
+                    if direction == "above":
+                        grain_crop_direction_above.crops[grain] = GrainCrop(
+                            image=image,
+                            mask=mask,
+                            padding=padding,
+                            bbox=bbox,
+                            pixel_to_nm_scaling=pixel_to_nm_scaling,
+                            filename=filename,
+                            skeleton=skeleton,
+                            height_profiles=height_profiles,
+                            stats=stats,
+                            disordered_trace=disordered_trace,
+                            nodes=nodes,
+                            ordered_trace=ordered_trace,
+                            threshold_method=threshold_method,
+                            thresholds=thresholds,
+                        )
+                    if direction == "below":
+                        grain_crop_direction_below.crops[grain] = GrainCrop(
+                            image=image,
+                            mask=mask,
+                            padding=padding,
+                            bbox=bbox,
+                            pixel_to_nm_scaling=pixel_to_nm_scaling,
+                            filename=filename,
+                            skeleton=skeleton,
+                            height_profiles=height_profiles,
+                            stats=stats,
+                            disordered_trace=disordered_trace,
+                            nodes=nodes,
+                            ordered_trace=ordered_trace,
+                            threshold_method=threshold_method,
+                            thresholds=thresholds,
+                        )
+            else:
+                if direction == "above":
+                    grain_crop_direction_above = None
+                elif direction == "below":
+                    grain_crop_direction_below = None
+    else:
+        grain_crop_direction_above = None
+        grain_crop_direction_below = None
+
+    if grain_crop_direction_above is None and grain_crop_direction_below is None:
+        image_grain_crops = None
+    else:
+        image_grain_crops = ImageGrainCrops(above=grain_crop_direction_above, below=grain_crop_direction_below)
+    config = dictionary["config"] if "config" in dictionary.keys() else None
+    return TopoStats(
+        image_grain_crops=image_grain_crops,
+        filename=dictionary["filename"],
+        pixel_to_nm_scaling=dictionary["pixel_to_nm_scaling"],
+        img_path=dictionary["img_path"],
+        image=dictionary["image"],
+        image_original=dictionary["image_original"],
+        topostats_version=dictionary["topostats_version"],
+        config=config,
+    )
 
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
@@ -1119,7 +1273,7 @@ def save_pkl(outfile: Path, to_pkl: dict) -> None:
     outfile : Path
         Path and filename to save pickle to.
     to_pkl : dict
-        Object to be picled.
+        Object to be pickled.
     """
     with outfile.open(mode="wb", encoding=None) as f:
         pkl.dump(to_pkl, f)

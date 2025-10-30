@@ -11,7 +11,9 @@ from topostats.utils import (
     convert_path,
     convolve_skeleton,
     create_empty_dataframe,
+    flatten_multi_class_tensor,
     get_thresholds,
+    update_background_class,
 )
 
 THRESHOLD_OPTIONS = {
@@ -622,3 +624,126 @@ def test_convolve_skeleton_random(skeleton: npt.NDArray, target: npt.NDArray, re
 # @pytest.mark.parametrize()
 def test_coords2_img() -> None:
     """Test coords2_img() function."""
+
+
+@pytest.mark.parametrize(
+    ("grain_mask_tensor", "expected"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ],
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 1, 1, 0],
+                    ],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                ],
+                dtype=np.bool_,
+            ),
+            id="two layer tensor",
+            marks=pytest.mark.xfail(reason="ns-rse unsure what the expected should be here get 2x5x5 back?"),
+        ),
+    ],
+)
+def test_update_background_class(grain_mask_tensor: npt.NDArray, expected: npt.NDArray) -> None:
+    """Test updating background classes."""
+    np.testing.assert_array_equal(update_background_class(grain_mask_tensor), expected)
+
+
+@pytest.mark.parametrize(
+    ("grain_mask_tensor", "expected"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                    ],
+                    [
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 0],
+                        [0, 1, 1, 1, 0],
+                    ],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                ],
+                dtype=np.bool_,
+            ),
+            id="two layer tensor",
+            marks=pytest.mark.xfail(reason="get a 2x5 array back?"),
+        ),
+    ],
+)
+def test_flatten_multi_class_tensor(grain_mask_tensor: npt.NDArray, expected: npt.NDArray) -> None:
+    """Test flattening a multi-class tensor."""
+    np.testing.assert_array_equal(flatten_multi_class_tensor(grain_mask_tensor), expected)
+
+
+@pytest.mark.parametrize(
+    ("grain_mask_tensor"),
+    [
+        pytest.param(
+            np.array(
+                [
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                ],
+                dtype=np.bool_,
+            ),
+            id="single 2d tensor",
+        ),
+    ],
+)
+def test_flatten_multi_class_tensor_assert_error(grain_mask_tensor: npt.NDArray) -> None:
+    """Test error is raised if tensor that does not have three dimensions is passed for flattening."""
+    with pytest.raises(AssertionError):
+        flatten_multi_class_tensor(grain_mask_tensor)
+
+
+# @pytest.mark.parametrize(
+#     ("graincrops", "image_shape", "expected"),
+#     [
+#         pytest.param(
+#             {GrainCrop(), GrainCrop()}, (30, 30, 3), id="", marks=pytest.mark.skip("awaiting test development")
+#         ),
+#     ],
+# )
+# def test_construct_full_mask_from_graincrops(
+#     graincrops: dict[int, GrainCrops], image_shape: tuple[int, int, int], expected: npt.NDArray[np.bool_]
+# ) -> None:
+#     """Test updating background classes."""
+#     pass
