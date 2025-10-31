@@ -57,7 +57,7 @@
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0]], dtype=int8),
-      'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+      'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -121,7 +121,7 @@
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0]], dtype=int8),
-      'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+      'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -161,7 +161,7 @@
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.]]),
-    'smoothed_grain': array([[0., 0., 0., ..., 0., 0., 0.],
+    'smoothed_mask': array([[0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          ...,
@@ -189,7 +189,7 @@
          ...,
          [False, False, False, ..., False, False, False],
          [False, False, False, ..., False, False, False],
-         [False, False, False, ..., False, False, False]]), 'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+         [False, False, False, ..., False, False, False]]), 'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -219,7 +219,7 @@
          ...,
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
-         [0., 0., 0., ..., 0., 0., 0.]]), 'bbox': (0, 2, 323, 325), 'pad_width': 1}, grain_endpoints=np.int64(0), grain_junctions=np.int64(14), total_branch_length=np.float64(5.759292550205616e-07), grain_width_mean=np.float64(4.406927419327375e-09))
+         [0., 0., 0., ..., 0., 0., 0.]])}, grain_endpoints=0, grain_junctions=14, total_branch_length=5.759292550205616e-07, grain_width_mean=4.406927419327375e-09)
 # ---
 # name: test_trace_image_disordered[catenane].3
   DisorderedTrace(images={'original_image': array([[-0.0217186 ,  0.02818649,  0.04690913, ...,  0.        ,
@@ -240,7 +240,7 @@
          ...,
          [False, False, False, ..., False, False, False],
          [False, False, False, ..., False, False, False],
-         [False, False, False, ..., False, False, False]]), 'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+         [False, False, False, ..., False, False, False]]), 'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -270,7 +270,7 @@
          ...,
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
-         [0., 0., 0., ..., 0., 0., 0.]]), 'bbox': (77, 75, 400, 398), 'pad_width': 1}, grain_endpoints=np.int64(0), grain_junctions=np.int64(12), total_branch_length=np.float64(5.746673912389996e-07), grain_width_mean=np.float64(4.456449209835062e-09))
+         [0., 0., 0., ..., 0., 0., 0.]])}, grain_endpoints=0, grain_junctions=12, total_branch_length=5.746673912389996e-07, grain_width_mean=4.456449209835062e-09)
 # ---
 # name: test_trace_image_disordered[replication intermediate]
   dict({
@@ -330,7 +330,7 @@
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0]], dtype=int8),
-      'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+      'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -370,7 +370,7 @@
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.]]),
-    'smoothed_grain': array([[0., 0., 0., ..., 0., 0., 0.],
+    'smoothed_mask': array([[0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
          ...,
@@ -398,7 +398,7 @@
          ...,
          [False, False, False, ..., False, False, False],
          [False, False, False, ..., False, False, False],
-         [False, False, False, ..., False, False, False]]), 'smoothed_grain': array([[0, 0, 0, ..., 0, 0, 0],
+         [False, False, False, ..., False, False, False]]), 'smoothed_mask': array([[0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          [0, 0, 0, ..., 0, 0, 0],
          ...,
@@ -428,7 +428,7 @@
          ...,
          [0., 0., 0., ..., 0., 0., 0.],
          [0., 0., 0., ..., 0., 0., 0.],
-         [0., 0., 0., ..., 0., 0., 0.]]), 'bbox': (19, 4, 341, 326), 'pad_width': 1}, grain_endpoints=np.int64(0), grain_junctions=np.int64(13), total_branch_length=np.float64(9.685225788725929e-07), grain_width_mean=np.float64(3.031795147452633e-09))
+         [0., 0., 0., ..., 0., 0., 0.]])}, grain_endpoints=0, grain_junctions=13, total_branch_length=9.685225788725929e-07, grain_width_mean=3.031795147452633e-09)
 # ---
 # name: test_trace_image_disordered_dataframes[catenane]
   '''
