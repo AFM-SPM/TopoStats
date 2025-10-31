@@ -26,6 +26,7 @@ from topostats.classes import (
     Node,
     OrderedTrace,
     TopoStats,
+    UnMatchedBranch,
 )
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -151,7 +152,6 @@ def grains_config(default_config: dict) -> dict:
 def grainstats_config(default_config: dict) -> dict:
     """Configurations for grainstats."""
     config = default_config["grainstats"]
-    config["direction"] = "above"
     config.pop("run")
     config.pop("class_names")
     return config
@@ -415,7 +415,7 @@ def dummy_disordered_trace() -> DisorderedTrace:
 
 
 @pytest.fixture()
-def dummy_node(dummy_matched_branch: MatchedBranch) -> Node:
+def dummy_node(dummy_matched_branch: MatchedBranch, dummy_unmatched_branch) -> Node:
     """Dummy Node for testing."""
     return Node(
         error=False,
@@ -424,7 +424,7 @@ def dummy_node(dummy_matched_branch: MatchedBranch) -> Node:
             0: dummy_matched_branch,
             1: dummy_matched_branch,
         },
-        unmatched_branch_stats={0: 1, 1: 2},
+        unmatched_branch_stats={0: dummy_unmatched_branch},
         # ns-rse 2025-10-07 Need to know what node_coords actually look like
         node_coords=np.array([[0, 0], [0, 1]]),
         confidence=0.987654,
@@ -443,8 +443,18 @@ def dummy_matched_branch() -> MatchedBranch:
         ordered_coords=np.array([[0, 0], [0, 1], [1, 0], [1, 1]]),
         heights=np.array([1, 2, 3, 4, 5]),
         distances=np.array([0.1, 0.2, 0.1]),
-        fwhm={0: 1.1, 1: 1.2},
+        fwhm=1.1,
+        fwhm_half_maxs=[2.1, 3.4],
+        fwhm_peaks=[15.1, 89.1],
         angles=143.163,
+    )
+
+
+@pytest.fixture()
+def dummy_unmatched_branch() -> MatchedBranch:
+    """Dummy UnMatchedBranch for testing."""
+    return UnMatchedBranch(
+        angles=[143.163, 69.234, 12.465],
     )
 
 

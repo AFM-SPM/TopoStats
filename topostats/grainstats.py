@@ -64,11 +64,8 @@ class GrainStats:
     Parameters
     ----------
     topostats_object : TopoStats
-        TopoStats object, this should contain the ''ImageGrainCrops'' object which has two attributes ''above'' and
-        ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a (a
-        dictionary of ''GrainCrop'' objects holding the cropped images.
-    direction : str
-        Direction for which grains have been detected ("above" or "below").
+        TopoStats object, this should have the attribute ``grain_crop`` which is a dictionary of ``GrainCrop``
+        objects holding the cropped images.
     base_output_dir : Path
         Path to the folder that will store the grain stats output images and data.
     edge_detection_method : str
@@ -86,7 +83,6 @@ class GrainStats:
     def __init__(
         self,
         topostats_object: TopoStats,
-        direction: str,
         base_output_dir: Path,
         edge_detection_method: str = "binary_erosion",
         extract_height_profile: bool = False,
@@ -99,11 +95,8 @@ class GrainStats:
         Parameters
         ----------
         topostats_object : TopoStats
-            TopoStats object, this should contain the ''ImageGrainCrops'' object which has two attributes ''above'' and
-            ''below'' both of which are ''GrainCropDirections'' which itself has the attribute ''crops'', which is a
-            dictionary of ''GrainCrop'' objects holding the cropped images.
-        direction : str
-            Direction for which grains have been detected (''above'' or ''below'').
+            ``TopoStats`` object, this should have the attribute ``grain_crop`` which is a dictionary of ``GrainCrop``
+            objects holding the cropped images.
         base_output_dir : Path
             Path to the folder that will store the grain stats output images and data.
         edge_detection_method : str
@@ -118,13 +111,7 @@ class GrainStats:
             usual AFM length scale of nanometres.
         """
         self.topostats_object = topostats_object
-        assert direction in ("above", "below"), f"Invalid direction: {direction}"
-        self.grain_crops = (
-            topostats_object.grain_crops.above.crops
-            if direction == "above"
-            else topostats_object.grain_crops.below.crops
-        )
-        self.direction = direction
+        self.grain_crops = topostats_object.grain_crops
         self.base_output_dir = Path(base_output_dir)
         self.start_point = None
         self.filename = topostats_object.filename
@@ -188,7 +175,7 @@ class GrainStats:
             and a list of dictionaries containing grain data to be plotted.
         """
         all_height_profiles: dict[int, npt.NDArray] = {}
-        if len(self.grain_crops) == 0:
+        if self.grain_crops is None or len(self.grain_crops) == 0:
             LOGGER.warning(
                 f"[{self.filename}] : No grain crops for this image, grain statistics can not be calculated."
             )
@@ -205,6 +192,7 @@ class GrainStats:
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
+            thresholds = grain_crop.thresholds
             grain_anchor = (grain_bbox[0], grain_bbox[1])
             pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
 
@@ -213,7 +201,7 @@ class GrainStats:
             area_scaling_factor = length_scaling_factor**2
 
             # Create directory for grain's plots
-            output_grain = self.base_output_dir / self.direction / f"grain_{grain_index}"
+            output_grain = self.base_output_dir / f"grain_{grain_index}"
 
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
@@ -289,6 +277,7 @@ class GrainStats:
                         "grain_number": grain_index,
                         "class_number": class_index,
                         "subgrain_number": subgrain_index,
+                        "thresholds": thresholds,
                         "centre_x": centre_x_m,
                         "centre_y": centre_y_m,
                         "radius_min": radius_stats["min"] * length_scaling_factor,
@@ -312,7 +301,7 @@ class GrainStats:
                         * smallest_bounding_width
                         * area_scaling_factor,
                         "aspect_ratio": aspect_ratio,
-                        "threshold": self.direction,
+                        "threshold": "",  # @ns-rse 2025-11-10 - Drop threshold column from output?
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }

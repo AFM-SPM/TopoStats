@@ -830,7 +830,7 @@ class Node:
         Pixel to nanometre scaling.
     branch_stats : dict[int, MatchedBranch]
         Dictionary of branch statistics.
-    unmatched_branch_stats : dict[int, Any]
+    unmatched_branch_stats : dict[int, UnMatchedBranch]
         Dictionary of unmatched branch statistics.
     node_coords : dict[str, dict[str, npt.NDArray[np.int32]]]
         Nested dictionary of node coordinates
@@ -849,7 +849,7 @@ class Node:
     error: bool | None = None
     pixel_to_nm_scaling: float | None = None
     branch_stats: dict[int, MatchedBranch] | None = None
-    unmatched_branch_stats: dict | None = None
+    unmatched_branch_stats: dict[int, UnMatchedBranch] | None = None
     node_coords: npt.NDArray[np.int32] | None = None
     confidence: float | None = None
     reduced_node_area: float | None = None
