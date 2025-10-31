@@ -743,7 +743,7 @@ def test_flatten_multi_class_tensor_assert_error(grain_mask_tensor: npt.NDArray)
 #     ],
 # )
 # def test_construct_full_mask_from_graincrops(
-#     graincrops: dict[int, GrainCrops], image_shape: tuple[int, int, int], expected: npt.NDArray[np.bool_]
+#     graincrops: dict[int, GrainCrop], image_shape: tuple[int, int, int], expected: npt.NDArray[np.bool_]
 # ) -> None:
 #     """Test updating background classes."""
 #     pass

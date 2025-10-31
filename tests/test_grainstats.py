@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from topostats.classes import GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import TopoStats
 from topostats.grainstats import GrainStats
 from topostats.logs.logs import LOGGER_NAME
 
@@ -248,14 +248,11 @@ def test_calculate_squared_distance(dummy_grainstats: GrainStats) -> None:
 def test_no_grains(caplog, tmp_path: Path) -> None:
     """Test GrainStats raises error when passed zero grains."""
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
-    grain_crops_above = GrainCropsDirection(crops={}, full_mask_tensor=np.array([[[0, 1, 2]]]))
-    image_grain_crops = ImageGrainCrops(above=grain_crops_above, below=None)
     topostats_object = TopoStats(
-        image_grain_crops=image_grain_crops, filename="no_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+        grain_crops=None, filename="no_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
     )
     grainstats = GrainStats(
         topostats_object=topostats_object,
-        direction="above",
         base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()
@@ -288,9 +285,3 @@ def test_get_cropped_region(dummy_grainstats: GrainStats, length, centre, img_le
     output = dummy_grainstats.get_cropped_region(image, length, centre)
     assert output.shape == (2 * length + 1, 2 * length + 1)
     assert output[expected[0], expected[1]] == 5
-
-
-def test_grainstats_raise_assert_invalid_direction() -> None:
-    """Test an assertion error is raised if ''direction'' argument is invalid."""
-    with pytest.raises(AssertionError):
-        GrainStats(topostats_object=TopoStats(img_path=Path.cwd()), direction="elsewhere", base_output_dir=Path.cwd())
