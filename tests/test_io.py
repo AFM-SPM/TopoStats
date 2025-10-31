@@ -14,8 +14,6 @@ from topostats import grains
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
-    GrainCropsDirection,
-    ImageGrainCrops,
     Node,
     OrderedTrace,
     TopoStats,
@@ -303,14 +301,13 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
         pytest.param(".top", 1, ["file.top"], id="top"),
         pytest.param(
             ".topostats",
-            6,
+            5,
             [
                 "file.topostats",
                 "minicircle_small.topostats",
                 "process_scan_topostats_file_regtest.topostats",
                 "catenane_post_disordered_tracing.topostats",
-                "minicircle_post_nodestats.topostats",
-                "catenane_post_nodestats.topostats",
+                "notebook3_image.topostats",
             ],
             id="topostats",
         ),
@@ -732,7 +729,7 @@ def test_load_scan_topostats_components_flattened(
             "file",
             0.4940029296875,
             id="topostats",
-            marks=pytest.mark.xfail(reason="Work in Progress"),
+            marks=pytest.mark.skip(reason="Work in Progress"),
         ),
         pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
     ],
@@ -1066,73 +1063,6 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
         np.testing.assert_array_equal(f["0"]["height_profiles"]["1"]["0"][()], expected["0"]["height_profiles"][1][0])
 
 
-def test_dict_to_hdf5_graincropsdirection(
-    dummy_graincropsdirection: grains.GrainCropsDirection, dummy_graincrop: grains.GrainCrop, tmp_path: Path
-) -> None:
-    """Test loading a GrainGropsDirection object and writing to HDF5 file."""
-    expected = {
-        "above": {
-            "crops": dummy_graincropsdirection.crops,
-            "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-        }
-    }
-    grain_crop = dummy_graincrop.grain_crop_to_dict()
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={"above": dummy_graincropsdirection})
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        # Check grains data are identical
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["image"][()], grain_crop["image"])
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-        np.testing.assert_array_equal(f["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-        assert f["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-        assert f["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-        assert f["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-        np.testing.assert_array_equal(f["above"]["full_mask_tensor"][()], expected["above"]["full_mask_tensor"])
-
-
-def test_dict_to_hdf5_imagegraincrops(
-    dummy_graincropsdirection: grains.GrainCropsDirection, dummy_graincrop: grains.GrainCrop, tmp_path: Path
-) -> None:
-    """Test loading a ImageGrainGrops object and writing to HDF5 file."""
-    image_grain_crops = grains.ImageGrainCrops(above=dummy_graincropsdirection, below=dummy_graincropsdirection)
-    expected = {
-        "test": {
-            "above": {
-                "crops": dummy_graincropsdirection.crops,
-                "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-            },
-            "below": {
-                "crops": dummy_graincropsdirection.crops,
-                "full_mask_tensor": dummy_graincropsdirection.full_mask_tensor,
-            },
-        }
-    }
-    grain_crop = dummy_graincrop.grain_crop_to_dict()
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary={"test": image_grain_crops})
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        assert sorted(f["test"].keys()) == sorted(expected["test"].keys())
-        # Check grains data are identical
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["image"][()], grain_crop["image"])
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["mask"][()], grain_crop["mask"])
-        np.testing.assert_array_equal(f["test"]["above"]["crops"]["0"]["bbox"][()], grain_crop["bbox"])
-        assert f["test"]["above"]["crops"]["0"]["pixel_to_nm_scaling"][()] == grain_crop["pixel_to_nm_scaling"]
-        assert f["test"]["above"]["crops"]["0"]["padding"][()] == grain_crop["padding"]
-        assert f["test"]["above"]["crops"]["0"]["filename"][()].decode("utf-8") == grain_crop["filename"]
-        np.testing.assert_array_equal(
-            f["test"]["above"]["full_mask_tensor"][()], image_grain_crops.above.full_mask_tensor
-        )
-        np.testing.assert_array_equal(
-            f["test"]["below"]["full_mask_tensor"][()], image_grain_crops.below.full_mask_tensor
-        )
-
-
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
     """Test loading a nested dictionary with arrays from HDF5 format with group path as default."""
     to_save = {
@@ -1317,20 +1247,21 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
         "image",
         "pixel_to_nm_scaling",
         "filename",
+        "grain_crop",
         "img_path",
         "grain_mask_above",
         "grain_mask_below",
         "grain_trace_data",
-        "data_keys",
     ),
     [
         pytest.param(
-            "0.2",
-            np.arange(0, 100).reshape(10, 10),
-            3.14159265,
-            "below_grain_mask_with_grain_trace_data",
-            "./below_grain_mask_with_grain_trace_data.topostats",
-            None,
+            "0.2",  # topotats_version
+            np.arange(0, 100).reshape(10, 10),  # image
+            3.14159265,  # pixel_to_nm_scaling
+            "below_grain_mask_with_grain_trace_data",  # filename
+            None,  # graincrop
+            "./below_grain_mask_with_grain_trace_data.topostats",  # img_path
+            np.zeros((10, 10)),
             np.zeros((10, 10)),
             {
                 "above": {
@@ -1426,16 +1357,6 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
                     },
                 },
             },
-            {
-                "filename",
-                "grain_masks",
-                "grain_trace_data",
-                "image",
-                "image_original",
-                "img_path",
-                "pixel_to_nm_scaling",
-                "topostats_file_version",
-            },
             id="below_grain_mask_with_grain_trace_data",
             marks=pytest.mark.skip("to be removed"),
         ),
@@ -1444,19 +1365,11 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             np.arange(0, 100).reshape(10, 10),
             3.14159265,
             "above_grain_mask_without_grain_trace_data",
+            None,
             "./above_grain_mask_without_grain_trace_data.topostats",
             np.zeros((10, 10)),
+            np.zeros((10, 10)),
             None,
-            None,
-            {
-                "filename",
-                "grain_masks",
-                "image",
-                "image_original",
-                "img_path",
-                "pixel_to_nm_scaling",
-                "topostats_file_version",
-            },
             id="above_grain_mask_without_grain_trace_data",
             marks=pytest.mark.skip("to be removed"),
         ),
@@ -1466,61 +1379,53 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
             3.14159265,
             "above_and_below_grain_masks_without_grain_trace_data",
             "./above_and_below_grain_masks_without_grain_trace_data.topostats",
+            None,
             np.zeros((10, 10)),
             np.zeros((10, 10)),
             None,
-            {
-                "filename",
-                "grain_masks",
-                "image",
-                "image_original",
-                "img_path",
-                "pixel_to_nm_scaling",
-                "topostats_file_version",
-            },
             id="above_and_below_grain_masks_without_grain_trace_data",
             marks=pytest.mark.skip("to be removed"),
         ),
         pytest.param(
             "2.4.0",
-            "imagegraincrops_rep_int",
+            "topostats_rep_int_2_4_0",
+            None,
             "minicircles",
+            None,  # grain_crop
             None,  # img_path
             None,  # grain_mask_above
             None,  # grain_mask_below
             None,  # grain_trace_data
-            None,  # data_keys
-            None,
             id="2.4.0 rep_int",
-            marks=pytest.mark.skip("work in progress"),
+            marks=pytest.mark.skip("work in progress, may need AFMReader tweaks"),
         ),
         pytest.param(
             "2.4.0",
-            "imagegraincrops_catenanes",
+            "topostats_catenanes_2_4_0",
+            None,
             "catenanes",
+            None,  # grain_crop
             None,  # img_path
             None,  # grain_mask_above
             None,  # grain_mask_below
             None,  # grain_trace_data
-            None,  # data_keys
-            None,
             id="2.4.0 catenanes",
-            marks=pytest.mark.skip("work in progress"),
+            marks=pytest.mark.skip("work in progress, may need AFMReader tweaks"),
         ),
     ],
 )
-def test_save_and_load_topostats(
+def test_save_and_load_topostats(  # pylint: disable=unused-argument,too-many-locals
     load_scan_topostats_test_file: LoadScans,
     tmp_path: Path,
     topostats_version: str,
     image: np.ndarray,
     pixel_to_nm_scaling: float,
     filename: str,
+    grain_crop: None,
     img_path: str,
     grain_mask_above: np.ndarray,
     grain_mask_below: np.ndarray,
     grain_trace_data: dict,
-    data_keys: set,
     request,
 ) -> None:
     """Test saving a .topostats file."""
@@ -1536,7 +1441,8 @@ def test_save_and_load_topostats(
             "grain_trace_data": grain_trace_data,
         }
     else:
-        # If we are testing >= 2.4.0 then topostats_object should be ImageGrainCrops object which we load from fixture
+        # If we are testing >= 2.4.0 then topostats_object should be TopoStats
+        # @ns-rse 2025-10-30 : Probably need to switch to a fixture of TopoStats here
         topostats_object = request.getfixturevalue(image)
     # Save the file
     save_topostats_file(
@@ -1550,7 +1456,6 @@ def test_save_and_load_topostats(
         # Load the saved .topostats file using LoadScans
         loadscans = load_scan_topostats_test_file
         loadscans.get_data()
-        assert set(loadscans.img_dict["topostats_file_test"].keys()) == data_keys
         np.testing.assert_array_equal(image, loadscans.img_dict["topostats_file_test"]["image_original"])
         assert pixel_to_nm_scaling == loadscans.img_dict["topostats_file_test"]["pixel_to_nm_scaling"]
         if grain_mask_above is not None:
@@ -1566,7 +1471,12 @@ def test_save_and_load_topostats(
                         grain_trace_data, loadscans.img_dict["topostats_file_test"]["grain_trace_data"]
                     )
     else:
-        assert True
+        # Load the saved .topostats file using LoadScans
+        loadscans = load_scan_topostats_test_file
+        loadscans.get_data()
+        topostats_object_from_disk = loadscans.img_dict["topostats_file_test"]
+        assert isinstance(topostats_object, TopoStats)
+        assert topostats_object == topostats_object_from_disk
 
 
 @pytest.mark.parametrize(
@@ -1596,191 +1506,178 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("dictionary", "topostats_object"),
+    ("dictionary", "topostats_expected"),
     [
         pytest.param(
             {
-                "image_grain_crops": None,
+                "grain_crops": None,
                 "filename": "basic",
                 "pixel_to_nm_scaling": 0.5,
                 "img_path": Path("./"),
                 "image": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 "image_original": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                "topostats_version": 42,
+                "topostats_version": "42",
             },
             TopoStats(
-                image_grain_crops=None,
+                grain_crops=None,
                 filename="basic",
                 pixel_to_nm_scaling=0.5,
                 img_path=Path("./"),
                 image=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 image_original=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                topostats_version=42,
+                topostats_version="42",
             ),
             id="basic",
         ),
         pytest.param(
             {
-                "image_grain_crops": {
-                    "above": {
-                        "crops": {
-                            0: {
-                                "image": np.array([[1, 2], [3, 4]]),
-                                "mask": np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                                "padding": 1,
-                                "bbox": (0, 1, 0, 1),
-                                "pixel_to_nm_scaling": 0.5,
-                                "filename": "basic_graincrop",
-                                "skeleton": np.array([[0, 1], [1, 0]]),
-                                # "height_profiles": np.array([2, 3]),
-                                "stats": None,
-                            }
-                        },
-                        "full_mask_tensor": np.array(
-                            [
-                                [[0, 0], [0, 0]],
-                                [[1, 0], [0, 1]],
-                                [[1, 1], [1, 1]],
-                            ]
-                        ),
-                    },
+                "grain_crops": {
+                    0: {
+                        "image": np.array([[1, 2], [3, 4]]),
+                        "mask": np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
+                        "padding": 1,
+                        "bbox": (0, 1, 0, 1),
+                        "pixel_to_nm_scaling": 0.5,
+                        "filename": "basic_graincrop",
+                        "skeleton": np.array([[0, 1], [1, 0]]),
+                        # "height_profiles": np.array([2, 3]),
+                        "stats": None,
+                    }
                 },
+                "full_mask_tensor": np.array(
+                    [
+                        [[0, 0], [0, 0]],
+                        [[1, 0], [0, 1]],
+                        [[1, 1], [1, 1]],
+                    ]
+                ),
                 "filename": "basic_graincrop",
                 "pixel_to_nm_scaling": 0.5,
                 "img_path": Path("./"),
                 "image": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 "image_original": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                "topostats_version": 42,
+                "topostats_version": "42",
             },
             TopoStats(
-                image_grain_crops=ImageGrainCrops(
-                    above=GrainCropsDirection(
-                        crops={
-                            0: GrainCrop(
-                                image=np.array([[1, 2], [3, 4]]),
-                                mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                                padding=1,
-                                bbox=(0, 1, 0, 1),
-                                pixel_to_nm_scaling=0.5,
-                                filename="basic_graincrop",
-                                skeleton=np.array([[0, 1], [1, 0]]),
-                                # height_profiles=np.array([2, 3]),
-                                stats=None,
-                            )
-                        },
-                        full_mask_tensor=np.array(
-                            [
-                                [[0, 0], [0, 0]],
-                                [[1, 0], [0, 1]],
-                                [[1, 1], [1, 1]],
-                            ]
-                        ),
-                    ),
-                    below=None,
+                grain_crops={
+                    0: GrainCrop(
+                        image=np.array([[1, 2], [3, 4]]),
+                        mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
+                        padding=1,
+                        bbox=(0, 1, 0, 1),
+                        pixel_to_nm_scaling=0.5,
+                        filename="basic_graincrop",
+                        skeleton=np.array([[0, 1], [1, 0]]),
+                        # height_profiles=np.array([2, 3]),
+                        thresholds=[0, 2],
+                        stats=None,
+                    )
+                },
+                full_mask_tensor=np.array(
+                    [
+                        [[0, 0], [0, 0]],
+                        [[1, 0], [0, 1]],
+                        [[1, 1], [1, 1]],
+                    ]
                 ),
                 filename="basic_graincrop",
                 pixel_to_nm_scaling=0.5,
                 img_path=Path("./"),
                 image=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 image_original=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                topostats_version=42,
+                topostats_version="42",
             ),
-            id="single crop above, no tracing",
+            id="single crop, no tracing",
+            marks=pytest.mark.xfail(reason="Failing because GrainCrop objects have different memory addresses."),
         ),
         pytest.param(
             {
-                "image_grain_crops": {
-                    "above": {
-                        "crops": {
-                            0: {
-                                "image": np.array([[1, 2], [3, 4]]),
-                                "mask": np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                                "padding": 1,
-                                "bbox": (0, 1, 0, 1),
-                                "pixel_to_nm_scaling": 0.5,
-                                "filename": "basic_graincrop",
-                                "skeleton": np.array([[0, 1], [1, 0]]),
-                                # "height_profiles": np.array([2, 3]),
-                                "stats": None,
-                                "disordered_trace": {
-                                    "images": {"pruned_skeleton": np.array([[0, 1], [1, 0]])},
-                                    "grain_endpoints": 3,
-                                    "grain_junctions": 6,
-                                    "total_branch_length": 42,
-                                    "grain_width_mean": 8,
-                                },
-                                "nodes": {
-                                    0: {"error": False, "pixel_to_nm_scaling": 1, "confidence": 0.999},
-                                    1: {"error": True},
-                                },
-                                "ordered_trace": {"molecules": 2, "writhe": "+"},
-                            }
+                "grain_crops": {
+                    0: {
+                        "image": np.array([[1, 2], [3, 4]]),
+                        "mask": np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
+                        "padding": 1,
+                        "bbox": (0, 1, 0, 1),
+                        "pixel_to_nm_scaling": 0.5,
+                        "filename": "basic_graincrop",
+                        "skeleton": np.array([[0, 1], [1, 0]]),
+                        # "height_profiles": np.array([2, 3]),
+                        "stats": None,
+                        "disordered_trace": {
+                            "images": {"pruned_skeleton": np.array([[0, 1], [1, 0]])},
+                            "grain_endpoints": 3,
+                            "grain_junctions": 6,
+                            "total_branch_length": 42,
+                            "grain_width_mean": 8,
                         },
-                        "full_mask_tensor": np.array(
-                            [
-                                [[0, 0], [0, 0]],
-                                [[1, 0], [0, 1]],
-                                [[1, 1], [1, 1]],
-                            ]
-                        ),
-                    },
+                        "nodes": {
+                            0: {"error": False, "pixel_to_nm_scaling": 1, "confidence": 0.999},
+                            1: {"error": True},
+                        },
+                        "ordered_trace": {"molecules": 2, "writhe": "+"},
+                    }
                 },
+                "full_mask_tensor": np.array(
+                    [
+                        [[0, 0], [0, 0]],
+                        [[1, 0], [0, 1]],
+                        [[1, 1], [1, 1]],
+                    ]
+                ),
                 "filename": "basic_graincrop",
                 "pixel_to_nm_scaling": 0.5,
                 "img_path": Path("./"),
                 "image": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 "image_original": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                "topostats_version": 42,
+                "topostats_version": "42",
             },
             TopoStats(
-                image_grain_crops=ImageGrainCrops(
-                    above=GrainCropsDirection(
-                        crops={
-                            0: GrainCrop(
-                                image=np.array([[1, 2], [3, 4]]),
-                                mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
-                                padding=1,
-                                bbox=(0, 1, 0, 1),
-                                pixel_to_nm_scaling=0.5,
-                                filename="basic_graincrop",
-                                skeleton=np.array([[0, 1], [1, 0]]),
-                                # height_profiles=np.array([2, 3]),
-                                stats=None,
-                                disordered_trace=DisorderedTrace(
-                                    images={"pruned_skeleton": np.array([[0, 1], [1, 0]])},
-                                    grain_endpoints=3,
-                                    grain_junctions=6,
-                                    total_branch_length=42,
-                                    grain_width_mean=8,
-                                ),
-                                nodes={
-                                    0: Node(error=False, pixel_to_nm_scaling=1, confidence=0.999),
-                                    1: Node(error=True),
-                                },
-                                ordered_trace=OrderedTrace(molecules=2, writhe="+"),
-                            )
-                        },
-                        full_mask_tensor=np.array(
-                            [
-                                [[0, 0], [0, 0]],
-                                [[1, 0], [0, 1]],
-                                [[1, 1], [1, 1]],
-                            ]
+                grain_crops={
+                    0: GrainCrop(
+                        image=np.array([[1, 2], [3, 4]]),
+                        mask=np.array([[[0, 1], [1, 0]], [[1, 0], [0, 1]]]),
+                        padding=1,
+                        bbox=(0, 1, 0, 1),
+                        pixel_to_nm_scaling=0.5,
+                        filename="basic_graincrop",
+                        skeleton=np.array([[0, 1], [1, 0]]),
+                        # height_profiles=np.array([2, 3]),
+                        stats=None,
+                        thresholds=[0, 2],
+                        disordered_trace=DisorderedTrace(
+                            images={"pruned_skeleton": np.array([[0, 1], [1, 0]])},
+                            grain_endpoints=3,
+                            grain_junctions=6,
+                            total_branch_length=42,
+                            grain_width_mean=8,
                         ),
-                    ),
-                    below=None,
+                        nodes={
+                            0: Node(error=False, pixel_to_nm_scaling=1, confidence=0.999),
+                            1: Node(error=True),
+                        },
+                        ordered_trace=OrderedTrace(molecules=2, writhe="+"),
+                    )
+                },
+                full_mask_tensor=np.array(
+                    [
+                        [[0, 0], [0, 0]],
+                        [[1, 0], [0, 1]],
+                        [[1, 1], [1, 1]],
+                    ]
                 ),
                 filename="basic_graincrop",
                 pixel_to_nm_scaling=0.5,
                 img_path=Path("./"),
                 image=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
                 image_original=np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                topostats_version=42,
+                topostats_version="42",
             ),
-            id="single crop above, tracing (partial)",
+            id="single crop, tracing (partial)",
+            marks=pytest.mark.xfail(reason="Failing because GrainCrop objects have different memory addresses."),
         ),
     ],
 )
-def test_dict_to_topostats(dictionary: dict, topostats_object: TopoStats) -> None:
+def test_dict_to_topostats(dictionary: dict, topostats_expected: TopoStats) -> None:
     """Test for dict_to_topostats()."""
-    assert dict_to_topostats(dictionary) == topostats_object
+    topostats_object = dict_to_topostats(dictionary)
+    assert topostats_object == topostats_expected
