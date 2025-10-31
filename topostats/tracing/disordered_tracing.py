@@ -325,7 +325,6 @@ def check_pixel_touching_edge(mask: npt.NDArray) -> bool:
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
     topostats_object: TopoStats,
-    direction: str,
     class_index: int,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
@@ -339,8 +338,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     ----------
     topostats_object : TopoStats
         TopoStats object post ''Grains'' so that there are ''GrainCrops'' nested within.
-    direction : str
-        The direction for grains to be analysed, should be either ''above'' or ''below''.
     class_index : int
         Index of the class to trace.
     min_skeleton_size : int
@@ -363,10 +360,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     disordered_trace_crop_data = {}
     grainstats_additions = {}
     disordered_tracing_stats = pd.DataFrame()
-    assert direction in ("above", "below"), f"Invalid direction: {direction}"
-    grain_crops = (
-        topostats_object.grain_crops.above.crops if direction == "above" else topostats_object.grain_crops.below.crops
-    )
+    grain_crops = topostats_object.grain_crops
     filename = topostats_object.filename
     # These are images for diagnostics, edited during tracing to show
     # various steps
@@ -448,11 +442,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     )
                     * 1e-9,
                 )
-                # REFACTOR : Won't need this conditional statement once we remove image_grain_crops class
-                if direction == "above":
-                    topostats_object.grain_crops.above.crops[grain_number].disordered_trace = disordered_trace
-                else:
-                    topostats_object.grain_crops.below.crops[grain_number].disordered_trace = disordered_trace
+                topostats_object.grain_crops[grain_number].disordered_trace = disordered_trace
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function
                 for image_name, full_diagnostic_image in all_images.items():
@@ -465,11 +455,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             else:
                 # Not sure why this is required as the GrainCrop definition sets these to None by default but I
                 # encountered errors complaining about the attribute note being set and this seems to solve that.
-                # REFACTOR : Won't need this conditional statement once we remove image_grain_crops class
-                if direction == "above":
-                    topostats_object.grain_crops.above.crops[grain_number].disordered_trace = None
-                else:
-                    topostats_object.grain_crops.below.crops[grain_number].disordered_trace = None
+                topostats_object.grain_crops[grain_number].disordered_trace = None
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
