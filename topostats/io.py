@@ -17,14 +17,13 @@ import numpy.typing as npt
 import pandas as pd
 from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
 from numpyencoder import NumpyEncoder
+from packaging.version import parse as parse_version
 from ruamel.yaml import YAML, YAMLError
 
 from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
-    GrainCropsDirection,
-    ImageGrainCrops,
     MatchedBranch,
     Molecule,
     Node,
@@ -913,7 +912,7 @@ class LoadScans:
             The name of the file.
         """
         self.img_dict[filename] = TopoStats(
-            image_grain_crops=None,
+            grain_crops=None,
             filename=filename,
             pixel_to_nm_scaling=self.pixel_to_nm_scaling,
             topostats_version=__release__,
@@ -1010,8 +1009,6 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 | dict
                 | DisorderedTrace
                 | GrainCrop
-                | GrainCropsDirection
-                | ImageGrainCrops
                 | MatchedBranch
                 | Molecule
                 | Node
@@ -1041,12 +1038,6 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
             # All classes defined in the classes submodule must be recursively saved
-            elif isinstance(item, ImageGrainCrops):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
-            elif isinstance(item, GrainCropsDirection):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
             elif isinstance(item, GrainCrop):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
@@ -1111,7 +1102,7 @@ def save_topostats_file(
     output_dir: Path, filename: str, topostats_object: TopoStats, topostats_version: str = __release__
 ) -> None:
     """
-    Save ''ImageGrainCrops'' object to a ''.topostats'' (hdf5 format) file.
+    Save ''TopoStats'' object to a ''.topostats'' (hdf5 format) file.
 
     Parameters
     ----------
@@ -1135,14 +1126,14 @@ def save_topostats_file(
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
-        if topostats_object.image is not None:
+        if isinstance(topostats_object, dict) and topostats_object["image"] is not None:
             # Recursively save the topostats object dictionary to the .topostats file
-            if isinstance(topostats_object, dict) and float(".".join(topostats_version.split(".")[:1])) < 2.4:
+            if parse_version(topostats_version) < parse_version("2.4"):
                 topostats_object["topostats_file_version"] = topostats_version
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
-            else:
-                topostats_object.topostats_version = topostats_version
-                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
+        elif isinstance(topostats_object, TopoStats):
+            topostats_object.topostats_version = topostats_version
+            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
 
         else:
             raise ValueError(
@@ -1168,98 +1159,59 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
     TopoStats
         A TopoStat object.
     """
-    if ("image_grain_crops" in dictionary.keys() and dictionary["image_grain_crops"]) is not None:
-        LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for image_grain_crops")
-        for direction in ["above", "below"]:
-            LOGGER.debug(f"[{dictionary['filename']}] : Extracting data for direction {direction}")
-            if direction in dictionary["image_grain_crops"].keys():
-                # We instantiate GrainCropsDirection outside of the grain loop
-                if direction == "above":
-                    grain_crop_direction_above = GrainCropsDirection(
-                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["above"]["full_mask_tensor"]
-                    )
-                elif direction == "below":
-                    grain_crop_direction_below = GrainCropsDirection(
-                        crops={}, full_mask_tensor=dictionary["image_grain_crops"]["below"]["full_mask_tensor"]
-                    )
-                for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
-                    image = crop["image"] if "image" in crop.keys() else None
-                    mask = crop["mask"] if "mask" in crop.keys() else None
-                    padding = int(crop["padding"]) if "padding" in crop.keys() else None
-                    bbox = crop["bbox"] if "bbox" in crop.keys() else None
-                    pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
-                    filename = crop["filename"] if "filename" in crop.keys() else None
-                    skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
-                    height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
-                    stats = crop["stats"] if "stats" in crop.keys() else None
-                    disordered_trace = (
-                        DisorderedTrace(**crop["disordered_trace"]) if "disordered_trace" in crop.keys() else None
-                    )
-                    if "nodes" in crop.keys() and crop["nodes"] is not None:
-                        nodes = {}
-                        for node, node_data in crop["nodes"].items():
-                            nodes[node] = Node(**node_data)
-                    else:
-                        nodes = None
-                    ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
-                    threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
-                    thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
-                    if direction == "above":
-                        grain_crop_direction_above.crops[grain] = GrainCrop(
-                            image=image,
-                            mask=mask,
-                            padding=padding,
-                            bbox=bbox,
-                            pixel_to_nm_scaling=pixel_to_nm_scaling,
-                            filename=filename,
-                            skeleton=skeleton,
-                            height_profiles=height_profiles,
-                            stats=stats,
-                            disordered_trace=disordered_trace,
-                            nodes=nodes,
-                            ordered_trace=ordered_trace,
-                            threshold_method=threshold_method,
-                            thresholds=thresholds,
-                        )
-                    if direction == "below":
-                        grain_crop_direction_below.crops[grain] = GrainCrop(
-                            image=image,
-                            mask=mask,
-                            padding=padding,
-                            bbox=bbox,
-                            pixel_to_nm_scaling=pixel_to_nm_scaling,
-                            filename=filename,
-                            skeleton=skeleton,
-                            height_profiles=height_profiles,
-                            stats=stats,
-                            disordered_trace=disordered_trace,
-                            nodes=nodes,
-                            ordered_trace=ordered_trace,
-                            threshold_method=threshold_method,
-                            thresholds=thresholds,
-                        )
+    if "grain_crops" in dictionary.keys() and dictionary["grain_crops"] is not None:
+        grain_crops = {}
+        for grain, crop in dictionary["grain_crops"].items():
+            image = crop["image"] if "image" in crop.keys() else None
+            mask = crop["mask"] if "mask" in crop.keys() else None
+            padding = int(crop["padding"]) if "padding" in crop.keys() else None
+            bbox = crop["bbox"] if "bbox" in crop.keys() else None
+            pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
+            filename = crop["filename"] if "filename" in crop.keys() else None
+            skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
+            height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
+            stats = crop["stats"] if "stats" in crop.keys() else None
+            disordered_trace = (
+                DisorderedTrace(**crop["disordered_trace"]) if "disordered_trace" in crop.keys() else None
+            )
+            if "nodes" in crop.keys() and crop["nodes"] is not None:
+                nodes = {}
+                for node, node_data in crop["nodes"].items():
+                    nodes[node] = Node(**node_data)
             else:
-                if direction == "above":
-                    grain_crop_direction_above = None
-                elif direction == "below":
-                    grain_crop_direction_below = None
+                nodes = None
+            ordered_trace = OrderedTrace(**crop["ordered_trace"]) if "ordered_trace" in crop.keys() else None
+            threshold_method = crop["threshold_method"] if "threshold_method" in crop.keys() else None
+            thresholds = crop["thresholds"] if "thresholds" in crop.keys() else None
+            grain_crops[grain] = GrainCrop(
+                image=image,
+                mask=mask,
+                padding=padding,
+                bbox=bbox,
+                pixel_to_nm_scaling=pixel_to_nm_scaling,
+                filename=filename,
+                skeleton=skeleton,
+                height_profiles=height_profiles,
+                stats=stats,
+                disordered_trace=disordered_trace,
+                nodes=nodes,
+                ordered_trace=ordered_trace,
+                threshold_method=threshold_method,
+                thresholds=thresholds,
+            )
     else:
-        grain_crop_direction_above = None
-        grain_crop_direction_below = None
-
-    if grain_crop_direction_above is None and grain_crop_direction_below is None:
-        image_grain_crops = None
-    else:
-        image_grain_crops = ImageGrainCrops(above=grain_crop_direction_above, below=grain_crop_direction_below)
+        grain_crops = None
+    full_mask_tensor = dictionary["full_mask_tensor"] if "full_mask_tensor" in dictionary.keys() else None
     config = dictionary["config"] if "config" in dictionary.keys() else None
     return TopoStats(
-        image_grain_crops=image_grain_crops,
+        grain_crops=grain_crops,
         filename=dictionary["filename"],
         pixel_to_nm_scaling=dictionary["pixel_to_nm_scaling"],
         img_path=dictionary["img_path"],
         image=dictionary["image"],
         image_original=dictionary["image_original"],
         topostats_version=dictionary["topostats_version"],
+        full_mask_tensor=full_mask_tensor,
         config=config,
     )
 

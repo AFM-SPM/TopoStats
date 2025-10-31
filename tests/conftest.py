@@ -550,6 +550,12 @@ def dummy_graincrops_dict(dummy_graincrop: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
+def image_catenanes() -> npt.NDArray:
+    """Flattened catenanes image."""
+    return np.load(RESOURCES / "example_catenanes.npy")
+
+
+@pytest.fixture()
 def graincrop_catenanes_0() -> GrainCrop:
     """Catenanes GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_0.npy")
@@ -588,7 +594,9 @@ def graincrops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(graincrops_catenanes: dict[int, GrainCrop], default_config: dict[str, Any]) -> TopoStats:
+def topostats_catenanes_2_4_0(
+    image_catenanes: npt.NDArray, graincrops_catenanes: dict[int, GrainCrop], default_config: dict[str, Any]
+) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
         grain_crops=graincrops_catenanes,
@@ -596,10 +604,16 @@ def topostats_catenanes_2_4_0(graincrops_catenanes: dict[int, GrainCrop], defaul
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
         img_path=str(GRAINCROP_DIR),
-        image=None,
+        image=image_catenanes,
         image_original=None,
         config=default_config,
     )
+
+
+@pytest.fixture()
+def image_rep_int() -> npt.NDArray:
+    """Flattened catenanes image."""
+    return np.load(RESOURCES / "example_rep_int.npy")
 
 
 @pytest.fixture()
@@ -625,7 +639,9 @@ def graincrops_rep_int(graincrop_rep_int_0: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def topostats_rep_int_2_4_0(graincrops_rep_int: dict[int, GrainCrop], default_config: dict[str, Any]) -> TopoStats:
+def topostats_rep_int_2_4_0(
+    image_rep_int: npt.NDArray, graincrops_rep_int: dict[int, GrainCrop], default_config: dict[str, Any]
+) -> TopoStats:
     """TopoStats object of example rep_int."""
     return TopoStats(
         grain_crops=graincrops_rep_int,
@@ -633,7 +649,7 @@ def topostats_rep_int_2_4_0(graincrops_rep_int: dict[int, GrainCrop], default_co
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
         img_path=str(GRAINCROP_DIR),
-        image=None,
+        image=image_rep_int,
         image_original=None,
         config=default_config,
     )
