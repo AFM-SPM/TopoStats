@@ -14,6 +14,7 @@ from topostats.classes import (
     Node,
     OrderedTrace,
     TopoStats,
+    UnMatchedBranch,
 )
 from topostats.io import dict_almost_equal
 
@@ -83,6 +84,14 @@ def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
         "angles": dummy_matched_branch.angles,
     }
     assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
+
+
+def test_unmatched_branch_to_dict(dummy_unmatched_branch: UnMatchedBranch) -> None:
+    """Test the UnMatchedBranch.unmatched_branch_to_dict() method."""
+    expected = {
+        "angles": dummy_unmatched_branch.angles,
+    }
+    assert dict_almost_equal(dummy_unmatched_branch.unmatched_branch_to_dict(), expected)
 
 
 def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> None:

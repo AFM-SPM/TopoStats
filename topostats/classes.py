@@ -102,7 +102,7 @@ class GrainCrop:
             3-D Numpy tensor of the skeletonised mask.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
-        stats : dict[int, dict[int, Any]] | None
+        stats : dict[str, int | float] | None
             Dictionary of grain statistics.
         disordered_trace : DisorderedTrace
             A disordered trace for the current grain.
@@ -123,7 +123,7 @@ class GrainCrop:
         self.thresholds = thresholds
         self.filename = filename
         self.height_profiles = height_profiles
-        self.stats = stats
+        self.stats = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
         self.nodes: dict[int, Node] | None = nodes
@@ -649,7 +649,9 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     return array
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class DisorderedTrace:
     """
     Dataclass for storing the disordered tracing data.
@@ -703,7 +705,9 @@ class DisorderedTrace:
         return dict(self.__dict__)
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class TopoStats:
     """
     Class for storing TopoStats objects.
@@ -780,7 +784,9 @@ class TopoStats:
         )
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class MatchedBranch:
     """
     Class for storing matched branches data and attributes.
@@ -793,8 +799,12 @@ class MatchedBranch:
         Numpy array of heights.
     distances : npt.NDArray[np.number]
         Numpy array of distances.
-    fwhm : dict[int, float | tuple[float]]
-        Full-width height mean.
+    fwhm : float
+        Full-width half maximum.
+    fwhm_half_maxs : list[float]
+        Half-maximums from a matched branch.
+    fwhm_peaks : list[int | float]
+        Peaks from a matched branch.
     angles : float
         Angle between branches.
     """
@@ -802,8 +812,10 @@ class MatchedBranch:
     ordered_coords: npt.NDArray[np.int32] | None = None
     heights: npt.NDArray[np.number] | None = None
     distances: npt.NDArray[np.number] | None = None
-    fwhm: dict[int, float | tuple[float]] | None = None
-    angles: float | None = None
+    fwhm: float | None = None
+    fwhm_half_maxs: list[float] | None = None
+    fwhm_peaks: list[float] | None = None
+    angles: float | list[float] | None = None
 
     def matched_branch_to_dict(self) -> dict[str, Any]:
         """
@@ -817,7 +829,36 @@ class MatchedBranch:
         return dict(self.__dict__)
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
+class UnMatchedBranch:
+    """
+    Class for storing matched branches data and attributes.
+
+    Attributes
+    ----------
+    angles : float
+        Angle between branches.
+    """
+
+    angles: float | list[float] | None = None
+
+    def unmatched_branch_to_dict(self) -> dict[str, Any]:
+        """
+        Convert ``MatchedBranch`` to dictionary indexed by attributes.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary indexed by attribute of the grain attributes.
+        """
+        return dict(self.__dict__)
+
+
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class Node:
     """
     Class for storing Node data and attributes.
@@ -869,7 +910,9 @@ class Node:
         return dict(self.__dict__)
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class OrderedTrace:
     """
     Class for Ordered Trace data and attributes.
@@ -913,7 +956,9 @@ class OrderedTrace:
         return dict(self.__dict__)
 
 
-@dataclass(repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True), validate_on_init=True)
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
 class Molecule:
     """Class for Molecules identified during ordered tracing."""
 

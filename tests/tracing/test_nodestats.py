@@ -1,4 +1,3 @@
-# Disable ruff 301 - pickle loading is unsafe, but we don't care for tests.
 # ruff: noqa: S301
 """Test the nodestats module."""
 
@@ -11,7 +10,7 @@ import pytest
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
-from topostats.classes import DisorderedTrace, GrainCrop
+from topostats.classes import DisorderedTrace, GrainCrop, TopoStats
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
@@ -166,6 +165,7 @@ def test_connect_extended_nodes_nearest(
         pixel_to_nm_scaling=1,
         padding=1,
         bbox=(0, 0, 10, 10),
+        thresholds=None,
         disordered_trace=DisorderedTrace(
             images={
                 "skeleton": connected_nodes.astype(bool),
@@ -174,13 +174,12 @@ def test_connect_extended_nodes_nearest(
         ),
     )
     nodestats = nodeStats(
-        graincrop=grain_crop,
+        grain_crop=grain_crop,
+        n_grain=1,
         node_joining_length=0.0,
         node_extend_dist=14.0,
         branch_pairing_length=20.0,
         pair_odd_branches=True,
-        filename=grain_crop.filename,
-        n_grain=1,
     )
     nodestats.whole_skel_graph = nodestats.skeleton_image_to_graph(nodestats.skeleton)
     result = nodestats.connect_extended_nodes_nearest(connected_nodes, node_extend_dist=8.0)
@@ -193,44 +192,24 @@ def test_find_branch_starts() -> None:
     """Test of find_branch_starts() method of nodeStats class."""
 
 
-# Create nodestats class using the cats image - will allow running the code for diagnostics
-# def test_analyse_nodes(nodestats_catenane: nodeStats, snapshot) -> None:
-#     """Test of analyse_nodes() method of nodeStats class."""
-#     print(f"\n{nodestats_catenane=}\n")
-#     nodestats_catenane.analyse_nodes(max_branch_length=20)
-
-#     node_dict_result = nodestats_catenane.node_dicts
-#     image_dict_result = nodestats_catenane.image_dict
-
-#     assert node_dict_result == snapshot
-#     assert image_dict_result == snapshot
-#     all_connected_nodes = nodestats_catenane.all_connected_nodes
-#     # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
-#     #         https://github.com/syrupy-project/syrupy/issues/887
-#     assert np.array2string(all_connected_nodes) == snapshot
-
-
-# Create nodestats class using the cats image - will allow running the code for diagnostics
-def test_analyse_nodes(nodestats_catenane: nodeStats, nodestats_config: dict[str, float], snapshot) -> None:
+@pytest.mark.skip(reason="Awaiting construction of nodestats_catenane.")
+def test_analyse_nodes(nodestats_catenane: nodeStats, snapshot) -> None:
     """Test of analyse_nodes() method of nodeStats class."""
     nodestats_catenane.analyse_nodes(max_branch_length=20)
-
     assert nodestats_catenane.grain_crop.nodes == snapshot
     assert nodestats_catenane.grain_crop.disordered_trace.images == snapshot
-    # all_connected_nodes = nodestats_catenane.all_connected_nodes
-    # # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
-    # #         https://github.com/syrupy-project/syrupy/issues/887
-    # assert np.array2string(all_connected_nodes) == snapshot
-    assert False
+    # ns-rse: syrupy doesn't yet support numpy arrays so we convert to string
+    #         https://github.com/syrupy-project/syrupy/issues/887
+    assert np.array2string(nodestats_catenane.all_connected_nodes) == snapshot
 
 
 @pytest.mark.parametrize(
     (
         "branch_under_over_order",
-        "matched_branches_filename",
-        "masked_image_filename",
+        "matched_branches_fixture",
+        "masked_image_fixture",
+        "ordered_branches_fixture",
         "branch_start_coords",
-        "ordered_branches_filename",
         "pairs",
         "average_trace_advised",
         "image_shape",
@@ -238,11 +217,23 @@ def test_analyse_nodes(nodestats_catenane: nodeStats, nodestats_config: dict[str
     [
         pytest.param(
             np.array([0, 1]),
-            "catenane_node_0_matched_branches_analyse_node_branches.pkl",
-            "catenane_node_0_masked_image.pkl",
-            np.array([np.array([278, 353]), np.array([279, 351]), np.array([281, 352]), np.array([281, 354])]),
-            "catenane_node_0_ordered_branches.pkl",
-            np.array([(1, 3), (2, 0)]),
+            "catenane_node0_matched_branches",
+            "catenane_node0_masked_images",
+            "catenane_node0_ordered_branches",
+            np.array(
+                [
+                    np.array([278, 353]),
+                    np.array([279, 351]),
+                    np.array([281, 352]),
+                    np.array([281, 354]),
+                ]
+            ),
+            np.array(
+                [
+                    (1, 3),
+                    (2, 0),
+                ]
+            ),
             True,
             (755, 621),
             id="catenane",
@@ -251,28 +242,21 @@ def test_analyse_nodes(nodestats_catenane: nodeStats, nodestats_config: dict[str
 )
 def test_add_branches_to_labelled_image(
     branch_under_over_order: npt.NDArray[np.int32],
-    matched_branches_filename: str,
-    masked_image_filename: str,
+    matched_branches_fixture: str,
+    masked_image_fixture: str,
+    ordered_branches_fixture: str,
     branch_start_coords: npt.NDArray[np.int32],
-    ordered_branches_filename: str,
     pairs: npt.NDArray[np.int32],
     average_trace_advised: bool,
     image_shape: tuple[int, int],
     snapshot,
+    request,
 ) -> None:
     """Test of add_branches_to_labelled_image() method of nodeStats class."""
-    # Load the matched branches
-    with Path(NODESTATS_RESOURCES / matched_branches_filename).open("rb") as f:
-        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pickle.load(f)
-
-    # Load the masked image
-    with Path(NODESTATS_RESOURCES / masked_image_filename).open("rb") as f:
-        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = pickle.load(f)
-
-    # Load the ordered branches
-    with Path(NODESTATS_RESOURCES / ordered_branches_filename).open("rb") as f:
-        ordered_branches: list[npt.NDArray[np.int32]] = pickle.load(f)
-
+    # Load fixtures
+    matched_branches = request.getfixturevalue(matched_branches_fixture)
+    masked_image = request.getfixturevalue(masked_image_fixture)
+    ordered_branches = request.getfixturevalue(ordered_branches_fixture)
     result_branch_image, result_average_image = nodeStats.add_branches_to_labelled_image(
         branch_under_over_order=branch_under_over_order,
         matched_branches=matched_branches,
@@ -475,6 +459,7 @@ def test_join_matching_branches_through_node(
     # Load the fixtures
     image = request.getfixturevalue(image)
 
+    # @ns-rse 2025-11-10 : Move these to @pytest.fixture in `tests/tracing/conftest.py`
     # Load the ordered branches
     with Path(NODESTATS_RESOURCES / ordered_branches_filename).open("rb") as f:
         ordered_branches = pickle.load(f)
@@ -492,7 +477,6 @@ def test_join_matching_branches_through_node(
         node_coords=node_coords,
         filename=filename,
     )
-
     assert result_matched_branches == snapshot
     assert result_masked_image == snapshot
 
@@ -835,46 +819,32 @@ def test_minimum_crossing_confs() -> None:
     [
         pytest.param(
             "example_catenanes.npy",
-            # Pixel to nm scaling
             0.488,
             "catenanes_disordered_tracing_crop_data.pkl",
-            # Node joining length
             7.0,
-            # Node extend distance
             14.0,
-            # Branch pairing length
             20.0,
-            # Pair odd branches
             True,
             id="catenane",
+            # marks=pytest.mark.skip(reason="disable whilst testing other"),
         ),
         pytest.param(
             "example_rep_int.npy",
-            # Pixel to nm scaling
             0.488,
             "rep_int_disordered_tracing_crop_data.pkl",
-            # Node joining length
             7.0,
-            # Node extend distance
             14.0,
-            # Branch pairing length
             20.0,
-            # Pair odd branches
             False,
             id="replication_intermediate, not pairing odd branches",
         ),
         pytest.param(
             "example_rep_int.npy",
-            # Pixel to nm scaling
             0.488,
             "rep_int_disordered_tracing_crop_data.pkl",
-            # Node joining length
             7.0,
-            # Node extend distance
             14.0,
-            # Branch pairing length
             20.0,
-            # Pair odd branches
             True,
             id="replication_intermediate, pairing odd branches",
         ),
@@ -890,35 +860,55 @@ def test_nodestats_image(
     pair_odd_branches: bool,
     snapshot,
 ) -> None:
-    """Test of nodestats_image() method of nodeStats class."""
+    """Test (integration) of nodestats_image() method of nodeStats class."""
+    # @ns-rse 2025-11-10 : We have fixtures that I think we might be able to use for these
     # Load the image
     image = np.load(TRACING_RESOURCES / image_filename)
 
     # load disordered_tracing_crop_data from pickle and calculate nodestats
     with Path(DISORDERED_TRACING_RESOURCES / disordered_tracing_crop_data_filename).open("rb") as f:
         disordered_tracing_crop_data = pickle.load(f)
-        print(f"\n{disordered_tracing_crop_data=}\n")
-        graincrop = GrainCrop(
-            image=image,
-            padding=1,
-            filename=image_filename,
-            mask=np.zeros_like(image),
-            pixel_to_nm_scaling=pixel_to_nm_scaling,
-        )
-        graincrop.skeleton = (disordered_tracing_crop_data["pruned_skeleton"],)
-        graincrop.disordered_traces = disordered_tracing_crop_data
 
+    # Build GrainCrop for the grains
+    grain_crops = {}
+    for key, value in disordered_tracing_crop_data.items():
+        grain_n = int(key[-1:])
+        grain_crops[grain_n] = GrainCrop(
+            image=value["original_image"],
+            padding=value["pad_width"],
+            filename=image_filename,
+            mask=np.stack([np.zeros_like(value["original_image"]), np.zeros_like(value["original_image"])], axis=2),
+            pixel_to_nm_scaling=pixel_to_nm_scaling,
+            disordered_trace=DisorderedTrace(
+                images={
+                    "pruned_skeleton": value["pruned_skeleton"],
+                    "skeleton": value["skeleton"],
+                    "smoothed_mask": value["smoothed_grain"],
+                    "branch_indexes": value["branch_indexes"],
+                    "branch_types": value["branch_types"],
+                },
+                grain_endpoints=None,
+                grain_junctions=None,
+                total_branch_length=None,
+                grain_width_mean=None,
+            ),
+            bbox=value["bbox"],
+            thresholds=None,
+        )
+
+    topostats_object = TopoStats(
+        image=image,
+        grain_crops=grain_crops,
+        filename=image_filename,
+        pixel_to_nm_scaling=pixel_to_nm_scaling,
+    )
     (
-        result_nodestats_data,
+        _,  # @ns-rse 2025-11-11 no longer need result_nodestats_data its all attributes within topostats_object
         result_nodestats_grainstats,
         result_nodestats_all_images,
         result_nodestats_branch_images,
     ) = nodestats_image(
-        graincrop=graincrop,
-        # image=image,
-        # disordered_tracing_direction_data=disordered_tracing_crop_data,
-        # filename="test_image",
-        # pixel_to_nm_scaling=pixel_to_nm_scaling,
+        topostats_object=topostats_object,
         node_joining_length=node_joining_length,
         node_extend_dist=node_extend_dist,
         branch_pairing_length=branch_pairing_length,
@@ -930,23 +920,9 @@ def test_nodestats_image(
     # node_centres = result_all_images["node_centres"]
     # connected_nodes = result_all_images["connected_nodes"]
 
-    # print(f"\n{result_nodestats_data.keys()=}\n")
-    # print(f"\n{result_nodestats_data['grain_0'].keys()=}\n")
-    # print(f"\n{result_nodestats_data['grain_1'].keys()=}\n")
-    # # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0]=}")
-    # print(f"\n{dir(result_nodestats_data['grain_0']['node_1']['branch_stats'][0])=}")
-    # print(f"\n{print(result_nodestats_data['grain_0']['node_1']['branch_stats'][0])=}")
-    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].angles=}")
-    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].distances=}")
-    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].heights=}")
-    # print(f"\n{result_nodestats_data['grain_0']['node_1']['branch_stats'][0].ordered_coords=}")
-    # print(f"\n{result_nodestats_grainstats=}\n")
-    # print(f"\n{result_nodestats_all_images=}\n")
-    # print(f"\n{result_nodestats_branch_images=}\n")
-    assert result_nodestats_data == snapshot
+    assert topostats_object.grain_crops[0].nodes == snapshot
     # ns-rse: syrupy doesn't yet support Pandas DataFrames so we convert to string
     #         https://github.com/syrupy-project/syrupy/issues/887
-    # print(f"\n{result_nodestats_grainstats.to_string()=}\n")
     assert result_nodestats_grainstats.to_string() == snapshot
     assert result_nodestats_all_images == snapshot
     assert result_nodestats_branch_images == snapshot
