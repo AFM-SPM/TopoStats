@@ -1288,6 +1288,25 @@ def test_disordered_trace_grain(
 
 
 @pytest.mark.parametrize(
+    ("mask", "expected_return"),
+    [
+        pytest.param(np.array([[0, 0, 0], [0, 1, 1], [0, 0, 0]]), True, id="pixel touching right edge"),
+        pytest.param(np.array([[0, 0, 0], [1, 1, 0], [0, 0, 0]]), True, id="pixel touching left edge"),
+        pytest.param(np.array([[0, 1, 0], [0, 1, 0], [0, 0, 0]]), True, id="pixel touching top edge"),
+        pytest.param(np.array([[0, 0, 0], [0, 1, 0], [0, 1, 0]]), True, id="pixel touching bottom edge"),
+        pytest.param(np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), False, id="no pixels touching any edge"),
+    ],
+)
+def test_check_pixel_touching_edge(
+    mask: npt.NDArray,
+    expected_return: bool,
+) -> None:
+    """Test the check_missing_padding() method."""
+    result = disordered_tracing.check_pixel_touching_edge(mask)
+    assert result == expected_return
+
+
+@pytest.mark.parametrize(
     (
         "image_filename",
         "graincrops_above",

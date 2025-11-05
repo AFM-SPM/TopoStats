@@ -117,6 +117,13 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
         self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
+        if check_pixel_touching_edge(self.smoothed_mask):
+            LOGGER.warning(
+                f"[{self.filename}] : Grain {self.n_grain} skipped as padding is too small. Please consider "
+                "increasing the value of grains.grain_crop_padding in your config file and try again."
+            )
+            self.disordered_trace = None
+            return
         self.skeleton = getSkeleton(
             self.image,
             self.smoothed_mask,
@@ -295,6 +302,23 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         comb = np.where(pruned_skeleton == 1, dist_trans, 0)
 
         return comb[comb != 0].mean() * 2 * pixel_to_nm_scaling
+
+
+def check_pixel_touching_edge(mask: npt.NDArray) -> bool:
+    """
+    Check if any pixels in a mask touch the edge of the image.
+
+    Parameters
+    ----------
+    mask : npt.NDArray
+        Numpy array of mask to be checked.
+
+    Returns
+    -------
+    bool
+        True or False if a pixel is found on the edge of the image.
+    """
+    return mask[:, 0].any() or mask[:, -1].any() or mask[0, :].any() or mask[-1, :].any()
 
 
 def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals

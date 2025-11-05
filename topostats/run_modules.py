@@ -305,7 +305,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 "* no grains have been detected across all scans.\n"
                 "* there have been errors.\n\n"
                 "If you are not expecting to detect grains please consider disabling"
-                "grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
+                " grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
                 " please check log-files for further information."
             )
     else:
