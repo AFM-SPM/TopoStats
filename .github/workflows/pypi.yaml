@@ -2,9 +2,9 @@ name: Publish package to PyPi
 # See https://docs.pypi.org/trusted-publishers/adding-a-publisher/
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - v*
   workflow_dispatch: # Uncomment line if you also want to trigger action manually
 
 jobs:
