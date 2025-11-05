@@ -1294,6 +1294,12 @@ def test_disordered_trace_grain(
         pytest.param(np.array([[0, 0, 0], [1, 1, 0], [0, 0, 0]]), True, id="pixel touching left edge"),
         pytest.param(np.array([[0, 1, 0], [0, 1, 0], [0, 0, 0]]), True, id="pixel touching top edge"),
         pytest.param(np.array([[0, 0, 0], [0, 1, 0], [0, 1, 0]]), True, id="pixel touching bottom edge"),
+        pytest.param(np.array([[0, 1, 0], [0, 1, 0], [0, 1, 0]]), True, id="pixel touching top and bottom edge"),
+		pytest.param(np.array([[0, 0, 0], [1, 1, 1], [0, 0, 0]]), True, id="pixel touching left and right edges"),
+		pytest.param(np.array([[0, 1, 0], [1, 1, 0], [0, 0, 0]]), True, id="pixel touching top and left edges"),
+		pytest.param(np.array([[0, 1, 0], [0, 1, 1], [0, 0, 0]]), True, id="pixel touching top and right edge"),
+		pytest.param(np.array([[0, 0, 0], [1, 1, 0], [0, 1, 0]]), True, id="pixel touching left and bottom edge"),
+		pytest.param(np.array([[0, 0, 0], [0, 1, 1], [0, 1, 0]]), True, id="pixel touching right and bottom edge"),
         pytest.param(np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), False, id="no pixels touching any edge"),
     ],
 )
