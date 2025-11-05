@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 name = "topostats"
 description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
 readme = "README.md"
-license = {text = "GNU Lesser GPLv3 only"}
+license = {text = "GPL-3.0-only"}
 dynamic = ["version"]
 authors = [
   {name = "TopoStats Team", email = "topostats@sheffield.ac.uk"},
@@ -26,7 +26,6 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: GNU General Public License v3.0 only",
 ]
 keywords = [
   "afm",
