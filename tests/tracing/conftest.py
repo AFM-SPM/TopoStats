@@ -1,5 +1,6 @@
 """Fixtures for the tracing tests."""
 
+import pickle as pkl
 from pathlib import Path
 
 import numpy as np
@@ -7,13 +8,14 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.classes import GrainCrop
+from topostats.classes import GrainCrop, MatchedBranch
 from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
 
+# ruff: noqa: S301
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 TRACING_RESOURCES = RESOURCES / "tracing"
@@ -284,3 +286,36 @@ def grain_crop_curved_line() -> GrainCrop:
         filename="simple slightly curved line",
         thresholds=None,
     )
+
+
+@pytest.fixture()
+def catenane_node0_matched_branches() -> MatchedBranch:
+    """Catenane ``MatchedBranch`` dictionary."""
+    with Path(NODESTATS_RESOURCES / "catenane_node_0_matched_branches_analyse_node_branches.pkl").open("rb") as f:
+        matched_branches: dict[int, dict[str, npt.NDArray[np.number]]] = pkl.load(f)
+    return {
+        key: MatchedBranch(
+            ordered_coords=value["ordered_coords"],
+            heights=value["heights"],
+            distances=value["distances"],
+            fwhm=value["fwhm"]["fwhm"],
+            fwhm_half_maxs=value["fwhm"]["half_maxs"],
+            fwhm_peaks=value["fwhm"]["peaks"],
+            angles=value["angles"],
+        )
+        for key, value in matched_branches.items()
+    }
+
+
+@pytest.fixture()
+def catenane_node0_masked_images() -> dict[int, dict[str, npt.NDArray[np.bool]]]:
+    """Averaged masked images for catenane."""
+    with Path(NODESTATS_RESOURCES / "catenane_node_0_masked_image.pkl").open("rb") as f:
+        return pkl.load(f)
+
+
+@pytest.fixture()
+def catenane_node0_ordered_branches() -> list[npt.NDArray[np.int32]]:
+    """Ordered branches for catenane (node 0)."""
+    with Path(NODESTATS_RESOURCES / "catenane_node_0_ordered_branches.pkl").open("rb") as f:
+        return pkl.load(f)
