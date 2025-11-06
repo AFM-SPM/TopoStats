@@ -176,14 +176,14 @@ def create_parser() -> arg.ArgumentParser:
         dest="filter_threshold_absolute_below",
         type=float,
         required=False,
-        help="Threshold for data below the image bacnground dor absolute method during Filtering",
+        help="Threshold for data below the image background dor absolute method during Filtering",
     )
     process_parser.add_argument(
         "--filter-threshold-absolute-above",
         dest="filter_threshold_absolute_above",
         type=float,
         required=False,
-        help="Threshold for data above the image bacnground dor absolute method during Filtering",
+        help="Threshold for data above the image background dor absolute method during Filtering",
     )
     process_parser.add_argument(
         "--filter-gaussian-size",
@@ -279,14 +279,14 @@ def create_parser() -> arg.ArgumentParser:
         dest="grains_threshold_absolute_below",
         type=float,
         required=False,
-        help="Threshold for data below the image bacnground dor absolute method during Grain finding",
+        help="Threshold for data below the image background dor absolute method during Grain finding",
     )
     process_parser.add_argument(
         "--grains-threshold-absolute-above",
         dest="grains_threshold_absolute_above",
         type=float,
         required=False,
-        help="Threshold for data above the image bacnground dor absolute method during Grain finding",
+        help="Threshold for data above the image background dor absolute method during Grain finding",
     )
     process_parser.add_argument(
         "--grains-direction",
@@ -689,14 +689,14 @@ def create_parser() -> arg.ArgumentParser:
         dest="threshold_absolute_below",
         type=float,
         required=False,
-        help="Threshold for data below the image bacnground dor absolute method during Filtering",
+        help="Threshold for data below the image background dor absolute method during Filtering",
     )
     filter_parser.add_argument(
         "--threshold-absolute-above",
         dest="threshold_absolute_above",
         type=float,
         required=False,
-        help="Threshold for data above the image bacnground dor absolute method during Filtering",
+        help="Threshold for data above the image background dor absolute method during Filtering",
     )
     filter_parser.add_argument(
         "--gaussian-size", dest="gaussian_size", type=float, required=False, help="Gaussian blur intensity in pixels."
@@ -794,14 +794,14 @@ def create_parser() -> arg.ArgumentParser:
         dest="threshold_absolute_below",
         type=float,
         required=False,
-        help="Threshold for data below the image bacnground dor absolute method during Grain finding",
+        help="Threshold for data below the image background dor absolute method during Grain finding",
     )
     grains_parser.add_argument(
         "--threshold-absolute-above",
         dest="threshold_absolute_above",
         type=float,
         required=False,
-        help="Threshold for data above the image bacnground dor absolute method during Grain finding",
+        help="Threshold for data above the image background dor absolute method during Grain finding",
     )
     grains_parser.add_argument(
         "--direction",

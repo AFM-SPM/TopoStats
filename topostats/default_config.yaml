@@ -20,7 +20,7 @@ filter:
     above: 1.0 # Threshold for data above the image background
   gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
   gaussian_mode: nearest # Mode for Gaussian blurring. Options : nearest, reflect, constant, mirror, wrap
-  # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
+  # Scar removal parameters. Be careful with editing these as making the algorithm too sensitive may
   # result in ruining legitimate data.
   remove_scars:
     run: false
