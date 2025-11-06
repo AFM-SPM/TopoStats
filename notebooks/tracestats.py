@@ -1,13 +1,12 @@
 import marimo
 
-__generated_with = "0.14.17"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     #Walkthrough of DNA tracing in TopoStats
     Once grain masks have been obtained through TopoStats (as exemplified in the `grainstats.py` notebook), these can be used to obtain DNA traces - smooth contours that sit along molecular backbones. These traces enable extraction of additional features such as DNA topology, height profiles, contour length, number of crossings etc. enabling greater characterisation of DNA than can be obtained through masks alone.
 
@@ -16,8 +15,7 @@ def _(mo):
     The full DNA tracing pipeline is described in detail on our [documentation website](https://github.com/AFM-SPM/TopoStats/tree/main/docs/advanced) where the relevant files are [`disordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/disordered_tracing.md), [`ordered_tracing.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/ordered_tracing.md), and [`splining.md`](https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/splining.md).
 
     You can also see our tracing algorithm in action in [Holmes et al. (2025)](https://www.nature.com/articles/s41467-025-60559-x), where we classify and quantify complex topological DNA structures!
-    """
-    )
+    """)
     return
 
 
@@ -76,14 +74,12 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Pre-requisites: filtered image and grain masks
     The following code block is a summarised version of the code within `grainstats.py` to obtain a filtered image and grain mask ready for the DNA tracing pipeline. Here we use an image of DNA plasmids, rather than minicircles, to showcase our method's ability to trace complex DNA structures.
 
     Here we have additional configs to parameterise the DNA tracing pipeline, including: `disordered_tracing`, `nodestats`, `ordered_tracing` and `splining`. Furthermore, the `curvature` config allows for parameterisation to quantify curvature of DNA traces.
-    """
-    )
+    """)
     return
 
 
@@ -209,7 +205,9 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can view the resulting processed image and grains mask using the code below.""")
+    mo.md(r"""
+    We can view the resulting processed image and grains mask using the code below.
+    """)
     return
 
 
@@ -231,8 +229,7 @@ def _(filtered_image, grains, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Disordered tracing
 
     The `disordered_tracing.py` module handles all the functions associated with obtaining single-pixel wide, line representations of masked objects.
@@ -240,16 +237,15 @@ def _(mo):
     The quality and likeness of the resultant pruned skeleton thus depends on the quality of the mask, the effectiveness of smoothing parameters, the method of skeletonisation, and the quality of automating the pruning of incorrect skeletal branches.
 
     ![disordered_tracing](https://raw.githubusercontent.com/AFM-SPM/TopoStats/refs/heads/main/docs/_static/images/disordered_tracing/overview.png)
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`)."""
-    )
+    mo.md(r"""
+    We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`).
+    """)
     return
 
 
@@ -273,13 +269,11 @@ def _(disordered_tracing_config, grains, image, trace_image_disordered):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-    We can inspect the contents of `disordered_traces_cropped_data` using the code below. "Available grain keys" tells us the number of grains that are described within our dictionary, in this case there is `grain_0` and `grain_1` - the two grains that we saw in our masked image. 
+    mo.md(r"""
+    We can inspect the contents of `disordered_traces_cropped_data` using the code below. "Available grain keys" tells us the number of grains that are described within our dictionary, in this case there is `grain_0` and `grain_1` - the two grains that we saw in our masked image.
 
     By selecting `grain_0` as an example, we can view the data that is stored for each grain. Here `skeleton` refers to a binary mask of the original grain skeleton, and `pruned_skeleton` is the binary mask following additional processing, known as pruning, to remove spurious branches.
-    """
-    )
+    """)
     return
 
 
@@ -306,9 +300,9 @@ def _(disordered_traces_cropped_data, pp):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image."""
-    )
+    mo.md(r"""
+    We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image.
+    """)
     return
 
 
@@ -330,8 +324,7 @@ def _(disordered_traces_cropped_data, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Nodestats
 
     The `nodestats.py` module handles all the functions associated with identifying and analysing the crossing regions (nodes) and crossing branches in pruned skeletons.
@@ -339,14 +332,15 @@ def _(mo):
     The quality of the resultant metrics and over/underlying branch classifications depend on the quality of the pruned skeleton, the effectiveness of automating the joining of skeleton junction points through the parameters.
 
     ![nodestats](https://github.com/AFM-SPM/TopoStats/raw/main/docs/_static/images/nodestats/overview.png))
-    """
-    )
+    """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can run the `nodestats` workflow using the `nodestats_image` function as in the code block below.""")
+    mo.md(r"""
+    We can run the `nodestats` workflow using the `nodestats_image` function as in the code block below.
+    """)
     return
 
 
@@ -387,15 +381,13 @@ def _(
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     Skeleton segments which represent a crossing may not join up perfectly at a single pixel (junction) and as a result of the skeletonisation procedure may be offset from one another and need to be combined to represent the crossing region or "node". Therefore, junctions closer than the `node_joining_length` (set in the config file) of each other define a crossing region, and the pixels which span between the junctions along the skeleton are also labelled as part of the crossing.
 
     This is exemplified below where the first image shows all identified junctions. In the leftmost grain we can see two crossings, but 3 junctions are identified.
 
     In the bottom image, 2 of the 3 junctions are combined to correctly show two crossings within the grain.
-    """
-    )
+    """)
     return
 
 
@@ -410,16 +402,14 @@ def _(image_dict, show_image):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Ordered tracing
     This module orders the disordered trace pixel-by-pixel (topostats method) or segment-by-segment (nodestats method), giving direction to the trace and creating a path to follow. It identifies how many intertwined molecules are within the grain (found by restarting the trace when using the nodestats method), and outputs additional statistics such as DNA topology.
 
     ![ordered tracing](https://github.com/AFM-SPM/TopoStats/raw/main/docs/_static/images/ordered_tracing/overview.png)
 
     We can run the full ordered tracing workflow using the `ordered_tracing_image` function as below.
-    """
-    )
+    """)
     return
 
 
@@ -444,7 +434,6 @@ def _(
         filename="plasmids",
         **ordered_tracing_config,
     )
-
     return (
         all_traces_data,
         grainstats_additions_df,
@@ -455,9 +444,9 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces."""
-    )
+    mo.md(r"""
+    We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces.
+    """)
     return
 
 
@@ -484,15 +473,14 @@ def _(
 
     # 4. Dict of full images
     print("\nOrdered trace full images keys:", ordered_trace_full_images.keys())
-
     return
 
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end."""
-    )
+    mo.md(r"""
+    Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end.
+    """)
     return
 
 
@@ -504,8 +492,7 @@ def _(ordered_trace_full_images, show_image):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Splining
 
     The `splining.py` module handles all the functions associated with smoothing the ordered pixel-wise trace from the "ordered_tracing" step, in order to produce curves which more closely follow the samples structure.
@@ -513,8 +500,7 @@ def _(mo):
     ![splining](https://github.com/AFM-SPM/TopoStats/raw/main/docs/_static/images/splining/overview.png)
 
     We can use the `splining_image` function as in the code block below to run the full splining workflow. We can also inspect the outputs produced, notice that we now have two data frames where one consists of statistics extracted from whole grains and the other contains statistics extracted at molecule level (e.g. statistics to describe each molecule if two molecules are interconnected to form a grain.)
-    """
-    )
+    """)
     return
 
 
@@ -570,15 +556,13 @@ def _(plt, splined_traces):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Curvature
 
     Once we have the smooth traces for each molecule, we can calculate the curvature at each point along the molecular backbone. We can then look at how curvature changes at different points along the molecule, determine whether certain features (such as protein binding or damage) affect DNA curvature, and calculate an average curvature value for the entire molecule.
 
     We make use of the `calculate_curvature_stats_image` function to calculate curvature for all grains identified within our image.
-    """
-    )
+    """)
     return
 
 
@@ -592,9 +576,9 @@ def _(calculate_curvature_stats_image, grains, splined_traces):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace."""
-    )
+    mo.md(r"""
+    We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace.
+    """)
     return
 
 
@@ -606,9 +590,9 @@ def _(curvature_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions."""
-    )
+    mo.md(r"""
+    The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions.
+    """)
     return
 
 
