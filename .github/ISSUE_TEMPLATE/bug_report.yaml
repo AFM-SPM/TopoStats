@@ -21,6 +21,8 @@ body:
       label: Checklist
       description: A Checklist is provided below for you to track each of the subsequent tasks.
       options:
+        - label: Run using the `main` branch to check if the issue persists. Instructions on how to do this can be found [here](https://afm-spm.github.io/TopoStats/main/installation.html#installing-from-github).
+          required: true
         - label: Find the offending file in the output. If processing halts, re-run analysis with `topostats --core 1 process`.
           required: true
         - label: Describe the bug.
