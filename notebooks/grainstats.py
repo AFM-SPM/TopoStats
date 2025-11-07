@@ -1,13 +1,12 @@
 import marimo
 
-__generated_with = "0.14.17"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     #TopoStats - grain stats walkthrough
     This marimo notebook will walk you through using TopoStats from processing an AFM image through to quantification and data visualisation.
 
@@ -24,8 +23,7 @@ def _(mo):
     ```
 
     For more information on installing TopoStats and setting up virtual environments, please refer to our installation instructions [here]([https://link-url-here.org](https://afm-spm.github.io/TopoStats/main/installation.html)).
-    """
-    )
+    """)
     return
 
 
@@ -42,13 +40,11 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Loading libraries and modules
     TopoStats is written as a series of modules with various classes and functions. In order to use these interactively we
     need to `import` them.
-    """
-    )
+    """)
     return
 
 
@@ -60,6 +56,7 @@ def _():
     import marimo as mo
     import matplotlib.pyplot as plt
     import numpy as np
+    import numpy.typing as npt
     import seaborn as sns
 
     from topostats.filters import Filters
@@ -67,7 +64,6 @@ def _():
     from topostats.grainstats import GrainStats
     from topostats.io import LoadScans, find_files, read_yaml
     from topostats.plottingfuncs import Images
-
     return (
         Filters,
         GrainStats,
@@ -79,6 +75,7 @@ def _():
         json,
         mo,
         np,
+        npt,
         plt,
         read_yaml,
         sns,
@@ -87,14 +84,12 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Finding files to process
     When run from the command line, TopoStats needs to find files to process and the `find_files` function helps with this. It requires the directory path (a folder to search in), and the file extension to look for (this example processes a `.spm` file). The function then returns a list of all files within the directory that have the required file extension.
 
     To use the `find_files` function within the code block below, it is required that your image files are placed within the same directory as this notebook!
-    """
-    )
+    """)
     return
 
 
@@ -111,7 +106,9 @@ def _(Path, find_files):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""The image files that were found using `find_files` are listed below:""")
+    mo.md(r"""
+    The image files that were found using `find_files` are listed below:
+    """)
     return
 
 
@@ -124,8 +121,7 @@ def _(image_files):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Loading a configuration file
 
     You can specify all options explicitly by hand when instantiating classes or calling methods/functions. However when run
@@ -216,23 +212,20 @@ def _(mo):
       run: true # Whether to make summary plots for output data
       config: null
     ```
-    """
-    )
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     To load the configuration file into Python we use the `read_yaml()` function. This saves the options as a dictionary and
     we can access values by the keys. The example below prints out the top-levels keys and then the keys for the `filter`
     configuration.
 
     Python dictionaries have keys which can be considered as the parameter that is to be configured and each key has
     an associated value which is the value you wish to set the parameter to.
-    """
-    )
+    """)
     return
 
 
@@ -246,13 +239,11 @@ def _(BASE_DIR, read_yaml):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     You can look at all of the options using the `json` package to "pretty" print the dictionary which makes it easier to
     read. Here we print the `filter` section. You can see the options map to those of the `Filter()` class with an
     additional `"run": true` which is used when running TopoStats at the command line.
-    """
-    )
+    """)
     return
 
 
@@ -263,7 +254,7 @@ def _(config, json):
 
 
 @app.cell
-def _(np, plt):
+def _(np, npt, plt):
     def show_image(
         arr: npt.NDArray,
         cmap: str = "afmhot",
@@ -299,21 +290,18 @@ def _(np, plt):
             fig.colorbar(im, ax=ax, shrink=0.7)
         fig.tight_layout()
         return fig
-
     return (show_image,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     We will use the configuration options we have loaded in processing the `minicircle.spm` image. For convenience we save
     each set of options to their own dictionary and remove the `run` entry as this is not required when running TopoStats
     interactively.
 
     We also set the `plotting_config["image_set"]` to `all` so that all images can be plotted (there are some internal controls that determine whether images are plotted and returned).
-    """
-    )
+    """)
     return
 
 
@@ -333,13 +321,11 @@ def _(config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Load scans
 
     The first step before processing is to load an AFM scan. This extracts the image data into a numpy array along with the filepath and pixel to nm scaling parameter which is used throughout to scale the pixels within an image.
-    """
-    )
+    """)
     return
 
 
@@ -357,8 +343,7 @@ def _(LoadScans, config, image_files, my_filename, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ## Filtering an image
 
     Now that we have loaded some images, we can start processing using TopoStats. The first step is called filtering, and involves a sequence of processing steps to remove noise and AFM-specific imaging artifacts. There are a number of options that we need to specify to optimise filtering, and these are described in detail in the TopoStats [documentation](https://topostats.readthedocs.io/en/dev/topostats.filters.html).
@@ -368,8 +353,7 @@ def _(mo):
 
     The following section instantiates ("sets up") an object called `filtered_image` of type `Filters` using the first file
     found (`image_files[0]`) and the various options from the `filter_config` dictionary.
-    """
-    )
+    """)
     return
 
 
@@ -397,12 +381,10 @@ def _(Filters, all_scan_data, filter_config, my_filename):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     The `filtered_image` now has a a number of numpy arrays saved in the `.images` dictionary that can be accessed and plotted. To view
     the names of the images (technically the dictionary keys) you can print them with `filter_image.images.keys()`...
-    """
-    )
+    """)
     return
 
 
@@ -414,9 +396,9 @@ def _(filtered_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key."""
-    )
+    mo.md(r"""
+    You can view the result of TopoStats filtering using the `show_image` function, the final result is stored in the `gaussian_filtered` key.
+    """)
     return
 
 
@@ -428,8 +410,7 @@ def _(filtered_image, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     TopoStats includes a custom plotting class `Images`  which formats plots in a more familiar manner.
 
     It has a number of options, please refer to the official documentation on
@@ -440,8 +421,7 @@ def _(mo):
     The class requires a Numpy array, which we have just generated many of during the various filtering stages, and a number
     of options. Again for convenience we use the `**plotting_config` notation to unpack the key/value pairs stored in the
     `plotting_config` dictionary.
-    """
-    )
+    """)
     return
 
 
@@ -453,12 +433,10 @@ def _(plotting_config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     Here we plot the image after processing and zero-averaging the background but with the `viridis` palette and
     constraining the `zrange` to be between 0 and 3.
-    """
-    )
+    """)
     return
 
 
@@ -484,8 +462,7 @@ def _(Images, filtered_image, plotting_config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Finding grains
 
     The next step in processing the image is to find grains - a.k.a the molecules we want to analyse. This is done using the `Grains` class and we have saved the
@@ -501,8 +478,7 @@ def _(mo):
     yourself explicitly they are available as properties of the `filtered_image` that we have processed. As with `Filters`
     the `Grains` class has a number of methods that carry out the grain finding, but there is a convenience method
     `find_grains()` which calls all these in the correct order.
-    """
-    )
+    """)
     return
 
 
@@ -521,9 +497,9 @@ def _(Grains, filtered_image, grain_config):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below."""
-    )
+    mo.md(r"""
+    The `grains` object now also contains a series of images that we can plot, these can be found as keys within grains.mask_images["above"]. We print the full contents of grains below.
+    """)
     return
 
 
@@ -535,9 +511,9 @@ def _(grains):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid."""
-    )
+    mo.md(r"""
+    To view the full grains mask, you can plot the `merged_classes` mask as below. The first plot shows the mask with background is 0 (black), and grains in 1 (white). The second plot shows the image and mask overlaid.
+    """)
     return
 
 
@@ -560,14 +536,15 @@ def _(grains, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r""" """)
+    mo.md(r"""
+ 
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     The grains config enables users to play around with parameters to optimise masking for their individual use cases, it is printed below to show which parameters can be configured.
 
     The thresholds can be used in different ways based on the `direction` you want to detect grains. Typically for molecular
@@ -576,8 +553,7 @@ def _(mo):
 
     This is controlled using the `config["grains"]["direction"]` configuration option which maps to the `Grains(direction=)`
     option and can take three values `below`, `above` or `both`.
-    """
-    )
+    """)
     return
 
 
@@ -589,8 +565,7 @@ def _(config, json):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     So far the thresholding method used has been `threshold_method="std_dev"` defined in the configuration file we
     loaded. This calculates the mean and standard deviation of height across the whole image and then determines the threshold by scaling the standard deviation by a given factor (defined by `threshold_std_dev`) and adding it to the mean to give the `above` threshold and/or subtracting if from the mean to give the `below` threshold.
 
@@ -599,8 +574,7 @@ def _(mo):
     Other thresholding methods that can be used within TopoStats are described in the documentation [here]("https://github.com/AFM-SPM/TopoStats/blob/main/docs/advanced/thresholding.md").
 
      In the code block below we set `threshold_method="absolute"` and show the resulting masks when two different absolute thresholds of 1.2nm and 2.0nm are used.
-    """
-    )
+    """)
     return
 
 
@@ -638,8 +612,7 @@ def _(Grains, filtered_image, grain_config, grains, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     ##Extracting grain statistics
     Now that the grains have been found we can calculate statistics for each. This is done using the `GrainStats()`
     class. Again the configuration options from the YAML file map to those of the class and there is a convenience method
@@ -651,8 +624,7 @@ def _(mo):
     The `GrainStats` class returns two objects, a Pandas `pd.DataFrame` of calculated statistics and a `list` of
     dictionaries containing the grain data to be plotted. We therefore instantiate ("set-up") the `grain_stats` dictionary
     to hold these results and unpack each to the keys `statistics` and `plots` respectively.
-    """
-    )
+    """)
     return
 
 
@@ -680,13 +652,11 @@ def _(GrainStats, Grains, grains, grainstats_config, show_image):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     The `grain_stats["statistics"]` is a [Pandas
     DataFrame](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html). We can print this out as
     shown below.
-    """
-    )
+    """)
     return
 
 
@@ -698,9 +668,9 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example."""
-    )
+    mo.md(r"""
+    Further we can summarise the dataframe for a subset of variables, here we show summary stats for `smallest_bounding_width` and `aspect_ratio` as an example.
+    """)
     return
 
 
@@ -712,9 +682,9 @@ def _(grain_stats):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables."""
-    )
+    mo.md(r"""
+    We can use the `seaborn` package to produce plots of certain variables from grain_stats table. `seaborn` has a range of different options for data visualisation, below we show how you can create violin and KDE plots to explore the distribution of certain variables. Try playing around with the `col` definition to view plots of different variables.
+    """)
     return
 
 
@@ -740,9 +710,9 @@ def _(grain_stats, plt, sns):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table."""
-    )
+    mo.md(r"""
+    It could also be useful to compare whether two variables have any relationship with one another, and for this a scatter plot can be used to visualise correlation. Below we show an example of plotting `aspect_ratio` against `height_mean`, but these can be replaced with any other columns from the `grain_stats` table.
+    """)
     return
 
 
