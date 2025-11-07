@@ -259,7 +259,7 @@ def _(mo):
       2. `simple` - A simple config includes a subset of the default configuration with only options which are likely to be adjusted by users.
       3. `mplstyle` - generates a [Matplotlib rc-file](https://matplotlib.org/stable/users/explain/customizing.html#customizing-with-matplotlibrc-files) which can be used for customising Matplotlib plots.
       4. `var_to_label` - generates a YAML file which maps variable names used in CSV output to descriptions which can be used when plotting data.
-    These files are generated from the respective files found in the topostats module.
+    These files are generated from the respective files that are part of the TopoStats package.
     Additional options that are used by the function is the filename (args.filename) the config will be saved as and the output directory (args.output_dir) it will be saved to.
     """
     )
