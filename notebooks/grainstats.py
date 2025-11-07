@@ -256,7 +256,7 @@ def _(mo):
         r"""
     To create a new config file, we use the `write_config_with_comments()` which takes the `args` namespace. There a 4 types of valid config (selected using `args.config`) that can be generated, which are as follows:
       1. `default` - The default config includes all the configuration options including some parameters which are not recommended to be changed unless confident on the effects.
-    2. Simple config includes the configuration options which are likely to be adjusted by most users.
+      2. `simple` - A simple config includes a subset of the default configuration with only options which are likely to be adjusted by users.
     3. Mplstyle (used for matplotlib configuration)
     4. Var_to_label (used for making more human readable)
     These files are generated from the respective files found in the topostats module.
