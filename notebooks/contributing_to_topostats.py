@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.17"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -18,6 +18,7 @@ def _(mo):
 @app.cell
 def _():
     from pprint import pprint
+    from pathlib import Path
 
     import h5py
     import marimo as mo
@@ -28,7 +29,7 @@ def _():
 
     from topostats.io import hdf5_to_dict
 
-    return find_peaks, h5py, hdf5_to_dict, mo, np, plt, pprint
+    return Path, find_peaks, h5py, hdf5_to_dict, mo, np, npt, plt, pprint
 
 
 @app.cell
@@ -44,13 +45,20 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""First we read in the .topostats file and convert it to a usable dictionary format.""")
+    mo.md(
+        r"""
+    First we read in the .topostats file and convert it to a usable dictionary format.
+    """
+    )
     return
 
 
 @app.cell
-def _(h5py, hdf5_to_dict):
-    filepath = "/Users/laura/TopoStats/tests/resources/notebook3_image.topostats"  # edit this path to locate the notebook3_image.topostats file
+def _(Path, h5py, hdf5_to_dict):
+    BASE_DIR = Path().cwd()
+    filepath = (
+        BASE_DIR.parent / "tests" / "resources" / "notebook3_image.topostats"
+    )  # edit this path to locate the notebook3_image.topostats file
 
     with h5py.File(filepath, "r") as f:
         data_dict = hdf5_to_dict(f, "/")
@@ -60,7 +68,9 @@ def _(h5py, hdf5_to_dict):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""Printing the `data_dict` allows us to see what is contained within our .topostats file, including all of the file's metadata and other data generated through TopoStats."""
+        r"""
+    Printing the `data_dict` allows us to see what is contained within our .topostats file, including all of the file's metadata and other data generated through TopoStats.
+    """
     )
     return
 
@@ -74,13 +84,15 @@ def _(data_dict, pprint):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""Below is a helper function used to enable visualisation of plots within marimo. We can use it to plot our TopoStats processed image which is stored in `data_dict["image"]`. Note you could also view the raw image using `data_dict[image_original]`."""
+        r"""
+    Below is a helper function used to enable visualisation of plots within marimo. We can use it to plot our TopoStats processed image which is stored in `data_dict["image"]`. Note you could also view the raw image using `data_dict[image_original]`.
+    """
     )
     return
 
 
 @app.cell
-def _(data_dict, np, plt):
+def _(data_dict, np, npt, plt):
     def show_image(
         arr: npt.NDArray,
         cmap: str = "afmhot",
@@ -153,7 +165,9 @@ def _(data_dict, np, show_image):
 @app.cell
 def _(mo):
     mo.md(
-        r"""We can use the height trace profiles to count the number of helices within our grain, and to measure the distance between helices. By using a threshold of 4nm, we see that DNA helices are shown as equidistant peaks within the height profile plot."""
+        r"""
+    We can use the height trace profiles to count the number of helices within our grain, and to measure the distance between helices. By using a threshold of 4nm, we see that DNA helices are shown as equidistant peaks within the height profile plot.
+    """
     )
     return
 

@@ -254,6 +254,22 @@ def _(BASE_DIR, read_yaml):
 def _(mo):
     mo.md(
         r"""
+    To create a new config file we use the `write_config_with_comments()` function which takes the `args` namespace. There a 4 types of valid config (selected using `args.config`) that can be generated, which are as follows:
+      1. `default` - The default config includes all the configuration options including some parameters which are not recommended to be changed unless confident on the effects.
+      2. `simple` - A simple config includes a subset of the default configuration with only options which are likely to be adjusted by users.
+      3. `mplstyle` - generates a [Matplotlib rc-file](https://matplotlib.org/stable/users/explain/customizing.html#customizing-with-matplotlibrc-files) which can be used for customising Matplotlib plots.
+      4. `var_to_label` - generates a YAML file which maps variable names used in CSV output to descriptions which can be used when plotting data.
+    These files are generated from the respective files that are part of the TopoStats package.
+    Additional options that are used by the function is the filename (args.filename) the config will be saved as and the output directory (args.output_dir) it will be saved to.
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     You can look at all of the options using the `json` package to "pretty" print the dictionary which makes it easier to
     read. Here we print the `filter` section. You can see the options map to those of the `Filter()` class with an
     additional `"run": true` which is used when running TopoStats at the command line.

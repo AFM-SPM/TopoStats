@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.17"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -209,7 +209,11 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can view the resulting processed image and grains mask using the code below.""")
+    mo.md(
+        r"""
+    We can view the resulting processed image and grains mask using the code below.
+    """
+    )
     return
 
 
@@ -248,7 +252,9 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`)."""
+        r"""
+    We can run the function `trace_image_disordered` to run the `disordered_tracing` workflow. The function outputs a set of diagnostic images for each grain (stored in `disordered_traces_cropped_data`) as well as each image (stored in `disordered_tracing_images`).
+    """
     )
     return
 
@@ -275,7 +281,7 @@ def _(disordered_tracing_config, grains, image, trace_image_disordered):
 def _(mo):
     mo.md(
         r"""
-    We can inspect the contents of `disordered_traces_cropped_data` using the code below. "Available grain keys" tells us the number of grains that are described within our dictionary, in this case there is `grain_0` and `grain_1` - the two grains that we saw in our masked image. 
+    We can inspect the contents of `disordered_traces_cropped_data` using the code below. "Available grain keys" tells us the number of grains that are described within our dictionary, in this case there is `grain_0` and `grain_1` - the two grains that we saw in our masked image.
 
     By selecting `grain_0` as an example, we can view the data that is stored for each grain. Here `skeleton` refers to a binary mask of the original grain skeleton, and `pruned_skeleton` is the binary mask following additional processing, known as pruning, to remove spurious branches.
     """
@@ -307,7 +313,9 @@ def _(disordered_traces_cropped_data, pp):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image."""
+        r"""
+    We can view the pruned skeletons for both grains using the code block below, notice that these are 1 pixel wide traces that sit along the molecular backbone of the DNA molecules from our AFM image.
+    """
     )
     return
 
@@ -346,7 +354,11 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    mo.md(r"""We can run the `nodestats` workflow using the `nodestats_image` function as in the code block below.""")
+    mo.md(
+        r"""
+    We can run the `nodestats` workflow using the `nodestats_image` function as in the code block below.
+    """
+    )
     return
 
 
@@ -444,7 +456,6 @@ def _(
         filename="plasmids",
         **ordered_tracing_config,
     )
-
     return (
         all_traces_data,
         grainstats_additions_df,
@@ -456,7 +467,9 @@ def _(
 @app.cell
 def _(mo):
     mo.md(
-        r"""We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces."""
+        r"""
+    We can inspect all of the outputs of `ordered_tracing_image` using the code below, we see a combination of images to view the tracing outputs as well as data frames containing statistics such as topology and writhe that were extracted from ordered traces.
+    """
     )
     return
 
@@ -484,14 +497,15 @@ def _(
 
     # 4. Dict of full images
     print("\nOrdered trace full images keys:", ordered_trace_full_images.keys())
-
     return
 
 
 @app.cell
 def _(mo):
     mo.md(
-        r"""Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end."""
+        r"""
+    Below we plot `ordered_trace_full_images['ordered_traces']` which shows the ordered trace coordinates, coloured using a sequential colour map with lighter colours indicating the start of the trace, and darker colours indicating the end.
+    """
     )
     return
 
@@ -593,7 +607,9 @@ def _(calculate_curvature_stats_image, grains, splined_traces):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace."""
+        r"""
+    We can print the resulting `curvature_stats` which provides a dictionary of curvature values for each grain, with one value per coordinate along the grain's trace.
+    """
     )
     return
 
@@ -607,7 +623,9 @@ def _(curvature_stats):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
-        r"""The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions."""
+        r"""
+    The following code block allows us to visualise curvature values at different points along the grain traces, with light reds indicating regions with lower curvature, and darker reds indicating high curvature regions.
+    """
     )
     return
 
