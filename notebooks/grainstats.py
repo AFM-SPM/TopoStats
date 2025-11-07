@@ -254,7 +254,7 @@ def _(BASE_DIR, read_yaml):
 def _(mo):
     mo.md(
         r"""
-    To create a new config file, we use the `write_config_with_comments()` which takes the `args` namespace. There a 4 types of valid config (selected using `args.config`) that can be generated, which are as follows:
+    To create a new config file we use the `write_config_with_comments()` function which takes the `args` namespace. There a 4 types of valid config (selected using `args.config`) that can be generated, which are as follows:
       1. `default` - The default config includes all the configuration options including some parameters which are not recommended to be changed unless confident on the effects.
       2. `simple` - A simple config includes a subset of the default configuration with only options which are likely to be adjusted by users.
       3. `mplstyle` - generates a [Matplotlib rc-file](https://matplotlib.org/stable/users/explain/customizing.html#customizing-with-matplotlibrc-files) which can be used for customising Matplotlib plots.
