@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from topostats.classes import DisorderedTrace, GrainCrop, GrainCropsDirection, ImageGrainCrops, TopoStats
+from topostats.classes import DisorderedTrace, GrainCrop, TopoStats
 from topostats.config import update_plotting_config
 from topostats.io import LoadScans, dict_almost_equal, hdf5_to_dict
 from topostats.processing import (
@@ -976,15 +976,8 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         grains_config=grains_config,
         plotting_config=process_scan_config["plotting"],
     )
-
-    assert isinstance(topostats_object.grain_crops, ImageGrainCrops)
-    assert isinstance(topostats_object.grain_crops.above, GrainCropsDirection)
-    assert len(topostats_object.grain_crops.above.crops) == 6
-    # Floating point errors mean that on different systems, different results are
-    # produced for such generous thresholds. This is not an issue for more stringent
-    # thresholds.
-    assert isinstance(topostats_object.grain_crops.below, GrainCropsDirection)
-    assert len(topostats_object.grain_crops.below.crops) == 2
+    assert isinstance(topostats_object.grain_crops, GrainCrop)
+    assert len(topostats_object.grain_crops) == 8
 
 
 def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:

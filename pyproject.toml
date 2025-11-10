@@ -43,6 +43,7 @@ dependencies = [
   "numpyencoder",
   "pandas",
   "pillow<=11.1.0",
+  "pydantic",
   "pyyaml",
   "ruamel.yaml",
   "schema",
