@@ -902,15 +902,12 @@ def ordered_tracing_image(
     molstats = {}
     all_traces_data = {}
 
-    grain_crop_direction = (
-        topostats_object.grain_crops.above if direction == "above" else topostats_object.grain_crops.below
-    )
     LOGGER.info(
         f"[{topostats_object.filename}] : Calculating Ordered Traces and statistics for '{direction}' "
-        f" with {len(grain_crop_direction.crops)} grains..."
+        f" with {len(topostats_object.grain_crops)} grains..."
     )
     # iterate through disordered_tracing_dict
-    for grain_no, grain_crop in grain_crop_direction.crops.items():
+    for grain_no, grain_crop in topostats_object.grain_crops.items():
         try:
             # check if want to perform tracing based on node statistics
             if grain_crop.nodes is not None and ordering_method == "nodestats":
@@ -924,17 +921,11 @@ def ordered_tracing_image(
                     )
                     LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
+                    LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no}")
             # if not doing nodestats ordering, do original TS ordering
             elif grain_crop.disordered_trace is not None:
                 LOGGER.debug(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
-                topostats_tracing = OrderedTraceTopostats(
-                    grain_crop=grain_crop
-                    # image=grain_crop.image,
-                    # skeleton=grain_crop.skeleton,
-                    # image=disordered_trace_data["original_image"],
-                    # skeleton=disordered_trace_data["pruned_skeleton"],
-                )
+                topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
                 ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
                 LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
             else:
@@ -943,7 +934,7 @@ def ordered_tracing_image(
                 )
                 ordered_traces_data = None
             # ns-rse 2025-10-01 - Remove all of this as data will be attributes of the classes
-            # compile traces
+            # compile traces and we should write methods for the classes that represent the data
             if ordered_traces_data is not None:
                 all_traces_data[grain_no] = ordered_traces_data
                 for mol_no, _ in ordered_traces_data.items():
