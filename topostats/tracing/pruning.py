@@ -523,8 +523,11 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
         for i in range(1, segments.max() + 1):
             segment = np.where(segments == i, 1, 0)
             if segment.sum() > 2:
-                # sometimes start is not found ?
-                start = np.argwhere(convolve_skeleton(segment) == 2)[0]
+                endpoints = np.argwhere(convolve_skeleton(segment) == 2)
+                if len(endpoints) > 0:
+                    start = endpoints[0]
+                else:
+                    start = np.argwhere(convolve_skeleton(segment) == 1)[0]
                 ordered_coords = order_branch_from_end(segment, start)
                 # if even no. points, average two middles
                 middle_idx, middle_remainder = (len(ordered_coords) + 1) // 2 - 1, (len(ordered_coords) + 1) % 2
@@ -657,6 +660,7 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             The original skeleton without the segments identified by the height criteria.
         """
         # Obtain the height of each branch via the min | median | mid methods
+        height_values = None
         if self.method_values == "min":
             height_values = self._get_branch_mins(segments)
         elif self.method_values == "median":
@@ -664,6 +668,7 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
         elif self.method_values == "mid":
             height_values = self._get_branch_middles(segments)
         # threshold heights to obtain indexes of branches to be removed
+        idxs = None
         if self.method_outlier == "abs":
             idxs = self._get_abs_thresh_idx(height_values, self.height_threshold)
         elif self.method_outlier == "mean_abs":
