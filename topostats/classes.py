@@ -1005,12 +1005,12 @@ class OrderedTrace:
     """
     Class for Ordered Trace data and attributes.
 
+    molecule_data : dict[int, Molecule]
+        Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
     tracing_stats : dict | None
         Tracing statistics.
     grain_molstats : Any | None
         Grain molecule statistics.
-    ordered_trace_data : dict[int, Molecule]
-        Ordered trace data for the grain indexed by molecule number.
     molecules : int
         Number of molecules within the grain.
     writhe : str
@@ -1023,7 +1023,7 @@ class OrderedTrace:
         Errors encountered?
     """
 
-    ordered_trace_data: dict[int, Molecule] | None = None
+    molecule_data: dict[int, Molecule] | None = None
     tracing_stats: dict | None = None
     grain_molstats: Any | None = None
     molecules: int | None = None
@@ -1071,8 +1071,12 @@ class Molecule:
     topology: str | None = None
     topology_flip: Any | None = None
     ordered_coords: npt.NDArray | None = None
+    spline_coords: npt.NDArray | None = None
+    contour_length: float | None = None
+    end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None
     distances: npt.NDArray | None = None
+    bbox: tuple[int, int, int, int] | None = None
 
     def __str__(self) -> str:
         """
