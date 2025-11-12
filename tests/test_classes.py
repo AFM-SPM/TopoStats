@@ -42,6 +42,13 @@ def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
     assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
 
 
+# pylint: disable=implicit-str-concat
+def test_molecule_str(dummy_molecule: Molecule) -> None:
+    """Test the Molecule.__str__() method."""
+    expected = "circular : True\n" "topology : a\n"
+    assert str(dummy_molecule) == expected
+
+
 def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
     """Test the OrderedTrace.ordered_trace_to_dict() method."""
     expected = {
@@ -55,6 +62,18 @@ def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
         "error": dummy_ordered_trace.error,
     }
     assert dict_almost_equal(dummy_ordered_trace.ordered_trace_to_dict(), expected)
+
+
+def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
+    """Test the OrderedTrace.str() method."""
+    expected = (
+        "number of molecules : 2\n"
+        "number of images : 4\n"
+        "writhe sign : -\n"
+        "pixel to nm scaling : 1.0\n"
+        "error : True"
+    )
+    assert str(dummy_ordered_trace) == expected
 
 
 def test_node_to_dict(dummy_node: Node) -> None:
@@ -74,6 +93,20 @@ def test_node_to_dict(dummy_node: Node) -> None:
     assert dict_almost_equal(dummy_node.node_to_dict(), expected)
 
 
+def test_node_str(dummy_node: Node) -> None:
+    """Test the Node.__str__() method."""
+    expected = (
+        "error : False\n"
+        "pixel to nm scaling (nm) : 1.0\n"
+        "number of matched branches : 2\n"
+        "number of unmatched branches : 1\n"
+        "number of coords : 2\n"
+        "confidence : 0.987654\n"
+        "reduced node area : 10.987654321"
+    )
+    assert str(dummy_node) == expected
+
+
 def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
     """Test the MatchedBranch.matched_branch_to_dict() method."""
     expected = {
@@ -86,12 +119,30 @@ def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
     assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
 
 
+def test_matched_branch_str(dummy_matched_branch: MatchedBranch) -> None:
+    """Test the MatchedBranch.__str__() method."""
+    expected = (
+        "number of coords : 4\n"
+        "full width half maximum : 1.1\n"
+        "full width half maximum maximums : [2.1, 3.4]\n"
+        "full width half maximum peaks : [15.1, 89.1]\n"
+        "angles : 143.163"
+    )
+    assert str(dummy_matched_branch) == expected
+
+
 def test_unmatched_branch_to_dict(dummy_unmatched_branch: UnMatchedBranch) -> None:
     """Test the UnMatchedBranch.unmatched_branch_to_dict() method."""
     expected = {
         "angles": dummy_unmatched_branch.angles,
     }
     assert dict_almost_equal(dummy_unmatched_branch.unmatched_branch_to_dict(), expected)
+
+
+def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch) -> None:
+    """Test the UnMatchedBranch.__str__() method."""
+    expected = "angles : [143.163, 69.234, 12.465]"
+    assert str(dummy_unmatched_branch) == expected
 
 
 def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> None:
@@ -104,6 +155,18 @@ def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> No
         "grain_width_mean": dummy_disordered_trace.grain_width_mean,
     }
     assert dict_almost_equal(dummy_disordered_trace.disordered_trace_to_dict(), expected)
+
+
+def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace) -> None:
+    """Test the DisorderedTrace.__str__() method."""
+    expected = (
+        "generated images : pruned_skeleton, skeleton, smoothed_mask, branch_indexes, branch_types\n"
+        "grain endpoints : 2\n"
+        "grain junctions : 3\n"
+        "total branch length (nm) : 12.3456789\n"
+        "mean grain width (nm) : 3.14152"
+    )
+    assert str(dummy_disordered_trace) == expected
 
 
 @pytest.mark.skip(reason="2025-10-15 - awaiting tests to be written")
@@ -130,6 +193,23 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
         "threshold_method": dummy_graincrop.threshold_method,
     }
     assert dict_almost_equal(dummy_graincrop.grain_crop_to_dict(), expected)
+
+
+def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
+    """Test the GrainCrop.__str__() method."""
+    expected = (
+        "filename : dummy\n"
+        "image shape : (10, 10)\n"
+        "skeleton shape : (10, 10)\n"
+        "mask shape : (10, 10, 2)\n"
+        "padding : 2\n"
+        "thresholds : (1, 2)\n"
+        "threshold method : None\n"
+        "bounding box coords : (1, 1, 11, 11)\n"
+        "pixel to nm scaling : 1.0\n"
+        "number of nodes : 2"
+    )
+    assert str(dummy_graincrop) == expected
 
 
 @pytest.mark.parametrize(
@@ -171,6 +251,7 @@ def test_topostats_to_dict(
     assert topostats_object.topostats_to_dict() == expected
 
 
+# Needs updating to switch to grain_crop rather than image_grain_crop
 @pytest.mark.parametrize(
     (
         "topostats_object",
@@ -239,3 +320,71 @@ def test_topostats_eq(
         config=config,
     )
     assert topostats_object == expected
+
+
+@pytest.mark.parametrize(
+    (
+        "topostats_object",
+        "grain_crops",
+        "filename",
+        "pixel_to_nm_scaling",
+        "topostats_version",
+        "img_path",
+        "image",
+        "image_original",
+        "config",
+    ),
+    [
+        pytest.param(
+            "topostats_catenanes_2_4_0",
+            "graincrops_catenanes",
+            "example_catenanes.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            rng.random((10, 10)),
+            "default_config",
+            id="catenane v2.4.0",
+        ),
+        pytest.param(
+            "topostats_rep_int_2_4_0",
+            "graincrops_rep_int",
+            "example_rep_int.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            rng.random((10, 10)),
+            "default_config",
+            id="tep_int v2.4.0",
+        ),
+    ],
+)
+def test_topostats_str(
+    topostats_object: str,
+    grain_crops: str,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    topostats_version: str,
+    img_path: str,
+    image: npt.NDArray | None,
+    image_original: npt.NDArray | None,
+    config: str,
+    request,
+) -> None:
+    """Test the TopoStats.__str__ method."""
+    topostats_object = request.getfixturevalue(topostats_object)
+    topostats_object.image = image
+    topostats_object.image_original = image_original
+    grain_crops = request.getfixturevalue(grain_crops)
+    config = request.getfixturevalue(config)
+    expected = (
+        f"number of grain crops : {len(grain_crops)}\n"
+        f"filename : {filename}\n"
+        f"pixel to nm scaling : {pixel_to_nm_scaling}\n"
+        f"image shape (px) : {image.shape}\n"
+        f"image path : {img_path}\n"
+        f"TopoStats version : {topostats_version}"
+    )
+    assert str(topostats_object) == expected
