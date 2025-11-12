@@ -2,16 +2,14 @@
 # ruff: noqa: S301
 """Test the splining module."""
 
-import pickle
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 import pytest
 
-from topostats.io import dict_almost_equal
+from topostats.classes import Molecule
 from topostats.tracing.splining import (
     interpolate_between_two_points_distance,
     resample_points_regular_interval,
@@ -34,6 +32,11 @@ ORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "ordered_tracing"
 PIXEL_TRACE = np.array(
     [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]]
 ).astype(np.int32)
+MOLECULE = Molecule(
+    ordered_coords=np.array(
+        [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [3, 0], [2, 0], [1, 0]]
+    ).astype(np.int32)
+)
 
 
 def plot_spline_debugging(
@@ -73,13 +76,13 @@ def plot_spline_debugging(
     for grain_key_index, grain_key in enumerate(result_all_splines_data.keys()):
         print(f"Grain key: {grain_key}")
         for mol_key_index, mol_key in enumerate(result_all_splines_data[grain_key].keys()):
-            spline_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["spline_coords"]
+            splined_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["splined_coords"]
             bbox = result_all_splines_data[grain_key][mol_key]["bbox"]
             bbox_min_col = bbox[0]
             bbox_min_row = bbox[1]
-            previous_point = spline_coords[0]
+            previous_point = splined_coords[0]
             colour = lots_of_colours[mol_key_index + grain_key_index * 3 % len(lots_of_colours)]
-            for point in spline_coords[1:]:
+            for point in splined_coords[1:]:
                 ax.plot(
                     [
                         previous_point[1] / pixel_to_nm_scaling + bbox_min_row,
@@ -119,85 +122,53 @@ def test_remove_duplicate_consecutive_tuples(tuple_list: list[tuple], expected_r
 
 @pytest.mark.parametrize(
     (
-        "image_filename",
-        "ordered_tracing_direction_data_filename",
-        "pixel_to_nm_scaling",
+        "splining_fixture",
         "splining_method",
         "rolling_window_size",
         "spline_step_size",
         "spline_linear_smoothing",
         "spline_circular_smoothing",
         "spline_degree",
-        "filename",
-        "expected_all_splines_data_filename",
-        "expected_splining_grainstats_filename",
-        "expected_molstats_filename",
     ),
     [
         pytest.param(
-            "example_catenanes.npy",
-            "catenanes_ordered_tracing_data.pkl",
-            1.0,  # pixel_to_nm_scaling
-            # Splining parameters
+            "catenane_splining",
             "rolling_window",  # splining_method
             20e-9,  # rolling_window_size
             7.0e-9,  # spline_step_size
             5.0,  # spline_linear_smoothing
             5.0,  # spline_circular_smoothing
             3,  # spline_degree
-            "catenane",  # filename
-            "catenanes_splining_data.pkl",
-            "catenanes_splining_grainstats.csv",
-            "catenanes_splining_molstats.csv",
             id="catenane",
         ),
         pytest.param(
-            "example_rep_int.npy",
-            "rep_int_ordered_tracing_data.pkl",
-            1.0,  # pixel_to_nm_scaling
-            # Splining parameters
+            "rep_int_splining",
             "rolling_window",  # splining_method
             20e-9,  # rolling_window_size
             7.0e-9,  # spline_step_size
             5.0,  # spline_linear_smoothing
             5.0,  # spline_circular_smoothing
             3,  # spline_degree
-            "replication_intermediate",  # filename
-            "rep_int_splining_data.pkl",
-            "rep_int_splining_grainstats.csv",
-            "rep_int_splining_molstats.csv",
             id="replication_intermediate",
         ),
     ],
 )
 def test_splining_image(  # pylint: disable=too-many-positional-arguments
-    image_filename: str,
-    ordered_tracing_direction_data_filename: str,
-    pixel_to_nm_scaling: float,
+    splining_fixture: str,
     splining_method: str,
     rolling_window_size: float,
     spline_step_size: float,
     spline_linear_smoothing: float,
     spline_circular_smoothing: float,
     spline_degree: int,
-    filename: str,
-    expected_all_splines_data_filename: str,
-    expected_splining_grainstats_filename: str,
-    expected_molstats_filename: str,
+    request,
+    snapshot,
 ) -> None:
     """Test the splining_image function of the splining module."""
-    # Load the data
-    image = np.load(TRACING_RESOURCES / image_filename)
+    topostats_object = request.getfixturevalue(splining_fixture)
 
-    # Load the ordered tracing direction data
-    with Path.open(ORDERED_TRACING_RESOURCES / ordered_tracing_direction_data_filename, "rb") as file:
-        ordered_tracing_direction_data = pickle.load(file)
-
-    result_all_splines_data, result_splining_grainstats, result_molstats_df = splining_image(
-        image=image,
-        ordered_tracing_direction_data=ordered_tracing_direction_data,
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
-        filename=filename,
+    _, result_splining_grainstats, result_molstats_df = splining_image(
+        topostats_object=topostats_object,
         method=splining_method,
         rolling_window_size=rolling_window_size,
         spline_step_size=spline_step_size,
@@ -209,35 +180,23 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
     # When updating the test, you will want to verify that the splines are correct. Use
     # plot_spline_debugging to plot the splines on the image.
 
-    # # Save the results to update the test data
-    # # Save result splining data as pickle
-    # with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "wb") as file:
-    #     pickle.dump(result_all_splines_data, file)
-
-    # # Save result grainstats additions as csv
-    # result_splining_grainstats.to_csv(SPLINING_RESOURCES / expected_splining_grainstats_filename)
-
-    # # Save result molstats as csv
-    # result_molstats_df.to_csv(SPLINING_RESOURCES / expected_molstats_filename)
-
-    # Load the expected results
-    with Path.open(SPLINING_RESOURCES / expected_all_splines_data_filename, "rb") as file:
-        expected_all_splines_data = pickle.load(file)
-
-    expected_splining_grainstats = pd.read_csv(SPLINING_RESOURCES / expected_splining_grainstats_filename, index_col=0)
-    expected_molstats_df = pd.read_csv(SPLINING_RESOURCES / expected_molstats_filename, index_col=0)
-
-    # Check the results
-    assert dict_almost_equal(result_all_splines_data, expected_all_splines_data)
-    pd.testing.assert_frame_equal(result_splining_grainstats, expected_splining_grainstats)
-    pd.testing.assert_frame_equal(result_molstats_df, expected_molstats_df)
+    # Check the results, no easy way to iterate over these as loops would over-write the snapshot
+    assert topostats_object.grain_crops[0].ordered_trace.molecule_data[0] == snapshot
+    assert topostats_object.grain_crops[0].ordered_trace.molecule_data[1] == snapshot
+    if topostats_object.filename == "catenane":
+        assert topostats_object.grain_crops[1].ordered_trace.molecule_data[0] == snapshot
+        assert topostats_object.grain_crops[1].ordered_trace.molecule_data[1] == snapshot
+    elif topostats_object.filename == "replication_intermediate":
+        assert topostats_object.grain_crops[0].ordered_trace.molecule_data[2] == snapshot
+    assert result_splining_grainstats.to_string(float_format="%.6e") == snapshot
+    assert result_molstats_df.to_string(float_format="%.6e") == snapshot
 
 
 @pytest.mark.parametrize(
     ("pixel_trace", "rolling_window_size", "pixel_to_nm_scaling", "expected_pooled_trace"),
     [
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(1.0),
             1.0,
             np.array(
@@ -259,7 +218,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
             id="4x4 box starting at 0, 0 with window size 1",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(2.0),
             1.0,
             np.array(
@@ -281,7 +240,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
             id="4x4 box starting at 0, 0 with window size 2",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(5.5),
             1.0,
             np.array(
@@ -303,7 +262,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
             id="4x4 box starting at 0, 0 with window size 5.5",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(2.0),
             0.5,
             np.array(
@@ -342,7 +301,7 @@ def test_pool_trace_circular(
     ("pixel_trace", "rolling_window_size", "pixel_to_nm_scaling", "expected_pooled_trace"),
     [
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(1.0),
             1.0,
             np.array(
@@ -364,7 +323,7 @@ def test_pool_trace_circular(
             id="4x4 box starting at 0, 0 with window size 1",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(2.0),
             1.0,
             np.array(
@@ -387,7 +346,7 @@ def test_pool_trace_circular(
             id="4x4 box starting at 0, 0 with window size 2",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(5.5),
             1.0,
             np.array(
@@ -406,7 +365,7 @@ def test_pool_trace_circular(
             id="4x4 box starting at 0, 0 with window size 5.5",
         ),
         pytest.param(
-            PIXEL_TRACE,
+            MOLECULE,
             np.float64(2.0),
             2.0,
             np.array(

@@ -36,8 +36,12 @@ def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
         "topology": dummy_molecule.topology,
         "topology_flip": dummy_molecule.topology_flip,
         "ordered_coords": dummy_molecule.ordered_coords,
+        "splined_coords": dummy_molecule.splined_coords,
+        "contour_length": dummy_molecule.contour_length,
+        "end_to_end_distance": dummy_molecule.end_to_end_distance,
         "heights": dummy_molecule.heights,
         "distances": dummy_molecule.distances,
+        "bbox": dummy_molecule.bbox,
     }
     assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
 
@@ -47,7 +51,7 @@ def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
     expected = {
         "tracing_stats": dummy_ordered_trace.tracing_stats,
         "grain_molstats": dummy_ordered_trace.grain_molstats,
-        "ordered_trace_data": dummy_ordered_trace.ordered_trace_data,
+        "molecule_data": dummy_ordered_trace.molecule_data,
         "molecules": dummy_ordered_trace.molecules,
         "writhe": dummy_ordered_trace.writhe,
         "pixel_to_nm_scaling": dummy_ordered_trace.pixel_to_nm_scaling,
@@ -81,6 +85,8 @@ def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
         "heights": dummy_matched_branch.heights,
         "distances": dummy_matched_branch.distances,
         "fwhm": dummy_matched_branch.fwhm,
+        "fwhm_half_maxs": dummy_matched_branch.fwhm_half_maxs,
+        "fwhm_peaks": dummy_matched_branch.fwhm_peaks,
         "angles": dummy_matched_branch.angles,
     }
     assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
