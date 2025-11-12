@@ -8,18 +8,19 @@ import numpy.typing as npt
 import pandas as pd
 import pytest
 
-from topostats.classes import GrainCrop, MatchedBranch
+from topostats.classes import GrainCrop, MatchedBranch, Molecule, OrderedTrace, TopoStats
 from topostats.tracing.disordered_tracing import disorderedTrace
 from topostats.tracing.skeletonize import getSkeleton, topostatsSkeletonize
 
 # This is required because of the inheritance used throughout
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,unspecified-encoding
 
 # ruff: noqa: S301
 BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 TRACING_RESOURCES = RESOURCES / "tracing"
 NODESTATS_RESOURCES = TRACING_RESOURCES / "nodestats"
+ORDERED_TRACING_RESOURCES = TRACING_RESOURCES / "ordered_tracing"
 
 RNG = np.random.default_rng(seed=1000)
 
@@ -319,3 +320,93 @@ def catenane_node0_ordered_branches() -> list[npt.NDArray[np.int32]]:
     """Ordered branches for catenane (node 0)."""
     with Path(NODESTATS_RESOURCES / "catenane_node_0_ordered_branches.pkl").open("rb") as f:
         return pkl.load(f)
+
+
+@pytest.fixture()
+def catenane_splining() -> TopoStats:
+    """Catenane TopoStats object with necessary data for testing splining."""
+    # Load the data
+    image = np.load(TRACING_RESOURCES / "example_catenanes.npy")
+
+    # Load the ordered tracing direction data
+    with Path.open(ORDERED_TRACING_RESOURCES / "catenanes_ordered_tracing_data.pkl", "rb") as file:
+        ordered_tracing_direction_data = pkl.load(file)
+    # Construct TopoStats objects
+    grain_crops = {}
+    for grain_no, grain_data in ordered_tracing_direction_data.items():
+        molecules = {}
+        for mol_no, molecule_data in grain_data.items():
+            # data = ordered_tracing_direction_data[grain_no][key]
+            molecules[mol_no[-1:]] = Molecule(
+                circular=molecule_data["mol_stats"]["circular"],
+                topology=molecule_data["mol_stats"]["topology"],
+                topology_flip=molecule_data["mol_stats"]["topology_flip"],
+                ordered_coords=molecule_data["ordered_coords"],
+                heights=molecule_data["heights"],
+                distances=molecule_data["distances"],
+                bbox=molecule_data["bbox"],
+            )
+        ordered_trace = OrderedTrace(molecule_data=molecules)
+        grain_crops[grain_no[-1:]] = GrainCrop(
+            image=np.zeros_like(image),
+            mask=np.stack([np.zeros_like(image), np.zeros_like(image)], axis=2),
+            padding=1,
+            thresholds=None,
+            pixel_to_nm_scaling=1.0,
+            filename="catenane",
+            ordered_trace=ordered_trace,
+            # This is wrong as it comes from the molecule not the grain but loaded data
+            # doesn't have bbox for the whole grain so we use this and ignore it.
+            bbox=molecule_data["bbox"],  # pylint: disable=undefined-loop-variable
+        )
+    return TopoStats(
+        image=image,
+        filename="catenane",
+        pixel_to_nm_scaling=1.0,
+        grain_crops=grain_crops,
+    )
+
+
+@pytest.fixture()
+def rep_int_splining() -> TopoStats:
+    """Catenane TopoStats object with necessary data for testing splining."""
+    # Load the data
+    image = np.load(TRACING_RESOURCES / "example_rep_int.npy")
+
+    # Load the ordered tracing direction data
+    with Path.open(ORDERED_TRACING_RESOURCES / "rep_int_ordered_tracing_data.pkl", "rb") as file:
+        ordered_tracing_direction_data = pkl.load(file)
+    # Construct TopoStats objects
+    grain_crops = {}
+    for grain_no, grain_data in ordered_tracing_direction_data.items():
+        molecules = {}
+        for mol_no, molecule_data in grain_data.items():
+            # data = ordered_tracing_direction_data[grain_no][key]
+            molecules[mol_no[-1:]] = Molecule(
+                circular=molecule_data["mol_stats"]["circular"],
+                topology=molecule_data["mol_stats"]["topology"],
+                topology_flip=molecule_data["mol_stats"]["topology_flip"],
+                ordered_coords=molecule_data["ordered_coords"],
+                heights=molecule_data["heights"],
+                distances=molecule_data["distances"],
+                bbox=molecule_data["bbox"],
+            )
+        ordered_trace = OrderedTrace(molecule_data=molecules)
+        grain_crops[grain_no[-1:]] = GrainCrop(
+            image=np.zeros_like(image),
+            mask=np.stack([np.zeros_like(image), np.zeros_like(image)], axis=2),
+            padding=1,
+            thresholds=None,
+            pixel_to_nm_scaling=1.0,
+            filename="replication_intermediate",
+            ordered_trace=ordered_trace,
+            # This is wrong as it comes from the molecule not the grain but loaded data
+            # doesn't have bbox for the whole grain so we use this and ignore it.
+            bbox=molecule_data["bbox"],  # pylint: disable=undefined-loop-variable
+        )
+    return TopoStats(
+        image=image,
+        filename="replication_intermediate",
+        pixel_to_nm_scaling=1.0,
+        grain_crops=grain_crops,
+    )
