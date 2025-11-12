@@ -1072,7 +1072,7 @@ class Molecule:
     topology: str | None = None
     topology_flip: Any | None = None
     ordered_coords: npt.NDArray | None = None
-    spline_coords: npt.NDArray | None = None
+    splined_coords: npt.NDArray | None = None
     contour_length: float | None = None
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None

@@ -643,13 +643,13 @@ def splining_image(
                 grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
                 grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
 
-                molecule.spline_coords = splined_data
+                molecule.splined_coords = splined_data
                 molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                 molecule.contour_length = tracing_stats["contour_length"]
 
                 # get individual mol stats
                 all_splines_data[grain_no][mol_no] = {
-                    "spline_coords": splined_data,
+                    "splined_coords": splined_data,
                     "bbox": grain_crop.bbox,
                     "tracing_stats": tracing_stats,
                 }
@@ -709,9 +709,9 @@ def interpolate_between_two_points_distance(
         The new point at the specified distance between the two points.
     """
     distance_between_points = np.linalg.norm(point2 - point1)
-    assert (
-        distance_between_points > distance
-    ), f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
+    assert distance_between_points > distance, (
+        f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
+    )
     proportion = distance / distance_between_points
     return point1 + proportion * (point2 - point1)
 
