@@ -45,7 +45,16 @@ def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
 # pylint: disable=implicit-str-concat
 def test_molecule_str(dummy_molecule: Molecule) -> None:
     """Test the Molecule.__str__() method."""
-    expected = "circular : True\n" "topology : a\n"
+    expected = (
+        "circular : True\n"
+        "topology : a\n"
+        "topology flip : maybe\n"
+        "number of ordered coords : ()\n"
+        "number of spline coords : None\n"
+        "contour length : None\n"
+        "end to end distance : None\n"
+        "bounding box coords : None"
+    )
     assert str(dummy_molecule) == expected
 
 
@@ -54,7 +63,7 @@ def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
     expected = {
         "tracing_stats": dummy_ordered_trace.tracing_stats,
         "grain_molstats": dummy_ordered_trace.grain_molstats,
-        "ordered_trace_data": dummy_ordered_trace.ordered_trace_data,
+        "molecule_data": dummy_ordered_trace.molecule_data,
         "molecules": dummy_ordered_trace.molecules,
         "writhe": dummy_ordered_trace.writhe,
         "pixel_to_nm_scaling": dummy_ordered_trace.pixel_to_nm_scaling,
@@ -69,7 +78,7 @@ def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
     expected = (
         "number of molecules : 2\n"
         "number of images : 4\n"
-        "writhe sign : -\n"
+        "writhe : negative\n"
         "pixel to nm scaling : 1.0\n"
         "error : True"
     )
