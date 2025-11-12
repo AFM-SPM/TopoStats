@@ -1041,10 +1041,11 @@ class OrderedTrace:
         str
             Set of formatted and user-friendly statistics.
         """
+        writhe = {"+": "positive", "-": "negative", "0": "no writhe"}.get(self.writhe)
         return (
             f"number of molecules : {self.molecules}\n"
             f"number of images : {len(self.images)}\n"
-            f"writhe sign : {self.writhe}\n"
+            f"writhe : {writhe}\n"
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
         )
@@ -1087,7 +1088,16 @@ class Molecule:
         str
             Set of formatted and user-friendly statistics.
         """
-        return f"circular : {self.circular}\n" f"topology : {self.topology}\n"
+        return (
+            f"circular : {self.circular}\n"
+            f"topology : {self.topology}\n"
+            f"topology flip : {self.topology_flip}\n"
+            f"number of ordered coords : {self.ordered_coords.shape}\n"
+            f"number of spline coords : {self.spline_coords}\n"
+            f"contour length : {self.contour_length}\n"
+            f"end to end distance : {self.end_to_end_distance}\n"
+            f"bounding box coords : {self.bbox}"
+        )
 
     def molecule_to_dict(self) -> dict[str, Any]:
         """
