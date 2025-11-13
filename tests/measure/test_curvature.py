@@ -149,7 +149,7 @@ def test_calculate_curvature_stats_image() -> None:
     all_grain_smoothed_data: dict = {
         "grain_0": {
             "mol_0": {
-                "spline_coords": np.array(
+                "splined_coords": np.array(
                     [
                         np.array([7.0, 12.0]),
                         np.array([4.375, 14.75]),
@@ -178,13 +178,13 @@ def test_calculate_curvature_stats_image() -> None:
                 "tracing_stats": {"end_to_end_distance": 4.418496527461196e-09},
             },
             "mol_1": {
-                "spline_coords": np.array([np.array([12.0, 5.0]), np.array([11.0, 6.5]), np.array([9.0, 11.0])]),
+                "splined_coords": np.array([np.array([12.0, 5.0]), np.array([11.0, 6.5]), np.array([9.0, 11.0])]),
                 "tracing_stats": {"end_to_end_distance": 1.3255489582383588e-08},
             },
         },
         "grain_1": {
             "mol_0": {
-                "spline_coords": np.array(
+                "splined_coords": np.array(
                     [
                         np.array([3.8, 10.5]),
                         np.array([3.88888889, 11.0]),
@@ -226,7 +226,7 @@ def test_calculate_curvature_stats_image() -> None:
         },
         "grain_2": {
             "mol_0": {
-                "spline_coords": np.array(
+                "splined_coords": np.array(
                     [
                         np.array([4.1, 14.2]),
                         np.array([4.6, 14.9]),

@@ -173,9 +173,9 @@ class GrainCrop:
         """
         return (
             f"filename : {self.filename}\n"
-            f"image shape : {self.image.shape}\n"
-            f"skeleton shape : {self.skeleton.shape}\n"
-            f"mask shape : {self.mask.shape}\n"
+            f"image shape (px) : {self.image.shape}\n"
+            f"skeleton shape (px) : {self.skeleton.shape}\n"
+            f"mask shape (px) : {self.mask.shape}\n"
             f"padding : {self.padding}\n"
             f"thresholds : {self.thresholds}\n"
             f"threshold method : {self.threshold_method}\n"
@@ -1007,6 +1007,8 @@ class OrderedTrace:
 
     molecule_data : dict[int, Molecule]
         Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
+    molecule_data : dict[int, Molecule]
+        Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
     tracing_stats : dict | None
         Tracing statistics.
     grain_molstats : Any | None
@@ -1072,7 +1074,7 @@ class Molecule:
     topology: str | None = None
     topology_flip: Any | None = None
     ordered_coords: npt.NDArray | None = None
-    spline_coords: npt.NDArray | None = None
+    splined_coords: npt.NDArray | None = None
     contour_length: float | None = None
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None
@@ -1093,7 +1095,7 @@ class Molecule:
             f"topology : {self.topology}\n"
             f"topology flip : {self.topology_flip}\n"
             f"number of ordered coords : {self.ordered_coords.shape}\n"
-            f"number of spline coords : {self.spline_coords}\n"
+            f"number of spline coords : {self.splined_coords}\n"
             f"contour length : {self.contour_length}\n"
             f"end to end distance : {self.end_to_end_distance}\n"
             f"bounding box coords : {self.bbox}"

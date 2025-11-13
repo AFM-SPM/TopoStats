@@ -168,7 +168,7 @@ def test_plot_curvatures(tmp_path: Path) -> None:
     all_grain_smoothed_data = {
         "grain_0": {
             "mol_0": {
-                "spline_coords": np.array(
+                "splined_coords": np.array(
                     [
                         [2.5, 2.5],
                         [2.5, 3.5],
@@ -184,7 +184,7 @@ def test_plot_curvatures(tmp_path: Path) -> None:
         },
         "grain_1": {
             "mol_0": {
-                "spline_coords": np.array(
+                "splined_coords": np.array(
                     [
                         [1.5, 1.5],
                         [1.5, 2.5],

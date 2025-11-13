@@ -467,7 +467,7 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
             0: {"circular": False, "topology": "a", "toplogy_flip": False, "processing": "nodestats"},
             1: {"circular": False, "topology": "b", "toplogy_flip": True, "processing": "nodestats"},
         },
-        ordered_trace_data={0: dummy_molecule, 1: dummy_molecule},
+        molecule_data={0: dummy_molecule, 1: dummy_molecule},
         molecules=2,
         writhe="-",
         pixel_to_nm_scaling=1.0,
@@ -489,8 +489,12 @@ def dummy_molecule() -> Molecule:
         topology="a",
         topology_flip="maybe",
         ordered_coords=np.array(4),
+        splined_coords=np.array(4),
+        contour_length=1.023e-7,
+        end_to_end_distance=0.3456e-7,
         heights=np.array(4),
         distances=np.array(4),
+        bbox=(1, 2, 3, 4),
     )
 
 

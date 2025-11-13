@@ -559,8 +559,8 @@ def _(
 @app.cell
 def _(plt, splined_traces):
     plt.plot(
-        splined_traces["grain_0"]["mol_0"]["spline_coords"][:, 0],
-        splined_traces["grain_0"]["mol_0"]["spline_coords"][:, 1],
+        splined_traces["grain_0"]["mol_0"]["splined_coords"][:, 0],
+        splined_traces["grain_0"]["mol_0"]["splined_coords"][:, 1],
     )
     plt.title("Splined trace for grain 0")
     plt.xlabel("X coordinates")

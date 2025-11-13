@@ -76,13 +76,13 @@ def plot_spline_debugging(
     for grain_key_index, grain_key in enumerate(result_all_splines_data.keys()):
         print(f"Grain key: {grain_key}")
         for mol_key_index, mol_key in enumerate(result_all_splines_data[grain_key].keys()):
-            spline_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["spline_coords"]
+            splined_coords: npt.NDArray[np.float32] = result_all_splines_data[grain_key][mol_key]["splined_coords"]
             bbox = result_all_splines_data[grain_key][mol_key]["bbox"]
             bbox_min_col = bbox[0]
             bbox_min_row = bbox[1]
-            previous_point = spline_coords[0]
+            previous_point = splined_coords[0]
             colour = lots_of_colours[mol_key_index + grain_key_index * 3 % len(lots_of_colours)]
-            for point in spline_coords[1:]:
+            for point in splined_coords[1:]:
                 ax.plot(
                     [
                         previous_point[1] / pixel_to_nm_scaling + bbox_min_row,

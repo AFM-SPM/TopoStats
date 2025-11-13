@@ -36,26 +36,33 @@ def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
         "topology": dummy_molecule.topology,
         "topology_flip": dummy_molecule.topology_flip,
         "ordered_coords": dummy_molecule.ordered_coords,
+        "splined_coords": dummy_molecule.splined_coords,
+        "contour_length": dummy_molecule.contour_length,
+        "end_to_end_distance": dummy_molecule.end_to_end_distance,
         "heights": dummy_molecule.heights,
         "distances": dummy_molecule.distances,
+        "bbox": dummy_molecule.bbox,
     }
     assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
 
 
 # pylint: disable=implicit-str-concat
-def test_molecule_str(dummy_molecule: Molecule) -> None:
+def test_molecule_str(dummy_molecule: Molecule, capsys: pytest.CaptureFixture) -> None:
     """Test the Molecule.__str__() method."""
     expected = (
         "circular : True\n"
         "topology : a\n"
         "topology flip : maybe\n"
         "number of ordered coords : ()\n"
-        "number of spline coords : None\n"
-        "contour length : None\n"
-        "end to end distance : None\n"
-        "bounding box coords : None"
+        "number of spline coords : 4\n"
+        "contour length : 1.023e-07\n"
+        "end to end distance : 3.456e-08\n"
+        "bounding box coords : (1, 2, 3, 4)"
     )
     assert str(dummy_molecule) == expected
+    print(dummy_molecule)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
@@ -73,7 +80,7 @@ def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
     assert dict_almost_equal(dummy_ordered_trace.ordered_trace_to_dict(), expected)
 
 
-def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
+def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.CaptureFixture) -> None:
     """Test the OrderedTrace.str() method."""
     expected = (
         "number of molecules : 2\n"
@@ -83,6 +90,9 @@ def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
         "error : True"
     )
     assert str(dummy_ordered_trace) == expected
+    print(dummy_ordered_trace)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 def test_node_to_dict(dummy_node: Node) -> None:
@@ -102,7 +112,7 @@ def test_node_to_dict(dummy_node: Node) -> None:
     assert dict_almost_equal(dummy_node.node_to_dict(), expected)
 
 
-def test_node_str(dummy_node: Node) -> None:
+def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
     """Test the Node.__str__() method."""
     expected = (
         "error : False\n"
@@ -114,6 +124,9 @@ def test_node_str(dummy_node: Node) -> None:
         "reduced node area : 10.987654321"
     )
     assert str(dummy_node) == expected
+    print(dummy_node)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
@@ -123,12 +136,14 @@ def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
         "heights": dummy_matched_branch.heights,
         "distances": dummy_matched_branch.distances,
         "fwhm": dummy_matched_branch.fwhm,
+        "fwhm_half_maxs": dummy_matched_branch.fwhm_half_maxs,
+        "fwhm_peaks": dummy_matched_branch.fwhm_peaks,
         "angles": dummy_matched_branch.angles,
     }
     assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
 
 
-def test_matched_branch_str(dummy_matched_branch: MatchedBranch) -> None:
+def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the MatchedBranch.__str__() method."""
     expected = (
         "number of coords : 4\n"
@@ -138,6 +153,9 @@ def test_matched_branch_str(dummy_matched_branch: MatchedBranch) -> None:
         "angles : 143.163"
     )
     assert str(dummy_matched_branch) == expected
+    print(dummy_matched_branch)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 def test_unmatched_branch_to_dict(dummy_unmatched_branch: UnMatchedBranch) -> None:
@@ -148,10 +166,13 @@ def test_unmatched_branch_to_dict(dummy_unmatched_branch: UnMatchedBranch) -> No
     assert dict_almost_equal(dummy_unmatched_branch.unmatched_branch_to_dict(), expected)
 
 
-def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch) -> None:
+def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the UnMatchedBranch.__str__() method."""
     expected = "angles : [143.163, 69.234, 12.465]"
     assert str(dummy_unmatched_branch) == expected
+    print(dummy_unmatched_branch)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> None:
@@ -166,7 +187,7 @@ def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> No
     assert dict_almost_equal(dummy_disordered_trace.disordered_trace_to_dict(), expected)
 
 
-def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace) -> None:
+def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace, capsys: pytest.CaptureFixture) -> None:
     """Test the DisorderedTrace.__str__() method."""
     expected = (
         "generated images : pruned_skeleton, skeleton, smoothed_mask, branch_indexes, branch_types\n"
@@ -176,6 +197,9 @@ def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace) -> None:
         "mean grain width (nm) : 3.14152"
     )
     assert str(dummy_disordered_trace) == expected
+    print(dummy_disordered_trace)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 @pytest.mark.skip(reason="2025-10-15 - awaiting tests to be written")
@@ -204,13 +228,13 @@ def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
     assert dict_almost_equal(dummy_graincrop.grain_crop_to_dict(), expected)
 
 
-def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
+def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixture) -> None:
     """Test the GrainCrop.__str__() method."""
     expected = (
         "filename : dummy\n"
-        "image shape : (10, 10)\n"
-        "skeleton shape : (10, 10)\n"
-        "mask shape : (10, 10, 2)\n"
+        "image shape (px) : (10, 10)\n"
+        "skeleton shape (px) : (10, 10)\n"
+        "mask shape (px) : (10, 10, 2)\n"
         "padding : 2\n"
         "thresholds : (1, 2)\n"
         "threshold method : None\n"
@@ -219,6 +243,9 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
         "number of nodes : 2"
     )
     assert str(dummy_graincrop) == expected
+    print(dummy_graincrop)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
 
 
 @pytest.mark.parametrize(
@@ -381,6 +408,7 @@ def test_topostats_str(
     image_original: npt.NDArray | None,
     config: str,
     request,
+    capsys: pytest.CaptureFixture,
 ) -> None:
     """Test the TopoStats.__str__ method."""
     topostats_object = request.getfixturevalue(topostats_object)
@@ -397,3 +425,6 @@ def test_topostats_str(
         f"TopoStats version : {topostats_version}"
     )
     assert str(topostats_object) == expected
+    print(topostats_object)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected

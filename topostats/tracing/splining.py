@@ -643,13 +643,13 @@ def splining_image(
                 grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
                 grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
 
-                molecule.spline_coords = splined_data
+                molecule.splined_coords = splined_data
                 molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                 molecule.contour_length = tracing_stats["contour_length"]
 
                 # get individual mol stats
                 all_splines_data[grain_no][mol_no] = {
-                    "spline_coords": splined_data,
+                    "splined_coords": splined_data,
                     "bbox": grain_crop.bbox,
                     "tracing_stats": tracing_stats,
                 }
