@@ -97,7 +97,7 @@ body:
       options:
         - 3.10
         - 3.11
-      default: 2
+      default: 1
     validations:
       required: true
   - type: dropdown
