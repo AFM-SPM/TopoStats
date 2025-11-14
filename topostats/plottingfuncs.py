@@ -381,7 +381,7 @@ class Images:
                         colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
                     )
 
-                    molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
+                    molecule_trace_coords = molecule_data_smoothed_trace["splined_coords"]
                     # pylint cannot see that mpl.cm.viridis is a valid attribute
                     # pylint: disable=no-member
                     cmap = mpl.cm.coolwarm
@@ -466,7 +466,7 @@ class Images:
                 for (_, molecule_data_curvature), (_, molecule_data_smoothed_trace) in zip(
                     grain_data_curvature.items(), grain_data_smoothed_trace.items()
                 ):
-                    molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
+                    molecule_trace_coords = molecule_data_smoothed_trace["splined_coords"]
 
                     # Normalise the curvature values to the colourmap bounds
                     normalised_curvature = np.array(molecule_data_curvature)

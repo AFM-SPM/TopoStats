@@ -157,7 +157,7 @@ def calculate_curvature_stats_image(
         # Iterate over molecules
         grain_curvature_stats[grain_key] = {}
         for molecule_key, molecule_data in grain_data.items():
-            trace_nm = molecule_data["spline_coords"] * pixel_to_nm_scaling
+            trace_nm = molecule_data["splined_coords"] * pixel_to_nm_scaling
             # Check if the molecule is circular or linear
             if molecule_data["tracing_stats"]["end_to_end_distance"] == 0.0:
                 # Molecule is circular

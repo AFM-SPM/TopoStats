@@ -162,6 +162,28 @@ class GrainCrop:
             and self.threshold_method == other.threshold_method
         )
 
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted statistics on matched branches.
+        """
+        return (
+            f"filename : {self.filename}\n"
+            f"image shape (px) : {self.image.shape}\n"
+            f"skeleton shape (px) : {self.skeleton.shape}\n"
+            f"mask shape (px) : {self.mask.shape}\n"
+            f"padding : {self.padding}\n"
+            f"thresholds : {self.thresholds}\n"
+            f"threshold method : {self.threshold_method}\n"
+            f"bounding box coords : {self.bbox}\n"
+            f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
+            f"number of nodes : {len(self.nodes)}"
+        )
+
     @property
     def image(self) -> npt.NDArray[float]:
         """
@@ -678,19 +700,20 @@ class DisorderedTrace:
 
     def __str__(self) -> str:
         """
-        Readable attributes.
+        Representation function for useful statistics for the class.
 
         Returns
         -------
         str
             Set of formatted statistics on matched branches.
         """
+        image_gens = ", ".join(self.images.keys())
         return (
-            f"images : {self.images}\n"
-            f"grain_endpoints : {self.grain_endpoints}\n"
-            f"grain_junctions : {self.grain_junctions}\n"
-            f"total_branch_length : {self.total_branch_length}\n"
-            f"grain_width_mean : {self.grain_width_mean}"
+            f"generated images : {image_gens}\n"
+            f"grain endpoints : {self.grain_endpoints}\n"
+            f"grain junctions : {self.grain_junctions}\n"
+            f"total branch length (nm) : {self.total_branch_length}\n"
+            f"mean grain width (nm) : {self.grain_width_mean}"
         )
 
     def disordered_trace_to_dict(self) -> dict[str, Any]:
@@ -755,6 +778,24 @@ class TopoStats:
         """
         return dict(self.__dict__)
 
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        return (
+            f"number of grain crops : {len(self.grain_crops)}\n"
+            f"filename : {self.filename}\n"
+            f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
+            f"image shape (px) : {self.image.shape}\n"
+            f"image path : {self.img_path}\n"
+            f"TopoStats version : {self.topostats_version}"
+        )
+
     def __eq__(self, other: object) -> bool:
         """
         Check if two ``TopoStats`` objects are equal.
@@ -817,6 +858,23 @@ class MatchedBranch:
     fwhm_peaks: list[float] | None = None
     angles: float | list[float] | None = None
 
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        return (
+            f"number of coords : {self.ordered_coords.shape[0]}\n"
+            f"full width half maximum : {self.fwhm}\n"
+            f"full width half maximum maximums : {self.fwhm_half_maxs}\n"
+            f"full width half maximum peaks : {self.fwhm_peaks}\n"
+            f"angles : {self.angles}"
+        )
+
     def matched_branch_to_dict(self) -> dict[str, Any]:
         """
         Convert ``MatchedBranch`` to dictionary indexed by attributes.
@@ -843,6 +901,17 @@ class UnMatchedBranch:
     """
 
     angles: float | list[float] | None = None
+
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        return f"angles : {self.angles}"
 
     def unmatched_branch_to_dict(self) -> dict[str, Any]:
         """
@@ -873,8 +942,8 @@ class Node:
         Dictionary of branch statistics.
     unmatched_branch_stats : dict[int, UnMatchedBranch]
         Dictionary of unmatched branch statistics.
-    node_coords : dict[str, dict[str, npt.NDArray[np.int32]]]
-        Nested dictionary of node coordinates
+    node_coords : npt.NDArray[np.int32]
+        Numpy array of node coordinates.
     confidence : np.float64
         Confidence in ???.
     reduced_node_area : ???
@@ -898,6 +967,25 @@ class Node:
     node_branch_mask: npt.NDArray[np.int32] | None = None
     node_avg_mask: npt.NDArray[np.int32] | None = None
 
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        return (
+            f"error : {self.error}\n"
+            f"pixel to nm scaling (nm) : {self.pixel_to_nm_scaling}\n"
+            f"number of matched branches : {len(self.branch_stats)}\n"
+            f"number of unmatched branches : {len(self.unmatched_branch_stats)}\n"
+            f"number of coords : {self.node_coords.shape[0]}\n"
+            f"confidence : {self.confidence}\n"
+            f"reduced node area : {self.reduced_node_area}"
+        )
+
     def node_to_dict(self) -> dict[str, Any]:
         """
         Convert ``Node`` to dictionary indexed by attributes.
@@ -917,6 +1005,8 @@ class OrderedTrace:
     """
     Class for Ordered Trace data and attributes.
 
+    molecule_data : dict[int, Molecule]
+        Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
     molecule_data : dict[int, Molecule]
         Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
     tracing_stats : dict | None
@@ -943,6 +1033,24 @@ class OrderedTrace:
     pixel_to_nm_scaling: float | None = None
     images: dict[str, npt.NDArray] | None = None
     error: bool | None = None
+
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        writhe = {"+": "positive", "-": "negative", "0": "no writhe"}.get(self.writhe)
+        return (
+            f"number of molecules : {self.molecules}\n"
+            f"number of images : {len(self.images)}\n"
+            f"writhe : {writhe}\n"
+            f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
+            f"error : {self.error}"
+        )
 
     def ordered_trace_to_dict(self) -> dict[str, Any]:
         """
@@ -972,6 +1080,26 @@ class Molecule:
     heights: npt.NDArray | None = None
     distances: npt.NDArray | None = None
     bbox: tuple[int, int, int, int] | None = None
+
+    def __str__(self) -> str:
+        """
+        Representation function for useful statistics for the class.
+
+        Returns
+        -------
+        str
+            Set of formatted and user-friendly statistics.
+        """
+        return (
+            f"circular : {self.circular}\n"
+            f"topology : {self.topology}\n"
+            f"topology flip : {self.topology_flip}\n"
+            f"number of ordered coords : {self.ordered_coords.shape}\n"
+            f"number of spline coords : {self.splined_coords}\n"
+            f"contour length : {self.contour_length}\n"
+            f"end to end distance : {self.end_to_end_distance}\n"
+            f"bounding box coords : {self.bbox}"
+        )
 
     def molecule_to_dict(self) -> dict[str, Any]:
         """
