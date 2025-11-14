@@ -228,6 +228,7 @@ def test_plot_curvatures(tmp_path: Path) -> None:
     return fig
 
 
+# pylint: disable=too-many-positional-arguments
 @pytest.mark.parametrize(
     ("masked_array", "axes_colorbar", "use_region_properties"),
     [(rng.random((10, 10)), True, None), (None, True, None), (None, False, True)],
@@ -342,8 +343,29 @@ def test_plot_and_save_colorbar_afmhot(load_scan_data: LoadScans, tmp_path: Path
     return fig
 
 
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    ("number_grain_plots", "filename", "title"),
+    [
+        pytest.param(
+            False,
+            "bounding-box-numbered",
+            "bounding boxes unnumbered",
+            id="unnumbered",
+        ),
+        pytest.param(
+            True,
+            "bounding-box-numbered",
+            "bounding boxes numbered",
+            id="numbered",
+        ),
+    ],
+)
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_bounding_box(
+    number_grain_plots: bool,
+    filename: str,
+    title: str,
     minicircle_grain_area_thresholding: Grains,
     minicircle_grain_area_thresholding_regionprops: list[RegionProperties],
     plotting_config: dict,
@@ -351,12 +373,13 @@ def test_plot_and_save_bounding_box(
 ) -> None:
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
+    plotting_config["number_grain_plots"] = number_grain_plots
     fig, _ = Images(
         data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, :, 1],
         output_dir=tmp_path,
-        filename="bounding_box",
+        filename=filename,
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
-        title="bounding boxes",
+        title=title,
         **plotting_config,
         region_properties=minicircle_grain_area_thresholding_regionprops,
     ).plot_and_save()
@@ -379,8 +402,29 @@ def test_plot_and_save_zrange(minicircle_grain_gaussian_filter: Filters, plottin
     return fig
 
 
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    ("number_grain_plots", "filename", "title"),
+    [
+        pytest.param(
+            False,
+            "non-square-bounding-box-unnumbered.png",
+            "test non square bounding box unnumbered",
+            id="unnumbered",
+        ),
+        pytest.param(
+            True,
+            "non-square-bounding-box-numbered.png",
+            "test non square bounding box numbered",
+            id="numbered",
+        ),
+    ],
+)
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
 def test_plot_and_save_non_square_bounding_box(
+    number_grain_plots: bool,
+    filename: str,
+    title: str,
     minicircle_grain_area_thresholding: Grains,
     minicircle_grain_area_thresholding_regionprops: list,
     plotting_config: dict,
@@ -388,12 +432,13 @@ def test_plot_and_save_non_square_bounding_box(
 ) -> None:
     """Test plotting bounding boxes."""
     plotting_config["image_type"] = "binary"
+    plotting_config["number_grain_plots"] = number_grain_plots
     fig, _ = Images(
         data=minicircle_grain_area_thresholding.mask_images["above"]["area_thresholded"][:, 0:512, 1],
         output_dir=tmp_path,
-        filename="non-square-bounding-box.png",
+        filename=filename,
         pixel_to_nm_scaling=minicircle_grain_area_thresholding.pixel_to_nm_scaling,
-        title="test non square bounding box",
+        title=title,
         region_properties=minicircle_grain_area_thresholding_regionprops,
         **plotting_config,
     ).plot_and_save()
