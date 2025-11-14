@@ -5,12 +5,13 @@ import logging
 import numpy as np
 import numpy.typing as npt
 
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
+def angle_diff_signed(v1: npt.NDArray[np.float64], v2: npt.NDArray[np.float64]):
     """
     Calculate the signed angle difference between two point vecrtors in 2D space.
 
@@ -18,9 +19,9 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
 
     Parameters
     ----------
-    v1 : npt.NDArray[np.number]
+    v1 : npt.NDArray[np.float64]
         First vector.
-    v2 : npt.NDArray[np.number]
+    v2 : npt.NDArray[np.float64]
         Second vector.
 
     Returns
@@ -41,19 +42,19 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
 
 
 def discrete_angle_difference_per_nm_circular(
-    trace_nm: npt.NDArray[np.number],
-) -> npt.NDArray[np.number]:
+    trace_nm: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """
     Calculate the discrete angle difference per nm along a trace.
 
     Parameters
     ----------
-    trace_nm : npt.NDArray[np.number]
+    trace_nm : npt.NDArray[np.float64]
         The coordinate trace, in nanometre units.
 
     Returns
     -------
-    npt.NDArray[np.number]
+    npt.NDArray[np.float64]
         The discrete angle difference per nm.
     """
     angles_per_nm = np.zeros(trace_nm.shape[0])
@@ -85,19 +86,19 @@ def discrete_angle_difference_per_nm_circular(
 
 
 def discrete_angle_difference_per_nm_linear(
-    trace_nm: npt.NDArray[np.number],
-) -> npt.NDArray[np.number]:
+    trace_nm: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     """
     Calculate the discrete angle difference per nm along a trace.
 
     Parameters
     ----------
-    trace_nm : npt.NDArray[np.number]
+    trace_nm : npt.NDArray[np.float64]
         The coordinate trace, in nanometre units.
 
     Returns
     -------
-    npt.NDArray[np.number]
+    npt.NDArray[np.float64]
         The discrete angle difference per nm.
     """
     angles_per_nm = np.zeros(trace_nm.shape[0])
@@ -132,42 +133,38 @@ def discrete_angle_difference_per_nm_linear(
 
 
 def calculate_curvature_stats_image(
-    all_grain_smoothed_data: dict,
-    pixel_to_nm_scaling: float,
-) -> dict:
+    topostats_object: TopoStats,
+) -> dict[int, dict[int, npt.NDArray[np.float64]]]:
     """
     Perform curvature analysis for a whole image of grains.
 
     Parameters
     ----------
-    all_grain_smoothed_data : dict
-        Dictionary containing grain traces in pixel units.
-    pixel_to_nm_scaling : float
-        Pixel to nm scaling factor.
+    topostats_object : TopoStats
+        ``TopoStats`` object with attribute ``grain_crop``. Should be post-splining.
 
     Returns
     -------
-    dict
-        The curvature statistics for each grain. Indexes are grain indexes.
+    dict[int, dict[int, npt.NDArray[npfloat64]]]
+        Nested dictionary of curvature statistics for each molecule within each grain. Top-level is indexed by grain and
+        nested dictionaries are indexed by molecule and contain an array of angles.
     """
     grain_curvature_stats: dict = {}
 
     # Iterate over grains
-    for grain_key, grain_data in all_grain_smoothed_data.items():
+    for grain_key, grain_crop in topostats_object.grain_crops.items():
         # Iterate over molecules
         grain_curvature_stats[grain_key] = {}
-        for molecule_key, molecule_data in grain_data.items():
-            trace_nm = molecule_data["splined_coords"] * pixel_to_nm_scaling
+        for molecule_key, molecule_data in grain_crop.ordered_trace.molecule_data.items():
+            trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
             # Check if the molecule is circular or linear
-            if molecule_data["tracing_stats"]["end_to_end_distance"] == 0.0:
+            if molecule_data.end_to_end_distance == 0.0:
                 # Molecule is circular
-                grain_curvature_stats[grain_key][molecule_key] = np.abs(
-                    discrete_angle_difference_per_nm_circular(trace_nm)
-                )
+                curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
             else:
                 # Molecule is linear
-                grain_curvature_stats[grain_key][molecule_key] = np.abs(
-                    discrete_angle_difference_per_nm_linear(trace_nm)
-                )
+                curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
+            molecule_data.curvature_stats = curvature_stats
+            grain_curvature_stats[grain_key][molecule_key] = curvature_stats
 
     return grain_curvature_stats

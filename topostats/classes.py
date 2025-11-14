@@ -1007,8 +1007,6 @@ class OrderedTrace:
 
     molecule_data : dict[int, Molecule]
         Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
-    molecule_data : dict[int, Molecule]
-        Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
     tracing_stats : dict | None
         Tracing statistics.
     grain_molstats : Any | None
@@ -1068,7 +1066,32 @@ class OrderedTrace:
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
 )
 class Molecule:
-    """Class for Molecules identified during ordered tracing."""
+    """
+    Class for Molecules identified during ordered tracing.
+
+    circular : str, bool, optional
+        Whether the molecule is circular or linear.
+    topology : str, optional
+        Unknown?
+    topology_flip : Any, optional
+        Unknown?
+    ordered_coords : npt.NDArray, optional
+        Ordered coordinates for the molecule.
+    splined_coords : npt.NDArray, optional
+        Smoothed (aka splined) coordinates for the molecule.
+    contour_length : float
+        Length of the molecule.
+    end_to_end_distance : float
+        Distance between ends of molecule. Will be ``0.0`` for circular molecules which don't have ends.
+    heights : npt.NDArray
+        Height along molecule.
+    distances : npt.NDArray
+        Distance between points on the molecule.
+    curvature_stats : npt.NDArray, optional
+        Angle changes along molecule. NB - These are always positive due to use of ``np.abs()`` during calculation.
+    bbox : tuple[int, int, int, int], optional
+        Bounding box.
+    """
 
     circular: str | bool | None = None
     topology: str | None = None
@@ -1079,6 +1102,7 @@ class Molecule:
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None
     distances: npt.NDArray | None = None
+    curvature_stats: npt.NDArray | None = None
     bbox: tuple[int, int, int, int] | None = None
 
     def __str__(self) -> str:
