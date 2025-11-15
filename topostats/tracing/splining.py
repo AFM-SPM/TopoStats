@@ -547,7 +547,7 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
 # pylint: disable=too-many-locals
 def splining_image(
     image: npt.NDArray,
-    ordered_tracing_direction_data: dict,
+    ordered_tracing_threshold_data: dict,
     pixel_to_nm_scaling: float,
     filename: str,
     method: str,
@@ -568,7 +568,7 @@ def splining_image(
     ----------
     image : npt.NDArray
         Whole image containing all molecules and grains.
-    ordered_tracing_direction_data : dict
+    ordered_tracing_threshold_data : dict
         Dictionary result from the ordered traces.
     pixel_to_nm_scaling : float
         Scaling factor from pixels to nanometres.
@@ -603,12 +603,12 @@ def splining_image(
     all_splines_data = {}
 
     mol_count = 0
-    for mol_trace_data in ordered_tracing_direction_data.values():
+    for mol_trace_data in ordered_tracing_threshold_data.values():
         mol_count += len(mol_trace_data)
     LOGGER.info(f"[{filename}] : Calculating Splining statistics for {mol_count} molecules...")
 
     # iterate through disordered_tracing_dict
-    for grain_no, ordered_grain_data in ordered_tracing_direction_data.items():
+    for grain_no, ordered_grain_data in ordered_tracing_threshold_data.items():
         grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
         all_splines_data[grain_no] = {}
         mol_no = None
@@ -622,7 +622,7 @@ def splining_image(
                         pixel_to_nm_scaling=pixel_to_nm_scaling,
                         rolling_window_size=rolling_window_size,
                         rolling_window_resampling=rolling_window_resampling,
-                        rolling_window_resample_regular_spatial_interval_nm=rolling_window_resample_regular_spatial_interval,
+                        rolling_window_resample_regular_spatial_interval_nm=rolling_window_resample_regular_spatial_interval,  # pylint: disable=line-too-long
                     ).run_window_trace()
 
                 # if not doing nodestats ordering, do original TS ordering

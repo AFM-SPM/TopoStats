@@ -980,18 +980,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
         # Ruff wants us to use the pipe operator here but it isn't supported by python 3.9
         if isinstance(
             item,
-            (
-                list
-                | str
-                | int
-                | float
-                | np.ndarray
-                | Path
-                | dict
-                | grains.GrainCrop
-                | grains.GrainCropsDirection
-                | grains.ImageGrainCrops
-            ),
+            (list | str | int | float | np.ndarray | Path | dict | grains.GrainCrop),
         ):  # noqa: UP038
             # Lists need to be converted to numpy arrays
             if isinstance(item, list):
@@ -1011,13 +1000,7 @@ def dict_to_hdf5(open_hdf5_file: h5py.File, group_path: str, dictionary: dict) -
             elif isinstance(item, Path):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 open_hdf5_file[group_path + key] = str(item).encode("utf8")
-            # Extract ImageGrainCrops
-            elif isinstance(item, grains.ImageGrainCrops):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.image_grain_crops_to_dict())
-            elif isinstance(item, grains.GrainCropsDirection):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crops_direction_to_dict())
+            # Extract grain crops
             elif isinstance(item, grains.GrainCrop):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
@@ -1067,10 +1050,10 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
 
 
 def save_topostats_file(
-    output_dir: Path, filename: str, topostats_object: grains.ImageGrainCrops, topostats_version: str = __release__
+    output_dir: Path, filename: str, topostats_object: dict[str, any], topostats_version: str = __release__
 ) -> None:
     """
-    Save ''ImageGrainCrops'' object to a ''.topostats'' (hdf5 format) file.
+    Save object to a ''.topostats'' (hdf5 format) file.
 
     Parameters
     ----------
@@ -1101,7 +1084,7 @@ def save_topostats_file(
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
             else:
                 topostats_object["topostats_version"] = topostats_version
-                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
+                dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
 
         else:
             raise ValueError(

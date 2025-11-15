@@ -24,6 +24,7 @@ NODESTATS_RESOURCES = GENERAL_RESOURCES / "tracing" / "nodestats"
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-positional-arguments
 
 
 def test_get_node_stats() -> None:
@@ -972,7 +973,7 @@ def test_nodestats_image(
         result_nodestats_branch_images,
     ) = nodestats_image(
         image=image,
-        disordered_tracing_direction_data=disordered_tracing_crop_data,
+        disordered_tracing_threshold_data=disordered_tracing_crop_data,
         filename="test_image",
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         node_joining_length=node_joining_length,
