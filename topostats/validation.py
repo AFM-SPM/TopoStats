@@ -182,12 +182,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     )
                 ],
             },
-            "direction": Or(
-                "both",
-                "below",
-                "above",
-                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
-            ),
             "remove_edge_intersecting_grains": Or(
                 True,
                 False,
@@ -1114,7 +1108,7 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "module": "disordered_tracing",
         },
-        "smoothed_grain": {
+        "smoothed_mask": {
             "filename": str,
             "title": str,
             "image_type": Or(
