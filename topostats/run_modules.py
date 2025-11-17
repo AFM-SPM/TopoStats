@@ -187,7 +187,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     output_full_stats = config["output_stats"] == "full"
 
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
     # Get a dictionary of all the image data dictionaries.
     # Keys are the image names
