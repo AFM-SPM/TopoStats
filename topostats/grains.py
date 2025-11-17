@@ -84,8 +84,6 @@ class Grains:
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
     area_thresholds : dict[str, list[float | None]]
         Dictionary of above and below grain's area thresholds.
-    direction : str
-        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
@@ -105,7 +103,6 @@ class Grains:
         threshold_std_dev: dict[str, float | list] | None = None,
         threshold_absolute: dict[str, float | list] | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
-        direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -138,8 +135,6 @@ class Grains:
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         area_thresholds : dict[str, list[float | None]]
             Dictionary of above and below grain's area thresholds.
-        direction : str
-            Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
@@ -147,6 +142,7 @@ class Grains:
         vetting : dict | None
             Dictionary of vetting parameters.
         """
+        config = topostats_object.config["grains"]
         if unet_config is None:
             unet_config = {
                 "model_path": None,
@@ -159,34 +155,50 @@ class Grains:
         self.image = topostats_object.image
         self.filename = topostats_object.filename
         self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
-        self.threshold_method = threshold_method
-        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.threshold_method = config["threshold_method"] if threshold_method is None else threshold_method
+        self.otsu_threshold_multiplier = (
+            config["otsu_threshold_multiplier"] if otsu_threshold_multiplier is None else otsu_threshold_multiplier
+        )
         # Ensure thresholds are lists (might not be from passing in CLI args)
-        if threshold_std_dev is None:
-            threshold_std_dev = {"above": [1.0], "below": [10.0]}
-        if not isinstance(threshold_std_dev["above"], list):
-            threshold_std_dev["above"] = [threshold_std_dev["above"]]
-        if not isinstance(threshold_std_dev["below"], list):
-            threshold_std_dev["below"] = [threshold_std_dev["below"]]
-        if threshold_absolute is None:
-            threshold_absolute = {"above": [None], "below": [None]}
-        if not isinstance(threshold_absolute["above"], list):
-            threshold_absolute["above"] = [threshold_absolute["above"]]
-        if not isinstance(threshold_absolute["below"], list):
-            threshold_absolute["below"] = [threshold_absolute["below"]]
-        self.threshold_std_dev = threshold_std_dev
-        self.threshold_absolute = threshold_absolute
-        self.area_thresholds = area_thresholds
-        # Only detect grains for the desired direction
-        assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
-        self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
-        self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
+        self.threshold_std_dev = config["threshold_std_dev"] if threshold_std_dev is None else threshold_std_dev
+
+        def _make_list(x: int | float | list[int | float]) -> list[int | float]:
+            """
+            Ensure item(s) are stored in a list.
+
+            Parameters
+            ----------
+            x : int | float | list[int | float]
+                Item to be converted to a list.
+
+            Returns
+            -------
+            list[int | float]
+                Item as a list.
+            """
+            if not isinstance(x, list):
+                return [x]
+            return x
+
+        self.threshold_std_dev["above"] = _make_list(self.threshold_std_dev["above"])
+        self.threshold_std_dev["below"] = _make_list(self.threshold_std_dev["below"])
+        self.threshold_absolute = config["threshold_absolute"] if threshold_absolute is None else threshold_absolute
+        self.threshold_absolute["above"] = _make_list(self.threshold_absolute["above"])
+        self.threshold_absolute["below"] = _make_list(self.threshold_absolute["below"])
+        self.area_thresholds = config["area_thresholds"] if area_thresholds is None else area_thresholds
+        self.area_thresholds["above"] = _make_list(self.area_thresholds["above"])
+        self.area_thresholds["below"] = _make_list(self.area_thresholds["below"])
+        self.remove_edge_intersecting_grains = (
+            config["remove_edge_intersectin_grains"]
+            if remove_edge_intersecting_grains is None
+            else remove_edge_intersecting_grains
+        )
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.grain_crop_padding = grain_crop_padding
-        self.unet_config = unet_config
-        self.vetting_config = vetting
-        self.classes_to_merge = classes_to_merge
+        self.unet_config = config["unet_config"] if unet_config is None else unet_config
+        self.vetting_config = config["vetting"] if vetting is None else vetting
+        self.classes_to_merge = config["classes_to_merge"] if classes_to_merge is None else classes_to_merge
 
         # Hardcoded minimum pixel size for grains. This should not be able to be changed by the user as this is
         # determined by what is processable by the rest of the pipeline.
@@ -400,12 +412,11 @@ class Grains:
             absolute=self.threshold_absolute,
         )
 
-        for direction in self.threshold_directions:
-            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+        for direction, direction_thresholds in self.thresholds.items():
+            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({direction_thresholds})")
             self.mask_images[direction] = {}
 
             # iterate over the thresholds for the current direction
-            direction_thresholds = self.thresholds[direction]
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=direction_thresholds,

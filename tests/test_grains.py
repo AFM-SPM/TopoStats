@@ -486,7 +486,10 @@ def test_bbox_size_thresholding_tensor(
     ],
 )
 def test_remove_edge_intersecting_grains(
-    grains_config: dict, remove_edge_intersecting_grains: bool, expected_number_of_grains: int
+    grains_config: dict,
+    remove_edge_intersecting_grains: bool,
+    expected_number_of_grains: int,
+    default_config: dict[str, Any],
 ) -> None:
     """Test that Grains successfully does and doesn't remove edge intersecting grains."""
     # Ensure that a sensible number of grains are found
@@ -500,13 +503,13 @@ def test_remove_edge_intersecting_grains(
         filename="minicircle_cropped_flattened",
         pixel_to_nm_scaling=0.4940029296875,
         img_path=Path.cwd(),
+        config=default_config,
     )
     grains = Grains(
         topostats_object=topostats_object,
         **grains_config,
     )
     grains.find_grains()
-    print(f"\n{topostats_object.grain_crops=}\n")
     assert len(topostats_object.grain_crops) == expected_number_of_grains
     # Some basic checks of TopoStats object needs expanding
     assert isinstance(topostats_object, TopoStats)
@@ -517,15 +520,12 @@ def test_remove_edge_intersecting_grains(
 
 @pytest.mark.parametrize(
     (
-        # "image",
-        # "pixel_to_nm_scaling",
         "topostats_object",
         "threshold_method",
         "otsu_threshold_multiplier",
         "threshold_std_dev",
         "threshold_absolute",
         "area_thresholds",
-        "direction",
         "remove_edge_intersecting_grains",
         "expected_graincrops",
     ),
@@ -602,7 +602,6 @@ def test_remove_edge_intersecting_grains(
             None,
             {"above": [0.9, 2.5], "below": [0.0]},
             {"above": [1, 10000000], "below": [1, 10000000]},
-            "above",
             True,
             {
                 0: GrainCrop(
@@ -889,12 +888,14 @@ def test_find_grains(
     threshold_std_dev: dict,
     threshold_absolute: dict,
     area_thresholds: dict,
-    direction: str,
     remove_edge_intersecting_grains: bool,
     expected_graincrops: dict[int, GrainCrop],
+    default_config: dict[str, Any],
 ) -> None:
     """Test the find_grains method of the Grains class without unet."""
-    # Initialise the grains object
+    # Add config to topostats_object
+    topostats_object.config = default_config
+    # Initialise the grains objecta
     grains_object = Grains(
         topostats_object=topostats_object,
         unet_config=None,
@@ -903,7 +904,6 @@ def test_find_grains(
         threshold_std_dev=threshold_std_dev,
         threshold_absolute=threshold_absolute,
         area_thresholds=area_thresholds,
-        direction=direction,
         remove_edge_intersecting_grains=remove_edge_intersecting_grains,
     )
 
@@ -1101,11 +1101,13 @@ def test_find_grains_unet(
     mock_model_5_by_5_single_class: MagicMock,
     topostats_object: TopoStats,
     expected_graincrops: dict[int, GrainCrop],
+    default_config: dict[str, Any],
 ) -> None:
     """Test the find_grains method of the Grains class with a unet model."""
     with patch("keras.models.load_model") as mock_load_model:
         mock_load_model.return_value = mock_model_5_by_5_single_class
         # Initialise the grains object
+        topostats_object.config = default_config
         grains_object = Grains(
             topostats_object=topostats_object,
             unet_config={
@@ -1120,7 +1122,6 @@ def test_find_grains_unet(
             threshold_method="absolute",
             threshold_absolute={"above": 0.9, "below": 0.0},
             area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
-            direction="above",
             remove_edge_intersecting_grains=True,
         )
         # Override grains' minimum grain size just for this test to allow for small grains in the test image
@@ -1135,7 +1136,7 @@ def test_find_grains_unet(
         assert topostats_object.grain_crops == expected_graincrops
 
 
-def test_find_grains_no_grains_found():
+def test_find_grains_no_grains_found(default_config: dict[str, Any]):
     """Test the find_grains method of the Grains class when no grains are found."""
     # Image
     topostats_object = TopoStats(
@@ -1151,6 +1152,7 @@ def test_find_grains_no_grains_found():
         filename="test_image",
         pixel_to_nm_scaling=1.0,
         img_path=Path.cwd(),
+        config=default_config,
     )
     # Initialise the grains object
     grains_object = Grains(
@@ -1159,7 +1161,6 @@ def test_find_grains_no_grains_found():
         threshold_method="absolute",
         threshold_absolute={"above": 0.9, "below": 0.0},
         area_thresholds={"above": [1, 10000000], "below": [1, 10000000]},
-        direction="above",
         remove_edge_intersecting_grains=True,
     )
 
