@@ -371,7 +371,7 @@ def filters(args: argparse.Namespace | None = None) -> None:
     # If loading existing .topostats files the images need filtering again so we need to extract the raw image
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "raw"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
 
     processing_function = partial(
@@ -419,7 +419,7 @@ def grains(args: argparse.Namespace | None = None) -> None:
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "grains"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
 
     processing_function = partial(
@@ -466,7 +466,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "grainstats"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
     processing_function = partial(
         process_grainstats,

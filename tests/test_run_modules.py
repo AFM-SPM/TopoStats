@@ -7,7 +7,9 @@ import pandas as pd
 import pytest
 from AFMReader import topostats
 
+from topostats.classes import GrainCrop, TopoStats
 from topostats.entry_point import entry_point
+from topostats.io import dict_to_topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.run_modules import _set_logging
 
@@ -87,7 +89,7 @@ def test_run_topostats_process_debug(caplog) -> None:
 
 
 @pytest.mark.parametrize(
-    ("expected_keys"),
+    ("attributes"),
     [
         pytest.param(
             [
@@ -96,14 +98,15 @@ def test_run_topostats_process_debug(caplog) -> None:
                 "image_original",
                 "img_path",
                 "pixel_to_nm_scaling",
-                "topostats_file_version",
+                "config",
+                "grain_crops",
+                "topostats_version",
             ],
             id="file_version <= 2.3",
         ),
-        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
     ],
 )
-def test_filters(caplog, expected_keys: dict) -> None:
+def test_filters(attributes: dict, caplog) -> None:
     """Test running the filters module.
 
     We use the command line entry point to test that _just_ filters runs.
@@ -122,35 +125,40 @@ def test_filters(caplog, expected_keys: dict) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
-    # Load the output and check the keys
+    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
     data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == expected_keys
+    assert isinstance(data, dict)
+    topostats_object = dict_to_topostats(dictionary=data)
+    assert isinstance(topostats_object, TopoStats)
+    for attribute in attributes:
+        assert hasattr(topostats_object, attribute)
 
 
 @pytest.mark.parametrize(
-    ("expected_keys"),
+    ("attributes"),
     [
         pytest.param(
             [
+                "config",
                 "filename",
-                "grain_tensors",
+                "full_mask_tensor",
+                "grain_crops",
                 "image",
                 "image_original",
                 "img_path",
                 "pixel_to_nm_scaling",
-                "topostats_file_version",
+                "topostats_version",
             ],
-            id="file_version <= 2.3",
+            id="running grains",
         ),
-        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
     ],
 )
-def test_grains(caplog, expected_keys: dict) -> None:
+def test_grains(attributes: dict, caplog) -> None:
     """Test running the grains module.
 
     We use the command line entry point to test that _just_ grains runs.
     """
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG)
     entry_point(
         manually_provided_args=[
             "--config",
@@ -164,9 +172,15 @@ def test_grains(caplog, expected_keys: dict) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output and check the keys
+    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
     data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == expected_keys
+    assert isinstance(data, dict)
+    topostats_object = dict_to_topostats(dictionary=data)
+    assert isinstance(topostats_object, TopoStats)
+    for attribute in attributes:
+        assert hasattr(topostats_object, attribute)
+    for _, grain_crop in topostats_object.grain_crops.items():
+        assert isinstance(grain_crop, GrainCrop)
 
 
 @pytest.mark.xfail(reason="Awaiting update of AFMReader to reconstruct `image_grain_crops` with correct classes")
