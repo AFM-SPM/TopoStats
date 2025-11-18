@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
@@ -183,6 +185,35 @@ class GrainCrop:
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"number of nodes : {len(self.nodes)}"
         )
+
+    # Unfinished - currently only uses Node class names rather than including their content
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        node_names = {k: v.__class__.__name__ for k, v in self.nodes.items()}
+        data = {
+            "padding": self.padding,
+            "image": self.image,
+            "mask": self.mask,
+            "bbox": self.bbox,
+            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "thresholds": self.thresholds,
+            "threshold_method": self.threshold_method,
+            "filename": self.filename,
+            "height_profiles": self.height_profiles,
+            "stats": self.stats,
+            "skeleton": self.skeleton,
+            "disordered_trace": self.disordered_trace.__class__.__name__,
+            "nodes": node_names,
+            "ordered_trace": self.ordered_trace.__class__.__name__,
+        }
+        return pd.DataFrame([data])
 
     @property
     def image(self) -> npt.NDArray[float]:
@@ -716,6 +747,24 @@ class DisorderedTrace:
             f"mean grain width (nm) : {self.grain_width_mean}"
         )
 
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        data = {
+            "images": self.images,
+            "grain_endpoints": self.grain_endpoints,
+            "grain_junctions": self.grain_junctions,
+            "total_branch_length": self.total_branch_length,
+            "grain_width_mean": self.grain_width_mean,
+        }
+        return pd.DataFrame([data])
+
     def disordered_trace_to_dict(self) -> dict[str, Any]:
         """
         Convert DisorderedTrace to dictionary indexed by attributes.
@@ -824,6 +873,30 @@ class TopoStats:
             and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
         )
 
+    # Unfinished - currently only uses GrainCrop class names rather than including their content
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        graincrop_names = {k: v.__class__.__name__ for k, v in self.grain_crops.items()}
+        data = {
+            "grain_crops": graincrop_names,
+            "filename": self.filename,
+            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "img_path": self.img_path,
+            "image": self.image,
+            "image_original": self.image_original,
+            "full_mask_tensor": self.full_mask_tensor,
+            "topostats_version": self.topostats_version,
+            "config": json.dumps(self.config, indent=2, sort_keys=True),
+        }
+        return pd.DataFrame([data])
+
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -875,6 +948,26 @@ class MatchedBranch:
             f"angles : {self.angles}"
         )
 
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        data = {
+            "ordered_coords": self.ordered_coords,
+            "heights": self.heights,
+            "distances": self.distances,
+            "fwhm": self.fwhm,
+            "fwhm_half_maxs": self.fwhm_half_maxs,
+            "fwhm_peaks": self.fwhm_peaks,
+            "angles": self.angles,
+        }
+        return pd.DataFrame([data])
+
     def matched_branch_to_dict(self) -> dict[str, Any]:
         """
         Convert ``MatchedBranch`` to dictionary indexed by attributes.
@@ -912,6 +1005,18 @@ class UnMatchedBranch:
             Set of formatted and user-friendly statistics.
         """
         return f"angles : {self.angles}"
+
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        data = {"angles": self.angles}
+        return pd.DataFrame([data])
 
     def unmatched_branch_to_dict(self) -> dict[str, Any]:
         """
@@ -986,6 +1091,29 @@ class Node:
             f"reduced node area : {self.reduced_node_area}"
         )
 
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        data = {
+            "error": self.error,
+            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "branch_stats": self.branch_stats,
+            "unmatched_branch_stats": self.unmatched_branch_stats,
+            "node_coords": self.node_coords,
+            "confidence": self.confidence,
+            "reduced_node_area": self.reduced_node_area,
+            "node_area_skeleton": self.node_area_skeleton,
+            "node_branch_mask": self.node_branch_mask,
+            "node_avg_mask": self.node_avg_mask,
+        }
+        return pd.DataFrame([data])
+
     def node_to_dict(self) -> dict[str, Any]:
         """
         Convert ``Node`` to dictionary indexed by attributes.
@@ -1052,6 +1180,29 @@ class OrderedTrace:
             f"error : {self.error}"
         )
 
+    # Unfinished - currently only uses Molecule class names rather than including their content
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        molecule_names = {k: v.__class__.__name__ for k, v in self.molecule_data.items()}
+        data = {
+            "molecule_data": molecule_names,
+            "tracing_stats": self.tracing_stats,
+            "grain_molstats": self.grain_molstats,
+            "molecules": self.molecules,
+            "writhe": self.writhe,
+            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            "images": self.images,
+            "error": self.error,
+        }
+        return pd.DataFrame([data])
+
     def ordered_trace_to_dict(self) -> dict[str, Any]:
         """
         Convert ``OrderedTrace`` to dictionary indexed by attributes.
@@ -1100,6 +1251,29 @@ class Molecule:
             f"end to end distance : {self.end_to_end_distance}\n"
             f"bounding box coords : {self.bbox}"
         )
+
+    def stats_to_df(self) -> pd.DataFrame:
+        """
+        Convert class attributes to a pandas dataframe.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of the classes attributes and their data.
+        """
+        data = {
+            "circular": self.circular,
+            "topology": self.topology,
+            "topology_flip": self.topology_flip,
+            "ordered_coords": self.ordered_coords,
+            "splined_coords": self.splined_coords,
+            "contour_length": self.contour_length,
+            "end_to_end_distance": self.end_to_end_distance,
+            "heights": self.heights,
+            "distances": self.distances,
+            "bbox": self.bbox,
+        }
+        return pd.DataFrame([data])
 
     def molecule_to_dict(self) -> dict[str, Any]:
         """
