@@ -15,12 +15,12 @@ import h5py
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats
+from AFMReader import asd, gwy, ibw, jpk, spm, stp, top, topostats  # pylint: disable=no-name-in-module
 from numpyencoder import NumpyEncoder
 from packaging.version import parse as parse_version
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT, __release__, grains
+from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, __version__
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
@@ -670,41 +670,24 @@ class LoadScans:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
 
-    def load_topostats(self, extract: str = "all") -> dict[str, Any] | tuple[npt.NDArray, float, Any]:
+    def load_topostats(self) -> dict[str, Any]:
         """
-        Load a .topostats file (hdf5 format).
+        Load a ``.topostats`` file (hdf5 format) using AFMReader.
 
-        Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.
-
-        Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for
-        all other file loading functions.
-
-        Parameters
-        ----------
-        extract : str
-            String of which image (Numpy array) and data to extract, default is 'all' which returns the cleaned
-            (post-Filter) image, `pixel_to_nm_scaling` and all `data`. It is possible to extract image arrays for other
-            stages of processing such as `raw` or 'filter'.
+        AFMReader is general and returns the data as a dictionary. This is converted to ``TopoStasts`` class later when
+        building dictionaries of images.
 
         Returns
         -------
-        dict[str, Any] | tuple[npt.NDArray, float, Any]
-            A dictionary of all previously processed data or tuple containing the image and its pixel to nanometre
-            scaling value. This is contingent on the ''extract'' option.
+        dict[str, Any]
+            A dictionary of all previously processed data and configuration options.
         """
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            data = topostats.load_topostats(self.img_path)
+            return topostats.load_topostats(self.img_path)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
-        # We want everything if performing any step beyond filtering (or explicitly ask for None/"all")
-        if extract in [None, "all", "grains", "grainstats"]:
-            return data
-        # Otherwise we are re-running filtering we want the raw/image_original and scaling
-        return (data["image_original"], data["pixel_to_nm_scaling"])
-        # @ns-rse 2025-10-03 - switch to returning a topostats object and update tests
-        # return dict_to_topostats(data)
 
     def load_asd(self) -> tuple[npt.NDArray, float]:
         """
@@ -832,15 +815,10 @@ class LoadScans:
             if suffix in suffix_to_loader:
                 data = None
                 try:
-                    if suffix == ".topostats" and self.extract in (None, "all", "grains", "grainstats"):
-                        data = self.load_topostats(extract=self.extract)
-                        self.image = data["image"]
+                    if suffix == ".topostats":
+                        data = suffix_to_loader[suffix]()
+                        self.image = data["image_original"]
                         self.pixel_to_nm_scaling = data["pixel_to_nm_scaling"]
-                        # If we need the grain masks for processing we extract them
-                        if self.extract in ("grainstats"):
-                            self.grain_masks = data["grain_masks"]
-                    elif suffix == ".topostats" and self.extract in ("filter", "raw"):
-                        self.image, self.pixel_to_nm_scaling = self.load_topostats(extract=self.extract)
                     else:
                         self.image, self.pixel_to_nm_scaling = suffix_to_loader[suffix]()
                 except Exception as e:
@@ -853,11 +831,13 @@ class LoadScans:
                     if suffix == ".asd":
                         for index, frame in enumerate(self.image):
                             self._check_image_size_and_add_to_dict(image=frame, filename=f"{self.filename}_{index}")
-                    # If we have extracted the image dictionary (only possible with .topostats files) we add that to the
-                    # dictionary
-                    elif data is not None:
-                        data["img_path"] = img_path.with_suffix("")
-                        self.img_dict[self.filename] = self.clean_dict(img_dict=data)
+                    # If we are loading a .topostats we don't check image size, but instead update config, version and
+                    # img_path to the current values and add directly to dictionary
+                    elif suffix == ".topostats":
+                        data["img_path"] = self.img_path
+                        data["config"] = self.config
+                        data["topostats_version"] = __version__
+                        self.img_dict[self.filename] = dict_to_topostats(dictionary=data)
                     # Otherwise check the size and add image to dictionary
                     else:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
@@ -915,7 +895,7 @@ class LoadScans:
             grain_crops=None,
             filename=filename,
             pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-            topostats_version=__release__,
+            topostats_version=__version__,
             img_path=self.img_path.with_name(filename),
             image=None,
             image_original=image,
@@ -989,8 +969,7 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
         A dictionary of the data to save.
     """
     for key, item in dictionary.items():
-        # LOGGER.info(f"Saving key: {key}")
-
+        LOGGER.debug(f"Saving key: {key}")
         if item is None:
             LOGGER.debug(f"Item '{key}' is None. Skipping.")
         # Make sure the key is a string
@@ -1203,6 +1182,12 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         grain_crops = None
     full_mask_tensor = dictionary["full_mask_tensor"] if "full_mask_tensor" in dictionary.keys() else None
     config = dictionary["config"] if "config" in dictionary.keys() else None
+    # We have to handle old (topostats_file_version) and new (topostats_version) keys and make sure they are str
+    topostats_version = (
+        str(dictionary["topostats_file_version"])
+        if "topostats_file_version" in dictionary.keys()
+        else str(dictionary["topostats_version"])
+    )
     return TopoStats(
         grain_crops=grain_crops,
         filename=dictionary["filename"],
@@ -1210,7 +1195,7 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         img_path=dictionary["img_path"],
         image=dictionary["image"],
         image_original=dictionary["image_original"],
-        topostats_version=dictionary["topostats_version"],
+        topostats_version=str(topostats_version),
         full_mask_tensor=full_mask_tensor,
         config=config,
     )
