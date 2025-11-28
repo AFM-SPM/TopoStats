@@ -12,7 +12,7 @@ contingent on the types of samples being imaged. Here we describe how to add you
 
 ## Core Features
 
-All AFM images need to be filtered flattened and optionally have scars removed. This is core functionality carried out
+All AFM images need to be filtered, flattened and optionally have scars removed. This is core functionality carried out
 by the `topostats.filters` module and will be required by all packages that are developed to extend TopoStats.
 
 ## Entry Points
