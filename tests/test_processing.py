@@ -34,140 +34,11 @@ RESOURCES = BASE_DIR / "tests/resources"
 # pylint: disable=too-many-positional-arguments
 
 
-# Can't see a way of parameterising with pytest-regtest as it writes to a file based on the file/function
-# so instead we run three regression tests.
-def test_process_scan_below(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
-    """Regression test for checking the process_scan functions correctly."""
-    # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = [0.8]
-    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
-    process_scan_config["grains"]["direction"] = "below"
-    # Make sure the pruning won't remove our only grain
-    process_scan_config["disordered_tracing"]["pruning_params"]["max_length"] = None
-    img_dic = load_scan_data.img_dict
-    _, results, _, img_stats, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        curvature_config=process_scan_config["curvature"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-    # Remove the basename column as this differs on CI
-    results.drop(["basename"], axis=1, inplace=True)
-    print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-
-
-def test_process_scan_below_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
-    """Regression test for checking the process_scan functions correctly."""
-    # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
-    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
-
-    process_scan_config["grains"]["direction"] = "below"
-    img_dic = load_scan_data.img_dict
-    _, _, height_profiles, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        curvature_config=process_scan_config["curvature"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-
-    # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "wb") as f:
-    #     pickle.dump(height_profiles, f)
-
-    # Load expected height profiles dictionary from pickle
-    # pylint wants an encoding but binary mode doesn't use one
-    # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_below_height_profiles.pkl", "rb") as f:
-        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
-
-    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
-
-
-def test_process_scan_above(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
-    """Regression test for checking the process_scan functions correctly."""
-    # Ensure there are below grains
-    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
-
-    img_dic = load_scan_data.img_dict
-    _, results, _, img_stats, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        curvature_config=process_scan_config["curvature"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-    # Remove the Basename column as this differs on CI
-    results.drop(["basename"], axis=1, inplace=True)
-    print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-
-
-def test_process_scan_above_height_profiles(tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
-    """Regression test for checking the process_scan functions correctly."""
-    # Ensure there are below grains
-    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
-
-    img_dic = load_scan_data.img_dict
-    _, _, height_profiles, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
-        base_dir=BASE_DIR,
-        filter_config=process_scan_config["filter"],
-        grains_config=process_scan_config["grains"],
-        grainstats_config=process_scan_config["grainstats"],
-        disordered_tracing_config=process_scan_config["disordered_tracing"],
-        nodestats_config=process_scan_config["nodestats"],
-        ordered_tracing_config=process_scan_config["ordered_tracing"],
-        splining_config=process_scan_config["splining"],
-        curvature_config=process_scan_config["curvature"],
-        plotting_config=process_scan_config["plotting"],
-        output_dir=tmp_path,
-    )
-
-    # Save height profiles dictionary to pickle
-    # with open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "wb") as f:
-    #     pickle.dump(height_profiles, f)
-
-    # Load expected height profiles dictionary from pickle
-    # pylint wants an encoding but binary mode doesn't use one
-    # pylint: disable=unspecified-encoding
-    with Path.open(RESOURCES / "process_scan_expected_above_height_profiles.pkl", "rb") as f:
-        expected_height_profiles = pickle.load(f)  # noqa: S301 - Pickles are unsafe but we don't care
-
-    assert dict_almost_equal(height_profiles, expected_height_profiles, abs_tol=1e-11)
-
-
 def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_scan_data: LoadScans) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
-
-    process_scan_config["grains"]["direction"] = "both"
     img_dic = load_scan_data.img_dict
     _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -185,6 +56,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     )
     # Remove the Basename column as this differs on CI
     results.drop(["basename"], axis=1, inplace=True)
+    # ns-rse 2025-11-16 : Switch to syrupy
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
     print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
@@ -207,6 +79,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     # Check the data (we pop the file version as we are interested in comparing the underlying data)
     expected_topostats.pop("topostats_file_version")
     saved_topostats.pop("topostats_file_version")
+    # ns-rse 2025-11-16 : Switch to syrupy
     assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
 
 
@@ -477,6 +350,8 @@ def test_image_set(
         assert Path.exists(tmp_path / "tests/resources/test_image/processed/" / img_path) == expected_image[key]
 
 
+# ns-rse 2025-11-26 : This seems a lot just to check files are output with the correct extension, I wonder if we could
+# check this as part of another test?
 @pytest.mark.parametrize("extension", [("png"), ("tif")])
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images."""
