@@ -8,7 +8,6 @@ import numpy.typing as npt
 import pandas as pd
 import skan
 from scipy import ndimage
-from skimage import filters
 from skimage.morphology import label
 
 from topostats.grains import GrainCrop
@@ -16,6 +15,7 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
+from topostats.mask_manipulation import smooth_mask
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -116,7 +116,12 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
 
     def trace_dna(self):
         """Perform the DNA skeletonisation and cleaning pipeline."""
-        self.smoothed_mask = self.smooth_mask(self.mask, **self.mask_smoothing_params)
+        self.smoothed_mask = smooth_mask(
+            filename=self.filename,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            grain=self.mask,
+            **self.mask_smoothing_params,
+        )
         if check_pixel_touching_edge(self.smoothed_mask):
             LOGGER.warning(
                 f"[{self.filename}] : Grain {self.n_grain} skipped as padding is too small. Please consider "
@@ -143,61 +148,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             LOGGER.warning(f"[{self.filename}] : Grain {self.n_grain} skeleton < {self.min_skeleton_size}, skipping.")
             self.disordered_trace = None
 
-    def re_add_holes(
-        self,
-        orig_mask: npt.NDArray,
-        smoothed_mask: npt.NDArray,
-        holearea_min_max: tuple[float | int | None] = (2, None),
-    ) -> npt.NDArray:
-        """
-        Restore holes in masks that were occluded by dilation.
-
-        As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
-        (based on the general background being the first due to padding) and adds them back into the smoothed mask. When
-        paired with ``smooth_mask``, this essentially just smooths the outer edge of the mask.
-
-        Parameters
-        ----------
-        orig_mask : npt.NDArray
-            Original mask.
-        smoothed_mask : npt.NDArray
-            Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important
-            holes in the mask.
-        holearea_min_max : tuple[float | int | None]
-            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
-            mask.
-
-        Returns
-        -------
-        npt.NDArray
-            Smoothed mask with holes restored.
-        """
-        # handle none's
-        if set(holearea_min_max) == {None}:
-            return smoothed_mask
-        if None in holearea_min_max:
-            none_index = holearea_min_max.index(None)
-            holearea_min_max[none_index] = 0 if none_index == 0 else np.inf
-
-        # obtain px holesizes
-        holesize_min_px = holearea_min_max[0] / ((self.pixel_to_nm_scaling) ** 2)
-        holesize_max_px = holearea_min_max[1] / ((self.pixel_to_nm_scaling) ** 2)
-
-        # obtain a hole mask
-        holes = 1 - orig_mask
-        holes = label(holes)
-        hole_sizes = [holes[holes == i].size for i in range(1, holes.max() + 1)]
-        holes[holes == 1] = 0  # set background to 0 assuming it is the first hole seen (from top left)
-
-        # remove too small or too big holes from mask
-        for i, hole_size in enumerate(hole_sizes):
-            if hole_size < holesize_min_px or hole_size > holesize_max_px:  # small holes may be fake are left out
-                holes[holes == i + 1] = 0
-        holes[holes != 0] = 1  # set correct sixe holes to 1
-
-        # replace correct sized holes
-        return np.where(holes == 1, 0, smoothed_mask)
-
     @staticmethod
     def remove_touching_edge(skeleton: npt.NDArray) -> npt.NDArray:
         """
@@ -218,64 +168,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
             for i in uniques:
                 skeleton[skeleton == i] = 0
         return skeleton
-
-    def smooth_mask(
-        self,
-        grain: npt.NDArray,
-        dilation_iterations: int = 2,
-        gaussian_sigma: float | int = 2,
-        holearea_min_max: tuple[int | float | None] = (0, None),
-    ) -> npt.NDArray:
-        """
-        Smooth a grain mask based on the lower number of binary pixels added from dilation or gaussian.
-
-        This method ensures gaussian smoothing isn't too aggressive and covers / creates gaps in the mask.
-
-        Parameters
-        ----------
-        grain : npt.NDArray
-            Numpy array of the grain mask.
-        dilation_iterations : int
-            Number of times to dilate the grain to smooth it. Default is 2.
-        gaussian_sigma : float | None
-            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to 2.
-        holearea_min_max : tuple[float | int | None]
-            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
-            mask.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of smoothed image.
-        """
-        # Option to disable the smoothing (i.e. U-Net masks are already smooth)
-        if dilation_iterations is None and gaussian_sigma is None:
-            LOGGER.debug(f"[{self.filename}] : no grain smoothing done")
-            return grain
-
-        # Option to only do gaussian or dilation
-        if dilation_iterations is not None:
-            dilation = ndimage.binary_dilation(grain, iterations=dilation_iterations).astype(np.int32)
-        else:
-            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
-            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
-            gauss = gauss.astype(np.int32)
-            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
-            return self.re_add_holes(grain, gauss, holearea_min_max)
-        if gaussian_sigma is not None:
-            gauss = filters.gaussian(grain, sigma=gaussian_sigma)
-            gauss = np.where(gauss > filters.threshold_otsu(gauss) * 1.3, 1, 0)
-            gauss = gauss.astype(np.int32)
-        else:
-            LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
-            return self.re_add_holes(grain, dilation, holearea_min_max)
-
-        # Competition option between dilation and gaussian mask differences wrt original grains
-        if abs(dilation.sum() - grain.sum()) > abs(gauss.sum() - grain.sum()):
-            LOGGER.debug(f"[{self.filename}] : smoothing done by gaussian {gaussian_sigma}")
-            return self.re_add_holes(grain, gauss, holearea_min_max)
-        LOGGER.debug(f"[{self.filename}] : smoothing done by dilation {dilation_iterations}")
-        return self.re_add_holes(grain, dilation, holearea_min_max)
 
     @staticmethod
     def calculate_dna_width(
