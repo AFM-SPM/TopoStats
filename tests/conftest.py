@@ -411,6 +411,18 @@ def dummy_disordered_trace() -> DisorderedTrace:
         grain_junctions=3,
         total_branch_length=12.3456789,
         grain_width_mean=3.14152,
+        stats_dict={
+            0: {
+                "branch_distance": 49.2719092002369,
+                "branch_type": 2,
+                "connected_segments": [1, 1],
+                "mean_pixel_value": 2.566088,
+                "stdev_pixel_value": 0.378776,
+                "min_value": 1.406506,
+                "median_value": 2.61922,
+                "middle_value": 2.652181,
+            }
+        },
     )
 
 
@@ -430,9 +442,9 @@ def dummy_node(dummy_matched_branch: MatchedBranch, dummy_unmatched_branch) -> N
         confidence=0.987654,
         reduced_node_area=10.987654321,
         # ns-rse 2025-10-07 Need to know what these attributes look like
-        node_area_skeleton=np.ndarray(5),
-        node_branch_mask=np.ndarray(6),
-        node_avg_mask=np.ndarray(7),
+        node_area_skeleton=np.zeros(5),
+        node_branch_mask=np.zeros(6),
+        node_avg_mask=np.zeros(7),
     )
 
 
@@ -485,7 +497,10 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
 def dummy_molecule() -> Molecule:
     """Dummy Molecule for testing."""
     return Molecule(
+        threshold="above",
+        molecule_number=0,
         circular=True,
+        processing="topostats",
         topology="a",
         topology_flip="maybe",
         ordered_coords=np.array(4),
@@ -506,7 +521,8 @@ def dummy_graincrop(
     dummy_ordered_trace: OrderedTrace,
 ) -> GrainCrop:
     """Dummy GrainCrop object for testing."""
-    image = RNG.random(size=(10, 10)).astype(np.float32)
+    rng = np.random.default_rng(seed=1000)
+    image = rng.random(size=(10, 10)).astype(np.float32)
     mask = np.stack(
         arrays=[
             np.array(
@@ -541,6 +557,8 @@ def dummy_graincrop(
         axis=-1,
     )
     return GrainCrop(
+        threshold="above",
+        grain_number=0,
         image=image,
         mask=mask,
         padding=2,
@@ -570,11 +588,18 @@ def image_catenanes() -> npt.NDArray:
 
 
 @pytest.fixture()
-def graincrop_catenanes_0() -> GrainCrop:
+def graincrop_catenanes_0(
+    dummy_skeleton: npt.NDArray,
+    dummy_disordered_trace: DisorderedTrace,
+    dummy_node: Node,
+    dummy_ordered_trace: OrderedTrace,
+) -> GrainCrop:
     """Catenanes GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_0.npy")
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_0.npy")
     return GrainCrop(
+        threshold="above",
+        grain_number=0,
         image=image,
         mask=mask,
         padding=1,
@@ -582,15 +607,28 @@ def graincrop_catenanes_0() -> GrainCrop:
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
         filename="example_catenanes",
+        stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
+        height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
+        skeleton=dummy_skeleton,
+        disordered_trace=dummy_disordered_trace,
+        nodes={0: dummy_node, 1: dummy_node},
+        ordered_trace=dummy_ordered_trace,
     )
 
 
 @pytest.fixture()
-def graincrop_catenanes_1() -> GrainCrop:
+def graincrop_catenanes_1(
+    dummy_skeleton: npt.NDArray,
+    dummy_disordered_trace: DisorderedTrace,
+    dummy_node: Node,
+    dummy_ordered_trace: OrderedTrace,
+) -> GrainCrop:
     """Catenane GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_catenanes_image_1.npy")
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_1.npy")
     return GrainCrop(
+        threshold="above",
+        grain_number=1,
         image=image,
         mask=mask,
         padding=1,
@@ -598,6 +636,12 @@ def graincrop_catenanes_1() -> GrainCrop:
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
         filename="example_catenanes",
+        stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
+        height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
+        skeleton=dummy_skeleton,
+        disordered_trace=dummy_disordered_trace,
+        nodes={0: dummy_node, 1: dummy_node},
+        ordered_trace=dummy_ordered_trace,
     )
 
 
@@ -608,19 +652,37 @@ def graincrops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1
 
 
 @pytest.fixture()
+def image_stats_catenanes() -> dict[str, Any]:
+    """Dictionary of image statistics for catenanes image."""
+    return {
+        "image_size_x_m": 100,
+        "image_size_y_m": 100,
+        "image_area_m2": 1000000,
+    }
+
+
+@pytest.fixture()
 def topostats_catenanes_2_4_0(
-    image_catenanes: npt.NDArray, graincrops_catenanes: dict[int, GrainCrop], default_config: dict[str, Any]
+    image_catenanes: npt.NDArray,
+    graincrops_catenanes: dict[int, GrainCrop],
+    image_stats_catenanes: dict[str, Any],
+    default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example catenanes."""
+    rng = np.random.default_rng(seed=1000)
     return TopoStats(
         grain_crops=graincrops_catenanes,
         filename="example_catenanes.spm",
+        image_name="example_catenanes",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
         img_path=str(GRAINCROP_DIR),
         image=image_catenanes,
-        image_original=None,
+        image_original=rng.random((10, 10)),
+        image_stats=image_stats_catenanes,
+        full_mask_tensor=rng.random((10, 10, 2)),
         config=default_config,
+        basename="tests/resources",
     )
 
 
@@ -631,11 +693,18 @@ def image_rep_int() -> npt.NDArray:
 
 
 @pytest.fixture()
-def graincrop_rep_int_0() -> GrainCrop:
+def graincrop_rep_int_0(
+    dummy_skeleton: npt.NDArray,
+    dummy_disordered_trace: DisorderedTrace,
+    dummy_node: Node,
+    dummy_ordered_trace: OrderedTrace,
+) -> GrainCrop:
     """Rep_Int GrainCrop object."""
     image: npt.NDArray[float] = np.load(GRAINCROP_DIR / "example_rep_int_image_0.npy")
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_mask_0.npy")
     return GrainCrop(
+        threshold="above",
+        grain_number=0,
         image=image,
         mask=mask,
         padding=1,
@@ -643,6 +712,12 @@ def graincrop_rep_int_0() -> GrainCrop:
         pixel_to_nm_scaling=0.488,
         thresholds=(1, 2),
         filename="example_rep",
+        stats={1: {0: {"centre_x": 5, "centre_y": 5}}},
+        height_profiles={1: {0: np.asarray([1, 2, 3, 4, 5])}},
+        skeleton=dummy_skeleton,
+        disordered_trace=dummy_disordered_trace,
+        nodes={0: dummy_node, 1: dummy_node},
+        ordered_trace=dummy_ordered_trace,
     )
 
 
@@ -653,19 +728,37 @@ def graincrops_rep_int(graincrop_rep_int_0: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
+def image_stats_rep_int() -> dict[str, Any]:
+    """Dictionary of image statistics for rep_int image."""
+    return {
+        "image_size_x_m": 100,
+        "image_size_y_m": 100,
+        "image_area_m2": 1000000,
+    }
+
+
+@pytest.fixture()
 def topostats_rep_int_2_4_0(
-    image_rep_int: npt.NDArray, graincrops_rep_int: dict[int, GrainCrop], default_config: dict[str, Any]
+    image_rep_int: npt.NDArray,
+    graincrops_rep_int: dict[int, GrainCrop],
+    image_stats_rep_int: dict[str, Any],
+    default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example rep_int."""
+    rng = np.random.default_rng(seed=1000)
     return TopoStats(
         grain_crops=graincrops_rep_int,
         filename="example_rep_int.spm",
+        image_name="example_rep_int",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
         img_path=str(GRAINCROP_DIR),
         image=image_rep_int,
-        image_original=None,
+        image_original=rng.random((10, 10)),
+        image_stats=image_stats_rep_int,
+        full_mask_tensor=rng.random((10, 10, 2)),
         config=default_config,
+        basename="tests/resources",
     )
 
 

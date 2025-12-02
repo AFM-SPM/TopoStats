@@ -48,6 +48,10 @@ class GrainCrop:
         Thresholds used to find the grain.
     filename : str
         Filename of the image from which the crop was taken.
+    threshold : str
+        Direction of the molecule from the threshold (above / below).
+    grain_number : int
+        Index of the grain.
     skeleton : npt.NDArray[np.bool_]
         3-D Numpy tensor of the skeletonised mask.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
@@ -73,6 +77,8 @@ class GrainCrop:
         pixel_to_nm_scaling: float,
         thresholds: list[float],
         filename: str,
+        threshold: str | None = None,
+        grain_number: int | None = None,
         skeleton: npt.NDArray[np.bool_] | None = None,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
@@ -100,6 +106,10 @@ class GrainCrop:
             A list of thresholds used to identify the grain.
         filename : str
             Filename of the image from which the crop was taken.
+        threshold : str
+            Direction of the molecule from the threshold (above / below).
+        grain_number : int
+            Index of the grain.
         skeleton : npt.NDArray[np.bool_]
             3-D Numpy tensor of the skeletonised mask.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
@@ -124,6 +134,8 @@ class GrainCrop:
         self.pixel_to_nm_scaling = pixel_to_nm_scaling
         self.thresholds = thresholds
         self.filename = filename
+        self.threshold: str | None = threshold
+        self.grain_number: int | None = grain_number
         self.height_profiles = height_profiles
         self.stats = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
@@ -607,17 +619,6 @@ class GrainCrop:
         """
         self._threshold_method = value
 
-    def grain_crop_to_dict(self) -> dict[str, Any]:
-        """
-        Convert GrainCrop to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
     def debug_locate_difference(self, other: object) -> None:  # noqa: C901 # pylint: disable=too-many-branches
         """
         Debug function to find the culprit when two GrainCrop objects are not equal.
@@ -721,6 +722,8 @@ class DisorderedTrace:
         Total branch length in nanometres.
     grain_width_mean : float
         Mean grain width in nanometres.
+    stats_dict : dict[int, Any]
+        Dictionary of stats for each branch of a grain.
     """
 
     images: dict[str, npt.NDArray] | None = None
@@ -728,6 +731,7 @@ class DisorderedTrace:
     grain_junctions: int | None = None
     total_branch_length: float | None = None
     grain_width_mean: float | None = None
+    stats_dict: dict[int, Any] | None = None
 
     def __str__(self) -> str:
         """
@@ -744,7 +748,8 @@ class DisorderedTrace:
             f"grain endpoints : {self.grain_endpoints}\n"
             f"grain junctions : {self.grain_junctions}\n"
             f"total branch length (nm) : {self.total_branch_length}\n"
-            f"mean grain width (nm) : {self.grain_width_mean}"
+            f"mean grain width (nm) : {self.grain_width_mean}\n"
+            f"number of branches : {len(self.stats_dict)}"
         )
 
     def stats_to_df(self) -> pd.DataFrame:
@@ -765,17 +770,6 @@ class DisorderedTrace:
         }
         return pd.DataFrame([data])
 
-    def disordered_trace_to_dict(self) -> dict[str, Any]:
-        """
-        Convert DisorderedTrace to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -790,6 +784,8 @@ class TopoStats:
         Dictionary of ``GrainCrop`` objects.
     filename : str | None
         Filename.
+    image_name : str | None
+        Filename without its extension.
     pixel_to_nm_scaling : str | None
         Pixel to nanometre scaling.
     img_path : str | None
@@ -798,34 +794,30 @@ class TopoStats:
         Flattened image (post ``Filter()``).
     image_original : npt.NDArray | None
         Original image.
+    image_stats : dict[str, Any] | None
+        Dictionary of various image statistics, e.g. size in m and px.
     full_mask_tensor : npt.NDArray
         Tensor mask for the full image.
     topostats_version : str | None
         TopoStats version.
     config : dict[str, Any] | None
         Configuration used when processing the grain.
+    basename : str
+        Basename of image locations.
     """
 
     grain_crops: dict[int, GrainCrop] | None = None
     filename: str | None = None
+    image_name: str | None = None
     pixel_to_nm_scaling: float | None = None
     img_path: Path | str | None = None
     image: npt.NDArray | None = None
     image_original: npt.NDArray | None = None
+    image_stats: dict[str, Any] | None = None
     full_mask_tensor: npt.NDArray | None = None
     topostats_version: str | None = None
     config: dict[str, Any] | None = None
-
-    def topostats_to_dict(self) -> dict[str, str | npt.NDArray | dict[str | int, GrainCrop | Any]]:
-        """
-        Convert ``TopoStats`` object to dictionary.
-
-        Returns
-        -------
-        dict[str, str | npt.NDArray | dict[str | int, GrainCrop | Any]]
-            Dictionary of ``TopoStats`` object.
-        """
-        return dict(self.__dict__)
+    basename: str | None = None
 
     def __str__(self) -> str:
         """
@@ -842,7 +834,8 @@ class TopoStats:
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"image shape (px) : {self.image.shape}\n"
             f"image path : {self.img_path}\n"
-            f"TopoStats version : {self.topostats_version}"
+            f"TopoStats version : {self.topostats_version}\n"
+            f"Basename : {self.basename}"
         )
 
     def __eq__(self, other: object) -> bool:
@@ -894,6 +887,7 @@ class TopoStats:
             "full_mask_tensor": self.full_mask_tensor,
             "topostats_version": self.topostats_version,
             "config": json.dumps(self.config, indent=2, sort_keys=True),
+            "basename": self.basename,
         }
         return pd.DataFrame([data])
 
@@ -968,17 +962,6 @@ class MatchedBranch:
         }
         return pd.DataFrame([data])
 
-    def matched_branch_to_dict(self) -> dict[str, Any]:
-        """
-        Convert ``MatchedBranch`` to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1017,17 +1000,6 @@ class UnMatchedBranch:
         """
         data = {"angles": self.angles}
         return pd.DataFrame([data])
-
-    def unmatched_branch_to_dict(self) -> dict[str, Any]:
-        """
-        Convert ``MatchedBranch`` to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
 
 
 @dataclass(
@@ -1114,17 +1086,6 @@ class Node:
         }
         return pd.DataFrame([data])
 
-    def node_to_dict(self) -> dict[str, Any]:
-        """
-        Convert ``Node`` to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1201,17 +1162,6 @@ class OrderedTrace:
         }
         return pd.DataFrame([data])
 
-    def ordered_trace_to_dict(self) -> dict[str, Any]:
-        """
-        Convert ``OrderedTrace`` to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1220,8 +1170,14 @@ class Molecule:
     """
     Class for Molecules identified during ordered tracing.
 
+    threshold : str
+        Direction from threshold of molecule (above / below)
+    molecule_number : int
+        Index of the molecule (per grain)
     circular : str, bool, optional
         Whether the molecule is circular or linear.
+    processing : str
+        Which processing type was used, topostats or nodestats.
     topology : str, optional
         Unknown?
     topology_flip : Any, optional
@@ -1244,7 +1200,10 @@ class Molecule:
         Bounding box.
     """
 
+    threshold: str | None = None
+    molecule_number: int | None = None
     circular: str | bool | None = None
+    processing: str | None = None
     topology: str | None = None
     topology_flip: Any | None = None
     ordered_coords: npt.NDArray | None = None
@@ -1299,30 +1258,129 @@ class Molecule:
         }
         return pd.DataFrame([data])
 
-    def molecule_to_dict(self) -> dict[str, Any]:
-        """
-        Convert ``Molecule`` to dictionary indexed by attributes.
 
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return dict(self.__dict__)
-
-
-def convert_to_dict(something: Any) -> dict[str, Any]:
+def convert_to_dict(to_convert: Any) -> Any:
     """
-    Convert an a class to a dictionary representation of itself.
+    Convert a class to a dictionary representation of itself.
 
     Parameters
     ----------
-    something : Any
-        An object to be converted to a dictionary.
+    to_convert : Any
+        An object to be converted to a dictionary / dictionary item.
 
     Returns
     -------
-    dict[str, Any]
-        Dictionary representation of the object.
+    Any
+        Input parameter as a dictionary / dictionary item.
     """
-    return dict(something.__dict__)
+    if isinstance(to_convert, (int | float | str | Path | bool | np.ndarray | tuple | None)):
+        return to_convert
+    if isinstance(to_convert, list):
+        return [convert_to_dict(item) for item in to_convert]
+    if isinstance(to_convert, dict):
+        return {key: convert_to_dict(value) for key, value in to_convert.items()}
+    if hasattr(to_convert, "__dict__"):
+        return {re.sub(r"^_", "", key): convert_to_dict(value) for key, value in to_convert.__dict__.items()}
+
+    return to_convert
+
+
+def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> list[dict[str, Any]]:
+    """
+    Gather required data for creating pd.DataFrames for CSVs.
+
+    A class object is given, and the values under the class name in `mapping` are cycled through.
+    Basic data types are directly added to the resultant data structure, and attributes that're classes
+    will re-call the method with that class as the `class_object`, returning data to be added to the final structure.
+
+    If the attribute is a dictionary, the data types inside the dictionary are checked; if they're
+    class objects this method will be re-called for each object inside the dictionary, and again the result
+    will be added to the final structure (the data already there will also be duplicated so it exists on every row).
+    If the dictionary only contains basic data types, this data will be moved up one layer and directly
+    added to the final structure.
+
+    Parameters
+    ----------
+    class_object : object
+        Class object to be iterated through to find required data.
+    mapping : dict[str, list[str]]
+        Dictionary of required data for the output, with class names as keys and lists containing strings of
+        required attributes from each class.
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        A list of dictionaries containing required data, ready to be converted into a pd.DataFrame.
+    """
+    class_name = class_object.__class__.__name__
+    target_attributes = mapping.get(class_name, [])
+    base_row = {}
+    child_row_groups = []
+
+    for attribute_name in target_attributes:
+        if not hasattr(class_object, attribute_name):
+            continue
+
+        value = getattr(class_object, attribute_name)
+
+        # Basic attr type
+        if isinstance(value, (int, float, str, bool, type(None))):
+            base_row[attribute_name] = value
+            continue
+        # Attr is a single class object
+        if value.__class__.__name__ in mapping:
+            child_rows = prepare_data_for_df(value, mapping)
+            if len(child_rows) == 1:
+                base_row.update(child_rows[0])
+            else:
+                child_row_groups.append(child_rows)
+            continue
+        # Attr is a dict
+        if isinstance(value, dict):
+            # Attr is a dict of dicts
+            if all(isinstance(v, dict) for v in value.values()):
+                nested_rows = []
+                for class_no, subdict in value.items():
+                    if not isinstance(subdict, dict):
+                        continue
+                    for subgrain_no, stat_dict in subdict.items():
+                        if not isinstance(stat_dict, dict):
+                            continue
+                        if not all(isinstance(x, (int, float, str, bool, type(None))) for x in stat_dict.values()):
+                            continue
+
+                        row = {"class_number": class_no, "subgrain_number": subgrain_no, **stat_dict}
+                        nested_rows.append(row)
+                if nested_rows:
+                    child_row_groups.append(nested_rows)
+                    continue
+
+                for _, v in value.items():
+                    for statkey, statval in v.items():
+                        base_row[statkey] = statval
+                continue
+            
+            expanded = []
+            for subkey, subval in value.items():
+                # Attr is a dict of classes
+                if subval.__class__.__name__ in mapping:
+                    expanded.extend(prepare_data_for_df(subval, mapping))
+                # Attr is a dict of basic data types
+                else:
+                    base_row[subkey] = subval
+
+            if len(expanded) == 1:
+                base_row.update(expanded[0])
+            else:
+                if len(expanded) != 0:
+                    child_row_groups.append(expanded)
+            continue
+
+    if not child_row_groups:
+        return [base_row]
+    final_rows = []
+    for group in child_row_groups:
+        for child_row in group:
+            combined = {**base_row, **child_row}
+            final_rows.append(combined)
+    return final_rows

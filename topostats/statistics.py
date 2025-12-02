@@ -5,16 +5,14 @@ import logging
 import numpy as np
 import pandas as pd
 
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
 def image_statistics(
-    image: np.ndarray,
-    filename: str,
-    pixel_to_nm_scaling: float,
-    results_df: pd.DataFrame,
+    image: np.ndarray, filename: str, pixel_to_nm_scaling: float, results_df: pd.DataFrame, topostats_object: TopoStats
 ) -> pd.DataFrame:
     """
     Calculate statistics pertaining to the whole image.
@@ -33,6 +31,8 @@ def image_statistics(
     results_df : pd.DataFrame
         Pandas DataFrame of statistics pertaining to individual grains including from grainstats and
         dna tracing.
+    topostats_object : TopoStats
+        The TopoStats class instance to pull data from/ save data to.
 
     Returns
     -------
@@ -76,6 +76,7 @@ def image_statistics(
     except KeyError:
         pass
 
+    topostats_object.image_stats = image_stats
     image_stats_df = pd.DataFrame([image_stats])
     image_stats_df.set_index("image", inplace=True)
 

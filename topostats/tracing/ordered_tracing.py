@@ -699,6 +699,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 self.grain_crop.ordered_trace.tracing_stats[i].heights = self.image[mol_trace[:, 0], mol_trace[:, 1]]
                 self.grain_crop.ordered_trace.tracing_stats[i].distances = coord_dist(mol_trace[:, :2])
 
+        self.grain_crop.stats["num_mols"] = len(ordered_traces)
+        self.grain_crop.stats["writhe_string"] = writhe_string
+
         return ordered_trace_data, self.grain_tracing_stats, grain_mol_tracing_stats, self.images
 
 
@@ -957,12 +960,20 @@ def ordered_tracing_image(
                         "molecule_number": int(mol_no.split("_")[-1]),  # pylint: disable=use-maxsplit-arg
                     }
                     molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
+                    topostats_object.grain_crops[grain_no].ordered_trace.molecule_data[mol_no].molecule_number = mol_no
+                    topostats_object.grain_crops[grain_no].ordered_trace.molecule_data[mol_no].threshold = direction
+                    topostats_object.grain_crops[grain_no].ordered_trace.molecule_data[
+                        mol_no
+                    ].processing = ordering_method
 
                 # remap the cropped images back onto the original
                 for image_name, full_image in ordered_trace_full_images.items():
                     crop = images[image_name]
                     bbox = disordered_trace_data["bbox"]
                     full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
+
+            topostats_object.grain_crops[grain_no].grain_number = grain_no
+            topostats_object.grain_crops[grain_no].threshold = direction
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(

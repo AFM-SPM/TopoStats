@@ -374,13 +374,14 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         spacing=grain_crop.pixel_to_nm_scaling,
                     )
                     skan_df = skan.summarize(skel=skan_skeleton, separator="_")
-                    skan_df = compile_skan_stats(
-                        skan_df=skan_df,
-                        skan_skeleton=skan_skeleton,
-                        image=grain_crop.image,
-                        filename=filename,
-                        grain_number=grain_number,
-                    )
+                    # skan_df = compile_skan_stats(
+                    #     topostats_object=topostats_object,
+                    #     skan_df=skan_df,
+                    #     skan_skeleton=skan_skeleton,
+                    #     image=grain_crop.image,
+                    #     filename=filename,
+                    #     grain_number=grain_number,
+                    # )
                     total_branch_length_nm = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
                     LOGGER.warning(
@@ -418,7 +419,30 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                     )
                     * 1e-9,
                 )
+                disordered_trace.stats_dict = {}
+                for index, _ in enumerate(skan_df.iterrows()):
+                    disordered_trace.stats_dict[index] = {}
+                    disordered_trace.stats_dict[index]["image"] = filename
+                    disordered_trace.stats_dict[index]["grain_number"] = grain_number
+                    disordered_trace.stats_dict[index]["branch_distance"] = skan_skeleton.path_lengths()[index]
+                    disordered_trace.stats_dict[index]["branch_type"] = np.int64(skan_df["branch_type"])[index]
+                    disordered_trace.stats_dict[index]["connected_segments"] = skan_df.apply(
+                        find_connections, axis=1, skan_df=skan_df
+                    )[index]
+                    disordered_trace.stats_dict[index]["mean_pixel_value"] = skan_skeleton.path_means()[index]
+                    disordered_trace.stats_dict[index]["stdev_pixel_value"] = skan_skeleton.path_stdev()[index]
+                    disordered_trace.stats_dict[index]["min_value"] = skan_df.apply(
+                        lambda x: segment_heights(x, skan_skeleton=skan_skeleton, image=grain_crop.image).min(), axis=1
+                    )[index]
+                    disordered_trace.stats_dict[index]["median_value"] = skan_df.apply(
+                        lambda x: np.median(segment_heights(x, skan_skeleton=skan_skeleton, image=grain_crop.image)),
+                        axis=1,
+                    )[index]
+                    disordered_trace.stats_dict[index]["middle_value"] = skan_df.apply(
+                        segment_middles, skan_skeleton=skan_skeleton, image=grain_crop.image, axis=1
+                    )[index]
                 topostats_object.grain_crops[grain_number].disordered_trace = disordered_trace
+
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function
                 for image_name, full_diagnostic_image in all_images.items():

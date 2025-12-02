@@ -315,7 +315,7 @@ def run_grainstats(
             for key, value in plotting_config["plot_dict"].items()
             if key in ["grain_image", "grain_mask", "grain_mask_image"]
         }
-        grainstats_dict = {}
+        # grainstats_dict = {}
         height_profiles_dict = {}
 
         # REFACTOR : Remove GrainCropsDirection (i.e. remove for loop)
@@ -343,19 +343,21 @@ def run_grainstats(
         #     raise ValueError("grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible.")
         grainstats_df["basename"] = topostats_object.img_path.parent
         grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
+        for graincrop in topostats_object.grain_crops:
+            graincrop["class_name"] = graincrop["class_number"].map(class_names)
+        topostats_object.grain_crops[0].stats["class_name"] = grainstats_df["class_number"].map(class_names)
         LOGGER.info(f"[{topostats_object.filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
         LOGGER.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
         return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
         # except Exception:
-    #         LOGGER.info(
-    #             f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
-    #         )
-    #         return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
-    # else:
-    #     LOGGER.info(
-    #         f"[{topostats_object.filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
-    #     )
-    #     return create_empty_dataframe(column_set="grainstats"), {}, {}
+        #     LOGGER.info(
+        #         f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
+        #     )
+        #     return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
+    LOGGER.info(
+        f"[{topostats_object.filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
+    )
+    return create_empty_dataframe(column_set="grainstats"), {}, {}
 
 
 def run_disordered_tracing(  # noqa: C901
@@ -425,6 +427,7 @@ def run_disordered_tracing(  # noqa: C901
                 disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
                 disordered_tracing_stats["threshold"] = direction
                 disordered_tracing_stats["basename"] = Path(topostats_object.img_path).parent
+                topostats_object.basename = Path(topostats_object.img_path).parent
                 disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
                 # append direction results to dict
                 disordered_traces[direction] = disordered_traces_cropped_data
@@ -931,7 +934,8 @@ def run_curvature_stats(
             all_directions_grains_curvature_stats_dict: dict = {}
             for direction in grain_trace_data.keys():
                 # Pass the traces to the curvature stats function
-                grains_curvature_stats_dict = calculate_curvature_stats_image(
+                grains_curvature_stats_dict = calculate_curvature_stats_image(  #
+                    # topostats_object=topostats_object
                     all_grain_smoothed_data=grain_trace_data[direction],
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                 )
@@ -1185,6 +1189,7 @@ def process_scan(
         image_for_image_stats = topostats_object.image_original
     # Calculate image statistics - returns a dictionary
     image_stats = image_statistics(
+        topostats_object=topostats_object,
         image=image_for_image_stats,
         filename=topostats_object.filename,
         results_df=grainstats_df,
