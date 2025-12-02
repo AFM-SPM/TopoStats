@@ -17,6 +17,8 @@ from topostats.classes import (
     OrderedTrace,
     TopoStats,
     UnMatchedBranch,
+    convert_to_dict,
+    prepare_data_for_df,
 )
 from topostats.io import dict_almost_equal
 
@@ -29,24 +31,6 @@ GRAINCROP_DIR = RESOURCES / "graincrop"
 
 SEED = 4092024
 rng = np.random.default_rng(SEED)
-
-
-def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
-    """Test the Node.node_to_dict() method."""
-    expected = {
-        "circular": dummy_molecule.circular,
-        "topology": dummy_molecule.topology,
-        "topology_flip": dummy_molecule.topology_flip,
-        "ordered_coords": dummy_molecule.ordered_coords,
-        "splined_coords": dummy_molecule.splined_coords,
-        "contour_length": dummy_molecule.contour_length,
-        "end_to_end_distance": dummy_molecule.end_to_end_distance,
-        "heights": dummy_molecule.heights,
-        "distances": dummy_molecule.distances,
-        "curvature_stats": dummy_molecule.curvature_stats,
-        "bbox": dummy_molecule.bbox,
-    }
-    assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
 
 
 # pylint: disable=implicit-str-concat
@@ -83,22 +67,7 @@ def test_molecule_stats_to_df(dummy_molecule: Molecule) -> None:
     assert dict_almost_equal(dummy_molecule.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
-    """Test the OrderedTrace.ordered_trace_to_dict() method."""
-    expected = {
-        "tracing_stats": dummy_ordered_trace.tracing_stats,
-        "grain_molstats": dummy_ordered_trace.grain_molstats,
-        "molecule_data": dummy_ordered_trace.molecule_data,
-        "molecules": dummy_ordered_trace.molecules,
-        "writhe": dummy_ordered_trace.writhe,
-        "pixel_to_nm_scaling": dummy_ordered_trace.pixel_to_nm_scaling,
-        "images": dummy_ordered_trace.images,
-        "error": dummy_ordered_trace.error,
-    }
-    assert dict_almost_equal(dummy_ordered_trace.ordered_trace_to_dict(), expected)
-
-
-def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
+def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.CaptureFixture) -> None:
     """Test the OrderedTrace.str() method."""
     expected = (
         "number of molecules : 2\nnumber of images : 4\nwrithe : negative\npixel to nm scaling : 1.0\nerror : True"
@@ -123,25 +92,7 @@ def test_ordered_trace_stats_to_df(dummy_ordered_trace: OrderedTrace) -> None:
     assert dict_almost_equal(dummy_ordered_trace.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-def test_node_to_dict(dummy_node: Node) -> None:
-    """Test the Node.node_to_dict() method."""
-    expected = {
-        "error": dummy_node.error,
-        "pixel_to_nm_scaling": dummy_node.pixel_to_nm_scaling,
-        "branch_stats": dummy_node.branch_stats,
-        "unmatched_branch_stats": dummy_node.unmatched_branch_stats,
-        "node_coords": dummy_node.node_coords,
-        "confidence": dummy_node.confidence,
-        "reduced_node_area": dummy_node.reduced_node_area,
-        "node_area_skeleton": dummy_node.node_area_skeleton,
-        "node_branch_mask": dummy_node.node_branch_mask,
-        "node_avg_mask": dummy_node.node_avg_mask,
-        "writhe": dummy_node.writhe,
-    }
-    assert dict_almost_equal(dummy_node.node_to_dict(), expected)
-
-
-def test_node_str(dummy_node: Node) -> None:
+def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
     """Test the Node.__str__() method."""
     expected = (
         "error : False\n"
@@ -173,21 +124,7 @@ def test_node_stats_to_df(dummy_node: Node) -> None:
     assert dict_almost_equal(dummy_node.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-def test_matched_branch_to_dict(dummy_matched_branch: MatchedBranch) -> None:
-    """Test the MatchedBranch.matched_branch_to_dict() method."""
-    expected = {
-        "ordered_coords": dummy_matched_branch.ordered_coords,
-        "heights": dummy_matched_branch.heights,
-        "distances": dummy_matched_branch.distances,
-        "fwhm": dummy_matched_branch.fwhm,
-        "fwhm_half_maxs": dummy_matched_branch.fwhm_half_maxs,
-        "fwhm_peaks": dummy_matched_branch.fwhm_peaks,
-        "angles": dummy_matched_branch.angles,
-    }
-    assert dict_almost_equal(dummy_matched_branch.matched_branch_to_dict(), expected)
-
-
-def test_matched_branch_str(dummy_matched_branch: MatchedBranch) -> None:
+def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the MatchedBranch.__str__() method."""
     expected = (
         "number of coords : 4\n"
@@ -214,15 +151,7 @@ def test_matched_branch_stats_to_df(dummy_matched_branch: MatchedBranch) -> None
     assert dict_almost_equal(dummy_matched_branch.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-def test_unmatched_branch_to_dict(dummy_unmatched_branch: UnMatchedBranch) -> None:
-    """Test the UnMatchedBranch.unmatched_branch_to_dict() method."""
-    expected = {
-        "angles": dummy_unmatched_branch.angles,
-    }
-    assert dict_almost_equal(dummy_unmatched_branch.unmatched_branch_to_dict(), expected)
-
-
-def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch) -> None:
+def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the UnMatchedBranch.__str__() method."""
     expected = "angles : [143.163, 69.234, 12.465]"
     assert str(dummy_unmatched_branch) == expected
@@ -235,26 +164,15 @@ def test_unmatched_branch_stats_to_df(dummy_unmatched_branch: UnMatchedBranch) -
     assert dict_almost_equal(dummy_unmatched_branch.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-def test_disordered_trace_to_dict(dummy_disordered_trace: DisorderedTrace) -> None:
-    """Test the DisorderedTrace.disordered_trace_to_dict() method."""
-    expected = {
-        "images": dummy_disordered_trace.images,
-        "grain_endpoints": dummy_disordered_trace.grain_endpoints,
-        "grain_junctions": dummy_disordered_trace.grain_junctions,
-        "total_branch_length": dummy_disordered_trace.total_branch_length,
-        "grain_width_mean": dummy_disordered_trace.grain_width_mean,
-    }
-    assert dict_almost_equal(dummy_disordered_trace.disordered_trace_to_dict(), expected)
-
-
-def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace) -> None:
+def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace, capsys: pytest.CaptureFixture) -> None:
     """Test the DisorderedTrace.__str__() method."""
     expected = (
         "generated images : pruned_skeleton, skeleton, smoothed_mask, branch_indexes, branch_types\n"
         "grain endpoints : 2\n"
         "grain junctions : 3\n"
         "total branch length (nm) : 12.3456789\n"
-        "mean grain width (nm) : 3.14152"
+        "mean grain width (nm) : 3.14152\n"
+        "number of branches : 1"
     )
     assert str(dummy_disordered_trace) == expected
 
@@ -277,28 +195,7 @@ def test_grain_crop_debug_locate_difference() -> None:
     """Test the GrainCrop.debug_locate_difference() method."""
 
 
-def test_grain_crop_to_dict(dummy_graincrop: GrainCrop) -> None:
-    """Test the GrainCrop.grain_crop_to_dict() method."""
-    expected = {
-        "padding": dummy_graincrop.padding,
-        "image": dummy_graincrop.image,
-        "mask": dummy_graincrop.mask,
-        "bbox": dummy_graincrop.bbox,
-        "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
-        "thresholds": dummy_graincrop.thresholds,
-        "filename": dummy_graincrop.filename,
-        "stats": dummy_graincrop.stats,
-        "height_profiles": dummy_graincrop.height_profiles,
-        "skeleton": dummy_graincrop.skeleton,
-        "disordered_trace": dummy_graincrop.disordered_trace,
-        "nodes": dummy_graincrop.nodes,
-        "ordered_trace": dummy_graincrop.ordered_trace,
-        "threshold_method": dummy_graincrop.threshold_method,
-    }
-    assert dict_almost_equal(dummy_graincrop.grain_crop_to_dict(), expected)
-
-
-def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
+def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixture) -> None:
     """Test the GrainCrop.__str__() method."""
     expected = (
         "filename : dummy\n"
@@ -341,28 +238,54 @@ def test_grain_crop_stats_to_df(dummy_graincrop: GrainCrop) -> None:
 @pytest.mark.parametrize(
     (
         "topostats_object",
+        "grain_crops",
+        "filename",
+        "pixel_to_nm_scaling",
+        "topostats_version",
         "img_path",
+        "image",
+        "basename",
     ),
     [
         pytest.param(
             "topostats_catenanes_2_4_0",
+            "graincrops_catenanes",
+            "example_catenanes.spm",
+            0.488,
+            "2.4.0",
             str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            "tests/resources",
             id="catenane v2.4.0",
         ),
         pytest.param(
             "topostats_rep_int_2_4_0",
+            "graincrops_rep_int",
+            "example_rep_int.spm",
+            0.488,
+            "2.4.0",
             str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            "tests/resources",
             id="rep_int v2.4.0",
         ),
     ],
 )
-def test_topostats_to_dict(
-    topostats_object: TopoStats,
+def test_topostats_str(
+    topostats_object: str,
+    grain_crops: str,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    topostats_version: str,
     img_path: str,
+    image: npt.NDArray | None,
+    basename: str,
     request,
+    capsys: pytest.CaptureFixture,
 ) -> None:
-    """Test conversion of TopoStats object to dictionary."""
+    """Test the TopoStats.__str__ method."""
     topostats_object = request.getfixturevalue(topostats_object)
+<<<<<<< HEAD
     expected = {
         "filename": topostats_object.filename,
         "grain_crops": topostats_object.grain_crops,
@@ -376,6 +299,36 @@ def test_topostats_to_dict(
         "full_image_plots": topostats_object.full_image_plots,
     }
     assert topostats_object.topostats_to_dict() == expected
+||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
+    expected = {
+        "filename": topostats_object.filename,
+        "grain_crops": topostats_object.grain_crops,
+        "pixel_to_nm_scaling": topostats_object.pixel_to_nm_scaling,
+        "img_path": img_path,
+        "image": topostats_object.image,
+        "image_original": topostats_object.image_original,
+        "full_mask_tensor": topostats_object.full_mask_tensor,
+        "topostats_version": topostats_object.topostats_version,
+        "config": topostats_object.config,
+    }
+    assert topostats_object.topostats_to_dict() == expected
+=======
+    topostats_object.image = image
+    grain_crops = request.getfixturevalue(grain_crops)
+    expected = (
+        f"number of grain crops : {len(grain_crops)}\n"
+        f"filename : {filename}\n"
+        f"pixel to nm scaling : {pixel_to_nm_scaling}\n"
+        f"image shape (px) : {image.shape}\n"
+        f"image path : {img_path}\n"
+        f"TopoStats version : {topostats_version}\n"
+        f"Basename : {basename}"
+    )
+    assert str(topostats_object) == expected
+    print(topostats_object)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
+>>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
 
 
 topostats_test_data = [
@@ -390,6 +343,7 @@ topostats_test_data = [
         rng.random((10, 10)),
         rng.random((10, 10, 2)),
         "default_config",
+        "tests/resources",
         id="catenane v2.4.0",
     ),
     pytest.param(
@@ -403,6 +357,7 @@ topostats_test_data = [
         rng.random((10, 10)),
         rng.random((10, 10, 2)),
         "default_config",
+        "tests/resources",
         id="rep_int v2.4.0",
     ),
 ]
@@ -421,6 +376,7 @@ topostats_test_data = [
         "image_original",
         "full_mask_tensor",
         "config",
+        "basename",
     ),
     topostats_test_data,
 )
@@ -435,6 +391,7 @@ def test_topostats_eq(
     image_original: npt.NDArray | None,
     full_mask_tensor: npt.NDArray | None,
     config: str,
+    basename: str,
     request,
 ) -> None:
     """Test the TopoStats.__eq__ method."""
@@ -454,6 +411,7 @@ def test_topostats_eq(
         topostats_version=topostats_version,
         full_mask_tensor=full_mask_tensor,
         config=config,
+        basename=basename,
     )
     assert topostats_object == expected
 
@@ -467,6 +425,7 @@ def test_topostats_eq(
         "topostats_version",
         "img_path",
         "image",
+<<<<<<< HEAD
     ),
     [
         pytest.param(
@@ -529,9 +488,75 @@ def test_topostats_str(
         "topostats_version",
         "img_path",
         "image",
+||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
+    ),
+    [
+        pytest.param(
+            "topostats_catenanes_2_4_0",
+            "graincrops_catenanes",
+            "example_catenanes.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            id="catenane v2.4.0",
+        ),
+        pytest.param(
+            "topostats_rep_int_2_4_0",
+            "graincrops_rep_int",
+            "example_rep_int.spm",
+            0.488,
+            "2.4.0",
+            str(GRAINCROP_DIR),
+            rng.random((10, 10)),
+            id="rep_int v2.4.0",
+        ),
+    ],
+)
+def test_topostats_str(
+    topostats_object: str,
+    grain_crops: str,
+    filename: str,
+    pixel_to_nm_scaling: float,
+    topostats_version: str,
+    img_path: str,
+    image: npt.NDArray | None,
+    request,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """Test the TopoStats.__str__ method."""
+    topostats_object = request.getfixturevalue(topostats_object)
+    topostats_object.image = image
+    grain_crops = request.getfixturevalue(grain_crops)
+    expected = (
+        f"number of grain crops : {len(grain_crops)}\n"
+        f"filename : {filename}\n"
+        f"pixel to nm scaling : {pixel_to_nm_scaling}\n"
+        f"image shape (px) : {image.shape}\n"
+        f"image path : {img_path}\n"
+        f"TopoStats version : {topostats_version}"
+    )
+    assert str(topostats_object) == expected
+    print(topostats_object)
+    captured = capsys.readouterr()
+    assert captured.out.strip() == expected
+
+
+@pytest.mark.parametrize(
+    (
+        "topostats_object",
+        "grain_crops",
+        "filename",
+        "pixel_to_nm_scaling",
+        "topostats_version",
+        "img_path",
+        "image",
+=======
+>>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
         "image_original",
         "full_mask_tensor",
         "config",
+        "basename",
     ),
     topostats_test_data,
 )
@@ -546,6 +571,7 @@ def test_topostats_stats_to_df(
     image_original: npt.NDArray | None,
     full_mask_tensor: npt.NDArray | None,
     config: str,
+    basename: str,
     request,
 ) -> None:
     """Test the TopoStats.stats_to_df() method."""
@@ -566,6 +592,141 @@ def test_topostats_stats_to_df(
         "full_mask_tensor": full_mask_tensor,
         "topostats_version": topostats_version,
         "config": json.dumps(config, indent=2, sort_keys=True),
+        "basename": basename,
     }
     assert isinstance(topostats_object.stats_to_df(), pd.DataFrame)
     assert dict_almost_equal(topostats_object.stats_to_df().to_dict(orient="records")[0], expected)
+
+
+dummy_classes = [
+    pytest.param(
+        "dummy_molecule",
+        id="molecule",
+    ),
+    pytest.param("dummy_ordered_trace", id="ordered-trace"),
+    pytest.param(
+        "dummy_node",
+        id="node",
+    ),
+    pytest.param(
+        "dummy_unmatched_branch",
+        id="unmatched-branch",
+    ),
+    pytest.param(
+        "dummy_matched_branch",
+        id="matched-branch",
+    ),
+    pytest.param(
+        "dummy_disordered_trace",
+        id="disordered-trace",
+    ),
+    pytest.param(
+        "dummy_graincrop",
+        id="graincrop",
+    ),
+    pytest.param(
+        "topostats_catenanes_2_4_0",
+        id="topostats_catenanes",
+    ),
+    pytest.param(
+        "topostats_rep_int_2_4_0",
+        id="topostats_rep_int",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("dummy_class"),
+    dummy_classes,
+)
+def test_convert_to_dict(
+    dummy_class,
+    snapshot,
+    request,
+) -> None:
+    """Test converting each class to a dictionary using the convert_to_dict() method."""
+    dummy_class = request.getfixturevalue(dummy_class)
+    assert convert_to_dict(dummy_class) == snapshot
+
+
+@pytest.mark.parametrize(
+    ("stats_mapping", "topostats_object"),
+    [
+        pytest.param(
+            {
+                "TopoStats": ["image_name", "basename", "grain_crops"],
+                "GrainCrop": ["grain_number", "ordered_trace"],
+                "Molecule": [
+                    "threshold",
+                    "molecule_number",
+                    "circular",
+                    "processing",
+                    "topology",
+                    "topology_flip",
+                    "contour_length",
+                    "end_to_end_distance",
+                ],
+                "OrderedTrace": ["molecule_data"],
+                "DisorderedTrace": [],
+                "MatchedBranch": [],
+                "UnMatchedBranch": [],
+                "Node": [],
+            },
+            "topostats_rep_int_2_4_0",
+            id="molecule_statistics",
+        ),
+        pytest.param(
+            {
+                "TopoStats": ["image_name", "basename", "grain_crops"],
+                "GrainCrop": ["threshold", "grain_number", "stats"],
+                "Molecule": [],
+                "OrderedTrace": [],
+                "DisorderedTrace": [],
+                "MatchedBranch": [],
+                "UnMatchedBranch": [],
+                "Node": [],
+            },
+            "topostats_rep_int_2_4_0",
+            id="grain_statistics",
+        ),
+        pytest.param(
+            {
+                "TopoStats": ["image_name", "image_stats"],
+                "GrainCrop": [],
+                "Molecule": [],
+                "OrderedTrace": [],
+                "DisorderedTrace": [],
+                "MatchedBranch": [],
+                "UnMatchedBranch": [],
+                "Node": [],
+            },
+            "topostats_rep_int_2_4_0",
+            id="image_statistics",
+        ),
+        pytest.param(
+            {
+                "TopoStats": ["image_name", "basename", "grain_crops"],
+                "GrainCrop": ["grain_number", "threshold", "disordered_trace"],
+                "Molecule": [],
+                "OrderedTrace": [],
+                "DisorderedTrace": ["stats_dict"],
+                "MatchedBranch": [],
+                "UnMatchedBranch": [],
+                "Node": [],
+            },
+            "topostats_rep_int_2_4_0",
+            id="branch_statistics",
+        ),
+    ],
+)
+def test_prepare_data_for_df(
+    stats_mapping: dict[str, list[str]],
+    topostats_object: str,
+    snapshot,
+    request,
+) -> None:
+    """Test creating subset dictionaries for DataFrame creation using the prepare_data_for_df() method."""
+    topostats_object = request.getfixturevalue(topostats_object)
+    prepared_data = prepare_data_for_df(topostats_object, stats_mapping)
+    print(prepared_data)
+    assert prepared_data == snapshot

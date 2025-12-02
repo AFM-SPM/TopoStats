@@ -681,6 +681,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 )
         self.grain_crop.ordered_trace.molecule_data = molecule_data
 
+        self.grain_crop.stats["num_mols"] = len(ordered_traces)
+        self.grain_crop.stats["writhe_string"] = writhe_string
+
         return ordered_trace_data, self.grain_tracing_stats, grain_mol_tracing_stats, self.images
 
 
@@ -913,7 +916,6 @@ def ordered_tracing_image(
                     f"[{topostats_object.filename}] : Grain {grain_no} does not have a disordered trace "
                     "skipping orderering."
                 )
-
                 # remap the cropped images back onto the original
                 for image_name, full_image in ordered_trace_full_images.items():
                     crop = images[image_name]
@@ -924,6 +926,11 @@ def ordered_tracing_image(
                 topostats_object.full_image_plots = ordered_trace_full_images
             elif isinstance(topostats_object.full_image_plots, dict):
                 topostats_object.full_image_plots = {**topostats_object.full_image_plots, **ordered_trace_full_images}
+
+            topostats_object.grain_crops[grain_no].grain_number = grain_no
+            # ns-rse 2025-12-18 store the threshold value here (may be a dictionary from which we would have to extract
+            # the value that applies to this grain)
+            # topostats_object.grain_crops[grain_no].threshold = direction
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(

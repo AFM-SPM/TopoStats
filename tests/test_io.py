@@ -265,6 +265,20 @@ def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected:
             True,
             id="list equal within tolerance",
         ),
+        pytest.param(
+            [[1, 2], [2, 3]],
+            [[1, 2], [2, 3]],
+            0.00001,
+            True,
+            id="lists equal: nested lists",
+        ),
+        pytest.param(
+            [[1, 2], [2, 3]],
+            [[1, 2, 3], [2, 3]],
+            0.00001,
+            False,
+            id="lists not equal: nested lists",
+        ),
     ],
 )
 def test_lists_almost_equal(list1: list, list2: list, tolerance: float, expected: bool) -> None:
@@ -274,9 +288,6 @@ def test_lists_almost_equal(list1: list, list2: list, tolerance: float, expected
 
 def test_lists_almost_equal_notimplemented_error() -> None:
     """Test that lists_almost_equal raises NotImplementedError for illegal types."""
-    with pytest.raises(NotImplementedError):
-        lists_almost_equal([1, 2, [3]], [1, 2, [3]], 0.00001)
-
     with pytest.raises(NotImplementedError):
         lists_almost_equal([1, 2, {3}], [1, 2, {3}], 0.00001)
 

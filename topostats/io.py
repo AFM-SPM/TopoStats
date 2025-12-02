@@ -29,6 +29,7 @@ from topostats.classes import (
     Node,
     OrderedTrace,
     TopoStats,
+    convert_to_dict,
 )
 from topostats.logs.logs import LOGGER_NAME
 
@@ -136,6 +137,10 @@ def lists_almost_equal(list1: list, list2: list, abs_tol: float = 1e-9) -> bool:
         if isinstance(item1, int | float | np.int64) and isinstance(item2, int | float | np.int64):
             if not np.isclose(item1, item2, atol=abs_tol):
                 LOGGER.debug(f"List item {i} not equal: {item1} != {item2}")
+                return False
+        elif isinstance(item1, list) and isinstance(item2, list):
+            if not lists_almost_equal(item1, item2):
+                LOGGER.debug(f"Nested list item {i} not equal: {item1} != {item2}")
                 return False
         else:
             raise NotImplementedError(
@@ -987,24 +992,9 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 dict_to_hdf5(open_hdf5_file, group_path + key + "/", item)
             # All classes defined in the classes submodule must be recursively saved
-            elif isinstance(item, GrainCrop):
+            elif isinstance(item, (GrainCrop | OrderedTrace | Node | DisorderedTrace | MatchedBranch | Molecule)):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.grain_crop_to_dict())
-            elif isinstance(item, OrderedTrace):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.ordered_trace_to_dict())
-            elif isinstance(item, Node):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.node_to_dict())
-            elif isinstance(item, DisorderedTrace):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.disordered_trace_to_dict())
-            elif isinstance(item, MatchedBranch):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.matched_branch_to_dict())
-            elif isinstance(item, Molecule):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.molecule_to_dict())
+                dict_to_hdf5(open_hdf5_file, group_path + key + "/", convert_to_dict(item))
 
         else:  # attempt to save an item that is not a numpy array or a dictionary
             try:
@@ -1082,7 +1072,7 @@ def save_topostats_file(
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object)
         elif isinstance(topostats_object, TopoStats):
             topostats_object.topostats_version = topostats_version
-            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.topostats_to_dict())
+            dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=convert_to_dict(topostats_object))
 
         else:
             raise ValueError(
@@ -1158,9 +1148,11 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
         if "topostats_file_version" in dictionary.keys()
         else str(dictionary["topostats_version"])
     )
+    image_name = Path(dictionary["filename"]).stem
     return TopoStats(
         grain_crops=grain_crops,
         filename=dictionary["filename"],
+        image_name=image_name,
         pixel_to_nm_scaling=dictionary["pixel_to_nm_scaling"],
         img_path=dictionary["img_path"],
         image=dictionary["image"],

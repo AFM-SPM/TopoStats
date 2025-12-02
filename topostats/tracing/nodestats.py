@@ -1759,6 +1759,10 @@ class nodeStats:
         self.metrics["avg_crossing_confidence"] = np.float64(mean_conf)
         self.metrics["min_crossing_confidence"] = np.float64(min_conf)
 
+        self.grain_crop.stats["num_crossings"] = self.metrics["num_crossings"]
+        self.grain_crop.stats["avg_crossing_confidence"] = self.metrics["avg_crossing_confidence"]
+        self.grain_crop.stats["min_crossing_confidence"] = self.metrics["min_crossing_confidence"]
+
 
 def nodestats_image(
     topostats_object: TopoStats,

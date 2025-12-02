@@ -327,6 +327,7 @@ class GrainStats:
             grainstats_df = pd.DataFrame(grainstats_rows)
         # Change the index column from the arbitrary one to the grain number
         grainstats_df["image"] = self.filename
+        self.topostats_object.image = self.filename
         return (grainstats_df, all_height_profiles)
 
     @staticmethod
