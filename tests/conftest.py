@@ -602,18 +602,15 @@ def graincrop_catenanes_1() -> GrainCrop:
 
 
 @pytest.fixture()
-def graincrops_catenanes(graincrop_catenanes_0: GrainCrop, graincrop_catenanes_1: GrainCrop) -> dict[str, GrainCrop]:
-    """Dictionary of ``GrainCrop`` for catenanes image."""
-    return {0: graincrop_catenanes_0, 1: graincrop_catenanes_1}
-
-
-@pytest.fixture()
 def topostats_catenanes_2_4_0(
-    image_catenanes: npt.NDArray, graincrops_catenanes: dict[int, GrainCrop], default_config: dict[str, Any]
+    image_catenanes: npt.NDArray,
+    graincrop_catenanes_0: GrainCrop,
+    graincrop_catenanes_1: GrainCrop,
+    default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
-        grain_crops=graincrops_catenanes,
+        grain_crops={0: graincrop_catenanes_0, 1: graincrop_catenanes_1},
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
@@ -1476,7 +1473,7 @@ def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
 
 ##### Minicircle Small #####
 @pytest.fixture()
-def minicircle_small_post_grainstats() -> GrainCrop:
+def minicircle_small_post_grainstats() -> TopoStats:
     """TopoStats of Minicircle Small post disordered tracing."""
     minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_grainstats.pkl"
     with minicircle_small_file.open("rb") as f:
@@ -1484,7 +1481,7 @@ def minicircle_small_post_grainstats() -> GrainCrop:
 
 
 @pytest.fixture()
-def minicircle_small_post_disordered_tracing() -> GrainCrop:
+def minicircle_small_post_disordered_tracing() -> TopoStats:
     """TopoStats of Minicircle Small post disordered tracing."""
     minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_disordered_tracing.pkl"
     with minicircle_small_file.open("rb") as f:
@@ -1492,7 +1489,7 @@ def minicircle_small_post_disordered_tracing() -> GrainCrop:
 
 
 @pytest.fixture()
-def minicircle_small_post_nodestats() -> GrainCrop:
+def minicircle_small_post_nodestats() -> TopoStats:
     """TopoStats of Minicircle Small post disordered tracing."""
     minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_nodestats.pkl"
     with minicircle_small_file.open("rb") as f:
@@ -1515,7 +1512,7 @@ def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats
 
 ##### Catenane #####
 @pytest.fixture()
-def catenanes_post_grainstats() -> GrainCrop:
+def catenanes_post_grainstats() -> TopoStats:
     """TopoStats of Catenanes post disordered tracing."""
     catenanes_file = TRACING_RESOURCES / "catenanes_post_grainstats.pkl"
     with catenanes_file.open("rb") as f:
@@ -1523,7 +1520,7 @@ def catenanes_post_grainstats() -> GrainCrop:
 
 
 @pytest.fixture()
-def catenanes_post_disordered_tracing() -> GrainCrop:
+def catenanes_post_disordered_tracing() -> TopoStats:
     """TopoStats of Catenanes post disordered tracing."""
     catenanes_file = TRACING_RESOURCES / "catenanes_post_disordered_tracing.pkl"
     with catenanes_file.open("rb") as f:
@@ -1531,7 +1528,7 @@ def catenanes_post_disordered_tracing() -> GrainCrop:
 
 
 @pytest.fixture()
-def catenanes_post_nodestats() -> GrainCrop:
+def catenanes_post_nodestats() -> TopoStats:
     """TopoStats of Catenanes post disordered tracing."""
     catenanes_file = TRACING_RESOURCES / "catenanes_post_nodestats.pkl"
     with catenanes_file.open("rb") as f:
@@ -1539,7 +1536,7 @@ def catenanes_post_nodestats() -> GrainCrop:
 
 
 @pytest.fixture()
-def catenanes_post_ordered_tracing() -> GrainCrop:
+def catenanes_post_ordered_tracing() -> TopoStats:
     """TopoStats of Catenanes post ordered tracing."""
     catenanes_file = TRACING_RESOURCES / "catenanes_post_ordered_tracing.pkl"
     with catenanes_file.open("rb") as f:
@@ -1547,14 +1544,14 @@ def catenanes_post_ordered_tracing() -> GrainCrop:
 
 
 @pytest.fixture()
-def graincrop_catenanes(catenanes_post_disordered_trace: TopoStats) -> GrainCrop:
+def graincrop_catenanes(catenanes_post_disordered_trace: TopoStats) -> TopoStats:
     """GrainCrop of Catenanes post disordered tracing."""
     return catenanes_post_disordered_trace.grain_crops.above.crops[0]
 
 
 ##### Rep_Int #####
 @pytest.fixture()
-def rep_int_post_grainstats() -> GrainCrop:
+def rep_int_post_grainstats() -> TopoStats:
     """TopoStats of Rep Int post disordered tracing."""
     rep_int_file = TRACING_RESOURCES / "rep_int_post_grainstats.pkl"
     with rep_int_file.open("rb") as f:
@@ -1562,7 +1559,7 @@ def rep_int_post_grainstats() -> GrainCrop:
 
 
 @pytest.fixture()
-def rep_int_post_disordered_tracing() -> GrainCrop:
+def rep_int_post_disordered_tracing() -> TopoStats:
     """TopoStats of Rep Int post disordered tracing."""
     rep_int_file = TRACING_RESOURCES / "rep_int_post_disordered_tracing.pkl"
     with rep_int_file.open("rb") as f:
@@ -1570,7 +1567,7 @@ def rep_int_post_disordered_tracing() -> GrainCrop:
 
 
 @pytest.fixture()
-def rep_int_post_nodestats() -> GrainCrop:
+def rep_int_post_nodestats() -> TopoStats:
     """TopoStats of Rep Int post disordered tracing."""
     rep_int_file = TRACING_RESOURCES / "rep_int_post_nodestats.pkl"
     with rep_int_file.open("rb") as f:
@@ -1578,7 +1575,7 @@ def rep_int_post_nodestats() -> GrainCrop:
 
 
 @pytest.fixture()
-def rep_int_post_ordered_tracing() -> GrainCrop:
+def rep_int_post_ordered_tracing() -> TopoStats:
     """TopoStats of Rep Int post ordered tracing."""
     rep_int_file = TRACING_RESOURCES / "rep_int_post_ordered_tracing.pkl"
     with rep_int_file.open("rb") as f:
@@ -1586,6 +1583,6 @@ def rep_int_post_ordered_tracing() -> GrainCrop:
 
 
 @pytest.fixture()
-def graincrop_rep_int(rep_int_post_disordered_trace: TopoStats) -> GrainCrop:
+def graincrop_rep_int(rep_int_post_disordered_trace: TopoStats) -> TopoStats:
     """GrainCrop of Rep Int post disordered tracing."""
     return rep_int_post_disordered_trace.grain_crops.above.crops[0]
