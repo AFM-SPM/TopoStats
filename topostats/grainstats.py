@@ -14,6 +14,7 @@ import skimage.measure as skimage_measure
 import skimage.morphology as skimage_morphology
 
 from topostats.classes import TopoStats
+from topostats.grains import get_thresholds
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
 from topostats.utils import create_empty_dataframe
@@ -185,6 +186,15 @@ class GrainStats:
 
         # Iterate over each grain
         for grain_index, grain_crop in self.grain_crops.items():
+            # If we don't have thresholds stored in the grain calculate them again (using grains.get_thresholds())
+            if grain_crop.thresholds is None:
+                grain_crop.thresholds = get_thresholds(
+                    image=self.topostats_object.image,
+                    threshold_method=self.topostats_object.config["grains"]["threshold_method"],
+                    otsu_threshold_multiplier=self.topostats_object.config["grains"]["otsu_threshold_multiplier"],
+                    threshold_std_dev=self.topostats_object.config["grains"]["threshold_std_dev"],
+                    absolute=self.topostats_object.config["grains"]["threshold_absolute"],
+                )
             LOGGER.debug(f"Processing grain {grain_index}")
             all_height_profiles[grain_index] = {}
             grain_crop.stats = {}
