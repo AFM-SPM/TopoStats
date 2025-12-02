@@ -647,6 +647,7 @@ def splining_image(
                         "Please change your configuration, valid values are 'rolling_window' or 'splining'."
                     )
 
+                # ns-rse 2025-12-18 Remove these sections
                 # get combined stats for the grains
                 grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
                 grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]

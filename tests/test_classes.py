@@ -653,74 +653,29 @@ def test_convert_to_dict(
     ("stats_mapping", "topostats_object"),
     [
         pytest.param(
-            {
-                "TopoStats": ["image_name", "basename", "grain_crops"],
-                "GrainCrop": ["grain_number", "ordered_trace"],
-                "Molecule": [
-                    "threshold",
-                    "molecule_number",
-                    "circular",
-                    "processing",
-                    "topology",
-                    "topology_flip",
-                    "contour_length",
-                    "end_to_end_distance",
-                ],
-                "OrderedTrace": ["molecule_data"],
-                "DisorderedTrace": [],
-                "MatchedBranch": [],
-                "UnMatchedBranch": [],
-                "Node": [],
-            },
+            "molecule_statistics",
             "topostats_rep_int_2_4_0",
             id="molecule_statistics",
         ),
         pytest.param(
-            {
-                "TopoStats": ["image_name", "basename", "grain_crops"],
-                "GrainCrop": ["threshold", "grain_number", "stats"],
-                "Molecule": [],
-                "OrderedTrace": [],
-                "DisorderedTrace": [],
-                "MatchedBranch": [],
-                "UnMatchedBranch": [],
-                "Node": [],
-            },
+            "grain_statistics",
             "topostats_rep_int_2_4_0",
             id="grain_statistics",
         ),
         pytest.param(
-            {
-                "TopoStats": ["image_name", "image_stats"],
-                "GrainCrop": [],
-                "Molecule": [],
-                "OrderedTrace": [],
-                "DisorderedTrace": [],
-                "MatchedBranch": [],
-                "UnMatchedBranch": [],
-                "Node": [],
-            },
+            "image_statistics",
             "topostats_rep_int_2_4_0",
             id="image_statistics",
         ),
         pytest.param(
-            {
-                "TopoStats": ["image_name", "basename", "grain_crops"],
-                "GrainCrop": ["grain_number", "threshold", "disordered_trace"],
-                "Molecule": [],
-                "OrderedTrace": [],
-                "DisorderedTrace": ["stats_dict"],
-                "MatchedBranch": [],
-                "UnMatchedBranch": [],
-                "Node": [],
-            },
+            "branch_statistics",
             "topostats_rep_int_2_4_0",
             id="branch_statistics",
         ),
     ],
 )
 def test_prepare_data_for_df(
-    stats_mapping: dict[str, list[str]],
+    stats_mapping: str,
     topostats_object: str,
     snapshot,
     request,
@@ -728,5 +683,4 @@ def test_prepare_data_for_df(
     """Test creating subset dictionaries for DataFrame creation using the prepare_data_for_df() method."""
     topostats_object = request.getfixturevalue(topostats_object)
     prepared_data = prepare_data_for_df(topostats_object, stats_mapping)
-    print(prepared_data)
     assert prepared_data == snapshot

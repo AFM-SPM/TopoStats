@@ -1355,36 +1355,7 @@ def process_scan(
 
     # Get image statistics
     LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
-<<<<<<< HEAD
     # ns-rse 2025-12-12 Add @tobyallwood methods here for pulling statistics out of topostats_object
-||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
-    # Provide the raw image if image has not been flattened, else provide the flattened image.
-    if topostats_object.image is not None:
-        image_for_image_stats = topostats_object.image
-    else:
-        image_for_image_stats = topostats_object.image_original
-    # Calculate image statistics - returns a dictionary
-    image_stats = image_statistics(
-        image=image_for_image_stats,
-        filename=topostats_object.filename,
-        results_df=grainstats_df,
-        pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
-    )
-=======
-    # Provide the raw image if image has not been flattened, else provide the flattened image.
-    if topostats_object.image is not None:
-        image_for_image_stats = topostats_object.image
-    else:
-        image_for_image_stats = topostats_object.image_original
-    # Calculate image statistics - returns a dictionary
-    image_stats = image_statistics(
-        topostats_object=topostats_object,
-        image=image_for_image_stats,
-        filename=topostats_object.filename,
-        results_df=grainstats_df,
-        pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
-    )
->>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
