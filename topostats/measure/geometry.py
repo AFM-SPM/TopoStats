@@ -5,6 +5,7 @@ import math
 import networkx
 import numpy as np
 import numpy.typing as npt
+from scipy import ndimage
 
 
 def bounding_box_cartesian_points_float(
@@ -331,3 +332,28 @@ def find_branches_for_nodes(
             )
 
     return emanating_branch_starts_by_node
+
+
+def calculate_mask_width_with_skeleton(mask: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float) -> float:
+    """
+    Calculate the mean width in metres of the DNA using the trace and mask.
+
+    Parameters
+    ----------
+    mask : npt.NDArray
+        Smoothed mask to be measured.
+    skeleton : npt.NDArray
+        Pruned skeleton.
+    pixel_to_nm_scaling : float
+        Scaling of pixels to nanometres.
+
+    Returns
+    -------
+    float
+        Width of grain in metres.
+    """
+    distance_transform = ndimage.distance_transform_edt(mask)
+    distances_per_skeleton_pixel = np.where(skeleton == 1, distance_transform, 0)
+
+    # Calculate the width as the mean nonzero value distances multiplied by 2 and scaled to nanometres.
+    return distances_per_skeleton_pixel[distances_per_skeleton_pixel != 0].mean() * 2 * pixel_to_nm_scaling
