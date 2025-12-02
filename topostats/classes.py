@@ -1285,11 +1285,11 @@ def convert_to_dict(to_convert: Any) -> Any:
     return to_convert
 
 
-def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> list[dict[str, Any]]:
+def prepare_data_for_df(class_object: object, mapping_name: str) -> list[dict[str, Any]]:
     """
     Gather required data for creating pd.DataFrames for CSVs.
 
-    A class object is given, and the values under the class name in `mapping` are cycled through.
+    A class object is given, and the values under the class name in the selected mapping are cycled through.
     Basic data types are directly added to the resultant data structure, and attributes that're classes
     will re-call the method with that class as the `class_object`, returning data to be added to the final structure.
 
@@ -1298,13 +1298,16 @@ def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> 
     will be added to the final structure (the data already there will also be duplicated so it exists on every row).
     If the dictionary only contains basic data types, this data will be moved up one layer and directly
     added to the final structure.
+    There is once case where the dictionary contains multiple nested dictionaries (grainstats output), this function
+    has specific code to handle this case but it is not generalised and will probably need working on.
+    (lines 1398 - 1417)
 
     Parameters
     ----------
     class_object : object
         Class object to be iterated through to find required data.
-    mapping : dict[str, list[str]]
-        Dictionary of required data for the output, with class names as keys and lists containing strings of
+    mapping : str
+        key mapped to a dictionary of required data for the output, with class names as keys and lists containing strings of
         required attributes from each class.
 
     Returns
@@ -1312,6 +1315,62 @@ def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> 
     list[dict[str, Any]]
         A list of dictionaries containing required data, ready to be converted into a pd.DataFrame.
     """
+    mappings = {
+        "image_statistics": {
+            "TopoStats": ["image_name", "image_stats"],
+            "GrainCrop": [],
+            "Molecule": [],
+            "OrderedTrace": [],
+            "DisorderedTrace": [],
+            "MatchedBranch": [],
+            "UnMatchedBranch": [],
+            "Node": [],
+        },
+
+        "grain_statistics": {
+            "TopoStats": ["image_name", "basename", "grain_crops"],
+            "GrainCrop": ["threshold", "grain_number", "stats"],
+            "Molecule": [],
+            "OrderedTrace": [],
+            "DisorderedTrace": [],
+            "MatchedBranch": [],
+            "UnMatchedBranch": [],
+            "Node": [],
+        },
+
+        "branch_statistics": {
+            "TopoStats": ["image_name", "basename", "grain_crops"],
+            "GrainCrop": ["grain_number", "threshold", "disordered_trace"],
+            "Molecule": [],
+            "OrderedTrace": [],
+            "DisorderedTrace": ["stats_dict"],
+            "MatchedBranch": [],
+            "UnMatchedBranch": [],
+            "Node": [],
+        },
+
+        "molecule_statistics": {
+            "TopoStats": ["image_name", "basename", "grain_crops"],
+            "GrainCrop": ["grain_number", "ordered_trace"],
+            "Molecule": [
+                "threshold",
+                "molecule_number",
+                "circular",
+                "processing",
+                "topology",
+                "topology_flip",
+                "contour_length",
+                "end_to_end_distance",
+            ],
+            "OrderedTrace": ["molecule_data"],
+            "DisorderedTrace": [],
+            "MatchedBranch": [],
+            "UnMatchedBranch": [],
+            "Node": [],
+        },
+    }
+
+    mapping = mappings[mapping_name]
     class_name = class_object.__class__.__name__
     target_attributes = mapping.get(class_name, [])
     base_row = {}
@@ -1329,7 +1388,7 @@ def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> 
             continue
         # Attr is a single class object
         if value.__class__.__name__ in mapping:
-            child_rows = prepare_data_for_df(value, mapping)
+            child_rows = prepare_data_for_df(value, mapping_name)
             if len(child_rows) == 1:
                 base_row.update(child_rows[0])
             else:
@@ -1337,7 +1396,10 @@ def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> 
             continue
         # Attr is a dict
         if isinstance(value, dict):
-            # Attr is a dict of dicts
+            # Attr is a dict of dicts - this probably needs changing as it's set up for a specific attribute (grain_crops.stats) rather than being general for any
+            # dict of dicts attributes that appear. The dict in question has multiple layers signifying grain, class, and subgrain stats which this bit of code
+            # separates and lays out in a state ready for DataFrame creation.
+            # Simplifying/ generalising this section may also help avoid linting issues with too many indentations existing in the function
             if all(isinstance(v, dict) for v in value.values()):
                 nested_rows = []
                 for class_no, subdict in value.items():
@@ -1364,7 +1426,7 @@ def prepare_data_for_df(class_object: object, mapping: dict[str, list[str]]) -> 
             for subkey, subval in value.items():
                 # Attr is a dict of classes
                 if subval.__class__.__name__ in mapping:
-                    expanded.extend(prepare_data_for_df(subval, mapping))
+                    expanded.extend(prepare_data_for_df(subval, mapping_name))
                 # Attr is a dict of basic data types
                 else:
                     base_row[subkey] = subval

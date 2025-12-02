@@ -1204,6 +1204,7 @@ def process_scan(
     )
 
     return (
+        topostats_object,
         topostats_object.img_path,
         grainstats_df,
         height_profiles,

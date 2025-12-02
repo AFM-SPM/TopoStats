@@ -44,6 +44,8 @@ from topostats.processing import (
 )
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
+from topostats.classes import prepare_data_for_df
+
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
 # __init__.py
 # Ref : https://stackoverflow.com/a/57799639/1444043
@@ -205,6 +207,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for (
+                topostats_object,
                 img,
                 result,
                 height_profiles,
@@ -234,6 +237,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
+
+    # Example of new system
+    image_stats_all_dict_new = prepare_data_for_df(topostats_object, "image_statistics")
+    image_stats_all_df_new = pd.DataFrame(image_stats_all_dict_new)
+    image_stats_all_df_new.to_csv(config["output_dir"] / "image_statistics_new.csv")
 
     try:
         results = pd.concat(results.values())
@@ -323,6 +331,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
+        # Example of new system
+        results_dict_new = prepare_data_for_df(topostats_object, 'grain_statistics')
+        results_df_new = pd.DataFrame(results_dict_new)
+        results_df_new.to_csv(config["output_dir"] / "grain_statistics_new.csv")
+
     if output_full_stats:
         if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
             disordered_trace_results.reset_index(inplace=True)
@@ -335,6 +348,12 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
+        # Example of new system
+        branch_dict_new = prepare_data_for_df(topostats_object, 'branch_statistics')
+        branch_df_new = pd.DataFrame(branch_dict_new)
+        branch_df_new.to_csv(config["output_dir"] / "branch_statistics_new.csv")
+
+
         if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
             mols_results.reset_index(drop=True, inplace=True)
             mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
@@ -343,6 +362,13 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             mols_results.reset_index(inplace=True)  # So we can access unique image names
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
+
+        # Example of new system
+        molecule_dict_new = prepare_data_for_df(topostats_object, 'molecule_statistics')
+        molecule_df_new = pd.DataFrame(molecule_dict_new)
+        molecule_df_new.to_csv(config["output_dir"] / "molecule_statistics_new.csv")
+
+
     else:
         LOGGER.info("molecule_statistics.csv and branch_statistics.csv skipped")
     # Write config to file

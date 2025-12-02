@@ -681,6 +681,9 @@ def splining_image(
         }
         grainstats_additions[grain_no].update(grain_trace_stats)
 
+    grain_crop.stats["average_end_to_end_distance"] = grain_trace_stats["average_end_to_end_distance"]
+    grain_crop.stats["total_contour_length"] = grain_trace_stats["total_contour_length"]
+
     # convert grainstats metrics to dataframe
     splining_stats_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
     molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
