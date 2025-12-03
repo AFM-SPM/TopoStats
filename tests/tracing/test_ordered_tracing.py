@@ -241,6 +241,51 @@ def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
 
 @pytest.mark.parametrize(
     (
+        "topostats_object_fixture",
+        "expected_ordered_tracing_data_filename",
+        "expected_ordered_tracing_full_images_filename",
+    ),
+    [
+        pytest.param(
+            "catenanes_post_disordered_tracing",
+            "catenanes_ordered_tracing_data.pkl",
+            "catenanes_ordered_tracing_full_images.pkl",
+            id="catenanes",
+        ),
+        pytest.param(
+            "rep_int_post_disordered_trace",
+            "rep_int_ordered_tracing_data.pkl",
+            "rep_int_ordered_tracing_full_images.pkl",
+            id="catenanes",
+        ),
+    ],
+)
+def test_ordered_tracing_image(
+    topostats_object_fixture: str,
+    expected_ordered_tracing_data_filename: str,
+    expected_ordered_tracing_full_images_filename: str,
+    request,
+) -> None:
+    """Test the ordered tracing image method of ordered tracing."""
+    topostats_object = request.getfixturevalue(topostats_object_fixture)
+    ordered_tracing_image(
+        topostats_object=topostats_object,
+        ordering_method="nodestats",
+    )
+    # Load the expected results
+    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_data_filename, "rb") as f:
+        expected_ordered_tracing_data = pickle.load(f)
+    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_full_images_filename, "rb") as f:
+        expected_ordered_tracing_full_images = pickle.load(f)  # pylint: disable=unused-variable
+    print(f"\n{expected_ordered_tracing_data=}\n")
+    # Check the results
+    np.testing.assert_equal(topostats_object, expected_ordered_tracing_data)
+    # np.testing.assert_equal(result_ordered_tracing_full_images, expected_ordered_tracing_full_images)
+
+
+@pytest.mark.skip(reason="outdated, reworking to use topostats_object")
+@pytest.mark.parametrize(
+    (
         "image_filename",
         "disordered_tracing_direction_data_filename",
         "nodestats_data_filename",
@@ -278,7 +323,7 @@ def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
         ),
     ],
 )
-def test_ordered_tracing_image(
+def test_ordered_tracing_image_old(
     image_filename: str,
     disordered_tracing_direction_data_filename: str,
     nodestats_data_filename: str,
@@ -290,6 +335,8 @@ def test_ordered_tracing_image(
     expected_ordered_tracing_full_images_filename: str,
 ) -> None:
     """Test the ordered tracing image method of ordered tracing."""
+    # pylint: disable=no-member
+    # no error
     # disordered_tracing_direction_data is the disordered tracing data
     # for a particular threshold direction.
 
@@ -309,12 +356,12 @@ def test_ordered_tracing_image(
 
     nodestats_whole_data = {"stats": nodestats_data, "images": nodestats_branch_images}
 
-    (
+    (  # pylint: disable=assignment-from-no-return,unpacking-non-sequence
         result_ordered_tracing_data,
         result_ordered_tracing_grainstats,
         result_molstats_df,
         result_ordered_tracing_full_images,
-    ) = ordered_tracing_image(
+    ) = ordered_tracing_image(  # pylint: disable=unpacking-non-sequence,unexpected-keyword-arg,no-value-for-parameter
         image=image,
         disordered_tracing_direction_data=disordered_tracing_direction_data,
         nodestats_direction_data=nodestats_whole_data,

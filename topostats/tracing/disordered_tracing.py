@@ -330,7 +330,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
     pruning_params: dict,
-) -> tuple[dict[str, dict], pd.DataFrame, dict[str, npt.NDArray], pd.DataFrame]:
+) -> None:
     """
     Processor function for tracing image.
 
@@ -350,11 +350,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         (scikitimage) or 'topostats' (original TopoStats method).
     pruning_params : dict
         Dictionary of options for pruning.
-
-    Returns
-    -------
-    tuple[dict, pd.DataFrame, dict, pd.DataFrame]
-        Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.
     """
     img_base = np.zeros_like(topostats_object.image)
     disordered_trace_crop_data = {}
@@ -460,8 +455,8 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(  # pylint: disable=logging-not-lazy
-                f"[{grain_crop.filename}] : Disordered tracing of grain "
-                f"{grain_number} failed. Consider raising an issue on GitHub. Error: ",
+                f"[{grain_crop.filename}] : Disordered tracing of grain {grain_number} failed. "
+                f"Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
 
@@ -470,7 +465,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         # Set the name of the index column to be the grain number
         grainstats_additions_df.index.name = "grain_number"
 
-    return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
+    # return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
 
 
 def compile_skan_stats(

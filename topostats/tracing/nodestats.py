@@ -6,7 +6,6 @@ from itertools import combinations
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
@@ -1767,7 +1766,7 @@ def nodestats_image(
     node_extend_dist: float,
     branch_pairing_length: float,
     pair_odd_branches: float,
-) -> tuple:
+) -> None:
     """
     Calculate Node Statistics for a single crop.
 
@@ -1785,15 +1784,9 @@ def nodestats_image(
         The length from the crossing point to pair and trace, obtaining FWHM's.
     pair_odd_branches : bool
         Whether to try and pair odd-branched nodes.
-
-    Returns
-    -------
-    tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
-        an image dictionary of nodestats steps for the entire image, and single grain images.
     """
+    # ns-rse 2025-12-02 - Rip out these, we don't need them everything should be attributes of grains/molecules
     nodestats_data = {}
-
     # Images for diagnostics edited during processing
     all_images = {
         "convolved_skeletons": np.zeros_like(topostats_object.image),
@@ -1860,6 +1853,5 @@ def nodestats_image(
     # nodestats_data[n_grain] = {}
 
     # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
-    grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-
-    return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
+    # grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
+    # return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
