@@ -210,7 +210,7 @@ def keep_only_nonrepeated_endpoints(
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-positional-arguments
-def skeletonize_and_join_close_ends(
+def skeletonise_and_join_close_ends(
     filename: str,
     p2nm: float,
     image: npt.NDArray,
@@ -406,3 +406,69 @@ def skeletonize_and_join_close_ends(
         plt.show()
 
     return mask
+
+
+def multi_class_skeletonise_and_join_close_ends(
+    class_indices: int,
+    tensor: npt.NDArray,
+    filename: str,
+    p2nm: float,
+    image: npt.NDArray,
+    skeletonisation_holearea_min_max: tuple[int | None, int | None],
+    skeletonisation_mask_smoothing_dilation_iterations: int,
+    skeletonisation_mask_smoothing_gaussian_sigma: float,
+    skeletonisation_method: str,
+    endpoint_connection_distance_nm: float,
+    endpoint_connection_cost_map_height_maximum: float,
+) -> npt.NDArray:
+    """
+    Perform joining of close-ends in masks for given classes in a multi-class mask tensor.
+
+    Parameters
+    ----------
+    class_indices : int
+        Index of the class to process in the multi-class mask tensor.
+    tensor : npt.NDArray
+        Multi-class mask tensor.
+    filename : str
+        Filename of the image.
+    p2nm : float
+        Pixel to nanometre scaling factor.
+    image : npt.NDArray
+        2-D Numpy array of the image.
+    skeletonisation_holearea_min_max : tuple[int | None, int | None]
+        Minimum and maximum hole area to fill in the mask smoothing step.
+    skeletonisation_mask_smoothing_dilation_iterations : int
+        Number of dilation iterations to perform during smoothing of the mask before skeletonisation.
+    skeletonisation_mask_smoothing_gaussian_sigma : float
+        Sigma of the Gaussian filter to apply during smoothing of the mask before skeletonisation.
+    skeletonisation_method : str
+        Method to use for skeletonisation.
+    endpoint_connection_distance_nm : float
+        Maximum distance between skeleton endpoints to connect (nm).
+    endpoint_connection_cost_map_height_maximum : float
+        Maximum height to use for the cost map when connecting endpoints. (Should roughly be the maximum height of the
+        data in nm).
+
+    Returns
+    -------
+    npt.NDArray
+        Updated multi-class mask tensor with close ends joined for the specified class.
+    """
+    result_tensor = tensor.copy()
+    for class_index in class_indices:
+        mask = tensor[class_index, :, :]
+        updated_mask = skeletonise_and_join_close_ends(
+            filename=filename,
+            p2nm=p2nm,
+            image=image,
+            mask=mask,
+            skeletonisation_holearea_min_max=skeletonisation_holearea_min_max,
+            skeletonisation_mask_smoothing_dilation_iterations=skeletonisation_mask_smoothing_dilation_iterations,
+            skeletonisation_mask_smoothing_gaussian_sigma=skeletonisation_mask_smoothing_gaussian_sigma,
+            skeletonisation_method=skeletonisation_method,
+            endpoint_connection_distance_nm=endpoint_connection_distance_nm,
+            endpoint_connection_cost_map_height_maximum=endpoint_connection_cost_map_height_maximum,
+        )
+        result_tensor[class_index, :, :] = updated_mask
+    return result_tensor
