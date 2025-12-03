@@ -102,15 +102,19 @@ def run_filters(
                                 else filter_out_path
                             )
                             try:
+                                # ns-rse 2025-12-03 Could perhaps move logic for plotting here rather incurring cost of
+                                # instantiating only to find the given plot is not required.
+                                LOGGER.debug(
+                                    f"[{topostats_object.filename}] [run_filter] : Plotting array : {plot_name=}"
+                                )
                                 Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                                 Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                             except AttributeError:
                                 LOGGER.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
                     # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
-                    plot_name = "z_threshed"
-                    plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                    plotting_config["plot_dict"]["z_threshed"]["output_dir"] = core_out_path
                     Images(
-                        filters.images["gaussian_filtered"],
+                        topostats_object.image,
                         filename=topostats_object.filename,
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
@@ -740,6 +744,9 @@ def run_curvature_stats(
         if topostats_object.grain_crops is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
             return
+        # ns-rse 2025-12-03 : Pop the colourmap_nromalisation_bounds (should we perhaps make these part of the plotting
+        # configuration?)
+        colourmap_normalisation_bounds = curvature_config.pop("colourmap_normalisation_bounds")
         try:
             curvature_config.pop("run")
             LOGGER.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
@@ -747,6 +754,7 @@ def run_curvature_stats(
             grains_curvature_stats_dict = calculate_curvature_stats_image(
                 topostats_object=topostats_object, **curvature_config
             )
+            LOGGER.info(f"[{topostats_object.filename}] : Curvature stage completed successfully.")
         except Exception as e:
             LOGGER.error(
                 f"[{topostats_object.filename}] : Curvature calculation failed. Consider raising an issue on GitHub. Error: ",
@@ -777,7 +785,7 @@ def run_curvature_stats(
         #                     cropped_images=cropped_image_data[direction],
         #                     grains_curvature_stats_dict=grains_curvature_stats_dict,
         #                     all_grains_smoothed_data=grain_trace_data[direction],
-        #                     colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+        #                     colourmap_normalisation_bounds=colourmap_normalisation_bounds,
         #                 )
         #     except Exception as e:
         #         LOGGER.error(

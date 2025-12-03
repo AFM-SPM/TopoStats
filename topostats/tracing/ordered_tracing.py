@@ -87,28 +87,20 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         """
         node_coords = [
             # ns-rse 2025-10-09 - This is strange inner loop uses stats from outer and not branch_stats which are meant
-            # to be filtered?
+            # to be filtered? Original...
             # [stats["node_coords"] for branch_stats in stats["branch_stats"].values() if branch_stats["fwhm"]["fwhm"]]
-            [stats.node_coords for branch_stats in stats.branch_stats.values() if branch_stats["fwhm"]["fwhm"]]
-            for stats in self.nodestats_dict.values()
+            [node.node_coords for branch_stats in node.branch_stats.values() if branch_stats.fwhm]
+            for node in self.nodestats_dict.values()
         ]
-        # ns-rse 2025-10-09 - Not sure why the above (and others here) use nested list comprehension and then unpack
-        # them, suspect the nesting can be removed in the above and the below becomes redundant but haven't time to
-        # check
         node_coords = [lst for lst in node_coords if lst]
-
         crossing_coords = [
-            [
-                branch_stats.ordered_coords
-                for branch_stats in stats.branch_stats.values()
-                if branch_stats["fwhm"]["fwhm"]
-            ]
+            [branch_stats.ordered_coords for branch_stats in stats.branch_stats.values() if branch_stats.fwhm]
             for stats in self.nodestats_dict.values()
         ]
         crossing_coords = [lst for lst in crossing_coords if lst]
 
         fwhms = [
-            [branch_stats.fwhm for branch_stats in stats.branch_stats.values() if branch_stats["fwhm"]["fwhm"]]
+            [branch_stats.fwhm for branch_stats in stats.branch_stats.values() if branch_stats.fwhm]
             for stats in self.nodestats_dict.values()
         ]
         fwhms = [lst for lst in fwhms if lst]
@@ -660,7 +652,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         writhe_string, node_to_writhes = self.identify_writhes()
         self.grain_tracing_stats["writhe_string"] = writhe_string
         for node_num, node_writhes in node_to_writhes.items():  # should self update as the dicts are linked
-            self.nodestats_dict[f"node_{node_num + 1}"]["writhe"] = node_writhes
+            self.nodestats_dict[node_num].writhe = node_writhes
 
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 

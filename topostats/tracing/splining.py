@@ -574,7 +574,7 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
 # pylint: disable=too-many-locals
 def splining_image(
     topostats_object: TopoStats,
-    splining_method: str | None = None,
+    method: str | None = None,
     rolling_window_size: float | None = None,
     spline_step_size: float | None = None,
     spline_linear_smoothing: float | None = None,
@@ -592,7 +592,7 @@ def splining_image(
     ----------
     topostats_object : TopoStats
         TopoStats object with ordered traces of grain crops to be splined.
-    splining_method : str
+    method : str
         Method of trace smoothing, options are 'splining' and 'rolling_window'.
     rolling_window_size : float
         Length in meters to average coordinates over in the rolling window.
@@ -611,7 +611,7 @@ def splining_image(
         The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
     config = topostats_object.config["splining"].copy()
-    splining_method = config["method"] if splining_method is None else splining_method
+    splining_method = config["method"] if method is None else method
     rolling_window_size = config["rolling_window_size"] if rolling_window_size is None else rolling_window_size
     spline_step_size = config["spline_step_size"] if spline_step_size is None else spline_step_size
     spline_linear_smoothing = (

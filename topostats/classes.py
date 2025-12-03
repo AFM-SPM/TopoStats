@@ -54,7 +54,7 @@ class GrainCrop:
         Dictionary of grain statistics.
     disordered_trace : DisorderedTrace
         A disordered trace for the grain.
-    nodes : dict[str, Nodes]
+    nodes : dict[str, Node]
         Dictionary of grain nodes.
     ordered_trace : OrderedTrace
         An ordered trace for the grain.
@@ -954,6 +954,8 @@ class Node:
         Numpy array of branch mask.
     node_avg_mask : npt.NDArray[np.int32]
         Numpy array of averaged mask.
+    writhe : str
+        Writhe type for the node.
     """
 
     error: bool | None = None
@@ -966,6 +968,7 @@ class Node:
     node_area_skeleton: npt.NDArray[np.int32] | None = None
     node_branch_mask: npt.NDArray[np.int32] | None = None
     node_avg_mask: npt.NDArray[np.int32] | None = None
+    writhe: str | None = None
 
     def __str__(self) -> str:
         """
