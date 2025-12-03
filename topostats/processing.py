@@ -1,6 +1,7 @@
 """Functions for processing data."""
 
 import logging
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -65,7 +66,9 @@ def run_filters(
         Dictionary of configuration for plotting output images.
     """
     filter_config = topostats_object.config["filter"].copy() if filter_config is None else filter_config
-    plotting_config = topostats_object.config["plotting"].copy() if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
     if filter_config["run"]:
         filter_config.pop("run")
         try:
@@ -151,7 +154,9 @@ def run_grains(  # noqa: C901
         Dictionary of configuration for the Grains class to use when initialised.
     """
     grains_config = topostats_object.config["grains"].copy() if grains_config is None else grains_config
-    plotting_config = topostats_object.config["plotting"].copy() if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
     if grains_config["run"]:
         grains_config.pop("run")
         try:
@@ -313,7 +318,9 @@ def run_grainstats(
         Dictionary of configuration for plotting images.
     """
     grainstats_config = topostats_object.config["grainstats"].copy() if grainstats_config is None else grainstats_config
-    plotting_config = topostats_object.config["plotting"].copy() if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
     if grainstats_config["run"]:
         grainstats_config.pop("run")
         # ns-rse 2025-12-03 : Pop the `class_names`, not used by GrainStats why are these part of the "grainstats_config"?
@@ -726,7 +733,9 @@ def run_curvature_stats(
         Dictionary of configuration for plotting images.
     """
     curvature_config = topostats_object.config["curvature"].copy() if curvature_config is None else curvature_config
-    plotting_config = topostats_object.config["plotting"].copy() if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
