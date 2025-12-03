@@ -219,6 +219,7 @@ def skeletonise_and_join_close_ends(
     skeletonisation_mask_smoothing_dilation_iterations: int,
     skeletonisation_mask_smoothing_gaussian_sigma: float,
     skeletonisation_method: str,
+    skeletonisation_height_bias: float,
     endpoint_connection_distance_nm: float,
     endpoint_connection_cost_map_height_maximum: float,
     plot: bool = False,
@@ -244,6 +245,8 @@ def skeletonise_and_join_close_ends(
         Sigma of the Gaussian filter to apply during smoothing of the mask before skeletonisation.
     skeletonisation_method : str
         Method to use for skeletonisation.
+    skeletonisation_height_bias : float
+        Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
     endpoint_connection_distance_nm : float
         Maximum distance between skeleton endpoints to connect (nm).
     endpoint_connection_cost_map_height_maximum : float
@@ -285,7 +288,7 @@ def skeletonise_and_join_close_ends(
         image=image,
         mask=smoothed_mask,
         method=skeletonisation_method,
-        height_bias=0.6,
+        height_bias=skeletonisation_height_bias,
     ).get_skeleton()
 
     # Calculate the mask width along the skeleton for later
@@ -409,7 +412,7 @@ def skeletonise_and_join_close_ends(
 
 
 def multi_class_skeletonise_and_join_close_ends(
-    class_indices: int,
+    class_indices: list[int],
     tensor: npt.NDArray,
     filename: str,
     p2nm: float,
@@ -418,6 +421,7 @@ def multi_class_skeletonise_and_join_close_ends(
     skeletonisation_mask_smoothing_dilation_iterations: int,
     skeletonisation_mask_smoothing_gaussian_sigma: float,
     skeletonisation_method: str,
+    skeletonisation_height_bias: float,
     endpoint_connection_distance_nm: float,
     endpoint_connection_cost_map_height_maximum: float,
 ) -> npt.NDArray:
@@ -444,6 +448,8 @@ def multi_class_skeletonise_and_join_close_ends(
         Sigma of the Gaussian filter to apply during smoothing of the mask before skeletonisation.
     skeletonisation_method : str
         Method to use for skeletonisation.
+    skeletonisation_height_bias : float
+        Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
     endpoint_connection_distance_nm : float
         Maximum distance between skeleton endpoints to connect (nm).
     endpoint_connection_cost_map_height_maximum : float
@@ -457,7 +463,7 @@ def multi_class_skeletonise_and_join_close_ends(
     """
     result_tensor = tensor.copy()
     for class_index in class_indices:
-        mask = tensor[class_index, :, :]
+        mask = tensor[:, :, class_index]
         updated_mask = skeletonise_and_join_close_ends(
             filename=filename,
             p2nm=p2nm,
@@ -467,8 +473,9 @@ def multi_class_skeletonise_and_join_close_ends(
             skeletonisation_mask_smoothing_dilation_iterations=skeletonisation_mask_smoothing_dilation_iterations,
             skeletonisation_mask_smoothing_gaussian_sigma=skeletonisation_mask_smoothing_gaussian_sigma,
             skeletonisation_method=skeletonisation_method,
+            skeletonisation_height_bias=skeletonisation_height_bias,
             endpoint_connection_distance_nm=endpoint_connection_distance_nm,
             endpoint_connection_cost_map_height_maximum=endpoint_connection_cost_map_height_maximum,
         )
-        result_tensor[class_index, :, :] = updated_mask
+        result_tensor[:, :, class_index] = updated_mask
     return result_tensor

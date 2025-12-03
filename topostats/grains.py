@@ -24,6 +24,7 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_mask, get_thresholds
+from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -691,6 +692,7 @@ class Grains:
         threshold_std_dev: dict[str, float | list] | None = None,
         threshold_absolute: dict[str, float | list] | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
+        endpoint_connection_config: dict | None = None,
         direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
@@ -772,6 +774,7 @@ class Grains:
         self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        self.endpoint_connection_config = endpoint_connection_config
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = unet_config
         self.vetting_config = vetting
@@ -1035,6 +1038,19 @@ class Grains:
             )
 
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
+
+            # Connect loose ends in the grain mask
+            if self.endpoint_connection_config is not None:
+                if self.endpoint_connection_config["run"] is True:
+                    endpoint_connection_config = self.endpoint_connection_config.copy()
+                    endpoint_connection_config.pop("run")
+                    traditional_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                        filename=self.filename,
+                        image=self.image,
+                        tensor=traditional_full_mask_tensor,
+                        p2nm=self.pixel_to_nm_scaling,
+                        **endpoint_connection_config,
+                    )
 
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
