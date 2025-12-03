@@ -7,10 +7,24 @@ import numpy.typing as npt
 from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
+from skimage.graph import route_through_array
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.utils import convolve_skeleton
+from topostats.tracing.skeletonize import getSkeleton
+from topostats.measure.geometry import calculate_mask_width_with_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+# TODO: DEBUG IMPORTS, REMOVE FOR PR
+import matplotlib.pyplot as plt
+from topostats.plottingfuncs import Colormap
+
+colormap = Colormap()
+cmap = colormap.get_cmap()
+vmin = -3.0
+vmax = 4.0
 
 
 def re_add_holes(
@@ -151,3 +165,244 @@ def smooth_mask(
         smoothed_mask=dilation,
         holearea_min_max=holearea_min_max,
     )
+
+
+def keep_only_nonrepeated_endpoints(
+    potential_pairs: list[tuple[tuple[int, int], tuple[int, int], float]],
+) -> list[tuple[tuple[int, int], tuple[int, int], float]]:
+    """
+    From a list of potential endpoint pairs to connect, remove any pairs that share endpoints with other pairs.
+
+    Parameters
+    ----------
+    potential_pairs : list[tuple[tuple[int, int], tuple[int, int], float]]
+        List of potential endpoint pairs to connect, with their distance in nanometers.
+
+    Returns
+    -------
+    list[tuple[tuple[int, int], tuple[int, int], float]]
+        List of endpoint pairs with no repeated endpoints.
+    """
+
+    used_endpoints: list[tuple[int, int]] = []
+    for potential_pair in potential_pairs:
+        endpoint_1, endpoint_2, _distance_nm = potential_pair
+        used_endpoints.append((endpoint_1[0], endpoint_1[1]))
+        used_endpoints.append((endpoint_2[0], endpoint_2[1]))
+
+    repeated_endpoints = set([ep for ep in used_endpoints if used_endpoints.count(ep) > 1])
+
+    pairs_no_repeated_ends: list[tuple[tuple[int, int], tuple[int, int], float]] = []
+    for potential_pair in potential_pairs:
+        endpoint_1, endpoint_2, _distance_nm = potential_pair
+        if (endpoint_1[0], endpoint_1[1]) not in repeated_endpoints and (
+            endpoint_2[0],
+            endpoint_2[1],
+        ) not in repeated_endpoints:
+            pairs_no_repeated_ends.append(potential_pair)
+        else:
+            print(f"excluding pair {endpoint_1}, {endpoint_2} due to repeated endpoints")
+
+    return pairs_no_repeated_ends
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-statements
+# pylint: disable=too-many-positional-arguments
+def skeletonize_and_join_close_ends(
+    filename: str,
+    p2nm: float,
+    image: npt.NDArray,
+    mask: npt.NDArray,
+    skeletonisation_holearea_min_max: tuple[int | None, int | None],
+    skeletonisation_mask_smoothing_dilation_iterations: int,
+    skeletonisation_mask_smoothing_gaussian_sigma: float,
+    skeletonisation_method: str,
+    endpoint_connection_distance_nm: float,
+    endpoint_connection_cost_map_height_maximum: float,
+    plot: bool = False,
+) -> npt.NDArray:
+    """
+    Fill-in gaps in grain masks by skeletonising all grains and connecting close endpoints with mask-width wide paths.
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the image.
+    p2nm : float
+        Pixel to nanometre scaling factor.
+    image : npt.NDArray
+        2-D Numpy array of the image.
+    mask : npt.NDArray
+        2-D Numpy array of the grain mask.
+    skeletonisation_holearea_min_max : tuple[int | None, int | None]
+        Minimum and maximum hole area to fill in the mask smoothing step.
+    skeletonisation_mask_smoothing_dilation_iterations : int
+        Number of dilation iterations to perform during smoothing of the mask before skeletonisation.
+    skeletonisation_mask_smoothing_gaussian_sigma : float
+        Sigma of the Gaussian filter to apply during smoothing of the mask before skeletonisation.
+    skeletonisation_method : str
+        Method to use for skeletonisation.
+    endpoint_connection_distance_nm : float
+        Maximum distance between skeleton endpoints to connect (nm).
+    endpoint_connection_cost_map_height_maximum : float
+        Maximum height to use for the cost map when connecting endpoints. (Should roughly be the maximum height of the
+        data in nm).
+    plot : bool, optional
+        Whether to plot intermediate steps for debugging, by default False.
+
+    Returns
+    -------
+    npt.NDArray
+        2-D Numpy array of the updated grain mask with gaps filled in.
+    """
+
+    # skeletonisation_holearea_min_max = (0, None)
+    # skeletonisation_mask_smoothing_dilation_iterations = 2
+    # skeletonisation_mask_smoothing_gaussian_sigma = 2
+    # skeletonisation_method = "topostats"
+    # skeletonisation_height_bias = 0.6
+    # endpoint_connection_distance_nm = 10
+    # endpoint_connection_cost_map_height_maximum = 3.0
+
+    smoothed_mask = smooth_mask(
+        filename=filename,
+        pixel_to_nm_scaling=p2nm,
+        grain=mask,
+        gaussian_sigma=skeletonisation_mask_smoothing_gaussian_sigma,
+        holearea_min_max=skeletonisation_holearea_min_max,
+        dilation_iterations=skeletonisation_mask_smoothing_dilation_iterations,
+    )
+    # plt.imshow(smoothed_mask, cmap="gray")
+    # plt.title("Smoothed mask")
+    # plt.show()
+
+    # Maybe need to check it doesn't touch the edge of the image like we do in disordered_tracing? unsure.
+
+    # Next step, skeletonize
+    skeleton = getSkeleton(
+        image=image,
+        mask=smoothed_mask,
+        method=skeletonisation_method,
+        height_bias=0.6,
+    ).get_skeleton()
+
+    # Calculate the mask width along the skeleton for later
+    mean_mask_width_nm = calculate_mask_width_with_skeleton(
+        mask=smoothed_mask,
+        skeleton=skeleton,
+        pixel_to_nm_scaling=p2nm,
+    )
+    mean_mask_width_px = mean_mask_width_nm / p2nm
+
+    # fig, ax = plt.subplots(figsize=(10, 10))
+    # plt.imshow(skeleton, cmap="gray")
+    # plt.title("skeleton")
+    # plt.show()
+
+    # Now to find the skeleton endpoints and connect close ones.
+    convolved_skeleton = convolve_skeleton(skeleton=skeleton)
+    # Get the endpoints, value = 2
+    endpoint_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton == 2)]
+    print("endpoints:")
+    print(endpoint_coords)
+
+    if plot:
+        _fig, _ax = plt.subplots(figsize=(20, 20))
+        plt.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
+        grain_mask_mask = np.ma.masked_where(~mask, mask)
+        plt.imshow(grain_mask_mask, cmap="Blues_r", alpha=0.3)
+        skeleton_mask = np.ma.masked_where(~convolved_skeleton.astype(bool), convolved_skeleton)
+        plt.imshow(skeleton_mask, cmap="viridis", alpha=0.7)
+        plt.show()
+
+    # For each endpoint, determine if any others are close enough to connect.
+    potential_pairs: list[tuple[tuple[int, int], tuple[int, int], float]] = []
+    for i, endpoint_1 in enumerate(endpoint_coords):
+        for j, endpoint_2 in enumerate(endpoint_coords):
+            if i >= j:
+                continue  # avoid double counting
+            distance_nm = float(np.linalg.norm((np.array(endpoint_1) - np.array(endpoint_2)) * p2nm))
+            if distance_nm <= endpoint_connection_distance_nm:
+                potential_pairs.append((endpoint_1, endpoint_2, distance_nm))
+
+    print("potential pairs to connect:")
+    for pair in potential_pairs:
+        print(pair)
+
+    # for now, for simplicity, let's delete any pairs that are involved in other pairs.
+    # Construct a list of all endpoints involved in pairs
+    potential_pairs_no_repeated_endpoints = keep_only_nonrepeated_endpoints(potential_pairs)
+    print("pairs to connect:")
+    for pair in potential_pairs_no_repeated_endpoints:
+        print(pair)
+
+    for pair in potential_pairs_no_repeated_endpoints:
+        endpoint_1, endpoint_2, distance_nm = pair
+
+        # Connect the pair.
+
+        # try using height biased pathfinding between the two endpoints?
+        # create a weight cost map from the image, where 0 is the maximum cost, and the lowest cost is configurable.
+        # first create a crop around the two endpoints to speed up pathfinding
+        cost_map_bbox_padding_px = 10
+        min_y = max(0, min(endpoint_1[0], endpoint_2[0]) - cost_map_bbox_padding_px)
+        max_y = min(image.shape[0], max(endpoint_1[0], endpoint_2[0]) + cost_map_bbox_padding_px)
+        min_x = max(0, min(endpoint_1[1], endpoint_2[1]) - cost_map_bbox_padding_px)
+        max_x = min(image.shape[1], max(endpoint_1[1], endpoint_2[1]) + cost_map_bbox_padding_px)
+        cost_map = image[min_y:max_y, min_x:max_x]
+        _mask_crop = mask[min_y:max_y, min_x:max_x]
+        _image_crop = image[min_y:max_y, min_x:max_x]
+        local_endpoint_1 = (endpoint_1[0] - min_y, endpoint_1[1] - min_x)
+        local_endpoint_2 = (endpoint_2[0] - min_y, endpoint_2[1] - min_x)
+        # clip it to the height bounds
+        cost_map = np.clip(
+            cost_map,
+            a_min=0,
+            a_max=endpoint_connection_cost_map_height_maximum,
+        )
+        # invert it
+        cost_map = endpoint_connection_cost_map_height_maximum - cost_map
+        # normalise to 0-1
+        cost_map = cost_map / endpoint_connection_cost_map_height_maximum
+
+        # find the lowest cost path between the two endpoints
+        path, _cost = route_through_array(
+            cost_map,
+            start=local_endpoint_1,
+            end=local_endpoint_2,
+            fully_connected=True,  # allow diagonal moves
+        )
+
+        # Dilate the path to equal the mean mask width in pixels
+        path_array = np.zeros_like(cost_map, dtype=bool)
+        # Set the path to True
+        for y, x in path:
+            path_array[y, x] = True
+        # Calculate the dilation iterations needed to reach the mean mask width
+        dilation_radius = int(np.ceil(mean_mask_width_px / 2))
+        dilated_path_array = ndimage.binary_dilation(
+            path_array,
+            iterations=dilation_radius,
+        )
+
+        # Add the dilated path to the whole mask
+        dilated_path_array_global = np.zeros_like(mask, dtype=bool)
+        dilated_path_array_global[min_y:max_y, min_x:max_x] = dilated_path_array
+        mask = mask | dilated_path_array_global
+
+        for y, x in path:
+            skeleton[y + min_y, x + min_x] = True
+
+    if plot:
+        _fig, _ax = plt.subplots(figsize=(20, 20))
+        plt.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
+        grain_mask_mask = np.ma.masked_where(~mask, mask)
+        plt.imshow(grain_mask_mask, cmap="Blues_r", alpha=0.3)
+        skeleton_mask = np.ma.masked_where(~skeleton.astype(bool), skeleton)
+        plt.imshow(skeleton_mask, cmap="viridis", alpha=0.7)
+        plt.title("skeleton after connecting loose ends")
+        plt.show()
+
+    return mask
