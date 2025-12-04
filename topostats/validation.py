@@ -377,14 +377,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
             ),
-            "colourmap_normalisation_bounds": [
-                Or(
-                    float,
-                    int,
-                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
-                    "are float or int",
-                )
-            ],
         },
         "plotting": {
             "run": Or(
@@ -1412,6 +1404,14 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "module": "splining",
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
     }
 )

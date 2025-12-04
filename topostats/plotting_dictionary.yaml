@@ -378,3 +378,4 @@ curvature_individual_grains:
   savefig_dpi: 600
   core_set: false
   module: "splining"
+  colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.
