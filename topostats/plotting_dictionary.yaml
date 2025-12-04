@@ -64,7 +64,7 @@ initial_scar_removal:
   core_set: false
   module: "filters"
 initial_zero_average_background:
-  filename: "7-initial_zero_average_background"
+  filename: "07-initial_zero_average_background"
   title: "Initial Zero Averaged Background"
   image_type: "non-binary"
   savefig_dpi: 100

@@ -65,7 +65,7 @@ def run_filters(
     plotting_config : dict
         Dictionary of configuration for plotting output images.
     """
-    filter_config = topostats_object.config["filter"].copy() if filter_config is None else filter_config
+    filter_config = deepcopy(topostats_object.config["filter"]) if filter_config is None else deepcopy(filter_config)
     plotting_config = (
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
     )
@@ -87,8 +87,8 @@ def run_filters(
             )
         # Optionally plot filter stage
         else:
-            try:
-                if plotting_config["run"]:
+            if plotting_config["run"]:
+                try:
                     plotting_config.pop("run")
                     LOGGER.info(f"[{topostats_object.filename}] : Plotting Filtering Images")
                     # Generate plots
@@ -110,21 +110,26 @@ def run_filters(
                                 Images(array, **plotting_config["plot_dict"][plot_name]).plot_and_save()
                                 Images(array, **plotting_config["plot_dict"][plot_name]).plot_histogram_and_save()
                             except AttributeError:
-                                LOGGER.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
+                                # If scar removal isn't run scar_mask plot always fails with Attribute error, only log
+                                # other failures
+                                if plot_name != "scar_mask" or topostats_object.config["filter"]["remove_scars"]["run"]:
+                                    LOGGER.info(f"[{topostats_object.filename}] Unable to generate plot : {plot_name}")
+                                else:
+                                    continue
                     # Always want the 'z_threshed' plot (aka "Height Thresholded") but in the core_out_path
                     plotting_config["plot_dict"]["z_threshed"]["output_dir"] = core_out_path
                     Images(
                         topostats_object.image,
                         filename=topostats_object.filename,
-                        **plotting_config["plot_dict"][plot_name],
+                        **plotting_config["plot_dict"]["z_threshed"],
                     ).plot_and_save()
-            except Exception as e:
-                LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on"
-                    "GitHub. Error : ",
-                    exc_info=e,
-                )
-
+                    LOGGER.info(f"[{topostats_object.filename}] : Filters plotting completed successfully.")
+                except Exception as e:
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on"
+                        "GitHub. Error : ",
+                        exc_info=e,
+                    )
         return
     # Otherwise, return None and warn that initial processing is disabled.
     LOGGER.error(
@@ -182,119 +187,121 @@ def run_grains(  # noqa: C901
                 exc_info=e,
             )
         else:
-            # try:
-            # Optionally plot grain finding stage if we have found grains and plotting is required
             if plotting_config["run"]:
-                plotting_config.pop("run")
-                grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
-                LOGGER.info(f"[{topostats_object.filename}] : Plotting Grain Finding Images")
-                # @ns-rse : 2025-10-30 Need to think through carefully what this becomes and which directory things are
-                # to be in as we no longer have a direction and should be using topostats_object.grain_crops
-                for direction, image_arrays in grains.mask_images.items():
-                    LOGGER.debug(f"[{topostats_object.filename}] : Plotting {direction} Grain Finding Images")
-                    grain_out_path_direction = grain_out_path / f"{direction}"
-                    # Plot diagnostic full grain images
-                    for plot_name, array in image_arrays.items():
-                        # Tensor, iterate over each channel
-                        filename_base = plotting_config["plot_dict"][plot_name]["filename"]
-                        for tensor_class in range(1, array.shape[2]):
-                            LOGGER.debug(
-                                f"[{topostats_object.filename}] : Plotting {plot_name} image, class {tensor_class}"
-                            )
-                            plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path_direction
-                            plotting_config["plot_dict"][plot_name]["filename"] = (
-                                filename_base + f"_class_{tensor_class}"
-                            )
-                            Images(
-                                data=topostats_object.image,
-                                masked_array=array[:, :, tensor_class],
-                                **plotting_config["plot_dict"][plot_name],
-                            ).plot_and_save()
-                    # Plot individual grain masks
-                    if topostats_object.grain_crops not in ({}, None):
-                        LOGGER.info(f"[{topostats_object.filename}] : Plotting individual grain masks")
-                        for grain_number, grain_crop in topostats_object.grain_crops.items():
-                            # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
-                            if grain_crop_plot_size_nm == -1:
-                                crop_image = grain_crop.image
-                                crop_mask = grain_crop.mask
-                            else:
-                                try:
-                                    # Resize the grain crop to the requested size
-                                    crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
-                                        filename=topostats_object.filename,
-                                        grain_number=grain_number,
-                                        grain_bbox=grain_crop.bbox,
-                                        pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
-                                        full_image=topostats_object.image,
-                                        full_mask_tensor=topostats_object.full_mask_tensor,
-                                        target_size_nm=grain_crop_plot_size_nm,
-                                    )
-                                except ValueError as e:
-                                    if "crop cannot be re-cropped" in str(e):
-                                        LOGGER.error(
-                                            "Crop cannot be re-cropped to requested size, skipping plotting "
-                                            "this grain.",
-                                            exc_info=True,
-                                        )
-                                        continue
-
-                            # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"]["filename"] = (
-                                f"{topostats_object.filename}_grain_{grain_number}"
-                            )
-                            plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
-                            Images(
-                                data=crop_image,
-                                **plotting_config["plot_dict"]["grain_image"],
-                            ).plot_and_save()
-                            # Plot the grain crop with mask
-                            plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
-                            # Tensor, iterate over channels
-                            for tensor_class in range(1, crop_mask.shape[2]):
-                                plotting_config["plot_dict"]["grain_mask"]["filename"] = (
-                                    f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                try:
+                    # Optionally plot grain finding stage if we have found grains and plotting is required
+                    plotting_config.pop("run")
+                    grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
+                    LOGGER.info(f"[{topostats_object.filename}] : Plotting Grain Finding Images")
+                    # @ns-rse : 2025-10-30 Need to think through carefully what this becomes and which directory things are
+                    # to be in as we no longer have a direction and should be using topostats_object.grain_crops
+                    for _, image_arrays in grains.mask_images.items():
+                        LOGGER.debug(f"[{topostats_object.filename}] : Plotting Grain Diagnostic Images")
+                        # Plot diagnostic full grain images
+                        for plot_name, array in image_arrays.items():
+                            # Tensor, iterate over each channel
+                            filename_base = plotting_config["plot_dict"][plot_name]["filename"]
+                            for tensor_class in range(1, array.shape[2]):
+                                LOGGER.info(
+                                    f"[{topostats_object.filename}] : Plotting {plot_name} image, class {tensor_class}"
+                                )
+                                plotting_config["plot_dict"][plot_name]["output_dir"] = grain_out_path
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    filename_base + f"_class_{tensor_class}"
                                 )
                                 Images(
-                                    data=crop_image,
-                                    masked_array=crop_mask[:, :, tensor_class],
-                                    **plotting_config["plot_dict"]["grain_mask"],
+                                    data=topostats_object.image,
+                                    masked_array=array[:, :, tensor_class],
+                                    **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
-                    # Make a plot of labelled regions with bounding boxes
-                    if topostats_object.grain_crops is not None:
-                        full_mask_tensor = topostats_object.full_mask_tensor
-                        # Plot image with overlaid masks
-                        plot_name = "mask_overlay"
-                        plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                        # Tensor, iterate over each channel
-                        for tensor_class in range(1, full_mask_tensor.shape[2]):
-                            # Set filename for this class
-                            plotting_config["plot_dict"][plot_name]["filename"] = (
-                                # @ns-rse 2025-11-26 need to find out what grain should be here and update
-                                f"{topostats_object.filename}_{grain_number}_masked_overlay_class_{tensor_class}"
-                                # f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
-                            )
-                            full_mask_tensor_class = full_mask_tensor[:, :, tensor_class]
-                            full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
-                            full_mask_tensor_class_regionprops = Grains.get_region_properties(
-                                full_mask_tensor_class_labelled
-                            )
-                            Images(
-                                data=topostats_object.image,
-                                masked_array=full_mask_tensor_class.astype(bool),
-                                **plotting_config["plot_dict"][plot_name],
-                                region_properties=full_mask_tensor_class_regionprops,
-                            ).plot_and_save()
-                plotting_config["run"] = True
+                        # Plot individual grain masks
+                        if topostats_object.grain_crops not in ({}, None):
+                            LOGGER.info(f"[{topostats_object.filename}] : Plotting individual grain masks")
+                            for grain_number, grain_crop in topostats_object.grain_crops.items():
+                                # If the grain_crop_plot_size_nm is -1, just use the grain crop as-is.
+                                if grain_crop_plot_size_nm == -1:
+                                    crop_image = grain_crop.image
+                                    crop_mask = grain_crop.mask
+                                else:
+                                    try:
+                                        LOGGER.info(
+                                            f"[{topostats_object.filename}] : Resizing grain crop {grain_number}"
+                                        )
+                                        crop_image, crop_mask = re_crop_grain_image_and_mask_to_set_size_nm(
+                                            filename=topostats_object.filename,
+                                            grain_number=grain_number,
+                                            grain_bbox=grain_crop.bbox,
+                                            pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
+                                            full_image=topostats_object.image,
+                                            full_mask_tensor=topostats_object.full_mask_tensor,
+                                            target_size_nm=grain_crop_plot_size_nm,
+                                        )
+                                    except ValueError as e:
+                                        if "crop cannot be re-cropped" in str(e):
+                                            LOGGER.error(
+                                                "Crop cannot be re-cropped to requested size, skipping plotting "
+                                                "this grain.",
+                                                exc_info=True,
+                                            )
+                                            continue
+
+                                # Plot the grain crop without mask
+                                plotting_config["plot_dict"]["grain_image"]["filename"] = (
+                                    f"{topostats_object.filename}_grain_{grain_number}"
+                                )
+                                plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path
+                                Images(
+                                    data=crop_image,
+                                    **plotting_config["plot_dict"]["grain_image"],
+                                ).plot_and_save()
+                                # Plot the grain crop with mask
+                                plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path
+                                # Tensor, iterate over channels
+                                for tensor_class in range(1, crop_mask.shape[2]):
+                                    plotting_config["plot_dict"]["grain_mask"]["filename"] = (
+                                        f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                    )
+                                    Images(
+                                        data=crop_image,
+                                        masked_array=crop_mask[:, :, tensor_class],
+                                        **plotting_config["plot_dict"]["grain_mask"],
+                                    ).plot_and_save()
+                        # Make a plot of labelled regions with bounding boxes
+                        if topostats_object.grain_crops is not None:
+                            # Plot image with overlaid masks
+                            plot_name = "mask_overlay"
+                            plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
+                            # Tensor, iterate over each channel
+                            for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
+                                # Set filename for this class
+                                plotting_config["plot_dict"][plot_name]["filename"] = (
+                                    # @ns-rse 2025-11-26 need to find out what grain should be here and update
+                                    # f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
+                                    f"{topostats_object.filename}_{grain_number}_masked_overlay_class_{tensor_class}"
+                                )
+                                full_mask_tensor_class = topostats_object.full_mask_tensor[:, :, tensor_class]
+                                # full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
+                                # full_mask_tensor_class_regionprops = Grains.get_region_properties(
+                                #     full_mask_tensor_class_labelled
+                                # )
+                                full_mask_tensor_class_regionprops = Grains.get_region_properties(
+                                    Grains.label_regions(full_mask_tensor_class)
+                                )
+                                Images(
+                                    data=topostats_object.image,
+                                    masked_array=full_mask_tensor_class.astype(bool),
+                                    **plotting_config["plot_dict"][plot_name],
+                                    region_properties=full_mask_tensor_class_regionprops,
+                                ).plot_and_save()
+                    LOGGER.info(f"[{topostats_object.filename}] : Grain plotting completed successfully.")
+                except Exception as e:
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on"
+                        "GitHub. Error",
+                        exc_info=e,
+                    )
             else:
-                # Otherwise, return None and warn that plotting is disabled for grain finding images
                 LOGGER.info(f"[{topostats_object.filename}] : Plotting disabled for Grain Finding Images")
-            # except Exception as e:
-            #     LOGGER.error(
-            #         f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on"
-            #         "GitHub. Error",
-            #         exc_info=e,
-            #     )
         return
     # Otherwise, return None and warn grainstats is disabled
     LOGGER.info(f"[{topostats_object.filename}] Detection of grains disabled, GrainStats will not be run.")
@@ -348,7 +355,7 @@ def run_grainstats(
             )
             LOGGER.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
             return
-        except Exception:
+        except Exception as e:
             LOGGER.info(
                 f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe.",
                 exc_info=e,
@@ -403,10 +410,10 @@ def run_disordered_tracing(  # noqa: C901
         except ValueError as e:
             LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
         except AttributeError as e:
-            # if topostats_object.image_grain_stats is None:
-            #     LOGGER.info(f"[{topostats_object.filename}] : Missing image_grain_stats attribute.")
-            # else:
-            LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
+            if topostats_object.image_grain_stats is None:
+                LOGGER.info(f"[{topostats_object.filename}] : Missing image_grain_stats attribute.")
+            else:
+                LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
         except Exception as e:
             LOGGER.info(
                 f"[{topostats_object.filename}] : Disordered tracing failed - skipping. Consider raising an issue on GitHub. Error: ",
@@ -415,35 +422,48 @@ def run_disordered_tracing(  # noqa: C901
         # Plot results
         else:
             try:
-                for grain, grain_crop in topostats_object.grain_crops.items():
+                disordered_output_dir = core_out_path / topostats_object.filename / "disordered_trace"
+                disordered_output_dir.mkdir(parents=True, exist_ok=True)
+                for grain_number, grain_crop in topostats_object.grain_crops.items():
+                    # Plot pruned skeletons
+                    LOGGER.info(f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number}.")
                     Images(
-                        topostats_object.image,
+                        grain_crop.image,
                         masked_array=grain_crop.disordered_trace.images["pruned_skeleton"],
-                        output_dir=core_out_path,
-                        filename=f"{topostats_object.filename}_grain_{grain}_disordered_trace",
+                        output_dir=disordered_output_dir,
+                        filename=f"{topostats_object.filename}_grain_{grain_number}_disordered_trace",
                         **plotting_config["plot_dict"]["pruned_skeleton"],
                     ).plot_and_save()
-                    # @ns-rse 2025-11-19 : Need to plot all disordered traces, best done by adding a method to GrainCrop to plot the data.
-                    # for plot_name, image_value in disordered_tracing_images.items():
-                    #         try:
-                    #             Images(
-                    #                 topostats_object.image,
-                    #                 masked_array=image_value,
-                    #                 output_dir=tracing_out_path / direction,
-                    #                 **plotting_config["plot_dict"][plot_name],
-                    #             ).plot_and_save()
-                    #         except KeyError:
-                    #             LOGGER.warning(
-                    #                 f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                    #                 "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                    #                 "GitHub to report this problem (https://github.com/AFM-SPM/TopoStats/issues/new?template=bug_report.yaml)."
-                    #             )
+                    # Plot other disordered tracing stages (skeleton, branch_types and branch_indexes)
+                    for plot_name, image_value in grain_crop.disordered_trace.images.items():
+                        # Skip plotting the image and grain themselves and pruned_skeleton (plotted above)
+                        if plot_name in {"image", "grain", "pruned_skeleton"}:
+                            continue
+                        try:
+                            # ns-rse 2025-12-04 : fudge to get filenames consistent
+                            config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
+                            filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
+                            Images(
+                                grain_crop.image,
+                                masked_array=image_value,
+                                output_dir=disordered_output_dir,
+                                filename=filename,
+                                **plotting_config["plot_dict"][plot_name],
+                            ).plot_and_save()
+                            plotting_config["plot_dict"][plot_name]["filename"] = config_filename
+                        except KeyError:
+                            LOGGER.warning(
+                                f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
+                                "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                "GitHub to report this problem."
+                            )
             except Exception as e:
                 LOGGER.error(
                     f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on"
-                    "GitHub. Error",
+                    "GitHub. Error : ",
                     exc_info=e,
                 )
+            LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
         return
     LOGGER.info(f"[{topostats_object.filename}] Disordered Tracing disabled.")
     return

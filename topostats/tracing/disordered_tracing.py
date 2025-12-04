@@ -683,8 +683,8 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         return None
 
     return {
-        "original_image": cropped_image,
-        "original_grain": cropped_mask,
+        "image": cropped_image,
+        "grain": cropped_mask,
         "smoothed_mask": disorderedtrace.smoothed_mask,
         "skeleton": disorderedtrace.skeleton,
         "pruned_skeleton": disorderedtrace.pruned_skeleton,
