@@ -188,12 +188,10 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
     else:
         valid_config = ["default", "simple", "mplstyle", "var_to_label"]
         raise ValueError(f"Invalid configuration file option, valid options are\n{valid_config}")
-
     if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
         config_path = output_dir / f"{filename}.yaml"
     else:
         config_path = output_dir / filename
-
     try:
         with config_path.open("w", encoding="utf-8") as f:
             f.write(f"# Config file generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -201,7 +199,6 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
             f.write(config.decode("utf-8"))
     except AttributeError as e:
         raise e
-
     LOGGER.info(f"{logger_msg} : {str(config_path)}")
 
 
