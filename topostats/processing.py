@@ -18,6 +18,7 @@ from topostats.grainstats import GrainStats
 from topostats.io import get_out_path, save_topostats_file
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.curvature import calculate_curvature_stats_image
+from topostats.plotting import plot_crossing_linetrace_halfmax
 from topostats.plottingfuncs import (
     Images,
     add_pixel_to_nm_to_plotting_config,
@@ -69,6 +70,9 @@ def run_filters(
     plotting_config = (
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
     )
+    filter_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "filters" if filter_out_path is None else filter_out_path
+    )
     if filter_config["run"]:
         filter_config.pop("run")
         try:
@@ -90,7 +94,7 @@ def run_filters(
             if plotting_config["run"]:
                 try:
                     plotting_config.pop("run")
-                    LOGGER.info(f"[{topostats_object.filename}] : Plotting Filtering Images")
+                    filter_out_path.mkdir(parents=True, exist_ok=True)
                     # Generate plots
                     for plot_name, array in filters.images.items():
                         if plot_name not in ["scan_raw"]:
@@ -141,7 +145,7 @@ def run_filters(
 
 def run_grains(  # noqa: C901
     topostats_object: TopoStats,
-    grain_out_path: Path,
+    grain_out_path: Path | None,
     core_out_path: Path,
     plotting_config: dict,
     grains_config: dict,
@@ -165,6 +169,9 @@ def run_grains(  # noqa: C901
     grains_config = topostats_object.config["grains"].copy() if grains_config is None else grains_config
     plotting_config = (
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
+    grain_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "grains" if grain_out_path is None else grain_out_path
     )
     if grains_config["run"]:
         grains_config.pop("run")
@@ -191,8 +198,8 @@ def run_grains(  # noqa: C901
                 try:
                     # Optionally plot grain finding stage if we have found grains and plotting is required
                     plotting_config.pop("run")
+                    grain_out_path.mkdir(parents=True, exist_ok=True)
                     grain_crop_plot_size_nm = plotting_config["grain_crop_plot_size_nm"]
-                    LOGGER.info(f"[{topostats_object.filename}] : Plotting Grain Finding Images")
                     # @ns-rse : 2025-10-30 Need to think through carefully what this becomes and which directory things are
                     # to be in as we no longer have a direction and should be using topostats_object.grain_crops
                     for _, image_arrays in grains.mask_images.items():
@@ -275,15 +282,9 @@ def run_grains(  # noqa: C901
                             for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
                                 # Set filename for this class
                                 plotting_config["plot_dict"][plot_name]["filename"] = (
-                                    # @ns-rse 2025-11-26 need to find out what grain should be here and update
-                                    # f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
                                     f"{topostats_object.filename}_{grain_number}_masked_overlay_class_{tensor_class}"
                                 )
                                 full_mask_tensor_class = topostats_object.full_mask_tensor[:, :, tensor_class]
-                                # full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
-                                # full_mask_tensor_class_regionprops = Grains.get_region_properties(
-                                #     full_mask_tensor_class_labelled
-                                # )
                                 full_mask_tensor_class_regionprops = Grains.get_region_properties(
                                     Grains.label_regions(full_mask_tensor_class)
                                 )
@@ -310,7 +311,8 @@ def run_grains(  # noqa: C901
 
 def run_grainstats(
     topostats_object: TopoStats,
-    grain_out_path: Path,
+    grain_out_path: Path | None,
+    core_out_path: Path,
     grainstats_config: dict | None = None,
     plotting_config: dict | None = None,
 ) -> None:
@@ -332,9 +334,13 @@ def run_grainstats(
     plotting_config = (
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
     )
+    grain_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "grains" if grain_out_path is None else grain_out_path
+    )
     if grainstats_config["run"]:
         grainstats_config.pop("run")
-        # ns-rse 2025-12-03 : Pop the `class_names`, not used by GrainStats why are these part of the "grainstats_config"?
+        # ns-rse 2025-12-03 : Pop the `class_names`, not used by GrainStats why are these part of the
+        # "grainstats_config"? (Must be popped from `grainstats_config` though as not arg to GrainStats)
         class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}  # pylint: disable=unused-value
         # Grain Statistics :
         try:
@@ -394,7 +400,12 @@ def run_disordered_tracing(  # noqa: C901
         if disordered_tracing_config is None
         else disordered_tracing_config
     )
-    plotting_config = topostats_object.config["plotting"] if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" if tracing_out_path is None else tracing_out_path
+    )
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
         LOGGER.info(f"[{topostats_object.filename}] : *** Disordered Tracing ***")
@@ -422,15 +433,16 @@ def run_disordered_tracing(  # noqa: C901
         # Plot results
         else:
             try:
-                disordered_output_dir = core_out_path / topostats_object.filename / "disordered_trace"
-                disordered_output_dir.mkdir(parents=True, exist_ok=True)
+                tracing_out_path.mkdir(parents=True, exist_ok=True)
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     # Plot pruned skeletons
-                    LOGGER.info(f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number}.")
+                    LOGGER.info(
+                        f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}."
+                    )
                     Images(
-                        grain_crop.image,
+                        data=grain_crop.image,
                         masked_array=grain_crop.disordered_trace.images["pruned_skeleton"],
-                        output_dir=disordered_output_dir,
+                        output_dir=tracing_out_path,
                         filename=f"{topostats_object.filename}_grain_{grain_number}_disordered_trace",
                         **plotting_config["plot_dict"]["pruned_skeleton"],
                     ).plot_and_save()
@@ -444,9 +456,9 @@ def run_disordered_tracing(  # noqa: C901
                             config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
                             filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
                             Images(
-                                grain_crop.image,
+                                data=grain_crop.image,
                                 masked_array=image_value,
-                                output_dir=disordered_output_dir,
+                                output_dir=tracing_out_path,
                                 filename=filename,
                                 **plotting_config["plot_dict"][plot_name],
                             ).plot_and_save()
@@ -457,13 +469,13 @@ def run_disordered_tracing(  # noqa: C901
                                 "If you  are NOT using a custom plotting configuration then please raise an issue on"
                                 "GitHub to report this problem."
                             )
+                LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
                     f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on"
                     "GitHub. Error : ",
                     exc_info=e,
                 )
-            LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
         return
     LOGGER.info(f"[{topostats_object.filename}] Disordered Tracing disabled.")
     return
@@ -493,7 +505,14 @@ def run_nodestats(  # noqa: C901
         Dictionary configuration for plotting images.
     """
     nodestats_config = topostats_object.config["nodestats"] if nodestats_config is None else nodestats_config
-    plotting_config = topostats_object.config["plotting"] if plotting_config is None else plotting_config
+    plotting_config = (
+        deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
+    )
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "nodes"
+        if tracing_out_path is None
+        else tracing_out_path / "nodes"
+    )
     if nodestats_config["run"]:
         nodestats_config.pop("run")
         LOGGER.info(f"[{topostats_object.filename}] : *** Nodestats ***")
@@ -519,61 +538,54 @@ def run_nodestats(  # noqa: C901
                 f"[{topostats_object.filename}] : NodeStats failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-        # else:
-        #     try:
-        #         for grain_number, grain_crop in topostats_object.grain_crops.items():
-        #             Images(
-        #                 filename=f"{topostats_object.filename}_{grain_number}_nodes",
-        #                 data=topostats_object.image,
-        #                 # masked_array=nodestats_full_images.pop("connected_nodes"),
-        #                 masked_array=connected_nodes,
-        #                 output_dir=core_out_path,
-        #                 **plotting_config["plot_dict"]["connected_nodes"],
-        #             ).plot_and_save()
-        #         # @ns-rse 2025-11-19 : Need to plot these, but what is nodestats_full_image? What should filename be?
-        #         for plot_name, image_value in nodestats_full_images.items():
-        #             Images(
-        #                 topostats_object.image,
-        #                 masked_array=image_value,
-        #                 output_dir=tracing_out_path,
-        #                 **plotting_config["plot_dict"][plot_name],
-        #             ).plot_and_save()
-        #         # Plot single node images
-        #         for mol_no, mol_stats in nodestats_data.items():
-        #             if mol_stats is not None:
-        #                 for node_no, single_node_stats in mol_stats.items():
-        #                     # plot the node and branch_mask images
-        #                     for cropped_image_type, cropped_image in nodestats_branch_images[mol_no]["nodes"][
-        #                         node_no
-        #                     ].items():
-        #                         Images(
-        #                             nodestats_branch_images[mol_no]["grain"]["grain_image"],
-        #                             masked_array=cropped_image,
-        #                             output_dir=tracing_out_path / "nodes",
-        #                             filename=f"{mol_no}_{node_no}_{cropped_image_type}",
-        #                             **plotting_config["plot_dict"][cropped_image_type],
-        #                         ).plot_and_save()
-        #                         # plot crossing height linetrace
-        #                         if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
-        #                             if not single_node_stats["error"]:
-        #                                 fig, _ = plot_crossing_linetrace_halfmax(
-        #                                     branch_stats_dict=single_node_stats["branch_stats"],
-        #                                     mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-        #                                     title=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-        #                                 )
-        #                                 fig.savefig(
-        #                                     tracing_out_path
-        #                                     / grain
-        #                                     / "nodes"
-        #                                     / f"{mol_no}_{node_no}_linetrace_halfmax.svg",
-        #                                     format="svg",
-        #                                 )
-        #     except Exception as e:
-        #         LOGGER.error(
-        #             f"[{topostats_object.filename}] : Plotting nodestats failed. Consider raising an issue on"
-        #             "GitHub. Error : ",
-        #             exc_info=e,
-        #         )
+        else:
+            try:
+                tracing_out_path.mkdir(parents=True, exist_ok=True)
+                # For each node within each grain make three plots
+                for grain_number, grain_crop in topostats_object.grain_crops.items():
+                    for node_number, node in grain_crop.nodes.items():
+                        LOGGER.info(
+                            f"[{topostats_object.filename}] : Plotting Nodestats Grain {grain_number + 1} (Node {node_number})"
+                        )
+                        Images(
+                            data=grain_crop.image,
+                            masked_array=node.node_area_skeleton,
+                            output_dir=tracing_out_path,
+                            filename=f"grain_{grain_number}_node_{node_number}_node_area_skeleton.png",
+                            **plotting_config["plot_dict"]["node_area_skeleton"],
+                        ).plot_and_save()
+                        Images(
+                            data=grain_crop.image,
+                            masked_array=node.node_branch_mask,
+                            output_dir=tracing_out_path,
+                            filename=f"grain_{grain_number}_node_{node_number}_node_branch_mask.png",
+                            **plotting_config["plot_dict"]["node_branch_mask"],
+                        ).plot_and_save()
+                        Images(
+                            data=grain_crop.image,
+                            masked_array=node.node_avg_mask,
+                            output_dir=tracing_out_path,
+                            filename=f"grain_{grain_number}_node_{node_number}_node_avg_mask.png",
+                            **plotting_config["plot_dict"]["node_avg_mask"],
+                        ).plot_and_save()
+                        if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
+                            if not node.error:
+                                fig, _ = plot_crossing_linetrace_halfmax(
+                                    branch_stats=node.branch_stats,
+                                    mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                    title=plotting_config["plot_dict"]["node_line_trace"]["title"],
+                                )
+                                fig.savefig(
+                                    tracing_out_path / f"grain_{grain_number}_node_{node_number}_linetrace_halfmax.png",
+                                    format="png",
+                                )
+                LOGGER.info(f"[{topostats_object.filename}] : Nodestats plotting completed successfully.")
+            except Exception as e:
+                LOGGER.error(
+                    f"[{topostats_object.filename}] : Plotting nodestats failed. Consider raising an issue on"
+                    "GitHub. Error : ",
+                    exc_info=e,
+                )
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of nodestats disabled, returning empty dataframe.")
     return
@@ -766,7 +778,6 @@ def run_curvature_stats(
             return
         # ns-rse 2025-12-03 : Pop the colourmap_nromalisation_bounds (should we perhaps make these part of the plotting
         # configuration?)
-        colourmap_normalisation_bounds = curvature_config.pop("colourmap_normalisation_bounds")
         try:
             curvature_config.pop("run")
             LOGGER.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
@@ -782,6 +793,7 @@ def run_curvature_stats(
             )
         # else:
         #     try:
+        #         colourmap_normalisation_bounds = plotting_config.pop("colourmap_normalisation_bounds")
         #         for grain_no, grain_crop in topostats_object.grain_crops.items():
         #             for molecule_no, molecule in grain_crop.ordered_trace.molecule_data.items():
         #                 Images(
@@ -794,7 +806,7 @@ def run_curvature_stats(
         #                     cropped_images=cropped_image_data[direction],
         #                     grains_curvature_stats_dict=grains_curvature_stats_dict,
         #                     all_grain_smoothed_data=grain_trace_data[direction],
-        #                     colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
+        #                     colourmap_normalisation_bounds=colourmap_normalisation_bounds,
         #                 )
 
         #                 Images(
@@ -853,13 +865,16 @@ def get_out_paths(
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
+    # ns-rse 2025-12-25 Do we want to keep tracing nested or promote disordered/ordered/nodes/curvature/splining up a
+    # level?
     tracing_out_path = core_out_path / filename / "dnatracing"
     if "core" not in plotting_config["image_set"] and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         grain_out_path.mkdir(exist_ok=True, parents=True)
-        tracing_out_path.mkdir(exist_ok=True, parents=True)
+        # ns-rse 2025-12-05 Do we want disordered and ordered subdirectories?
         Path.mkdir(tracing_out_path / "nodes", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "curvature", parents=True, exist_ok=True)
+        Path.mkdir(tracing_out_path / "splining", parents=True, exist_ok=True)
 
     return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
@@ -965,6 +980,7 @@ def process_scan(
             grainstats_config=grainstats_config,
             plotting_config=plotting_config,
             grain_out_path=grain_out_path,
+            core_out_path=core_out_path,
         )
 
         # Disordered Tracing
@@ -1229,6 +1245,7 @@ def process_grainstats(
                 grainstats_config=grainstats_config,
                 plotting_config=plotting_config,
                 grain_out_path=grain_out_path,
+                core_out_path=core_out_path,
             )
             # Save the topostats dictionary object to .topostats file.
             save_topostats_file(

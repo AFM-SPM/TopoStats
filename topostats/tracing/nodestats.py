@@ -1797,11 +1797,9 @@ def nodestats_image(
     grainstats_additions = {}
 
     if topostats_object.grain_crops is not None:
-        n_grains = len(topostats_object.grain_crops)
-        LOGGER.info(f"[{topostats_object.filename}] : There are {n_grains} grains")
+        LOGGER.info(f"[{topostats_object.filename}] : There are {len(topostats_object.grain_crops)} grains")
         for n_grain, grain_crop in topostats_object.grain_crops.items():
             nodestats = None  # reset the nodestats variable
-            LOGGER.info(f"[{topostats_object.filename}] : Processing {n_grain + 1} of {n_grains}")
             if grain_crop.disordered_trace is not None:
                 try:
                     nodestats = nodeStats(
@@ -1813,7 +1811,7 @@ def nodestats_image(
                         pair_odd_branches=pair_odd_branches,
                     )
                     nodestats_dict, node_image_dict = nodestats.get_node_stats()
-                    LOGGER.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1} of {n_grains}")
+                    LOGGER.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1}")
 
                     # compile images
                     nodestats_images = {
