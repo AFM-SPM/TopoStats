@@ -357,3 +357,28 @@ def calculate_mask_width_with_skeleton(mask: npt.NDArray, skeleton: npt.NDArray,
 
     # Calculate the width as the mean nonzero value distances multiplied by 2 and scaled to nanometres.
     return distances_per_skeleton_pixel[distances_per_skeleton_pixel != 0].mean() * 2 * pixel_to_nm_scaling
+
+
+def calculate_pixel_path_distance(pixel_path: npt.NDArray[np.int32 | np.float]) -> float:
+    """
+    Calculate the distance of a pixel path in pixels.
+
+    Parameters
+    ----------
+    pixel_path : npt.NDArray[np.int32 | np.float]
+        Nx2 numpy array of pixel coordinates representing the path.
+
+    Returns
+    -------
+    float
+        Distance of the path in pixels.
+    """
+    # Check is right shape
+    if pixel_path.ndim != 2 or pixel_path.shape[1] != 2:
+        raise ValueError("Input pixel_path must be an Nx2 array.")
+    distance = 0.0
+    for i in range(1, pixel_path.shape[0]):
+        point_a = pixel_path[i - 1]
+        point_b = pixel_path[i]
+        distance += np.linalg.norm(point_b - point_a)
+    return distance
