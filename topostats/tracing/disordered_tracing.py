@@ -451,6 +451,10 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 # Not sure why this is required as the GrainCrop definition sets these to None by default but I
                 # encountered errors complaining about the attribute note being set and this seems to solve that.
                 topostats_object.grain_crops[grain_number].disordered_trace = None
+            # Ensure topostats_object.full_image_plots is a dictionary so we can append full image plots, this will
+            # _always_ overwrite what is there so if disordered tracing is being re-run the old images are lost from the
+            # .topostats object.
+            topostats_object.full_image_plots = all_images
 
         # when skel too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught

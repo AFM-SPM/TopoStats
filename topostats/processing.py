@@ -325,6 +325,8 @@ def run_grainstats(
         TopoStats object post grain detection for which statistics are to be calculated.
     grain_out_path : Path
         Directory to save optional grain statistics visual information to.
+    core_out_path : Path
+        General output directory for outputs such as the flattened image with grain masks overlaid.
     grainstats_config : dict, optional
         Dictionary of configuration for the GrainStats class to be used when initialised.
     plotting_config : dict, optional
@@ -341,7 +343,7 @@ def run_grainstats(
         grainstats_config.pop("run")
         # ns-rse 2025-12-03 : Pop the `class_names`, not used by GrainStats why are these part of the
         # "grainstats_config"? (Must be popped from `grainstats_config` though as not arg to GrainStats)
-        class_names = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}  # pylint: disable=unused-value
+        _ = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
         try:
             LOGGER.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
@@ -469,6 +471,16 @@ def run_disordered_tracing(  # noqa: C901
                                 "If you  are NOT using a custom plotting configuration then please raise an issue on"
                                 "GitHub to report this problem."
                             )
+                # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
+                # plotting them (which requires distinguishing them from those generated during ordered tracing)
+                for plot_name in ["smoothed_mask", "skeleton", "branch_indexes", "branch_types"]:
+                    Images(
+                        data=topostats_object.image,
+                        masked_array=topostats_object.full_image_plots[plot_name],
+                        output_dir=tracing_out_path,  # / direction,
+                        **plotting_config["plot_dict"][plot_name],
+                    ).plot_and_save()
+
                 LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
@@ -649,23 +661,24 @@ def run_ordered_tracing(
                 plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
                 # ns-rse 2025-11-27 : What is being plotted here?
                 Images(
-                    # filename=f"{topostats_object.filename}_{direction}_ordered_traces",
                     filename=f"{topostats_object.filename}_ordered_traces",
                     data=topostats_object.image,
-                    # masked_array=ordered_tracing_full_images.pop("ordered_traces"),
-                    masked_array=ordered_traces,
+                    masked_array=topostats_object.full_image_plots["ordered_traces"],
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["ordered_traces"],
                 ).plot_and_save()
+
                 # save optional diagnostic plots (those with core_set = False)
-                # ns-rse 2025-11-27 : What is being plotted here?
-                for plot_name, image_value in ordered_tracing_full_images.items():
+                # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
+                # plotting them (which requires distinguishing them from those generated during disordered tracing)
+                for plot_name in ["all_molecules", "over_under", "trace_segments"]:
                     Images(
                         data=topostats_object.image,
-                        masked_array=image_value,
+                        masked_array=topostats_object.full_image_plots[plot_name],
                         output_dir=tracing_out_path,  # / direction,
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
+                LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
                     f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on"

@@ -878,7 +878,6 @@ def ordered_tracing_image(
     )
     for grain_no, grain_crop in topostats_object.grain_crops.items():
         try:
-            # check if want to perform tracing based on node statistics
             grain_crop.ordered_trace = OrderedTrace(
                 molecule_data=None,
                 tracing_stats=None,
@@ -889,8 +888,8 @@ def ordered_tracing_image(
                 images=None,
                 error=None,
             )
+            # check if want to perform tracing based on node statistics
             if (
-                # grain_crop.nodes is not None
                 len(grain_crop.nodes) > 0
                 and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
             ):
@@ -919,6 +918,12 @@ def ordered_tracing_image(
                 for image_name, full_image in ordered_trace_full_images.items():
                     crop = images[image_name]
                     full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
+
+            # Add the ordered_trace_full_image to topostats_object.full_image_plots
+            if topostats_object.full_image_plots is None:
+                topostats_object.full_image_plots = ordered_trace_full_images
+            elif isinstance(topostats_object.full_image_plots, dict):
+                topostats_object.full_image_plots = {**topostats_object.full_image_plots, **ordered_trace_full_images}
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(

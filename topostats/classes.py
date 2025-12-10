@@ -755,6 +755,9 @@ class TopoStats:
         TopoStats version.
     config : dict[str, Any] | None
         Configuration used when processing the grain.
+    full_image_plots : dict[str, npt.NDArray[np.float64]]
+        Dictionary of numpy arrays where disordered tracing, nodestats and ordered tracing skeletons are mapped back to
+        the original image.
     """
 
     grain_crops: dict[int, GrainCrop] | None = None
@@ -766,6 +769,7 @@ class TopoStats:
     full_mask_tensor: npt.NDArray | None = None
     topostats_version: str | None = None
     config: dict[str, Any] | None = None
+    full_image_plots: dict[str, npt.NDArray[np.float64]] | None = None
 
     def topostats_to_dict(self) -> dict[str, str | npt.NDArray | dict[str | int, GrainCrop | Any]]:
         """
