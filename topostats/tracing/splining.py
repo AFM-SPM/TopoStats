@@ -76,25 +76,16 @@ class splineTrace:
             Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
             small s-value.
         """
-        config = topostats_object.config.copy()
         self.image = topostats_object.image
         self.number_of_rows, self.number_of_columns = topostats_object.image.shape
         # Extract ordered trace and boolean for circular from desired grain and molecules
         self.mol_ordered_trace = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule]
         self.mol_is_circular = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule].circular
         self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
-        self.spline_step_size = config["splining"]["spline_step_size"] if spline_step_size is None else spline_step_size
-        self.spline_linear_smoothing = (
-            config["splining"]["spline_linear_smoothing"]
-            if spline_linear_smoothing is None
-            else spline_linear_smoothing
-        )
-        self.spline_circular_smoothing = (
-            config["splining"]["spline_circular_smoothing"]
-            if spline_circular_smoothing is None
-            else spline_circular_smoothing
-        )
-        self.spline_degree = config["splining"]["spline_degree"] if spline_degree is None else spline_degree
+        self.spline_step_size = spline_step_size
+        self.spline_linear_smoothing = spline_linear_smoothing
+        self.spline_circular_smoothing = spline_circular_smoothing
+        self.spline_degree = spline_degree
         # ns-rse 2025-12-02 : remove, added as attributes
         self.tracing_stats = {
             "contour_length": None,
@@ -309,19 +300,9 @@ class windowTrace:
         self.mol_ordered_trace = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule]
         self.mol_is_circular = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule].circular
         self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
-        config = topostats_object.config["splining"].copy()
-        self.rolling_window_size = (
-            config["rolling_window_size"] if rolling_window_size is None else rolling_window_size / 1e-9
-        )  # for nm scaling factor
-        self.rolling_window_resampling = (
-            config["rolling_window_resampling"] if rolling_window_resampling is None else rolling_window_resampling
-        )
-        self.rolling_window_resample_interval_nm = (
-            config["rolling_window_resample_interval_nm"]
-            if rolling_window_resample_interval_nm is None
-            else rolling_window_resample_interval_nm / 1e-9
-        )  # for nm scaling factor
-
+        self.rolling_window_size = rolling_window_size / 1e-9  # for nm scaling factor
+        self.rolling_window_resampling = rolling_window_resampling
+        self.rolling_window_resample_interval_nm = rolling_window_resample_interval_nm / 1e-9  # for nm scaling factor
         self.tracing_stats = {
             "contour_length": None,
             "end_to_end_distance": None,
@@ -372,10 +353,8 @@ class windowTrace:
                 )
                 binned_points.append(pixel_trace[current_index])
                 j += 1
-
             # Get the mean of the binned points
             pooled_trace.append(np.mean(binned_points, axis=0))
-
         return np.array(pooled_trace)
 
     @staticmethod
@@ -441,7 +420,6 @@ class windowTrace:
         # rolling window size.
         if np.array_equal(pooled_trace[-1], pooled_trace[-2]):
             pooled_trace.pop(-1)
-
         return np.array(pooled_trace)
 
     def run_window_trace(self) -> tuple[npt.NDArray, dict]:
@@ -629,13 +607,12 @@ def splining_image(
         if rolling_window_resample_regular_spatial_interval is None
         else rolling_window_resample_regular_spatial_interval
     )
-
     mol_count = 0
     for _, grain_crop in topostats_object.grain_crops.items():
         mol_count += len(grain_crop.ordered_trace.molecule_data)
     LOGGER.info(f"[{topostats_object.filename}] : Calculating Splining statistics for {mol_count} molecules...")
 
-    # iterate through disordered_tracing_dict
+    # iterate through ordered_trace.molecule_data
     for grain_no, grain_crop in topostats_object.grain_crops.items():
         grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
         mol_no = None
@@ -648,15 +625,21 @@ def splining_image(
                         topostats_object=topostats_object,
                         grain=grain_no,
                         molecule=mol_no,
+                        rolling_window_size=rolling_window_size,
+                        rolling_window_resampling=rolling_window_resampling,
+                        rolling_window_resample_interval_nm=rolling_window_resample_regular_spatial_interval,
                     ).run_window_trace()
 
                 # if not doing nodestats ordering, do original TS ordering
                 elif splining_method == "spline":
-                    LOGGER.info("WE ARE USING A SPLINING!")
                     splined_data, tracing_stats = splineTrace(
                         topostats_object=topostats_object,
                         grain=grain_no,
                         molecule=mol_no,
+                        spline_step_size=spline_step_size,
+                        spline_linear_smoothing=spline_linear_smoothing,
+                        spline_circular_smoothing=spline_circular_smoothing,
+                        spline_degree=spline_degree,
                     ).run_spline_trace()
                 else:
                     raise ValueError(
@@ -671,6 +654,7 @@ def splining_image(
                 molecule.splined_coords = splined_data
                 molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                 molecule.contour_length = tracing_stats["contour_length"]
+                molecule.bbox = grain_crop.bbox
 
                 # get individual mol stats
                 # all_splines_data[grain_no][mol_no] = {

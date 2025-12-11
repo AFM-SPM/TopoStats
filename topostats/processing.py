@@ -657,34 +657,37 @@ def run_ordered_tracing(
                 exc_info=e,
             )
         else:
-            try:
-                plotting_config["plot_dict"]["ordered_traces"]["core_set"] = True  # fudge around core having own cmap
-                # ns-rse 2025-11-27 : What is being plotted here?
-                Images(
-                    filename=f"{topostats_object.filename}_ordered_traces",
-                    data=topostats_object.image,
-                    masked_array=topostats_object.full_image_plots["ordered_traces"],
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["ordered_traces"],
-                ).plot_and_save()
-
-                # save optional diagnostic plots (those with core_set = False)
-                # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
-                # plotting them (which requires distinguishing them from those generated during disordered tracing)
-                for plot_name in ["all_molecules", "over_under", "trace_segments"]:
+            if plotting_config["run"]:
+                try:
+                    plotting_config["plot_dict"]["ordered_traces"][
+                        "core_set"
+                    ] = True  # fudge around core having own cmap
+                    # ns-rse 2025-11-27 : What is being plotted here?
                     Images(
+                        filename=f"{topostats_object.filename}_ordered_traces",
                         data=topostats_object.image,
-                        masked_array=topostats_object.full_image_plots[plot_name],
-                        output_dir=tracing_out_path,  # / direction,
-                        **plotting_config["plot_dict"][plot_name],
+                        masked_array=topostats_object.full_image_plots["ordered_traces"],
+                        output_dir=core_out_path,
+                        **plotting_config["plot_dict"]["ordered_traces"],
                     ).plot_and_save()
-                LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
-            except Exception as e:
-                LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on"
-                    "GitHub. Error : ",
-                    exc_info=e,
-                )
+
+                    # save optional diagnostic plots (those with core_set = False)
+                    # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
+                    # plotting them (which requires distinguishing them from those generated during disordered tracing)
+                    for plot_name in ["all_molecules", "over_under", "trace_segments"]:
+                        Images(
+                            data=topostats_object.image,
+                            masked_array=topostats_object.full_image_plots[plot_name],
+                            output_dir=tracing_out_path,  # / direction,
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+                    LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
+                except Exception as e:
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on"
+                        "GitHub. Error : ",
+                        exc_info=e,
+                    )
         return
     return
 
@@ -727,30 +730,34 @@ def run_splining(
             LOGGER.info(
                 f"[{topostats_object.filename}] : Splining failed with KeyError {e} - no ordered traces found from the Ordered Tracing step."
             )
-            return
         except Exception as e:
             LOGGER.error(
                 f"[{topostats_object.filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            return
         else:
-            try:
-                Images(
-                    data=topostats_object.image,
-                    output_dir=core_out_path,
-                    # filename=f"{filename}_{direction}_all_splines",
-                    # ns-rse 2025-12-03 : Need to pull out data and construct all_splines
-                    # plot_coords=all_splines,
-                    **plotting_config["plot_dict"]["splined_trace"],
-                ).plot_and_save()
-                return
-            except Exception as e:
-                LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on"
-                    "GitHub. Error : ",
-                    exc_info=e,
-                )
+            if plotting_config["run"]:
+                try:
+                    # Extract coordinates for all splines into a single list
+                    all_splines = []
+                    for _, grain_crop in topostats_object.grain_crops.items():
+                        for _, molecule in grain_crop.ordered_trace.molecule_data.items():
+                            all_splines.append(molecule.splined_coords + grain_crop.bbox[:2])
+                    Images(
+                        data=topostats_object.image,
+                        output_dir=core_out_path,
+                        filename=f"{topostats_object.filename}_all_splines",
+                        # ns-rse 2025-12-03 : Need to pull out data and construct all_splines
+                        plot_coords=all_splines,
+                        **plotting_config["plot_dict"]["splined_trace"],
+                    ).plot_and_save()
+                    LOGGER.info(f"[{topostats_object.filename}] : Splining plotting completed successfully.")
+                except Exception as e:
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on"
+                        "GitHub. Error : ",
+                        exc_info=e,
+                    )
         return
     return
 

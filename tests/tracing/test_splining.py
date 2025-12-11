@@ -167,7 +167,7 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
     """Test the splining_image function of the splining module."""
     topostats_object = request.getfixturevalue(splining_fixture)
 
-    _, result_splining_grainstats, result_molstats_df = splining_image(
+    splining_image(
         topostats_object=topostats_object,
         method=splining_method,
         rolling_window_size=rolling_window_size,
@@ -188,8 +188,6 @@ def test_splining_image(  # pylint: disable=too-many-positional-arguments
         assert topostats_object.grain_crops[1].ordered_trace.molecule_data[1] == snapshot
     elif topostats_object.filename == "replication_intermediate":
         assert topostats_object.grain_crops[0].ordered_trace.molecule_data[2] == snapshot
-    assert result_splining_grainstats.to_string(float_format="%.6e") == snapshot
-    assert result_molstats_df.to_string(float_format="%.6e") == snapshot
 
 
 @pytest.mark.parametrize(

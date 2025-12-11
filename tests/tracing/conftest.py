@@ -2,6 +2,7 @@
 
 import pickle as pkl
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -323,7 +324,7 @@ def catenane_node0_ordered_branches() -> list[npt.NDArray[np.int32]]:
 
 
 @pytest.fixture()
-def catenane_splining() -> TopoStats:
+def catenane_splining(default_config: dict[str, Any]) -> TopoStats:
     """Catenane TopoStats object with necessary data for testing splining."""
     # Load the data
     image = np.load(TRACING_RESOURCES / "example_catenanes.npy")
@@ -364,11 +365,12 @@ def catenane_splining() -> TopoStats:
         filename="catenane",
         pixel_to_nm_scaling=1.0,
         grain_crops=grain_crops,
+        config=default_config,
     )
 
 
 @pytest.fixture()
-def rep_int_splining() -> TopoStats:
+def rep_int_splining(default_config: dict[int, Any]) -> TopoStats:
     """Catenane TopoStats object with necessary data for testing splining."""
     # Load the data
     image = np.load(TRACING_RESOURCES / "example_rep_int.npy")
@@ -409,4 +411,5 @@ def rep_int_splining() -> TopoStats:
         filename="replication_intermediate",
         pixel_to_nm_scaling=1.0,
         grain_crops=grain_crops,
+        config=default_config,
     )
