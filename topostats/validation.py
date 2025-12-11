@@ -1385,6 +1385,14 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "module": "splining",
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
         "curvature_individual_grains": {
             "filename": str,

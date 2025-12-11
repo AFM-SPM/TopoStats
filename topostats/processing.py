@@ -738,7 +738,7 @@ def run_splining(
         else:
             if plotting_config["run"]:
                 try:
-                    # Extract coordinates for all splines into a single list
+                    # Extract coordinates for all splines into a single list for overlaying
                     all_splines = []
                     for _, grain_crop in topostats_object.grain_crops.items():
                         for _, molecule in grain_crop.ordered_trace.molecule_data.items():
@@ -796,57 +796,68 @@ def run_curvature_stats(
         if topostats_object.grain_crops is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
             return
-        # ns-rse 2025-12-03 : Pop the colourmap_nromalisation_bounds (should we perhaps make these part of the plotting
-        # configuration?)
         try:
             curvature_config.pop("run")
             LOGGER.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
             # Pass the traces to the curvature stats function
-            grains_curvature_stats_dict = calculate_curvature_stats_image(
-                topostats_object=topostats_object, **curvature_config
-            )
+            calculate_curvature_stats_image(topostats_object=topostats_object, **curvature_config)
             LOGGER.info(f"[{topostats_object.filename}] : Curvature stage completed successfully.")
         except Exception as e:
             LOGGER.error(
                 f"[{topostats_object.filename}] : Curvature calculation failed. Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-        # else:
-        #     try:
-        #         colourmap_normalisation_bounds = plotting_config.pop("colourmap_normalisation_bounds")
-        #         for grain_no, grain_crop in topostats_object.grain_crops.items():
-        #             for molecule_no, molecule in grain_crop.ordered_trace.molecule_data.items():
-        #                 Images(
-        #                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-        #                     filename=f"{topostats_object.filename}_{direction}_curvature",
-        #                     output_dir=core_out_path,
-        #                     **plotting_config["plot_dict"]["curvature"],
-        #                 ).plot_curvatures(
-        #                     image=image,
-        #                     cropped_images=cropped_image_data[direction],
-        #                     grains_curvature_stats_dict=grains_curvature_stats_dict,
-        #                     all_grain_smoothed_data=grain_trace_data[direction],
-        #                     colourmap_normalisation_bounds=colourmap_normalisation_bounds,
-        #                 )
+        else:
+            # try:
+            if plotting_config["run"]:
+                # Setup dictionaries to aggregate components for the all image plot
+                all_curvatures = {}
+                all_smooth = {}
+                all_images = {}
+                colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature_individual_grains"].pop(
+                    "colourmap_normalisation_bounds"
+                )
+                for grain_number, grain_crop in topostats_object.grain_crops.items():
+                    all_curvatures[grain_number] = {}
+                    all_smooth[grain_number] = {}
+                    all_images[grain_number] = {}
+                    for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+                        print(f"\n{grain_number=} : {molecule_number}\n")
+                        Images(
+                            np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                            output_dir=tracing_out_path / "curvature",
+                            **plotting_config["plot_dict"]["curvature_individual_grains"],
+                        ).plot_curvatures_individual_grain(
+                            grain_crop=grain_crop,
+                            grain_number=grain_number,
+                            colourmap_normalisation_bounds=colourmap_normalisation_bounds,
+                        )
+                        all_curvatures[grain_number][molecule_number] = molecule.curvature_stats
+                        all_smooth[grain_number][molecule_number] = molecule.splined_coords
+                        all_images[grain_number][molecule_number] = grain_crop.image
+                colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature"].pop(
+                    "colourmap_normalisation_bounds"
+                )
+                Images(
+                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                    filename=f"{topostats_object.filename}_curvature",
+                    output_dir=core_out_path,
+                    **plotting_config["plot_dict"]["curvature"],
+                ).plot_curvatures(
+                    image=topostats_object.image,
+                    grain_crops=topostats_object.grain_crops,
+                    colourmap_normalisation_bounds=colourmap_normalisation_bounds,
+                )
+                LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
 
-        #                 Images(
-        #                     np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-        #                     output_dir=tracing_out_path / "curvature",
-        #                     **plotting_config["plot_dict"]["curvature_individual_grains"],
-        #                 ).plot_curvatures_individual_grains(
-        #                     cropped_images=cropped_image_data[direction],
-        #                     grains_curvature_stats_dict=grains_curvature_stats_dict,
-        #                     all_grains_smoothed_data=grain_trace_data[direction],
-        #                     colourmap_normalisation_bounds=colourmap_normalisation_bounds,
-        #                 )
-        #     except Exception as e:
-        #         LOGGER.error(
-        #             f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
-        #             "GitHub. Error : ",
-        #             exc_info=e,
-        #         )
+            # except Exception as e:
+            #     LOGGER.error(
+            #         f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
+            #         "GitHub. Error : ",
+            #         exc_info=e,
+            #     )
 
-        #     return
+            return
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of Curvature Stats disabled, returning None.")
     return

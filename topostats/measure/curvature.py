@@ -149,13 +149,10 @@ def calculate_curvature_stats_image(
         Nested dictionary of curvature statistics for each molecule within each grain. Top-level is indexed by grain and
         nested dictionaries are indexed by molecule and contain an array of angles.
     """
-    grain_curvature_stats: dict = {}
-
     # Iterate over grains
-    for grain_key, grain_crop in topostats_object.grain_crops.items():
+    for _, grain_crop in topostats_object.grain_crops.items():
         # Iterate over molecules
-        grain_curvature_stats[grain_key] = {}
-        for molecule_key, molecule_data in grain_crop.ordered_trace.molecule_data.items():
+        for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
             trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
             # Check if the molecule is circular or linear
             if molecule_data.end_to_end_distance == 0.0:
@@ -165,6 +162,3 @@ def calculate_curvature_stats_image(
                 # Molecule is linear
                 curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
             molecule_data.curvature_stats = curvature_stats
-            grain_curvature_stats[grain_key][molecule_key] = curvature_stats
-
-    return grain_curvature_stats
