@@ -1030,18 +1030,10 @@ class Grains:
             )
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
-            # Area threshold using user specified thresholds
-            traditional_full_mask_tensor = Grains.area_thresholding_tensor(
-                grain_mask_tensor=traditional_full_mask_tensor,
-                area_thresholds=self.area_thresholds[direction],
-                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-            )
-
-            self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
-
             # Connect loose ends in the grain mask
             if self.endpoint_connection_config is not None:
                 if self.endpoint_connection_config["run"] is True:
+                    LOGGER.info(f"[{self.filename}] : Connecting grain mask endpoints.")
                     endpoint_connection_config = self.endpoint_connection_config.copy()
                     endpoint_connection_config.pop("run")
                     traditional_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
@@ -1051,6 +1043,15 @@ class Grains:
                         p2nm=self.pixel_to_nm_scaling,
                         **endpoint_connection_config,
                     )
+
+            # Area threshold using user specified thresholds
+            traditional_full_mask_tensor = Grains.area_thresholding_tensor(
+                grain_mask_tensor=traditional_full_mask_tensor,
+                area_thresholds=self.area_thresholds[direction],
+                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            )
+
+            self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
             # Extract GrainCrops from the full mask tensor
             traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
