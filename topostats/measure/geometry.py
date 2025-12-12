@@ -359,7 +359,7 @@ def calculate_mask_width_with_skeleton(mask: npt.NDArray, skeleton: npt.NDArray,
     return distances_per_skeleton_pixel[distances_per_skeleton_pixel != 0].mean() * 2 * pixel_to_nm_scaling
 
 
-def calculate_pixel_path_distance(pixel_path: npt.NDArray[np.int32 | np.float]) -> float:
+def calculate_pixel_path_distance(pixel_path: npt.NDArray[np.number]) -> float:
     """
     Calculate the distance of a pixel path in pixels.
 
@@ -380,5 +380,5 @@ def calculate_pixel_path_distance(pixel_path: npt.NDArray[np.int32 | np.float]) 
     for i in range(1, pixel_path.shape[0]):
         point_a = pixel_path[i - 1]
         point_b = pixel_path[i]
-        distance += np.linalg.norm(point_b - point_a)
+        distance += float(np.linalg.norm(point_b - point_a))
     return distance
