@@ -245,24 +245,27 @@ class GrainCrop:
         if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
             raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
         # Ensure that the padding region is blank, set it to be blank if not
-        for class_index in range(1, value.shape[2]):
-            class_mask = value[:, :, class_index]
+        try:
+            for class_index in range(1, value.shape[2]):
+                class_mask = value[:, :, class_index]
 
-            padded_region_top = class_mask[: self.padding, :]
-            padded_region_bottom = class_mask[-self.padding :, :]
-            padded_region_left = class_mask[:, : self.padding]
-            padded_region_right = class_mask[:, -self.padding :]
-            if (
-                np.any(padded_region_top)
-                or np.any(padded_region_bottom)
-                or np.any(padded_region_left)
-                or np.any(padded_region_right)
-            ):
-                LOGGER.warning("Padding region is not blank, setting to blank")
-                value[: self.padding, :, class_index] = 0
-                value[-self.padding :, :, class_index] = 0
-                value[:, : self.padding, class_index] = 0
-                value[:, -self.padding :, class_index] = 0
+                padded_region_top = class_mask[: self.padding, :]
+                padded_region_bottom = class_mask[-self.padding :, :]
+                padded_region_left = class_mask[:, : self.padding]
+                padded_region_right = class_mask[:, -self.padding :]
+                if (
+                    np.any(padded_region_top)
+                    or np.any(padded_region_bottom)
+                    or np.any(padded_region_left)
+                    or np.any(padded_region_right)
+                ):
+                    LOGGER.warning("Padding region is not blank, setting to blank")
+                    value[: self.padding, :, class_index] = 0
+                    value[-self.padding :, :, class_index] = 0
+                    value[:, : self.padding, class_index] = 0
+                    value[:, -self.padding :, class_index] = 0
+        except IndexError as e:
+            LOGGER.error(f"[{self.filename}] : Error mask is missing layers.", exc_info=e)
 
         # Update background class in case the mask has been edited
         value = update_background_class(value)
