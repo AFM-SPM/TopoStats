@@ -604,6 +604,8 @@ class Images:
                         self.pixel_to_nm_scaling,
                         (2, -2),
                     )
+            if not self.output_dir.exists():
+                self.output_dir.mkdir(parents=True, exist_ok=True)
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
