@@ -233,16 +233,16 @@ def test_merge_mappings(dict1: dict, dict2: dict, expected_merged_dict: dict) ->
             "test_config_with_comments.yaml",
             id="filename without yaml extension, no config name",
         ),
-        pytest.param(None, "default", "default_config.yaml", id="no filename, default config"),
+        pytest.param(None, "default", "config.yaml", id="no filename, default config"),
+        pytest.param(None, None, "config.yaml", id="no filename, no config name"),
+        pytest.param("test_simple_config.yaml", "simple", "test_simple_config.yaml", id="filename, simple config"),
         pytest.param(None, "simple", "simple_config.yaml", id="no filename, simple config"),
-        pytest.param("my_simple_config.yaml", "simple", "my_simple_config.yaml", id="no filename, simple config"),
-        pytest.param(None, None, "default_config.yaml", id="no filename, no config name"),
-        pytest.param(None, "mplstyle", "topostats.mplstyle", id="no filename, mplstyle config"),
-        pytest.param("my_topostats.mplstyle", "mplstyle", "my_topostats.mplstyle", id="filename, mplstyle config"),
-        pytest.param(None, "var_to_label", "var_to_label.yaml", id="no filename, var_to_label config"),
+        pytest.param("custom.mplstyle", "mplstyle", "custom.mplstyle", id="filename, mplstyle"),
+        pytest.param(None, "mplstyle", "topostats.mplstyle", id="no filename, mplstyle"),
         pytest.param(
-            "my_var_to_label.yaml", "var_to_label", "my_var_to_label.yaml", id="filename, var_to_label config"
+            "custom_var_to_label.yaml", "var_to_label", "custom_var_to_label.yaml", id="filename, var_to_label"
         ),
+        pytest.param(None, "var_to_label", "var_to_label.yaml", id="no filename, var_to_label"),
     ],
 )
 def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, expected_filename: str) -> None:
@@ -267,19 +267,21 @@ def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, 
     # Validate that the written config has comments in it
     assert "Config file generated" in written_config
     assert "For more information on configuration and how to use it" in written_config
-    # Validate some of the parameters are present
-    if config not in ["mplstyle", "var_to_label"]:
+    # Validate some of the parameters are present conditional on config type
+    if config == "default":
         assert "loading:" in written_config
-        if config != "simple":
-            assert "gaussian_mode: nearest" in written_config
-            assert "style: topostats.mplstyle" in written_config
-            assert "pixel_interpolation: null" in written_config
+        assert "gaussian_mode: nearest" in written_config
+        assert "style: topostats.mplstyle" in written_config
+        assert "pixel_interpolation: null" in written_config
+    elif config == "simple":
+        assert "cores: 2" in written_config
+        assert "row_alignment_quantile: 0.5" in written_config
     elif config == "mplstyle":
         assert "#### MATPLOTLIBRC FORMAT" in written_config
-        assert "#animation.embed_limit:" in written_config
-    else:
-        assert "Area / $\\mathregular{nm^2}" in written_config
-        assert "Volume / $\\mathregular{nm^3}" in written_config
+        assert "image.cmap:             nanoscope" in written_config
+    elif config == "var_to_label":
+        assert "grain_mean: Mean Height" in written_config
+        assert "radius_median: Median Radius" in written_config
 
 
 @pytest.mark.parametrize(
