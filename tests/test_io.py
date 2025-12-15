@@ -655,11 +655,16 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == pytest.approx(2.0)
 
 
+@pytest.mark.xfail(
+    reason="Old test which only works with '.topostats' loading as dictionaries. AFMReader loads HDF5 to"
+    "dictionary but we convert to TopoStats objects so existing images can be processed. Only retain core"
+    "fields, no tracing data is retained."
+)
 def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     """Test loading all data from a .topostats file."""
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    data = load_scan_topostats.load_topostats(extract="all")
+    data = load_scan_topostats.load_topostats()
     above_grain_mask = data["grain_masks"]["above"]
     grain_trace_data = data["grain_trace_data"]
     assert isinstance(data["image"], np.ndarray)
@@ -675,43 +680,42 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
 
 
 @pytest.mark.parametrize(
-    ("extract", "array_sum"),
+    ("scan_fixture", "image_sum", "image_original_sum", "pixel_to_nm_scaling"),
     [
-        pytest.param("raw", 30695369.188316286, id="loading raw data"),
-        pytest.param("filter", 30695369.188316286, id="loading raw data of refiltering"),
+        pytest.param(
+            "load_scan_topostats",
+            184140.8593819073,
+            30695369.188316286,
+            0.4940029296875,
+            id="old topostats_file_version 0.2",
+        ),
+        pytest.param(
+            "load_scan_topostats_2_4_2",
+            184140.8593819073,
+            30695369.188316286,
+            0.4940029296875,
+            id="new version 2.4.2",
+            marks=pytest.mark.skip(reason="ns-rse 2025-12-15 Awaiting creation of fixture."),
+        ),
     ],
 )
-def test_load_scan_topostats_components_raw(load_scan_topostats: LoadScans, extract: str, array_sum: float) -> None:
-    """Test loading different components from a .topostats file."""
-    load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
-    load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    image, px_to_nm_scaling = load_scan_topostats.load_topostats(extract)
-    assert isinstance(image, np.ndarray)
-    assert image.shape == (1024, 1024)
-    assert image.sum() == array_sum
-    assert isinstance(px_to_nm_scaling, float)
-    assert px_to_nm_scaling == 0.4940029296875
-
-
-@pytest.mark.parametrize(
-    ("extract", "array_sum"),
-    [
-        pytest.param("grains", 184140.8593819073, id="loading filtered data for grains"),
-        pytest.param("grainstats", 184140.8593819073, id="loading filtered data for grainstats"),
-    ],
-)
-def test_load_scan_topostats_components_flattened(
-    load_scan_topostats: LoadScans, extract: str, array_sum: float
+def test_load_scan_topostats_components_raw(
+    scan_fixture: str, image_sum: float, image_original_sum: float, pixel_to_nm_scaling: float, request
 ) -> None:
     """Test loading different components from a .topostats file."""
+    load_scan_topostats = request.getfixturevalue(scan_fixture)
     load_scan_topostats.img_path = load_scan_topostats.img_paths[0]
     load_scan_topostats.filename = load_scan_topostats.img_paths[0].stem
-    data = load_scan_topostats.load_topostats(extract)
-    assert isinstance(data["image"], np.ndarray)
-    assert data["image"].shape == (1024, 1024)
-    assert data["image"].sum() == array_sum
-    assert isinstance(data["pixel_to_nm_scaling"], float)
-    assert data["pixel_to_nm_scaling"] == 0.4940029296875
+    topostats_object = load_scan_topostats.load_topostats()
+    assert isinstance(topostats_object, TopoStats)
+    assert isinstance(topostats_object.image, np.ndarray)
+    assert topostats_object.image.shape == (1024, 1024)
+    assert topostats_object.image.sum() == image_sum
+    assert isinstance(topostats_object.image_original, np.ndarray)
+    assert topostats_object.image_original.shape == (1024, 1024)
+    assert topostats_object.image_original.sum() == image_original_sum
+    assert isinstance(topostats_object.pixel_to_nm_scaling, float)
+    assert topostats_object.pixel_to_nm_scaling == pixel_to_nm_scaling
 
 
 @pytest.mark.parametrize(

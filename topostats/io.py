@@ -684,7 +684,22 @@ class LoadScans:
         """
         try:
             LOGGER.debug(f"Loading image from : {self.img_path}")
-            return topostats.load_topostats(self.img_path)
+            raw_data = topostats.load_topostats(self.img_path)
+            if "topostats_file_version" in raw_data.keys():  # pylint: disable=consider-iterating-dictionary
+                LOGGER.warning(
+                    f"[{raw_data['filename']}] : This '.topostats' is an old format"
+                    f"({raw_data['topostats_file_version']}), only core features are loaded. "
+                    "All trace data has been dropped. If you need access to these please use AFMReader directly."
+                )
+                return TopoStats(
+                    image=raw_data["image"],
+                    image_original=raw_data["image_original"],
+                    img_path=raw_data["img_path"],
+                    pixel_to_nm_scaling=raw_data["pixel_to_nm_scaling"],
+                    filename=raw_data["filename"],
+                    topostats_version=str(raw_data["topostats_file_version"]),
+                )
+            return dict_to_topostats(raw_data)
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
