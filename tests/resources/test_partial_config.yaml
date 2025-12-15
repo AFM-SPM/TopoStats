@@ -31,7 +31,6 @@ grains:
   threshold_absolute:
     below: [-1.0] # Threshold for grains below the image background
     above: [1.0] # Threshold for grains above the image background
-  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
   # Thresholding by area
   area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
