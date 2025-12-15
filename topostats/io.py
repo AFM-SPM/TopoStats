@@ -610,10 +610,6 @@ class LoadScans:
         Dictionary of all configuration options.
     channel : str
         Image channel to extract from the scan.
-    extract : str
-        What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
-       ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
-       loaded. Options include ''raw'' and ''filter'' at present.
     """
 
     def __init__(
@@ -621,7 +617,6 @@ class LoadScans:
         img_paths: list[str | Path],
         config: dict[str, Any],
         channel: str | None = None,
-        extract: str | None = None,
     ):
         """
         Initialise the class.
@@ -634,16 +629,11 @@ class LoadScans:
             Dictionary of all configuration options.
         channel : str
             Image channel to extract from the scan.
-        extract : str
-            What to extract from ''.topostats'' files, default is ''all'' which loads everything but if using in
-           ''run_topostats'' functions then specific subsets of data are required and this allows just those to be
-           loaded. Options include ''raw'' and ''filter'' at present.
         """
         self.img_paths = img_paths
         self.img_path = None
         self.channel = config["loading"]["channel"] if channel is None else channel
         self.channel_data = None
-        self.extract = config["loading"]["extract"] if extract is None else extract
         self.filename = None
         self.suffix = None
         self.image = None
@@ -687,19 +677,14 @@ class LoadScans:
             raw_data = topostats.load_topostats(self.img_path)
             if "topostats_file_version" in raw_data.keys():  # pylint: disable=consider-iterating-dictionary
                 LOGGER.warning(
-                    f"[{raw_data['filename']}] : This '.topostats' is an old format"
+                    f"[{raw_data['filename']}] : This '.topostats' is an old format "
                     f"({raw_data['topostats_file_version']}), only core features are loaded. "
                     "All trace data has been dropped. If you need access to these please use AFMReader directly."
                 )
-                return TopoStats(
-                    image=raw_data["image"],
-                    image_original=raw_data["image_original"],
-                    img_path=raw_data["img_path"],
-                    pixel_to_nm_scaling=raw_data["pixel_to_nm_scaling"],
-                    filename=raw_data["filename"],
-                    topostats_version=str(raw_data["topostats_file_version"]),
-                )
-            return dict_to_topostats(raw_data)
+                # Remove trace data, masks and unused variables
+                for key in ["grain_masks", "grain_trace_data", "topostats_file_version"]:
+                    raw_data.pop(key)
+            return raw_data
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")
             raise
@@ -818,9 +803,9 @@ class LoadScans:
             ".top": self.load_top,
         }
         for img_path in self.img_paths:
-            self.img_path = img_path
-            self.filename = img_path.stem
-            suffix = img_path.suffix
+            self.img_path = Path(img_path)
+            self.filename = Path(img_path).stem
+            suffix = Path(img_path).suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
             LOGGER.debug(f"File extension : {suffix}")
 
@@ -849,10 +834,11 @@ class LoadScans:
                     # If we are loading a .topostats we don't check image size, but instead update config, version and
                     # img_path to the current values and add directly to dictionary
                     elif suffix == ".topostats":
-                        data["img_path"] = self.img_path
+                        data["img_path"] = self.img_path.parent / self.filename
                         data["config"] = self.config
                         data["topostats_version"] = __version__
                         self.img_dict[self.filename] = dict_to_topostats(dictionary=data)
+
                     # Otherwise check the size and add image to dictionary
                     else:
                         self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
@@ -916,56 +902,6 @@ class LoadScans:
             image_original=image,
             config=self.config,
         )
-
-    def clean_dict(self, img_dict: dict[str, Any]) -> dict[str, Any]:
-        """
-        If we are loading .topostats files for reprocessing we already have the dictionary structure.
-
-        We therefore need to extract just the information that is required for the stage requested and remove everything
-        else.
-
-        Parameters
-        ----------
-        img_dict : dict[str, Any]
-            Original image dictionary from which data is to be extracted.
-
-        Returns
-        -------
-        dict[str, Any]
-            Returns the image dictionary with keys/values removed appropriate to the extraction stage.
-        """
-        # Reverse order so we remove things in reverse order, splining removes what it doesn't need then ordered
-        # tracing removes what it doesn't need, then nodestats, then disordered, then grainstats then grains, should be
-        # more succinct code with less popping
-        if self.extract in ["grains"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("grain_masks")
-            img_dict.pop("height_profiles")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_traces")
-            img_dict.pop("splining")
-            return img_dict
-        if self.extract in ["grainstats"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("height_profiles")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_traces")
-            img_dict.pop("splining")
-            return img_dict
-        if self.extract in ["disordered_tracing", "nodestats", "ordered_tracing"]:
-            img_dict.pop("disordered_traces")
-            img_dict.pop("grain_curvature_stats")
-            img_dict.pop("nodestats")
-            img_dict.pop("ordered_tracing")
-            img_dict.pop("splining")
-            return img_dict
-        if self.extract in ["splining"]:
-            img_dict.pop("splining")
-            img_dict.pop("grain_curvature_stats")
-            return img_dict
-        return img_dict
 
 
 def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
@@ -1117,9 +1053,9 @@ def save_topostats_file(
     LOGGER.info(f"[{filename}] : Saving image to .topostats file")
 
     if ".topostats" not in filename:
-        save_file_path = output_dir / f"{filename}.topostats"
+        save_file_path = Path(output_dir) / f"{filename}.topostats"
     else:
-        save_file_path = output_dir / filename
+        save_file_path = Path(output_dir) / filename
 
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image"] to be None.

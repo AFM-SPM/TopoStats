@@ -94,7 +94,7 @@ def run_filters(  # noqa: C901
             if plotting_config["run"]:
                 try:
                     plotting_config.pop("run")
-                    filter_out_path.mkdir(parents=True, exist_ok=True)
+                    Path(filter_out_path).mkdir(parents=True, exist_ok=True)
                     # Generate plots
                     for plot_name, array in filters.images.items():
                         if plot_name not in ["scan_raw"]:

@@ -289,22 +289,22 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("file_ext", "matches", "filenames"),
+    ("file_ext", "filenames"),
     [
-        pytest.param(".spm", 4, ["minicircle.spm", "old_bruker.002", "old_bruker.004", "plasmids.spm"], id="spm"),
-        pytest.param(".asd", 2, ["file.asd", "minicircles.asd"], id="asd"),
-        pytest.param(".gwy", 1, ["file.gwy"], id="gwy"),
-        pytest.param(".ibw", 1, ["minicircle2.ibw"], id="ibw"),
-        pytest.param(".jpk", 1, ["file.jpk"], id="jpk"),
-        pytest.param(".jpk-qi-image", 1, ["file.jpk-qi-image"], id="jpk-qi-image"),
-        pytest.param(".stp", 1, ["file.stp"], id="stp"),
-        pytest.param(".top", 1, ["file.top"], id="top"),
+        pytest.param(".spm", ["minicircle.spm", "old_bruker.002", "old_bruker.004", "plasmids.spm"], id="spm"),
+        pytest.param(".asd", ["file.asd", "minicircles.asd"], id="asd"),
+        pytest.param(".gwy", ["file.gwy"], id="gwy"),
+        pytest.param(".ibw", ["minicircle2.ibw"], id="ibw"),
+        pytest.param(".jpk", ["file.jpk"], id="jpk"),
+        pytest.param(".jpk-qi-image", ["file.jpk-qi-image"], id="jpk-qi-image"),
+        pytest.param(".stp", ["file.stp"], id="stp"),
+        pytest.param(".top", ["file.top"], id="top"),
         pytest.param(
             ".topostats",
-            5,
             [
                 "file.topostats",
                 "minicircle_small.topostats",
+                "minicircle_240.topostats",
                 "process_scan_topostats_file_regtest.topostats",
                 "catenane_post_disordered_tracing.topostats",
                 "notebook3_image.topostats",
@@ -313,11 +313,11 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
         ),
     ],
 )
-def test_find_files(file_ext: str, matches: int, filenames: str | list[str]) -> None:
+def test_find_files(file_ext: str, filenames: str | list[str]) -> None:
     """Test finding images based on file extension."""
     found_images = find_files(base_dir=RESOURCES, file_ext=file_ext)
     assert isinstance(found_images, list)
-    assert len(found_images) == matches
+    assert len(found_images) == len(filenames)
     for image in found_images:
         assert isinstance(image, Path)
     # Sort expected and found images (converted to str) for comparison
@@ -655,8 +655,8 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
     assert px_to_nm_scaling == pytest.approx(2.0)
 
 
-@pytest.mark.xfail(
-    reason="Old test which only works with '.topostats' loading as dictionaries. AFMReader loads HDF5 to"
+@pytest.mark.skip(
+    reason="REDUNDANT : only works with '.topostats' loading as dictionaries. AFMReader loads HDF5 to"
     "dictionary but we convert to TopoStats objects so existing images can be processed. Only retain core"
     "fields, no tracing data is retained."
 )
@@ -679,6 +679,10 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
     assert grain_trace_data.keys() == {"above"}
 
 
+@pytest.mark.skip(
+    reason="REDUNDANT : Loading topostats objects aligns with all other files types. See next test "
+    "(test_load_scan_get_data) which now covers this."
+)
 @pytest.mark.parametrize(
     ("scan_fixture", "image_sum", "image_original_sum", "pixel_to_nm_scaling"),
     [
@@ -689,17 +693,9 @@ def test_load_scan_topostats_all(load_scan_topostats: LoadScans) -> None:
             0.4940029296875,
             id="old topostats_file_version 0.2",
         ),
-        pytest.param(
-            "load_scan_topostats_2_4_2",
-            184140.8593819073,
-            30695369.188316286,
-            0.4940029296875,
-            id="new version 2.4.2",
-            marks=pytest.mark.skip(reason="ns-rse 2025-12-15 Awaiting creation of fixture."),
-        ),
     ],
 )
-def test_load_scan_topostats_components_raw(
+def test_load_scan_topostats(
     scan_fixture: str, image_sum: float, image_original_sum: float, pixel_to_nm_scaling: float, request
 ) -> None:
     """Test loading different components from a .topostats file."""
@@ -733,9 +729,17 @@ def test_load_scan_topostats_components_raw(
             "file",
             0.4940029296875,
             id="topostats",
-            marks=pytest.mark.skip(reason="Work in Progress"),
         ),
         pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
+        pytest.param(
+            "load_scan_topostats_240",
+            1,
+            (1024, 1024),
+            30695369.188316286,
+            "minicircle_240",
+            0.4940029296875,
+            id="topostats (version 2.4.0)",
+        ),
     ],
 )
 def test_load_scan_get_data(
@@ -754,6 +758,11 @@ def test_load_scan_get_data(
     assert isinstance(scan.img_dict[filename].image_original, np.ndarray)
     assert scan.img_dict[filename].image_original.shape == image_shape
     assert scan.img_dict[filename].image_original.sum() == image_sum
+    # If we are loading minicircle_240 it has a flattened .image attribute we can check (note it differs from above
+    # disabled test though)
+    if filename == "minicircle_240":
+        assert scan.img_dict[filename].image.shape == image_shape
+        assert scan.img_dict[filename].image.sum() == 184140.85939149323
     assert isinstance(scan.img_dict[filename].img_path, Path)
     assert scan.img_dict[filename].img_path == RESOURCES / filename
     assert isinstance(scan.img_dict[filename].pixel_to_nm_scaling, float)

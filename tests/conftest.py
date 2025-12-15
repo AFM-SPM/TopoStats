@@ -756,6 +756,12 @@ def load_scan_topostats(default_config: dict[str, Any]) -> LoadScans:
 
 
 @pytest.fixture()
+def load_scan_topostats_240(default_config: dict[str, Any]) -> LoadScans:
+    """Instantiate a LoadScans object from a .topostats file."""
+    return LoadScans([RESOURCES / "minicircle_240.topostats"], config=default_config)
+
+
+@pytest.fixture()
 def load_scan_asd(default_config: dict[str, Any]) -> LoadScans:
     """Instantiate a LoadScans object from a .asd file."""
     return LoadScans([RESOURCES / "file.asd"], channel="TP", config=default_config)
