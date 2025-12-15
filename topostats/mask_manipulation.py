@@ -582,10 +582,13 @@ def skeletonise_and_join_close_ends(
                 if endpoint_2_id in non_hard_connected_endpoint_ids:
                     non_hard_connected_endpoint_ids.remove(endpoint_2_id)
             if len(non_hard_connected_endpoint_ids) != 2:
-                raise ValueError(
-                    f"For a 4-node endpoint group, expected 2 non-hard-connected endpoints,"
-                    f"found {len(non_hard_connected_endpoint_ids)}. Need to update the algorithm."
+                LOGGER.info(
+                    f"[{filename}] : connection group {group_id} has "
+                    f"{len(connection_group.endpoints)} endpoints, "
+                    f"but {len(non_hard_connected_endpoint_ids)} non-hard-connected endpoints, "
+                    f"currently unsupported, skipping."
                 )
+                continue
 
             # So now we have the start and end nodes identified.
             start_node_id, end_node_id = non_hard_connected_endpoint_ids
@@ -689,8 +692,10 @@ def skeletonise_and_join_close_ends(
             # done with this group, move on.
             continue
 
-        raise NotImplementedError(
-            f"Connection groups with {len(connection_group.endpoints)} endpoints not yet implemented."
+        LOGGER.info(
+            f"[{filename}] : connection group {group_id} has "
+            f"{len(connection_group.endpoints)} endpoints, "
+            f"currently unsupported, skipping."
         )
     return mask
 
