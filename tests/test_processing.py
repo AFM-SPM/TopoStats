@@ -10,7 +10,6 @@ from typing import Any
 import filetype
 import h5py
 import numpy as np
-import pandas as pd
 import pytest
 
 from topostats.classes import DisorderedTrace, GrainCrop, TopoStats
@@ -320,7 +319,7 @@ def test_image_set(
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
     img_dic = load_scan_data.img_dict
-    _, _, _, _, _, _ = process_scan(
+    process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -810,18 +809,17 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
-def test_run_filters(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path) -> None:
+@pytest.mark.skip(reason="ns-rse 2025-12-12 Need to remove ImageGrainCrops from pickle loaded by fixture.")
+def test_run_filters(minicircle_small_topostats: TopoStats, tmp_path: Path) -> None:
     """Test the filter wrapper function of processing.py."""
-    flattened_image = run_filters(
-        topostats_object=load_scan_data.img_dict["minicircle_small"],
+    run_filters(
+        topostats_object=minicircle_small_topostats,
         filter_out_path=tmp_path,
         core_out_path=tmp_path,
-        filter_config=process_scan_config["filter"],
-        plotting_config=process_scan_config["plotting"],
     )
-    assert isinstance(flattened_image, np.ndarray)
-    assert flattened_image.shape == (64, 64)
-    assert np.sum(flattened_image) == pytest.approx(1172.6088236592373)
+    assert isinstance(minicircle_small_topostats.image, np.ndarray)
+    assert minicircle_small_topostats.shape == (64, 64)
+    assert np.sum(minicircle_small_topostats) == pytest.approx(1172.6088236592373)
 
 
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
@@ -843,13 +841,10 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
     grains_config["threshold_absolute"]["below"] = -0.4
     grains_config["area_thresholds"]["above"] = [20, 10000000]
     grains_config["area_thresholds"]["below"] = [20, 10000000]
-
-    _ = run_grains(
+    run_grains(
         topostats_object=topostats_object,
         grain_out_path=tmp_path,
         core_out_path=tmp_path,
-        grains_config=grains_config,
-        plotting_config=process_scan_config["plotting"],
     )
     assert isinstance(topostats_object.grain_crops, dict)
     # @ns-rse 2025-11-18 - Only getting six above, should be two below
@@ -858,7 +853,8 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         assert isinstance(grain_crop, GrainCrop)
 
 
-def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
+@pytest.mark.skip(reason="ns-rse 2025-12-12 Need to remove ImageGrainCrops from pickle loaded by fixture.")
+def test_run_grainstats(default_config: dict[str, Any], tmp_path: Path) -> None:
     """Test the grainstats_wrapper function of processing.py."""
     with Path.open(  # pylint: disable=unspecified-encoding
         RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
@@ -871,15 +867,14 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         img_path=tmp_path,
         image=None,
         image_original=None,
+        config=default_config,
         topostats_version=None,
     )
-    grainstats_df, _, grain_crops = run_grainstats(
+    run_grainstats(
         topostats_object=topostats_object,
-        grainstats_config=process_scan_config["grainstats"],
-        plotting_config=process_scan_config["plotting"],
+        core_out_path=tmp_path,
         grain_out_path=tmp_path,
     )
-
     GRAIN_CROP_ATTRIBUTES = [
         "bbox",
         "debug_locate_difference",
@@ -892,13 +887,13 @@ def test_run_grainstats(process_scan_config: dict, tmp_path: Path) -> None:
         "pixel_to_nm_scaling",
         "stats",
     ]
-    assert isinstance(grainstats_df, pd.DataFrame)
+    # assert isinstance(grainstats_df, pd.DataFrame)
     # Expect 6 grains in the above direction for cropped minicircle
-    assert grainstats_df.shape[0] == 6
-    assert len(grainstats_df.columns) == 26
-    assert isinstance(grain_crops, dict)
-    assert len(grain_crops) == 6
-    for grain_crop in grain_crops.values():
+    # assert grainstats_df.shape[0] == 6
+    # assert len(grainstats_df.columns) == 26
+    assert isinstance(topostats_object.grain_crops, dict)
+    assert len(topostats_object.grain_crops) == 6
+    for _, grain_crop in topostats_object.grain_crops.values():
         assert isinstance(grain_crop, GrainCrop)
         assert all(x in dir(grain_crop) for x in GRAIN_CROP_ATTRIBUTES)
 
@@ -1616,7 +1611,6 @@ def test_run_nodestats(  # noqa: C901
     detected_grains: list[int],
     expected_nodes: dict[str, Any],
     expected_matched_branch: dict[str, Any],
-    process_scan_config: dict[str, Any],
     tmp_path,
     request,
 ) -> None:
@@ -1627,9 +1621,6 @@ def test_run_nodestats(  # noqa: C901
         topostats_object=topostats_object,
         core_out_path=tmp_path,
         tracing_out_path=tmp_path,
-        nodestats_config=process_scan_config["nodestats"],
-        plotting_config=process_scan_config["plotting"],
-        grainstats_df=pd.DataFrame(),
     )
     for grain, grain_crop in topostats_object.grain_crops.above.crops.items():
         if grain in detected_grains:

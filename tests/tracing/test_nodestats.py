@@ -902,12 +902,7 @@ def test_nodestats_image(
         filename=image_filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
     )
-    (
-        _,  # @ns-rse 2025-11-11 no longer need result_nodestats_data its all attributes within topostats_object
-        result_nodestats_grainstats,
-        result_nodestats_all_images,
-        result_nodestats_branch_images,
-    ) = nodestats_image(
+    nodestats_image(
         topostats_object=topostats_object,
         node_joining_length=node_joining_length,
         node_extend_dist=node_extend_dist,
@@ -921,8 +916,9 @@ def test_nodestats_image(
     # connected_nodes = result_all_images["connected_nodes"]
 
     assert topostats_object.grain_crops[0].nodes == snapshot
+    # ns-rse 2025-12-12 Update these when we extract pandas dataframes
     # ns-rse: syrupy doesn't yet support Pandas DataFrames so we convert to string
     #         https://github.com/syrupy-project/syrupy/issues/887
-    assert result_nodestats_grainstats.to_string() == snapshot
-    assert result_nodestats_all_images == snapshot
-    assert result_nodestats_branch_images == snapshot
+    # assert result_nodestats_grainstats.to_string() == snapshot
+    # assert result_nodestats_all_images == snapshot
+    # assert result_nodestats_branch_images == snapshot

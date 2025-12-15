@@ -886,7 +886,7 @@ def minicircle_grain_gaussian_filter(minicircle_masked_quadratic_removal: Filter
 
 # Derive fixtures for grain finding
 @pytest.fixture()
-def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: dict) -> Grains:
+def minicircle_grains(minicircle_grain_gaussian_filter: Filters, default_config: [str, Any]) -> Grains:
     """Grains object based on filtered minicircle."""
     # TEMPORARY - This will be replaced when we have all modules working and start passing around TopoStats objects in
     # their entirety
@@ -895,10 +895,10 @@ def minicircle_grains(minicircle_grain_gaussian_filter: Filters, grains_config: 
         filename=minicircle_grain_gaussian_filter.filename,
         pixel_to_nm_scaling=minicircle_grain_gaussian_filter.pixel_to_nm_scaling,
         img_path=Path.cwd(),
+        config=default_config,
     )
     return Grains(
         topostats_object=topostats_object,
-        **grains_config,
     )
 
 

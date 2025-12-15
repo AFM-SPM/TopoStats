@@ -5,8 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
-import numpy.typing as npt
-import pandas as pd
+
+# import pandas as pd
 from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
@@ -43,13 +43,13 @@ from topostats.tracing.splining import splining_image
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def run_filters(
+def run_filters(  # noqa: C901
     topostats_object: TopoStats,
     filter_out_path: Path,
     core_out_path: Path,
-    filter_config: dict,
-    plotting_config: dict,
-) -> npt.NDArray | None:
+    filter_config: dict | None = None,
+    plotting_config: dict | None = None,
+) -> None:
     """
     Filter and flatten an image. Optionally plots the results, returning the flattened image.
 
@@ -147,8 +147,8 @@ def run_grains(  # noqa: C901
     topostats_object: TopoStats,
     grain_out_path: Path | None,
     core_out_path: Path,
-    plotting_config: dict,
-    grains_config: dict,
+    plotting_config: dict | None = None,
+    grains_config: dict | None = None,
 ) -> None:
     """
     Identify grains (molecules) and optionally plots the results.
@@ -377,8 +377,8 @@ def run_disordered_tracing(  # noqa: C901
     topostats_object: TopoStats,
     core_out_path: Path,
     tracing_out_path: Path,  # pylint: disable=unused-argument
-    disordered_tracing_config: dict | None,
-    plotting_config: dict | None,
+    disordered_tracing_config: dict | None = None,
+    plotting_config: dict | None = None,
 ) -> None:
     """
     Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.
@@ -497,8 +497,8 @@ def run_nodestats(  # noqa: C901
     topostats_object: TopoStats,
     core_out_path: Path,  # pylint: disable=unused-argument
     tracing_out_path: Path,  # pylint: disable=unused-argument
-    nodestats_config: dict,
-    plotting_config: dict,
+    nodestats_config: dict | None = None,
+    plotting_config: dict | None = None,
 ) -> None:
     """
     Analyse crossing points in grains adding results to statistics data frames and optionally plot results.
@@ -608,8 +608,8 @@ def run_ordered_tracing(
     topostats_object: TopoStats,
     core_out_path: Path,
     tracing_out_path: Path,
-    ordered_tracing_config: dict,
-    plotting_config: dict,
+    ordered_tracing_config: dict | None = None,
+    plotting_config: dict | None = None,
 ) -> None:
     """
     Order coordinates of traces, adding results to statistics data frames and optionally plot results.
@@ -695,9 +695,9 @@ def run_ordered_tracing(
 def run_splining(
     topostats_object: TopoStats,
     core_out_path: Path,
-    splining_config: dict,
-    plotting_config: dict,
-) -> tuple:
+    splining_config: dict | None = None,
+    plotting_config: dict | None = None,
+) -> None:
     """
     Smooth the ordered trace coordinates and optionally plot results.
 
@@ -766,9 +766,9 @@ def run_curvature_stats(
     topostats_object: TopoStats,
     core_out_path: Path,  # pylint: disable=unused-argument
     tracing_out_path: Path,  # pylint: disable=unused-argument
-    curvature_config: dict,
-    plotting_config: dict,
-) -> dict | None:
+    curvature_config: dict | None = None,
+    plotting_config: dict | None = None,
+) -> None:
     """
     Calculate curvature statistics for the traced DNA molecules.
 
@@ -808,55 +808,53 @@ def run_curvature_stats(
                 exc_info=e,
             )
         else:
-            # try:
-            if plotting_config["run"]:
-                # Setup dictionaries to aggregate components for the all image plot
-                all_curvatures = {}
-                all_smooth = {}
-                all_images = {}
-                colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature_individual_grains"].pop(
-                    "colourmap_normalisation_bounds"
+            try:
+                if plotting_config["run"]:
+                    # Setup dictionaries to aggregate components for the all image plot
+                    all_curvatures = {}
+                    all_smooth = {}
+                    all_images = {}
+                    colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature_individual_grains"].pop(
+                        "colourmap_normalisation_bounds"
+                    )
+                    for grain_number, grain_crop in topostats_object.grain_crops.items():
+                        all_curvatures[grain_number] = {}
+                        all_smooth[grain_number] = {}
+                        all_images[grain_number] = {}
+                        for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+                            print(f"\n{grain_number=} : {molecule_number}\n")
+                            Images(
+                                np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                                output_dir=tracing_out_path / "curvature",
+                                **plotting_config["plot_dict"]["curvature_individual_grains"],
+                            ).plot_curvatures_individual_grain(
+                                grain_crop=grain_crop,
+                                grain_number=grain_number,
+                                colourmap_normalisation_bounds=colourmap_normalisation_bounds,
+                            )
+                            all_curvatures[grain_number][molecule_number] = molecule.curvature_stats
+                            all_smooth[grain_number][molecule_number] = molecule.splined_coords
+                            all_images[grain_number][molecule_number] = grain_crop.image
+                    colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature"].pop(
+                        "colourmap_normalisation_bounds"
+                    )
+                    Images(
+                        np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
+                        filename=f"{topostats_object.filename}_curvature",
+                        output_dir=core_out_path,
+                        **plotting_config["plot_dict"]["curvature"],
+                    ).plot_curvatures(
+                        image=topostats_object.image,
+                        grain_crops=topostats_object.grain_crops,
+                        colourmap_normalisation_bounds=colourmap_normalisation_bounds,
+                    )
+                    LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
+            except Exception as e:
+                LOGGER.error(
+                    f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
+                    "GitHub. Error : ",
+                    exc_info=e,
                 )
-                for grain_number, grain_crop in topostats_object.grain_crops.items():
-                    all_curvatures[grain_number] = {}
-                    all_smooth[grain_number] = {}
-                    all_images[grain_number] = {}
-                    for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
-                        print(f"\n{grain_number=} : {molecule_number}\n")
-                        Images(
-                            np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                            output_dir=tracing_out_path / "curvature",
-                            **plotting_config["plot_dict"]["curvature_individual_grains"],
-                        ).plot_curvatures_individual_grain(
-                            grain_crop=grain_crop,
-                            grain_number=grain_number,
-                            colourmap_normalisation_bounds=colourmap_normalisation_bounds,
-                        )
-                        all_curvatures[grain_number][molecule_number] = molecule.curvature_stats
-                        all_smooth[grain_number][molecule_number] = molecule.splined_coords
-                        all_images[grain_number][molecule_number] = grain_crop.image
-                colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature"].pop(
-                    "colourmap_normalisation_bounds"
-                )
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    filename=f"{topostats_object.filename}_curvature",
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["curvature"],
-                ).plot_curvatures(
-                    image=topostats_object.image,
-                    grain_crops=topostats_object.grain_crops,
-                    colourmap_normalisation_bounds=colourmap_normalisation_bounds,
-                )
-                LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
-
-            # except Exception as e:
-            #     LOGGER.error(
-            #         f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
-            #         "GitHub. Error : ",
-            #         exc_info=e,
-            #     )
-
             return
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of Curvature Stats disabled, returning None.")
@@ -923,7 +921,7 @@ def process_scan(
     curvature_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
-) -> tuple[dict, pd.DataFrame, dict]:
+) -> TopoStats:
     """
     Process a single image, filtering, finding grains and calculating their statistics.
 
@@ -958,9 +956,8 @@ def process_scan(
 
     Returns
     -------
-    tuple[dict, pd.DataFrame, dict]
-        TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
-        and dictionary containing general image statistics.
+    TopoStats
+        ``TopoStats`` object post-processing.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
@@ -1063,17 +1060,7 @@ def process_scan(
 
     # Get image statistics
     LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
-    # Provide the raw image if image has not been flattened, else provide the flattened image.
-    if topostats_object.image is not None:
-        image_for_image_stats = topostats_object.image
-    else:
-        image_for_image_stats = topostats_object.image_original
-    # Calculate image statistics - returns a Pandas dataframe
-    # image_statistics(
-    #     image=image_for_image_stats,
-    #     filename=topostats_object.filename,
-    #     pixel_to_nm_scaling=topostats_object.pixel_to_nm_scaling,
-    # )
+    # ns-rse 2025-12-12 Add @tobyallwood methods here for pulling statistics out of topostats_object
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
@@ -1081,6 +1068,7 @@ def process_scan(
         filename=str(topostats_object.filename),
         topostats_object=topostats_object,
     )
+    # ns-rse 2025-12-12 Return the Pandas data fraome from  @tobyallwood methods rather than topostats_object
     return topostats_object
 
 
