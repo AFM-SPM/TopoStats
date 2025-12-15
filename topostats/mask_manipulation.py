@@ -686,12 +686,12 @@ def skeletonise_and_join_close_ends(
                             mean_mask_pixel_width=mean_mask_width_px,
                         )
 
-                # done with this group, move on.
-                continue
+            # done with this group, move on.
+            continue
 
-            raise NotImplementedError(
-                f"Connection groups with {len(connection_group.endpoints)} endpoints not yet implemented."
-            )
+        raise NotImplementedError(
+            f"Connection groups with {len(connection_group.endpoints)} endpoints not yet implemented."
+        )
     return mask
 
 
