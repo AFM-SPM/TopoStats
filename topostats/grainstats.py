@@ -202,7 +202,6 @@ class GrainStats:
             image = grain_crop.image
             mask = grain_crop.mask
             grain_bbox = grain_crop.bbox
-            thresholds = grain_crop.thresholds
             grain_anchor = (grain_bbox[0], grain_bbox[1])
             pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
 
@@ -287,7 +286,6 @@ class GrainStats:
                         "grain_number": grain_index,
                         "class_number": class_index,
                         "subgrain_number": subgrain_index,
-                        "thresholds": thresholds,
                         "centre_x": centre_x_m,
                         "centre_y": centre_y_m,
                         "radius_min": radius_stats["min"] * length_scaling_factor,
@@ -311,7 +309,6 @@ class GrainStats:
                         * smallest_bounding_width
                         * area_scaling_factor,
                         "aspect_ratio": aspect_ratio,
-                        "threshold": "",  # @ns-rse 2025-11-10 - Drop threshold column from output?
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }

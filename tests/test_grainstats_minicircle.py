@@ -10,10 +10,10 @@ BASE_DIR = Path.cwd()
 RESOURCES = BASE_DIR / "tests" / "resources"
 
 
-def test_grainstats_regression(regtest, minicircle_grainstats: GrainStats) -> None:
+def test_grainstats_regression(minicircle_grainstats: GrainStats, snapshot) -> None:
     """Regression tests for grainstats."""
     statistics, _height_profiles = minicircle_grainstats.calculate_stats()
-    print(statistics.to_string(), file=regtest)
+    assert statistics.to_string() == snapshot
 
 
 TARGET_HEIGHTS = [

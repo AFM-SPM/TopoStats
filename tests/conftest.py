@@ -1041,7 +1041,7 @@ def dummy_grainstats(
     topostats_object = TopoStats(
         grain_crops=dummy_graincrops_dict, filename="dummy_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
     )
-    return GrainStats(
+    return GrainStats(  # pylint: disable=no-value-for-parameter
         topostats_object=topostats_object,
         base_output_dir=tmp_path,
         **grainstats_config,
@@ -1051,13 +1051,19 @@ def dummy_grainstats(
 @pytest.fixture()
 def minicircle_grainstats(
     minicircle_small_graincrops: dict[int, GrainCrop],
-    grainstats_config: dict,
+    grainstats_config: dict[str, Any],
+    default_config: dict[str, Any],
     tmp_path: Path,
 ) -> GrainStats:
     """GrainStats object."""
     topostats_object = TopoStats(
         grain_crops=minicircle_small_graincrops, filename=None, pixel_to_nm_scaling=1.0, img_path=Path.cwd()
     )
+    # Explicitly set GrainCrop.thresholds to None which will trigger use of get_thresholds() bit of a fudge, should
+    # really update the pickle which is loaded in the above fixture minicircle_small_graincrops
+    for _, grain_crop in minicircle_small_graincrops.items():
+        grain_crop.thresholds = None
+    topostats_object.config = default_config
     return GrainStats(
         topostats_object=topostats_object,
         base_output_dir=tmp_path,
