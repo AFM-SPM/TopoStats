@@ -433,6 +433,7 @@ def dummy_node(dummy_matched_branch: MatchedBranch, dummy_unmatched_branch) -> N
         node_area_skeleton=np.ndarray(5),
         node_branch_mask=np.ndarray(6),
         node_avg_mask=np.ndarray(7),
+        writhe="wiggle",
     )
 
 
@@ -494,6 +495,7 @@ def dummy_molecule() -> Molecule:
         end_to_end_distance=0.3456e-7,
         heights=np.array(4),
         distances=np.array(4),
+        curvature_stats=np.array(4),
         bbox=(1, 2, 3, 4),
     )
 
@@ -602,15 +604,23 @@ def graincrop_catenanes_1() -> GrainCrop:
 
 
 @pytest.fixture()
-def topostats_catenanes_2_4_0(
-    image_catenanes: npt.NDArray,
+def graincrops_catenanes(
     graincrop_catenanes_0: GrainCrop,
     graincrop_catenanes_1: GrainCrop,
+):
+    """Dictionary of grain_crops required for test_classes.py::test_topostats_eq()."""
+    return {0: graincrop_catenanes_0, 1: graincrop_catenanes_1}
+
+
+@pytest.fixture()
+def topostats_catenanes_2_4_0(
+    image_catenanes: npt.NDArray,
+    graincrops_catenanes: dict[int, GrainCrop],
     default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example catenanes."""
     return TopoStats(
-        grain_crops={0: graincrop_catenanes_0, 1: graincrop_catenanes_1},
+        grain_crops=graincrops_catenanes,
         filename="example_catenanes.spm",
         pixel_to_nm_scaling=0.488,
         topostats_version="2.4.0",
@@ -618,6 +628,7 @@ def topostats_catenanes_2_4_0(
         image=image_catenanes,
         image_original=None,
         config=default_config,
+        full_image_plots={"a": np.array(4)},
     )
 
 
@@ -663,6 +674,7 @@ def topostats_rep_int_2_4_0(
         image=image_rep_int,
         image_original=None,
         config=default_config,
+        full_image_plots={"a": np.array(4)},
     )
 
 

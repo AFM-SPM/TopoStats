@@ -41,6 +41,7 @@ def test_molecule_to_dict(dummy_molecule: Molecule) -> None:
         "end_to_end_distance": dummy_molecule.end_to_end_distance,
         "heights": dummy_molecule.heights,
         "distances": dummy_molecule.distances,
+        "curvature_stats": dummy_molecule.curvature_stats,
         "bbox": dummy_molecule.bbox,
     }
     assert dict_almost_equal(dummy_molecule.molecule_to_dict(), expected)
@@ -80,11 +81,7 @@ def test_ordered_trace_to_dict(dummy_ordered_trace: OrderedTrace) -> None:
 def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
     """Test the OrderedTrace.str() method."""
     expected = (
-        "number of molecules : 2\n"
-        "number of images : 4\n"
-        "writhe : negative\n"
-        "pixel to nm scaling : 1.0\n"
-        "error : True"
+        "number of molecules : 2\nnumber of images : 4\nwrithe : negative\npixel to nm scaling : 1.0\nerror : True"
     )
     assert str(dummy_ordered_trace) == expected
 
@@ -102,6 +99,7 @@ def test_node_to_dict(dummy_node: Node) -> None:
         "node_area_skeleton": dummy_node.node_area_skeleton,
         "node_branch_mask": dummy_node.node_branch_mask,
         "node_avg_mask": dummy_node.node_avg_mask,
+        "writhe": dummy_node.writhe,
     }
     assert dict_almost_equal(dummy_node.node_to_dict(), expected)
 
@@ -262,6 +260,7 @@ def test_topostats_to_dict(
         "full_mask_tensor": topostats_object.full_mask_tensor,
         "topostats_version": topostats_object.topostats_version,
         "config": topostats_object.config,
+        "full_image_plots": topostats_object.full_image_plots,
     }
     assert topostats_object.topostats_to_dict() == expected
 
@@ -270,7 +269,7 @@ def test_topostats_to_dict(
 @pytest.mark.parametrize(
     (
         "topostats_object",
-        "image_grain_crops",
+        "grain_crops",
         "filename",
         "pixel_to_nm_scaling",
         "topostats_version",
@@ -308,7 +307,7 @@ def test_topostats_to_dict(
 )
 def test_topostats_eq(
     topostats_object: str,
-    image_grain_crops: str,
+    grain_crops: str,
     filename: str,
     pixel_to_nm_scaling: float,
     topostats_version: str,
@@ -319,13 +318,13 @@ def test_topostats_eq(
     request,
 ) -> None:
     """Test the TopoStats.__eq__ method."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    topostats_object.image = image
-    topostats_object.image_original = image_original
-    image_grain_crops = request.getfixturevalue(image_grain_crops)
+    topostats_object: TopoStats = request.getfixturevalue(topostats_object)
+    topostats_object.image: npt.NDArray = image
+    topostats_object.image_original: npt.NDArray = image_original
+    grain_crops: dict[int:GrainCrop] = request.getfixturevalue(grain_crops)
     config = request.getfixturevalue(config)
     expected = TopoStats(
-        grain_crops=image_grain_crops,
+        grain_crops=grain_crops,
         filename=filename,
         pixel_to_nm_scaling=pixel_to_nm_scaling,
         img_path=img_path,
