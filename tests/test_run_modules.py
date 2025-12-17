@@ -183,7 +183,7 @@ def test_grains(attributes: dict, caplog) -> None:
         assert isinstance(grain_crop, GrainCrop)
 
 
-@pytest.mark.xfail(reason="Awaiting update of AFMReader to reconstruct `image_grain_crops` with correct classes")
+@pytest.mark.xfail(reason="Awaiting construction of dataframe/csv from TopoStats")
 def test_grainstats(caplog) -> None:
     """Test running the grainstats module.
 

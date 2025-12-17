@@ -624,12 +624,8 @@ def test_load_scan_top(load_scan_top: LoadScans) -> None:
         pytest.param("file_does_not_exist.gwy", "ZSensor", id="non-existent .gwy"),
         pytest.param(
             "file_does_not_exist.ibw",
-            "HeightTracee",
+            "HeightTrace",
             id="non-existent .ibw",
-            marks=pytest.mark.skip(
-                reason="UnboundLocalError from AFMReader.ibw.ibw_load() if file does not exist means image is None"
-                " and can not be returned."
-            ),
         ),
         pytest.param("file_does_not_exist.jpk", "height_trace", id="non-existent .jpk"),
         pytest.param("file_does_not_exist.spm", "Height", id="non-existent .spm"),

@@ -189,7 +189,7 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
         valid_config = ["default", "simple", "mplstyle", "var_to_label"]
         raise ValueError(f"Invalid configuration file option ({args.config}), valid options are\n{valid_config}")
     # Remove `default_` if that is the filename that has been loaded, all others remain as is
-    filename = filename.replace("default_", "") if "default_" in filename else filename
+    filename = filename.replace("default_", "") if "default_" in str(filename) else filename
     if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
         config_path = output_dir / f"{filename}.yaml"
     else:

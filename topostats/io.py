@@ -681,9 +681,24 @@ class LoadScans:
                     f"({raw_data['topostats_file_version']}), only core features are loaded. "
                     "All trace data has been dropped. If you need access to these please use AFMReader directly."
                 )
-                # Remove trace data, masks and unused variables
-                for key in ["grain_masks", "grain_trace_data", "topostats_file_version"]:
-                    raw_data.pop(key)
+                # Remove trace data, masks and unused variables, may not have all attributes
+                old_keys_to_remove = [
+                    "disordered_traces",
+                    "grain_curvature_stats",
+                    "grain_masks",
+                    "grain_masks",
+                    "grain_trace_data",
+                    "heigh_profiles",
+                    "nodestats",
+                    "ordered_traces",
+                    "splining",
+                    "topostats_file_version",
+                ]
+                for key in old_keys_to_remove:
+                    try:
+                        raw_data.pop(key)
+                    except KeyError:
+                        continue
             return raw_data
         except FileNotFoundError:
             LOGGER.error(f"File Not Found : {self.img_path}")

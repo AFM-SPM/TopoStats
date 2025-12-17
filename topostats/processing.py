@@ -822,7 +822,6 @@ def run_curvature_stats(
                         all_smooth[grain_number] = {}
                         all_images[grain_number] = {}
                         for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
-                            print(f"\n{grain_number=} : {molecule_number}\n")
                             Images(
                                 np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
                                 output_dir=tracing_out_path / "curvature",
@@ -973,7 +972,7 @@ def process_scan(
     splining_config = config["splining"] if splining_config is None else splining_config
     curvature_config = config["curvature"] if curvature_config is None else curvature_config
     plotting_config = config["plotting"].copy() if plotting_config is None else plotting_config
-    output_dir = config["output_dir"]
+    output_dir = config["output_dir"] if output_dir is None else output_dir
 
     # Get output paths
     core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
@@ -1082,8 +1081,8 @@ def process_filters(
     """
     Filter an image return the flattened images and save to ''.topostats''.
 
-    Runs just the first key step of flattening images to remove noise, tilt and optionally scars saving to
-    ''.topostats'' for subsequent processing and analyses.
+    This function serves as an entry point to run just the first key step of flattening images to remove noise, tilt and
+    optionally scars saving to ''.topostats'' for subsequent processing and analyses.
 
     Parameters
     ----------
@@ -1151,8 +1150,8 @@ def process_grains(
     """
     Detect grains in flattened images and save to ''.topostats''.
 
-    Runs grain detection on flattened images to identify grains and save data to  ''.topostats'' for subsequent
-    processing and analyses.
+    This function serves as an entry point to run grain detection on flattened images to identify grains and save data
+    to  ''.topostats'' for subsequent processing and analyses.
 
     Parameters
     ----------
@@ -1219,8 +1218,8 @@ def process_grainstats(
     """
     Calculate grain statistics in an image where grains have already been detected.
 
-    Runs just the first key step of flattening images to remove noise, tilt and optionally scars saving to
-    ''.topostats'' for subsequent processing and analyses.
+    This function serves as an entry point to run just the grainstats processing step and optionally saving to
+    ``.topostats`` for subsequent processing and analyses.
 
     Parameters
     ----------
