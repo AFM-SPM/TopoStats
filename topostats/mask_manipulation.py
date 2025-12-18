@@ -212,7 +212,14 @@ def keep_only_nonrepeated_endpoints(
 
 
 class Endpoint(BaseModel):
-    """Represents an endpoint in a skeletonized mask."""
+    """Represents an endpoint in a skeletonised mask."""
+
+    id: int
+    position: tuple[int, int]
+
+
+class Junctionpoint(BaseModel):
+    """Represents a junction point in a skeletonised mask."""
 
     id: int
     position: tuple[int, int]
@@ -223,27 +230,30 @@ class ConnectionGroup(BaseModel):
 
     id: int
     endpoints: dict[int, Endpoint] = Field(default_factory=dict)
+    junctionpoints: dict[int, Junctionpoint] = Field(default_factory=dict)
     hard_connected_endpoints: list[tuple[int, int, float]] = Field(default_factory=list)
-    close_endpoint_pairs: list[tuple[int, int]] = Field(default_factory=list)
+    close_connectionpoint_pairs: list[tuple[int, int]] = Field(default_factory=list)
 
 
 # pylint: disable=too-many-locals
-def group_endpoints(
-    endpoints: dict[int, Endpoint], close_pairs: list[tuple[int, int, float]], draw_graph: bool = False
+def group_connectionpoints(
+    connectionpoints: dict[int, Endpoint | Junctionpoint],
+    close_pairs: list[tuple[int, int, float]],
+    draw_graph: bool = False,
 ) -> dict[int, ConnectionGroup]:
     """
-    Group endpoints into connection groups based on interconnections.
+    Group connectionpoints into connection groups based on interconnections.
     """
     # Split the graph into connected groups
 
     # Create a graph
     G = nx.Graph()
     # Add the nodes (endpoints) as endpoint IDs
-    for endpoint_index, _endpoint in endpoints.items():
-        G.add_node(endpoint_index)
+    for connectionpoint_index, _connectionpoint in connectionpoints.items():
+        G.add_node(connectionpoint_index)
     # Add edges for each close pair (as endpoint IDs)
-    for endpoint_1_index, endpoint_2_index, _distance_nm in close_pairs:
-        G.add_edge(endpoint_1_index, endpoint_2_index)
+    for connectionpoint_1_index, connectionpoint_2_index, _distance_nm in close_pairs:
+        G.add_edge(connectionpoint_1_index, connectionpoint_2_index)
 
     # draw it
     if draw_graph:
@@ -251,26 +261,43 @@ def group_endpoints(
         plt.show()
 
     # Get networkx to find connected components
-    connected_components = list(nx.connected_components(G))
+    connected_components: list[set[int]] = list(nx.connected_components(G))
+
     # Create ConnectionGroup objects for each connected component
     connection_groups: dict[int, ConnectionGroup] = {}
     for group_id, component in enumerate(connected_components):
-        endpoints_group = {endpoint_index: endpoints[endpoint_index] for endpoint_index in component}
+        connectionpoints_group = {
+            connectionpoint_index: connectionpoints[connectionpoint_index] for connectionpoint_index in component
+        }
         # Get the close pairs that are within this component
         group_close_pairs = [
-            (endpoint_1_index, endpoint_2_index)
-            for endpoint_1_index, endpoint_2_index, _distance_nm in close_pairs
-            if endpoint_1_index in component and endpoint_2_index in component
+            (connectionpoint_1_index, connectionpoint_2_index)
+            for connectionpoint_1_index, connectionpoint_2_index, _distance_nm in close_pairs
+            if connectionpoint_1_index in component and connectionpoint_2_index in component
         ]
+        # Create dictionaries of endpoints and junctionpoints, since they have been combined and we need to separate them
+        # again
+        group_endpoints = {
+            connectionpoint_index: connectionpoint_instance
+            for connectionpoint_index, connectionpoint_instance in connectionpoints_group.items()
+            if isinstance(connectionpoint_instance, Endpoint)
+        }
+        group_junctionpoints = {
+            connectionpoint_index: connectionpoint_instance
+            for connectionpoint_index, connectionpoint_instance in connectionpoints_group.items()
+            if isinstance(connectionpoint_instance, Junctionpoint)
+        }
         connection_group = ConnectionGroup(
             id=group_id,
-            endpoints=endpoints_group,
-            close_endpoint_pairs=group_close_pairs,
+            endpoints=group_endpoints,
+            junctionpoints=group_junctionpoints,
+            close_connectionpoint_pairs=group_close_pairs,
         )
         connection_groups[group_id] = connection_group
     return connection_groups
 
 
+# pylint: disable=too-many-arguments
 def connect_endpoints_with_best_path(
     image: npt.NDArray[np.float32],
     mask: npt.NDArray[np.bool_],
@@ -312,6 +339,8 @@ def connect_endpoints_with_best_path(
         end=local_endpoint_2,
         fully_connected=True,  # allow diagonal moves
     )
+
+    cost = float(cost)
 
     # Convert the path back to the original image coordinates
     path = [(y + min_y, x + min_x) for y, x in path]
@@ -475,9 +504,6 @@ def skeletonise_and_join_close_ends(
         holearea_min_max=skeletonisation_holearea_min_max,
         dilation_iterations=skeletonisation_mask_smoothing_dilation_iterations,
     )
-    # plt.imshow(smoothed_mask, cmap="gray")
-    # plt.title("Smoothed mask")
-    # plt.show()
 
     # Maybe need to check it doesn't touch the edge of the image like we do in disordered_tracing? unsure.
 
@@ -497,34 +523,44 @@ def skeletonise_and_join_close_ends(
     )
     mean_mask_width_px = mean_mask_width_nm / p2nm
 
-    # fig, ax = plt.subplots(figsize=(10, 10))
-    # plt.imshow(skeleton, cmap="gray")
-    # plt.title("skeleton")
-    # plt.show()
-
     # Now to find the skeleton endpoints and connect close ones.
     convolved_skeleton = convolve_skeleton(skeleton=skeleton)
     # Get the endpoints, value = 2
     endpoint_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton == 2)]
+    # Get the junctions, value = 3
+    junction_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton >= 3)]
 
-    # Create data structure to hold all the endpoints
-    endpoints: dict[int, Endpoint] = {}
-    for endpoint_id, endpoint_coord in enumerate(endpoint_coords):
-        endpoints[endpoint_id] = Endpoint(id=endpoint_id, position=(endpoint_coord[0], endpoint_coord[1]))
+    # Create dictionary of connectionpoints
+    connectionpoints: dict[int, Endpoint | Junctionpoint] = {}
+    connectionpoint_index = 0
+    for endpoint_coord in endpoint_coords:
+        endpoint = Endpoint(id=connectionpoint_index, position=endpoint_coord)
+        connectionpoints[connectionpoint_index] = endpoint
+        connectionpoint_index += 1
+    for junction_coord in junction_coords:
+        junctionpoint = Junctionpoint(id=connectionpoint_index, position=junction_coord)
+        connectionpoints[connectionpoint_index] = junctionpoint
+        connectionpoint_index += 1
 
-    # For each endpoint, determine if any others are close enough to connect
-    nearby_endpoint_pairs: list[tuple[int, int, float]] = []
-    for endpoint_1_id, endpoint_1 in endpoints.items():
-        for endpoint_2_id, endpoint_2 in endpoints.items():
-            if endpoint_1_id >= endpoint_2_id:
+    # For each connectionpoint, determine if any others are close enough to connect
+    nearby_connectionpoint_pairs: list[tuple[int, int, float]] = []
+    for connectionpoint_1_id, _connectionpoint_1 in connectionpoints.items():
+        for connectionpoint_2_id, _connectionpoint_2 in connectionpoints.items():
+            if connectionpoint_1_id >= connectionpoint_2_id:
                 continue  # avoid double counting
             # calculate absolute distance between them
-            distance_nm = np.linalg.norm((np.array(endpoint_1.position) - np.array(endpoint_2.position)) * p2nm)
-            if distance_nm <= endpoint_connection_distance_nm:
-                nearby_endpoint_pairs.append((endpoint_1_id, endpoint_2_id, float(distance_nm)))
+            connection_distance_nm = float(
+                np.linalg.norm((np.array(_connectionpoint_1.position) - np.array(_connectionpoint_2.position)) * p2nm)
+            )
+            if connection_distance_nm <= endpoint_connection_distance_nm:
+                nearby_connectionpoint_pairs.append(
+                    (connectionpoint_1_id, connectionpoint_2_id, float(connection_distance_nm))
+                )
 
     # Group neraby endpoints into connection groups based on connectivity
-    connection_groups = group_endpoints(endpoints=endpoints, close_pairs=nearby_endpoint_pairs)
+    connection_groups = group_connectionpoints(
+        connectionpoints=connectionpoints, close_pairs=nearby_connectionpoint_pairs
+    )
 
     # Now consider each group and decide how to connect them
     for group_id, connection_group in connection_groups.items():
@@ -532,9 +568,38 @@ def skeletonise_and_join_close_ends(
             f"[{filename}] : processing connection group {group_id} with " f"endpoints : {connection_group.endpoints}"
         )
 
-        # If there are only 2 endpoints in the group, we can just connect them.
-        if len(connection_group.endpoints) == 2:
-            pair = connection_group.close_endpoint_pairs[0]
+        # If there is one junctionpoint and one endpoint, connect them directly
+        if len(connection_group.junctionpoints) == 1 and len(connection_group.endpoints) == 1:
+            endpoint_id = list(connection_group.endpoints.keys())[0]
+            junctionpoint_id = list(connection_group.junctionpoints.keys())[0]
+            endpoint_coord = connection_group.endpoints[endpoint_id].position
+            junctionpoint_coord = connection_group.junctionpoints[junctionpoint_id].position
+
+            path, _connection_cost, _connection_distance_nm = connect_endpoints_with_best_path(
+                image=image,
+                mask=mask,
+                p2nm=p2nm,
+                endpoint_1_coords=endpoint_coord,
+                endpoint_2_coords=junctionpoint_coord,
+                endpoint_connection_cost_map_height_maximum=endpoint_connection_cost_map_height_maximum,
+            )
+
+            # Update the skeleton to include the path
+            for y, x in path:
+                skeleton[y, x] = True
+
+            # Fill the mask gap using the path
+            mask = fill_mask_gap_using_path(
+                mask=mask,
+                path=path,
+                mean_mask_pixel_width=mean_mask_width_px,
+            )
+            # done with this group, move on
+            continue
+
+        # If there are only 2 endpoints and no junctionpointsin the group, we can just connect them.
+        if len(connection_group.endpoints) == 2 and len(connection_group.junctionpoints) == 0:
+            pair = connection_group.close_connectionpoint_pairs[0]
             endpoint_1_id, endpoint_2_id = pair
             endpoint_1_coords = connection_group.endpoints[endpoint_1_id]
             endpoint_2_coords = connection_group.endpoints[endpoint_2_id]
@@ -561,8 +626,8 @@ def skeletonise_and_join_close_ends(
             # done with this group, move on
             continue
 
-        # for groups with more than two endpoints, we need more analysis
-        if len(connection_group.endpoints) == 4:
+        # If there are 4 endpoints and no junctionpoints, we can try to connect them.
+        if len(connection_group.endpoints) == 4 and len(connection_group.junctionpoints) == 0:
 
             # Find the hard-connected endpoints - endpoints that are connected by paths in the skeleton already.
             hard_connected_endpoints: list[tuple[int, int, float]] = find_hard_connected_endpoints(
@@ -619,7 +684,7 @@ def skeletonise_and_join_close_ends(
             path_metrics: list[dict[str, Any]] = []  # to store metrics for each path option
             for path_option in path_options:
                 total_cost = 0.0
-                total_distance_nm = 0.0
+                total_distance_nm: float = 0.0
                 path_segments: list[tuple[int, int, float, npt.NDArray[np.uint8] | None]] = []
                 # Iterate through each segment of the path
                 for i in range(len(path_option) - 1):
@@ -657,9 +722,11 @@ def skeletonise_and_join_close_ends(
                                 endpoint_connection_cost_map_height_maximum=endpoint_connection_cost_map_height_maximum,
                             )
                             total_cost += connection_cost
-                            total_distance_nm += connection_distance_nm
+                            total_distance_nm += float(connection_distance_nm)
                             # add to path segments
-                            path_segments.append((segment_start_id, segment_end_id, connection_distance_nm, path))
+                            path_segments.append(
+                                (segment_start_id, segment_end_id, float(connection_distance_nm), path)
+                            )
                     # Store the metrics for this path option
                     path_metrics.append(
                         {
