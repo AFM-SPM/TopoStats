@@ -1023,9 +1023,9 @@ class Node:
     pixel_to_nm_scaling : np.float64
         Pixel to nanometre scaling.
     branch_stats : dict[int, MatchedBranch]
-        Dictionary of branch statistics.
+        Dictionary of ``MatchedBranch`` objects.
     unmatched_branch_stats : dict[int, UnMatchedBranch]
-        Dictionary of unmatched branch statistics.
+        Dictionary of ``UnmatchedBranch`` objects.
     node_coords : npt.NDArray[np.int32]
         Numpy array of node coordinates.
     confidence : np.float64
@@ -1105,7 +1105,7 @@ class OrderedTrace:
     Class for Ordered Trace data and attributes.
 
     molecule_data : dict[int, Molecule]
-        Dictionary of ordered trace data for individual molecules within the grain indexed by molecule number.
+        Dictionary of ``Molecule`` objects indexed by molecule number.
     tracing_stats : dict | None
         Tracing statistics.
     grain_molstats : Any | None
@@ -1269,9 +1269,21 @@ class Molecule:
         return pd.DataFrame([data])
 
 
-def convert_to_dict(to_convert: Any) -> Any:
+def convert_to_dict(to_convert: Any) -> dict[str, Any]:
     """
     Convert a class to a dictionary representation of itself.
+
+    Classes that are part of the ``topostats`` package (``TopoStats``, ``GrainCrop``, ``DisorderedTrace``, ``Node``,
+    ``OrderedTrace``, ``MatchedBranch``, ``UnMatchedBranch`` and ``Molecule``) can be converted to dictionaries along
+    with any other class that has the ``__dict__`` attribute.
+
+    The keys are the attribute names (with the ``_`` prefix removed) and the values are the stored values of the
+    attribute. Values of type ``str``, ``int``, ``float``, ``bool``, ``tuple``, ``np.ndarray`` and ``pathlib.Path`` are
+    returned as is. If a value is itself a dictionary (e.g. ``TopoStats.grain_crops`` ``Node.branch_stats`` or
+    ``OrderedTrace.molecule_data`` which are all dictionaries of the objects) then the object is recursed.
+
+    If lists or dictionaries are provided a ``TypeError`` is raised and any object that doesn't have the ``__dict__``
+    attribute then an ``AttributeError`` is raised.
 
     Parameters
     ----------

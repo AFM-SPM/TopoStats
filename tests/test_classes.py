@@ -598,46 +598,46 @@ def test_topostats_stats_to_df(
     assert dict_almost_equal(topostats_object.stats_to_df().to_dict(orient="records")[0], expected)
 
 
-dummy_classes = [
-    pytest.param(
-        "dummy_molecule",
-        id="molecule",
-    ),
-    pytest.param("dummy_ordered_trace", id="ordered-trace"),
-    pytest.param(
-        "dummy_node",
-        id="node",
-    ),
-    pytest.param(
-        "dummy_unmatched_branch",
-        id="unmatched-branch",
-    ),
-    pytest.param(
-        "dummy_matched_branch",
-        id="matched-branch",
-    ),
-    pytest.param(
-        "dummy_disordered_trace",
-        id="disordered-trace",
-    ),
-    pytest.param(
-        "dummy_graincrop",
-        id="graincrop",
-    ),
-    pytest.param(
-        "topostats_catenanes_2_4_0",
-        id="topostats_catenanes",
-    ),
-    pytest.param(
-        "topostats_rep_int_2_4_0",
-        id="topostats_rep_int",
-    ),
-]
-
-
 @pytest.mark.parametrize(
     ("dummy_class"),
-    dummy_classes,
+    [
+        pytest.param(
+            "dummy_molecule",
+            id="molecule",
+        ),
+        pytest.param(
+            "dummy_ordered_trace",
+            id="ordered-trace",
+        ),
+        pytest.param(
+            "dummy_node",
+            id="node",
+        ),
+        pytest.param(
+            "dummy_unmatched_branch",
+            id="unmatched-branch",
+        ),
+        pytest.param(
+            "dummy_matched_branch",
+            id="matched-branch",
+        ),
+        pytest.param(
+            "dummy_disordered_trace",
+            id="disordered-trace",
+        ),
+        pytest.param(
+            "dummy_graincrop",
+            id="graincrop",
+        ),
+        pytest.param(
+            "topostats_catenanes_2_4_0",
+            id="topostats_catenanes",
+        ),
+        pytest.param(
+            "topostats_rep_int_2_4_0",
+            id="topostats_rep_int",
+        ),
+    ],
 )
 def test_convert_to_dict(
     dummy_class,
