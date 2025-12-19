@@ -197,9 +197,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
-        results = defaultdict()
+        grainstats_all = defaultdict()
         image_stats_all = defaultdict()
-        mols_results = defaultdict()
+        mol_stats_all = defaultdict()
         disordered_trace_results = defaultdict()
         height_profile_all = defaultdict()
         with tqdm(
@@ -207,30 +207,26 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for (
-                topostats_object,
-                img,
-                result,
-                height_profiles,
-                individual_image_stats_df,
-                disordered_trace_result,
-                mols_result,
+                filename,
+                # grainstats_df,
+                # height_profiles,
+                image_stats_df,
+                # disordered_trace_df,
+                # mols_stats_df,
             ) in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result.dropna(axis=1, how="all")
-                disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
-                mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
+                # Append each images returned dataframes to the dictionaries
+                # grainstats_all[str(filename)] = grainstats_df.dropna(axis=1, how="all")
+                # height_profile_all[str(filename)] = height_profiles
+                image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
+                # disordered_trace_results[str(filename)] = disordered_trace_df.dropna(axis=1, how="all")
+                # mol_stats_all[str(filename)] = mols_stats_df.dropna(axis=1, how="all")
+
                 pbar.update()
-
-                # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
-
-                # Combine all height profiles
-                height_profile_all[str(img)] = height_profiles
-
                 # Display completion message for the image
-                LOGGER.info(f"[{img.name}] Processing completed.")
+                LOGGER.info(f"[{filename}] Processing completed.")
 
     LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
@@ -244,7 +240,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df_new.to_csv(config["output_dir"] / "image_statistics_new.csv")
 
     try:
-        results = pd.concat(results.values())
+        grainstats_all = pd.concat(grainstats_all.values())
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
@@ -256,9 +252,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.error(error)
 
     try:
-        mols_results = pd.concat(mols_results.values())
+        mol_stats_all = pd.concat(mol_stats_all.values())
     except ValueError as error:
-        LOGGER.error("No mols found in any images, consider adjusting ordered tracing / splining parameters.")
+        LOGGER.error("No moleculess found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
@@ -290,8 +286,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
-        if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-            if results.shape[0] > 1:
+        if isinstance(grainstats_all, pd.DataFrame) and not grainstats_all.isna().values.all():
+            if grainstats_all.shape[0] > 1:
                 # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
                 # needs creating
                 summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
@@ -299,7 +295,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
                 # Plot summaries
-                summary_config["df"] = results.reset_index()
+                summary_config["df"] = grainstats_all.reset_index()
                 toposum(summary_config)
             else:
                 LOGGER.warning(
@@ -320,19 +316,19 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         summary_config = None
 
     # Write statistics to CSV if there is data.
-    if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-        results.reset_index(drop=True, inplace=True)
-        results.set_index(["image", "threshold", "grain_number"], inplace=True)
-        results.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
-        results.reset_index(inplace=True)  # So we can access unique image names
-        images_processed = len(results["image"].unique())
+    if isinstance(grainstats_all, pd.DataFrame) and not grainstats_all.isna().values.all():
+        grainstats_all.reset_index(drop=True, inplace=True)
+        grainstats_all.set_index(["image", "threshold", "grain_number"], inplace=True)
+        grainstats_all.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], grainstats_all, "grain_stats")
+        grainstats_all.reset_index(inplace=True)  # So we can access unique image names
+        images_processed = len(grainstats_all["image"].unique())
     else:
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
         # Example of new system
-        results_dict_new = prepare_data_for_df(topostats_object, 'grain_statistics')
+        results_dict_new = prepare_data_for_df(topostats_object, "grain_statistics")
         results_df_new = pd.DataFrame(results_dict_new)
         results_df_new.to_csv(config["output_dir"] / "grain_statistics_new.csv")
 
@@ -348,26 +344,19 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
-        # Example of new system
-        branch_dict_new = prepare_data_for_df(topostats_object, 'branch_statistics')
-        branch_df_new = pd.DataFrame(branch_dict_new)
-        branch_df_new.to_csv(config["output_dir"] / "branch_statistics_new.csv")
-
-
-        if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
-            mols_results.reset_index(drop=True, inplace=True)
-            mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
-            mols_results.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
-            mols_results.reset_index(inplace=True)  # So we can access unique image names
+        if isinstance(mol_stats_all, pd.DataFrame) and not mol_stats_all.isna().values.all():
+            mol_stats_all.reset_index(drop=True, inplace=True)
+            mol_stats_all.set_index(["image", "threshold", "grain_number"], inplace=True)
+            mol_stats_all.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
+            save_folder_grainstats(config["output_dir"], config["base_dir"], mol_stats_all, "mol_stats")
+            mol_stats_all.reset_index(inplace=True)  # So we can access unique image names
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
 
         # Example of new system
-        molecule_dict_new = prepare_data_for_df(topostats_object, 'molecule_statistics')
+        molecule_dict_new = prepare_data_for_df(topostats_object, "molecule_statistics")
         molecule_df_new = pd.DataFrame(molecule_dict_new)
         molecule_df_new.to_csv(config["output_dir"] / "molecule_statistics_new.csv")
-
 
     else:
         LOGGER.info("molecule_statistics.csv and branch_statistics.csv skipped")
@@ -612,9 +601,9 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
     # Set logging level
     _set_logging(config["log_level"])
 
-    assert (
-        config["file_ext"] == ".spm"
-    ), "Can only rename old .spm files, change your file-ext in config or command line"
+    assert config["file_ext"] == ".spm", (
+        "Can only rename old .spm files, change your file-ext in config or command line"
+    )
     all_spm_files = find_files(config["base_dir"], file_ext=config["file_ext"])
     LOGGER.info(f"Total Bruker files found : {len(all_spm_files)}")
     OLD_BRUKER_RE = re.compile(r"\.\d+$")

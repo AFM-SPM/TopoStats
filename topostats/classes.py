@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from pathlib import Path
@@ -15,6 +14,7 @@ from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.statistics import image_statistics
 from topostats.utils import update_background_class
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -797,8 +797,8 @@ class TopoStats:
         Flattened image (post ``Filter()``).
     image_original : npt.NDArray | None
         Original image.
-    image_stats : dict[str, Any] | None
-        Dictionary of various image statistics, e.g. size in m and px.
+    image_statistics : pd.DataFrame | None
+        Pandas dataframe of
     full_mask_tensor : npt.NDArray
         Tensor mask for the full image.
     topostats_version : str | None
@@ -819,7 +819,7 @@ class TopoStats:
     img_path: Path | str | None = None
     image: npt.NDArray | None = None
     image_original: npt.NDArray | None = None
-    image_stats: dict[str, Any] | None = None
+    image_statistics: dict[str, int | float | str] | None = None
     full_mask_tensor: npt.NDArray | None = None
     topostats_version: str | None = None
     config: dict[str, Any] | None = None
@@ -873,30 +873,23 @@ class TopoStats:
             and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
         )
 
-    # Unfinished - currently only uses GrainCrop class names rather than including their content
-    def stats_to_df(self) -> pd.DataFrame:
+    def calculate_image_statistics(self) -> dict[str, int | float]:
         """
-        Convert class attributes to a pandas dataframe.
+        Calculate the image statistics via ``statistics.image_statistics()``.
 
         Returns
         -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
+        dict[str, int | float]
+            Dictionary of image size and area in both metres and pixels, the number of grains, density and the
+            root mean square of the image roughness.
         """
-        graincrop_names = {k: v.__class__.__name__ for k, v in self.grain_crops.items()}
-        data = {
-            "grain_crops": graincrop_names,
-            "filename": self.filename,
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "img_path": self.img_path,
-            "image": self.image,
-            "image_original": self.image_original,
-            "full_mask_tensor": self.full_mask_tensor,
-            "topostats_version": self.topostats_version,
-            "config": json.dumps(self.config, indent=2, sort_keys=True),
-            "basename": self.basename,
-        }
-        return pd.DataFrame([data])
+        self.image_statistics = image_statistics(
+            image=self.image,
+            filename=self.filename,
+            pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+            n_grains=len(self.grain_crops),
+        )
+        return self.image_statistics
 
 
 @dataclass(

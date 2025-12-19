@@ -5,8 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
-
-# import pandas as pd
+import pandas as pd
 from art import tprint
 
 from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
@@ -1356,6 +1355,8 @@ def process_scan(
     # Get image statistics
     LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
     # ns-rse 2025-12-12 Add @tobyallwood methods here for pulling statistics out of topostats_object
+    image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
+    image_stats_df.set_index("image", inplace=True)
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
@@ -1363,8 +1364,15 @@ def process_scan(
         filename=str(topostats_object.filename),
         topostats_object=topostats_object,
     )
-    # ns-rse 2025-12-12 Return the Pandas data fraome from  @tobyallwood methods rather than topostats_object
-    return topostats_object
+    # Return filename and dataframes
+    return (
+        topostats_object.filename,
+        # grainstats_df,
+        # topostats_object.height_profiles, # ns-rse 2025-12-19 need to extract these
+        image_stats_df,
+        # disordered_tracing_stats,
+        # molstats_df
+    )
 
 
 def process_filters(
