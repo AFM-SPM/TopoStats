@@ -234,6 +234,24 @@ class ConnectionGroup(BaseModel):
     hard_connected_endpoints: list[tuple[int, int, float]] = Field(default_factory=list)
     close_connectionpoint_pairs: list[tuple[int, int]] = Field(default_factory=list)
 
+    def remove_connectionpoint(self, connectionpoint_id: int) -> None:
+        """Remove a connectionpoint from the group by its ID."""
+        if connectionpoint_id in self.endpoints:
+            del self.endpoints[connectionpoint_id]
+        elif connectionpoint_id in self.junctionpoints:
+            del self.junctionpoints[connectionpoint_id]
+        # remove from the close pairs
+        self.close_connectionpoint_pairs = [
+            pair for pair in self.close_connectionpoint_pairs if connectionpoint_id not in pair
+        ]
+
+    def remove_all_junctionpoints(self) -> None:
+        """Remove all junctionpoints from the group."""
+        # pylint: disable=no-member
+        junctionpoint_ids = list(self.junctionpoints.keys())
+        for junctionpoint_id in junctionpoint_ids:
+            self.remove_connectionpoint(junctionpoint_id)
+
 
 # pylint: disable=too-many-locals
 def group_connectionpoints(
@@ -275,8 +293,8 @@ def group_connectionpoints(
             for connectionpoint_1_index, connectionpoint_2_index, _distance_nm in close_pairs
             if connectionpoint_1_index in component and connectionpoint_2_index in component
         ]
-        # Create dictionaries of endpoints and junctionpoints, since they have been combined and we need to separate them
-        # again
+        # Create dictionaries of endpoints and junctionpoints, since they have been combined and we need to separate
+        # them again
         group_endpoints = {
             connectionpoint_index: connectionpoint_instance
             for connectionpoint_index, connectionpoint_instance in connectionpoints_group.items()
@@ -597,8 +615,12 @@ def skeletonise_and_join_close_ends(
             # done with this group, move on
             continue
 
-        # If there are only 2 endpoints and no junctionpointsin the group, we can just connect them.
-        if len(connection_group.endpoints) == 2 and len(connection_group.junctionpoints) == 0:
+        # If there are only 2 endpoints in the group remove the junctionpoints and connect the endpoints.
+        if len(connection_group.endpoints) == 2:
+
+            # remove the junctionpoints from the group
+            connection_group.remove_all_junctionpoints()
+
             pair = connection_group.close_connectionpoint_pairs[0]
             endpoint_1_id, endpoint_2_id = pair
             endpoint_1_coords = connection_group.endpoints[endpoint_1_id]
