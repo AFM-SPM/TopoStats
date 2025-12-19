@@ -1352,11 +1352,29 @@ def process_scan(
     else:
         LOGGER.warning(f"[{topostats_object.filename}] : No grains found, skipping grainstats and tracing stages.")
 
-    # Get image statistics
     LOGGER.info(f"[{topostats_object.filename}] : *** Image Statistics ***")
-    # ns-rse 2025-12-12 Add @tobyallwood methods here for pulling statistics out of topostats_object
+    # Image Statistics
     image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
     image_stats_df.set_index("image", inplace=True)
+    molecule_stats = {}
+    for grain_number, grain_crop in topostats_object.grain_crops.items():
+        molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
+    # Molecule Statistics - restructure nested dictionary
+    molecule_stats_df = pd.DataFrame.from_dict(
+        {
+            (grain_number, molecule_number): molecule_stats[grain_number][molecule_number]
+            for grain_number, _ in molecule_stats.items()
+            for molecule_number, _ in molecule_stats[grain_number].items()
+        },
+        orient="index",
+    )
+    molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
+    molecule_stats_df.reset_index(inplace=True)
+    molecule_stats_df["image"] = topostats_object.filename
+    molecule_stats_df["basename"] = topostats_object.img_path
+    # Grain Statistics
+
+    # Height Profiles
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
@@ -1371,7 +1389,7 @@ def process_scan(
         # topostats_object.height_profiles, # ns-rse 2025-12-19 need to extract these
         image_stats_df,
         # disordered_tracing_stats,
-        # molstats_df
+        molecule_stats_df,
     )
 
 

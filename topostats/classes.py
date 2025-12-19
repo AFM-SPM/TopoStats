@@ -1113,6 +1113,8 @@ class OrderedTrace:
         Images of ???
     error: bool | None
         Errors encountered?
+    molecule_statistics : dict[int, dict[str, bool | str | float | None]] | None
+        Dictionary of molecule statistics, with one entry for each molecule.
     """
 
     molecule_data: dict[int, Molecule] | None = None
@@ -1123,6 +1125,7 @@ class OrderedTrace:
     pixel_to_nm_scaling: float | None = None
     images: dict[str, npt.NDArray] | None = None
     error: bool | None = None
+    molecule_statistics: dict[int, dict[str, bool | str | float | None]] | None = None
 
     def __str__(self) -> str:
         """
@@ -1164,6 +1167,23 @@ class OrderedTrace:
             "error": self.error,
         }
         return pd.DataFrame([data])
+
+    def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
+        """
+        Collate molecule statistics for all molecules to dictionary.
+
+        The resulting dictionary can be easily converted to Pandas Dataframes for writing to CSV.
+
+        Returns
+        -------
+        dict[int, dict[str, bool | int | str | None]]
+            Dictionary, indexed by molecule where the value is the molecules statistics for the given molecule.
+        """
+        self.molecule_statistics = {
+            molecule_number: molecule.collate_molecule_statistics()
+            for molecule_number, molecule in self.molecule_data.items()
+        }
+        return self.molecule_statistics
 
 
 @dataclass(
@@ -1217,6 +1237,7 @@ class Molecule:
     distances: npt.NDArray | None = None
     curvature_stats: npt.NDArray | None = None
     bbox: tuple[int, int, int, int] | None = None
+    molecule_statistics: dict[str, bool | str | float | None] | None = None
 
     def __str__(self) -> str:
         """
@@ -1238,28 +1259,23 @@ class Molecule:
             f"bounding box coords : {self.bbox}"
         )
 
-    def stats_to_df(self) -> pd.DataFrame:
+    def collate_molecule_statistics(self) -> dict[str, bool | str | float | None]:
         """
-        Convert class attributes to a pandas dataframe.
+        Collate the molecule statsistics to a dictionary.
 
         Returns
         -------
-        pd.DataFrame
+        dict[str, bool | str | float | None]
             Dataframe of the classes attributes and their data.
         """
-        data = {
+        self.molecule_statistics = {
             "circular": self.circular,
             "topology": self.topology,
             "topology_flip": self.topology_flip,
-            "ordered_coords": self.ordered_coords,
-            "splined_coords": self.splined_coords,
             "contour_length": self.contour_length,
             "end_to_end_distance": self.end_to_end_distance,
-            "heights": self.heights,
-            "distances": self.distances,
-            "bbox": self.bbox,
         }
-        return pd.DataFrame([data])
+        return self.molecule_statistics
 
 
 def convert_to_dict(to_convert: Any) -> dict[str, Any]:

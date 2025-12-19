@@ -47,10 +47,11 @@ def test_molecule_str(dummy_molecule: Molecule) -> None:
     assert str(dummy_molecule) == expected
 
 
-def test_molecule_stats_to_df(dummy_molecule: Molecule, snapshot) -> None:
+def test_molecule_collate_molecule_statistics(dummy_molecule: Molecule, snapshot) -> None:
     """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_molecule.stats_to_df(), pd.DataFrame)
-    assert dummy_molecule.stats_to_df().to_string() == snapshot
+    molecule_statistics = dummy_molecule.collate_molecule_statistics()
+    assert isinstance(molecule_statistics, dict)
+    assert molecule_statistics == snapshot
 
 
 def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.CaptureFixture) -> None:

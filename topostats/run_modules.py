@@ -199,7 +199,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     with Pool(processes=config["cores"]) as pool:
         grainstats_all = defaultdict()
         image_stats_all = defaultdict()
-        mol_stats_all = defaultdict()
+        molecule_stats_all = defaultdict()
         disordered_trace_results = defaultdict()
         height_profile_all = defaultdict()
         with tqdm(
@@ -212,7 +212,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 # height_profiles,
                 image_stats_df,
                 # disordered_trace_df,
-                # mols_stats_df,
+                molecule_stats_df,
             ) in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
@@ -222,7 +222,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 # height_profile_all[str(filename)] = height_profiles
                 image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
                 # disordered_trace_results[str(filename)] = disordered_trace_df.dropna(axis=1, how="all")
-                # mol_stats_all[str(filename)] = mols_stats_df.dropna(axis=1, how="all")
+                molecule_stats_all[str(filename)] = molecule_stats_df.dropna(axis=1, how="all")
 
                 pbar.update()
                 # Display completion message for the image
@@ -252,7 +252,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.error(error)
 
     try:
-        mol_stats_all = pd.concat(mol_stats_all.values())
+        molecule_stats_all = pd.concat(molecule_stats_all.values())
     except ValueError as error:
         LOGGER.error("No moleculess found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
@@ -344,12 +344,12 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
-        if isinstance(mol_stats_all, pd.DataFrame) and not mol_stats_all.isna().values.all():
-            mol_stats_all.reset_index(drop=True, inplace=True)
-            mol_stats_all.set_index(["image", "threshold", "grain_number"], inplace=True)
-            mol_stats_all.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], mol_stats_all, "mol_stats")
-            mol_stats_all.reset_index(inplace=True)  # So we can access unique image names
+        if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
+            molecule_stats_all.reset_index(drop=True, inplace=True)
+            molecule_stats_all.set_index(["image", "grain_number"], inplace=True)
+            molecule_stats_all.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
+            save_folder_grainstats(config["output_dir"], config["base_dir"], molecule_stats_all, "mol_stats")
+            molecule_stats_all.reset_index(inplace=True)  # So we can access unique image names
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
 

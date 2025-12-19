@@ -143,7 +143,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -154,7 +154,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -165,7 +165,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -176,7 +176,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -187,7 +187,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -198,7 +198,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -209,7 +209,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [False,  True],
@@ -220,7 +220,7 @@
           [False,  True],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -231,7 +231,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1252,7 +1252,7 @@
           [0.13481341, 0.54750085],
           [0.2043635 , 0.77804228],
           [0.54646899, 0.63532663]],
-  
+
          [[0.06913433, 0.95613202],
           [0.19942924, 0.28350887],
           [0.36286223, 0.44302021],
@@ -1263,7 +1263,7 @@
           [0.08525324, 0.56050976],
           [0.12229893, 0.77102897],
           [0.50313397, 0.59002576]],
-  
+
          [[0.67914752, 0.66424936],
           [0.75246909, 0.58331549],
           [0.4695707 , 0.62203966],
@@ -1274,7 +1274,7 @@
           [0.37275411, 0.88151357],
           [0.6735437 , 0.14824988],
           [0.59044661, 0.55934289]],
-  
+
          [[0.55782597, 0.80194255],
           [0.19678588, 0.96771518],
           [0.06908386, 0.66372569],
@@ -1285,7 +1285,7 @@
           [0.86638172, 0.5006342 ],
           [0.70781044, 0.30767009],
           [0.14262783, 0.28986577]],
-  
+
          [[0.19048353, 0.9050751 ],
           [0.56327879, 0.61170059],
           [0.54409833, 0.36022519],
@@ -1296,7 +1296,7 @@
           [0.18150176, 0.91555626],
           [0.15256362, 0.21124046],
           [0.46775446, 0.73302015]],
-  
+
          [[0.01022172, 0.22364797],
           [0.27555198, 0.78170273],
           [0.94259442, 0.82338408],
@@ -1307,7 +1307,7 @@
           [0.98086544, 0.78838759],
           [0.61735572, 0.67761846],
           [0.91542621, 0.10465877]],
-  
+
          [[0.042953  , 0.58323038],
           [0.79343803, 0.15661366],
           [0.75175051, 0.01206897],
@@ -1318,7 +1318,7 @@
           [0.51813976, 0.68927041],
           [0.96435997, 0.55108705],
           [0.57995111, 0.03991221]],
-  
+
          [[0.46530942, 0.99258985],
           [0.24351978, 0.42471927],
           [0.79535204, 0.04613941],
@@ -1329,7 +1329,7 @@
           [0.53252912, 0.13086058],
           [0.77682902, 0.61815018],
           [0.45894919, 0.98094633]],
-  
+
          [[0.16364248, 0.2541977 ],
           [0.11886679, 0.64613503],
           [0.19743466, 0.12719664],
@@ -1340,7 +1340,7 @@
           [0.37210124, 0.09039984],
           [0.16522972, 0.27046615],
           [0.39803897, 0.20028833]],
-  
+
          [[0.05252504, 0.80227279],
           [0.33960056, 0.62814149],
           [0.90621358, 0.8754604 ],
@@ -1434,7 +1434,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1442,7 +1442,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1450,9 +1450,9 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          ...,
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1460,7 +1460,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1468,7 +1468,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1780,7 +1780,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1788,7 +1788,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1796,9 +1796,9 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          ...,
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1806,7 +1806,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -1814,7 +1814,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -2694,7 +2694,7 @@
           [0.13481341, 0.54750085],
           [0.2043635 , 0.77804228],
           [0.54646899, 0.63532663]],
-  
+
          [[0.06913433, 0.95613202],
           [0.19942924, 0.28350887],
           [0.36286223, 0.44302021],
@@ -2705,7 +2705,7 @@
           [0.08525324, 0.56050976],
           [0.12229893, 0.77102897],
           [0.50313397, 0.59002576]],
-  
+
          [[0.67914752, 0.66424936],
           [0.75246909, 0.58331549],
           [0.4695707 , 0.62203966],
@@ -2716,7 +2716,7 @@
           [0.37275411, 0.88151357],
           [0.6735437 , 0.14824988],
           [0.59044661, 0.55934289]],
-  
+
          [[0.55782597, 0.80194255],
           [0.19678588, 0.96771518],
           [0.06908386, 0.66372569],
@@ -2727,7 +2727,7 @@
           [0.86638172, 0.5006342 ],
           [0.70781044, 0.30767009],
           [0.14262783, 0.28986577]],
-  
+
          [[0.19048353, 0.9050751 ],
           [0.56327879, 0.61170059],
           [0.54409833, 0.36022519],
@@ -2738,7 +2738,7 @@
           [0.18150176, 0.91555626],
           [0.15256362, 0.21124046],
           [0.46775446, 0.73302015]],
-  
+
          [[0.01022172, 0.22364797],
           [0.27555198, 0.78170273],
           [0.94259442, 0.82338408],
@@ -2749,7 +2749,7 @@
           [0.98086544, 0.78838759],
           [0.61735572, 0.67761846],
           [0.91542621, 0.10465877]],
-  
+
          [[0.042953  , 0.58323038],
           [0.79343803, 0.15661366],
           [0.75175051, 0.01206897],
@@ -2760,7 +2760,7 @@
           [0.51813976, 0.68927041],
           [0.96435997, 0.55108705],
           [0.57995111, 0.03991221]],
-  
+
          [[0.46530942, 0.99258985],
           [0.24351978, 0.42471927],
           [0.79535204, 0.04613941],
@@ -2771,7 +2771,7 @@
           [0.53252912, 0.13086058],
           [0.77682902, 0.61815018],
           [0.45894919, 0.98094633]],
-  
+
          [[0.16364248, 0.2541977 ],
           [0.11886679, 0.64613503],
           [0.19743466, 0.12719664],
@@ -2782,7 +2782,7 @@
           [0.37210124, 0.09039984],
           [0.16522972, 0.27046615],
           [0.39803897, 0.20028833]],
-  
+
          [[0.05252504, 0.80227279],
           [0.33960056, 0.62814149],
           [0.90621358, 0.8754604 ],
@@ -2876,7 +2876,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -2884,7 +2884,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -2892,9 +2892,9 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          ...,
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -2902,7 +2902,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -2910,7 +2910,7 @@
           [ True, False],
           [ True, False],
           [ True, False]],
-  
+
          [[ True, False],
           [ True, False],
           [ True, False],
@@ -3239,55 +3239,14 @@
   0        2  [[0.5213857, 0.60384184, 0.4709418, 0.20324795, 0.528759, 0.19103628, 0.2815456, 0.75368154, 0.5516718, 0.8637221], [0.80537224, 0.24837266, 0.18985741, 0.98399556, 0.66999716, 0.28038284, 0.20391324, 0.6250647, 0.65260434, 0.8988075], [0.97476375, 0.15393236, 0.6990893, 0.44724146, 0.01751321, 0.2910249, 0.3812366, 0.3210279, 0.94254464, 0.702667], [0.13645032, 0.3432091, 0.8119946, 0.148494, 0.05932569, 0.31441665, 0.42015645, 0.80801773, 0.009507586, 0.4540838], [0.558687, 0.0028886339, 0.29775757, 0.053799108, 0.56766874, 0.94055814, 0.72427374, 0.8563781, 0.54431564, 0.37965068], [0.6044247, 0.734604, 0.98840815, 0.8922409, 0.51964176, 0.20820683, 0.2989405, 0.8355254, 0.18450649, 0.18375199], [0.23502815, 0.6581886, 0.516731, 0.82385725, 0.18965802, 0.98047954, 0.39284503, 0.45345327, 0.27428463, 0.32276648], [0.627417, 0.43136525, 0.07660225, 0.09861362, 0.06647744, 0.7077515, 0.908492, 0.40254214, 0.5030642, 0.24188559], [0.698743, 0.88569367, 0.9354232, 0.1931675, 0.95909554, 0.67499363, 0.7407002, 0.43406364, 0.61999625, 0.5296489], [0.65987265, 0.79797316, 0.13226049, 0.8662911, 0.70724857, 0.34756815, 0.4149518, 0.27558005, 0.46345484, 0.44044983]]  [[[True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False]], [[True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [False, True], [False, True], [False, True], [False, True], [False, True], [False, True], [True, False], [True, False]], [[True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False]], [[True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False], [True, False]]]  (1, 1, 11, 11)                  1.0     (1, 2)             None    dummy  {1: {0: [1, 2, 3, 4, 5]}}  {1: {0: {'centre_x': 5, 'centre_y': 5}}}  [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, →
   '''
 # ---
-# name: test_prepare_data_for_df[image_statistics]
-  list([
-    dict({
-      'image_area_m2': 1000000,
-      'image_name': 'example_rep_int',
-      'image_size_x_m': 100,
-      'image_size_y_m': 100,
-    }),
-  ])
-# name: test_matched_branch_stats_to_df
-  '''
-                       ordered_coords          heights        distances  fwhm fwhm_half_maxs    fwhm_peaks   angles
-  0  [[0, 0], [0, 1], [1, 0], [1, 1]]  [1, 2, 3, 4, 5]  [0.1, 0.2, 0.1]   1.1     [2.1, 3.4]  [15.1, 89.1]  143.163
-  '''
-# ---
-# name: test_prepare_data_for_df[molecule_statistics]
-  list([
-    dict({
-      'basename': 'tests/resources',
-      'circular': True,
-      'contour_length': 1.023e-07,
-      'end_to_end_distance': 3.456e-08,
-      'grain_number': 0,
-      'image_name': 'example_rep_int',
-      'molecule_number': 0,
-      'processing': 'topostats',
-      'threshold': 'above',
-      'topology': 'a',
-      'topology_flip': 'maybe',
-    }),
-    dict({
-      'basename': 'tests/resources',
-      'circular': True,
-      'contour_length': 1.023e-07,
-      'end_to_end_distance': 3.456e-08,
-      'grain_number': 0,
-      'image_name': 'example_rep_int',
-      'molecule_number': 0,
-      'processing': 'topostats',
-      'threshold': 'above',
-      'topology': 'a',
-      'topology_flip': 'maybe',
-    }),
-  ])
-# name: test_molecule_stats_to_df
-  '''
-     circular topology topology_flip ordered_coords splined_coords  contour_length  end_to_end_distance heights distances          bbox
-  0      True        a         maybe              4              4    1.023000e-07         3.456000e-08       4         4  (1, 2, 3, 4)
-  '''
+# name: test_molecule_collate_molecule_statistics
+  dict({
+    'circular': True,
+    'contour_length': 1.023e-07,
+    'end_to_end_distance': 3.456e-08,
+    'topology': 'a',
+    'topology_flip': 'maybe',
+  })
 # ---
 # name: test_node_stats_to_df
   '''
