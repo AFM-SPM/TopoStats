@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 from topostats import __version__, log_topostats_version, run_modules
-from topostats.io import write_config_with_comments
+from topostats.config import update_module, write_config_with_comments
 from topostats.plotting import run_toposum
 
 # pylint: disable=too-many-lines
@@ -100,6 +100,13 @@ def create_parser() -> arg.ArgumentParser:
         help="File extension to scan for.",
     )
     parser.add_argument(
+        "--output-stats",
+        dest="output_stats",
+        type=str,
+        required=False,
+        help="'basic' (image and grain) or 'full' (image, grain, branch and molecule) statistics written to CSV.",
+    )
+    parser.add_argument(
         "--channel",
         dest="channel",
         type=str,
@@ -120,7 +127,7 @@ def create_parser() -> arg.ArgumentParser:
         "'nodestats', 'ordered_tracing', 'splining'.",
     )
 
-    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="program")
+    subparsers = parser.add_subparsers(title="program", description="Available programs, listed below:", dest="module")
 
     # Create a sub-parsers for different stages of processing and tasks
     process_parser = subparsers.add_parser(
@@ -617,6 +624,13 @@ def create_parser() -> arg.ArgumentParser:
         type=bool,
         required=False,
         help="Whether to ignore warnings.",
+    )
+    process_parser.add_argument(
+        "--number-masks",
+        dest="number_grains",
+        type=bool,
+        required=False,
+        help="Add numbers to each grain mask in outputted mask images.",
     )
     # Run the relevant function with the arguments
     process_parser.set_defaults(func=run_modules.process)
@@ -1150,13 +1164,6 @@ def create_parser() -> arg.ArgumentParser:
         help="Filename to write a sample YAML configuration file to (should end in '.yaml').",
     )
     summary_parser.add_argument(
-        "--create-label-file",
-        dest="create_label_file",
-        type=Path,
-        required=False,
-        help="Filename to write a sample YAML label file to (should end in '.yaml').",
-    )
-    summary_parser.add_argument(
         "--savefig-format",
         dest="savefig_format",
         type=str,
@@ -1176,7 +1183,6 @@ def create_parser() -> arg.ArgumentParser:
         dest="filename",
         type=Path,
         required=False,
-        default="config.yaml",
         help="Name of YAML file to save configuration to (default 'config.yaml').",
     )
     create_config_parser.add_argument(
@@ -1193,49 +1199,10 @@ def create_parser() -> arg.ArgumentParser:
         "--config",
         dest="config",
         type=str,
-        default=None,
-        help="Configuration to use, currently only one is supported, the 'default'.",
-    )
-    create_config_parser.add_argument(
-        "-s",
-        "--simple",
-        dest="simple",
-        action="store_true",
-        help="Create a simple configuration file with only the most common options.",
+        default="default",
+        help="Configuration to use, currently 'default', 'simple', 'mplstyle' and 'var_to_label' are supported.",
     )
     create_config_parser.set_defaults(func=write_config_with_comments)
-
-    create_matplotlibrc_parser = subparsers.add_parser(
-        "create-matplotlibrc",
-        description="Create a Matplotlibrc parameters file.",
-        help="Create a Matplotlibrc parameters file using the defaults.",
-    )
-    create_matplotlibrc_parser.add_argument(
-        "-f",
-        "--filename",
-        dest="filename",
-        type=Path,
-        required=False,
-        default="topostats.mplstyle",
-        help="Name of file to save Matplotlibrc configuration to (default 'topostats.mplstyle').",
-    )
-    create_matplotlibrc_parser.add_argument(
-        "-o",
-        "--output-dir",
-        dest="output_dir",
-        type=Path,
-        required=False,
-        default="./",
-        help="Path to where the YAML file should be saved (default './' the current directory).",
-    )
-    create_matplotlibrc_parser.add_argument(
-        "-c",
-        "--config",
-        dest="config",
-        default="topostats.mplstyle",
-        help="Matplotlibrc style file to use, currently only one is supported, the 'topostats.mplstyle'.",
-    )
-    create_matplotlibrc_parser.set_defaults(func=write_config_with_comments)
 
     # Rename old Bruker files
     bruker_rename = subparsers.add_parser(
@@ -1276,9 +1243,11 @@ def entry_point(manually_provided_args=None, testing=False) -> None:
     args = parser.parse_args() if manually_provided_args is None else parser.parse_args(manually_provided_args)
 
     # No program specified, print help and exit
-    if not args.program:
+    if not args.module:
         parser.print_help()
         sys.exit()
+    else:
+        update_module(args=args)
 
     if testing:
         return args

@@ -9,7 +9,7 @@ import numpy.typing as npt
 import pandas as pd
 from art import tprint
 
-from topostats import TOPOSTATS_COMMIT, TOPOSTATS_VERSION
+from topostats import TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT
 from topostats.array_manipulation import re_crop_grain_image_and_mask_to_set_size_nm
 from topostats.filters import Filters
 from topostats.grains import GrainCrop, GrainCropsDirection, Grains, ImageGrainCrops
@@ -243,9 +243,7 @@ def run_grains(  # noqa: C901
                                         continue
 
                             # Plot the grain crop without mask
-                            plotting_config["plot_dict"]["grain_image"][
-                                "filename"
-                            ] = f"{filename}_grain_{grain_number}"
+                            plotting_config["plot_dict"]["grain_image"]["filename"] = f"{filename}_grain_{grain_number}"
                             plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path_direction
                             Images(
                                 data=crop_image,
@@ -1632,13 +1630,13 @@ def completion_message(config: dict, img_files: list, summary_config: dict, imag
     tprint("TopoStats", font="twisted")
     LOGGER.info(
         f"\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPLETE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
-        f"  TopoStats Version           : {TOPOSTATS_VERSION}\n"
+        f"  TopoStats Version           : {TOPOSTATS_BASE_VERSION}\n"
         f"  TopoStats Commit            : {TOPOSTATS_COMMIT}\n"
         f"  Base Directory              : {config['base_dir']}\n"
         f"  File Extension              : {config['file_ext']}\n"
         f"  Files Found                 : {len(img_files)}\n"
         f"  Successfully Processed^1    : {images_processed} ({(images_processed * 100) / len(img_files)}%)\n"
-        f"  All statistics              : {str(config['output_dir'])}/all_statistics.csv\n"
+        f"  All statistics              : {str(config['output_dir'])}/grain_statistics.csv\n"
         f"  Distribution Plots          : {distribution_plots_message}\n\n"
         f"  Configuration               : {config['output_dir']}/config.yaml\n\n"
         f"  Email                       : topostats@sheffield.ac.uk\n"

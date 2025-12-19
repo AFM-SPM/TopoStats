@@ -1,6 +1,5 @@
 """Tests of IO."""
 
-import argparse
 import json
 import logging
 from datetime import datetime
@@ -27,7 +26,6 @@ from topostats.io import (
     lists_almost_equal,
     load_array,
     load_pkl,
-    merge_mappings,
     path_to_str,
     read_64d,
     read_char,
@@ -39,7 +37,6 @@ from topostats.io import (
     save_folder_grainstats,
     save_pkl,
     save_topostats_file,
-    write_config_with_comments,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -66,36 +63,6 @@ CONFIG = {
 # pylint: disable=too-many-positional-arguments
 
 
-@pytest.mark.parametrize(
-    ("dict1", "dict2", "expected_merged_dict"),
-    [
-        pytest.param(
-            {"a": 1, "b": 2},
-            {"c": 3, "d": 4},
-            {"a": 1, "b": 2, "c": 3, "d": 4},
-            id="two dicts, no common keys",
-        ),
-        pytest.param(
-            {"a": 1, "b": 2},
-            {"b": 3, "c": 4},
-            {"a": 1, "b": 3, "c": 4},
-            id="two dicts, one common key, testing priority of second dict",
-        ),
-        # Nested dictionaries
-        pytest.param(
-            {"a": 1, "b": {"c": 2, "d": 3}},
-            {"b": {"c": 4, "e": 5}},
-            {"a": 1, "b": {"c": 4, "d": 3, "e": 5}},
-            id="nested dictionaries, one common key in nested dict, testing priority of second dict",
-        ),
-    ],
-)
-def test_merge_mappings(dict1: dict, dict2: dict, expected_merged_dict: dict) -> None:
-    """Test merging of mappings."""
-    merged_dict = merge_mappings(dict1, dict2)
-    assert merged_dict == expected_merged_dict
-
-
 def test_get_date_time() -> None:
     """Test the fetching of a formatted date and time string."""
     assert datetime.strptime(get_date_time(), "%Y-%m-%d %H:%M:%S")
@@ -106,59 +73,6 @@ def test_read_yaml() -> None:
     sample_config = read_yaml(RESOURCES / "test.yaml")
 
     assert sample_config == CONFIG
-
-
-@pytest.mark.parametrize(
-    ("filename", "config", "expected_filename"),
-    [
-        ("test_config_with_comments.yaml", None, "test_config_with_comments.yaml"),
-        ("test_config_with_comments", None, "test_config_with_comments.yaml"),
-        (None, "default", "config.yaml"),
-        (None, None, "config.yaml"),
-        # Example of how to test `dna_config.yaml`
-        # (None, "dna", "dna_config.yaml")
-    ],
-)
-def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, expected_filename: str) -> None:
-    """Test writing of config file with comments.
-
-    If and when specific configurations for different sample types are introduced then the parametrisation can be
-    extended to allow these adding their names under "config" and introducing specific parameters that may differe
-    between the configuration files.
-    """
-    # Setup argparse.Namespace with the tests parameters
-    args = argparse.Namespace()
-    args.filename = filename
-    args.output_dir = tmp_path
-    args.config = config
-    args.simple = False
-
-    # Write default config with comments to file
-    write_config_with_comments(args)
-
-    # Read the written config
-    with Path.open(tmp_path / expected_filename, encoding="utf-8") as f:
-        written_config = f.read()
-
-    # Validate that the written config has comments in it
-    assert "Config file generated" in written_config
-    assert "For more information on configuration and how to use it" in written_config
-    # Validate some of the parameters are present
-    assert "loading:" in written_config
-    assert "gaussian_mode: nearest" in written_config
-    assert "style: topostats.mplstyle" in written_config
-    assert "pixel_interpolation: null" in written_config
-
-
-def test_write_config_with_comments_user_warning(tmp_path: Path) -> None:
-    """Tests a user warning is raised if an attempt is made to request a configuration file type that does not exist."""
-    args = argparse.Namespace()
-    args.filename = "config.yaml"
-    args.output_dir = tmp_path
-    args.config = "nonsense"
-
-    with pytest.raises(UserWarning):
-        write_config_with_comments(args)
 
 
 def test_write_yaml(tmp_path: Path) -> None:
@@ -369,7 +283,7 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
 @pytest.mark.parametrize(
     ("file_ext", "matches", "filenames"),
     [
-        pytest.param(".spm", 3, ["minicircle.spm", "old_bruker.002", "old_bruker.004"], id="spm"),
+        pytest.param(".spm", 4, ["minicircle.spm", "old_bruker.002", "old_bruker.004", "plasmids.spm"], id="spm"),
         pytest.param(".asd", 2, ["file.asd", "minicircles.asd"], id="asd"),
         pytest.param(".gwy", 1, ["file.gwy"], id="gwy"),
         pytest.param(".ibw", 1, ["minicircle2.ibw"], id="ibw"),
@@ -379,8 +293,13 @@ def test_load_array_file_not_found(non_existant_file: str) -> None:
         pytest.param(".top", 1, ["file.top"], id="top"),
         pytest.param(
             ".topostats",
-            3,
-            ["file.topostats", "minicircle_small.topostats", "process_scan_topostats_file_regtest.topostats"],
+            4,
+            [
+                "file.topostats",
+                "minicircle_small.topostats",
+                "process_scan_topostats_file_regtest.topostats",
+                "notebook3_image.topostats",
+            ],
             id="topostats",
         ),
     ],

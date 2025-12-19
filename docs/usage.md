@@ -122,7 +122,7 @@ along with information about how to give feedback, report bugs and cite the soft
   Files Found                 : 1
   Successfully Processed      : 1 (100.0%)
   Configuration               : output/config.yaml
-  All statistics              : output/all_statistics.csv
+  All statistics              : output/grain_statistics.csv
   Distribution Plots          : output/summary_distributions
 
   Email                       : topostats@sheffield.ac.uk
@@ -235,15 +235,33 @@ want to make to the default configuration and how to make them.
 TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
 parameters that are used. This is achieved using a [configuration](configuration) file. This is a
 [YAML](https://yaml.org) file that contains parameters for different settings. For convenience you can generate
-a sample configuration file in your current working directory using the `topostats create-config` sub-command. It
-takes a single argument, the name of the file to save the configuration to (e.g. `config.yaml` or `settings.yaml`), and
-it will write the current default configuration to that file.
+a sample configuration file in your current working directory using the `topostats create-config` sub-command. There are
+a number of arguments available. They key one is `--config` which defines what configuration file is written and
+currently has three possible options `default`, `simple`, `mplstyle` or `var_to_label`. See `topostats create-config ---help`
+for descriptions of other available options. **NB** if `--filename` is omitted then the value of `--config` determines
+the filename the configuration is written to as shown below.
 
 ```bash
-topostats create-config --filename my_config.yaml
-ls -l
-my_config.yaml
-sample_image_scan_2022-12-08-1204.spm
+topostats create-config --config default --filename my_default_config.yaml
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:16] [INFO    ] [topostats] A sample configuration has been written to : my_default_config.yaml
+topostats create-config --config default
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:18] [INFO    ] [topostats] A sample configuration has been written to : default_config.yaml
+❱ topostats create-config --config simple
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:22] [INFO    ] [topostats] A sample configuration has been written to : simple_config.yaml
+❱ topostats create-config --config mplstyle
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:12:47] [INFO    ] [topostats] A sample configuration has been written to : topostats.mplstyle
+topostats create-config --config var_to_label
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] TopoStats version : 2.3.2.dev600
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] Commit            : 54e4b940a
+[Tue, 28 Oct 2025 16:13:03] [INFO    ] [topostats] A sample configuration has been written to : var_to_label.yaml
 ```
 
 You can now edit and/or rename the `my_config.yaml`. It can be called anything you want,
@@ -276,8 +294,10 @@ ones you may want to change are....
 - `plotting` : `image_set` (default `core`) specifies which steps of the processing to plot images of. The value `all`
   gets images for all stages, `core` saves only a subset of images.
 
-Most of the other configuration options can be left on their default values for now. Once you have made any changes save
-the file and return to your terminal.
+Most of the other configuration options can be left on their default values for now but the file is fully commented and
+should you wish to change settings you should read these comments.
+
+Once you have made any changes save the file and return to your terminal.
 
 ### Running TopoStats with `my_config.yaml`
 
@@ -309,7 +329,9 @@ On successful completion you should see the same message noted above.
 Older Bruker devices output files with somewhat uninformative numerical file extensions (e.g. `.001`, `.002`, `.003`
 etc.). TopoStats will automatically detect and process these if the configuration file is `file_ext: .spm` (or on the
 command line the `--file-ext/-f .spm` option is used). However, for convenience a sub-processor is provided which will
-append the suffix `.spm` to all files found recursively with numerical extensions in the specified directory.
+append the suffix `.spm` to all files found recursively with numerical extensions in the specified directory. You can
+specify the `--base-dir /path/to/a/directory` if you are not already in the same directory as the files, otherwise it
+will use the current directory. You then use the sub-command `bruker-rename`.
 
 ```bash
 topostats --base-dir /path/to/a/directory bruker-rename
@@ -333,10 +355,13 @@ used your own customised configuration file (specifically if you have modified t
 At the top level of the output directory are a few files produced:
 
 - `config.yaml` : a copy of the configuration used to process the images.
-- `all_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
-- `all_disordered_segment_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+- `grain_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the grain statistics.
+
+If the `output_stats` option has been set to `full` the following additional files will be written to the output directory:
+
+- `output/branch_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the branched skeleton
   statistics.
-- `all_mol_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
+- `output/molecule_statistics.csv` : a Comma Separated Variable ASCII plain-text file of the molecule statistics.
 
 **Note:** - If all grains / branch segments of a column have a `None` or `NaN` value, the column will not be present in
 the output `.csv` file.
@@ -362,11 +387,11 @@ one under `level1/a`...
 
 ```bash
 [4.0K Nov 15 14:06]  output
-|-- [ 381 Nov 15 14:06]  output/all_statistics.csv
+|-- [ 381 Nov 15 14:06]  output/grain_statistics.csv
 |-- [ 733 Nov 15 14:06]  output/all_disordered_tracing_statistics.csv
-|-- [ 254 Nov 15 14:06]  output/all_mol_statistics.csv
+|-- [ 254 Nov 15 14:06]  output/molecule_statistics.csv
 |-- [7.4K Nov 15 14:06]  output/config.yaml
-|-- [ 222 Nov 15 14:06]  output/image_stats.csv
+|-- [ 222 Nov 15 14:06]  output/image_statistics.csv
 |-- [4.0K Nov 15 14:06]  output/level1
 |   |-- [4.0K Nov 15 14:06]  output/level1/a
 |   |   |-- [4.0K Nov 15 14:06]  output/level1/a/Processed
@@ -413,13 +438,13 @@ is `output/summary_distributions`. If you have used a custom configuration file 
 `summary_distributions` nested under the directory specified for the `output`, e.g. if you used the current directory as
 output you will have a `summary_distributions` directory present.
 
-Sometimes you may have a `all_statistics.csv` from a run and wish to plot distributions of additional statistics that
+Sometimes you may have a `grain_statistics.csv` from a run and wish to plot distributions of additional statistics that
 were not already plotted. This can be achieved using the command line program `toposum` which is included.
 
 **NB** Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
 configured. It uses the plotting library [Seaborn](https://seaborn.pydata.org/) (which is built on top of
 [Matplotlib](https://matplotlib.org/)) to produce basic plots, which are not intended for publication. If you want to
-tweak or customise plots it is recommended to load `all_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
+tweak or customise plots it is recommended to load `grain_statistics.csv` into a [Jupyter Notebook](https://jupyter.org)
 and generate the plots you want there. A sample notebook is included to show how to do this.
 
 ### Configuring Summary Plots

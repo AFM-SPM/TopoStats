@@ -21,6 +21,8 @@ body:
       label: Checklist
       description: A Checklist is provided below for you to track each of the subsequent tasks.
       options:
+        - label: Run using the `main` branch to check if the issue persists. Instructions on how to do this can be found [here](https://afm-spm.github.io/TopoStats/main/installation.html#installing-from-github).
+          required: true
         - label: Find the offending file in the output. If processing halts, re-run analysis with `topostats --core 1 process`.
           required: true
         - label: Describe the bug.
@@ -76,6 +78,12 @@ body:
         - 2.1.0
         - 2.1.1
         - 2.1.2
+        - 2.2.0
+        - 2.2.1
+        - 2.3.0
+        - 2.3.1
+        - 2.3.2rc1
+        - 2.3.2rc2
         - Git main branch
       default: 3
     validations:
@@ -87,12 +95,9 @@ body:
       description: |
         What version of Python are you running? If unsure type `python --version`.
       options:
-        - 3.8
-        - 3.9
         - 3.10
         - 3.11
-        - 3.12
-      default: 3
+      default: 1
     validations:
       required: true
   - type: dropdown

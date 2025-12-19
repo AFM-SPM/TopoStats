@@ -19,11 +19,11 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
+from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
     dict_to_json,
     find_files,
-    merge_mappings,
     read_yaml,
     save_folder_grainstats,
     write_yaml,
@@ -42,7 +42,6 @@ from topostats.processing import (
     run_ordered_tracing,
     run_splining,
 )
-from topostats.utils import update_config, update_plotting_config
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, PLOTTING_SCHEMA, SUMMARY_SCHEMA, validate_config
 
 # We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from
@@ -57,49 +56,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-statements
 # pylint: disable=unnecessary-dict-index-lookup
 # pylint: disable=too-many-nested-blocks
-
-
-def reconcile_config_args(args: argparse.Namespace | None) -> dict:
-    """
-    Reconcile command line arguments with the default configuration.
-
-    Command line arguments take precedence over the default configuration. If a partial configuration file is specified
-    (with '-c' or '--config-file') the defaults are over-ridden by these values (internally the configuration
-    dictionary is updated with these values). Any other command line arguments take precedence over both the default
-    and those supplied in a configuration file (again the dictionary is updated).
-
-    The final configuration is validated before processing begins.
-
-    Parameters
-    ----------
-    args : argparse.Namespace
-        Command line arguments passed into TopoStats.
-
-    Returns
-    -------
-    dict
-        The configuration dictionary.
-    """
-    default_config = read_yaml(resources.files(__package__) / "default_config.yaml")
-    if args is not None:
-        config_file_arg: str | None = args.config_file
-        if config_file_arg is not None:
-            config = read_yaml(config_file_arg)
-            # Merge the loaded config with the default config to fill in any defaults that are missing
-            # Make sure to prioritise the loaded config, so it overrides the default
-            config = merge_mappings(map1=default_config, map2=config)
-        else:
-            # If no config file is provided, use the default config
-            config = default_config
-    else:
-        # If no args are provided, use the default config
-        config = default_config
-
-    # Override the config with command line arguments passed in, eg --output_dir ./output/
-    if args is not None:
-        config = update_config(config, args)
-
-    return config
 
 
 def _set_logging(log_level: str | None) -> None:
@@ -229,6 +185,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "raw"
 
+    output_full_stats = config["output_stats"] == "full"
+
     all_scan_data = LoadScans(img_files, **config["loading"])
     all_scan_data.get_data()
     # Get a dictionary of all the image data dictionaries.
@@ -271,11 +229,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 # Display completion message for the image
                 LOGGER.info(f"[{img.name}] Processing completed.")
 
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_stats.csv.")
+    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
-    image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
+    image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
     try:
         results = pd.concat(results.values())
@@ -347,7 +305,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 "* no grains have been detected across all scans.\n"
                 "* there have been errors.\n\n"
                 "If you are not expecting to detect grains please consider disabling"
-                "grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
+                " grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains"
                 " please check log-files for further information."
             )
     else:
@@ -357,7 +315,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     if isinstance(results, pd.DataFrame) and not results.isna().values.all():
         results.reset_index(drop=True, inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
-        results.to_csv(config["output_dir"] / "all_statistics.csv", index=True)
+        results.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
@@ -365,25 +323,28 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
-    if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
-        disordered_trace_results.reset_index(inplace=True)
-        disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
-        disordered_trace_results.to_csv(config["output_dir"] / "all_disordered_segment_statistics.csv", index=True)
-        save_folder_grainstats(
-            config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
-        )
-        disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
-    else:
-        LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
+    if output_full_stats:
+        if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
+            disordered_trace_results.reset_index(inplace=True)
+            disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+            disordered_trace_results.to_csv(config["output_dir"] / "branch_statistics.csv", index=True)
+            save_folder_grainstats(
+                config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
+            )
+            disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
+        else:
+            LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
-    if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
-        mols_results.reset_index(drop=True, inplace=True)
-        mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
-        mols_results.to_csv(config["output_dir"] / "all_mol_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
-        mols_results.reset_index(inplace=True)  # So we can access unique image names
+        if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
+            mols_results.reset_index(drop=True, inplace=True)
+            mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
+            mols_results.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
+            save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
+            mols_results.reset_index(inplace=True)  # So we can access unique image names
+        else:
+            LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
     else:
-        LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
+        LOGGER.info("molecule_statistics.csv and branch_statistics.csv skipped")
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
@@ -532,13 +493,13 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
                 # Display completion message for the image
                 LOGGER.info(f"[{img}] Grainstats completed (NB - Filtering was *not* re-run).")
 
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_stats.csv.")
+    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
 
     try:
         image_stats_all_df = pd.concat(results.values())
-        image_stats_all_df.to_csv(config["output_dir"] / "image_stats.csv")
+        image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)

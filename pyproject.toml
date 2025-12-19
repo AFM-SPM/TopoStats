@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 name = "topostats"
 description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
 readme = "README.md"
-license = {text = "GNU Lesser GPLv3 only"}
+license = {text = "GPL-3.0-only"}
 dynamic = ["version"]
 authors = [
   {name = "TopoStats Team", email = "topostats@sheffield.ac.uk"},
@@ -26,16 +26,16 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 keywords = [
   "afm",
-  "image processing"
+  "atomic force microscopy",
+  "image processing",
 ]
 requires-python = ">=3.10, <3.12"
 dependencies = [
   "art",
-  "AFMReader @ git+https://github.com/AFM-SPM/AFMReader@main",
+  "AFMReader",
   "h5py",
   "keras",
   "matplotlib",
@@ -184,6 +184,7 @@ exclude = [
   "dist",
   "docs/conf.py",
   "node_modules",
+  "notebooks/*.py",
   "tests/tracing/test_dnacurvature.py",
   "topostats/plotting.py",
   "topostats/tracing/tracingfuncs.py",
@@ -273,6 +274,7 @@ exclude = [  # don't report on objects that match any of these regex
     "^test_",
     "^conftest",
     "^conf$",
+    "^notebooks/*.py$"
 ]
 override_SS05 = [  # override SS05 to allow docstrings starting with these words
     "^Process ",

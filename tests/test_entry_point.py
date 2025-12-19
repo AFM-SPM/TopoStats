@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from topostats import run_modules
+from topostats.config import write_config_with_comments
 from topostats.entry_point import (
     entry_point,
 )
-from topostats.io import write_config_with_comments
 from topostats.plotting import run_toposum
 
 # noqa: S108
@@ -663,8 +663,6 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "dummy/config/dir/var_to_label.yaml",
                 "--create-config-file",
                 "/tmp/new_config_file.yaml",  # noqa: S108
-                "--create-label-file",
-                "/tmp/new_label_file.yaml",  # noqa: S108
                 "--savefig-format",
                 ".png",
             ],
@@ -674,7 +672,6 @@ def test_entry_point_subprocess_help(capsys, argument: str, option: str) -> None
                 "config_file": Path("/tmp/dummy_config.yaml"),  # noqa: S108
                 "var_to_label": Path("dummy/config/dir/var_to_label.yaml"),
                 "create_config_file": Path("/tmp/new_config_file.yaml"),  # noqa: S108
-                "create_label_file": Path("/tmp/new_label_file.yaml"),  # noqa: S108
                 "savefig_format": ".png",
             },
             id="Summary with input csv (long) and label file (short).",
@@ -693,30 +690,34 @@ def test_entry_points(options: list, expected_function: Callable, expected_args:
         assert returned_args_dict[argument] == value
 
 
-def test_entry_point_create_config_file(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("config", "target_file"),
+    [
+        pytest.param(None, "default_config.yaml", id="default config no --config option"),
+        pytest.param("default", "default_config.yaml", id="default config with --config option"),
+        pytest.param("simple", "simple_config.yaml", id="simple config option"),
+        pytest.param("mplstyle", "topostats.mplstyle", id="mplstyle config option"),
+        pytest.param("var_to_label", "var_to_label.yaml", id="var_to_label config option"),
+    ],
+)
+def test_entry_point_create_config_file(config: str, target_file: str, tmp_path: Path) -> None:
     """Test that the entry point is able to produce a default config file when asked to."""
-    entry_point(
-        manually_provided_args=[
-            "create-config",
-            "--filename",
-            "test_create_config.yaml",
-            "--output-dir",
-            f"{tmp_path}",
-        ]
-    )
-    assert Path(f"{tmp_path}/test_create_config.yaml").is_file()
-
-
-def test_entry_point_create_simple_config_file(tmp_path: Path) -> None:
-    """Test that the entry point is able to produce a simple config file when asked to."""
-    entry_point(
-        manually_provided_args=[
-            "create-config",
-            "--filename",
-            "test_create_simple_config.yaml",
-            "--output-dir",
-            f"{tmp_path}",
-            "--simple",
-        ]
-    )
-    assert Path(f"{tmp_path}/test_create_simple_config.yaml").is_file()
+    if config is None:
+        entry_point(
+            manually_provided_args=[
+                "create-config",
+                "--output-dir",
+                f"{tmp_path}",
+            ]
+        )
+    else:
+        entry_point(
+            manually_provided_args=[
+                "create-config",
+                "--config",
+                f"{config}",
+                "--output-dir",
+                f"{tmp_path}",
+            ]
+        )
+    assert Path(f"{tmp_path}/{target_file}").is_file()

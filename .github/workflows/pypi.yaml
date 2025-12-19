@@ -2,9 +2,9 @@ name: Publish package to PyPi
 # See https://docs.pypi.org/trusted-publishers/adding-a-publisher/
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - v*
   workflow_dispatch: # Uncomment line if you also want to trigger action manually
 
 jobs:
@@ -12,11 +12,11 @@ jobs:
     name: Build Package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.11
       - name: Installing the package
@@ -28,7 +28,7 @@ jobs:
           export DEB_PYTHON_INSTALL_LAYOUT=deb_system
           python -m build --no-isolation
       - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: python-package-distributions
           path: dist/
@@ -46,7 +46,7 @@ jobs:
       url: https://pypi.org/p/topostats
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: python-package-distributions
           path: dist/
@@ -72,7 +72,7 @@ jobs:
 
   #   steps:
   #     - name: Download all the dists
-  #       uses: actions/download-artifact@v5
+  #       uses: actions/download-artifact@v6
   #       with:
   #         name: python-package-distributions
   #         path: dist/

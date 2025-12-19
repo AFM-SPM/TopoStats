@@ -16,7 +16,7 @@ import seaborn as sns
 
 from topostats.io import read_yaml, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import update_config
+from topostats.config import update_config
 from topostats.theme import Colormap
 
 LOGGER = logging.getLogger(LOGGER_NAME)

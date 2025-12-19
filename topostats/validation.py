@@ -60,6 +60,9 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             ".top",
             error="Invalid value in config for 'file_ext', valid values are '.spm', '.jpk', '.ibw', '.gwy', '.topostats', or '.asd'.",
         ),
+        "output_stats": Or(
+            "basic", "full", error="Invalid value for 'output_stats', valid values are 'full' or 'basic'."
+        ),
         "loading": {
             "channel": str,
             "extract": Or(
@@ -190,6 +193,43 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
+            "endpoint_connection_config": {
+                "run": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'grains.endpoint_connection_config.run', valid values are 'True' or 'False'",
+                ),
+                "class_indices": [int],
+                "skeletonisation_holearea_min_max": [
+                    Or(
+                        int,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_holearea_min_max', valid values are int or null"
+                        ),
+                    )
+                ],
+                "skeletonisation_mask_smoothing_dilation_iterations": int,
+                "skeletonisation_mask_smoothing_gaussian_sigma": Or(
+                    float,
+                    int,
+                    None,
+                    error=(
+                        "Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_mask_smoothing_gaussian_sigma', valid values are float, int or null"
+                    ),
+                ),
+                "skeletonisation_method": Or(
+                    "zhang",
+                    "lee",
+                    "thin",
+                    "medial_axis",
+                    "topostats",
+                    error="Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'topostats'",
+                ),
+                "skeletonisation_height_bias": lambda n: 0 < n <= 1,
+                "endpoint_connection_distance_nm": lambda n: n > 0.0,
+                "endpoint_connection_cost_map_height_maximum": lambda n: n > 0.0,
+            },
             "unet_config": {
                 "model_path": Or(None, str),
                 "upper_norm_bound": float,
@@ -484,6 +524,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 error=(
                     "Invalid value in config plotting histogram. For 'log_y_axis', valid values are 'True' or 'False'"
                 ),
+            ),
+            "number_grains": Or(
+                True,
+                False,
+                error=("Invalid value in config for 'plotting.number_grain_plots', valid values are 'True' or 'False'"),
             ),
         },
         "summary_stats": {
@@ -911,9 +956,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'tidied_border.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -983,9 +1026,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'vetted_tensor.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "core_set": bool,
             "savefig_dpi": Or(
@@ -1254,9 +1295,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'node_avg_mask.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "mask_cmap": str,
             "core_set": bool,
@@ -1368,9 +1407,7 @@ PLOTTING_SCHEMA = Schema(
             "image_type": Or(
                 "binary",
                 "non-binary",
-                error=(
-                    "Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"
-                ),
+                error=("Invalid value in config 'splined_trace.image_type', valid values are 'binary' or 'non-binary'"),
             ),
             "title": str,
             "core_set": bool,

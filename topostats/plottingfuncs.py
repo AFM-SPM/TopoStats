@@ -5,6 +5,7 @@ from importlib import resources
 from pathlib import Path
 
 import matplotlib as mpl
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
@@ -148,6 +149,8 @@ class Images:
         Number of bins for histograms to use.
     savefig_dpi : str | float, optional
         The resolution of the saved plot (default 'figure').
+    number_grains : bool
+            Optionally number each grain in a plot.
     """
 
     def __init__(
@@ -178,6 +181,7 @@ class Images:
         histogram_log_axis: bool = True,
         histogram_bins: int | None = None,
         savefig_dpi: str | float | None = None,
+        number_grains: bool = False,
     ) -> None:
         """
         Initialise the class.
@@ -243,6 +247,8 @@ class Images:
             Number of bins for histograms to use.
         savefig_dpi : str | float, optional
             The resolution of the saved plot (default 'figure').
+        number_grains : bool
+            Optionally number each grain in a plot.
         """
         if style is None:
             style = "topostats.mplstyle"
@@ -260,9 +266,7 @@ class Images:
         self.module = module
         self.image_set = image_set
         self.core_set = core_set
-        self.interpolation = (
-            mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
-        )
+        self.interpolation = mpl.rcParams["image.interpolation"] if pixel_interpolation is None else pixel_interpolation
         cmap = mpl.rcParams["image.cmap"] if cmap is None else cmap
         self.cmap = Colormap(cmap).get_cmap()
         self.mask_cmap = Colormap(mask_cmap).get_cmap()
@@ -276,6 +280,7 @@ class Images:
         self.histogram_log_axis = histogram_log_axis
         self.histogram_bins = mpl.rcParams["hist.bins"] if histogram_bins is None else histogram_bins
         self.savefig_dpi = mpl.rcParams["savefig.dpi"] if savefig_dpi is None else savefig_dpi
+        self.number_grains = number_grains
 
     def plot_histogram_and_save(self) -> tuple | None:
         """
@@ -588,8 +593,17 @@ class Images:
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.05)
                 plt.colorbar(im, cax=cax, label="Height (Nanometres)")
-            # if self.region_properties:
-            # fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
+            if self.region_properties:
+                fig, ax = add_bounding_boxes_to_plot(fig, ax, shape, self.region_properties, self.pixel_to_nm_scaling)
+                if self.number_grains:
+                    fig, ax = number_grain_plots(
+                        fig,
+                        ax,
+                        shape,
+                        self.region_properties,
+                        self.pixel_to_nm_scaling,
+                        (2, -2),
+                    )
             if not self.axes and not self.colorbar:
                 plt.title("")
                 fig.frameon = False
@@ -645,6 +659,45 @@ def add_bounding_boxes_to_plot(fig, ax, shape: tuple, region_properties: list, p
         max_y = (shape[0] * pixel_to_nm_scaling) - max_y
         rectangle = Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, fill=False, edgecolor="white", linewidth=2)
         ax.add_patch(rectangle)
+    return fig, ax
+
+
+def number_grain_plots(
+    fig, ax, shape: tuple, region_properties: list, pixel_to_nm_scaling: float, offset: tuple
+) -> tuple:
+    """
+    Add the grain numbers to the plot.
+
+    Parameters
+    ----------
+    fig : plt.figure.Figure
+        Matplotlib.pyplot figure object.
+    ax : plt.axes._subplots.AxesSubplot
+        Matplotlib.pyplot axes object.
+    shape : tuple
+        Tuple of the image-to-be-plot's shape.
+    region_properties : list
+        Region properties to add bounding boxes from.
+    pixel_to_nm_scaling : float
+        The scaling factor from px to nm.
+    offset : tuple
+        The amount to shift the number to avoid overlap with bounding boxes (x, y).
+
+    Returns
+    -------
+    tuple
+        Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+    """
+    for i, region in enumerate(region_properties):
+        min_y, min_x, _max_y, _max_x = (x * pixel_to_nm_scaling for x in region.bbox)
+        # Correct y-axis
+        min_y = (shape[0] * pixel_to_nm_scaling) - min_y
+
+        # Stop overlap with bbox
+        x_loc = min_x + offset[0]
+        y_loc = min_y + offset[1]
+        numbering = ax.text(x_loc, y_loc, i, fontsize=10, color="white", ha="left", va="top")
+        numbering.set_path_effects([path_effects.Stroke(linewidth=2, foreground="black"), path_effects.Normal()])
     return fig, ax
 
 
