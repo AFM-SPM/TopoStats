@@ -133,5 +133,5 @@ plotting:
   histogram_log_axis: false # Options : true, false
   number_grains: true # Add grain numbers next to each grain mask in images with mask overlays. Options : true, false
 summary_stats:
-  run: true # Whether to make summary plots for output data
+  run: false # Whether to make summary plots for output data
   config: null
