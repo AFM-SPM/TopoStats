@@ -11,7 +11,7 @@ import numpy as np
 import numpy.typing as npt
 from matplotlib.patches import Patch, Rectangle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from skimage.morphology import binary_dilation
+from skimage.morphology import dilation
 
 import topostats
 from topostats.logs.logs import LOGGER_NAME
@@ -70,7 +70,7 @@ def dilate_binary_image(binary_image: npt.NDArray, dilation_iterations: int) -> 
     """
     binary_image = binary_image.copy()
     for _ in range(dilation_iterations):
-        binary_image = binary_dilation(binary_image)
+        binary_image = dilation(binary_image)
 
     return binary_image
 

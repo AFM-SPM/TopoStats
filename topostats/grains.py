@@ -13,7 +13,7 @@ import numpy as np
 import numpy.typing as npt
 from skimage import morphology
 from skimage.measure import label, regionprops
-from skimage.morphology import binary_dilation
+from skimage.morphology import dilation
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.unet_masking import (
@@ -1650,7 +1650,7 @@ class Grains:
                 # Dilate the region
                 dilated_region_mask = region_mask
                 for _ in range(class_touching_threshold):
-                    dilated_region_mask = binary_dilation(dilated_region_mask)
+                    dilated_region_mask = dilation(dilated_region_mask)
                 # Get the intersection with the class B mask
                 intersection = dilated_region_mask & class_b_mask
                 # If there is any intersection, turn the region into class B
@@ -1742,7 +1742,7 @@ class Grains:
         class_b_mask = grain_mask_tensor[:, :, classes[1]]
 
         # Dilate class A mask
-        dilated_class_a_mask = binary_dilation(class_a_mask)
+        dilated_class_a_mask = dilation(class_a_mask)
         # Get the intersection with the class B mask
         intersection = dilated_class_a_mask & class_b_mask
 
