@@ -1372,6 +1372,41 @@ def process_scan(
     molecule_stats_df.reset_index(inplace=True)
     molecule_stats_df["image"] = topostats_object.filename
     molecule_stats_df["basename"] = topostats_object.img_path
+
+    # Disordered Tracing Statistics
+    disordered_tracing_stats = {}
+    for grain_number, grain_crop in topostats_object.grain_crops.items():
+        disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
+    disordered_tracing_stats_df = pd.DataFrame.from_dict(
+        {
+            (grain_number, index): disordered_tracing_stats[grain_number][index]
+            for grain_number, _ in disordered_tracing_stats.items()
+            for index, _ in disordered_tracing_stats[grain_number].items()
+        },
+        orient="index",
+    )
+
+    # Branch Statistics
+    branch_stats = {}
+    for grain_number, grain_crop in topostats_object.grain_crops.items():
+        branch_stats[grain_number] = {}
+        for node_number, node in grain_crop.nodes.items():
+            branch_stats[grain_number][node_number] = {}
+            for branch_number, matched_branch in node.branch_stats.items():
+                branch_stats[grain_number][node_number][branch_number] = matched_branch.collate_branch_statistics(
+                    image=topostats_object.filename,
+                    basename=topostats_object.img_path,
+                )
+
+    branch_stats_df = pd.DataFrame.from_dict(
+        {
+            (grain_number, node_number, branch_number): branch_stats[grain_number][node_number][branch_number]
+            for grain_number, _ in branch_stats.items()
+            for node_number, _ in branch_stats[grain_number].items()
+            for branch_number, _ in branch_stats[node_number].items()
+        },
+        orient="index",
+    )
     # Grain Statistics
 
     # Height Profiles
@@ -1388,7 +1423,8 @@ def process_scan(
         # grainstats_df,
         # topostats_object.height_profiles, # ns-rse 2025-12-19 need to extract these
         image_stats_df,
-        # disordered_tracing_stats,
+        disordered_tracing_stats_df,
+        branch_stats_df,
         molecule_stats_df,
     )
 

@@ -915,6 +915,8 @@ class MatchedBranch:
         Peaks from a matched branch.
     angles : float
         Angle between branches.
+    branch_statistics : dict[str, float | int | list[Any] | str]
+        Dictionary of branch statistics, ``fwhm``, ``fwhm_half_maxs`` and ``fwhm_peaks``.
     """
 
     ordered_coords: npt.NDArray[np.int32] | None = None
@@ -924,6 +926,7 @@ class MatchedBranch:
     fwhm_half_maxs: list[float] | None = None
     fwhm_peaks: list[float] | None = None
     angles: float | list[float] | None = None
+    branch_statistics: dict[str, float | int | list[Any] | str] | None = None
 
     def __str__(self) -> str:
         """
@@ -942,25 +945,30 @@ class MatchedBranch:
             f"angles : {self.angles}"
         )
 
-    def stats_to_df(self) -> pd.DataFrame:
+    def collate_branch_statistics(self, image: str, basename: str) -> dict[str, float | int | list[Any] | str]:
         """
-        Convert class attributes to a pandas dataframe.
+        Collate matched branch statistics to dictionary.
+
+        Parameters
+        ----------
+        image : str
+            Image being processed, added to dictionary for subsequent aggregation, typically ``TopoStats.filename``.
+        basename : str
+            Base image path, added to dictionary for subsequent aggregation, typically ``TopoStats.img_path``.
 
         Returns
         -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
+        dict[str, float | int | list[Any] | str]
+            Dictionary of ``fwhm``, ``fwhm_half_maxs`` and ``fwhm_peaks`` along with ``image`` and ``basename``.
         """
-        data = {
-            "ordered_coords": self.ordered_coords,
-            "heights": self.heights,
-            "distances": self.distances,
+        self.branch_statistics = {
+            "image": image,
             "fwhm": self.fwhm,
             "fwhm_half_maxs": self.fwhm_half_maxs,
             "fwhm_peaks": self.fwhm_peaks,
-            "angles": self.angles,
+            "basename": str(basename),
         }
-        return pd.DataFrame([data])
+        return self.branch_statistics
 
 
 @dataclass(
