@@ -6,7 +6,7 @@ from itertools import combinations
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from skimage.morphology import binary_dilation, label
+from skimage.morphology import dilation, label
 from topoly import jones, translate_code
 
 from topostats.logs.logs import LOGGER_NAME
@@ -137,7 +137,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         nodes = np.zeros_like(self.skeleton)
         for node_no in node_coords:  # this stops unpaired branches from interacting with the pairs
             nodes[node_no[0][:, 0], node_no[0][:, 1]] = 1
-        minus = np.where(binary_dilation(binary_dilation(nodes)) == self.skeleton, 0, self.skeleton)
+        minus = np.where(dilation(dilation(nodes)) == self.skeleton, 0, self.skeleton)
         # remove crossings from skeleton
         for crossings in crossing_coords:
             for crossing in crossings:
@@ -498,7 +498,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         for coords in coord_trace:
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
-            # temp_img = binary_dilation(temp_img)
             img[temp_img != 0] = 1
 
         # place over/under strands onto image array
@@ -508,7 +507,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 temp_img = np.zeros_like(img)
                 cross_coords = crossing[type_idx]
                 temp_img[cross_coords[:, 0], cross_coords[:, 1]] = 1
-                # temp_img = binary_dilation(temp_img)
                 img[temp_img != 0] = i + 2
 
         return img

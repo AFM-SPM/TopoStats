@@ -5,8 +5,6 @@ from collections.abc import Callable
 
 import numpy as np
 import numpy.typing as npt
-
-# from skimage.morphology import binary_dilation, label
 from skimage import morphology
 
 from topostats.logs.logs import LOGGER_NAME
@@ -837,7 +835,7 @@ def rm_nibs(skeleton):  # pylint: disable=too-many-locals
 
     for node_num in range(1, labeled_nodes.max() + 1):
         node = np.where(labeled_nodes == node_num, 1, 0)
-        dil = morphology.binary_dilation(node, footprint=np.ones((3, 3)))
+        dil = morphology.dilation(node, footprint=np.ones((3, 3)))
         minus = np.where(dil != node, 1, 0)
 
         idxs = labeled_nodeless[minus == 1]
