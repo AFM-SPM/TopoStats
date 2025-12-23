@@ -113,13 +113,6 @@ class nodeStats:
         self.all_connected_nodes = np.zeros_like(self.skeleton)
         self.whole_skel_graph: nx.classes.graph.Graph | None = None
         self.node_centre_mask = np.zeros_like(self.skeleton)
-
-        self.metrics = {
-            "num_crossings": np.int64(0),
-            "avg_crossing_confidence": None,
-            "min_crossing_confidence": None,
-        }
-
         self.node_dicts: dict[str, Node] = {}
         self.image_dict: dict[str, dict[str, npt.NDArray]] = {
             "nodes": {},
@@ -135,55 +128,16 @@ class nodeStats:
         self.visuals = {}
         self.all_visuals_img = None
 
-    def get_node_stats(self) -> tuple[dict, dict]:
+    def get_node_stats(self) -> dict[int, npt.NDArray]:
         """
         Run the workflow to obtain the node statistics.
 
-        .. code-block:: RST
-
-            node_dict key structure:  <grain_number>
-                                        └-> <node_number>
-                                            |-> 'error'
-                                            └-> 'node_coords'
-                                            └-> 'branch_stats'
-                                                └-> <branch_number>
-                                                    |-> 'ordered_coords'
-                                                    |-> 'heights'
-                                                    |-> 'gaussian_fit'
-                                                    |-> 'fwhm'
-                                                    └-> 'angles'
-
-            image_dict key structure:  'nodes'
-                                            <node_number>
-                                                |-> 'node_area_skeleton'
-                                                |-> 'node_branch_mask'
-                                                └-> 'node_avg_mask
-                                        'grain'
-                                            |-> 'grain_image'
-                                            |-> 'grain_mask'
-                                            └-> 'grain_skeleton'
-
-        AIMING FOR...
-        <graincrop>
-            └- <nodes> (dictionary indexed by node number)
-                  └-> error
-                  └-> pixel_to_nm_scaling
-                  └-> node_coords
-                  └-> node_area_skeleton
-                  └-> node_branch_mash
-                  └-> node_avg_mask
-                  └-> branch_stats
-                       └-> <branch>
-                           └-> ordered_coords
-                           └-> heights
-                           └-> gaussian_fit ???
-                           └-> angles
-                           └-> fwhm (dictionary of fwhm[float64], half_maxs[list], peaks[list])
+        Statistics are added to the ``Node`` attribute of ``GrainCrop``.
 
         Returns
         -------
-        tuple[dict, dict]
-            Dictionaries of the node_information and images.
+        dict[int, npt.NDArray]
+            Dictionary of images.
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.conv_skeleton = convolve_skeleton(self.skeleton)
@@ -213,8 +167,7 @@ class nodeStats:
         else:
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
         # Add the node dictionary
-        return self.node_dicts, self.image_dict
-        # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
+        return self.image_dict
 
     @staticmethod
     def skeleton_image_to_graph(skeleton: npt.NDArray) -> nx.classes.graph.Graph:
@@ -1753,15 +1706,15 @@ class nodeStats:
             return None, None
 
     def compile_metrics(self) -> None:
-        """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
-        self.metrics["num_crossings"] = np.int64((self.node_centre_mask == 3).sum())
+        """Add number of crossings, mean and minimum crossing confidence to the ``grain_crops.stats`` dictionary."""
+        # Add Node Statistics to GrainCrop.stats for each class and subgrain
+        num_crossings = (self.node_centre_mask == 3).sum()
         mean_conf, min_conf = self.crossing_confidence_statistics()
-        self.metrics["avg_crossing_confidence"] = np.float64(mean_conf)
-        self.metrics["min_crossing_confidence"] = np.float64(min_conf)
-
-        self.grain_crop.stats["num_crossings"] = self.metrics["num_crossings"]
-        self.grain_crop.stats["avg_crossing_confidence"] = self.metrics["avg_crossing_confidence"]
-        self.grain_crop.stats["min_crossing_confidence"] = self.metrics["min_crossing_confidence"]
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_crossings"] = np.int64(num_crossings)
+                self.grain_crop.stats[class_number][subgrain_index]["mean_crossing_confidence"] = np.float64(mean_conf)
+                self.grain_crop.stats[class_number][subgrain_index]["min_crossing_confidence"] = np.float64(min_conf)
 
 
 def nodestats_image(
@@ -1789,8 +1742,6 @@ def nodestats_image(
     pair_odd_branches : bool
         Whether to try and pair odd-branched nodes.
     """
-    # ns-rse 2025-12-02 - Rip out these, we don't need them everything should be attributes of grains/molecules
-    nodestats_data = {}
     # Images for diagnostics edited during processing
     all_images = {
         "convolved_skeletons": np.zeros_like(topostats_object.image),
@@ -1798,7 +1749,6 @@ def nodestats_image(
         "connected_nodes": np.zeros_like(topostats_object.image),
     }
     nodestats_branch_images = {}
-    grainstats_additions = {}
 
     if topostats_object.grain_crops is not None:
         LOGGER.info(f"[{topostats_object.filename}] : There are {len(topostats_object.grain_crops)} grains")
@@ -1814,7 +1764,7 @@ def nodestats_image(
                         branch_pairing_length=branch_pairing_length,
                         pair_odd_branches=pair_odd_branches,
                     )
-                    nodestats_dict, node_image_dict = nodestats.get_node_stats()
+                    _, node_image_dict = nodestats.get_node_stats()
                     LOGGER.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1}")
 
                     # compile images
@@ -1825,21 +1775,6 @@ def nodestats_image(
                     }
                     nodestats_branch_images[n_grain] = node_image_dict
 
-                    # compile metrics
-                    grainstats_additions[n_grain] = {
-                        "image": topostats_object.filename,
-                        # "grain_number": int(n_grain.split("_")[-1]),
-                        "grain_number": n_grain,
-                    }
-                    grainstats_additions[n_grain].update(nodestats.metrics)
-                    if nodestats_dict:  # if the grain's nodestats dict is not empty
-                        nodestats_data[n_grain] = nodestats_dict
-                    # Add Node Statistics to GrainCrop.stats
-                    nodestats.grain_crop.stats["num_crossings"] = nodestats.metrics["num_crossings"]
-                    nodestats.grain_crop.stats["mean_crossing_confidence"] = nodestats.metrics[
-                        "avg_crossing_confidence"
-                    ]
-                    nodestats.grain_crop.stats["min_crossing_confidence"] = nodestats.metrics["min_crossing_confidence"]
                     # remap the cropped images back onto the original
                     for image_name, full_image in all_images.items():
                         crop = nodestats_images[image_name]

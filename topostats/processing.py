@@ -352,12 +352,13 @@ def run_grainstats(
                 for key, value in plotting_config["plot_dict"].items()
                 if key in ["grain_image", "grain_mask", "grain_mask_image"]
             }
-            GrainStats(
+            grainstats = GrainStats(
                 topostats_object=topostats_object,
                 base_output_dir=grain_out_path,
                 plot_opts=grain_plot_dict,
                 **grainstats_config,
             )
+            grainstats.calculate_stats()
             LOGGER.info(
                 f"[{topostats_object.filename}] : Calculated grainstats for {len(topostats_object.grain_crops)} grains."
             )
@@ -1357,8 +1358,11 @@ def process_scan(
     image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
     image_stats_df.set_index("image", inplace=True)
     molecule_stats = {}
+    disordered_tracing_stats = {}
+    # Collate molecule and disordered tracing statistics
     for grain_number, grain_crop in topostats_object.grain_crops.items():
         molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
+        disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
     # Molecule Statistics - restructure nested dictionary
     molecule_stats_df = pd.DataFrame.from_dict(
         {
@@ -1374,10 +1378,7 @@ def process_scan(
     molecule_stats_df["basename"] = topostats_object.img_path
 
     # Disordered Tracing Statistics
-    disordered_tracing_stats = {}
-    for grain_number, grain_crop in topostats_object.grain_crops.items():
-        disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
-    disordered_tracing_stats_df = pd.DataFrame.from_dict(
+    disordered_tracing_df = pd.DataFrame.from_dict(
         {
             (grain_number, index): disordered_tracing_stats[grain_number][index]
             for grain_number, _ in disordered_tracing_stats.items()
@@ -1386,30 +1387,43 @@ def process_scan(
         orient="index",
     )
 
-    # Branch Statistics
-    branch_stats = {}
+    # Matched Branch Statistics
+    matched_branch_stats = {}
     for grain_number, grain_crop in topostats_object.grain_crops.items():
-        branch_stats[grain_number] = {}
+        matched_branch_stats[grain_number] = {}
         for node_number, node in grain_crop.nodes.items():
-            branch_stats[grain_number][node_number] = {}
+            matched_branch_stats[grain_number][node_number] = {}
             for branch_number, matched_branch in node.branch_stats.items():
-                branch_stats[grain_number][node_number][branch_number] = matched_branch.collate_branch_statistics(
-                    image=topostats_object.filename,
-                    basename=topostats_object.img_path,
+                matched_branch_stats[grain_number][node_number][branch_number] = (
+                    matched_branch.collate_branch_statistics(
+                        image=topostats_object.filename,
+                        basename=topostats_object.img_path,
+                    )
                 )
-
-    branch_stats_df = pd.DataFrame.from_dict(
+    matched_branch_df = pd.DataFrame.from_dict(
         {
-            (grain_number, node_number, branch_number): branch_stats[grain_number][node_number][branch_number]
-            for grain_number, _ in branch_stats.items()
-            for node_number, _ in branch_stats[grain_number].items()
-            for branch_number, _ in branch_stats[node_number].items()
+            (grain_number, node_number, branch_number): matched_branch_stats[grain_number][node_number][branch_number]
+            for grain_number, _ in matched_branch_stats.items()
+            for node_number, _ in matched_branch_stats[grain_number].items()
+            for branch_number, _ in matched_branch_stats[node_number].items()
         },
         orient="index",
     )
     # Grain Statistics
-
-    # Height Profiles
+    grain_stats = {}
+    for grain_number, grain_crop in topostats_object.grain_crops.items():
+        grain_stats[grain_number] = grain_crop.stats
+    grain_stats_df = pd.DataFrame.from_dict(
+        {
+            (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
+            for grain_number, _ in grain_stats.items()
+            for class_type, _ in grain_stats[grain_number].items()
+            for subgrain_number, _ in grain_stats[grain_number][class_type].items()
+        },
+        orient="index",
+    )
+    grain_stats_df["image"] = topostats_object.filename
+    grain_stats_df["basename"] = topostats_object.img_path
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(
@@ -1420,11 +1434,11 @@ def process_scan(
     # Return filename and dataframes
     return (
         topostats_object.filename,
-        # grainstats_df,
-        # topostats_object.height_profiles, # ns-rse 2025-12-19 need to extract these
+        grain_stats_df,
+        topostats_object,
         image_stats_df,
-        disordered_tracing_stats_df,
-        branch_stats_df,
+        disordered_tracing_df,
+        matched_branch_df,
         molecule_stats_df,
     )
 

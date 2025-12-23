@@ -13,6 +13,7 @@ from collections import defaultdict
 from functools import partial
 from importlib import resources
 from multiprocessing import Pool
+from pathlib import Path
 from pprint import pformat
 
 import pandas as pd
@@ -197,20 +198,20 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
-        grainstats_all = defaultdict()
+        grain_stats_all = defaultdict()
+        topostats_object_all = defaultdict()
         image_stats_all = defaultdict()
-        molecule_stats_all = defaultdict()
         disordered_tracing_all = defaultdict()
         branch_stats_all = defaultdict()
-        height_profile_all = defaultdict()
+        molecule_stats_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for (
                 filename,
-                # grainstats_df,
-                # height_profiles,
+                grain_stats_df,
+                topostats_object,
                 image_stats_df,
                 disordered_tracing_df,
                 branch_stats_df,
@@ -220,8 +221,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 scan_data_dict.values(),
             ):
                 # Append each images returned dataframes to the dictionaries
-                # grainstats_all[str(filename)] = grainstats_df.dropna(axis=1, how="all")
-                # height_profile_all[str(filename)] = height_profiles
+                grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
+                topostats_object_all[str(filename)] = topostats_object
                 image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
                 disordered_tracing_all[str(filename)] = disordered_tracing_df.dropna(axis=1, how="all")
                 branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
@@ -237,24 +238,20 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
-    # Example of new system
-    image_stats_all_dict_new = prepare_data_for_df(topostats_object, "image_statistics")
-    image_stats_all_df_new = pd.DataFrame(image_stats_all_dict_new)
-    image_stats_all_df_new.to_csv(config["output_dir"] / "image_statistics_new.csv")
-
     try:
-        grainstats_all = pd.concat(grainstats_all.values())
+        grain_stats_all = pd.concat(grain_stats_all.values())
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
     # Write statistics to CSV if there is data.
-    if isinstance(grainstats_all, pd.DataFrame) and not grainstats_all.isna().values.all():
-        grainstats_all.reset_index(drop=True, inplace=True)
-        grainstats_all.set_index(["image", "threshold", "grain_number"], inplace=True)
-        grainstats_all.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], grainstats_all, "grain_stats")
-        grainstats_all.reset_index(inplace=True)  # So we can access unique image names
-        images_processed = len(grainstats_all["image"].unique())
+    if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+        grain_stats_all.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
+        grain_stats_all.reset_index(inplace=True)
+        grain_stats_all.set_index(["image", "grain_number", "class", "subgrain"], inplace=True)
+        grain_stats_all.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
+        save_folder_grainstats(config["output_dir"], config["base_dir"], grain_stats_all, "grain_stats")
+        grain_stats_all.reset_index(inplace=True)  # So we can access unique image names
+        images_processed = len(grain_stats_all["image"].unique())
     else:
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
@@ -268,9 +265,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
             LOGGER.error(error)
         if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
-            branch_stats_all.index.set_names(["grain", "node", "branch"], inplace=True)
+            branch_stats_all.index.set_names(["grain_number", "node", "branch"], inplace=True)
             branch_stats_all.reset_index(inplace=True)
-            branch_stats_all.set_index(["image", "grain", "node"], inplace=True)
+            branch_stats_all.set_index(["image", "grain_number", "node"], inplace=True)
             branch_stats_all.to_csv(config["output_dir"] / "matched_branch_statistics.csv", index=True)
             save_folder_grainstats(config["output_dir"], config["base_dir"], branch_stats_all, "matched_branch_stats")
             branch_stats_all.reset_index(inplace=True)  # So we can access unique image names
@@ -315,7 +312,13 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
         LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
+        height_profile_all = {}
+        for image, topostats_object in topostats_object_all.items():
+            height_profile_all[image] = {}
+            for grain_number, grain_crop in topostats_object.grain_crops.items():
+                height_profile_all[image][grain_number] = grain_crop.height_profiles
         dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
+
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
@@ -346,16 +349,16 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
-        if isinstance(grainstats_all, pd.DataFrame) and not grainstats_all.isna().values.all():
-            if grainstats_all.shape[0] > 1:
+        if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+            if grain_stats_all.shape[0] > 1:
                 # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
                 # needs creating
-                summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+                summary_config["output_dir"] = Path(config["output_dir"]) / "summary_distributions"
                 summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
                 LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
                 # Plot summaries
-                summary_config["df"] = grainstats_all.reset_index()
+                summary_config["df"] = grain_stats_all.reset_index()
                 toposum(summary_config)
             else:
                 LOGGER.warning(

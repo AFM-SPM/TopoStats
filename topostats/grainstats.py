@@ -7,7 +7,6 @@ from random import randint
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 import scipy.ndimage
 import skimage.feature as skimage_feature
 import skimage.measure as skimage_measure
@@ -17,7 +16,6 @@ from topostats.classes import TopoStats
 from topostats.grains import get_thresholds
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure import feret, height_profiles
-from topostats.utils import create_empty_dataframe
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -165,24 +163,18 @@ class GrainStats:
         rotation_matrix = np.asarray(((p_1[0], p_1[1], 1), (p_2[0], p_2[1], 1), (p_3[0], p_3[1], 1)))
         return not np.linalg.det(rotation_matrix) > 0
 
-    def calculate_stats(self) -> tuple[pd.DataFrame, dict]:
+    def calculate_stats(self) -> None:
         """
         Calculate the stats of grains in the labelled image.
 
-        Returns
-        -------
-        tuple
-            Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
-            and a list of dictionaries containing grain data to be plotted.
+        Statistics are added to the ``GrainCrop.stats`` attribute. This is a nested dictionary, with the top-level of
+        nesting being the class-type and the nesting within the subgrain type which has values for all statistics.
         """
         all_height_profiles: dict[int, npt.NDArray] = {}
         if self.grain_crops is None or len(self.grain_crops) == 0:
             LOGGER.warning(
                 f"[{self.filename}] : No grain crops for this image, grain statistics can not be calculated."
             )
-            return pd.DataFrame(columns=GRAIN_STATS_COLUMNS), all_height_profiles
-
-        grainstats_rows: list[dict] = []
 
         # Iterate over each grain
         for grain_index, grain_crop in self.grain_crops.items():
@@ -214,14 +206,12 @@ class GrainStats:
 
             # Iterate over all the classes except background
             for class_index in range(1, mask.shape[2]):
-                all_height_profiles[grain_index][class_index] = {}
                 grain_crop.stats[class_index] = {}
                 grain_crop.height_profiles[class_index] = {}
                 class_mask = mask[:, :, class_index]
                 labelled_class_mask = skimage_measure.label(class_mask)
                 # Split the class into connected components
                 class_mask_regionprops = skimage_measure.regionprops(labelled_class_mask)
-
                 # Iterate over all the sub_grains in the class
                 for subgrain_index, subgrain_region in enumerate(class_mask_regionprops):
                     # Remove all but the current subgrain from the mask
@@ -272,20 +262,15 @@ class GrainStats:
                     feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
 
                     if self.extract_height_profile:
-                        _height_profiles = height_profiles.interpolate_height_profile(
-                            img=image, mask=subgrain_only_mask
+                        grain_crop.height_profiles[class_index][subgrain_index] = (
+                            height_profiles.interpolate_height_profile(img=image, mask=subgrain_only_mask)
                         )
-                        all_height_profiles[grain_index][class_index][subgrain_index] = _height_profiles
-                        grain_crop.height_profiles[class_index][subgrain_index] = _height_profiles
                         LOGGER.debug(f"[{self.filename}] : Height profiles extracted.")
 
                     # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
                     # from pixel units to nanometres.
                     # Removed formatting, better to keep accurate until the end, including in CSV, then shorten display
                     stats = {
-                        "grain_number": grain_index,
-                        "class_number": class_index,
-                        "subgrain_number": subgrain_index,
                         "centre_x": centre_x_m,
                         "centre_y": centre_y_m,
                         "radius_min": radius_stats["min"] * length_scaling_factor,
@@ -312,23 +297,7 @@ class GrainStats:
                         "max_feret": feret_statistics["max_feret"],
                         "min_feret": feret_statistics["min_feret"],
                     }
-                    grainstats_rows.append(stats)
-                    # remove indexes from stats and save to nested stats object
-                    _stats = stats.copy()
-                    for x in ["grain_number", "class_number", "subgrain_number"]:
-                        _stats.pop(x)
-                    grain_crop.stats[class_index][subgrain_index] = _stats
-
-        # Check if the dataframe is empty
-        if len(grainstats_rows) == 0:
-            grainstats_df = create_empty_dataframe()
-        else:
-            # Create a dataframe from the list of dictionaries
-            grainstats_df = pd.DataFrame(grainstats_rows)
-        # Change the index column from the arbitrary one to the grain number
-        grainstats_df["image"] = self.filename
-        self.topostats_object.image = self.filename
-        return (grainstats_df, all_height_profiles)
+                    grain_crop.stats[class_index][subgrain_index] = stats
 
     @staticmethod
     def calculate_points(grain_mask: npt.NDArray) -> list:
@@ -706,7 +675,7 @@ class GrainStats:
         Returns
         -------
         tuple:
-            The smallest_bouning_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the
+            The smallest_bounding_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the
             grain. The smallest_bounding_length (float) in pixels (not nanometres), of the smallest bounding rectangle
             for the grain. And the aspect_ratio (float) the width divided by the length of the smallest bounding
             rectangle for the grain. It will always be greater or equal to 1.

@@ -2,7 +2,6 @@
 
 import logging
 from itertools import combinations
-from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -634,7 +633,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             return "+"
         return "0"
 
-    def run_nodestats_tracing(self) -> tuple[dict[str, dict[str, Any]], dict[str, int | Any], dict]:
+    def run_nodestats_tracing(self) -> dict[str, npt.NDArray]:
         """
         Run the nodestats tracing pipeline.
 
@@ -656,21 +655,12 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
-        ordered_trace_data = {}
-        grain_mol_tracing_stats = {}
         molecule_data = {}
         for i, mol_trace in enumerate(ordered_traces):
             if len(mol_trace) > 3:  # if > 4 coords to trace
                 self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
                 self.mol_tracing_stats["topology"] = topology[i]
                 self.mol_tracing_stats["topology_flip"] = topology_flip[i]
-                ordered_trace_data[f"mol_{i}"] = {
-                    "ordered_coords": mol_trace[:, :2],
-                    "heights": self.image[mol_trace[:, 0], mol_trace[:, 1]],
-                    "distances": coord_dist(mol_trace[:, :2]),
-                    "mol_stats": self.mol_tracing_stats,
-                }
-                grain_mol_tracing_stats[i] = self.mol_tracing_stats
                 molecule_data[i] = Molecule(
                     circular=linear_or_circular(mol_trace[:, :2]),
                     topology=topology[i],
@@ -679,12 +669,14 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                     heights=self.image[mol_trace[:, 0], mol_trace[:, 1]],
                     distances=coord_dist(mol_trace[:, :2]),
                 )
+        # Add attributes to self.grain_crop
         self.grain_crop.ordered_trace.molecule_data = molecule_data
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_mols"] = len(molecule_data)
+                self.grain_crop.stats[class_number][subgrain_index]["writhe_string"] = writhe_string
 
-        self.grain_crop.stats["num_mols"] = len(ordered_traces)
-        self.grain_crop.stats["writhe_string"] = writhe_string
-
-        return ordered_trace_data, self.grain_tracing_stats, grain_mol_tracing_stats, self.images
+        return self.images
 
 
 class OrderedTraceTopostats:
@@ -774,25 +766,23 @@ class OrderedTraceTopostats:
 
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
 
-        ordered_trace_data = {}
         molecule_data = {}
         self.grain_crop.ordered_trace.tracing_stats = {}
-        for i, mol_trace in enumerate(ordered_trace):
-            ordered_trace_data[f"mol_{i}"] = {
-                "ordered_coords": mol_trace,
-                "heights": self.image[ordered_trace[0][:, 0], ordered_trace[0][:, 1]],
-                "distances": coord_dist(ordered_trace[0]),
-                "mol_stats": self.mol_tracing_stats,
-            }
-            molecule_data[i] = Molecule(
+        for molecule_number, mol_trace in enumerate(ordered_trace):
+            molecule_data[molecule_number] = Molecule(
                 circular=linear_or_circular(mol_trace[:, :2]),
                 ordered_coords=mol_trace[:, :2],
                 heights=self.image[mol_trace[:, 0], mol_trace[:, 1]],
                 distances=coord_dist(mol_trace[:, :2]),
             )
+        # Add attributes to self.grain_crop
         self.grain_crop.ordered_trace.molecule_data = molecule_data
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_mols"] = len(molecule_data)
+                self.grain_crop.stats[class_number][subgrain_index]["writhe_string"] = "NA"
 
-        return ordered_trace_data, self.grain_tracing_stats, {"0": self.mol_tracing_stats}, self.images
+        return self.images
 
 
 def linear_or_circular(traces) -> bool:
@@ -901,7 +891,7 @@ def ordered_tracing_image(
                 )
                 nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
                 if nodestats_tracing.check_node_errorless():
-                    _, _, _, images = nodestats_tracing.run_nodestats_tracing()
+                    images = nodestats_tracing.run_nodestats_tracing()
                     LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
                     LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no}")
@@ -909,7 +899,7 @@ def ordered_tracing_image(
             elif grain_crop.disordered_trace is not None:
                 LOGGER.debug(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
                 topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
-                _, _, _, images = topostats_tracing.run_topostats_tracing()
+                images = topostats_tracing.run_topostats_tracing()
                 LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
             else:
                 LOGGER.info(
