@@ -9,7 +9,6 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
@@ -197,35 +196,6 @@ class GrainCrop:
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"number of nodes : {len(self.nodes)}"
         )
-
-    # Unfinished - currently only uses Node class names rather than including their content
-    def stats_to_df(self) -> pd.DataFrame:
-        """
-        Convert class attributes to a pandas dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
-        """
-        node_names = {k: v.__class__.__name__ for k, v in self.nodes.items()}
-        data = {
-            "padding": self.padding,
-            "image": self.image,
-            "mask": self.mask,
-            "bbox": self.bbox,
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "thresholds": self.thresholds,
-            "threshold_method": self.threshold_method,
-            "filename": self.filename,
-            "height_profiles": self.height_profiles,
-            "stats": self.stats,
-            "skeleton": self.skeleton,
-            "disordered_trace": self.disordered_trace.__class__.__name__,
-            "nodes": node_names,
-            "ordered_trace": self.ordered_trace.__class__.__name__,
-        }
-        return pd.DataFrame([data])
 
     @property
     def image(self) -> npt.NDArray[float]:
@@ -755,24 +725,6 @@ class DisorderedTrace:
             f"number of branches : {len(self.stats_dict)}"
         )
 
-    def stats_to_df(self) -> pd.DataFrame:
-        """
-        Convert class attributes to a pandas dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
-        """
-        data = {
-            "images": self.images,
-            "grain_endpoints": self.grain_endpoints,
-            "grain_junctions": self.grain_junctions,
-            "total_branch_length": self.total_branch_length,
-            "grain_width_mean": self.grain_width_mean,
-        }
-        return pd.DataFrame([data])
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -997,18 +949,6 @@ class UnMatchedBranch:
         """
         return f"angles : {self.angles}"
 
-    def stats_to_df(self) -> pd.DataFrame:
-        """
-        Convert class attributes to a pandas dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
-        """
-        data = {"angles": self.angles}
-        return pd.DataFrame([data])
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1074,29 +1014,6 @@ class Node:
             f"reduced node area : {self.reduced_node_area}"
         )
 
-    def stats_to_df(self) -> pd.DataFrame:
-        """
-        Convert class attributes to a pandas dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
-        """
-        data = {
-            "error": self.error,
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "branch_stats": self.branch_stats,
-            "unmatched_branch_stats": self.unmatched_branch_stats,
-            "node_coords": self.node_coords,
-            "confidence": self.confidence,
-            "reduced_node_area": self.reduced_node_area,
-            "node_area_skeleton": self.node_area_skeleton,
-            "node_branch_mask": self.node_branch_mask,
-            "node_avg_mask": self.node_avg_mask,
-        }
-        return pd.DataFrame([data])
-
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1152,29 +1069,6 @@ class OrderedTrace:
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
         )
-
-    # Unfinished - currently only uses Molecule class names rather than including their content
-    def stats_to_df(self) -> pd.DataFrame:
-        """
-        Convert class attributes to a pandas dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe of the classes attributes and their data.
-        """
-        molecule_names = {k: v.__class__.__name__ for k, v in self.molecule_data.items()}
-        data = {
-            "molecule_data": molecule_names,
-            "tracing_stats": self.tracing_stats,
-            "grain_molstats": self.grain_molstats,
-            "molecules": self.molecules,
-            "writhe": self.writhe,
-            "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-            "images": self.images,
-            "error": self.error,
-        }
-        return pd.DataFrame([data])
 
     def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
         """
@@ -1304,7 +1198,7 @@ def convert_to_dict(to_convert: Any) -> dict[str, Any]:
 
     Parameters
     ----------
-    to_convert : Any
+    to_convert : dict[str, Any]
         An object to be converted to a dictionary / dictionary item.
 
     Returns

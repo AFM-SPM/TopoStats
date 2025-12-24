@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 import pytest
 
 from topostats.classes import (
@@ -48,7 +47,7 @@ def test_molecule_str(dummy_molecule: Molecule) -> None:
 
 
 def test_molecule_collate_molecule_statistics(dummy_molecule: Molecule, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
+    """Test the Molecule.collate_molecule_statistics() method."""
     molecule_statistics = dummy_molecule.collate_molecule_statistics()
     assert isinstance(molecule_statistics, dict)
     assert molecule_statistics == snapshot
@@ -60,13 +59,6 @@ def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.Cap
         "number of molecules : 2\nnumber of images : 4\nwrithe : negative\npixel to nm scaling : 1.0\nerror : True"
     )
     assert str(dummy_ordered_trace) == expected
-
-
-@pytest.mark.skip(reason="output is wrong only one row, there should be two, one for each molecule")
-def test_ordered_trace_stats_to_df(dummy_ordered_trace: OrderedTrace, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_ordered_trace.stats_to_df(), pd.DataFrame)
-    assert dummy_ordered_trace.stats_to_df().to_string() == snapshot
 
 
 def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
@@ -83,13 +75,6 @@ def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
     assert str(dummy_node) == expected
 
 
-@pytest.mark.skip(reason="output is wrong only one row, there should be two, one for each molecule")
-def test_node_stats_to_df(dummy_node: Node, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_node.stats_to_df(), pd.DataFrame)
-    assert dummy_node.stats_to_df().to_string() == snapshot
-
-
 def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the MatchedBranch.__str__() method."""
     expected = (
@@ -102,26 +87,10 @@ def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.
     assert str(dummy_matched_branch) == expected
 
 
-@pytest.mark.skip(reason="output is wrong only one row with nested dictionaries in columns, need to expand")
-def test_matched_branch_stats_to_df(dummy_matched_branch: MatchedBranch, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_matched_branch.stats_to_df(), pd.DataFrame)
-    assert dummy_matched_branch.stats_to_df().to_string() == snapshot
-
-
 def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch, capsys: pytest.CaptureFixture) -> None:
     """Test the UnMatchedBranch.__str__() method."""
     expected = "angles : [143.163, 69.234, 12.465]"
     assert str(dummy_unmatched_branch) == expected
-
-
-@pytest.mark.skip(
-    reason="output is wrong only one row, do we need angles for unmatched branches? Probably to align with matched"
-)
-def test_unmatched_branch_stats_to_df(dummy_unmatched_branch: UnMatchedBranch, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_unmatched_branch.stats_to_df(), pd.DataFrame)
-    assert dummy_unmatched_branch.stats_to_df().to_string() == snapshot
 
 
 def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace, capsys: pytest.CaptureFixture) -> None:
@@ -135,13 +104,6 @@ def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace, capsys: p
         "number of branches : 1"
     )
     assert str(dummy_disordered_trace) == expected
-
-
-@pytest.mark.skip(reason="output is wrong only one row with nested dictionaries in columns, need to expand")
-def test_disordered_trace_stats_to_df(dummy_disordered_trace: DisorderedTrace, snapshot) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    assert isinstance(dummy_disordered_trace.stats_to_df(), pd.DataFrame)
-    assert dummy_disordered_trace.stats_to_df().to_string() == snapshot
 
 
 @pytest.mark.skip(reason="2025-10-15 - awaiting tests to be written")
@@ -164,29 +126,6 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixtur
         "number of nodes : 2"
     )
     assert str(dummy_graincrop) == expected
-
-
-def test_grain_crop_stats_to_df(dummy_graincrop: GrainCrop) -> None:
-    """Test the GrainCrop.stats_to_df() method."""
-    node_names = {k: v.__class__.__name__ for k, v in dummy_graincrop.nodes.items()}
-    expected = {
-        "padding": dummy_graincrop.padding,
-        "image": dummy_graincrop.image,
-        "mask": dummy_graincrop.mask,
-        "bbox": dummy_graincrop.bbox,
-        "pixel_to_nm_scaling": dummy_graincrop.pixel_to_nm_scaling,
-        "thresholds": dummy_graincrop.thresholds,
-        "threshold_method": dummy_graincrop.threshold_method,
-        "filename": dummy_graincrop.filename,
-        "height_profiles": dummy_graincrop.height_profiles,
-        "stats": dummy_graincrop.stats,
-        "skeleton": dummy_graincrop.skeleton,
-        "disordered_trace": dummy_graincrop.disordered_trace.__class__.__name__,
-        "nodes": node_names,
-        "ordered_trace": dummy_graincrop.ordered_trace.__class__.__name__,
-    }
-    assert isinstance(dummy_graincrop.stats_to_df(), pd.DataFrame)
-    assert dummy_graincrop.stats_to_df().to_string() == snapshot
 
 
 @pytest.mark.parametrize(
@@ -339,111 +278,6 @@ def test_topostats_eq(
     assert topostats_object == expected
 
 
-@pytest.mark.skip(reason="output is wrong only one row with nested dictionaries in columns, need to expand")
-@pytest.mark.parametrize(
-    (
-        "topostats_object",
-        "grain_crops",
-        "filename",
-        "pixel_to_nm_scaling",
-        "topostats_version",
-        "img_path",
-        "image",
-    ),
-    [
-        pytest.param(
-            "topostats_catenanes_2_4_0",
-            "graincrops_catenanes",
-            "example_catenanes.spm",
-            0.488,
-            "2.4.0",
-            str(GRAINCROP_DIR),
-            rng.random((10, 10)),
-            id="catenane v2.4.0",
-        ),
-        pytest.param(
-            "topostats_rep_int_2_4_0",
-            "graincrops_rep_int",
-            "example_rep_int.spm",
-            0.488,
-            "2.4.0",
-            str(GRAINCROP_DIR),
-            rng.random((10, 10)),
-            id="rep_int v2.4.0",
-        ),
-    ],
-)
-def test_topostats_str(
-    topostats_object: str,
-    grain_crops: str,
-    filename: str,
-    pixel_to_nm_scaling: float,
-    topostats_version: str,
-    img_path: str,
-    image: npt.NDArray | None,
-    request,
-    capsys,
-) -> None:
-    """Test the TopoStats.__str__ method."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    topostats_object.image = image
-    grain_crops = request.getfixturevalue(grain_crops)
-    expected = (
-        f"number of grain crops : {len(grain_crops)}\n"
-        f"filename : {filename}\n"
-        f"pixel to nm scaling : {pixel_to_nm_scaling}\n"
-        f"image shape (px) : {image.shape}\n"
-        f"image path : {img_path}\n"
-        f"TopoStats version : {topostats_version}"
-    )
-    assert str(topostats_object) == expected
-    print(topostats_object)
-    captured = capsys.readouterr()
-    assert captured.out.strip() == expected
-
-
-@pytest.mark.parametrize(
-    (
-        "topostats_object",
-        "grain_crops",
-        "filename",
-        "pixel_to_nm_scaling",
-        "topostats_version",
-        "img_path",
-        "image",
-        "image_original",
-        "full_mask_tensor",
-        "config",
-        "basename",
-    ),
-    topostats_test_data,
-)
-def test_topostats_stats_to_df(
-    topostats_object: str,
-    grain_crops: str,
-    filename: str,
-    pixel_to_nm_scaling: float,
-    topostats_version: str,
-    img_path: str,
-    image: npt.NDArray | None,
-    image_original: npt.NDArray | None,
-    full_mask_tensor: npt.NDArray | None,
-    config: str,
-    basename: str,
-    request,
-    snapshot,
-) -> None:
-    """Test the TopoStats.stats_to_df() method."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    topostats_object.image = image
-    topostats_object.image_original = image_original
-    topostats_object.full_mask_tensor = full_mask_tensor
-    grain_crops = request.getfixturevalue(grain_crops)
-    config = request.getfixturevalue(config)
-    assert isinstance(topostats_object.stats_to_df(), pd.DataFrame)
-    assert topostats_object.stats_to_df().to_string() == snapshot
-
-
 @pytest.mark.parametrize(
     ("dummy_class"),
     [
@@ -493,40 +327,3 @@ def test_convert_to_dict(
     """Test converting each class to a dictionary using the convert_to_dict() method."""
     dummy_class = request.getfixturevalue(dummy_class)
     assert convert_to_dict(dummy_class) == snapshot
-
-
-@pytest.mark.parametrize(
-    ("stats_mapping", "topostats_object"),
-    [
-        pytest.param(
-            "molecule_statistics",
-            "topostats_rep_int_2_4_0",
-            id="molecule_statistics",
-        ),
-        pytest.param(
-            "grain_statistics",
-            "topostats_rep_int_2_4_0",
-            id="grain_statistics",
-        ),
-        pytest.param(
-            "image_statistics",
-            "topostats_rep_int_2_4_0",
-            id="image_statistics",
-        ),
-        pytest.param(
-            "branch_statistics",
-            "topostats_rep_int_2_4_0",
-            id="branch_statistics",
-        ),
-    ],
-)
-def test_prepare_data_for_df(
-    stats_mapping: str,
-    topostats_object: str,
-    snapshot,
-    request,
-) -> None:
-    """Test creating subset dictionaries for DataFrame creation using the prepare_data_for_df() method."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    prepared_data = prepare_data_for_df(topostats_object, stats_mapping)
-    assert prepared_data == snapshot

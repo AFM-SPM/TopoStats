@@ -512,6 +512,7 @@ def dummy_molecule() -> Molecule:
         distances=np.array(4),
         curvature_stats=np.array(4),
         bbox=(1, 2, 3, 4),
+        molecule_statistics=None,
     )
 
 
@@ -657,20 +658,9 @@ def graincrops_catenanes(
 
 
 @pytest.fixture()
-def image_stats_catenanes() -> dict[str, Any]:
-    """Dictionary of image statistics for catenanes image."""
-    return {
-        "image_size_x_m": 100,
-        "image_size_y_m": 100,
-        "image_area_m2": 1000000,
-    }
-
-
-@pytest.fixture()
 def topostats_catenanes_2_4_0(
     image_catenanes: npt.NDArray,
     graincrops_catenanes: dict[int, GrainCrop],
-    image_stats_catenanes: dict[str, Any],
     default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example catenanes."""
@@ -684,7 +674,6 @@ def topostats_catenanes_2_4_0(
         img_path=str(GRAINCROP_DIR),
         image=image_catenanes,
         image_original=rng.random((10, 10)),
-        image_stats=image_stats_catenanes,
         full_mask_tensor=rng.random((10, 10, 2)),
         config=default_config,
         full_image_plots={"a": np.array(4)},
@@ -734,20 +723,9 @@ def graincrops_rep_int(graincrop_rep_int_0: GrainCrop) -> dict[int, GrainCrop]:
 
 
 @pytest.fixture()
-def image_stats_rep_int() -> dict[str, Any]:
-    """Dictionary of image statistics for rep_int image."""
-    return {
-        "image_size_x_m": 100,
-        "image_size_y_m": 100,
-        "image_area_m2": 1000000,
-    }
-
-
-@pytest.fixture()
 def topostats_rep_int_2_4_0(
     image_rep_int: npt.NDArray,
     graincrops_rep_int: dict[int, GrainCrop],
-    image_stats_rep_int: dict[str, Any],
     default_config: dict[str, Any],
 ) -> TopoStats:
     """TopoStats object of example rep_int."""
@@ -761,7 +739,6 @@ def topostats_rep_int_2_4_0(
         img_path=str(GRAINCROP_DIR),
         image=image_rep_int,
         image_original=rng.random((10, 10)),
-        image_stats=image_stats_rep_int,
         full_mask_tensor=rng.random((10, 10, 2)),
         config=default_config,
         full_image_plots={"a": np.array(4)},
