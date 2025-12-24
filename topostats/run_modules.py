@@ -238,6 +238,29 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
+    # Molecule statistics - required as we need to average end-to-end and contour length across grains, even if not
+    # being explicitly written to CSV themselves
+    try:
+        molecule_stats_all = pd.concat(molecule_stats_all.values())
+        grain_stats_additions = pd.concat(
+            [
+                # Sum the contour length of molecules within each grain
+                molecule_stats_all[["image", "grain_number", "contour_length"]]
+                .groupby(["image", "grain_number"])
+                .sum(),
+                # Mean end to end distance across molecules within each grain
+                molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
+                .groupby(["image", "grain_number"])
+                .mean(),
+            ],
+            axis=1,
+        )
+        grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
+    except ValueError as error:
+        LOGGER.error("No moleculess found in any images, consider adjusting ordered tracing / splining parameters.")
+        LOGGER.error(error)
+
+    # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
     try:
         grain_stats_all = pd.concat(grain_stats_all.values())
     except ValueError as error:
@@ -248,6 +271,8 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         grain_stats_all.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         grain_stats_all.reset_index(inplace=True)
         grain_stats_all.set_index(["image", "grain_number", "class", "subgrain"], inplace=True)
+        if grain_stats_additions.shape[0] > 0:
+            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
         grain_stats_all.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
         save_folder_grainstats(config["output_dir"], config["base_dir"], grain_stats_all, "grain_stats")
         grain_stats_all.reset_index(inplace=True)  # So we can access unique image names
@@ -292,11 +317,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
         # Molecule statistics
-        try:
-            molecule_stats_all = pd.concat(molecule_stats_all.values())
-        except ValueError as error:
-            LOGGER.error("No moleculess found in any images, consider adjusting ordered tracing / splining parameters.")
-            LOGGER.error(error)
         if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
             molecule_stats_all.reset_index(drop=True, inplace=True)
             molecule_stats_all.set_index(["image", "grain_number"], inplace=True)

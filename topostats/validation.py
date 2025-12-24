@@ -1493,7 +1493,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("aspect_ratio"),
             Optional("bending_angle"),
             Optional("total_contour_length"),
-            Optional("average_end_to_end_distance"),
+            Optional("mean_end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),
             Optional("height_median"),

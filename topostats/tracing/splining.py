@@ -614,11 +614,12 @@ def splining_image(
 
     # iterate through ordered_trace.molecule_data
     for grain_no, grain_crop in topostats_object.grain_crops.items():
-        grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
+        # grain_trace_stats is no longer used, length and end to end distance are added to molecules and averaged from
+        # molecule_statistics_df before merging with grain_stats_df prior to writing to CSV
         mol_no = None
         for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
             try:
-                LOGGER.info(f"[{topostats_object.filename}] : Splining {grain_no} - {mol_no}")
+                LOGGER.info(f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}")
                 # check if want to do nodestats tracing or not
                 if splining_method == "rolling_window":
                     splined_data, tracing_stats = windowTrace(
@@ -629,8 +630,7 @@ def splining_image(
                         rolling_window_resampling=rolling_window_resampling,
                         rolling_window_resample_interval_nm=rolling_window_resample_regular_spatial_interval,
                     ).run_window_trace()
-
-                # if not doing nodestats ordering, do original TS ordering
+                # if not doing nodestats ordering, do original TopoStats ordering
                 elif splining_method == "spline":
                     splined_data, tracing_stats = splineTrace(
                         topostats_object=topostats_object,
@@ -646,29 +646,11 @@ def splining_image(
                         f"Invalid parameter for splining.method : {splining_method}\n"
                         "Please change your configuration, valid values are 'rolling_window' or 'splining'."
                     )
-
-                # ns-rse 2025-12-18 Remove these sections
-                # get combined stats for the grains
-                grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
-                grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
-
+                # Add statistics to Molecule object
                 molecule.splined_coords = splined_data
                 molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
                 molecule.contour_length = tracing_stats["contour_length"]
                 molecule.bbox = grain_crop.bbox
-
-                # get individual mol stats
-                # all_splines_data[grain_no][mol_no] = {
-                #     "splined_coords": splined_data,
-                #     "bbox": grain_crop.bbox,
-                #     "tracing_stats": tracing_stats,
-                # }
-                # molstats[str(grain_no) + "_" + str(mol_no)] = {
-                #     "image": filename,
-                #     "grain_number": grain_no,
-                #     "molecule_number": mol_no,
-                # }
-                # molstats[str(grain_no) + "_" + str(mol_no)].update(tracing_stats)
                 LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
 
             except Exception as e:  # pylint: disable=broad-exception-caught
@@ -677,13 +659,9 @@ def splining_image(
                     "Consider raising an issue on GitHub. Error: ",
                     exc_info=e,
                 )
-                # all_splines_data[grain_no] = {}
 
         if mol_no is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
-        else:
-            # average the e2e dists -> mol_no should always be in the grain dict
-            grain_trace_stats["average_end_to_end_distance"] /= len(grain_crop.ordered_trace.molecule_data)
 
 
 def interpolate_between_two_points_distance(
