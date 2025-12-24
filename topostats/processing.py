@@ -1424,6 +1424,7 @@ def process_scan(
     )
     grain_stats_df["image"] = topostats_object.filename
     grain_stats_df["basename"] = topostats_object.img_path
+    grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
 
     # Save the topostats dictionary object to .topostats file.
     save_topostats_file(

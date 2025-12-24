@@ -1236,3 +1236,64 @@ def dict_to_json(data: dict, output_dir: str | Path, filename: str | Path, inden
     output_file = output_dir / filename
     with output_file.open("w") as f:
         json.dump(data, f, indent=indent, cls=NumpyEncoder)
+
+
+def write_csv(
+    df: pd.DataFrame,
+    dataset: str,
+    names: list[str] | None,
+    index: list[str],
+    output_dir: str | Path,
+    base_dir: str | Path,
+) -> pd.DataFrame:
+    """
+    Write summary statistics files to CSV.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe to write to CSV.
+    dataset : str
+        Type of dataframe, valid values are ``grain_stats``, ``matched_branch_stats``, ``branch_statistics`` or
+        ``mol_stats``.
+    names : list[str], optional
+        List of names to rename current index with.
+    index : list[str]
+        List of columns to set index to.
+    output_dir : str | Path
+        Output directory.
+    base_dir : str | Path
+        Base directory.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pandas dataframe with index renamed and reset.
+    """
+    if dataset not in {"grain_stats", "matched_branch_stats", "branch_statistics", "mol_stats"}:
+        raise ValueError(
+            f"Invalid dataset {dataset}, valid datasets for writing to CSV are "
+            "'grain_stats', 'matched_branch_stats', 'branch_statistics', 'mol_stats'."
+        )
+    dataset_to_csv = {
+        "grain_stats": "grain_statistics.csv",
+        "matched_branch_stats": "matched_branch_statistics.csv",
+        "branch_statistics": "branch_statistics.csv",
+        "mol_stats": "molecule_statistics.csv",
+    }
+    # Set index names
+    print(f"\n{df=}\n")
+    df.index.set_names(names, inplace=True)
+    # Reset index
+    if dataset == "mol_stats":
+        df.reset_index(drop=True, inplace=True)
+    else:
+        df.reset_index(inplace=True)
+    # Set index to required columns
+    df.set_index(index, inplace=True)
+    # Write to CSV
+    df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
+    # Write statistics on per-folder basis
+    save_folder_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
+    # Return dataframe with index reset
+    return df.reset_index(inplace=True)

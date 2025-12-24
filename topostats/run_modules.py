@@ -26,7 +26,7 @@ from topostats.io import (
     dict_to_json,
     find_files,
     read_yaml,
-    save_folder_grainstats,
+    write_csv,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -231,8 +231,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 pbar.update()
                 # Display completion message for the image
                 LOGGER.info(f"[{filename}] Processing completed.")
-
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
@@ -263,20 +261,27 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
     try:
         grain_stats_all = pd.concat(grain_stats_all.values())
+        grain_stats_all.reset_index(inplace=True)
+        grain_stats_all.set_index(["image", "grain_number"], inplace=True)
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
+    if grain_stats_additions.shape[0] > 0:
+        grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
+    else:
+        LOGGER.warning("No molecule statistics to merge with grain statistics.")
     # Write statistics to CSV if there is data.
     if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
-        grain_stats_all.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
-        grain_stats_all.reset_index(inplace=True)
-        grain_stats_all.set_index(["image", "grain_number", "class", "subgrain"], inplace=True)
-        if grain_stats_additions.shape[0] > 0:
-            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
-        grain_stats_all.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], grain_stats_all, "grain_stats")
-        grain_stats_all.reset_index(inplace=True)  # So we can access unique image names
-        images_processed = len(grain_stats_all["image"].unique())
+        grain_stats_all = write_csv(
+            df=grain_stats_all,
+            dataset="grain_stats",
+            # Reset after above merge
+            names=["image", "grain_number"],
+            index=["image", "grain_number", "class", "subgrain"],
+            output_dir=config["output_dir"],
+            base_dir=config["base_dir"],
+        )
+        LOGGER.info(f"Saving grain stats to : {config['output_dir']}/grain_statistics.csv.")
     else:
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
@@ -290,12 +295,15 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
             LOGGER.error(error)
         if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
-            branch_stats_all.index.set_names(["grain_number", "node", "branch"], inplace=True)
-            branch_stats_all.reset_index(inplace=True)
-            branch_stats_all.set_index(["image", "grain_number", "node"], inplace=True)
-            branch_stats_all.to_csv(config["output_dir"] / "matched_branch_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], branch_stats_all, "matched_branch_stats")
-            branch_stats_all.reset_index(inplace=True)  # So we can access unique image names
+            branch_stats_all = write_csv(
+                df=branch_stats_all,
+                dataset="matched_branch_stats",
+                names=["grain_number", "node", "branch"],
+                index=["image", "grain_number", "node", "branch"],
+                output_dir=config["output_dir"],
+                base_dir=config["base_dir"],
+            )
+            LOGGER.info(f"Saving matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
         else:
             LOGGER.warning("There are no matched branch statistics to write to CSV.")
         # Disordered trace statistics
@@ -305,29 +313,34 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
             LOGGER.error(error)
         if isinstance(disordered_tracing_all, pd.DataFrame) and not disordered_tracing_all.isna().values.all():
-            disordered_tracing_all.index.set_names(["grain_number", "index"], inplace=True)
-            disordered_tracing_all.reset_index(inplace=True)
-            disordered_tracing_all.set_index(["image", "grain_number", "index"], inplace=True)
-            disordered_tracing_all.to_csv(config["output_dir"] / "branch_statistics.csv", index=True)
-            save_folder_grainstats(
-                config["output_dir"], config["base_dir"], disordered_tracing_all, "branch_statistics"
+            disordered_tracing_all = write_csv(
+                df=disordered_tracing_all,
+                dataset="branch_statistics",
+                names=["grain_number", "index"],
+                index=["image", "grain_number", "index"],
+                output_dir=config["output_dir"],
+                base_dir=config["base_dir"],
             )
-            disordered_tracing_all.reset_index(inplace=True)  # So we can access unique image names
+            LOGGER.info(f"Saving disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
         # Molecule statistics
         if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
-            molecule_stats_all.reset_index(drop=True, inplace=True)
-            molecule_stats_all.set_index(["image", "grain_number"], inplace=True)
-            molecule_stats_all.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], molecule_stats_all, "mol_stats")
-            molecule_stats_all.reset_index(inplace=True)  # So we can access unique image names
+            molecule_stats_all = write_csv(
+                df=molecule_stats_all,
+                dataset="mol_stats",
+                names=None,
+                index=["image", "grain_number"],
+                output_dir=config["output_dir"],
+                base_dir=config["base_dir"],
+            )
+            LOGGER.info(f"Saving molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
 
     else:
-        LOGGER.info("molecule_statistics.csv and branch_statistics.csv skipped")
+        LOGGER.info("molecule_statistics.csv, branch_statistics.csv and matched_branch_statistics.csv skipped")
 
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
@@ -342,6 +355,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
+    images_processed = len(grain_stats_all["image"].unique())
     LOGGER.debug(f"Images processed : {images_processed}")
 
     # Summary Statistics and Plots
@@ -542,10 +556,8 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
                 # Display completion message for the image
                 LOGGER.info(f"[{img}] Grainstats completed (NB - Filtering was *not* re-run).")
 
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
-
     try:
         image_stats_all_df = pd.concat(results.values())
         image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")

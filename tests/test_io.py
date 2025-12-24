@@ -45,6 +45,7 @@ from topostats.io import (
     save_folder_grainstats,
     save_pkl,
     save_topostats_file,
+    write_csv,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -1701,3 +1702,73 @@ def test_dict_to_topostats(dictionary: dict, topostats_expected: TopoStats) -> N
     """Test for dict_to_topostats()."""
     topostats_object = dict_to_topostats(dictionary)
     assert topostats_object == topostats_expected
+
+
+@pytest.mark.parametrize(
+    ("df", "dataset", "names", "index", "filename"),
+    [
+        pytest.param(
+            pd.DataFrame.from_dict(
+                {
+                    "image": ["test1"],
+                    "grain_number": [0],
+                    "class": [1],
+                    "subgrain": [0],
+                    "random_stat": [42],
+                    "basename": "./tests",
+                },
+                orient="columns",
+            ).set_index(["image", "grain_number"]),
+            "grain_stats",
+            ["image", "grain_number"],
+            ["image", "grain_number", "class", "subgrain"],
+            "grain_statistics.csv",
+            id="grainstats",
+        ),
+        pytest.param(
+            pd.DataFrame.from_dict(
+                {
+                    "image": ["test2"],
+                    "grain_number": [0],
+                    "node": [0],
+                    "branch": 0,
+                    "random_stat": [42],
+                    "basename": "./tests",
+                },
+                orient="columns",
+            ).set_index(["grain_number", "node", "branch"]),
+            "matched_branch_stats",
+            ["grain_number", "node", "branch"],
+            ["image", "grain_number", "node", "branch"],
+            "matched_branch_statistics.csv",
+            id="matched_branch_stats",
+        ),
+        pytest.param(
+            pd.DataFrame.from_dict(
+                {"image": ["test3"], "grain_number": [0], "index": [0], "random_stat": [42], "basename": "./tests"},
+                orient="columns",
+            ).set_index(["grain_number", "index"]),
+            "branch_statistics",
+            ["grain_number", "index"],
+            ["image", "grain_number", "index"],
+            "branch_statistics.csv",
+            id="branch_statistics",
+        ),
+        pytest.param(
+            pd.DataFrame.from_dict(
+                {"image": ["test4"], "grain_number": [0], "random_stats": [42], "basename": "./tests"}, orient="columns"
+            ),
+            "mol_stats",
+            None,
+            ["image", "grain_number"],
+            "molecule_statistics.csv",
+            id="mol_stats",
+        ),
+    ],
+)
+def test_write_csv(
+    df: pd.DataFrame, dataset: str, names: list[str], index: list[str], filename: str, tmp_path: Path
+) -> None:
+    """Test of write_csv() function."""
+    _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path, base_dir="tests/")
+    assert Path(tmp_path / filename).is_file()
