@@ -252,9 +252,9 @@ def run_grains(  # noqa: C901
                                             continue
 
                                 # Plot the grain crop without mask
-                                plotting_config["plot_dict"]["grain_image"]["filename"] = (
-                                    f"{topostats_object.filename}_grain_{grain_number}"
-                                )
+                                plotting_config["plot_dict"]["grain_image"][
+                                    "filename"
+                                ] = f"{topostats_object.filename}_grain_{grain_number}"
                                 plotting_config["plot_dict"]["grain_image"]["output_dir"] = grain_out_path
                                 Images(
                                     data=crop_image,
@@ -264,9 +264,9 @@ def run_grains(  # noqa: C901
                                 plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path
                                 # Tensor, iterate over channels
                                 for tensor_class in range(1, crop_mask.shape[2]):
-                                    plotting_config["plot_dict"]["grain_mask"]["filename"] = (
-                                        f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
-                                    )
+                                    plotting_config["plot_dict"]["grain_mask"][
+                                        "filename"
+                                    ] = f"{topostats_object.filename}_grain_mask_{grain_number}_class_{tensor_class}"
                                     Images(
                                         data=crop_image,
                                         masked_array=crop_mask[:, :, tensor_class],
@@ -280,9 +280,9 @@ def run_grains(  # noqa: C901
                             # Tensor, iterate over each channel
                             for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
                                 # Set filename for this class
-                                plotting_config["plot_dict"][plot_name]["filename"] = (
-                                    f"{topostats_object.filename}_{grain_number}_masked_overlay_class_{tensor_class}"
-                                )
+                                plotting_config["plot_dict"][plot_name][
+                                    "filename"
+                                ] = f"{topostats_object.filename}_masked_overlay_class_{tensor_class}"
                                 full_mask_tensor_class = topostats_object.full_mask_tensor[:, :, tensor_class]
                                 full_mask_tensor_class_regionprops = Grains.get_region_properties(
                                     Grains.label_regions(full_mask_tensor_class)
@@ -344,7 +344,6 @@ def run_grainstats(
         # "grainstats_config"? (Must be popped from `grainstats_config` though as not arg to GrainStats)
         _ = {index + 1: class_name for index, class_name in enumerate(grainstats_config.pop("class_names"))}
         # Grain Statistics :
-<<<<<<< HEAD
         try:
             LOGGER.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
             grain_plot_dict = {
@@ -372,107 +371,6 @@ def run_grainstats(
             return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of grainstats disabled.")
     return
-||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
-        # try:
-        LOGGER.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
-        grain_plot_dict = {
-            key: value
-            for key, value in plotting_config["plot_dict"].items()
-            if key in ["grain_image", "grain_mask", "grain_mask_image"]
-        }
-        grainstats_dict = {}
-        height_profiles_dict = {}
-
-        # REFACTOR : Remove GrainCropsDirection (i.e. remove for loop)
-        # There are two layers to process those above the given threshold and those below
-        # for direction, grain_crops_direction in topostats_object.grain_crops.__dict__.items():
-        grainstats_calculator = GrainStats(
-            topostats_object=topostats_object,
-            base_output_dir=grain_out_path,
-            plot_opts=grain_plot_dict,
-            **grainstats_config,
-        )
-        # grainstats_dict[direction], height_profiles_dict[direction] = grainstats_calculator.calculate_stats()
-        # grainstats_dict[direction]["threshold"] = direction
-        grainstats_df, height_profiles_dict = grainstats_calculator.calculate_stats()
-        # Create results dataframe from above and below results
-        # Appease pylint and ensure that grainstats_df is always created
-        # grainstats_df = create_empty_dataframe(column_set="grainstats")
-        # if "above" in grainstats_dict and "below" in grainstats_dict:
-        #     grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
-        # elif "above" in grainstats_dict:
-        #     grainstats_df = grainstats_dict["above"]
-        # elif "below" in grainstats_dict:
-        #     grainstats_df = grainstats_dict["below"]
-        # else:
-        #     raise ValueError("grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible.")
-        grainstats_df["basename"] = topostats_object.img_path.parent
-        grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
-        LOGGER.info(f"[{topostats_object.filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
-        LOGGER.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
-        return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
-        # except Exception:
-    #         LOGGER.info(
-    #             f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
-    #         )
-    #         return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
-    # else:
-    #     LOGGER.info(
-    #         f"[{topostats_object.filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
-    #     )
-    #     return create_empty_dataframe(column_set="grainstats"), {}, {}
-=======
-        # try:
-        LOGGER.info(f"[{topostats_object.filename}] : *** Grain Statistics ***")
-        grain_plot_dict = {
-            key: value
-            for key, value in plotting_config["plot_dict"].items()
-            if key in ["grain_image", "grain_mask", "grain_mask_image"]
-        }
-        # grainstats_dict = {}
-        height_profiles_dict = {}
-
-        # REFACTOR : Remove GrainCropsDirection (i.e. remove for loop)
-        # There are two layers to process those above the given threshold and those below
-        # for direction, grain_crops_direction in topostats_object.grain_crops.__dict__.items():
-        grainstats_calculator = GrainStats(
-            topostats_object=topostats_object,
-            base_output_dir=grain_out_path,
-            plot_opts=grain_plot_dict,
-            **grainstats_config,
-        )
-        # grainstats_dict[direction], height_profiles_dict[direction] = grainstats_calculator.calculate_stats()
-        # grainstats_dict[direction]["threshold"] = direction
-        grainstats_df, height_profiles_dict = grainstats_calculator.calculate_stats()
-        # Create results dataframe from above and below results
-        # Appease pylint and ensure that grainstats_df is always created
-        # grainstats_df = create_empty_dataframe(column_set="grainstats")
-        # if "above" in grainstats_dict and "below" in grainstats_dict:
-        #     grainstats_df = pd.concat([grainstats_dict["below"], grainstats_dict["above"]])
-        # elif "above" in grainstats_dict:
-        #     grainstats_df = grainstats_dict["above"]
-        # elif "below" in grainstats_dict:
-        #     grainstats_df = grainstats_dict["below"]
-        # else:
-        #     raise ValueError("grainstats dictionary has neither 'above' nor 'below' keys. This should be impossible.")
-        grainstats_df["basename"] = topostats_object.img_path.parent
-        grainstats_df["class_name"] = grainstats_df["class_number"].map(class_names)
-        for graincrop in topostats_object.grain_crops:
-            graincrop["class_name"] = graincrop["class_number"].map(class_names)
-        topostats_object.grain_crops[0].stats["class_name"] = grainstats_df["class_number"].map(class_names)
-        LOGGER.info(f"[{topostats_object.filename}] : Calculated grainstats for {len(grainstats_df)} grains.")
-        LOGGER.info(f"[{topostats_object.filename}] : Grainstats stage completed successfully.")
-        return grainstats_df, height_profiles_dict, grainstats_calculator.grain_crops
-        # except Exception:
-        #     LOGGER.info(
-        #         f"[{topostats_object.filename}] : Errors occurred whilst calculating grain statistics. Returning empty dataframe."
-        #     )
-        #     return create_empty_dataframe(column_set="grainstats"), height_profiles_dict, {}
-    LOGGER.info(
-        f"[{topostats_object.filename}] : Calculation of grainstats disabled, returning empty dataframe and empty height_profiles."
-    )
-    return create_empty_dataframe(column_set="grainstats"), {}, {}
->>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
 
 
 def run_disordered_tracing(  # noqa: C901
@@ -517,126 +415,9 @@ def run_disordered_tracing(  # noqa: C901
             LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping disordered tracing.")
             return
         try:
-<<<<<<< HEAD
             trace_image_disordered(
                 topostats_object=topostats_object,
                 **disordered_tracing_config,
-||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
-            for direction, grain_crop_direction in topostats_object.grain_crops.__dict__.items():
-                if grain_crop_direction is None:
-                    LOGGER.warning(
-                        f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
-                    )
-                    continue
-                # ns-rse 2025-10-01 - Ultimately remove assignment and returning of values, everything is stored within classes
-                (
-                    disordered_traces_cropped_data,
-                    _disordered_trace_grainstats,
-                    disordered_tracing_images,
-                    disordered_tracing_stats,
-                ) = trace_image_disordered(
-                    topostats_object=topostats_object,
-                    direction=direction,
-                    **disordered_tracing_config,
-                )
-                # save per image new grainstats stats
-                _disordered_trace_grainstats["threshold"] = direction
-                disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
-                disordered_tracing_stats["threshold"] = direction
-                disordered_tracing_stats["basename"] = Path(topostats_object.img_path).parent
-                disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
-                # append direction results to dict
-                disordered_traces[direction] = disordered_traces_cropped_data
-                # save plots
-                Images(
-                    topostats_object.image,
-                    masked_array=disordered_tracing_images.pop("pruned_skeleton"),
-                    output_dir=core_out_path,
-                    filename=f"{topostats_object.filename}_{direction}_disordered_trace",
-                    **plotting_config["plot_dict"]["pruned_skeleton"],
-                ).plot_and_save()
-                for plot_name, image_value in disordered_tracing_images.items():
-                    try:
-                        Images(
-                            topostats_object.image,
-                            masked_array=image_value,
-                            output_dir=tracing_out_path / direction,
-                            **plotting_config["plot_dict"][plot_name],
-                        ).plot_and_save()
-                    except KeyError:
-                        LOGGER.warning(
-                            f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                            "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                            "GitHub to report this problem (https://github.com/AFM-SPM/TopoStats/issues/new?template=bug_report.yaml)."
-                        )
-            # merge disordered tracing with grainstats data with other dataframe
-            resultant_grainstats = (
-                pd.merge(
-                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
-                )
-                # if grainstats_df is not None
-                # else disordered_trace_grainstats
-                if disordered_trace_grainstats.shape != (0, 0)
-                else grainstats_df
-=======
-            for direction, grain_crop_direction in topostats_object.grain_crops.__dict__.items():
-                if grain_crop_direction is None:
-                    LOGGER.warning(
-                        f"[{topostats_object.filename}] : No grains exist for the {direction} direction. Skipping disordered_tracing for {direction}."
-                    )
-                    continue
-                # ns-rse 2025-10-01 - Ultimately remove assignment and returning of values, everything is stored within classes
-                (
-                    disordered_traces_cropped_data,
-                    _disordered_trace_grainstats,
-                    disordered_tracing_images,
-                    disordered_tracing_stats,
-                ) = trace_image_disordered(
-                    topostats_object=topostats_object,
-                    direction=direction,
-                    **disordered_tracing_config,
-                )
-                # save per image new grainstats stats
-                _disordered_trace_grainstats["threshold"] = direction
-                disordered_trace_grainstats = pd.concat([disordered_trace_grainstats, _disordered_trace_grainstats])
-                disordered_tracing_stats["threshold"] = direction
-                disordered_tracing_stats["basename"] = Path(topostats_object.img_path).parent
-                topostats_object.basename = Path(topostats_object.img_path).parent
-                disordered_tracing_stats_image = pd.concat([disordered_tracing_stats_image, disordered_tracing_stats])
-                # append direction results to dict
-                disordered_traces[direction] = disordered_traces_cropped_data
-                # save plots
-                Images(
-                    topostats_object.image,
-                    masked_array=disordered_tracing_images.pop("pruned_skeleton"),
-                    output_dir=core_out_path,
-                    filename=f"{topostats_object.filename}_{direction}_disordered_trace",
-                    **plotting_config["plot_dict"]["pruned_skeleton"],
-                ).plot_and_save()
-                for plot_name, image_value in disordered_tracing_images.items():
-                    try:
-                        Images(
-                            topostats_object.image,
-                            masked_array=image_value,
-                            output_dir=tracing_out_path / direction,
-                            **plotting_config["plot_dict"][plot_name],
-                        ).plot_and_save()
-                    except KeyError:
-                        LOGGER.warning(
-                            f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                            "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                            "GitHub to report this problem (https://github.com/AFM-SPM/TopoStats/issues/new?template=bug_report.yaml)."
-                        )
-            # merge disordered tracing with grainstats data with other dataframe
-            resultant_grainstats = (
-                pd.merge(
-                    grainstats_df, disordered_trace_grainstats, how="outer", on=["image", "threshold", "grain_number"]
-                )
-                # if grainstats_df is not None
-                # else disordered_trace_grainstats
-                if disordered_trace_grainstats.shape != (0, 0)
-                else grainstats_df
->>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
             )
             LOGGER.info(f"[{topostats_object.filename}] : Disordered Tracing stage completed successfully.")
         except ValueError as e:
@@ -1017,87 +798,10 @@ def run_curvature_stats(
             return
         try:
             curvature_config.pop("run")
-<<<<<<< HEAD
             LOGGER.info(f"[{topostats_object.filename}] : *** Curvature Stats ***")
             # Pass the traces to the curvature stats function
             calculate_curvature_stats_image(topostats_object=topostats_object, **curvature_config)
             LOGGER.info(f"[{topostats_object.filename}] : Curvature stage completed successfully.")
-||||||| parent of b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
-            LOGGER.info(f"[{filename}] : *** Curvature Stats ***")
-            all_directions_grains_curvature_stats_dict: dict = {}
-            for direction in grain_trace_data.keys():
-                # Pass the traces to the curvature stats function
-                grains_curvature_stats_dict = calculate_curvature_stats_image(
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                )
-
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    filename=f"{filename}_{direction}_curvature",
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["curvature"],
-                ).plot_curvatures(
-                    image=image,
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
-
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    output_dir=tracing_out_path / direction / "curvature",
-                    **plotting_config["plot_dict"]["curvature_individual_grains"],
-                ).plot_curvatures_individual_grains(
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grains_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
-
-                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
-
-            return all_directions_grains_curvature_stats_dict
-=======
-            LOGGER.info(f"[{filename}] : *** Curvature Stats ***")
-            all_directions_grains_curvature_stats_dict: dict = {}
-            for direction in grain_trace_data.keys():
-                # Pass the traces to the curvature stats function
-                grains_curvature_stats_dict = calculate_curvature_stats_image(  #
-                    # topostats_object=topostats_object
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    pixel_to_nm_scaling=pixel_to_nm_scaling,
-                )
-
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    filename=f"{filename}_{direction}_curvature",
-                    output_dir=core_out_path,
-                    **plotting_config["plot_dict"]["curvature"],
-                ).plot_curvatures(
-                    image=image,
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grain_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
-
-                Images(
-                    np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                    output_dir=tracing_out_path / direction / "curvature",
-                    **plotting_config["plot_dict"]["curvature_individual_grains"],
-                ).plot_curvatures_individual_grains(
-                    cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
-                    all_grains_smoothed_data=grain_trace_data[direction],
-                    colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
-                )
-
-                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
-
-            return all_directions_grains_curvature_stats_dict
->>>>>>> b4a73a2477 (Added convert_to_dict() and prepare_data_for_df() functions to classes.py, and expanded classes to store all required attributes for CSV outputs)
         except Exception as e:
             LOGGER.error(
                 f"[{topostats_object.filename}] : Curvature calculation failed. Consider raising an issue on GitHub. Error: ",

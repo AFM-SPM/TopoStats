@@ -324,7 +324,7 @@ def check_pixel_touching_edge(mask: npt.NDArray) -> bool:
     return mask[:, 0].any() or mask[:, -1].any() or mask[0, :].any() or mask[-1, :].any()
 
 
-def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals
+def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-locals, too-many-statements
     topostats_object: TopoStats,
     class_index: int,
     min_skeleton_size: int,
@@ -426,7 +426,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 }
                 # Instantiate a DisorderedTrace object, setting its attributes and add to the GrainCrop.disordered_trace
                 # attribute in the right direction
-                disordered_trace = DisorderedTrace(
+                topostats_object.grain_crops[grain_number].disordered_trace = DisorderedTrace(
                     images=disordered_trace_images,
                     grain_endpoints=np.int64((conv_pruned_skeleton == 2).sum()),
                     grain_junctions=np.int64((conv_pruned_skeleton == 3).sum()),
@@ -445,9 +445,9 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 for index, _ in enumerate(skan_df.iterrows()):
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index] = {}
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["image"] = filename
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_distance"] = (
-                        skan_skeleton.path_lengths()[index]
-                    )
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index][
+                        "branch_distance"
+                    ] = skan_skeleton.path_lengths()[index]
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_type"] = (
                         np.int64(skan_df["branch_type"])[index]
                     )

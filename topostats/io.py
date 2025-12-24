@@ -20,7 +20,7 @@ from numpyencoder import NumpyEncoder
 from packaging.version import parse as parse_version
 from ruamel.yaml import YAML, YAMLError
 
-from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_COMMIT, TOPOSTATS_VERSION, __release__, __version__
+from topostats import CONFIG_DOCUMENTATION_REFERENCE, TOPOSTATS_BASE_VERSION, TOPOSTATS_COMMIT, __release__, __version__
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
@@ -1282,7 +1282,6 @@ def write_csv(
         "mol_stats": "molecule_statistics.csv",
     }
     # Set index names
-    print(f"\n{df=}\n")
     df.index.set_names(names, inplace=True)
     # Reset index
     if dataset == "mol_stats":
@@ -1296,4 +1295,5 @@ def write_csv(
     # Write statistics on per-folder basis
     save_folder_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
     # Return dataframe with index reset
-    return df.reset_index(inplace=True)
+    df.reset_index(inplace=True)
+    return df

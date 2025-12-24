@@ -368,7 +368,6 @@ class Images:
                         colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
                     )
 
-                    molecule_trace_coords = molecule_data_smoothed_trace["splined_coords"]
                     # pylint cannot see that mpl.cm.viridis is a valid attribute
                     # pylint: disable=no-member
                     cmap = mpl.cm.coolwarm
@@ -412,7 +411,7 @@ class Images:
         grain_crop: GrainCrop,
         grain_number: int,
         colourmap_normalisation_bounds: tuple[float, float],
-    ) -> None:
+    ) -> tuple[plt.Figure | None, plt.Axes | None]:
         """
         Plot curvature intensity and defects of individual grains.
 
@@ -424,6 +423,11 @@ class Images:
             Grain number being plotted.
         colourmap_normalisation_bounds : tuple
             Tuple of the colour map normalisation bounds.
+
+        Returns
+        -------
+        tuple[plt.Figure | None, plt.Axes | None]
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         fig, ax = None, None
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
