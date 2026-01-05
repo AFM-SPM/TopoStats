@@ -586,9 +586,9 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
     # Set logging level
     _set_logging(config["log_level"])
 
-    assert config["file_ext"] == ".spm", (
-        "Can only rename old .spm files, change your file-ext in config or command line"
-    )
+    assert (
+        config["file_ext"] == ".spm"
+    ), "Can only rename old .spm files, change your file-ext in config or command line"
     all_spm_files = find_files(config["base_dir"], file_ext=config["file_ext"])
     LOGGER.info(f"Total Bruker files found : {len(all_spm_files)}")
     OLD_BRUKER_RE = re.compile(r"\.\d+$")
