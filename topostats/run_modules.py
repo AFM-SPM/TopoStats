@@ -25,7 +25,7 @@ from topostats.io import (
     dict_to_json,
     find_files,
     read_yaml,
-    save_folder_grainstats,
+    # save_folder_grainstats,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -316,7 +316,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         results.reset_index(drop=True, inplace=True)
         results.set_index(["image", "threshold", "grain_number"], inplace=True)
         results.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
+        # save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
         results.reset_index(inplace=True)  # So we can access unique image names
         images_processed = len(results["image"].unique())
     else:
@@ -328,9 +328,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             disordered_trace_results.reset_index(inplace=True)
             disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
             disordered_trace_results.to_csv(config["output_dir"] / "branch_statistics.csv", index=True)
-            save_folder_grainstats(
-                config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
-            )
+            # save_folder_grainstats(
+            #     config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
+            # )
             disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
@@ -339,7 +339,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             mols_results.reset_index(drop=True, inplace=True)
             mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
             mols_results.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
+            # save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
             mols_results.reset_index(inplace=True)  # So we can access unique image names
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
@@ -586,9 +586,9 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
     # Set logging level
     _set_logging(config["log_level"])
 
-    assert (
-        config["file_ext"] == ".spm"
-    ), "Can only rename old .spm files, change your file-ext in config or command line"
+    assert config["file_ext"] == ".spm", (
+        "Can only rename old .spm files, change your file-ext in config or command line"
+    )
     all_spm_files = find_files(config["base_dir"], file_ext=config["file_ext"])
     LOGGER.info(f"Total Bruker files found : {len(all_spm_files)}")
     OLD_BRUKER_RE = re.compile(r"\.\d+$")
