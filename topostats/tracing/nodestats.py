@@ -94,14 +94,17 @@ class nodeStats:
             self.smoothed_mask = grain_crop.disordered_trace.images["smoothed_mask"]  # only used to average traces
         except AttributeError as e:
             if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
-                raise AttributeError(f"[{self.filename}] : Disordered tracing 'image' not found.") from e
+                raise AttributeError(
+                    f"[{self.filename}] : 'grain_crop.disordered_trace.smoothed_mask' not found for grain {n_grain}."
+                ) from e
             raise e
         try:
-            # @ns-rse 2025-11-10 : Should this perhaps be "pruned_skeleton"?
-            self.skeleton = grain_crop.disordered_trace.images["skeleton"]
+            self.skeleton = grain_crop.disordered_trace.images["pruned_skeleton"]
         except AttributeError as e:
             if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
-                raise AttributeError(f"[{self.filename}] : Disordered tracing 'skeleton' not found.") from e
+                raise AttributeError(
+                    f"[{self.filename}] : 'grain_crop.disordered_trace.skeleton' not found for grain {n_grain}."
+                ) from e
             raise e
         self.pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
         self.node_joining_length = node_joining_length

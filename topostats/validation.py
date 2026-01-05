@@ -1130,6 +1130,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "disordered_tracing",
         },
         "pruned_skeleton": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",

@@ -246,6 +246,7 @@ skeleton:
   savefig_dpi: 600
   module: "disordered_tracing"
 pruned_skeleton:
+  filename: "22-pruned_skeletons"
   title: "Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"

@@ -406,7 +406,9 @@ def run_disordered_tracing(  # noqa: C901
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
     )
     tracing_out_path = (
-        core_out_path / f"{topostats_object.filename}" / "dnatracing" if tracing_out_path is None else tracing_out_path
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "disordered"
+        if tracing_out_path is None
+        else tracing_out_path / "disordered"
     )
     if disordered_tracing_config["run"]:
         disordered_tracing_config.pop("run")
@@ -441,17 +443,14 @@ def run_disordered_tracing(  # noqa: C901
                     LOGGER.info(
                         f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}."
                     )
-                    Images(
-                        data=grain_crop.image,
-                        masked_array=grain_crop.disordered_trace.images["pruned_skeleton"],
-                        output_dir=tracing_out_path,
-                        filename=f"{topostats_object.filename}_grain_{grain_number}_disordered_trace",
-                        **plotting_config["plot_dict"]["pruned_skeleton"],
-                    ).plot_and_save()
-                    # Plot other disordered tracing stages (skeleton, branch_types and branch_indexes)
+                    # Plot other disordered tracing stages...
+                    # - original skeleton
+                    # - pruned skeletons
+                    # - branch_types
+                    # - branch_indexes
                     for plot_name, image_value in grain_crop.disordered_trace.images.items():
                         # Skip plotting the image and grain themselves and pruned_skeleton (plotted above)
-                        if plot_name in {"image", "grain", "pruned_skeleton"}:
+                        if plot_name in {"image", "grain"}:
                             continue
                         try:
                             # ns-rse 2025-12-04 : fudge to get filenames consistent
@@ -477,7 +476,7 @@ def run_disordered_tracing(  # noqa: C901
                     Images(
                         data=topostats_object.image,
                         masked_array=topostats_object.full_image_plots[plot_name],
-                        output_dir=tracing_out_path,  # / direction,
+                        output_dir=tracing_out_path,
                         **plotting_config["plot_dict"][plot_name],
                     ).plot_and_save()
 
@@ -678,9 +677,11 @@ def run_ordered_tracing(
                         Images(
                             data=topostats_object.image,
                             masked_array=topostats_object.full_image_plots[plot_name],
-                            output_dir=tracing_out_path,  # / direction,
+                            output_dir=tracing_out_path,
                             **plotting_config["plot_dict"][plot_name],
                         ).plot_and_save()
+                    # ns-rse 2026-01-05 - Add in section here to plot grains to dnatracing/ordered for at least
+                    # OrderedTrace.images["ordered_traces"]
                     LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
