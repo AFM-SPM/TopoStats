@@ -228,6 +228,7 @@ def run_grains(  # noqa: C901
                                 if grain_crop_plot_size_nm == -1:
                                     crop_image = grain_crop.image
                                     crop_mask = grain_crop.mask
+                                # ...otherwise the crop is resized
                                 else:
                                     try:
                                         LOGGER.info(
@@ -277,7 +278,7 @@ def run_grains(  # noqa: C901
                             # Plot image with overlaid masks
                             plot_name = "mask_overlay"
                             plotting_config["plot_dict"][plot_name]["output_dir"] = core_out_path
-                            # Tensor, iterate over each channel
+                            # Iterate over each tensor class/channel
                             for tensor_class in range(1, topostats_object.full_mask_tensor.shape[2]):
                                 # Set filename for this class
                                 plotting_config["plot_dict"][plot_name][
@@ -441,7 +442,7 @@ def run_disordered_tracing(  # noqa: C901
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     # Plot pruned skeletons
                     LOGGER.info(
-                        f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}."
+                        f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}"
                     )
                     # Plot other disordered tracing stages...
                     # - original skeleton
@@ -470,8 +471,6 @@ def run_disordered_tracing(  # noqa: C901
                                 "If you  are NOT using a custom plotting configuration then please raise an issue on"
                                 "GitHub to report this problem."
                             )
-                # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
-                # plotting them (which requires distinguishing them from those generated during ordered tracing)
                 for plot_name in ["smoothed_mask", "skeleton", "branch_indexes", "branch_types"]:
                     Images(
                         data=topostats_object.image,
@@ -551,7 +550,6 @@ def run_nodestats(  # noqa: C901
             )
         else:
             try:
-                tracing_out_path.mkdir(parents=True, exist_ok=True)
                 # For each node within each grain make three plots
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     for node_number, node in grain_crop.nodes.items():
@@ -603,7 +601,7 @@ def run_nodestats(  # noqa: C901
 
 
 # need to add in the molstats here
-def run_ordered_tracing(
+def run_ordered_tracing(  # noqa: C901
     topostats_object: TopoStats,
     core_out_path: Path,
     tracing_out_path: Path,
@@ -630,6 +628,11 @@ def run_ordered_tracing(
         topostats_object.config["ordered_tracing"] if ordered_tracing_config is None else ordered_tracing_config
     )
     plotting_config = topostats_object.config["plotting"] if plotting_config is None else plotting_config
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "ordered_tracing"
+        if tracing_out_path is None
+        else tracing_out_path / "ordered_tracing"
+    )
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
         if topostats_object.grain_crops is None:
@@ -662,6 +665,8 @@ def run_ordered_tracing(
                         "core_set"
                     ] = True  # fudge around core having own cmap
                     # ns-rse 2025-11-27 : What is being plotted here?
+                    # ns-rse 2026-01-05 : fudge to get round filenames
+                    _filename = plotting_config["plot_dict"]["ordered_traces"].pop("filename")
                     Images(
                         filename=f"{topostats_object.filename}_ordered_traces",
                         data=topostats_object.image,
@@ -669,10 +674,9 @@ def run_ordered_tracing(
                         output_dir=core_out_path,
                         **plotting_config["plot_dict"]["ordered_traces"],
                     ).plot_and_save()
+                    plotting_config["plot_dict"]["ordered_traces"]["filename"] = _filename
 
                     # save optional diagnostic plots (those with core_set = False)
-                    # ns-rse 2025-12-10 : Reconsider if these plots are useful, if they are we need a configurable way of
-                    # plotting them (which requires distinguishing them from those generated during disordered tracing)
                     for plot_name in ["all_molecules", "over_under", "trace_segments"]:
                         Images(
                             data=topostats_object.image,
@@ -680,8 +684,36 @@ def run_ordered_tracing(
                             output_dir=tracing_out_path,
                             **plotting_config["plot_dict"][plot_name],
                         ).plot_and_save()
-                    # ns-rse 2026-01-05 - Add in section here to plot grains to dnatracing/ordered for at least
-                    # OrderedTrace.images["ordered_traces"]
+                        Images(
+                            data=topostats_object.image,
+                            masked_array=topostats_object.full_image_plots[plot_name],
+                            output_dir=tracing_out_path,
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+                    # Plot grains to dnatracing/ordered
+                    for grain_number, grain_crop in topostats_object.grain_crops.items():
+                        LOGGER.info(
+                            f"[{topostats_object.filename}] : Plotting ordered traces for grain {grain_number + 1}"
+                        )
+                        for plot_name, image_value in grain_crop.ordered_trace.images.items():
+                            try:
+                                # ns-rse 2026-01-05 : fudge to get filenames consistent
+                                config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
+                                filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
+                                Images(
+                                    data=grain_crop.image,
+                                    masked_array=image_value,
+                                    output_dir=tracing_out_path,
+                                    filename=filename,
+                                    **plotting_config["plot_dict"][plot_name],
+                                ).plot_and_save()
+                                plotting_config["plot_dict"][plot_name]["filename"] = config_filename
+                            except KeyError:
+                                LOGGER.warning(
+                                    f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
+                                    "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                    "GitHub to report this problem."
+                                )
                     LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(

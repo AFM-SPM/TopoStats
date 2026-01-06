@@ -1269,6 +1269,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "nodestats",
         },
         "ordered_traces": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",

@@ -530,7 +530,6 @@ def plot_crossing_linetrace_halfmax(
 
     ax.set_xlabel("Distance from Node (nm)")
     ax.set_ylabel("Height")
-    print(f"\n{title=}\n")
     ax.set_title(title)
     ax.legend()
     return fig, ax

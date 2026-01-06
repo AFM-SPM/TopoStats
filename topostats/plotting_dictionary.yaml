@@ -321,6 +321,7 @@ node_line_trace:
   module: "nodestats"
 # Ordered tracing troubleshooting images
 ordered_traces:
+  filename: "##-ordered_traces"
   title: "Ordered Traces"
   image_type: "non-binary"
   mask_cmap: "viridis"
