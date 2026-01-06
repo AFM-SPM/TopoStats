@@ -1,0 +1,1965 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.tracing.ordered_tracing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/tracing/ordered_tracing';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="ordered_tracing.html">v2.3.2</a></li>
+  <li><a href="../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../topostats.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.ordered_tracing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.tracing.ordered_tracing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Order single pixel skeletons with or without NodeStats Statistics.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">combinations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.morphology</span><span class="w"> </span><span class="kn">import</span> <span class="n">binary_dilation</span><span class="p">,</span> <span class="n">label</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topoly</span><span class="w"> </span><span class="kn">import</span> <span class="n">jones</span><span class="p">,</span> <span class="n">translate_code</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.tracing.tracingfuncs</span><span class="w"> </span><span class="kn">import</span> <span class="n">coord_dist</span><span class="p">,</span> <span class="n">genTracingFuncs</span><span class="p">,</span> <span class="n">order_branch</span><span class="p">,</span> <span class="n">reorderTrace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convolve_skeleton</span><span class="p">,</span> <span class="n">coords_2_img</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+<span class="c1"># pylint: disable=possibly-used-before-assignment</span>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrderedTraceNodestats</span><span class="p">:</span>  <span class="c1"># pylint: disable=too-many-instance-attributes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Order single pixel thick skeleton coordinates via NodeStats results.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        A cropped image array.</span>
+<span class="sd">    nodestats_dict : dict</span>
+<span class="sd">        The nodestats results for a specific grain.</span>
+<span class="sd">    skeleton : npt.NDArray</span>
+<span class="sd">        The pruned skeleton mask array.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        The image filename (for logging purposes).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">nodestats_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the OrderedTraceNodestats class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            A cropped image array.</span>
+<span class="sd">        nodestats_dict : dict</span>
+<span class="sd">            The nodestats results for a specific grain.</span>
+<span class="sd">        skeleton : npt.NDArray</span>
+<span class="sd">            The pruned skeleton mask array.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The image filename (for logging purposes).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span> <span class="o">=</span> <span class="n">nodestats_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">skeleton</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;num_mols&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;circular&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;circular&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;topology&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;topology_flip&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="s2">&quot;nodestats&quot;</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;over_under&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+            <span class="s2">&quot;all_molecules&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+            <span class="s2">&quot;ordered_traces&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+            <span class="s2">&quot;trace_segments&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ordered_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># pylint: disable=too-many-locals</span>
+    <span class="c1"># pylint: disable=too-many-branches</span>
+<div class="viewcode-block" id="OrderedTraceNodestats.compile_trace">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compile_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reverse_min_conf_crossing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]:</span>  <span class="c1"># noqa: C901</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the trace and diagnostic crossing trace and molecule trace images.</span>
+
+<span class="sd">        This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary</span>
+<span class="sd">        to create a continuous trace of the molecule.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reverse_min_conf_crossing : bool</span>
+<span class="sd">            Whether to reverse the stacking order of the lowest confidence crossing in the trace.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, npt.NDArray]</span>
+<span class="sd">            A list of each complete path&#39;s ordered coordinates, and labeled crossing image array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># iterate through the dict to get branch coords, heights and fwhms</span>
+        <span class="n">node_coords</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;node_coords&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">branch_stats</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;branch_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">branch_stats</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">node_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">lst</span> <span class="k">for</span> <span class="n">lst</span> <span class="ow">in</span> <span class="n">node_coords</span> <span class="k">if</span> <span class="n">lst</span><span class="p">]</span>
+
+        <span class="n">crossing_coords</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="n">branch_stats</span><span class="p">[</span><span class="s2">&quot;ordered_coords&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">branch_stats</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;branch_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">branch_stats</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">crossing_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">lst</span> <span class="k">for</span> <span class="n">lst</span> <span class="ow">in</span> <span class="n">crossing_coords</span> <span class="k">if</span> <span class="n">lst</span><span class="p">]</span>
+
+        <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="n">branch_stats</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">branch_stats</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;branch_stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">branch_stats</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[</span><span class="n">lst</span> <span class="k">for</span> <span class="n">lst</span> <span class="ow">in</span> <span class="n">fwhms</span> <span class="k">if</span> <span class="n">lst</span><span class="p">]</span>
+
+        <span class="n">confidences</span> <span class="o">=</span> <span class="p">[</span><span class="n">stats</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">stats</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+        <span class="c1"># obtain the index of the underlying branch</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">low_conf_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanargmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">confidences</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># when no crossings or only 3-branch crossings</span>
+            <span class="n">low_conf_idx</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Get the image minus the crossing regions</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">node_no</span> <span class="ow">in</span> <span class="n">node_coords</span><span class="p">:</span>  <span class="c1"># this stops unpaired branches from interacting with the pairs</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">node_no</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">node_no</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">minus</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">)</span>
+        <span class="c1"># remove crossings from skeleton</span>
+        <span class="k">for</span> <span class="n">crossings</span> <span class="ow">in</span> <span class="n">crossing_coords</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">crossing</span> <span class="ow">in</span> <span class="n">crossings</span><span class="p">:</span>
+                <span class="n">minus</span><span class="p">[</span><span class="n">crossing</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">crossing</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">minus</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">minus</span><span class="p">)</span>
+
+        <span class="c1"># setup z array</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># order minus segments</span>
+        <span class="n">ordered</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">non_cross_segment_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">minus</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">minus</span><span class="p">,</span> <span class="n">minus</span> <span class="o">==</span> <span class="n">non_cross_segment_idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order_branch</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>  <span class="c1"># orientated later</span>
+            <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span><span class="p">[</span><span class="n">non_cross_segment_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># add crossing coords to ordered segment list</span>
+        <span class="n">uneven_count</span> <span class="o">=</span> <span class="n">non_cross_segment_idx</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">node_num</span><span class="p">,</span> <span class="n">node_crossing_coords</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">crossing_coords</span><span class="p">):</span>
+            <span class="n">z_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">fwhms</span><span class="p">[</span><span class="n">node_num</span><span class="p">])</span>
+            <span class="n">z_idx</span><span class="p">[</span><span class="n">z_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">reverse_min_conf_crossing</span> <span class="ow">and</span> <span class="n">low_conf_idx</span> <span class="o">==</span> <span class="n">node_num</span><span class="p">:</span>
+                <span class="n">z_idx</span> <span class="o">=</span> <span class="n">z_idx</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">fwhms</span><span class="p">[</span><span class="n">node_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">fwhms</span><span class="p">[</span><span class="n">node_num</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">node_cross_idx</span><span class="p">,</span> <span class="n">single_cross</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node_crossing_coords</span><span class="p">):</span>
+                <span class="c1"># check current single cross has no duplicate coords with ordered, except crossing points</span>
+                <span class="n">uncommon_single_cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">single_cross</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">:</span>
+                    <span class="n">uncommon_single_cross</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_common_values</span><span class="p">(</span>
+                        <span class="n">uncommon_single_cross</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="n">retain</span><span class="o">=</span><span class="n">node_coords</span><span class="p">[</span><span class="n">node_num</span><span class="p">][</span><span class="n">node_cross_idx</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uncommon_single_cross</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uncommon_single_cross</span><span class="p">)</span>
+                <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_idx</span><span class="p">[</span><span class="n">node_cross_idx</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span><span class="p">[</span><span class="n">uneven_count</span> <span class="o">+</span> <span class="n">node_cross_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;node_idx&quot;</span><span class="p">:</span> <span class="n">node_num</span><span class="p">,</span>
+                    <span class="s2">&quot;coords&quot;</span><span class="p">:</span> <span class="n">single_cross</span><span class="p">,</span>
+                    <span class="s2">&quot;z_idx&quot;</span><span class="p">:</span> <span class="n">z_idx</span><span class="p">[</span><span class="n">node_cross_idx</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="n">uneven_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node_crossing_coords</span><span class="p">)</span>
+
+        <span class="c1"># get an image of each ordered segment</span>
+        <span class="n">cross_add</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered</span><span class="p">):</span>
+            <span class="n">single_cross_img</span> <span class="o">=</span> <span class="n">coords_2_img</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="n">cross_add</span><span class="p">)</span>
+            <span class="n">cross_add</span><span class="p">[</span><span class="n">single_cross_img</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">coord_trace</span><span class="p">,</span> <span class="n">simple_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">ordered</span><span class="p">,</span> <span class="n">cross_add</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+        <span class="c1"># obtain topology from the simple trace</span>
+        <span class="n">topology</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_topology</span><span class="p">(</span><span class="n">simple_trace</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reverse_min_conf_crossing</span> <span class="ow">and</span> <span class="n">low_conf_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># when there&#39;s nothing to reverse</span>
+            <span class="n">topology</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">topology</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">coord_trace</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">cross_add</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">,</span> <span class="n">fwhms</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.compile_images">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_images">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compile_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord_trace</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">cross_add</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain all the diagnostic images based on the produced traces, and values.</span>
+
+<span class="sd">        Crossing coords and fwhms are used as arguments as reversing the minimum confidence can modify these.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coord_trace : list</span>
+<span class="sd">            List of N molecule objects containing 2xM arrays of X, Y coordinates.</span>
+<span class="sd">        cross_add : npt.NDArray</span>
+<span class="sd">            A labelled array with segments of the ordered trace.</span>
+<span class="sd">        crossing_coords : list</span>
+<span class="sd">            A list of I nodes objects containing 2xJ arrays of X, Y coordinates for each crossing branch.</span>
+<span class="sd">        fwhms : list</span>
+<span class="sd">            A list of I nodes objects containing FWHM values for each crossing branch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># visual over under img</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="s2">&quot;trace_segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cross_add</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="s2">&quot;over_under&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_over_under_img</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="s2">&quot;all_molecules&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mols_img</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="s2">&quot;ordered_traces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ordered_trace_mask</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.remove_common_values">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.remove_common_values">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_common_values</span><span class="p">(</span>
+        <span class="n">ordered_array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">common_value_check_array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">retain</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ordered_array : npt.NDArray</span>
+<span class="sd">            Coordinate array to remove / retain values from. Will retain its order.</span>
+<span class="sd">        common_value_check_array : npt.NDArray</span>
+<span class="sd">            Coordinate array containing any common values to be removed from ordered_array.</span>
+<span class="sd">        retain : list, optional</span>
+<span class="sd">            List of possible coordinates to keep, by default ().</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.array</span>
+<span class="sd">            Unique ordered_array values and retained coordinates. Retains the order of ordered_array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert the arrays to sets for faster common value lookup</span>
+        <span class="n">set_arr2</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common_value_check_array</span><span class="p">}</span>
+        <span class="n">set_retain</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">retain</span><span class="p">}</span>
+        <span class="c1"># Create a new filtered list while maintaining the order of the first array</span>
+        <span class="n">filtered_arr1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">ordered_array</span><span class="p">:</span>
+            <span class="n">tup_coord</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tup_coord</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">set_arr2</span> <span class="ow">or</span> <span class="n">tup_coord</span> <span class="ow">in</span> <span class="n">set_retain</span><span class="p">:</span>
+                <span class="n">filtered_arr1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">filtered_arr1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.get_topology">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_topology">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_topology</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nxyz</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a topological classification from ordered XYZ coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nxyz : npt.NDArray</span>
+<span class="sd">            A 4xN array of the order index (n), x, y and pseudo z coordinates.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Topology(s) of the provided traced coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Topoly doesn&#39;t work when 2 mols don&#39;t actually cross</span>
+        <span class="n">topology</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lin_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nxyz_cp</span> <span class="o">=</span> <span class="n">nxyz</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># remove linear mols as are just reidmiester moves</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nxyz</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mol_trace</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># mol is not circular</span>
+                <span class="n">topology</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+                <span class="n">lin_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="c1"># remove from list in reverse order so no conflicts</span>
+        <span class="n">lin_idxs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lin_idxs</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">nxyz_cp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># classify topology for non-reidmeister moves</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nxyz_cp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pd_code</span> <span class="o">=</span> <span class="n">translate_code</span><span class="p">(</span>
+                    <span class="n">nxyz_cp</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;pdcode&quot;</span>
+                <span class="p">)</span>  <span class="c1"># pd code helps prevents freezing and spawning multiple processes</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2"> : PD Code is: </span><span class="si">{</span><span class="n">pd_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">top_class</span> <span class="o">=</span> <span class="n">jones</span><span class="p">(</span><span class="n">pd_code</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2"> : PD Code could not be obtained from trace coordinates.&quot;</span><span class="p">)</span>
+                <span class="n">top_class</span> <span class="o">=</span> <span class="s2">&quot;N/A&quot;</span>
+
+            <span class="c1"># don&#39;t separate catenanes / overlaps - used for distribution comparison</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nxyz_cp</span><span class="p">)):</span>
+                <span class="n">topology</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_class</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">topology</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.trace">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.trace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ordered_segment_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">both_img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">zs</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=too-many-locals</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain an ordered trace of each complete path.</span>
+
+<span class="sd">        Here a &#39;complete path&#39; means following and removing connected segments until</span>
+<span class="sd">        there are no more segments to follow.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ordered_segment_coords : list</span>
+<span class="sd">            Ordered coordinates of each labeled segment in &#39;both_img&#39;.</span>
+<span class="sd">        both_img : npt.NDArray</span>
+<span class="sd">            A skeletonised labeled image of each path segment.</span>
+<span class="sd">        zs : npt.NDArray</span>
+<span class="sd">            Array of pseudo heights of the traces. -1 is lowest, 0 is skeleton, then ascending integers for</span>
+<span class="sd">            levels of overs.</span>
+<span class="sd">        n : int</span>
+<span class="sd">            The number of points to use for the simplified traces.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Ordered trace coordinates of each complete path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mol_coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">simple_coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">both_img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">endpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">remaining</span><span class="p">[</span><span class="n">convolve_skeleton</span><span class="p">(</span><span class="n">remaining</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># unique in case of whole mol</span>
+        <span class="n">prev_segment</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">n_points_p_seg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span> <span class="k">if</span> <span class="p">((</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">remaining</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">//</span> <span class="n">remaining</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">remaining</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">//</span> <span class="n">remaining</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">remaining</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># select endpoint to start if there is one</span>
+            <span class="n">endpoints</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">endpoints</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">remaining</span><span class="p">)]</span>  <span class="c1"># remove if removed from remaining</span>
+            <span class="k">if</span> <span class="n">endpoints</span><span class="p">:</span>
+                <span class="n">coord_idx</span> <span class="o">=</span> <span class="n">endpoints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># if no endpoints, just a loop</span>
+                <span class="n">coord_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">remaining</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># avoid choosing 0</span>
+            <span class="n">coord_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">simple_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+            <span class="k">while</span> <span class="n">coord_idx</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>  <span class="c1"># either cycled through all or hits terminus -&gt; all will be just background</span>
+                <span class="n">remaining</span><span class="p">[</span><span class="n">remaining</span> <span class="o">==</span> <span class="n">coord_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">trace_segment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_segment</span><span class="p">(</span><span class="n">remaining</span><span class="p">,</span> <span class="n">ordered_segment_coords</span><span class="p">,</span> <span class="n">coord_idx</span><span class="p">)</span>
+                <span class="n">full_trace_segment</span> <span class="o">=</span> <span class="n">trace_segment</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># can only order when there&#39;s a reference point / segment</span>
+                    <span class="n">trace_segment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_common_values</span><span class="p">(</span>
+                        <span class="n">trace_segment</span><span class="p">,</span> <span class="n">prev_segment</span>
+                    <span class="p">)</span>  <span class="c1"># remove overlaps in trace (may be more efficient to do it on the previous segment)</span>
+                    <span class="n">trace_segment</span><span class="p">,</span> <span class="n">flipped</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order_from_end</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">trace_segment</span><span class="p">)</span>
+                    <span class="n">full_trace_segment</span> <span class="o">=</span> <span class="n">full_trace_segment</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">flipped</span> <span class="k">else</span> <span class="n">full_trace_segment</span>
+                <span class="c1"># get vector if crossing</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span><span class="p">[</span><span class="n">coord_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">segment_vector</span> <span class="o">=</span> <span class="n">full_trace_segment</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">full_trace_segment</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                        <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+                    <span class="p">)</span>  <span class="c1"># from start to mean coord</span>
+                    <span class="n">segment_vector</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">segment_vector</span> <span class="o">@</span> <span class="n">segment_vector</span><span class="p">)</span>  <span class="c1"># normalise</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span><span class="p">[</span><span class="n">coord_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s2">&quot;vector&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment_vector</span>
+                <span class="n">prev_segment</span> <span class="o">=</span> <span class="n">trace_segment</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># update previous segment</span>
+                <span class="n">trace_segment_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">trace_segment</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">trace_segment</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">zs</span><span class="p">[</span><span class="n">coord_idx</span><span class="p">])</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+                <span class="p">)</span>  <span class="c1"># add z&#39;s</span>
+                <span class="n">coord_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">,</span> <span class="n">trace_segment_z</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># obtain a reduced coord version of the traces for Topoly</span>
+                <span class="n">simple_trace_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_rows</span><span class="p">(</span>
+                    <span class="n">trace_segment</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="n">n_points_p_seg</span>
+                <span class="p">)</span>  <span class="c1"># reducing rows here ensures no segments are skipped</span>
+                <span class="n">simple_trace_temp_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">simple_trace_temp</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">simple_trace_temp</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">zs</span><span class="p">[</span><span class="n">coord_idx</span><span class="p">])</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+                <span class="p">)</span>  <span class="c1"># add z&#39;s</span>
+                <span class="n">simple_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">simple_trace</span><span class="p">,</span> <span class="n">simple_trace_temp_z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coord_trace</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">coord_idx</span> <span class="o">=</span> <span class="n">remaining</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># should only be one value</span>
+            <span class="n">mol_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">)</span>
+
+            <span class="c1"># Issue in 0_5 where wrong nxyz[0] selected, and == nxyz[-1] so always duplicated</span>
+            <span class="n">nxyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">simple_trace</span><span class="p">)),</span> <span class="n">simple_trace</span><span class="p">))</span>
+            <span class="n">end_to_end_dist_squared</span> <span class="o">=</span> <span class="p">(</span><span class="n">nxyz</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">nxyz</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">nxyz</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">nxyz</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nxyz</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">end_to_end_dist_squared</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># pylint: disable=chained-comparison</span>
+                <span class="c1"># single coord traces mean nxyz[0]==[1] so cause issues when duplicating for topoly</span>
+                <span class="n">nxyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nxyz</span><span class="p">,</span> <span class="n">nxyz</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">simple_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nxyz</span><span class="p">)</span>
+
+        <span class="c1"># convert into lists for Topoly</span>
+        <span class="n">simple_coords</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">mol</span><span class="p">]</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">simple_coords</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">mol_coords</span><span class="p">,</span> <span class="n">simple_coords</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.reduce_rows">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.reduce_rows">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reduce_rows</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reduce the number of rows in the array to `n`, keeping the first and last indexes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        array : npt.NDArray</span>
+<span class="sd">            An array to reduce the number of rows in.</span>
+<span class="sd">        n : int, optional</span>
+<span class="sd">            The number of indexes in the array to keep, by default 300.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            The `array` reduced to only `n` + 2 elements, or if shorter, the same array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># removes reduces the number of rows (but keeping the first and last ones)</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="ow">or</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">array</span>
+
+        <span class="n">idxs_to_keep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+        <span class="n">new_array</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">idxs_to_keep</span><span class="p">]</span>
+        <span class="n">new_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span> <span class="n">new_array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_array</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.get_trace_segment">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_segment">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trace_segment</span><span class="p">(</span><span class="n">remaining_img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">ordered_segment_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">coord_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an ordered segment at the end of the current one.</span>
+
+<span class="sd">        Check the branch of given index to see if it contains an endpoint. If it does,</span>
+<span class="sd">        the segment coordinates will be returned starting from the endpoint.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        remaining_img : npt.NDArray</span>
+<span class="sd">            A 2D array representing an image composed of connected segments of different integers.</span>
+<span class="sd">        ordered_segment_coords : list</span>
+<span class="sd">            A list of 2xN coordinates representing each segment.</span>
+<span class="sd">        coord_idx : int</span>
+<span class="sd">            The index of the current segment to look at. There is an index mismatch between the</span>
+<span class="sd">            remaining_img and ordered_segment_coords by -1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            2xN array of coordinates representing a skeletonised ordered trace segment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_xy</span> <span class="o">=</span> <span class="n">ordered_segment_coords</span><span class="p">[</span><span class="n">coord_idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start_max</span> <span class="o">=</span> <span class="n">remaining_img</span><span class="p">[</span><span class="n">start_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">start_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">start_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">start_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">start_max</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ordered_segment_coords</span><span class="p">[</span><span class="n">coord_idx</span><span class="p">]</span>  <span class="c1"># start is endpoint</span>
+        <span class="k">return</span> <span class="n">ordered_segment_coords</span><span class="p">[</span><span class="n">coord_idx</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># end is endpoint</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.order_from_end">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.order_from_end">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">order_from_end</span><span class="p">(</span><span class="n">last_segment_coord</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">current_segment</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Order the current segment to follow from the end of the previous one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        last_segment_coord : npt.NDArray</span>
+<span class="sd">            X and Y coordinates of the end of the last segment.</span>
+<span class="sd">        current_segment : npt.NDArray</span>
+<span class="sd">            A 2xN array of coordinates of the current segment to order.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            The current segment orientated to follow on from the last.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the order has been flipped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_xy</span> <span class="o">=</span> <span class="n">current_segment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">start_xy</span> <span class="o">-</span> <span class="n">last_segment_coord</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">current_segment</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">current_segment</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.get_over_under_img">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_over_under_img">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_over_under_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord_trace</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a labelled image according to the main trace (=1), under (=2), over (=3).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coord_trace : list</span>
+<span class="sd">            Ordered coordinate trace of each molecule.</span>
+<span class="sd">        fwhms : list</span>
+<span class="sd">            List of full-width half-maximums (FWHMs) for each crossing in the trace.</span>
+<span class="sd">        crossing_coords : list</span>
+<span class="sd">            The crossing coordinates of each branch crossing.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            2D crossing order labelled image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># put down traces</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">coord_trace</span><span class="p">:</span>
+            <span class="n">temp_img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+            <span class="n">temp_img</span><span class="p">[</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># temp_img = binary_dilation(temp_img)</span>
+            <span class="n">img</span><span class="p">[</span><span class="n">temp_img</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># place over/under strands onto image array</span>
+        <span class="n">lower_idxs</span><span class="p">,</span> <span class="n">upper_idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_idxs</span><span class="p">(</span><span class="n">fwhms</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">type_idxs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">lower_idxs</span><span class="p">,</span> <span class="n">upper_idxs</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">crossing</span><span class="p">,</span> <span class="n">type_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crossing_coords</span><span class="p">,</span> <span class="n">type_idxs</span><span class="p">):</span>
+                <span class="n">temp_img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="n">cross_coords</span> <span class="o">=</span> <span class="n">crossing</span><span class="p">[</span><span class="n">type_idx</span><span class="p">]</span>
+                <span class="n">temp_img</span><span class="p">[</span><span class="n">cross_coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">cross_coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="c1"># temp_img = binary_dilation(temp_img)</span>
+                <span class="n">img</span><span class="p">[</span><span class="n">temp_img</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">img</span></div>
+
+
+    <span class="c1"># pylint: disable=too-many-locals</span>
+<div class="viewcode-block" id="OrderedTraceNodestats.get_mols_img">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_mols_img">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mols_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord_trace</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=too-many-locals</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a labelled image according to each molecule traced N=3 -&gt; n=1,2,3.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coord_trace : list</span>
+<span class="sd">            Ordered coordinate trace of each molecule.</span>
+<span class="sd">        fwhms : list</span>
+<span class="sd">            List of full-width half-maximums (FWHMs) for each crossing in the trace.</span>
+<span class="sd">        crossing_coords : list</span>
+<span class="sd">            The crossing coordinates of each branch crossing.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            2D individual &#39;molecule&#39; labelled image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">mol_no</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coord_trace</span><span class="p">):</span>
+            <span class="n">temp_img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+            <span class="n">temp_img</span><span class="p">[</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">img</span><span class="p">[</span><span class="n">temp_img</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_no</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">lower_idxs</span><span class="p">,</span> <span class="n">upper_idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_idxs</span><span class="p">(</span><span class="n">fwhms</span><span class="p">)</span>
+
+        <span class="c1"># plot separate mols</span>
+        <span class="k">for</span> <span class="n">type_idxs</span> <span class="ow">in</span> <span class="p">[</span><span class="n">lower_idxs</span><span class="p">,</span> <span class="n">upper_idxs</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">node_crossing_coords</span><span class="p">,</span> <span class="n">type_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crossing_coords</span><span class="p">,</span> <span class="n">type_idxs</span><span class="p">):</span>
+                <span class="n">temp_img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="n">cross_coords</span> <span class="o">=</span> <span class="n">node_crossing_coords</span><span class="p">[</span><span class="n">type_idx</span><span class="p">]</span>
+                <span class="c1"># decide which val</span>
+                <span class="n">matching_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">coord_trace</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># get overlaps between segment coords and crossing under coords</span>
+                    <span class="k">for</span> <span class="n">cross_coord</span> <span class="ow">in</span> <span class="n">cross_coords</span><span class="p">:</span>
+                        <span class="n">c</span> <span class="o">+=</span> <span class="p">((</span><span class="n">trace</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">cross_coord</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="n">matching_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matching_coords</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">matching_coords</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">temp_img</span><span class="p">[</span><span class="n">cross_coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">cross_coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">img</span><span class="p">[</span><span class="n">temp_img</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">return</span> <span class="n">img</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.get_trace_idxs">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_idxs">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trace_idxs</span><span class="p">(</span><span class="n">fwhms</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split under-passing and over-passing indices.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fwhms : list</span>
+<span class="sd">            List of arrays of full-width half-maximum (FWHM) values for each crossing point.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, list]</span>
+<span class="sd">            All the under, and over indices of the for each node FWHMs in the provided FWHM list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># node fwhms can be a list of different lengths so cannot use np arrays</span>
+        <span class="n">under_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">over_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">node_fwhms</span> <span class="ow">in</span> <span class="n">fwhms</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">node_fwhms</span><span class="p">)</span>
+            <span class="n">under_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">over_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">under_idxs</span><span class="p">,</span> <span class="n">over_idxs</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.check_node_errorless">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.check_node_errorless">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_node_errorless</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if an error has occurred while processing the node dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether the error is present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">vals</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.identify_writhes">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.identify_writhes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identify_writhes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Identify the writhe topology at each crossing in the image.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str | dict</span>
+<span class="sd">            A string of the whole grain writhe sign, and a dictionary linking each node to it&#39;s sign.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># compile all vectors for each node and their z_idx</span>
+        <span class="c1">#   - want for each node, ordered vectors according to z_idx</span>
+        <span class="n">writhe_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">node_to_writhe</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">idx2node_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_idx_to_node</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx2node_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>  <span class="c1"># for when no crossovers but still crossings (i.e. unpaired 3-way)</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">node_num</span><span class="p">,</span> <span class="n">node_df</span> <span class="ow">in</span> <span class="n">idx2node_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;node_idx&quot;</span><span class="p">):</span>
+            <span class="n">vector_series</span> <span class="o">=</span> <span class="n">node_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;z_idx&quot;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s2">&quot;vector&quot;</span><span class="p">]</span>
+            <span class="n">vectors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vector_series</span><span class="p">)</span>
+            <span class="c1"># get pairs</span>
+            <span class="n">vector_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="c1"># calculate the writhe</span>
+            <span class="n">temp_writhes</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">vector_pair</span> <span class="ow">in</span> <span class="n">vector_combinations</span><span class="p">:</span>  <span class="c1"># if &gt; 2 crossing branches</span>
+                <span class="n">temp_writhes</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">writhe_direction</span><span class="p">(</span><span class="n">vector_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vector_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_writhes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">temp_writhes</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">temp_writhes</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="n">node_to_writhe</span><span class="p">[</span><span class="n">node_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_writhes</span>
+            <span class="n">writhe_string</span> <span class="o">+=</span> <span class="n">temp_writhes</span>
+
+        <span class="k">return</span> <span class="n">writhe_string</span><span class="p">,</span> <span class="n">node_to_writhe</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.writhe_direction">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.writhe_direction">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">writhe_direction</span><span class="p">(</span><span class="n">first_vector</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">second_vector</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use the cross product of crossing vectors to determine the writhe sign.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        first_vector : npt.NDArray</span>
+<span class="sd">            An x,y component vector of the overlying strand.</span>
+<span class="sd">        second_vector : npt.NDArray</span>
+<span class="sd">            An x,y component vector of the underlying strand.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            &#39;+&#39;, &#39;-&#39; or &#39;0&#39; for positive, negative, or no writhe.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">first_vector</span><span class="p">,</span> <span class="n">second_vector</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cross</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;-&quot;</span>
+        <span class="k">if</span> <span class="n">cross</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;+&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;0&quot;</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceNodestats.run_nodestats_tracing">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.run_nodestats_tracing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_nodestats_tracing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the nodestats tracing pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, dict, dict]</span>
+<span class="sd">            A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ordered_traces</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">cross_add</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">,</span> <span class="n">fwhms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_trace</span><span class="p">(</span>
+            <span class="n">reverse_min_conf_crossing</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compile_images</span><span class="p">(</span><span class="n">ordered_traces</span><span class="p">,</span> <span class="n">cross_add</span><span class="p">,</span> <span class="n">crossing_coords</span><span class="p">,</span> <span class="n">fwhms</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span><span class="p">[</span><span class="s2">&quot;num_mols&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordered_traces</span><span class="p">)</span>
+
+        <span class="n">writhe_string</span><span class="p">,</span> <span class="n">node_to_writhes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify_writhes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span><span class="p">[</span><span class="s2">&quot;writhe_string&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">writhe_string</span>
+        <span class="k">for</span> <span class="n">node_num</span><span class="p">,</span> <span class="n">node_writhes</span> <span class="ow">in</span> <span class="n">node_to_writhes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c1"># should self update as the dicts are linked</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodestats_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;node_</span><span class="si">{</span><span class="n">node_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">][</span><span class="s2">&quot;writhe&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_writhes</span>
+
+        <span class="n">topology_flip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_trace</span><span class="p">(</span><span class="n">reverse_min_conf_crossing</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">ordered_trace_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">grain_mol_tracing_stats</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_traces</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mol_trace</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># if &gt; 4 coords to trace</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;circular&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linear_or_circular</span><span class="p">(</span><span class="n">mol_trace</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;topology&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">topology</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;topology_flip&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">topology_flip</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">ordered_trace_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;mol_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;ordered_coords&quot;</span><span class="p">:</span> <span class="n">mol_trace</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="s2">&quot;heights&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">mol_trace</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">mol_trace</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span>
+                    <span class="s2">&quot;distances&quot;</span><span class="p">:</span> <span class="n">coord_dist</span><span class="p">(</span><span class="n">mol_trace</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="s2">&quot;mol_stats&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">grain_mol_tracing_stats</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span>
+
+        <span class="k">return</span> <span class="n">ordered_trace_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span><span class="p">,</span> <span class="n">grain_mol_tracing_stats</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OrderedTraceTopostats">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OrderedTraceTopostats</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Order single pixel thick skeleton coordinates via TopoStats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        A cropped image array.</span>
+<span class="sd">    skeleton : npt.NDArray</span>
+<span class="sd">        The pruned skeleton mask array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">image</span><span class="p">,</span>
+        <span class="n">skeleton</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the OrderedTraceTopostats class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            A cropped image array.</span>
+<span class="sd">        skeleton : npt.NDArray</span>
+<span class="sd">            The pruned skeleton mask array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">skeleton</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;num_mols&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;circular&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;circular&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;topology&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;topology_flip&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="s2">&quot;topostats&quot;</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;ordered_traces&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+            <span class="s2">&quot;all_molecules&quot;</span><span class="p">:</span> <span class="n">skeleton</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+            <span class="s2">&quot;over_under&quot;</span><span class="p">:</span> <span class="n">skeleton</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+            <span class="s2">&quot;trace_segments&quot;</span><span class="p">:</span> <span class="n">skeleton</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="OrderedTraceTopostats.get_ordered_traces">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.get_ordered_traces">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ordered_traces</span><span class="p">(</span><span class="n">disordered_trace_coords</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">mol_is_circular</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain ordered traces from disordered traces.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        disordered_trace_coords : npt.NDArray</span>
+<span class="sd">            A Nx2 array of coordinates to order.</span>
+<span class="sd">        mol_is_circular : bool</span>
+<span class="sd">            A flag of whether the molecule has at least one coordinate with only one neighbour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list of each molecules ordered trace coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mol_is_circular</span><span class="p">:</span>
+            <span class="n">ordered_trace</span><span class="p">,</span> <span class="n">trace_completed</span> <span class="o">=</span> <span class="n">reorderTrace</span><span class="o">.</span><span class="n">circularTrace</span><span class="p">(</span><span class="n">disordered_trace_coords</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">trace_completed</span><span class="p">:</span>
+                <span class="n">mol_is_circular</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ordered_trace</span> <span class="o">=</span> <span class="n">reorderTrace</span><span class="o">.</span><span class="n">linearTrace</span><span class="p">(</span><span class="n">ordered_trace</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">UnboundLocalError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">mol_is_circular</span><span class="p">:</span>
+            <span class="n">ordered_trace</span> <span class="o">=</span> <span class="n">reorderTrace</span><span class="o">.</span><span class="n">linearTrace</span><span class="p">(</span><span class="n">disordered_trace_coords</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">ordered_trace</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="OrderedTraceTopostats.run_topostats_tracing">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.run_topostats_tracing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_topostats_tracing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the topostats tracing pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, dict, dict]</span>
+<span class="sd">            A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">disordered_trace_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;circular&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linear_or_circular</span><span class="p">(</span><span class="n">disordered_trace_coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;topology&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;0_1&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;circular&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span>
+
+        <span class="n">ordered_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ordered_traces</span><span class="p">(</span><span class="n">disordered_trace_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">[</span><span class="s2">&quot;circular&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="s2">&quot;ordered_traces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ordered_trace_mask</span><span class="p">(</span><span class="n">ordered_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">ordered_trace_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ordered_trace</span><span class="p">):</span>
+            <span class="n">ordered_trace_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;mol_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;ordered_coords&quot;</span><span class="p">:</span> <span class="n">mol_trace</span><span class="p">,</span>
+                <span class="s2">&quot;heights&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">ordered_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">ordered_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]],</span>
+                <span class="s2">&quot;distances&quot;</span><span class="p">:</span> <span class="n">coord_dist</span><span class="p">(</span><span class="n">ordered_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="s2">&quot;mol_stats&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">ordered_trace_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grain_tracing_stats</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol_tracing_stats</span><span class="p">},</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="linear_or_circular">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.linear_or_circular">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">linear_or_circular</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine whether the molecule is circular or linear via &gt;1 points in the local start area.</span>
+
+<span class="sd">    This function is sensitive to branches from the skeleton because it is based on whether any given point has zero</span>
+<span class="sd">    neighbours or not so the traces should be pruned.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    traces : npt.NDArray</span>
+<span class="sd">        The array of coordinates to be assessed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        Whether a molecule is linear or not (True if linear, False otherwise).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">points_with_one_neighbour</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">fitted_trace_list</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="c1"># For loop determines how many neighbours a point has - if only one it is an end</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">fitted_trace_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">genTracingFuncs</span><span class="o">.</span><span class="n">count_and_get_neighbours</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">fitted_trace_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">points_with_one_neighbour</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">points_with_one_neighbour</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ordered_trace_mask">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.ordered_trace_mask">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ordered_trace_mask</span><span class="p">(</span><span class="n">ordered_coordinates</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain a mask of the trace coordinates with each trace pixel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ordered_coordinates : npt.NDArray</span>
+<span class="sd">        Ordered array of coordinates.</span>
+
+<span class="sd">    shape : tuple</span>
+<span class="sd">        The shape of the array bounding the coordinates.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray</span>
+<span class="sd">        NxM image with each pixel in the ordered trace labeled in ascending order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ordered_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ordered_coordinates</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">mol_coords</span> <span class="ow">in</span> <span class="n">ordered_coordinates</span><span class="p">:</span>
+            <span class="n">ordered_mask</span><span class="p">[</span><span class="n">mol_coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">mol_coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mol_coords</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">ordered_mask</span></div>
+
+
+
+<span class="c1"># pylint: disable=too-many-locals</span>
+<div class="viewcode-block" id="ordered_tracing_image">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.ordered_tracing_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ordered_tracing_image</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">disordered_tracing_direction_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">nodestats_direction_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">ordering_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="c1"># pylint: disable=too-many-locals</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run ordered tracing for an entire image of &gt;=1 grains.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        Whole FOV image.</span>
+<span class="sd">    disordered_tracing_direction_data : dict</span>
+<span class="sd">        Dictionary result from the disordered traces. Fields used are &quot;original_image&quot; and &quot;pruned_skeleton&quot;.</span>
+<span class="sd">    nodestats_direction_data : dict</span>
+<span class="sd">        Dictionary result from the nodestats analysis.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Image filename (for logging purposes).</span>
+<span class="sd">    ordering_method : str</span>
+<span class="sd">        The method to order the trace coordinates - &quot;topostats&quot; or &quot;nodestats&quot;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[dict, pd.DataFrame, pd.DataFrame, dict]</span>
+<span class="sd">        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains</span>
+<span class="sd">        dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ordered_trace_full_images</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;ordered_traces&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+        <span class="s2">&quot;all_molecules&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+        <span class="s2">&quot;over_under&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+        <span class="s2">&quot;trace_segments&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">grainstats_additions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">molstats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">all_traces_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Calculating Ordered Traces and statistics for &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">disordered_tracing_direction_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> grains...&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># iterate through disordered_tracing_dict</span>
+    <span class="k">for</span> <span class="n">grain_no</span><span class="p">,</span> <span class="n">disordered_trace_data</span> <span class="ow">in</span> <span class="n">disordered_tracing_direction_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># check if want to do nodestats tracing or not</span>
+            <span class="k">if</span> <span class="n">grain_no</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodestats_direction_data</span><span class="p">[</span><span class="s2">&quot;stats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="n">ordering_method</span> <span class="o">==</span> <span class="s2">&quot;nodestats&quot;</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Grain </span><span class="si">{</span><span class="n">grain_no</span><span class="si">}</span><span class="s2"> present in NodeStats. Tracing via Nodestats.&quot;</span><span class="p">)</span>
+                <span class="n">nodestats_tracing</span> <span class="o">=</span> <span class="n">OrderedTraceNodestats</span><span class="p">(</span>
+                    <span class="n">image</span><span class="o">=</span><span class="n">nodestats_direction_data</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">][</span><span class="n">grain_no</span><span class="p">][</span><span class="s2">&quot;grain&quot;</span><span class="p">][</span><span class="s2">&quot;grain_image&quot;</span><span class="p">],</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">nodestats_dict</span><span class="o">=</span><span class="n">nodestats_direction_data</span><span class="p">[</span><span class="s2">&quot;stats&quot;</span><span class="p">][</span><span class="n">grain_no</span><span class="p">],</span>
+                    <span class="n">skeleton</span><span class="o">=</span><span class="n">nodestats_direction_data</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">][</span><span class="n">grain_no</span><span class="p">][</span><span class="s2">&quot;grain&quot;</span><span class="p">][</span><span class="s2">&quot;grain_skeleton&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">nodestats_tracing</span><span class="o">.</span><span class="n">check_node_errorless</span><span class="p">():</span>
+                    <span class="n">ordered_traces_data</span><span class="p">,</span> <span class="n">tracing_stats</span><span class="p">,</span> <span class="n">grain_molstats</span><span class="p">,</span> <span class="n">images</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">nodestats_tracing</span><span class="o">.</span><span class="n">run_nodestats_tracing</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Grain </span><span class="si">{</span><span class="n">grain_no</span><span class="si">}</span><span class="s2"> ordered via NodeStats.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nodestats dict has an error (</span><span class="si">{</span><span class="n">nodestats_direction_data</span><span class="p">[</span><span class="s1">&#39;stats&#39;</span><span class="p">][</span><span class="n">grain_no</span><span class="p">][</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># if not doing nodestats ordering, do original TS ordering</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : </span><span class="si">{</span><span class="n">grain_no</span><span class="si">}</span><span class="s2"> not in NodeStats. Tracing normally.&quot;</span><span class="p">)</span>
+                <span class="n">topostats_tracing</span> <span class="o">=</span> <span class="n">OrderedTraceTopostats</span><span class="p">(</span>
+                    <span class="n">image</span><span class="o">=</span><span class="n">disordered_trace_data</span><span class="p">[</span><span class="s2">&quot;original_image&quot;</span><span class="p">],</span>
+                    <span class="n">skeleton</span><span class="o">=</span><span class="n">disordered_trace_data</span><span class="p">[</span><span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">ordered_traces_data</span><span class="p">,</span> <span class="n">tracing_stats</span><span class="p">,</span> <span class="n">grain_molstats</span><span class="p">,</span> <span class="n">images</span> <span class="o">=</span> <span class="n">topostats_tracing</span><span class="o">.</span><span class="n">run_topostats_tracing</span><span class="p">()</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Grain </span><span class="si">{</span><span class="n">grain_no</span><span class="si">}</span><span class="s2"> ordered via TopoStats.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># compile traces</span>
+            <span class="n">all_traces_data</span><span class="p">[</span><span class="n">grain_no</span><span class="p">]</span> <span class="o">=</span> <span class="n">ordered_traces_data</span>
+            <span class="k">for</span> <span class="n">mol_no</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ordered_traces_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">all_traces_data</span><span class="p">[</span><span class="n">grain_no</span><span class="p">][</span><span class="n">mol_no</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="n">disordered_trace_data</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]})</span>
+            <span class="c1"># compile metrics</span>
+            <span class="n">grainstats_additions</span><span class="p">[</span><span class="n">grain_no</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+                <span class="s2">&quot;grain_number&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">grain_no</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="p">}</span>
+            <span class="n">tracing_stats</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;circular&quot;</span><span class="p">)</span>
+            <span class="n">grainstats_additions</span><span class="p">[</span><span class="n">grain_no</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tracing_stats</span><span class="p">)</span>
+            <span class="c1"># compile molecule metrics</span>
+            <span class="k">for</span> <span class="n">mol_no</span><span class="p">,</span> <span class="n">molstat_values</span> <span class="ow">in</span> <span class="n">grain_molstats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">molstats</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grain_no</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">mol_no</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_number&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">grain_no</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="s2">&quot;molecule_number&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">mol_no</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>  <span class="c1"># pylint: disable=use-maxsplit-arg</span>
+                <span class="p">}</span>
+                <span class="n">molstats</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grain_no</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">mol_no</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">molstat_values</span><span class="p">)</span>
+
+            <span class="c1"># remap the cropped images back onto the original</span>
+            <span class="k">for</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">full_image</span> <span class="ow">in</span> <span class="n">ordered_trace_full_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">image_name</span><span class="p">]</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">disordered_trace_data</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span>
+                <span class="n">full_image</span><span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">crop</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-exception-caught</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Ordered tracing for </span><span class="si">{</span><span class="n">grain_no</span><span class="si">}</span><span class="s2"> failed. Consider raising an issue on GitHub. Error: &quot;</span><span class="p">,</span>
+                <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">all_traces_data</span><span class="p">[</span><span class="n">grain_no</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">grainstats_additions_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">grainstats_additions</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+    <span class="n">molstats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">molstats</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+    <span class="n">molstats_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">all_traces_data</span><span class="p">,</span> <span class="n">grainstats_additions_df</span><span class="p">,</span> <span class="n">molstats_df</span><span class="p">,</span> <span class="n">ordered_trace_full_images</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

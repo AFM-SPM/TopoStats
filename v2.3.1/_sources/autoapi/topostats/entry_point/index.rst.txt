@@ -1,0 +1,87 @@
+topostats.entry_point
+=====================
+
+.. py:module:: topostats.entry_point
+
+.. autoapi-nested-parse::
+
+   Entry point for all TopoStats programs.
+
+   Parses command-line arguments and passes input on to the relevant functions / modules.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.entry_point.create_parser
+   topostats.entry_point.entry_point
+
+
+Module Contents
+---------------
+
+.. py:function:: create_parser() -> argparse.ArgumentParser
+
+   
+   Create a parser for reading options.
+
+   Creates a parser, with multiple sub-parsers for reading options to run 'topostats'.
+
+   :returns: Argument parser.
+   :rtype: arg.ArgumentParser
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: entry_point(manually_provided_args=None, testing=False) -> None
+
+   
+   Entry point for all TopoStats programs.
+
+   Main entry point for running 'topostats' which allows the different processing steps ('process', 'filter',
+   'create_config' etc.) to be run.
+
+   :param manually_provided_args: Manually provided arguments.
+   :type manually_provided_args: None
+   :param testing: Whether testing is being carried out.
+   :type testing: bool
+
+   :returns: Does not return anything.
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

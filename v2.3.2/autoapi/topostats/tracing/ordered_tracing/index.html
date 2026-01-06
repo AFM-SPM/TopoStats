@@ -1,0 +1,1204 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.ordered_tracing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/ordered_tracing/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.tracing.pruning" href="../pruning/index.html" />
+    <link rel="prev" title="topostats.tracing.nodestats" href="../nodestats/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="index.html">v2.3.2</a></li>
+  <li><a href="../../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">topostats</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.ordered_tracing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.ordered_tracing">
+<span id="topostats-tracing-ordered-tracing"></span><h1>topostats.tracing.ordered_tracing<a class="headerlink" href="#module-topostats.tracing.ordered_tracing" title="Link to this heading">#</a></h1>
+<p>Order single pixel skeletons with or without NodeStats Statistics.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.LOGGER" title="topostats.tracing.ordered_tracing.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats" title="topostats.tracing.ordered_tracing.OrderedTraceNodestats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrderedTraceNodestats</span></code></a></p></td>
+<td><p>Order single pixel thick skeleton coordinates via NodeStats results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats" title="topostats.tracing.ordered_tracing.OrderedTraceTopostats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrderedTraceTopostats</span></code></a></p></td>
+<td><p>Order single pixel thick skeleton coordinates via TopoStats.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.linear_or_circular" title="topostats.tracing.ordered_tracing.linear_or_circular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linear_or_circular</span></code></a>(→ bool)</p></td>
+<td><p>Determine whether the molecule is circular or linear via &gt;1 points in the local start area.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.ordered_trace_mask" title="topostats.tracing.ordered_tracing.ordered_trace_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ordered_trace_mask</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Obtain a mask of the trace coordinates with each trace pixel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.ordered_tracing.ordered_tracing_image" title="topostats.tracing.ordered_tracing.ordered_tracing_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ordered_tracing_image</span></code></a>(→ tuple[dict, pandas.DataFrame, ...)</p></td>
+<td><p>Run ordered tracing for an entire image of &gt;=1 grains.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">OrderedTraceNodestats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats" title="Link to this definition">#</a></dt>
+<dd><p>Order single pixel thick skeleton coordinates via NodeStats results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – A cropped image array.</p></li>
+<li><p><strong>nodestats_dict</strong> (<em>dict</em>) – The nodestats results for a specific grain.</p></li>
+<li><p><strong>skeleton</strong> (<em>npt.NDArray</em>) – The pruned skeleton mask array.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The image filename (for logging purposes).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.nodestats_dict">
+<span class="sig-name descname"><span class="pre">nodestats_dict</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.nodestats_dict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.filename" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.skeleton">
+<span class="sig-name descname"><span class="pre">skeleton</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.grain_tracing_stats">
+<span class="sig-name descname"><span class="pre">grain_tracing_stats</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.grain_tracing_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.mol_tracing_stats">
+<span class="sig-name descname"><span class="pre">mol_tracing_stats</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.mol_tracing_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.images">
+<span class="sig-name descname"><span class="pre">images</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.images" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.profiles">
+<span class="sig-name descname"><span class="pre">profiles</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.profiles" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.img_idx_to_node">
+<span class="sig-name descname"><span class="pre">img_idx_to_node</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.img_idx_to_node" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.ordered_coordinates">
+<span class="sig-name descname"><span class="pre">ordered_coordinates</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.ordered_coordinates" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_trace">
+<span class="sig-name descname"><span class="pre">compile_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reverse_min_conf_crossing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.compile_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_trace" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the trace and diagnostic crossing trace and molecule trace images.</p>
+<p>This function uses the branches and full-width half-maximums (FWHMs) identified in the node_stats dictionary
+to create a continuous trace of the molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reverse_min_conf_crossing</strong> (<em>bool</em>) – Whether to reverse the stacking order of the lowest confidence crossing in the trace.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of each complete path’s ordered coordinates, and labeled crossing image array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list, npt.NDArray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_images">
+<span class="sig-name descname"><span class="pre">compile_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coord_trace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossing_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.compile_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_images" title="Link to this definition">#</a></dt>
+<dd><p>Obtain all the diagnostic images based on the produced traces, and values.</p>
+<p>Crossing coords and fwhms are used as arguments as reversing the minimum confidence can modify these.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coord_trace</strong> (<em>list</em>) – List of N molecule objects containing 2xM arrays of X, Y coordinates.</p></li>
+<li><p><strong>cross_add</strong> (<em>npt.NDArray</em>) – A labelled array with segments of the ordered trace.</p></li>
+<li><p><strong>crossing_coords</strong> (<em>list</em>) – A list of I nodes objects containing 2xJ arrays of X, Y coordinates for each crossing branch.</p></li>
+<li><p><strong>fwhms</strong> (<em>list</em>) – A list of I nodes objects containing FWHM values for each crossing branch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.remove_common_values">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_common_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordered_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_value_check_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.array</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.remove_common_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.remove_common_values" title="Link to this definition">#</a></dt>
+<dd><p>Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordered_array</strong> (<em>npt.NDArray</em>) – Coordinate array to remove / retain values from. Will retain its order.</p></li>
+<li><p><strong>common_value_check_array</strong> (<em>npt.NDArray</em>) – Coordinate array containing any common values to be removed from ordered_array.</p></li>
+<li><p><strong>retain</strong> (<em>list</em><em>, </em><em>optional</em>) – List of possible coordinates to keep, by default ().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Unique ordered_array values and retained coordinates. Retains the order of ordered_array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_topology">
+<span class="sig-name descname"><span class="pre">get_topology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nxyz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.get_topology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_topology" title="Link to this definition">#</a></dt>
+<dd><p>Obtain a topological classification from ordered XYZ coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>nxyz</strong> (<em>npt.NDArray</em>) – A 4xN array of the order index (n), x, y and pseudo z coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Topology(s) of the provided traced coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.trace">
+<span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordered_segment_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">both_img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.trace" title="Link to this definition">#</a></dt>
+<dd><p>Obtain an ordered trace of each complete path.</p>
+<p>Here a ‘complete path’ means following and removing connected segments until
+there are no more segments to follow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordered_segment_coords</strong> (<em>list</em>) – Ordered coordinates of each labeled segment in ‘both_img’.</p></li>
+<li><p><strong>both_img</strong> (<em>npt.NDArray</em>) – A skeletonised labeled image of each path segment.</p></li>
+<li><p><strong>zs</strong> (<em>npt.NDArray</em>) – Array of pseudo heights of the traces. -1 is lowest, 0 is skeleton, then ascending integers for
+levels of overs.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – The number of points to use for the simplified traces.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Ordered trace coordinates of each complete path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.reduce_rows">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reduce_rows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.reduce_rows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.reduce_rows" title="Link to this definition">#</a></dt>
+<dd><p>Reduce the number of rows in the array to <cite>n</cite>, keeping the first and last indexes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>npt.NDArray</em>) – An array to reduce the number of rows in.</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of indexes in the array to keep, by default 300.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The <cite>array</cite> reduced to only <cite>n</cite> + 2 elements, or if shorter, the same array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_segment">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_trace_segment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remaining_img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_segment_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.get_trace_segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_segment" title="Link to this definition">#</a></dt>
+<dd><p>Return an ordered segment at the end of the current one.</p>
+<p>Check the branch of given index to see if it contains an endpoint. If it does,
+the segment coordinates will be returned starting from the endpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>remaining_img</strong> (<em>npt.NDArray</em>) – A 2D array representing an image composed of connected segments of different integers.</p></li>
+<li><p><strong>ordered_segment_coords</strong> (<em>list</em>) – A list of 2xN coordinates representing each segment.</p></li>
+<li><p><strong>coord_idx</strong> (<em>int</em>) – The index of the current segment to look at. There is an index mismatch between the
+remaining_img and ordered_segment_coords by -1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2xN array of coordinates representing a skeletonised ordered trace segment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.order_from_end">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">order_from_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">last_segment_coord</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_segment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.order_from_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.order_from_end" title="Link to this definition">#</a></dt>
+<dd><p>Order the current segment to follow from the end of the previous one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>last_segment_coord</strong> (<em>npt.NDArray</em>) – X and Y coordinates of the end of the last segment.</p></li>
+<li><p><strong>current_segment</strong> (<em>npt.NDArray</em>) – A 2xN array of coordinates of the current segment to order.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>npt.NDArray</em> – The current segment orientated to follow on from the last.</p></li>
+<li><p><em>bool</em> – Whether the order has been flipped.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_over_under_img">
+<span class="sig-name descname"><span class="pre">get_over_under_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coord_trace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossing_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.get_over_under_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_over_under_img" title="Link to this definition">#</a></dt>
+<dd><p>Obtain a labelled image according to the main trace (=1), under (=2), over (=3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coord_trace</strong> (<em>list</em>) – Ordered coordinate trace of each molecule.</p></li>
+<li><p><strong>fwhms</strong> (<em>list</em>) – List of full-width half-maximums (FWHMs) for each crossing in the trace.</p></li>
+<li><p><strong>crossing_coords</strong> (<em>list</em>) – The crossing coordinates of each branch crossing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D crossing order labelled image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_mols_img">
+<span class="sig-name descname"><span class="pre">get_mols_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coord_trace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crossing_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.get_mols_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_mols_img" title="Link to this definition">#</a></dt>
+<dd><p>Obtain a labelled image according to each molecule traced N=3 -&gt; n=1,2,3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coord_trace</strong> (<em>list</em>) – Ordered coordinate trace of each molecule.</p></li>
+<li><p><strong>fwhms</strong> (<em>list</em>) – List of full-width half-maximums (FWHMs) for each crossing in the trace.</p></li>
+<li><p><strong>crossing_coords</strong> (<em>list</em>) – The crossing coordinates of each branch crossing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D individual ‘molecule’ labelled image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_idxs">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_trace_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fwhms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.get_trace_idxs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_idxs" title="Link to this definition">#</a></dt>
+<dd><p>Split under-passing and over-passing indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fwhms</strong> (<em>list</em>) – List of arrays of full-width half-maximum (FWHM) values for each crossing point.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>All the under, and over indices of the for each node FWHMs in the provided FWHM list.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.check_node_errorless">
+<span class="sig-name descname"><span class="pre">check_node_errorless</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.check_node_errorless"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.check_node_errorless" title="Link to this definition">#</a></dt>
+<dd><p>Check if an error has occurred while processing the node dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether the error is present.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.identify_writhes">
+<span class="sig-name descname"><span class="pre">identify_writhes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.identify_writhes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.identify_writhes" title="Link to this definition">#</a></dt>
+<dd><p>Identify the writhe topology at each crossing in the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A string of the whole grain writhe sign, and a dictionary linking each node to it’s sign.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str | dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.writhe_direction">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">writhe_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.writhe_direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.writhe_direction" title="Link to this definition">#</a></dt>
+<dd><p>Use the cross product of crossing vectors to determine the writhe sign.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>first_vector</strong> (<em>npt.NDArray</em>) – An x,y component vector of the overlying strand.</p></li>
+<li><p><strong>second_vector</strong> (<em>npt.NDArray</em>) – An x,y component vector of the underlying strand.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>‘+’, ‘-’ or ‘0’ for positive, negative, or no writhe.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceNodestats.run_nodestats_tracing">
+<span class="sig-name descname"><span class="pre">run_nodestats_tracing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceNodestats.run_nodestats_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.run_nodestats_tracing" title="Link to this definition">#</a></dt>
+<dd><p>Run the nodestats tracing pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[list, dict, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">OrderedTraceTopostats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeleton</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceTopostats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats" title="Link to this definition">#</a></dt>
+<dd><p>Order single pixel thick skeleton coordinates via TopoStats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – A cropped image array.</p></li>
+<li><p><strong>skeleton</strong> (<em>npt.NDArray</em>) – The pruned skeleton mask array.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.skeleton">
+<span class="sig-name descname"><span class="pre">skeleton</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.grain_tracing_stats">
+<span class="sig-name descname"><span class="pre">grain_tracing_stats</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.grain_tracing_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.mol_tracing_stats">
+<span class="sig-name descname"><span class="pre">mol_tracing_stats</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.mol_tracing_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.images">
+<span class="sig-name descname"><span class="pre">images</span></span><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.images" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.get_ordered_traces">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ordered_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">disordered_trace_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_is_circular</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceTopostats.get_ordered_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.get_ordered_traces" title="Link to this definition">#</a></dt>
+<dd><p>Obtain ordered traces from disordered traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>disordered_trace_coords</strong> (<em>npt.NDArray</em>) – A Nx2 array of coordinates to order.</p></li>
+<li><p><strong>mol_is_circular</strong> (<em>bool</em>) – A flag of whether the molecule has at least one coordinate with only one neighbour.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of each molecules ordered trace coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.OrderedTraceTopostats.run_topostats_tracing">
+<span class="sig-name descname"><span class="pre">run_topostats_tracing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#OrderedTraceTopostats.run_topostats_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.run_topostats_tracing" title="Link to this definition">#</a></dt>
+<dd><p>Run the topostats tracing pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[list, dict, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.linear_or_circular">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">linear_or_circular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#linear_or_circular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.linear_or_circular" title="Link to this definition">#</a></dt>
+<dd><p>Determine whether the molecule is circular or linear via &gt;1 points in the local start area.</p>
+<p>This function is sensitive to branches from the skeleton because it is based on whether any given point has zero
+neighbours or not so the traces should be pruned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>traces</strong> (<em>npt.NDArray</em>) – The array of coordinates to be assessed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether a molecule is linear or not (True if linear, False otherwise).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.ordered_trace_mask">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">ordered_trace_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordered_coordinates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#ordered_trace_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.ordered_trace_mask" title="Link to this definition">#</a></dt>
+<dd><p>Obtain a mask of the trace coordinates with each trace pixel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordered_coordinates</strong> (<em>npt.NDArray</em>) – Ordered array of coordinates.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – The shape of the array bounding the coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>NxM image with each pixel in the ordered trace labeled in ascending order.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.ordered_tracing.ordered_tracing_image">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.ordered_tracing.</span></span><span class="sig-name descname"><span class="pre">ordered_tracing_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_direction_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_direction_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordering_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/ordered_tracing.html#ordered_tracing_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.ordered_tracing.ordered_tracing_image" title="Link to this definition">#</a></dt>
+<dd><p>Run ordered tracing for an entire image of &gt;=1 grains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Whole FOV image.</p></li>
+<li><p><strong>disordered_tracing_direction_data</strong> (<em>dict</em>) – Dictionary result from the disordered traces. Fields used are “original_image” and “pruned_skeleton”.</p></li>
+<li><p><strong>nodestats_direction_data</strong> (<em>dict</em>) – Dictionary result from the nodestats analysis.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Image filename (for logging purposes).</p></li>
+<li><p><strong>ordering_method</strong> (<em>str</em>) – The method to order the trace coordinates - “topostats” or “nodestats”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
+dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame, pd.DataFrame, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../nodestats/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing.nodestats</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../pruning/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.tracing.pruning</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.image"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.nodestats_dict"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.nodestats_dict</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.filename"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.filename</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.skeleton"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.grain_tracing_stats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.grain_tracing_stats</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.mol_tracing_stats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.mol_tracing_stats</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.images"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.images</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.profiles"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.profiles</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.img_idx_to_node"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.img_idx_to_node</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.ordered_coordinates"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.ordered_coordinates</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_trace"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.compile_trace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_images"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.compile_images()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.remove_common_values"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.remove_common_values()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_topology"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.get_topology()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.trace"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.trace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.reduce_rows"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.reduce_rows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_segment"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.get_trace_segment()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.order_from_end"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.order_from_end()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_over_under_img"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.get_over_under_img()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_mols_img"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.get_mols_img()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_idxs"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.get_trace_idxs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.check_node_errorless"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.check_node_errorless()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.identify_writhes"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.identify_writhes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.writhe_direction"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.writhe_direction()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceNodestats.run_nodestats_tracing"><code class="docutils literal notranslate"><span class="pre">OrderedTraceNodestats.run_nodestats_tracing()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.image"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.skeleton"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.grain_tracing_stats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.grain_tracing_stats</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.mol_tracing_stats"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.mol_tracing_stats</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.images"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.images</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.get_ordered_traces"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.get_ordered_traces()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.OrderedTraceTopostats.run_topostats_tracing"><code class="docutils literal notranslate"><span class="pre">OrderedTraceTopostats.run_topostats_tracing()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.linear_or_circular"><code class="docutils literal notranslate"><span class="pre">linear_or_circular()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.ordered_trace_mask"><code class="docutils literal notranslate"><span class="pre">ordered_trace_mask()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.ordered_tracing.ordered_tracing_image"><code class="docutils literal notranslate"><span class="pre">ordered_tracing_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/autoapi/topostats/tracing/ordered_tracing/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

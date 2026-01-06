@@ -1,0 +1,1981 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.grainstats &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/grainstats';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="grainstats.html">v2.3.1</a></li>
+  <li><a href="../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.grainstats</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.grainstats</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Contains class for calculating the statistics of grains - 2d raster images.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">randint</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.ndimage</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skimage.feature</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">skimage_feature</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">skimage_measure</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skimage.morphology</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">skimage_morphology</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">feret</span><span class="p">,</span> <span class="n">height_profiles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_empty_dataframe</span>
+
+<span class="c1"># pylint: disable=too-many-lines</span>
+<span class="c1"># pylint: disable=too-many-instance-attributes</span>
+<span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="c1"># pylint: disable=too-many-branches</span>
+<span class="c1"># pylint: disable=line-too-long</span>
+<span class="c1"># pylint: disable=fixme</span>
+<span class="c1"># FIXME : The calculate_stats() and calculate_aspect_ratio() raise this error when linting, could consider putting</span>
+<span class="c1">#         variables into dictionar, see example of breaking code out to staticmethod extremes() and returning a</span>
+<span class="c1">#         dictionary of x_min/x_max/y_min/y_max</span>
+<span class="c1"># pylint: disable=too-many-locals</span>
+<span class="c1"># FIXME : calculate_aspect_ratio raises this error when linting it has 65 statements, recommended not to exceed 50.</span>
+<span class="c1">#         Could break some out to small functions such as the lines that calculate the samllest bounding rectangle</span>
+<span class="c1"># pylint: disable=too-many-statements</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+
+<span class="n">GRAIN_STATS_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;grain_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;centre_x&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;centre_y&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radius_min&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radius_max&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radius_mean&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;radius_median&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;height_min&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;height_max&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;height_median&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;height_mean&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;volume&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;area&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;area_cartesian_bbox&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smallest_bounding_width&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smallest_bounding_length&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smallest_bounding_area&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;aspect_ratio&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="GrainStats">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GrainStats</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for calculating grain stats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : npt.NDArray</span>
+<span class="sd">        2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.</span>
+<span class="sd">    labelled_data : npt.NDArray</span>
+<span class="sd">        2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.</span>
+<span class="sd">    pixel_to_nanometre_scaling : float</span>
+<span class="sd">        Floating point value that defines the scaling factor between nanometres and pixels.</span>
+<span class="sd">    direction : str</span>
+<span class="sd">        Direction for which grains have been detected (&quot;above&quot; or &quot;below&quot;).</span>
+<span class="sd">    base_output_dir : Path</span>
+<span class="sd">        Path to the folder that will store the grain stats output images and data.</span>
+<span class="sd">    image_name : str</span>
+<span class="sd">        The name of the file being processed.</span>
+<span class="sd">    edge_detection_method : str</span>
+<span class="sd">        Method used for detecting the edges of grain masks before calculating statistics on them.</span>
+<span class="sd">        Do not change unless you know exactly what this is doing. Options: &quot;binary_erosion&quot;, &quot;canny&quot;.</span>
+<span class="sd">    extract_height_profile : bool</span>
+<span class="sd">        Extract the height profile.</span>
+<span class="sd">    cropped_size : float</span>
+<span class="sd">        Length of square side (in nm) to crop grains to.</span>
+<span class="sd">    plot_opts : dict</span>
+<span class="sd">        Plotting options dictionary for the cropped grains.</span>
+<span class="sd">    metre_scaling_factor : float</span>
+<span class="sd">        Multiplier to convert the current length scale to metres. Default: 1e-9 for the</span>
+<span class="sd">        usual AFM length scale of nanometres.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">labelled_data</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">pixel_to_nanometre_scaling</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">base_output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">edge_detection_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;binary_erosion&quot;</span><span class="p">,</span>
+        <span class="n">extract_height_profile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">cropped_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">plot_opts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">metre_scaling_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : npt.NDArray</span>
+<span class="sd">            2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.</span>
+<span class="sd">        labelled_data : npt.NDArray</span>
+<span class="sd">            2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.</span>
+<span class="sd">        pixel_to_nanometre_scaling : float</span>
+<span class="sd">            Floating point value that defines the scaling factor between nanometres and pixels.</span>
+<span class="sd">        direction : str</span>
+<span class="sd">            Direction for which grains have been detected (&quot;above&quot; or &quot;below&quot;).</span>
+<span class="sd">        base_output_dir : Path</span>
+<span class="sd">            Path to the folder that will store the grain stats output images and data.</span>
+<span class="sd">        image_name : str</span>
+<span class="sd">            The name of the file being processed.</span>
+<span class="sd">        edge_detection_method : str</span>
+<span class="sd">            Method used for detecting the edges of grain masks before calculating statistics on them.</span>
+<span class="sd">            Do not change unless you know exactly what this is doing. Options: &quot;binary_erosion&quot;, &quot;canny&quot;.</span>
+<span class="sd">        extract_height_profile : bool</span>
+<span class="sd">            Extract the height profile.</span>
+<span class="sd">        cropped_size : float</span>
+<span class="sd">            Length of square side (in nm) to crop grains to.</span>
+<span class="sd">        plot_opts : dict</span>
+<span class="sd">            Plotting options dictionary for the cropped grains.</span>
+<span class="sd">        metre_scaling_factor : float</span>
+<span class="sd">            Multiplier to convert the current length scale to metres. Default: 1e-9 for the</span>
+<span class="sd">            usual AFM length scale of nanometres.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labelled_data</span> <span class="o">=</span> <span class="n">labelled_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nanometre_scaling</span> <span class="o">=</span> <span class="n">pixel_to_nanometre_scaling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_output_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_name</span> <span class="o">=</span> <span class="n">image_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_detection_method</span> <span class="o">=</span> <span class="n">edge_detection_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extract_height_profile</span> <span class="o">=</span> <span class="n">extract_height_profile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cropped_size</span> <span class="o">=</span> <span class="n">cropped_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_opts</span> <span class="o">=</span> <span class="n">plot_opts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span> <span class="o">=</span> <span class="n">metre_scaling_factor</span>
+
+<div class="viewcode-block" id="GrainStats.get_angle">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_angle">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_angle</span><span class="p">(</span><span class="n">point_1</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">point_2</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the angle in radians between two points.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        point_1 : tuple</span>
+<span class="sd">            Coordinate vectors for the first point to find the angle between.</span>
+<span class="sd">        point_2 : tuple</span>
+<span class="sd">            Coordinate vectors for the second point to find the angle between.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The angle in radians between the two input vectors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">point_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point_1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.is_clockwise">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.is_clockwise">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_clockwise</span><span class="p">(</span><span class="n">p_1</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">p_2</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">p_3</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine if three points make a clockwise or counter-clockwise turn.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        p_1 : tuple</span>
+<span class="sd">            First point to be used to calculate turn.</span>
+<span class="sd">        p_2 : tuple</span>
+<span class="sd">            Second point to be used to calculate turn.</span>
+<span class="sd">        p_3 : tuple</span>
+<span class="sd">            Third point to be used to calculate turn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        boolean</span>
+<span class="sd">            Indicator of whether turn is clockwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine if three points form a clockwise or counter-clockwise turn.</span>
+        <span class="c1"># I use the method of calculating the determinant of the following rotation matrix here. If the determinant</span>
+        <span class="c1"># is &gt; 0 then the rotation is counter-clockwise.</span>
+        <span class="n">rotation_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(((</span><span class="n">p_1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p_1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">p_2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p_2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">p_3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p_3</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">rotation_matrix</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_stats">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_stats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the stats of grains in the labelled image.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image</span>
+<span class="sd">            and a list of dictionaries containing grain data to be plotted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">grains_plot_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_height_profiles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">labelled_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">] : No labelled regions for this image, grain statistics can not be calculated.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">GRAIN_STATS_COLUMNS</span><span class="p">),</span> <span class="n">grains_plot_data</span><span class="p">,</span> <span class="n">all_height_profiles</span>
+
+        <span class="c1"># Calculate region properties</span>
+        <span class="n">region_properties</span> <span class="o">=</span> <span class="n">skimage_measure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labelled_data</span><span class="p">)</span>
+
+        <span class="c1"># Iterate over all the grains in the image</span>
+        <span class="n">stats_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># List to hold all the plot data for all the grains. Each entry is a dictionary of plotting data.</span>
+        <span class="c1"># There are multiple entries for each grain.</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">region_properties</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">] : Processing grain: </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Skip grain if too small to calculate stats for</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">] : Grain size: </span><span class="si">{</span><span class="n">region</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">] : Skipping grain due to being too small (size: </span><span class="si">{</span><span class="n">region</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">) to calculate stats for.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Create directory for each grain&#39;s plots</span>
+            <span class="n">output_grain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_output_dir</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span>
+            <span class="c1"># Obtain cropped grain mask and image</span>
+            <span class="n">minr</span><span class="p">,</span> <span class="n">minc</span><span class="p">,</span> <span class="n">maxr</span><span class="p">,</span> <span class="n">maxc</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">bbox</span>
+            <span class="n">grain_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">region</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+            <span class="n">grain_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">minr</span><span class="p">:</span><span class="n">maxr</span><span class="p">,</span> <span class="n">minc</span><span class="p">:</span><span class="n">maxc</span><span class="p">]</span>
+            <span class="n">grain_mask_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">grain_image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span><span class="o">.</span><span class="n">filled</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cropped_size</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="p">{</span>
+                    <span class="s2">&quot;grain_image&quot;</span><span class="p">:</span> <span class="n">grain_image</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_mask&quot;</span><span class="p">:</span> <span class="n">grain_mask</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_mask_image&quot;</span><span class="p">:</span> <span class="n">grain_mask_image</span><span class="p">,</span>
+                <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">grains_plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+                            <span class="s2">&quot;output_dir&quot;</span><span class="p">:</span> <span class="n">output_grain</span><span class="p">,</span>
+                            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Get cropped image and mask</span>
+                <span class="n">grain_centre</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">minr</span> <span class="o">+</span> <span class="n">maxr</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">((</span><span class="n">minc</span> <span class="o">+</span> <span class="n">maxc</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cropped_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nanometre_scaling</span><span class="p">))</span>
+                <span class="n">solo_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labelled_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">solo_mask</span><span class="p">[</span><span class="n">solo_mask</span> <span class="o">!=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">solo_mask</span><span class="p">[</span><span class="n">solo_mask</span> <span class="o">==</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">cropped_grain_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cropped_region</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grain_centre</span><span class="p">))</span>
+                <span class="n">cropped_grain_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cropped_region</span><span class="p">(</span><span class="n">solo_mask</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grain_centre</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="n">cropped_grain_mask_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span>
+                    <span class="n">grain_image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">filled</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="p">{</span>
+                    <span class="s2">&quot;grain_image&quot;</span><span class="p">:</span> <span class="n">cropped_grain_image</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_mask&quot;</span><span class="p">:</span> <span class="n">cropped_grain_mask</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_mask_image&quot;</span><span class="p">:</span> <span class="n">cropped_grain_mask_image</span><span class="p">,</span>
+                <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">grains_plot_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+                            <span class="s2">&quot;output_dir&quot;</span><span class="p">:</span> <span class="n">output_grain</span><span class="p">,</span>
+                            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+
+            <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_points</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">)</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_edges</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">,</span> <span class="n">edge_detection_method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_detection_method</span><span class="p">)</span>
+            <span class="n">radius_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_radius_stats</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+            <span class="c1"># hull, hull_indices, hull_simplexes = self.convex_hull(edges, output_grain)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">hull_simplexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convex_hull</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">output_grain</span><span class="p">)</span>
+            <span class="n">centroid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_centroid</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+            <span class="c1"># Centroids for the grains (minc and minr added because centroid returns values local to the cropped grain images)</span>
+            <span class="n">centre_x</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">minc</span>
+            <span class="n">centre_y</span> <span class="o">=</span> <span class="n">centroid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">minr</span>
+            <span class="p">(</span>
+                <span class="n">smallest_bounding_width</span><span class="p">,</span>
+                <span class="n">smallest_bounding_length</span><span class="p">,</span>
+                <span class="n">aspect_ratio</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_aspect_ratio</span><span class="p">(</span>
+                <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span>
+                <span class="n">hull_simplices</span><span class="o">=</span><span class="n">hull_simplexes</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">output_grain</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Calculate scaling factors</span>
+            <span class="n">length_scaling_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nanometre_scaling</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span>
+            <span class="n">area_scaling_factor</span> <span class="o">=</span> <span class="n">length_scaling_factor</span><span class="o">**</span><span class="mi">2</span>
+
+            <span class="c1"># Calculate minimum and maximum feret diameters and scale the distances</span>
+            <span class="n">feret_statistics</span> <span class="o">=</span> <span class="n">feret</span><span class="o">.</span><span class="n">min_max_feret</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+            <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;min_feret&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;min_feret&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span>
+            <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;max_feret&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;max_feret&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_height_profile</span><span class="p">:</span>
+                <span class="n">all_height_profiles</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">height_profiles</span><span class="o">.</span><span class="n">interpolate_height_profile</span><span class="p">(</span>
+                    <span class="n">img</span><span class="o">=</span><span class="n">grain_image</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">grain_mask</span>
+                <span class="p">)</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">image_name</span><span class="si">}</span><span class="s2">] : Height profiles extracted.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert</span>
+            <span class="c1"># from pixel units to nanometres.</span>
+            <span class="c1"># Removed formatting, better to keep accurate until the end, including in CSV, then shorten display</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;centre_x&quot;</span><span class="p">:</span> <span class="n">centre_x</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;centre_y&quot;</span><span class="p">:</span> <span class="n">centre_y</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;radius_min&quot;</span><span class="p">:</span> <span class="n">radius_stats</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;radius_max&quot;</span><span class="p">:</span> <span class="n">radius_stats</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;radius_mean&quot;</span><span class="p">:</span> <span class="n">radius_stats</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;radius_median&quot;</span><span class="p">:</span> <span class="n">radius_stats</span><span class="p">[</span><span class="s2">&quot;median&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;height_min&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">grain_mask_image</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;height_max&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">grain_mask_image</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;height_median&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">grain_mask_image</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;height_mean&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">grain_mask_image</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span><span class="p">,</span>
+                <span class="c1"># [volume] = [pixel] * [pixel] * [height] = px * px * nm.</span>
+                <span class="c1"># To turn into m^3, multiply by pixel_to_nanometre_scaling^2 and metre_scaling_factor^3.</span>
+                <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">grain_mask_image</span><span class="p">)</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nanometre_scaling</span><span class="o">**</span><span class="mi">2</span>
+                <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metre_scaling_factor</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span>
+                <span class="s2">&quot;area&quot;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">area</span> <span class="o">*</span> <span class="n">area_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;area_cartesian_bbox&quot;</span><span class="p">:</span> <span class="n">region</span><span class="o">.</span><span class="n">area_bbox</span> <span class="o">*</span> <span class="n">area_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;smallest_bounding_width&quot;</span><span class="p">:</span> <span class="n">smallest_bounding_width</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;smallest_bounding_length&quot;</span><span class="p">:</span> <span class="n">smallest_bounding_length</span> <span class="o">*</span> <span class="n">length_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;smallest_bounding_area&quot;</span><span class="p">:</span> <span class="n">smallest_bounding_length</span> <span class="o">*</span> <span class="n">smallest_bounding_width</span> <span class="o">*</span> <span class="n">area_scaling_factor</span><span class="p">,</span>
+                <span class="s2">&quot;aspect_ratio&quot;</span><span class="p">:</span> <span class="n">aspect_ratio</span><span class="p">,</span>
+                <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="p">,</span>
+                <span class="s2">&quot;max_feret&quot;</span><span class="p">:</span> <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;max_feret&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;min_feret&quot;</span><span class="p">:</span> <span class="n">feret_statistics</span><span class="p">[</span><span class="s2">&quot;min_feret&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="n">stats_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stats_array</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">grainstats_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">stats_array</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grainstats_df</span> <span class="o">=</span> <span class="n">create_empty_dataframe</span><span class="p">()</span>
+        <span class="n">grainstats_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;grain_number&quot;</span>
+        <span class="n">grainstats_df</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_name</span>
+
+        <span class="k">return</span> <span class="n">grainstats_df</span><span class="p">,</span> <span class="n">grains_plot_data</span><span class="p">,</span> <span class="n">all_height_profiles</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_points">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_points">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_points</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a 2D boolean array to a list of coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grain_mask : npt.NDArray</span>
+<span class="sd">            A 2D numpy array image of a grain. Data in the array must be boolean.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A python list containing the coordinates of the pixels in the grain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nonzero_coordinates</span> <span class="o">=</span> <span class="n">grain_mask</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">nonzero_coordinates</span><span class="p">):</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">point</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">points</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_edges">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_edges">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_edges</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">edge_detection_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert 2D boolean array to list of the coordinates of the edges of the grain.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grain_mask : npt.NDArray</span>
+<span class="sd">            A 2D numpy array image of a grain. Data in the array must be boolean.</span>
+<span class="sd">        edge_detection_method : str</span>
+<span class="sd">            Method used for detecting the edges of grain masks before calculating statistics on them.</span>
+<span class="sd">            Do not change unless you know exactly what this is doing. Options: &quot;binary_erosion&quot;, &quot;canny&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List containing the coordinates of the edges of the grain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Fill any holes</span>
+        <span class="n">filled_grain_mask</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">grain_mask</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">edge_detection_method</span> <span class="o">==</span> <span class="s2">&quot;binary_erosion&quot;</span><span class="p">:</span>
+            <span class="c1"># Add padding (needed for erosion)</span>
+            <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">filled_grain_mask</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Erode by 1 pixel</span>
+            <span class="n">eroded</span> <span class="o">=</span> <span class="n">skimage_morphology</span><span class="o">.</span><span class="n">binary_erosion</span><span class="p">(</span><span class="n">padded</span><span class="p">)</span>
+            <span class="c1"># Remove padding</span>
+            <span class="n">eroded</span> <span class="o">=</span> <span class="n">eroded</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Edges is equal to the difference between the</span>
+            <span class="c1"># original image and the eroded image.</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="n">filled_grain_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">-</span> <span class="n">eroded</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Get outer edge using canny filtering</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="n">skimage_feature</span><span class="o">.</span><span class="n">canny</span><span class="p">(</span><span class="n">filled_grain_mask</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">nonzero_coordinates</span> <span class="o">=</span> <span class="n">edges</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+        <span class="c1"># Get vector representation of the points</span>
+        <span class="c1"># FIXME : Switched to list comprehension but should be unnecessary to create this as a list as we can use</span>
+        <span class="c1"># np.stack() to combine the arrays and use that...</span>
+        <span class="c1"># return np.stack(nonzero_coordinates, axis=1)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="k">for</span> <span class="n">vector</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">nonzero_coordinates</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_radius_stats">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_radius_stats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_radius_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the radius of grains.</span>
+
+<span class="sd">        The radius in this context is the distance from the centroid to points on the edge of the grain.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : list</span>
+<span class="sd">            A 2D python list containing the coordinates of the edges of a grain.</span>
+<span class="sd">        points : list</span>
+<span class="sd">            A 2D python list containing the coordinates of the points in a grain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[float]</span>
+<span class="sd">            A tuple of the minimum, maximum, mean and median radius of the grain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Calculate the centroid of the grain</span>
+        <span class="n">centroid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_centroid</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="c1"># Calculate the displacement</span>
+        <span class="n">displacements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_displacement</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">centroid</span><span class="p">)</span>
+        <span class="c1"># Calculate the radius of each point</span>
+        <span class="n">radii</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_radius</span><span class="p">(</span><span class="n">displacements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">radii</span><span class="p">),</span>
+            <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">radii</span><span class="p">),</span>
+            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">radii</span><span class="p">),</span>
+            <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">radii</span><span class="p">),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="GrainStats._calculate_centroid">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_centroid">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_centroid</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the centroid of a bounding box.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        points : list</span>
+<span class="sd">            A 2D python list containing the coordinates of the points in a grain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            The coordinates of the centroid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME : Remove once we have a numpy array returned by calculate_edges</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="GrainStats._calculate_displacement">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_displacement">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_displacement</span><span class="p">(</span><span class="n">edges</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">centroid</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the displacement between the edges and centroid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : npt.NDArray</span>
+<span class="sd">            Coordinates of the edge points.</span>
+<span class="sd">        centroid : tuple</span>
+<span class="sd">            Coordinates of the centroid.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            Array of displacements.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME : Remove once we have a numpy array returned by calculate_edges</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">-</span> <span class="n">centroid</span></div>
+
+
+<div class="viewcode-block" id="GrainStats._calculate_radius">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_radius">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_radius</span><span class="p">(</span><span class="n">displacements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the radius of each point from the centroid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        displacements : List[list]</span>
+<span class="sd">            A list of displacements.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDarray</span>
+<span class="sd">            Array of radii of each point from the centroid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">radius</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">radius</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">radius</span> <span class="ow">in</span> <span class="n">displacements</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.convex_hull">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.convex_hull">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convex_hull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">base_output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a grain&#39;s convex hull.</span>
+
+<span class="sd">        Based off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : list</span>
+<span class="sd">            A python list containing the coordinates of the edges of the grain.</span>
+<span class="sd">        base_output_dir : Path</span>
+<span class="sd">            Directory to save output to.</span>
+<span class="sd">        debug : bool</span>
+<span class="sd">            Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls</span>
+<span class="sd">            and edges will be saved.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, list, list]</span>
+<span class="sd">            A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points</span>
+<span class="sd">            from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex</span>
+<span class="sd">            of the convex hull, these are sorted in a counter-clockwise order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hull</span><span class="p">,</span> <span class="n">hull_indices</span><span class="p">,</span> <span class="n">simplexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graham_scan</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+        <span class="c1"># Debug information</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">base_output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">hull</span><span class="p">,</span> <span class="n">base_output_dir</span> <span class="o">/</span> <span class="s2">&quot;_points_hull.png&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;points: </span><span class="si">{</span><span class="n">edges</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;hull: </span><span class="si">{</span><span class="n">hull</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;hull indexes: </span><span class="si">{</span><span class="n">hull_indices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;simplexes: </span><span class="si">{</span><span class="n">simplexes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hull</span><span class="p">,</span> <span class="n">hull_indices</span><span class="p">,</span> <span class="n">simplexes</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_squared_distance">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_squared_distance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_squared_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point_2</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">point_1</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the squared distance between two points.</span>
+
+<span class="sd">        Used for distance sorting purposes and therefore does not perform a square root in the interests of efficiency.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        point_2 : tuple</span>
+<span class="sd">            The point to find the squared distance to.</span>
+<span class="sd">        point_1 : tuple</span>
+<span class="sd">            Optional - defaults to the starting point defined in the graham_scan() function. The point to find the</span>
+<span class="sd">            squared distance from.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            The squared distance between the two points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get the distance squared between two points. If the second point is not provided, use the starting point.</span>
+        <span class="n">point_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span> <span class="k">if</span> <span class="n">point_1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">point_1</span>
+        <span class="n">delta_x</span> <span class="o">=</span> <span class="n">point_2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">delta_y</span> <span class="o">=</span> <span class="n">point_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">point_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Don&#39;t need the sqrt since just sorting for dist</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">delta_x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">delta_y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.sort_points">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.sort_points">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sort_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="c1">#    def sort_points(self, points: np.array) -&gt; List:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort points in counter-clockwise order of angle made with the starting point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        points : list</span>
+<span class="sd">            A python list of the coordinates to sort.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Points (coordinates) sorted counter-clockwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Return if the list is length 1 or 0 (i.e. a single point).</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">points</span>
+        <span class="c1"># Lists that allow sorting of points relative to a current comparison point</span>
+        <span class="n">smaller</span><span class="p">,</span> <span class="n">equal</span><span class="p">,</span> <span class="n">larger</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="c1"># Get a random point in the array to calculate the pivot angle from. This sorts the points relative to this point.</span>
+        <span class="n">pivot_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_angle</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)],</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span><span class="p">)</span>  <span class="c1"># noqa: S311</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+            <span class="n">point_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_angle</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span><span class="p">)</span>
+            <span class="c1"># If the</span>
+            <span class="k">if</span> <span class="n">point_angle</span> <span class="o">&lt;</span> <span class="n">pivot_angle</span><span class="p">:</span>
+                <span class="n">smaller</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">point_angle</span> <span class="o">==</span> <span class="n">pivot_angle</span><span class="p">:</span>
+                <span class="n">equal</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">larger</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+        <span class="c1"># Lets take a different approach and use arrays, we have a start point lets work out the angle of each point</span>
+        <span class="c1"># relative to that and _then_ sort it.</span>
+        <span class="c1"># pivot_angles = self.get_angle(points, self.start_point)</span>
+        <span class="c1"># Recursively sort the arrays until each point is sorted</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_points</span><span class="p">(</span><span class="n">smaller</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">equal</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calculate_squared_distance</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_points</span><span class="p">(</span><span class="n">larger</span><span class="p">)</span></div>
+
+        <span class="c1"># Return sorted array where equal angle points are sorted by distance</span>
+
+<div class="viewcode-block" id="GrainStats.get_start_point">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_start_point">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_start_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine the index of the bottom most point of the hull when sorted by x-position.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : npt.NDArray</span>
+<span class="sd">            Array of coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">min_y_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">min_y_index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.graham_scan">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.graham_scan">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">graham_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the convex hull using the  Graham Scan algorithm.</span>
+
+<span class="sd">        Ideally this algorithm will take O( n * log(n) ) time.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : list</span>
+<span class="sd">            A python list of coordinates that make up the edges of the grain.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[list, list, list]</span>
+<span class="sd">            A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points</span>
+<span class="sd">            from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex</span>
+<span class="sd">            of the convex hull, these are sorted in a counter-clockwise order.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME : Make this an isolated method</span>
+        <span class="c1"># Find a point guaranteed to be on the hull. I find the bottom most point(s) and sort by x-position.</span>
+        <span class="n">min_y_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">edges</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">min_y_index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">edges</span><span class="p">[</span><span class="n">min_y_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">min_y_index</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="k">if</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">edges</span><span class="p">[</span><span class="n">min_y_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">edges</span><span class="p">[</span><span class="n">min_y_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">min_y_index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_point</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">min_y_index</span><span class="p">]</span>
+        <span class="c1"># This does the same thing, but as a separate method and with Numpy Array rather than a list</span>
+        <span class="c1"># self.get_start_point(edges)</span>
+        <span class="c1"># Sort the points</span>
+        <span class="n">points_sorted_by_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_points</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+        <span class="c1"># Remove starting point from the list so it&#39;s not added more than once to the hull</span>
+        <span class="n">start_point_index</span> <span class="o">=</span> <span class="n">points_sorted_by_angle</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_point</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">points_sorted_by_angle</span><span class="p">[</span><span class="n">start_point_index</span><span class="p">]</span>
+        <span class="c1"># Add start point and the first point sorted by angle. Both of these points will always be on the hull.</span>
+        <span class="n">hull</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_point</span><span class="p">,</span> <span class="n">points_sorted_by_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="c1"># Iterate through each point, checking if this point would cause a clockwise rotation if added to the hull, and</span>
+        <span class="c1"># if so, backtracking.</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points_sorted_by_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="c1"># Determine if the proposed point demands a clockwise rotation</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_clockwise</span><span class="p">(</span><span class="n">hull</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">hull</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">point</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># Delete the failed point</span>
+                <span class="k">del</span> <span class="n">hull</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hull</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="c1"># The point does not immediately cause a clockwise rotation.</span>
+            <span class="n">hull</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+
+        <span class="c1"># Get hull indices from original points array</span>
+        <span class="n">hull_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">hull</span><span class="p">:</span>
+            <span class="n">hull_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">point</span><span class="p">))</span>
+
+        <span class="c1"># Create simplices from the hull points</span>
+        <span class="n">simplices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hull_indices</span><span class="p">):</span>
+            <span class="n">simplices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">hull_indices</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">hull</span><span class="p">,</span> <span class="n">hull_indices</span><span class="p">,</span> <span class="n">simplices</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.plot">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.plot">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="n">edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">convex_hull</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot and save the coordinates of the edges in the grain and optionally the hull.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : list</span>
+<span class="sd">            A list of points to be plotted.</span>
+<span class="sd">        convex_hull : list</span>
+<span class="sd">            Optional argument. A list of points that form the convex hull. Will be plotted with the coordinates if</span>
+<span class="sd">            provided.</span>
+<span class="sd">        file_path : Path</span>
+<span class="sd">            Path of the file to save the plot as.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">x_s</span><span class="p">,</span> <span class="n">y_s</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edges</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_s</span><span class="p">,</span> <span class="n">y_s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">convex_hull</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">convex_hull</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># Loop on the final simplex of the hull to join the last and first points together.</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">convex_hull</span><span class="p">)</span> <span class="o">==</span> <span class="n">index</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">point2</span> <span class="o">=</span> <span class="n">convex_hull</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">point1</span> <span class="o">=</span> <span class="n">convex_hull</span><span class="p">[</span><span class="n">index</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="c1"># Plot a line between the two points</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">((</span><span class="n">point1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">point2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">point1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="s2">&quot;#994400&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.calculate_aspect_ratio">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_aspect_ratio">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_aspect_ratio</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">hull_simplices</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        edges : list</span>
+<span class="sd">            A python list of coordinates of the edge of the grain.</span>
+<span class="sd">        hull_simplices : npt.NDArray</span>
+<span class="sd">            A 2D numpy array of simplices that the hull is comprised of.</span>
+<span class="sd">        path : Path</span>
+<span class="sd">            Path to the save folder for the grain.</span>
+<span class="sd">        debug : bool</span>
+<span class="sd">            If true, various plots will be saved for diagnostic purposes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            The smallest_bouning_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the</span>
+<span class="sd">            grain. The smallest_bounding_length (float) in pixels (not nanometres), of the smallest bounding rectangle</span>
+<span class="sd">            for the grain. And the aspect_ratio (float) the width divided by the length of the smallest bounding</span>
+<span class="sd">            rectangle for the grain. It will always be greater or equal to 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ensure the edges are in the form of a numpy array.</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+        <span class="c1"># Create a variable to store the smallest area in - this is to be able to compare whilst iterating</span>
+        <span class="n">smallest_bounding_area</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># FIXME : pylint complains that this is unused which looks like a false positive to me as it is used.</span>
+        <span class="c1">#         Probably does not need initiating here though (and code runs fine when doing so)</span>
+        <span class="c1"># smallest_bounding_rectangle = None</span>
+
+        <span class="c1"># Iterate through the simplices</span>
+        <span class="k">for</span> <span class="n">simplex_index</span><span class="p">,</span> <span class="n">simplex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hull_simplices</span><span class="p">):</span>
+            <span class="n">p_1</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">simplex</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">p_2</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">simplex</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">-</span> <span class="n">p_2</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">delta</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">delta</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># Find the centroid of the points</span>
+            <span class="n">centroid</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)))</span>
+
+            <span class="c1"># Map the coordinates such that the centroid is now centered on the origin. This is needed for the</span>
+            <span class="c1"># matrix rotation step coming up.</span>
+            <span class="n">remapped_points</span> <span class="o">=</span> <span class="n">edges</span> <span class="o">-</span> <span class="n">centroid</span>
+
+            <span class="c1"># Rotate the coordinates using a rotation matrix</span>
+            <span class="n">rotated_coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)),</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">))))</span>
+
+            <span class="c1"># For each point in the set, rotate it using the above rotation matrix.</span>
+            <span class="n">rotated_points</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">remapped_points</span><span class="p">):</span>
+                <span class="n">newpoint</span> <span class="o">=</span> <span class="n">rotated_coordinates</span> <span class="o">@</span> <span class="n">point</span>
+                <span class="c1"># FIXME : Can probably use np.append() here to append arrays directly, something like</span>
+                <span class="c1"># np.append(rotated_points, newpoint, axis=0) but doing so requires other areas to be modified</span>
+                <span class="n">rotated_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newpoint</span><span class="p">)</span>
+            <span class="n">rotated_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">)</span>
+            <span class="c1"># Find the cartesian extremities</span>
+            <span class="n">extremes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_cartesian_extremes</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="c1"># Ensure directory is there</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="c1"># Create plot</span>
+                <span class="c1"># FIXME : Make this a method</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+                <span class="c1"># Draw the points and the current simplex that is being tested</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">remapped_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">remapped_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="n">remapped_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">remapped_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">&quot;#444444&quot;</span><span class="p">,</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="n">rotated_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">rotated_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">&quot;k-&quot;</span><span class="p">,</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">rotated_points</span><span class="p">[</span><span class="n">simplex</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+                <span class="c1"># Draw the convex hulls</span>
+                <span class="k">for</span> <span class="n">_simplex</span> <span class="ow">in</span> <span class="n">hull_simplices</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                        <span class="n">remapped_points</span><span class="p">[</span><span class="n">_simplex</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                        <span class="n">remapped_points</span><span class="p">[</span><span class="n">_simplex</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                        <span class="s2">&quot;#888888&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                        <span class="n">rotated_points</span><span class="p">[</span><span class="n">_simplex</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                        <span class="n">rotated_points</span><span class="p">[</span><span class="n">_simplex</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                        <span class="s2">&quot;#555555&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Draw bounding box</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">],</span>
+                    <span class="p">],</span>
+                    <span class="p">[</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">],</span>
+                        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">],</span>
+                    <span class="p">],</span>
+                    <span class="s2">&quot;#994400&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="p">(</span><span class="s2">&quot;bounding_rectangle_construction_simplex_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">simplex_index</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.png&quot;</span><span class="p">))</span>
+
+            <span class="c1"># Calculate the area of the proposed bounding rectangle</span>
+            <span class="n">bounding_area</span> <span class="o">=</span> <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">])</span>
+
+            <span class="c1"># If current bounding rectangle is the smallest so far</span>
+            <span class="k">if</span> <span class="n">smallest_bounding_area</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">bounding_area</span> <span class="o">&lt;</span> <span class="n">smallest_bounding_area</span><span class="p">:</span>
+                <span class="n">smallest_bounding_area</span> <span class="o">=</span> <span class="n">bounding_area</span>
+                <span class="n">smallest_bounding_width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">]),</span>
+                    <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">]),</span>
+                <span class="p">)</span>
+                <span class="n">smallest_bounding_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">]),</span>
+                    <span class="p">(</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">]),</span>
+                <span class="p">)</span>
+                <span class="c1"># aspect ratio bounded to be &lt;= 1</span>
+                <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="n">smallest_bounding_width</span> <span class="o">/</span> <span class="n">smallest_bounding_length</span>
+
+        <span class="c1"># Unrotate the bounding box vertices</span>
+        <span class="n">r_inverse</span> <span class="o">=</span> <span class="n">rotated_coordinates</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">translated_rotated_bounding_rectangle_vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="p">[</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">],</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">]],</span>
+                <span class="p">[</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">],</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">]],</span>
+                <span class="p">[</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">],</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]],</span>
+                <span class="p">[</span><span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">],</span> <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">translated_bounding_rectangle_vertices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">translated_rotated_bounding_rectangle_vertices</span><span class="p">):</span>
+            <span class="n">newpoint</span> <span class="o">=</span> <span class="n">r_inverse</span> <span class="o">@</span> <span class="n">point</span>
+            <span class="c1"># FIXME : As above can likely use np.append(, axis=0) here</span>
+            <span class="n">translated_bounding_rectangle_vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newpoint</span><span class="p">)</span>
+        <span class="n">translated_bounding_rectangle_vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">translated_bounding_rectangle_vertices</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="c1"># Create plot</span>
+            <span class="c1"># FIXME : Make this a private method</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">translated_rotated_bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">translated_rotated_bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">translated_rotated_bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">translated_rotated_bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;#994400&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;rotated&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">translated_bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">translated_bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">translated_bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">translated_bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;#004499&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;unrotated&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">remapped_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="n">y</span><span class="o">=</span><span class="n">remapped_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#004499&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;translated&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;rotated&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span> <span class="o">/</span> <span class="s2">&quot;hull_bounding_rectangle_extra&quot;</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">bounding_rectangle_vertices</span> <span class="o">=</span> <span class="n">translated_bounding_rectangle_vertices</span> <span class="o">+</span> <span class="n">centroid</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bounding_rectangle_vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bounding_rectangle_vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="s2">&quot;#994400&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;unrotated&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">edges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;original points&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Grain Length (nm)&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Grain Width (nm)&quot;</span><span class="p">)</span>
+        <span class="c1"># plt.savefig(path / &quot;minimum_bbox.png&quot;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">smallest_bounding_width</span><span class="p">,</span> <span class="n">smallest_bounding_length</span><span class="p">,</span> <span class="n">aspect_ratio</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.find_cartesian_extremes">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.find_cartesian_extremes">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_cartesian_extremes</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the limits of x and y of rotated points.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rotated_points : npt.NDArray</span>
+<span class="sd">            2-D array of rotated points.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Dictionary of the x and y min and max.__annotations__.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">extremes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;x_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">extremes</span><span class="p">[</span><span class="s2">&quot;y_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">rotated_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">extremes</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.get_shift">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_shift">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_shift</span><span class="p">(</span><span class="n">coords</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coords : npt.NDArray</span>
+<span class="sd">            Value representing integer coordinates which may be outside of the image.</span>
+<span class="sd">        shape : npt.NDArray</span>
+<span class="sd">            Array of the shape of an image.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.int64</span>
+<span class="sd">            Max value of the shift to reflect the croped region so it stays within the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">shape</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">coords</span> <span class="o">&gt;</span> <span class="n">shape</span><span class="p">)]</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">shift</span><span class="p">,</span> <span class="o">-</span><span class="n">coords</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">coords</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shift</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">max_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">shift</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">shift</span><span class="p">[</span><span class="n">max_index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="GrainStats.get_cropped_region">
+<a class="viewcode-back" href="../../autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_cropped_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cropped_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">centre</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Crop the image with respect to a given pixel length around the centre coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            The image array.</span>
+<span class="sd">        length : int</span>
+<span class="sd">            The length (in pixels) of the resultant cropped image.</span>
+<span class="sd">        centre : npt.NDArray</span>
+<span class="sd">            The centre of the object to crop.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            Cropped array of the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">xy1</span> <span class="o">=</span> <span class="n">shape</span> <span class="o">-</span> <span class="p">(</span><span class="n">centre</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">xy2</span> <span class="o">=</span> <span class="n">shape</span> <span class="o">-</span> <span class="p">(</span><span class="n">centre</span> <span class="o">-</span> <span class="n">length</span><span class="p">)</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">xy1</span><span class="p">,</span> <span class="n">xy2</span><span class="p">))</span>
+        <span class="n">shiftx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shift</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">shifty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shift</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()[</span>
+            <span class="n">centre</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">length</span> <span class="o">-</span> <span class="n">shiftx</span> <span class="p">:</span> <span class="n">centre</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">shiftx</span><span class="p">,</span>  <span class="c1"># noqa: E203</span>
+            <span class="n">centre</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">length</span> <span class="o">-</span> <span class="n">shifty</span> <span class="p">:</span> <span class="n">centre</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">shifty</span><span class="p">,</span>  <span class="c1"># noqa: E203</span>
+        <span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

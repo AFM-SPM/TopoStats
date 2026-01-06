@@ -1,0 +1,250 @@
+geometry
+========
+
+.. py:module:: geometry
+
+.. autoapi-nested-parse::
+
+   Functions for measuring geometric properties of grains.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   geometry.bounding_box_cartesian_points_float
+   geometry.bounding_box_cartesian_points_integer
+   geometry.do_points_in_arrays_touch
+   geometry.calculate_shortest_branch_distances
+   geometry.connect_best_matches
+   geometry.find_branches_for_nodes
+
+
+Module Contents
+---------------
+
+.. py:function:: bounding_box_cartesian_points_float(points: numpy.typing.NDArray[numpy.number]) -> tuple[numpy.float64, numpy.float64, numpy.float64, numpy.float64]
+
+   
+   Calculate the bounding box from a set of points.
+
+   :param points: Nx2 numpy array of points.
+   :type points: npt.NDArray[np.number]
+
+   :returns: Tuple of (min_x, min_y, max_x, max_y).
+   :rtype: Tuple[np.float64, np.float64, np.float64, np.float64]
+
+   :raises ValueError: If the input array is not Nx2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: bounding_box_cartesian_points_integer(points: numpy.typing.NDArray[numpy.number]) -> tuple[numpy.int32, numpy.int32, numpy.int32, numpy.int32]
+
+   
+   Calculate the bounding box from a set of points.
+
+   :param points: Nx2 numpy array of points.
+   :type points: npt.NDArray[np.number]
+
+   :returns: Tuple of (min_x, min_y, max_x, max_y).
+   :rtype: Tuple[np.int32, np.int32, np.int32, np.int32]
+
+   :raises ValueError: If the input array is not Nx2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: do_points_in_arrays_touch(points1: numpy.typing.NDArray[numpy.int32], points2: numpy.typing.NDArray[numpy.int32]) -> tuple[bool, numpy.typing.NDArray[numpy.int32] | None, numpy.typing.NDArray[numpy.int32] | None]
+
+   
+   Check if any points in two arrays are touching.
+
+   :param points1: Nx2 numpy array of points.
+   :type points1: npt.NDArray[np.int32]
+   :param points2: Mx2 numpy array of points.
+   :type points2: npt.NDArray[np.int32]
+
+   :returns: True if any points in the two arrays are touching, False otherwise, followed by the first touching point pair
+             that was found. If no points are touching, the second and third elements of the tuple will be None.
+   :rtype: tuple[bool, npt.NDArray[np.int32] | None, npt.NDArray[np.int32] | None]
+
+   :raises ValueError: If the input arrays are not Nx2 and Mx2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: calculate_shortest_branch_distances(nodes_with_branch_starting_coords: dict[int, list[numpy.typing.NDArray[numpy.int32]]], whole_skeleton_graph: networkx.classes.graph.Graph) -> tuple[numpy.typing.NDArray[numpy.number], numpy.typing.NDArray[numpy.int32], numpy.typing.NDArray[numpy.number]]
+
+   
+   Calculate the shortest distances between branches emanating from nodes.
+
+   :param nodes_with_branch_starting_coords: Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
+                                             of its branches.
+   :type nodes_with_branch_starting_coords: dict[int, list[npt.NDArray[np.int32]]]
+   :param whole_skeleton_graph: Networkx graph representing the whole network.
+   :type whole_skeleton_graph: networkx.classes.graph.Graph
+
+   :returns:
+
+             - NxN numpy array of shortest distances between every node pair. Indexes of this array represent the nodes.
+             Eg for a 3x3 matrix, there are 3 nodes being compared with each other.
+             This matrix is diagonally symmetric and the diagonal values are 0 since a node is always 0 distance from itself.
+             - NxNx2 numpy array of indexes of the best branches to connect between each node pair.
+             Eg for node 1 and 3, the closest branches might be indexes 2 and 4, so the value at [1, 3] would be [2, 4].
+             - NxNx2x2 numpy array of the coordinates of the branches to connect between each node pair.
+             Eg for node 1 and 3, the closest branches might be at coordinates [2, 3] and [4, 5], so the
+             value at [1, 3] would be [[2, 3], [4, 5]].
+   :rtype: Tuple[npt.NDArray[np.number], npt.NDArray[np.int32], npt.NDArray[np.int32]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: connect_best_matches(network_array_representation: numpy.typing.NDArray[numpy.int32], whole_skeleton_graph: networkx.classes.graph.Graph, match_indexes: numpy.typing.NDArray[numpy.int32], shortest_distances_between_nodes: numpy.typing.NDArray[numpy.number], shortest_distances_branch_indexes: numpy.typing.NDArray[numpy.int32], emanating_branch_starts_by_node: dict[int, list[numpy.typing.NDArray[numpy.int32]]], extend_distance: float = -1) -> numpy.typing.NDArray[numpy.int32]
+
+   
+   Connect the branches between node pairs that have been deemed to be best matches.
+
+   :param network_array_representation: 2D numpy array representing the network using integers to represent branches, nodes etc.
+   :type network_array_representation: npt.NDArray[np.int32]
+   :param whole_skeleton_graph: Networkx graph representing the whole network.
+   :type whole_skeleton_graph: networkx.classes.graph.Graph
+   :param match_indexes: Nx2 numpy array of indexes of the best matching nodes.
+                         Eg: np.array([[1, 0], [2, 3]]) means that the best matching nodes are node 1 and node 0, and node 2 and node 3.
+   :type match_indexes: npt.NDArray[np.int32]
+   :param shortest_distances_between_nodes: NxN numpy array of shortest distances between every node pair.
+                                            Index positions indicate which node it's referring to, so index 2, 3 will be the shortest distance
+                                            between nodes 2 and 3.
+                                            Values on the diagonal will be 0 because the shortest distance between a node and itself is 0.
+                                            Eg: np.array([[0.0, 6.0], [6.0, 0.0]]) means that the shortest distance between node 0 and node 1 is 6.0.
+   :type shortest_distances_between_nodes: npt.NDArray[np.number]
+   :param shortest_distances_branch_indexes: NxNx2 numpy array of indexes of the branches to connect between the best matching nodes.
+                                             Not entirely sure what it does so won't attempt to explain more to avoid confusion.
+   :type shortest_distances_branch_indexes: npt.NDArray[np.int32]
+   :param emanating_branch_starts_by_node: Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
+                                           of the branches emanating from that node. Rather self-explanatory.
+                                           Eg:
+                                           ```python
+                                           {
+                                               0: [np.array([6, 1]), np.array([7, 3]), np.array([8, 1])],
+                                               1: [np.array([6, 11]), np.array([7, 9]), np.array([8, 11])],
+                                           },
+                                           ```.
+   :type emanating_branch_starts_by_node: dict[int, list[npt.NDArray[np.int32]]]
+   :param extend_distance: The distance to extend the branches to connect. If the shortest distance between two nodes is less than or equal
+                           to this distance, the branches will be connected. If -1, the branches will be connected regardless of distance.
+   :type extend_distance: float
+
+   :returns: 2D numpy array representing the network using integers to represent branches, nodes etc.
+   :rtype: npt.NDArray[np.int32]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_branches_for_nodes(network_array_representation: numpy.typing.NDArray[numpy.int32], labelled_nodes: numpy.typing.NDArray[numpy.int32], labelled_branches: numpy.typing.NDArray[numpy.int32]) -> dict[int, list[numpy.typing.NDArray[numpy.int32]]]
+
+   
+   Locate branch starting positions for each node in a network.
+
+   :param network_array_representation: 2D numpy array representing the network using integers to represent branches, nodes etc.
+   :type network_array_representation: npt.NDArray[np.int32]
+   :param labelled_nodes: 2D numpy array representing the network using integers to represent nodes.
+   :type labelled_nodes: npt.NDArray[np.int32]
+   :param labelled_branches: 2D numpy array representing the network using integers to represent branches.
+   :type labelled_branches: npt.NDArray[np.int32]
+
+   :returns: Dictionary where the key is the node number and the value is an Nx2 numpy array of the starting coordinates
+             of the branches emanating from that node.
+   :rtype: dict[int, list[npt.NDArray[np.int32]]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

@@ -1,0 +1,452 @@
+topostats.tracing.tracingfuncs
+==============================
+
+.. py:module:: topostats.tracing.tracingfuncs
+
+.. autoapi-nested-parse::
+
+   Miscellaneous tracing functions.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.tracingfuncs.reorderTrace
+   topostats.tracing.tracingfuncs.genTracingFuncs
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.tracingfuncs.order_branch
+   topostats.tracing.tracingfuncs.order_branch_from_start
+   topostats.tracing.tracingfuncs.local_area_sum
+   topostats.tracing.tracingfuncs.coord_dist
+
+
+Module Contents
+---------------
+
+.. py:class:: reorderTrace
+
+   
+   Class to aid the consecutive ordering of adjacent coordinates of a pixel grid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: linearTrace(trace_coordinates: list | numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Function to order the points from a linear trace.
+
+      This works by checking the local neighbours for a given pixel (starting at one of the ends). If this pixel has
+      only one neighbour in the array of unordered points, this must be the next pixel in the trace -- and it
+      is added to the ordered points trace and removed from the remaining_unordered_coords array.
+
+      If there is more than one neighbouring pixel, a fairly simple function (check_vectors_candidate_points) finds which
+      pixel incurs the smallest change in angle compared with the rest of the trace and chooses that as the next
+      point.
+
+      This process is repeated until all the points are placed in the ordered trace array or the other end point is
+      reached.
+
+      :param trace_coordinates: Unordered trace coordinates.
+      :type trace_coordinates: list | npt.NDArray
+
+      :returns: An array of ordered coordinates from one end of a linear trace to the other.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: circularTrace(trace_coordinates)
+      :staticmethod:
+
+
+      
+      Alternative implementation of the linear tracing algorithm but adapted to work with circular DNA molecules.
+
+      :param trace_coordinates: Unordered trace coordinates.
+      :type trace_coordinates: list | npt.NDArray
+
+      :returns: An array of ordered coordinates from one end of a linear trace to the other.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: genTracingFuncs
+
+   
+   Class of tracing functions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:method:: count_and_get_neighbours(x: int, y: int, trace_coordinates: list) -> tuple[int, list]
+      :staticmethod:
+
+
+      
+      Count the number of neighbouring points for a coordinate and an array containing those points.
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+      :param trace_coordinates: Coordinates of the trace.
+      :type trace_coordinates: list
+
+      :returns: The number of neighbours and the coordinates of the neighbouring points.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: return_points_in_array(points_array: list | numpy.typing.NDArray, trace_coordinates: list | numpy.typing.NDArray) -> list
+      :staticmethod:
+
+
+      
+      Return a subset co ordinates for the given set of points.
+
+      :param points_array: The subset of points for which coordinates are required.
+      :type points_array: list | npt.NDArray
+      :param trace_coordinates: Coordinates of all points.
+      :type trace_coordinates: list | npt.NDArray
+
+      :returns: Coordinates for the subset of points.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: make_grid(x: int, y: int, size: int) -> list
+      :staticmethod:
+
+
+      
+      Make a Grid of coordinates around the points x and y.
+
+      :param x: The x coordinate.
+      :type x: int
+      :param y: They y coordinate.
+      :type y: int
+      :param size: Size of surrounding grid.
+      :type size: int
+
+      :returns: List of coordinates that form a grid around x and y of size.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_best_next_point(x: int, y: int, ordered_points: list | numpy.typing.NDArray, candidate_points: list | numpy.typing.NDArray) -> list | None
+      :staticmethod:
+
+
+      
+      Find the next best point.
+
+      :param x: The x coordinate.
+      :type x: int
+      :param y: They y coordinate.
+      :type y: int
+      :param ordered_points: Ordered points.
+      :type ordered_points: list | npt.NDArray
+      :param candidate_points: Points to be checked.
+      :type candidate_points: list | npt.NDArray
+
+      :returns: Coordinates of the neighbouring pixel with the smallest angular change.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: check_vectors_candidate_points(ordered_points: list | numpy.typing.NDArray, candidate_points: list | numpy.typing.NDArray) -> list
+      :staticmethod:
+
+
+      
+      Find which neighbouring pixels incur the smallest angular change.
+
+      This is done with reference to a previous pixel in the ordered trace, and chooses that as the next point.
+
+      :param ordered_points: Ordered points.
+      :type ordered_points: list | npt.NDArray
+      :param candidate_points: Points to be checked.
+      :type candidate_points: list | npt.NDArray
+
+      :returns: Coordinates of the neighbouring pixel with the smallest angular change.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: order_branch(binary_image: numpy.typing.NDArray, anchor: list)
+
+   
+   Order a linear branch by identifying an endpoint, and looking at the local area of the point to find the next.
+
+   :param binary_image: A binary image of a skeleton segment to order it's points.
+   :type binary_image: npt.NDArray
+   :param anchor: A list of 2 integers representing the coordinate to order the branch from the endpoint closest to this.
+   :type anchor: list
+
+   :returns: An array of ordered coordinates.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: order_branch_from_start(nodeless: numpy.typing.NDArray, start: numpy.typing.NDArray, max_length: float | numpy.inf = np.inf) -> numpy.typing.NDArray
+
+   
+   Order an unbranching skeleton from an end (startpoint) along a specified length.
+
+   :param nodeless: A 2D array of a binary unbranching skeleton.
+   :type nodeless: npt.NDArray
+   :param start: 2x1 coordinate that must exist in 'nodeless'.
+   :type start: npt.NDArray
+   :param max_length: Maximum length to traverse along while ordering, by default np.inf.
+   :type max_length: float | np.inf, optional
+
+   :returns: Ordered coordinates.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: local_area_sum(binary_map: numpy.typing.NDArray, point: list | tuple | numpy.typing.NDArray) -> numpy.typing.NDArray
+
+   
+   Evaluate the local area around a point in a binary map.
+
+   :param binary_map: A binary array of an image.
+   :type binary_map: npt.NDArray
+   :param point: A single object containing 2 integers relating to a point within the binary_map.
+   :type point: Union[list, tuple, npt.NDArray]
+
+   :returns: * *npt.NDArray* -- An array values of the local coordinates around the point.
+             * *int* -- A value corresponding to the number of neighbours around the point in the binary_map.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: coord_dist(coords: numpy.typing.NDArray, pixel_to_nm_scaling: float = 1) -> numpy.typing.NDArray
+
+   
+   Accumulate a real distance traversing from pixel to pixel from a list of coordinates.
+
+   :param coords: A Nx2 integer array corresponding to the ordered coordinates of a binary trace.
+   :type coords: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nanometer scaling factor.
+   :type pixel_to_nm_scaling: float
+
+   :returns: An array of length N containing thcumulative sum of the distances.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

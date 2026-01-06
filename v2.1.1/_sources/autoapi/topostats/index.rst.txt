@@ -1,0 +1,129 @@
+topostats
+=========
+
+.. py:module:: topostats
+
+.. autoapi-nested-parse::
+
+   
+   Topostats
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/topostats/__main__/index
+   /autoapi/topostats/entry_point/index
+   /autoapi/topostats/filters/index
+   /autoapi/topostats/grains/index
+   /autoapi/topostats/grainstats/index
+   /autoapi/topostats/io/index
+   /autoapi/topostats/logs/index
+   /autoapi/topostats/plotting/index
+   /autoapi/topostats/plottingfuncs/index
+   /autoapi/topostats/processing/index
+   /autoapi/topostats/run_topostats/index
+   /autoapi/topostats/scars/index
+   /autoapi/topostats/statistics/index
+   /autoapi/topostats/theme/index
+   /autoapi/topostats/thresholds/index
+   /autoapi/topostats/tracing/index
+   /autoapi/topostats/utils/index
+   /autoapi/topostats/validation/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.LOGGER
+   topostats.release
+   topostats.__version__
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.setup_logger
+
+
+Package Contents
+----------------
+
+.. py:function:: setup_logger(log_name: str = LOGGER_NAME) -> logging.Logger
+
+   
+   Setup a standard logger.
+
+   The logger for the module is initialised when the module is loaded (as this functions is called from
+   __init__.py). This creates two stream handlers, one for general output and one for errors which are formatted
+   differently (there is greater information in the error formatter). To use in modules import the 'LOGGER_NAME' and
+   create a logger as shown in the Examples, it will inherit the formatting and direction of messages to the correct
+   stream.
+
+   :param log_name: Name under which logging information occurs.
+   :type log_name: str
+
+   :returns: Logger object.
+   :rtype: logging.Logger
+
+   .. rubric:: Examples
+
+   To use the logger in (sub-)modules have the following.
+
+       import logging
+       from topostats.logs.logs import LOGGER_NAME
+
+       LOGGER = logging.getLogger(LOGGER_NAME)
+
+       LOGGER.info('This is a log message.')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER
+
+.. py:data:: release
+
+.. py:data:: __version__
+   :value: ''
+
+

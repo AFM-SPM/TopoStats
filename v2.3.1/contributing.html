@@ -1,0 +1,821 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Notebooks" href="notebooks.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../v2.0.0/contributing.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/contributing.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/contributing.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/contributing.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/contributing.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/contributing.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/contributing.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/contributing.html">v2.3.0</a></li>
+  <li><a href="contributing.html">v2.3.1</a></li>
+  <li><a href="../v2.3.2/contributing.html">v2.3.2</a></li>
+  <li><a href="../v2.3.2rc1/contributing.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/contributing.html">v2.3.2rc2</a></li>
+  <li><a href="../main/contributing.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Contributing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h1>
+<p>This document describes how to contribute to the development of this software.</p>
+<section id="contribution-workflow">
+<h2>Contribution Workflow<a class="headerlink" href="#contribution-workflow" title="Link to this heading">#</a></h2>
+<section id="create-an-issue">
+<h3>Create an Issue<a class="headerlink" href="#create-an-issue" title="Link to this heading">#</a></h3>
+<p>Before starting please search for and review the existing <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/issues">issues</a> (both
+<code class="docutils literal notranslate"><span class="pre">open</span></code> and <code class="docutils literal notranslate"><span class="pre">closed</span></code>) and <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/pulls">pull requests</a> to see if anyone has reported the
+bug or requested the feature already or work is in progress. If nothing exists then you should create a <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/issues/new/choose">new
+issue</a> using one of the templates provided.</p>
+</section>
+<section id="cloning-the-repository">
+<h3>Cloning the repository<a class="headerlink" href="#cloning-the-repository" title="Link to this heading">#</a></h3>
+<p>If you wish to make changes yourself you will have to
+<a class="reference external" href="https://docs.github.com/en/get-started/quickstart/fork-a-repo">fork</a> the repository to your own account and then <a class="reference external" href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">clone
+that</a> if you are not
+a member of AFM-SPM Organisation. If you are a member then you can <a class="reference external" href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">clone the
+repository</a> and make
+contributions directly.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Member of AFM-SPM Organisation</span>
+git<span class="w"> </span>clone<span class="w"> </span>git@github.com:AFM-SPM/TopoStats.git
+<span class="c1"># Non-member of AFM-SPM cloning fork</span>
+git<span class="w"> </span>clone<span class="w"> </span>git@github.com:&lt;YOUR_GITHUB_USERNAME&gt;/TopoStats.git
+</pre></div>
+</div>
+</section>
+<section id="install-additional-dependencies">
+<h3>Install Additional Dependencies<a class="headerlink" href="#install-additional-dependencies" title="Link to this heading">#</a></h3>
+<p>If you are going to contribute you should install the additional dependencies for undertaking such work. There are three
+groups of additional dependencies, <code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">docs</span></code> and <code class="docutils literal notranslate"><span class="pre">tests</span></code> and you should install all three using <code class="docutils literal notranslate"><span class="pre">pip</span></code> as shown below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>TopoStats
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[dev,docs,tests]&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="creating-a-branch">
+<h3>Creating a branch<a class="headerlink" href="#creating-a-branch" title="Link to this heading">#</a></h3>
+<p>Typically you will now create a <a class="reference external" href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging">branch</a> to
+work on the issue you wish to address. It is not compulsory but we try to use a consistent nomenclature for branches
+that shows who has worked on the branch, the issue it pertains to and a short description of the work. To which end you
+will see branches with the form <code class="docutils literal notranslate"><span class="pre">&lt;GITHUB_USERNAME&gt;/&lt;GITHUB_ISSUE&gt;-&lt;DESCRIPTION&gt;</span></code>. Some examples are shown below…</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th style="text-align: left;">Branch</th>
+<th style="text-align: left;">User</th>
+<th style="text-align: left;">Issue</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ns-rse/259-contributing</code></td>
+<td style="text-align: left;"><a href="https://github.com/ns-rse"><code>ns-rse</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/AFM-SPM/TopoStats/issues/259">259</a></td>
+<td style="text-align: left;"><code>contributing</code> short for the issue subject <em>Add contributing section to documentation</em>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SylviaWhittle/204-nanometre-scaling</code></td>
+<td style="text-align: left;"><a href="https://github.com/SylviaWhittle"><code>SylviaWhittle</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/AFM-SPM/TopoStats/issues/259">204</a></td>
+<td style="text-align: left;"><code>nanometre-scaling</code> short for the issue subject <em>Colour scale in nanometers not pixels</em>.</td>
+</tr>
+</tbody>
+</table>
+<p>How you create a branch depends on how you use Git, some use the integration provided by their IDE, others dedicated
+clients such as <a class="reference external" href="https://www.gitkraken.com/">GitKraken</a> and some may use the command line interface. These instructions
+use the later but you are of course free to use your chosen method of managing Git and GitHub.</p>
+<p>In this example we branch from <code class="docutils literal notranslate"><span class="pre">dev</span></code> and create a new branch called <code class="docutils literal notranslate"><span class="pre">ns-rse/000-fix-an-issue</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure you are up-to-date on the main branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull
+<span class="c1"># Create and checkout a branch in one step</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>ns-rse/000-fix-an-issue
+<span class="c1"># Create and checkout a branch in two steps</span>
+git<span class="w"> </span>branch<span class="w"> </span>dev<span class="w"> </span>ns-rse/000-fix-an-issue
+git<span class="w"> </span>checkout<span class="w"> </span>ns-rse/000-fix-an-issue
+</pre></div>
+</div>
+<p>You can now start working on your issue and making regular commits, but please bear in mind the following section on
+Coding Standards.</p>
+</section>
+</section>
+<section id="software-development">
+<h2>Software Development<a class="headerlink" href="#software-development" title="Link to this heading">#</a></h2>
+<p>To make the codebase easier to maintain we ask that you follow the guidelines below on coding style, linting, typing,
+documentation and testing. These entail a number of additional dependencies that can be installed with the following
+command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev,tests,docs<span class="o">]</span>
+</pre></div>
+</div>
+<p>This will pull in all the dependencies we use for development (<code class="docutils literal notranslate"><span class="pre">dev</span></code>), tests (<code class="docutils literal notranslate"><span class="pre">tests</span></code>) and writing documentation (<code class="docutils literal notranslate"><span class="pre">docs</span></code>)</p>
+<section id="coding-style-linting">
+<h3>Coding Style/Linting<a class="headerlink" href="#coding-style-linting" title="Link to this heading">#</a></h3>
+<p>Using a consistent coding style has many benefits (see <a class="reference external" href="https://rse.shef.ac.uk/blog/2022-04-19-linting/">Linting : What is all the fluff
+about?</a>). For this project we aim to adhere to <a class="reference external" href="https://pep8.org/">PEP8 - the style Guide
+for Python Code</a> and do so using the formatting linters <a class="reference external" href="https://github.com/psf/black">black</a> and
+<a class="reference external" href="https://github.com/astral-sh/ruff">ruff</a>. Ruff implements the checks made by
+<a class="reference external" href="https://flake8.pycqa.org/en/latest/">Flake8</a>, <a class="reference external" href="https://pycqa.github.io/isort/">isort</a> and
+<a class="reference external" href="https://black.readthedocs.io/en/stable/">pydocstyle</a> and has some overlap with both Black and Pylint.</p>
+<p>We also like to ensure the code passes <a class="reference external" href="https://github.com/PyCQA/pylint">pylint</a> which helps identify code duplication
+and reduces some of the <a class="reference external" href="https://en.wikipedia.org/wiki/Code_smell">code smells</a> that we are all prone to
+making. A <code class="docutils literal notranslate"><span class="pre">.pylintrc</span></code> is included in the repository. Currently this isn’t strictly applied but it is planned for part of
+the CI/CD pipeline and so we would be grateful if you could lint your code before making Pull Requests.</p>
+<p>Many popular IDEs such as VSCode, PyCharm, Spyder and Emacs all have support for integrating these linters into your
+workflow such that when you save a file the linting/formatting is automatically applied.</p>
+</section>
+<section id="pre-commit">
+<h3>Pre-commit<a class="headerlink" href="#pre-commit" title="Link to this heading">#</a></h3>
+<p><a class="reference external" href="https://pre-commit.com">pre-commit</a> is a powerful and useful tool that runs hooks on your code prior to making
+commits. For a more detailed exposition see <a class="reference external" href="https://rse.shef.ac.uk/blog/pre-commit/">pre-commit : Protecting your future
+self</a>.</p>
+<p>The repository includes <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> as a development dependency as well as a <code class="docutils literal notranslate"><span class="pre">.pre-commit-config.yaml</span></code>. To use these
+locally you should have already installed all the <code class="docutils literal notranslate"><span class="pre">dev</span></code> dependencies in your virtual environment. You then need to
+install <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> configuration and hooks (<strong>NB</strong> this will download specific virtual environments that <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>
+uses when running hooks so the first time this is run may take a little while).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install<span class="w"> </span>--install-hooks
+</pre></div>
+</div>
+<p>Currently there are hooks to remove trailing whitespace, check YAML configuration files and a few other common checks as
+well as hooks for <code class="docutils literal notranslate"><span class="pre">black</span></code> and <code class="docutils literal notranslate"><span class="pre">ruff</span></code>. If these fail then you will not be able to make a commit until they are
+fixed. The <code class="docutils literal notranslate"><span class="pre">black</span></code> hook will automatically format failed files so you can simply <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span></code> those and try committing
+straight away. <code class="docutils literal notranslate"><span class="pre">flake8</span></code> does not correct files automatically so the errors will need manually correcting.</p>
+<p>If you do not enable and resolve issues reported by <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> locally before making a pull request you will find the
+<a class="reference external" href="https://pre-commit.ci"><code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span></code></a> GitHub Action will fail, preventing your Pull Request from being merged. You
+can shorten the feedback loop and speed up the resolution of errors by enabling <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> locally and resolving
+issues before making your commits.</p>
+</section>
+<section id="typing">
+<h3>Typing<a class="headerlink" href="#typing" title="Link to this heading">#</a></h3>
+<p>Whilst Python is a dynamically typed language (that is the type of an object is determined dynamically) the use of Type
+Hints is strongly encouraged as it makes reading and understanding the code considerably easier for contributors. For
+more on Type Hints see <a class="reference external" href="https://peps.python.org/pep-0483/">PEP483</a> and <a class="reference external" href="https://peps.python.org/pep-0484/">PEP484</a></p>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h3>
+<p>All classes, methods and functions should have <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">Numpy Docstrings</a>
+defining their functionality, parameters and return values and pylint will note and report the absence of docstrings
+by way of the <code class="docutils literal notranslate"><span class="pre">missing-function-docstring</span></code> condition.</p>
+<p>Further, when new methods are incorporated into the package that introduce changes to the configuration they should be
+documented under <a class="reference internal" href="configuration.html"><span class="doc std std-doc">Parameter Configuration</span></a>. <a class="reference internal" href="#pre-commit">pre-commit</a> has the
+<a class="reference external" href="https://github.com/DavidAnson/markdownlint-cli2">markdownlint-cli2</a> hook enabled to lint all Markdown files and will
+where possible automatically fix things, but some issues need resolving manually.</p>
+</section>
+<section id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h3>
+<p>New features should have unit-tests written and included under the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory to ensure the functions work as
+expected. The <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest</a> framework is used for running tests along with a number of
+plugins (<a class="reference external" href="https://gitlab.com/uweschmitt/pytest-regtest">pytest-regtest</a> for regression testing;
+<a class="reference external" href="https://github.com/matplotlib/pytest-mpl">pytest-mpl</a> for testing generated Matplotlib images).</p>
+<p>In conjunction with <a class="reference internal" href="#pre-commit">pre-commit</a> we leverage <a class="reference external" href="https://github.com/tarpas/pytest-testmon/">pytest-testmon</a> to
+run tests on each commit, but as the test suite is large and can take a while to run <code class="docutils literal notranslate"><span class="pre">pytest-testmon</span></code> restricts tests to
+only files that have changed (code or tests) or changes in environment variables and dependencies. You will need to
+create a database locally on first run and so should run the following before undertaking any development.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>--testmon
+</pre></div>
+</div>
+<p>This will create a database (<code class="docutils literal notranslate"><span class="pre">.testmondata</span></code>) which tracks the current state of the repository, this file is
+ignored by Git (via <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code>) but keeps track of the state of the repository and what has changed so that the
+<code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> hook <code class="docutils literal notranslate"><span class="pre">Pytest</span> <span class="pre">(testmon)</span></code> only attempts to run the tests when changes have been made to files that impact the
+tests.</p>
+</section>
+</section>
+<section id="debugging">
+<h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">#</a></h2>
+<p>To aid with debugging we include the <a class="reference external" href="https://github.com/alexmojaki/snoop">snoop</a> package. The package is disabled by
+default, but when you have a class, method or function you wish to debug you should add <code class="docutils literal notranslate"><span class="pre">snoop.install(enabled=True)</span></code> to
+the file you wish to debug and use the <code class="docutils literal notranslate"><span class="pre">&#64;snoop</span></code> decorator around the function/method you wish to debug.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<p>As described in <a class="reference internal" href="configuration.html"><span class="doc std std-doc">Parameter Configuration</span></a> options are primarily passed to TopoStats via a
+<a class="reference external" href="https://yaml.org">YAML</a> configuration file. When introducing new features that require configuration options you will
+have to ensure that the default configuration file (<code class="docutils literal notranslate"><span class="pre">topostats/default.yaml</span></code>) is updated to include your options.</p>
+<p>Further the <code class="docutils literal notranslate"><span class="pre">topostats.validation.validate.config()</span></code> function, which checks a valid configuration file with all necessary
+fields has been passed when invoking <code class="docutils literal notranslate"><span class="pre">topostats</span></code> sub-commands, will also need updating to include new options in the
+Schema against which validation of configuration files is made.</p>
+<section id="ide-configuration">
+<h3>IDE Configuration<a class="headerlink" href="#ide-configuration" title="Link to this heading">#</a></h3>
+<p>Linters such as <code class="docutils literal notranslate"><span class="pre">black</span></code>, <code class="docutils literal notranslate"><span class="pre">flake8</span></code> and <code class="docutils literal notranslate"><span class="pre">pylint</span></code> can be configured to work with your IDE so that say Black and/or
+formatting is applied on saving a file or the code is analysed with <code class="docutils literal notranslate"><span class="pre">pylint</span></code> on saving and errors reported. Setting up
+and configuring IDEs to work in this manner is beyond the scope of this document but some links to articles on how to do
+so are provided.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://code.visualstudio.com/docs/python/linting">Linting Python in Visual Studio Code</a></p></li>
+<li><p><a class="reference external" href="http://docs.spyder-ide.org/current/panes/pylint.html">Code Analysis — Spyder</a> for <code class="docutils literal notranslate"><span class="pre">pylint</span></code> for Black see <a class="reference external" href="https://stackoverflow.com/a/66458706">How to use
+code formatter Black with Spyder</a>.</p></li>
+<li><p><a class="reference external" href="https://www.jetbrains.com/help/pycharm/tutorial-code-quality-assistance-tips-and-tricks.html#525ee883">Code Quality Assistance Tips and Tricks, or How to Make Your Code Look Pretty? |
+PyCharm</a></p></li>
+<li><p><a class="reference external" href="https://www.jetbrains.com/help/pycharm/reformat-and-rearrange-code.html">Reformat and rearrange code | PyCharm</a></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="configuration.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Configuration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="notebooks.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Notebooks</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contribution-workflow">Contribution Workflow</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-an-issue">Create an Issue</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cloning-the-repository">Cloning the repository</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-additional-dependencies">Install Additional Dependencies</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-branch">Creating a branch</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#software-development">Software Development</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coding-style-linting">Coding Style/Linting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit">Pre-commit</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#typing">Typing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation">Documentation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#debugging">Debugging</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ide-configuration">IDE Configuration</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/contributing.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

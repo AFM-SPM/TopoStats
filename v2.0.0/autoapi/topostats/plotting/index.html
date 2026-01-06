@@ -1,0 +1,892 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.plotting &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/plotting/index';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="topostats.plottingfuncs" href="../plottingfuncs/index.html" />
+    <link rel="prev" title="topostats.logs.logs" href="../logs/logs/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.plotting</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.plotting">
+<span id="topostats-plotting"></span><h1>topostats.plotting<a class="headerlink" href="#module-topostats.plotting" title="Link to this heading">#</a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.plotting_config" title="topostats.plotting.plotting_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotting_config</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.extension" title="topostats.plotting.extension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extension</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.colname2label" title="topostats.plotting.colname2label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colname2label</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.bins" title="topostats.plotting.bins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bins</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.importfromfile" title="topostats.plotting.importfromfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">importfromfile</span></code></a>(path)</p></td>
+<td><p>Importing the data needed from the json or csv file specified by the user</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.savestats" title="topostats.plotting.savestats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">savestats</span></code></a>(path, dataframetosave)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.pathman" title="topostats.plotting.pathman"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathman</span></code></a>(path)</p></td>
+<td><p>Splitting the path into directory and file name; creating or specifying a directory to save the plots</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.labelunitconversion" title="topostats.plotting.labelunitconversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">labelunitconversion</span></code></a>(plotarg, nm)</p></td>
+<td><p>Adding units (m or nm) to the axis labels</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.dataunitconversion" title="topostats.plotting.dataunitconversion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataunitconversion</span></code></a>(data, plotarg, nm)</p></td>
+<td><p>Converting the data based on the unit specified by the user. Only nm and m are supported at the moment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.plotkde" title="topostats.plotting.plotkde"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotkde</span></code></a>(df, plotarg[, grouparg, xmin, xmax, nm, specpath])</p></td>
+<td><p>Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.plotkde2var" title="topostats.plotting.plotkde2var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotkde2var</span></code></a>(df, plotarg[, df2, plotarg2, label1, ...])</p></td>
+<td><p>Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.plothist" title="topostats.plotting.plothist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plothist</span></code></a>(df, plotarg[, grouparg, xmin, xmax, bins, ...])</p></td>
+<td><p>Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.plothist2var" title="topostats.plotting.plothist2var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plothist2var</span></code></a>(df, plotarg[, df2, plotarg2, label1, ...])</p></td>
+<td><p>Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.plotdist" title="topostats.plotting.plotdist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotdist</span></code></a>(df, plotarg[, grouparg, xmin, xmax, bins, ...])</p></td>
+<td><p>Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn't support grouped plots</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.plotdist2var" title="topostats.plotting.plotdist2var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotdist2var</span></code></a>(plotarg, plotarg2, df[, df2, xmin, xmax, ...])</p></td>
+<td><p>Dist plot for 2 variables</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.plotviolin" title="topostats.plotting.plotviolin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotviolin</span></code></a>(df, plotarg[, grouparg, ymin, ymax, nm, ...])</p></td>
+<td><p>Creating a violin plot for the chosen variable. Grouping optional. The y axis range can be defined by the user.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.plotjoint" title="topostats.plotting.plotjoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotjoint</span></code></a>(df, arg1, arg2[, xmin, xmax, ymin, ymax, ...])</p></td>
+<td><p>Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.plotting.plotLinearVsCircular" title="topostats.plotting.plotLinearVsCircular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotLinearVsCircular</span></code></a>(contour_lengths_df)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.plotting.computeStats" title="topostats.plotting.computeStats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">computeStats</span></code></a>(data, columns, min, max)</p></td>
+<td><p>Prints out a table of stats, including the standard deviation, standard error, N value, and peak position</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.plotting.plotting_config">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotting_config</span></span><a class="headerlink" href="#topostats.plotting.plotting_config" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.plotting.extension">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">extension</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'.png'</span></em><a class="headerlink" href="#topostats.plotting.extension" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.plotting.colname2label">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">colname2label</span></span><a class="headerlink" href="#topostats.plotting.colname2label" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.importfromfile">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">importfromfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.importfromfile" title="Link to this definition">#</a></dt>
+<dd><p>Importing the data needed from the json or csv file specified by the user</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.savestats">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">savestats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframetosave</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.savestats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.pathman">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">pathman</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.pathman" title="Link to this definition">#</a></dt>
+<dd><p>Splitting the path into directory and file name; creating or specifying a directory to save the plots</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.labelunitconversion">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">labelunitconversion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.labelunitconversion" title="Link to this definition">#</a></dt>
+<dd><p>Adding units (m or nm) to the axis labels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.dataunitconversion">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">dataunitconversion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.dataunitconversion" title="Link to this definition">#</a></dt>
+<dd><p>Converting the data based on the unit specified by the user. Only nm and m are supported at the moment.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotkde">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotkde</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouparg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotkde" title="Link to this definition">#</a></dt>
+<dd><p>Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path under
+the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotkde2var">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotkde2var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouparg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotkde2var" title="Link to this definition">#</a></dt>
+<dd><p>Creating a KDE plot for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path under
+the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plothist">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plothist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouparg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plothist" title="Link to this definition">#</a></dt>
+<dd><p>Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path under
+the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plothist2var">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plothist2var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plothist2var" title="Link to this definition">#</a></dt>
+<dd><p>Creating a histogram for the chosen variable. Grouping optional. The x axis range can be defined by the user. The
+default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path under
+the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotdist">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouparg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotdist" title="Link to this definition">#</a></dt>
+<dd><p>Creating a dist plot, which is the combination of a histogram and a KDE plot; doesn’t support grouped plots
+yet</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotdist2var">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotdist2var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.png'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotdist2var" title="Link to this definition">#</a></dt>
+<dd><p>Dist plot for 2 variables</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotviolin">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotviolin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotarg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouparg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotviolin" title="Link to this definition">#</a></dt>
+<dd><p>Creating a violin plot for the chosen variable. Grouping optional. The y axis range can be defined by the user.
+The default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path
+under the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotjoint">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotjoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ymax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotjoint" title="Link to this definition">#</a></dt>
+<dd><p>Creating a joint plot for two chosen variables. The range for both axes can be defined by the user.
+The default unit is metre, but this can be changed to nanometre by adding ‘nm=True’. The default path is the path
+under the if __name__ == ‘__main__’ line, but this can also be changed using the specpath argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.plotLinearVsCircular">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">plotLinearVsCircular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contour_lengths_df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.plotLinearVsCircular" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.plotting.computeStats">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">computeStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats.plotting.computeStats" title="Link to this definition">#</a></dt>
+<dd><p>Prints out a table of stats, including the standard deviation, standard error, N value, and peak position</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.plotting.bins">
+<span class="sig-prename descclassname"><span class="pre">topostats.plotting.</span></span><span class="sig-name descname"><span class="pre">bins</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#topostats.plotting.bins" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../logs/logs/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.logs.logs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../plottingfuncs/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.plottingfuncs</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotting_config"><code class="docutils literal notranslate"><span class="pre">plotting_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.extension"><code class="docutils literal notranslate"><span class="pre">extension</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.colname2label"><code class="docutils literal notranslate"><span class="pre">colname2label</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.importfromfile"><code class="docutils literal notranslate"><span class="pre">importfromfile()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.savestats"><code class="docutils literal notranslate"><span class="pre">savestats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.pathman"><code class="docutils literal notranslate"><span class="pre">pathman()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.labelunitconversion"><code class="docutils literal notranslate"><span class="pre">labelunitconversion()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.dataunitconversion"><code class="docutils literal notranslate"><span class="pre">dataunitconversion()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotkde"><code class="docutils literal notranslate"><span class="pre">plotkde()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotkde2var"><code class="docutils literal notranslate"><span class="pre">plotkde2var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plothist"><code class="docutils literal notranslate"><span class="pre">plothist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plothist2var"><code class="docutils literal notranslate"><span class="pre">plothist2var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotdist"><code class="docutils literal notranslate"><span class="pre">plotdist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotdist2var"><code class="docutils literal notranslate"><span class="pre">plotdist2var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotviolin"><code class="docutils literal notranslate"><span class="pre">plotviolin()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotjoint"><code class="docutils literal notranslate"><span class="pre">plotjoint()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.plotLinearVsCircular"><code class="docutils literal notranslate"><span class="pre">plotLinearVsCircular()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.computeStats"><code class="docutils literal notranslate"><span class="pre">computeStats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.plotting.bins"><code class="docutils literal notranslate"><span class="pre">bins</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../_sources/autoapi/topostats/plotting/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

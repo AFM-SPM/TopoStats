@@ -1,0 +1,1013 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.processing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/processing/index';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="topostats.run_modules" href="../run_modules/index.html" />
+    <link rel="prev" title="topostats.plottingfuncs" href="../plottingfuncs/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="index.html">v2.3.1</a></li>
+  <li><a href="../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.processing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.processing">
+<span id="topostats-processing"></span><h1>topostats.processing<a class="headerlink" href="#module-topostats.processing" title="Link to this heading">#</a></h1>
+<p>Functions for processing data.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.LOGGER" title="topostats.processing.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.run_filters" title="topostats.processing.run_filters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_filters</span></code></a>(→ numpy.typing.NDArray | None)</p></td>
+<td><p>Filter and flatten an image. Optionally plots the results, returning the flattened image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.run_grains" title="topostats.processing.run_grains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_grains</span></code></a>(→ dict | None)</p></td>
+<td><p>Identify grains (molecules) and optionally plots the results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.run_grainstats" title="topostats.processing.run_grainstats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_grainstats</span></code></a>(image, pixel_to_nm_scaling, ...)</p></td>
+<td><p>Calculate grain statistics for an image and optionally plots the results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.run_disordered_tracing" title="topostats.processing.run_disordered_tracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_disordered_tracing</span></code></a>(→ dict)</p></td>
+<td><p>Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.run_nodestats" title="topostats.processing.run_nodestats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_nodestats</span></code></a>(→ tuple[dict, pandas.DataFrame])</p></td>
+<td><p>Analyse crossing points in grains adding results to statistics data frames and optionally plot results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.run_ordered_tracing" title="topostats.processing.run_ordered_tracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_ordered_tracing</span></code></a>(→ tuple)</p></td>
+<td><p>Order coordinates of traces, adding results to statistics data frames and optionally plot results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.run_splining" title="topostats.processing.run_splining"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_splining</span></code></a>(→ tuple)</p></td>
+<td><p>Smooth the ordered trace coordinates, adding results to statistics data frames and optionally plot results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.run_curvature_stats" title="topostats.processing.run_curvature_stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_curvature_stats</span></code></a>(→ dict | None)</p></td>
+<td><p>Calculate curvature statistics for the traced DNA molecules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.get_out_paths" title="topostats.processing.get_out_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_out_paths</span></code></a>(image_path, base_dir, output_dir, ...)</p></td>
+<td><p>Determine components of output paths for a given image and plotting config.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.process_scan" title="topostats.processing.process_scan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_scan</span></code></a>(→ tuple[dict, pandas.DataFrame, dict])</p></td>
+<td><p>Process a single image, filtering, finding grains and calculating their statistics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.processing.check_run_steps" title="topostats.processing.check_run_steps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_run_steps</span></code></a>(→ None)</p></td>
+<td><p>Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.processing.completion_message" title="topostats.processing.completion_message"><code class="xref py py-obj docutils literal notranslate"><span class="pre">completion_message</span></code></a>(→ None)</p></td>
+<td><p>Print a completion message summarising images processed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.processing.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.processing.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_filters">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unprocessed_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_filters" title="Link to this definition">#</a></dt>
+<dd><p>Filter and flatten an image. Optionally plots the results, returning the flattened image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>unprocessed_image</strong> (<em>npt.NDArray</em>) – Image to be flattened.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometres.
+ie the number of pixels per nanometre.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File name for the image.</p></li>
+<li><p><strong>filter_out_path</strong> (<em>Path</em>) – Output directory for step-by-step flattening plots.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – General output directory for outputs such as the flattened image.</p></li>
+<li><p><strong>filter_config</strong> (<em>dict</em>) – Dictionary of configuration for the Filters class to use when initialised.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration for plotting output images.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either a numpy array of the flattened image, or None if an error occurs or
+flattening is disabled in the configuration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_grains">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_grains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grains_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_grains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_grains" title="Link to this definition">#</a></dt>
+<dd><p>Identify grains (molecules) and optionally plots the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2d numpy array image to find grains in.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometres. I.e. the number of pixels per nanometre.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of file being processed (used in logging).</p></li>
+<li><p><strong>grain_out_path</strong> (<em>Path</em>) – Output path for step-by-step grain finding plots.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – General output directory for outputs such as the flattened image with grain masks overlaid.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration for plotting images.</p></li>
+<li><p><strong>grains_config</strong> (<em>dict</em>) – Dictionary of configuration for the Grains class to use when initialised.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either None in the case of error or grain finding being disabled or a dictionary
+with keys of “above” and or “below” containing binary masks depicting where grains
+have been detected.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_grainstats">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_grainstats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_masks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_grainstats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_grainstats" title="Link to this definition">#</a></dt>
+<dd><p>Calculate grain statistics for an image and optionally plots the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – 2D numpy array image for grain statistics calculations.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometres.
+ie the number of pixels per nanometre.</p></li>
+<li><p><strong>grain_masks</strong> (<em>dict</em>) – Dictionary of grain masks, keys “above” or “below” with values of 2d numpy
+boolean arrays indicating the pixels that have been masked as grains.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>basename</strong> (<em>Path</em>) – Path to directory containing the image.</p></li>
+<li><p><strong>grainstats_config</strong> (<em>dict</em>) – Dictionary of configuration for the GrainStats class to be used when initialised.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration for plotting images.</p></li>
+<li><p><strong>grain_out_path</strong> (<em>Path</em>) – Directory to save optional grain statistics visual information to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas DataFrame containing the statsistics for each grain. The index is the
+filename and grain number.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_disordered_tracing">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_disordered_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_masks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracing_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_disordered_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_disordered_tracing" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonise and prune grains, adding results to statistics data frames and optionally plot results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.ndarray</em>) – Image containing the grains to pass to the tracing function.</p></li>
+<li><p><strong>grain_masks</strong> (<em>dict</em>) – Dictionary of grain masks, keys “above” or “below” with values of 2D Numpy boolean arrays indicating the pixels
+that have been masked as grains.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixesl per nanometres (nm).</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>basename</strong> (<em>Path</em>) – Path to directory containing the image.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – Path to save the core disordered trace image to.</p></li>
+<li><p><strong>tracing_out_path</strong> (<em>Path</em>) – Path to save the optional, diagnostic disordered trace images to.</p></li>
+<li><p><strong>disordered_tracing_config</strong> (<em>dict</em>) – Dictionary configuration for obtaining a disordered trace representation of the grains.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary configuration for plotting images.</p></li>
+<li><p><strong>grainstats_df</strong> (<em>pd.DataFrame</em><em> | </em><em>None</em>) – The grain statistics dataframe to be added to. This optional argument defaults to <cite>None</cite> in which case an empty grainstats dataframe is created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of “grain_&lt;index&gt;” keys and Nx2 coordinate arrays of the disordered grain trace.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_nodestats">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_nodestats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracing_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_nodestats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_nodestats" title="Link to this definition">#</a></dt>
+<dd><p>Analyse crossing points in grains adding results to statistics data frames and optionally plot results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.ndarray</em>) – Image containing the DNA to pass to the tracing function.</p></li>
+<li><p><strong>disordered_tracing_data</strong> (<em>dict</em>) – Dictionary of skeletonised and pruned grain masks. Result from “run_disordered_tracing”.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – Path to save the core NodeStats image to.</p></li>
+<li><p><strong>tracing_out_path</strong> (<em>Path</em>) – Path to save optional, diagnostic NodeStats images to.</p></li>
+<li><p><strong>nodestats_config</strong> (<em>dict</em>) – Dictionary configuration for analysing the crossing points.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary configuration for plotting images.</p></li>
+<li><p><strong>grainstats_df</strong> (<em>pd.DataFrame</em><em> | </em><em>None</em>) – The grain statistics dataframe to bee added to. This optional argument defaults to <cite>None</cite> in which case an empty grainstats dataframe is created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NodeStats analysis dictionary and grainstats metrics dataframe.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_ordered_tracing">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_ordered_tracing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracing_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_tracing_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_ordered_tracing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_ordered_tracing" title="Link to this definition">#</a></dt>
+<dd><p>Order coordinates of traces, adding results to statistics data frames and optionally plot results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.ndarray</em>) – Image containing the DNA to pass to the tracing function.</p></li>
+<li><p><strong>disordered_tracing_data</strong> (<em>dict</em>) – Dictionary of skeletonised and pruned grain masks. Result from “run_disordered_tracing”.</p></li>
+<li><p><strong>nodestats_data</strong> (<em>dict</em>) – Dictionary of images and statistics from the NodeStats analysis. Result from “run_nodestats”.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>basename</strong> (<em>Path</em>) – The path of the files’ parent directory.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – Path to save the core ordered tracing image to.</p></li>
+<li><p><strong>tracing_out_path</strong> (<em>Path</em>) – Path to save optional, diagnostic ordered trace images to.</p></li>
+<li><p><strong>ordered_tracing_config</strong> (<em>dict</em>) – Dictionary configuration for obtaining an ordered trace representation of the skeletons.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary configuration for plotting images.</p></li>
+<li><p><strong>grainstats_df</strong> (<em>pd.DataFrame</em><em> | </em><em>None</em>) – The grain statistics dataframe to be added to. This optional argument defaults to <cite>None</cite> in which case an empty grainstats dataframe is created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A NodeStats analysis dictionary and grainstats metrics dataframe.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_splining">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_splining</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_tracing_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splining_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molstats_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_splining"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_splining" title="Link to this definition">#</a></dt>
+<dd><p>Smooth the ordered trace coordinates, adding results to statistics data frames and optionally plot results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Image containing the DNA to pass to the tracing function.</p></li>
+<li><p><strong>ordered_tracing_data</strong> (<em>dict</em>) – Dictionary of ordered coordinates. Result from “run_ordered_tracing”.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometers, i.e. the number of pixels per nanometres (nm).</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – Path to save the core ordered tracing image to.</p></li>
+<li><p><strong>splining_config</strong> (<em>dict</em>) – Dictionary configuration for obtaining an ordered trace representation of the skeletons.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary configuration for plotting images.</p></li>
+<li><p><strong>grainstats_df</strong> (<em>pd.DataFrame</em><em> | </em><em>None</em>) – The grain statistics dataframe to be added to. This optional argument defaults to <cite>None</cite> in which case an empty grainstats dataframe is created.</p></li>
+<li><p><strong>molstats_df</strong> (<em>pd.DataFrame</em><em> | </em><em>None</em>) – The molecule statistics dataframe to be added to. This optional argument defaults to <cite>None</cite> in which case an empty grainstats dataframe is created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A smooth curve analysis dictionary and grainstats metrics dataframe.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.run_curvature_stats">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">run_curvature_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cropped_image_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_trace_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">core_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracing_out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curvature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#run_curvature_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.run_curvature_stats" title="Link to this definition">#</a></dt>
+<dd><p>Calculate curvature statistics for the traced DNA molecules.</p>
+<p>Currently only works on simple traces, not branched traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.ndarray</em>) – AFM image, for plotting purposes.</p></li>
+<li><p><strong>cropped_image_data</strong> (<em>dict</em>) – Dictionary containing cropped images.</p></li>
+<li><p><strong>grain_trace_data</strong> (<em>dict</em>) – Dictionary of grain trace data.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling factor for converting pixel length scales to nanometres.
+ie the number of pixels per nanometre.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image.</p></li>
+<li><p><strong>core_out_path</strong> (<em>Path</em>) – Path to save the core curvature image to.</p></li>
+<li><p><strong>tracing_out_path</strong> (<em>Path</em>) – Path to save the optional, diagnostic curvature images to.</p></li>
+<li><p><strong>curvature_config</strong> (<em>dict</em>) – Dictionary of configuration for running the curvature stats.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration for plotting images.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing curvature statistics.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.get_out_paths">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">get_out_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/topostats/processing.html#get_out_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.get_out_paths" title="Link to this definition">#</a></dt>
+<dd><p>Determine components of output paths for a given image and plotting config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_path</strong> (<em>Path</em>) – Path of the image being processed.</p></li>
+<li><p><strong>base_dir</strong> (<em>Path</em>) – Path of the data folder.</p></li>
+<li><p><strong>output_dir</strong> (<em>Path</em>) – Base output directory for output data.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the image being processed.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration for plotting images.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Core output path for general file outputs, filter output path for flattening related files and
+grain output path for grain finding related files.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.process_scan">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">process_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topostats_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grains_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_tracing_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splining_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curvature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'output'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#process_scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.process_scan" title="Link to this definition">#</a></dt>
+<dd><p>Process a single image, filtering, finding grains and calculating their statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topostats_object</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Union</em><em>[</em><em>npt.NDArray</em><em>, </em><em>Path</em><em>, </em><em>float</em><em>]</em><em>]</em>) – A dictionary with keys ‘image’, ‘img_path’ and ‘pixel_to_nm_scaling’ containing a file or frames’ image, it’s path and it’s
+pixel to namometre scaling value.</p></li>
+<li><p><strong>base_dir</strong> (<em>str</em><em> | </em><em>Path</em>) – Directory to recursively search for files, if not specified the current directory is scanned.</p></li>
+<li><p><strong>filter_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the Filter stage.</p></li>
+<li><p><strong>grains_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the Grain detection stage.</p></li>
+<li><p><strong>grainstats_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the Grain Statistics stage.</p></li>
+<li><p><strong>disordered_tracing_config</strong> (<em>dict</em>) – Dictionary configuration for obtaining a disordered trace representation of the grains.</p></li>
+<li><p><strong>nodestats_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the NodeStats stage.</p></li>
+<li><p><strong>ordered_tracing_config</strong> (<em>dict</em>) – Dictionary configuration for obtaining an ordered trace representation of the skeletons.</p></li>
+<li><p><strong>splining_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the splining stage.</p></li>
+<li><p><strong>curvature_config</strong> (<em>dict</em>) – Dictionary of configuration options for running the curvature stats stage.</p></li>
+<li><p><strong>plotting_config</strong> (<em>dict</em>) – Dictionary of configuration options for plotting figures.</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em><em> | </em><em>Path</em>) – Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+that output will be over-written.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+and dictionary containing general image statistics.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.check_run_steps">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">check_run_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grains_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grainstats_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodestats_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_tracing_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splining_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#check_run_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.check_run_steps" title="Link to this definition">#</a></dt>
+<dd><p>Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.</p>
+<p>This checks that earlier steps required are enabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filter_run</strong> (<em>bool</em>) – Flag for running Filtering.</p></li>
+<li><p><strong>grains_run</strong> (<em>bool</em>) – Flag for running Grains.</p></li>
+<li><p><strong>grainstats_run</strong> (<em>bool</em>) – Flag for running GrainStats.</p></li>
+<li><p><strong>disordered_tracing_run</strong> (<em>bool</em>) – Flag for running Disordered Tracing.</p></li>
+<li><p><strong>nodestats_run</strong> (<em>bool</em>) – Flag for running NodeStats.</p></li>
+<li><p><strong>ordered_tracing_run</strong> (<em>bool</em>) – Flag for running Ordered Tracing.</p></li>
+<li><p><strong>splining_run</strong> (<em>bool</em>) – Flag for running DNA Tracing.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.processing.completion_message">
+<span class="sig-prename descclassname"><span class="pre">topostats.processing.</span></span><span class="sig-name descname"><span class="pre">completion_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images_processed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/topostats/processing.html#completion_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.processing.completion_message" title="Link to this definition">#</a></dt>
+<dd><p>Print a completion message summarising images processed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – Configuration dictionary.</p></li>
+<li><p><strong>img_files</strong> (<em>list</em>) – List of found image paths.</p></li>
+<li><p><strong>summary_config</strong> (<em>dict</em>) – Configuration for plotting summary statistics.</p></li>
+<li><p><strong>images_processed</strong> (<em>int</em>) – Pandas DataFrame of results.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../plottingfuncs/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.plottingfuncs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../run_modules/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.run_modules</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_filters"><code class="docutils literal notranslate"><span class="pre">run_filters()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_grains"><code class="docutils literal notranslate"><span class="pre">run_grains()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_grainstats"><code class="docutils literal notranslate"><span class="pre">run_grainstats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_disordered_tracing"><code class="docutils literal notranslate"><span class="pre">run_disordered_tracing()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_nodestats"><code class="docutils literal notranslate"><span class="pre">run_nodestats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_ordered_tracing"><code class="docutils literal notranslate"><span class="pre">run_ordered_tracing()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_splining"><code class="docutils literal notranslate"><span class="pre">run_splining()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.run_curvature_stats"><code class="docutils literal notranslate"><span class="pre">run_curvature_stats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.get_out_paths"><code class="docutils literal notranslate"><span class="pre">get_out_paths()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.process_scan"><code class="docutils literal notranslate"><span class="pre">process_scan()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.check_run_steps"><code class="docutils literal notranslate"><span class="pre">check_run_steps()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.processing.completion_message"><code class="docutils literal notranslate"><span class="pre">completion_message()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../_sources/autoapi/topostats/processing/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

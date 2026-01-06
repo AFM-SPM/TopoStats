@@ -1,0 +1,1570 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.plotting &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/plotting';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="plotting.html">v2.3.2rc2</a></li>
+  <li><a href="../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topostats.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.plotting</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.plotting</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Plotting and summary of TopoStats output statistics.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">resources</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.colors</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_yaml</span><span class="p">,</span> <span class="n">write_yaml</span><span class="p">,</span> <span class="n">convert_basename_to_relative_paths</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.theme</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colormap</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+
+<span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="c1"># pylint: disable=too-many-instance-attributes</span>
+<span class="c1"># pylint: disable=too-many-locals</span>
+<span class="c1"># pylint: disable=too-many-positional-arguments</span>
+
+
+<div class="viewcode-block" id="TopoSum">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TopoSum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for summarising grain statistics in plots.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df :  pd.DataFrame</span>
+<span class="sd">        Pandas data frame of data to be summarised.</span>
+<span class="sd">    base_dir :  str | Path</span>
+<span class="sd">        Base directory from which all paths are relative to.</span>
+<span class="sd">    csv_file :  str | Path</span>
+<span class="sd">        CSV file of data to be summarised.</span>
+<span class="sd">    stat_to_sum :  str</span>
+<span class="sd">        Variable to summarise.</span>
+<span class="sd">    molecule_id :  str</span>
+<span class="sd">        Variable that uniquely identifies molecules.</span>
+<span class="sd">    image_id :  str</span>
+<span class="sd">        Variable that uniquely identifies images.</span>
+<span class="sd">    hist :  bool</span>
+<span class="sd">        Whether to plot histograms.</span>
+<span class="sd">    stat :  str</span>
+<span class="sd">        Statistic to plot on histogram &#39;count&#39; (default), &#39;freq&#39;.</span>
+<span class="sd">    bins :  int</span>
+<span class="sd">        Number of bins to plot.</span>
+<span class="sd">    kde :  bool</span>
+<span class="sd">        Whether to include a Kernel Density Estimate.</span>
+<span class="sd">    cut :  float = 20,</span>
+<span class="sd">        Cut point for KDE.</span>
+<span class="sd">    figsize :  tuple</span>
+<span class="sd">        Figure dimensions.</span>
+<span class="sd">    alpha :  float</span>
+<span class="sd">        Opacity to use in plots.</span>
+<span class="sd">    palette :  str = &quot;deep&quot;</span>
+<span class="sd">        Seaborn colour plot to use.</span>
+<span class="sd">    savefig_format :  str</span>
+<span class="sd">        File type to save plots as &#39;png&#39; (default), &#39;pdf&#39;, &#39;svg&#39;.</span>
+<span class="sd">    output_dir :  str | Path</span>
+<span class="sd">        Location to save plots to.</span>
+<span class="sd">    var_to_label :  dict</span>
+<span class="sd">        Variable to label dictionary for automatically adding titles to plots.</span>
+<span class="sd">    hue :  str</span>
+<span class="sd">        Dataframe column to group plots by.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">csv_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">stat_to_sum</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">molecule_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;grain_number&quot;</span><span class="p">,</span>
+        <span class="n">image_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+        <span class="n">hist</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">stat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span>
+        <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="n">kde</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cut</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">palette</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;deep&quot;</span><span class="p">,</span>
+        <span class="n">savefig_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+        <span class="n">var_to_label</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hue</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df :  pd.DataFrame</span>
+<span class="sd">            Pandas data frame of data to be summarised.</span>
+<span class="sd">        base_dir :  str | Path</span>
+<span class="sd">            Base directory from which all paths are relative to.</span>
+<span class="sd">        csv_file :  str | Path</span>
+<span class="sd">            CSV file of data to be summarised.</span>
+<span class="sd">        stat_to_sum :  str</span>
+<span class="sd">            Variable to summarise.</span>
+<span class="sd">        molecule_id :  str</span>
+<span class="sd">            Variable that uniquely identifies molecules.</span>
+<span class="sd">        image_id :  str</span>
+<span class="sd">            Variable that uniquely identifies images.</span>
+<span class="sd">        hist :  bool</span>
+<span class="sd">            Whether to plot histograms.</span>
+<span class="sd">        stat :  str</span>
+<span class="sd">            Statistic to plot on histogram &#39;count&#39; (default), &#39;freq&#39;.</span>
+<span class="sd">        bins :  int</span>
+<span class="sd">            Number of bins to plot.</span>
+<span class="sd">        kde :  bool</span>
+<span class="sd">            Whether to include a Kernel Density Estimate.</span>
+<span class="sd">        cut :  float = 20,</span>
+<span class="sd">            Cut point for KDE.</span>
+<span class="sd">        figsize :  tuple</span>
+<span class="sd">            Figure dimensions.</span>
+<span class="sd">        alpha :  float</span>
+<span class="sd">            Opacity to use in plots.</span>
+<span class="sd">        palette :  str = &quot;deep&quot;</span>
+<span class="sd">            Seaborn colour plot to use.</span>
+<span class="sd">        savefig_format :  str</span>
+<span class="sd">            File type to save plots as &#39;png&#39; (default), &#39;pdf&#39;, &#39;svg&#39;.</span>
+<span class="sd">        output_dir :  str | Path</span>
+<span class="sd">            Location to save plots to.</span>
+<span class="sd">        var_to_label :  dict</span>
+<span class="sd">            Variable to label dictionary for automatically adding titles to plots.</span>
+<span class="sd">        hue :  str</span>
+<span class="sd">            Dataframe column to group plots by.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span> <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="n">base_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stat_to_sum</span> <span class="o">=</span> <span class="n">stat_to_sum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">molecule_id</span> <span class="o">=</span> <span class="n">molecule_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_id</span> <span class="o">=</span> <span class="n">image_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bins</span> <span class="o">=</span> <span class="n">bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stat</span> <span class="o">=</span> <span class="n">stat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kde</span> <span class="o">=</span> <span class="n">kde</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cut</span> <span class="o">=</span> <span class="n">cut</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figsize</span> <span class="o">=</span> <span class="n">figsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="n">palette</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">savefig_format</span> <span class="o">=</span> <span class="n">savefig_format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_to_label</span> <span class="o">=</span> <span class="n">var_to_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hue</span> <span class="o">=</span> <span class="n">hue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># melt the data given in the init method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">melt_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">stat_to_summarize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stat_to_sum</span><span class="p">,</span> <span class="n">var_to_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_to_label</span><span class="p">)</span>
+        <span class="n">convert_basename_to_relative_paths</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_palette</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stat_to_sum</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TopoSum._setup_figure">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._setup_figure">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup Matplotlib figure and axes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fig, ax</span>
+<span class="sd">            Matplotlib fig and ax objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="TopoSum._outfile">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._outfile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_outfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the output file name with the appropriate suffix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        plot_suffix : str</span>
+<span class="sd">            The suffix to append to the output file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str:</span>
+<span class="sd">            Concanenated string of the outfile and plot_suffix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">stat_to_sum</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">plot_suffix</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="TopoSum.sns_plot">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.sns_plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sns_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot the distribution of one or more statistics as either histogram, kernel density estimates or both.</span>
+
+<span class="sd">        Uses base Seaborn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[Union[Tuple[plt.Figure, plt.Axes], None]]</span>
+<span class="sd">            Tuple of Matplotlib figure and axes if plotting is successful, None otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Note: Plotting KDEs with Seaborn is not possible if all values are the same.</span>
+        <span class="c1"># This is because the KDE is calculated using a Gaussian kernel and if all values</span>
+        <span class="c1"># are the same, the standard deviation is 0 which results in a ZeroDivisionError with</span>
+        <span class="c1"># is caught internally but then raises a numpy linalg error.</span>
+        <span class="c1"># The try/catch is there to catch this error and skip plotting KDEs if all values are the same.</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_figure</span><span class="p">()</span>
+
+        <span class="c1"># If histogram is requested but KDE is not, plot histogram</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hist</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">(</span><span class="s2">&quot;hist&quot;</span><span class="p">)</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">histplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">(</span><span class="s2">&quot;kde&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values </span><span class="se">\</span>
+<span class="s2">for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hist</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kde</span><span class="p">:</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">(</span><span class="s2">&quot;hist_kde&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">histplot</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                    <span class="n">bins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">,</span>
+                    <span class="n">stat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">,</span>
+                    <span class="n">hue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">,</span>
+                    <span class="n">kde</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">kde_kws</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cut&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cut</span><span class="p">},</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;[plotting] KDE plot error: Numpy linalg error encountered. This is a result of all values </span><span class="se">\</span>
+<span class="s2">for KDE plot being the same. KDE plots cannot be made as there is no variance, skipping.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">ticklabel_format</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;sci&quot;</span><span class="p">,</span> <span class="n">scilimits</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>  <span class="c1"># pylint: disable=possibly-used-before-assignment</span>
+
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="TopoSum.sns_violinplot">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.sns_violinplot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sns_violinplot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Violin plot of data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fig, ax</span>
+<span class="sd">            Matplotlib fig and ax objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_figure</span><span class="p">()</span>
+        <span class="c1"># Determine whether to draw a legend</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">violinplot</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">,</span>
+            <span class="n">hue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hue</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+            <span class="n">legend</span><span class="o">=</span><span class="n">legend</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outfile</span><span class="p">(</span><span class="s2">&quot;violin&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+    <span class="c1"># def sns_jointplot(self, var1: str, var2: str) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;Joint distribution of two variables.&quot;&quot;&quot;</span>
+    <span class="c1">#     fig, ax = self._setup_figure()</span>
+    <span class="c1">#     sns.jointplot(data=self.df, x=var1, y=var2, kind=&quot;reg&quot;)</span>
+    <span class="c1">#     outfile = f&quot;{&#39;_&#39;.join(self.stats_to_sum.keys())}_jointplot&quot;</span>
+    <span class="c1">#     # outfile = self._outfile(&quot;jointplot&quot;)</span>
+    <span class="c1">#     self.save_plot(outfile)</span>
+    <span class="c1">#     return fig, ax</span>
+
+<div class="viewcode-block" id="TopoSum.melt_data">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.melt_data">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">melt_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">stat_to_summarize</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var_to_label</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Melt a dataframe into long format for plotting with Seaborn.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            Statistics to melt.</span>
+<span class="sd">        stat_to_summarize : str</span>
+<span class="sd">            Statistics to summarise.</span>
+<span class="sd">        var_to_label : dict</span>
+<span class="sd">            Mapping of variable names to descriptions.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data in long-format with descriptive variable names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">melted_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span> <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;grain_number&quot;</span><span class="p">,</span> <span class="s2">&quot;basename&quot;</span><span class="p">],</span> <span class="n">value_vars</span><span class="o">=</span><span class="n">stat_to_summarize</span><span class="p">)</span>
+        <span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;variable&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;variable&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">var_to_label</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[plotting] Data has been melted to long format for plotting.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">melted_data</span></div>
+
+
+<div class="viewcode-block" id="TopoSum.set_xlim">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.set_xlim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">percent</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the range of the x-axis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        percent : float</span>
+<span class="sd">            Percentage of the observed range by which to extend the x-axis. Only used if supplied range is outside the</span>
+<span class="sd">            observed values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">range_percent</span> <span class="o">=</span> <span class="n">percent</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">range_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">range_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">melted_data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">range_min</span> <span class="o">-</span> <span class="n">range_percent</span><span class="p">,</span> <span class="n">range_max</span> <span class="o">+</span> <span class="n">range_percent</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[plotting] Setting x-axis range       : </span><span class="si">{</span><span class="n">range_min</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">range_max</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopoSum.set_palette">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.set_palette">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_palette</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the color palette.&quot;&quot;&quot;</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">set_palette</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[plotting] Seaborn color palette : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopoSum.save_plot">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.save_plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfile</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the plot to the output_dir.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outfile : str</span>
+<span class="sd">            Output file name to save figure to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">savefig_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[plotting] Plotted </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">stat_to_sum</span><span class="si">}</span><span class="s2"> to : </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outfile</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">savefig_format</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopoSum._set_label">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._set_label">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the label based on the column name(s).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        var : str</span>
+<span class="sd">            The variable for which a label is required.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_to_label</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[plotting] self.label     : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="toposum">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.toposum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">toposum</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process plotting and summarisation of data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Dictionary of summarisation options.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of nested dictionaries. Each variable has its own dictionary with keys &#39;dist&#39; and &#39;violin&#39; which</span>
+<span class="sd">        contain distribution like plots and violin plots respectively (if the later are required). Each &#39;dist&#39; and</span>
+<span class="sd">       &#39;violin&#39; is itself a dictionary with two elements &#39;figures&#39; and &#39;axes&#39; which correspond to MatplotLib &#39;fig&#39; and</span>
+<span class="sd">       &#39;ax&#39; for that plot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;df&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;csv_file&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;[plotting] No statistics in DataFrame. Exiting...&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">violin</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;violin&quot;</span><span class="p">)</span>
+    <span class="n">all_stats_to_sum</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;stats_to_sum&quot;</span><span class="p">)</span>
+    <span class="n">figures</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+
+    <span class="c1"># Plot each variable on its own graph</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">all_stats_to_sum</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;df&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">topo_sum</span> <span class="o">=</span> <span class="n">TopoSum</span><span class="p">(</span><span class="n">stat_to_sum</span><span class="o">=</span><span class="n">var</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dist&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;violin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;dist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+            <span class="n">result_option</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">topo_sum</span><span class="o">.</span><span class="n">sns_plot</span><span class="p">()</span>
+            <span class="c1"># Handle the Optional[Tuple]</span>
+            <span class="k">if</span> <span class="n">result_option</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;dist&quot;</span><span class="p">][</span><span class="s2">&quot;figure&quot;</span><span class="p">],</span> <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;dist&quot;</span><span class="p">][</span><span class="s2">&quot;axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_option</span>
+
+            <span class="k">if</span> <span class="n">violin</span><span class="p">:</span>
+                <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;violin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+                <span class="p">(</span>
+                    <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;violin&quot;</span><span class="p">][</span><span class="s2">&quot;figure&quot;</span><span class="p">],</span>
+                    <span class="n">figures</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s2">&quot;violin&quot;</span><span class="p">][</span><span class="s2">&quot;axes&quot;</span><span class="p">],</span>
+                <span class="p">)</span> <span class="o">=</span> <span class="n">topo_sum</span><span class="o">.</span><span class="n">sns_violinplot</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[plotting] Statistic is not in dataframe : </span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">figures</span></div>
+
+
+
+<div class="viewcode-block" id="run_toposum">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.run_toposum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_toposum</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run Plotting.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments to pass and update configuration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">config_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">read_yaml</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[plotting] Configuration file loaded from : </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">summary_yaml</span> <span class="o">=</span> <span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;summary_config.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">summary_yaml</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;[plotting] Default configuration file loaded.&quot;</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">update_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">var_to_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;var_to_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_yaml</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">var_to_label</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[plotting] Variable to labels mapping loaded from : </span><span class="si">{args.var_to_label}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plotting_yaml</span> <span class="o">=</span> <span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;var_to_label.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;var_to_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">plotting_yaml</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[plotting] Default variable to labels mapping loaded.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">input_csv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;input_csv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">input_csv</span>
+
+    <span class="c1"># Write sample configuration if asked to do so and exit</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">create_config_file</span><span class="p">:</span>
+        <span class="n">write_yaml</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">,</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span>
+            <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">create_config_file</span><span class="p">,</span>
+            <span class="n">header_message</span><span class="o">=</span><span class="s2">&quot;Sample configuration file auto-generated&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;A sample configuration has been written to : ./</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">create_config_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Please refer to the documentation on how to use the configuration file : </span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;https://afm-spm.github.io/TopoStats/configuration.html&quot;</span>
+        <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">create_label_file</span><span class="p">:</span>
+        <span class="n">write_yaml</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">[</span><span class="s2">&quot;var_to_label&quot;</span><span class="p">],</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span>
+            <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">create_label_file</span><span class="p">,</span>
+            <span class="n">header_message</span><span class="o">=</span><span class="s2">&quot;Sample label file auto-generated&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;A sample label file has been written to : ./</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">create_label_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Please refer to the documentation on how to use the configuration file : </span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;https://afm-spm.github.io/TopoStats/usage.html#configuring-topostats</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;https://afm-spm.github.io/TopoStats/configuration.html&quot;</span>
+        <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="c1"># Plot statistics</span>
+    <span class="n">toposum</span><span class="p">(</span><span class="n">config</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_crossing_linetrace_halfmax">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.plot_crossing_linetrace_halfmax">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_crossing_linetrace_halfmax</span><span class="p">(</span>
+    <span class="n">branch_stats_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">mask_cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the height-map line traces of the branches found in the &#39;branch_stats&#39; dictionary, and their meetings.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    branch_stats_dict : dict</span>
+<span class="sd">        Dictionary containing branch height, distance and fwhm info.</span>
+<span class="sd">    mask_cmap : matplotlib.colors.Colormap</span>
+<span class="sd">        Colormap for plotting.</span>
+<span class="sd">    title : str</span>
+<span class="sd">        Title for the plot.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fig, ax</span>
+<span class="sd">       Matplotlib fig and ax objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">cmp</span> <span class="o">=</span> <span class="n">Colormap</span><span class="p">(</span><span class="n">mask_cmap</span><span class="p">)</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">()</span>
+    <span class="n">total_branches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch_stats_dict</span><span class="p">)</span>
+    <span class="c1"># plot the highest first</span>
+    <span class="n">fwhms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">branch_idx</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">branch_stats_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">fwhms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;fwhm&quot;</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">])</span>
+    <span class="n">branch_idx_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">branch_stats_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fwhms</span><span class="p">))]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">branch_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">branch_idx_order</span><span class="p">):</span>
+        <span class="n">fwhm_dict</span> <span class="o">=</span> <span class="n">branch_stats_dict</span><span class="p">[</span><span class="n">branch_idx</span><span class="p">][</span><span class="s2">&quot;fwhm&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">total_branches</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">cmap_ratio</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmap_ratio</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_branches</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="n">branch_stats_dict</span><span class="p">[</span><span class="n">branch_idx</span><span class="p">][</span><span class="s2">&quot;heights&quot;</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">branch_stats_dict</span><span class="p">[</span><span class="n">branch_idx</span><span class="p">][</span><span class="s2">&quot;distances&quot;</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">heights</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">cmp</span><span class="p">(</span><span class="n">cmap_ratio</span><span class="p">))</span>  <span class="c1"># label=f&quot;Branch: {branch_idx}&quot;</span>
+
+        <span class="c1"># plot the high point lines</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;peaks&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;peaks&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;peaks&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]],</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">cmp</span><span class="p">(</span><span class="n">cmap_ratio</span><span class="p">),</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;FWHM: </span><span class="si">{</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s1">&#39;fwhm&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># plot the half max lines</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">heights</span><span class="o">.</span><span class="n">min</span><span class="p">()],</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">cmp</span><span class="p">(</span><span class="n">cmap_ratio</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">fwhm_dict</span><span class="p">[</span><span class="s2">&quot;half_maxs&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">heights</span><span class="o">.</span><span class="n">min</span><span class="p">()],</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">cmp</span><span class="p">(</span><span class="n">cmap_ratio</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Distance from Node (nm)&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Height&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+
+<div class="viewcode-block" id="plot_height_profiles">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting.plot_height_profiles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_height_profiles</span><span class="p">(</span><span class="n">height_profiles</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot height profiles.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    height_profiles : npt.NDArray</span>
+<span class="sd">        Single height profile (1-D numpy array of heights) or array of height profiles. If the later the profiles plot</span>
+<span class="sd">        will be overlaid.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If we have only one profile put it in a list so we can process</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">height_profiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">height_profiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">height_profiles</span><span class="p">]</span>
+    <span class="c1"># We have 1-D arrays of different sizes, we need to know the maximum length and then pad shorter ones so that the</span>
+    <span class="c1"># profiles will roughly align in the middle</span>
+    <span class="n">max_array_length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">height_profiles</span><span class="p">))</span>
+
+    <span class="c1"># Pad shorter height profiles to the length of the longest</span>
+    <span class="n">padded_height_profiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">_pad_array</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="n">max_array_length</span><span class="p">)</span> <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">height_profiles</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_y</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">height_profile</span> <span class="ow">in</span> <span class="n">padded_height_profiles</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_array_length</span><span class="p">),</span> <span class="n">height_profile</span><span class="p">)</span>
+        <span class="n">max_y</span> <span class="o">=</span> <span class="n">max_y</span> <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">height_profile</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_y</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">height_profile</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+
+<div class="viewcode-block" id="_pad_array">
+<a class="viewcode-back" href="../../autoapi/topostats/plotting/index.html#topostats.plotting._pad_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pad_array</span><span class="p">(</span><span class="n">profile</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">max_array_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pad array so that it matches the largest profile and plots are somewhat aligned.</span>
+
+<span class="sd">    Centering is done based on the mid-point of longest grain and heights of zero (&#39;0.0&#39;) are used in padding.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    profile : npt.NDArray</span>
+<span class="sd">        1-D Height profile.</span>
+<span class="sd">    max_array_length : int</span>
+<span class="sd">        The longest height profile across a range of detected grains.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray</span>
+<span class="sd">        Array padded to the same length as max_array_length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">profile_length</span> <span class="o">=</span> <span class="n">profile</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">array_diff</span> <span class="o">=</span> <span class="n">max_array_length</span> <span class="o">-</span> <span class="n">profile_length</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">array_diff</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">array_diff</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">pad</span><span class="p">,</span> <span class="n">pad</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">pad</span><span class="p">,</span> <span class="p">(</span><span class="n">pad</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">))</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

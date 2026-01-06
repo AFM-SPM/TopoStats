@@ -1,0 +1,1175 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.disordered_tracing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/disordered_tracing/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.tracing.dnacurvature" href="../dnacurvature/index.html" />
+    <link rel="prev" title="topostats.tracing" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">topostats</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.disordered_tracing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.disordered_tracing">
+<span id="topostats-tracing-disordered-tracing"></span><h1>topostats.tracing.disordered_tracing<a class="headerlink" href="#module-topostats.tracing.disordered_tracing" title="Link to this heading">#</a></h1>
+<p>Generates disordered traces (pruned skeletons) and metrics.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.LOGGER" title="topostats.tracing.disordered_tracing.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.disorderedTrace" title="topostats.tracing.disordered_tracing.disorderedTrace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disorderedTrace</span></code></a></p></td>
+<td><p>Calculate disordered traces for a DNA molecule and calculates statistics from those traces.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.check_pixel_touching_edge" title="topostats.tracing.disordered_tracing.check_pixel_touching_edge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_pixel_touching_edge</span></code></a>(→ bool)</p></td>
+<td><p>Check if any pixels in a mask touch the edge of the image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.trace_image_disordered" title="topostats.tracing.disordered_tracing.trace_image_disordered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_image_disordered</span></code></a>(→ tuple[dict[str, dict], ...)</p></td>
+<td><p>Processor function for tracing image.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.compile_skan_stats" title="topostats.tracing.disordered_tracing.compile_skan_stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile_skan_stats</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Obtain and add more stats to the resultant Skan dataframe.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.segment_heights" title="topostats.tracing.disordered_tracing.segment_heights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_heights</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Obtain an ordered list of heights from the skan defined skeleton segment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.segment_middles" title="topostats.tracing.disordered_tracing.segment_middles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_middles</span></code></a>(→ float)</p></td>
+<td><p>Obtain the pixel value in the middle of the ordered segment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.find_connections" title="topostats.tracing.disordered_tracing.find_connections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_connections</span></code></a>(→ str)</p></td>
+<td><p>Compile the neighbouring branch indexes of the row.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.grain_anchor" title="topostats.tracing.disordered_tracing.grain_anchor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grain_anchor</span></code></a>(→ list)</p></td>
+<td><p>Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.disordered_trace_grain" title="topostats.tracing.disordered_tracing.disordered_trace_grain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disordered_trace_grain</span></code></a>(→ dict)</p></td>
+<td><p>Trace an individual grain.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.get_skan_image" title="topostats.tracing.disordered_tracing.get_skan_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_skan_image</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Label each branch with it's Skan branch type label.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.crop_array" title="topostats.tracing.disordered_tracing.crop_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">crop_array</span></code></a>(→ numpy.typing.NDArray)</p></td>
+<td><p>Crop an array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.disordered_tracing.pad_bounding_box" title="topostats.tracing.disordered_tracing.pad_bounding_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_bounding_box</span></code></a>(→ list)</p></td>
+<td><p>Pad coordinates, if they extend beyond image boundaries stop at boundary.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">disorderedTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_smoothing_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruning_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace" title="Link to this definition">#</a></dt>
+<dd><p>Calculate disordered traces for a DNA molecule and calculates statistics from those traces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Cropped image, typically padded beyond the bounding box.</p></li>
+<li><p><strong>mask</strong> (<em>npt.NDArray</em>) – Labelled mask for the grain, typically padded beyond the bounding box.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Filename being processed.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum skeleton size below which tracing statistics are not calculated.</p></li>
+<li><p><strong>mask_smoothing_params</strong> (<em>dict</em>) – Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
+a gaussian ‘sigma’ and number of dilation iterations.</p></li>
+<li><p><strong>skeletonisation_params</strong> (<em>dict</em>) – Skeletonisation Parameters. Method of skeletonisation to use ‘topostats’ is the original TopoStats
+method. Three methods from scikit-image are available ‘zhang’, ‘lee’ and ‘thin’.</p></li>
+<li><p><strong>pruning_params</strong> (<em>dict</em>) – Dictionary of pruning parameters. Contains ‘method’, ‘max_length’, ‘height_threshold’, ‘method_values’
+‘method_outlier’ and ‘only_height_prune_endpoints’.</p></li>
+<li><p><strong>n_grain</strong> (<em>int</em>) – Grain number being processed (only  used in logging).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.filename" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.pixel_to_nm_scaling">
+<span class="sig-name descname"><span class="pre">pixel_to_nm_scaling</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.pixel_to_nm_scaling" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.min_skeleton_size">
+<span class="sig-name descname"><span class="pre">min_skeleton_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.min_skeleton_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.mask_smoothing_params">
+<span class="sig-name descname"><span class="pre">mask_smoothing_params</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.mask_smoothing_params" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.skeletonisation_params">
+<span class="sig-name descname"><span class="pre">skeletonisation_params</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.skeletonisation_params" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.pruning_params">
+<span class="sig-name descname"><span class="pre">pruning_params</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.pruning_params" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.n_grain">
+<span class="sig-name descname"><span class="pre">n_grain</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.n_grain" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.smoothed_mask">
+<span class="sig-name descname"><span class="pre">smoothed_mask</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.smoothed_mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.skeleton">
+<span class="sig-name descname"><span class="pre">skeleton</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.pruned_skeleton">
+<span class="sig-name descname"><span class="pre">pruned_skeleton</span></span><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.pruned_skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.disordered_trace">
+<span class="sig-name descname"><span class="pre">disordered_trace</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.disordered_trace" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.trace_dna">
+<span class="sig-name descname"><span class="pre">trace_dna</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace.trace_dna"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.trace_dna" title="Link to this definition">#</a></dt>
+<dd><p>Perform the DNA skeletonisation and cleaning pipeline.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.re_add_holes">
+<span class="sig-name descname"><span class="pre">re_add_holes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orig_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothed_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">holearea_min_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(2,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace.re_add_holes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.re_add_holes" title="Link to this definition">#</a></dt>
+<dd><p>Restore holes in masks that were occluded by dilation.</p>
+<p>As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes
+(based on the general background being the first due to padding) and adds them back into the smoothed mask. When
+paired with <code class="docutils literal notranslate"><span class="pre">smooth_mask</span></code>, this essentially just smooths the outer edge of the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orig_mask</strong> (<em>npt.NDArray</em>) – Original mask.</p></li>
+<li><p><strong>smoothed_mask</strong> (<em>npt.NDArray</em>) – Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important
+holes in the mask.</p></li>
+<li><p><strong>holearea_min_max</strong> (<em>tuple</em><em>[</em><em>float</em><em> | </em><em>int</em><em> | </em><em>None</em><em>]</em>) – Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
+mask.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Smoothed mask with holes restored.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.remove_touching_edge">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove_touching_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace.remove_touching_edge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.remove_touching_edge" title="Link to this definition">#</a></dt>
+<dd><p>Remove any skeleton points touching the border (to prevent errors later).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>skeleton</strong> (<em>npt.NDArray</em>) – A binary array where touching clusters of 1’s become 0’s if touching the edge of the array.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skeleton without points touching the border.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.smooth_mask">
+<span class="sig-name descname"><span class="pre">smooth_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dilation_iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">holearea_min_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace.smooth_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.smooth_mask" title="Link to this definition">#</a></dt>
+<dd><p>Smooth a grain mask based on the lower number of binary pixels added from dilation or gaussian.</p>
+<p>This method ensures gaussian smoothing isn’t too aggressive and covers / creates gaps in the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grain</strong> (<em>npt.NDArray</em>) – Numpy array of the grain mask.</p></li>
+<li><p><strong>dilation_iterations</strong> (<em>int</em>) – Number of times to dilate the grain to smooth it. Default is 2.</p></li>
+<li><p><strong>gaussian_sigma</strong> (<em>float</em><em> | </em><em>None</em>) – Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to 2.</p></li>
+<li><p><strong>holearea_min_max</strong> (<em>tuple</em><em>[</em><em>float</em><em> | </em><em>int</em><em> | </em><em>None</em><em>]</em>) – Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed
+mask.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array of smoothed image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disorderedTrace.calculate_dna_width">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_dna_width</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smoothed_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruned_skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disorderedTrace.calculate_dna_width"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disorderedTrace.calculate_dna_width" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the mean width in metres of the DNA using the trace and mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smoothed_mask</strong> (<em>npt.NDArray</em>) – Smoothed mask to be measured.</p></li>
+<li><p><strong>pruned_skeleton</strong> (<em>npt.NDArray</em>) – Pruned skeleton.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Scaling of pixels to nanometres.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Width of grain in metres.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.check_pixel_touching_edge">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">check_pixel_touching_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#check_pixel_touching_edge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.check_pixel_touching_edge" title="Link to this definition">#</a></dt>
+<dd><p>Check if any pixels in a mask touch the edge of the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Numpy array of mask to be checked.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True or False if a pixel is found on the edge of the image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.trace_image_disordered">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">trace_image_disordered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">full_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_crops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../grains/index.html#topostats.grains.GrainCrop" title="topostats.grains.GrainCrop"><span class="pre">topostats.grains.GrainCrop</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_smoothing_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruning_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pandas.DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#trace_image_disordered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.trace_image_disordered" title="Link to this definition">#</a></dt>
+<dd><p>Processor function for tracing image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>full_image</strong> (<em>npt.NDArray</em>) – Full image as Numpy Array.</p></li>
+<li><p><strong>grain_crops</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><a class="reference internal" href="../../grains/index.html#topostats.grains.GrainCrop" title="topostats.grains.GrainCrop"><em>GrainCrop</em></a><em>]</em>) – Dictionary of grain crops.</p></li>
+<li><p><strong>class_index</strong> (<em>int</em>) – Index of the class to trace.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum size of grain in pixels after skeletonisation.</p></li>
+<li><p><strong>mask_smoothing_params</strong> (<em>dict</em>) – Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
+a gaussian ‘sigma’ and number of dilation iterations.</p></li>
+<li><p><strong>skeletonisation_params</strong> (<em>dict</em>) – Dictionary of options for skeletonisation, options are ‘zhang’ (scikit-image) / ‘lee’ (scikit-image) / ‘thin’
+(scikitimage) or ‘topostats’ (original TopoStats method).</p></li>
+<li><p><strong>pruning_params</strong> (<em>dict</em>) – Dictionary of options for pruning.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame, dict, pd.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.compile_skan_stats">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">compile_skan_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skan_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skan_skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">skan.Skeleton</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grain_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#compile_skan_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.compile_skan_stats" title="Link to this definition">#</a></dt>
+<dd><p>Obtain and add more stats to the resultant Skan dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>skan_df</strong> (<em>pd.DataFrame</em>) – The statistics DataFrame produced by Skan’s <cite>summarize</cite> function.</p></li>
+<li><p><strong>skan_skeleton</strong> (<em>skan.Skeleton</em>) – The graphical representation of the skeleton produced by Skan.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – The image the skeleton was produced from.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the file being processed.</p></li>
+<li><p><strong>grain_number</strong> (<em>int</em>) – The number of the grain being processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dataframe containing the filename, grain_number, branch-distance, branch-type, connected_segments,
+mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.segment_heights">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">segment_heights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skan_skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">skan.Skeleton</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#segment_heights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.segment_heights" title="Link to this definition">#</a></dt>
+<dd><p>Obtain an ordered list of heights from the skan defined skeleton segment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>row</strong> (<em>pd.Series</em>) – A row from the Skan summarize dataframe.</p></li>
+<li><p><strong>skan_skeleton</strong> (<em>skan.Skeleton</em>) – The graphical representation of the skeleton produced by Skan.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – The image the skeleton was produced from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Heights along the segment, naturally ordered by Skan.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.segment_middles">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">segment_middles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skan_skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">skan.csr.Skeleton</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#segment_middles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.segment_middles" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the pixel value in the middle of the ordered segment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>row</strong> (<em>pd.Series</em>) – A row from the Skan summarize dataframe.</p></li>
+<li><p><strong>skan_skeleton</strong> (<em>skan.csr.Skeleton</em>) – The graphical representation of the skeleton produced by Skan.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – The image the skeleton was produced from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The single or mean pixel value corresponding to the middle coordinate(s) of the segment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.find_connections">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">find_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skan_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#find_connections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.find_connections" title="Link to this definition">#</a></dt>
+<dd><p>Compile the neighbouring branch indexes of the row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>row</strong> (<em>pd.Series</em>) – A row from the Skan summarize dataframe.</p></li>
+<li><p><strong>skan_df</strong> (<em>pd.DataFrame</em>) – The statistics DataFrame produced by Skan’s <cite>summarize</cite> function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string representation of a list of matching row indices where the node src and dst
+columns match that of the rows.
+String is needed for csv compatibility since csvs can’t hold lists.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.grain_anchor">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">grain_anchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#grain_anchor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.grain_anchor" title="Link to this definition">#</a></dt>
+<dd><p>Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array_shape</strong> (<em>tuple</em>) – Shape of original array.</p></li>
+<li><p><strong>bounding_box</strong> (<em>list</em>) – A list of region properties returned by ‘skimage.measure.regionprops()’.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Padding for image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of tuples of the min_row, min_col of each bounding box.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(Tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.disordered_trace_grain">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">disordered_trace_grain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cropped_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cropped_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_smoothing_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeletonisation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruning_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_skeleton_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#disordered_trace_grain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.disordered_trace_grain" title="Link to this definition">#</a></dt>
+<dd><p>Trace an individual grain.</p>
+<p>Tracing involves multiple steps…</p>
+<ol class="arabic simple">
+<li><p>Skeletonisation</p></li>
+<li><p>Pruning of side branches (artefacts from skeletonisation).</p></li>
+<li><p>Ordering of the skeleton.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cropped_image</strong> (<em>npt.NDArray</em>) – Cropped array from the original image defined as the bounding box from the labelled mask.</p></li>
+<li><p><strong>cropped_mask</strong> (<em>npt.NDArray</em>) – Cropped array from the labelled image defined as the bounding box from the labelled mask. This should have been
+converted to a binary mask.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – Pixel to nm scaling.</p></li>
+<li><p><strong>mask_smoothing_params</strong> (<em>dict</em>) – Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
+a gaussian ‘sigma’ and number of dilation iterations.</p></li>
+<li><p><strong>skeletonisation_params</strong> (<em>dict</em>) – Dictionary of skeletonisation parameters, options are ‘zhang’ (scikit-image) / ‘lee’ (scikit-image) / ‘thin’
+(scikitimage) or ‘topostats’ (original TopoStats method).</p></li>
+<li><p><strong>pruning_params</strong> (<em>dict</em>) – Dictionary of pruning parameters.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – File being processed.</p></li>
+<li><p><strong>min_skeleton_size</strong> (<em>int</em>) – Minimum size of grain in pixels after skeletonisation.</p></li>
+<li><p><strong>n_grain</strong> (<em>int</em>) – Grain number being processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array
+of coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.get_skan_image">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">get_skan_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pruned_skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skan_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#get_skan_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.get_skan_image" title="Link to this definition">#</a></dt>
+<dd><p>Label each branch with it’s Skan branch type label.</p>
+<p>Branch types (+1 compared to Skan docs) are defined as:
+1 = Endpoint-to-endpoint (isolated branch)
+2 = Junction-to-endpoint
+3 = Junction-to-junction
+4 = Isolated cycle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>original_image</strong> (<em>npt.NDArray</em>) – Height image from which the pruned skeleton is derived from.</p></li>
+<li><p><strong>pruned_skeleton</strong> (<em>npt.NDArray</em>) – Single pixel thick skeleton mask.</p></li>
+<li><p><strong>skan_column</strong> (<em>str</em>) – A column from Skan’s summarize function to colour the branch segments with.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D array where the background is 0, and skeleton branches label as their Skan branch type.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.crop_array">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">crop_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#crop_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.crop_array" title="Link to this definition">#</a></dt>
+<dd><p>Crop an array.</p>
+<p>Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,
+in some cases, if a grain is near the edge of the image scan this results in requesting indexes outside of the
+existing image. In which case we get as much of the image padded as possible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>npt.NDArray</em>) – 2D Numpy array to be cropped.</p></li>
+<li><p><strong>bounding_box</strong> (<em>Tuple</em>) – Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Padding to apply to bounding box.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cropped array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.disordered_tracing.pad_bounding_box">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.disordered_tracing.</span></span><span class="sig-name descname"><span class="pre">pad_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounding_box</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/disordered_tracing.html#pad_bounding_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.disordered_tracing.pad_bounding_box" title="Link to this definition">#</a></dt>
+<dd><p>Pad coordinates, if they extend beyond image boundaries stop at boundary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array_shape</strong> (<em>tuple</em>) – Shape of original image (row, columns).</p></li>
+<li><p><strong>bounding_box</strong> (<em>list</em>) – List of coordinates ‘min_row’, ‘min_col’, ‘max_row’, ‘max_col’.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – Cells to pad arrays by.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of padded coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../dnacurvature/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.tracing.dnacurvature</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace"><code class="docutils literal notranslate"><span class="pre">disorderedTrace</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.image"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.mask"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.filename"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.filename</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.pixel_to_nm_scaling"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.pixel_to_nm_scaling</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.min_skeleton_size"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.min_skeleton_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.mask_smoothing_params"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.mask_smoothing_params</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.skeletonisation_params"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.skeletonisation_params</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.pruning_params"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.pruning_params</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.n_grain"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.n_grain</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.smoothed_mask"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.smoothed_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.skeleton"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.pruned_skeleton"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.pruned_skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.disordered_trace"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.disordered_trace</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.trace_dna"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.trace_dna()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.re_add_holes"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.re_add_holes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.remove_touching_edge"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.remove_touching_edge()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.smooth_mask"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.smooth_mask()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disorderedTrace.calculate_dna_width"><code class="docutils literal notranslate"><span class="pre">disorderedTrace.calculate_dna_width()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.check_pixel_touching_edge"><code class="docutils literal notranslate"><span class="pre">check_pixel_touching_edge()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.trace_image_disordered"><code class="docutils literal notranslate"><span class="pre">trace_image_disordered()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.compile_skan_stats"><code class="docutils literal notranslate"><span class="pre">compile_skan_stats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.segment_heights"><code class="docutils literal notranslate"><span class="pre">segment_heights()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.segment_middles"><code class="docutils literal notranslate"><span class="pre">segment_middles()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.find_connections"><code class="docutils literal notranslate"><span class="pre">find_connections()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.grain_anchor"><code class="docutils literal notranslate"><span class="pre">grain_anchor()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.disordered_trace_grain"><code class="docutils literal notranslate"><span class="pre">disordered_trace_grain()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.get_skan_image"><code class="docutils literal notranslate"><span class="pre">get_skan_image()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.crop_array"><code class="docutils literal notranslate"><span class="pre">crop_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.disordered_tracing.pad_bounding_box"><code class="docutils literal notranslate"><span class="pre">pad_bounding_box()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/autoapi/topostats/tracing/disordered_tracing/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

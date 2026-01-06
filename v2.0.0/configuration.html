@@ -1,0 +1,974 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Configuration &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'configuration';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="configuration.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/configuration.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/configuration.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/configuration.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/configuration.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/configuration.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/configuration.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/configuration.html">v2.3.0</a></li>
+  <li><a href="../v2.3.1/configuration.html">v2.3.1</a></li>
+  <li><a href="../v2.3.2/configuration.html">v2.3.2</a></li>
+  <li><a href="../v2.3.2rc1/configuration.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/configuration.html">v2.3.2rc2</a></li>
+  <li><a href="../main/configuration.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Configuration</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
+<p>Configuration for TopoStats is done using a <a class="reference external" href="https://yaml.org/">YAML</a> configuration that is specified on the command line when
+invoking. A default configuration file is provided in the TopoStats repository at
+<a class="reference external" href="https://github.com/AFM-SPM/TopoStats/blob/dev/topostats/default_config.yaml"><code class="docutils literal notranslate"><span class="pre">topostats/default_config.yaml</span></code></a>. The file
+contains comments indicating valid values for many of the fields. If no configuration file is provided this default
+configuration is loaded automatically and used.</p>
+<p>You can make a copy of the <code class="docutils literal notranslate"><span class="pre">default_config.yaml</span></code> and modify it for your own use. Once saved you can run TopoStats with
+this configuration file as shown below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>run_topostats<span class="w"> </span>--config<span class="w"> </span>my_config.yaml
+</pre></div>
+</div>
+<p>On completion a copy of the configuration that was used is written to the output directory.</p>
+<section id="fields">
+<h2>Fields<a class="headerlink" href="#fields" title="Link to this heading">#</a></h2>
+<p>Aside from the comments in YAML file itself the fields are described below.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th style="text-align: left;">Section</th>
+<th style="text-align: left;">Sub-Section</th>
+<th style="text-align: left;">Data Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>base_dir</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>./</code></td>
+<td style="text-align: left;">Directory to recursively search for files within.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>output_dir</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>./output</code></td>
+<td style="text-align: left;">Directory that output should be saved to.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>warnings</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>ignore</code></td>
+<td style="text-align: left;">Turns off warnings being shown.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cores</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">Number of cores to run parallel processes on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>quiet</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">false</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_ext</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>.spm</code></td>
+<td style="text-align: left;">File extensions to search for.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>loading</code></td>
+<td style="text-align: left;"><code>channel</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>Height</code></td>
+<td style="text-align: left;">The channel of data to be processed, what this is will depend on the file-format you are processing and the channel you wish to process.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filter</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run the filtering stage, without this other stages won't run so leave as <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>std_dev</code></td>
+<td style="text-align: left;">Threshold method for filtering, options are <code>ostu</code>, <code>std_dev</code> or <code>absolute</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>otsu_threshold_multiplier</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_std_dev</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute_lower</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>-1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute_upper</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>gaussian_size</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See <a href="https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian">skimage.filters.gaussian</a> and <code>sigma</code> for more information</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>gaussian_mode</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>nearest</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grains</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run grain finding. Options <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>absolute_smallest_grain_size</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>100</code></td>
+<td style="text-align: left;">The smallest size of grains to be included (in pixels), anything smaller than this is considered noise and removed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_method</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>std_dev</code></td>
+<td style="text-align: left;">Threshold method for grain finding.  Options : <code>otsu</code>, <code>std_dev</code>, <code>absolute</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>otsu_threshold_multiplier</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">Factor by which the derived Otsu Threshold should be scaled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_std_dev</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute_lower</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute_upper</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>absolute_area_threshold</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>...upper</code></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;"><code>[500,800]</code></td>
+<td style="text-align: left;">Height above surface [Low, High] in nm^2 (also takes null)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>...lower</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>[null, null]</code></td>
+<td style="text-align: left;">Height below surface [Low, High] in nm^2 (also takes null)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>direction</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>upper</code></td>
+<td style="text-align: left;">Defines whether to look for grains above or below thresholds or both. Options: <code>upper</code>, <code>lower</code>, <code>both</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>background</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.0</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grainstats</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to calculate grain statistics. Options : <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>cropped_size</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>40.0</code></td>
+<td style="text-align: left;">Force cropping of grains to this length (in nm) of square cropped images (can take <code>-1</code> for grain-sized box)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>save_cropped_grains</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>dnatracing</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run DNA Tracing.  Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>plotting</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run plotting. Options : <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>save_format</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>png</code></td>
+<td style="text-align: left;">Format to save images in, see <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html">matplotlib.pyplot.savefig</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>image_set</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>all</code></td>
+<td style="text-align: left;">Which images to plot. Options : <code>all</code>, <code>core</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>zrange</code></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;"><code>[0, 3]</code></td>
+<td style="text-align: left;">Low and high height range for core images (can take [null, null])</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>colorbar</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to include the colorbar scale in plots. Options <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>axes</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Wether to include the axes in the produced plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>cmap</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>nanoscope</code></td>
+<td style="text-align: left;">Colormap to use in plotting. Options : <code>nanoscope</code>, <code>afmhot</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>histogram_log_axis</code></td>
+<td style="text-align: left;">bbolean</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Whether to plot hisograms using a logarithmic scale or not. Options: <code>true</code>, <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Link to this heading">#</a></h2>
+<p>Configuration files are validated against a schema to check that the values in the configuration file are within the
+expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
+what needs correcting if there are errors.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="usage.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Usage</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contributing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fields">Fields</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validation">Validation</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

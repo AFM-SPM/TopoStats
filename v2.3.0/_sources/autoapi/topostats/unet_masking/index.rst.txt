@@ -1,0 +1,249 @@
+topostats.unet_masking
+======================
+
+.. py:module:: topostats.unet_masking
+
+.. autoapi-nested-parse::
+
+   Segment grains using a U-Net model.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.unet_masking.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.unet_masking.dice_loss
+   topostats.unet_masking.iou_loss
+   topostats.unet_masking.mean_iou
+   topostats.unet_masking.predict_unet
+   topostats.unet_masking.make_bounding_box_square
+   topostats.unet_masking.pad_bounding_box
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: dice_loss(y_true: numpy.typing.NDArray[numpy.float32], y_pred: numpy.typing.NDArray[numpy.float32], smooth: float = 1e-05) -> tensorflow.Tensor
+
+   
+   DICE loss function.
+
+   Expects y_true and y_pred to be of shape (batch_size, height, width, 1).
+
+   :param y_true: True values.
+   :type y_true: npt.NDArray[np.float32]
+   :param y_pred: Predicted values.
+   :type y_pred: npt.NDArray[np.float32]
+   :param smooth: Smoothing factor to prevent division by zero.
+   :type smooth: float
+
+   :returns: The DICE loss.
+   :rtype: tf.Tensor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: iou_loss(y_true: numpy.typing.NDArray[numpy.float32], y_pred: numpy.typing.NDArray[numpy.float32], smooth: float = 1e-05) -> tensorflow.Tensor
+
+   
+   Intersection over Union loss function.
+
+   Expects y_true and y_pred to be of shape (batch_size, height, width, 1).
+
+   :param y_true: True values.
+   :type y_true: npt.NDArray[np.float32]
+   :param y_pred: Predicted values.
+   :type y_pred: npt.NDArray[np.float32]
+   :param smooth: Smoothing factor to prevent division by zero.
+   :type smooth: float
+
+   :returns: The IoU loss.
+   :rtype: tf.Tensor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mean_iou(y_true: numpy.typing.NDArray[numpy.float32], y_pred: numpy.typing.NDArray[numpy.float32])
+
+   
+   Mean Intersection Over Union metric, ignoring the background class.
+
+   :param y_true: True values.
+   :type y_true: npt.NDArray[np.float32]
+   :param y_pred: Predicted values.
+   :type y_pred: npt.NDArray[np.float32]
+
+   :returns: The mean IoU.
+   :rtype: tf.Tensor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: predict_unet(image: numpy.typing.NDArray[numpy.float32], model: keras.Model, confidence: float, model_input_shape: tuple[int | None, int, int, int], upper_norm_bound: float, lower_norm_bound: float) -> numpy.typing.NDArray[numpy.bool_]
+
+   
+   Predict cats segmentation from a flattened image.
+
+   :param image: The image to predict the mask for.
+   :type image: npt.NDArray[np.float32]
+   :param model: The U-Net model.
+   :type model: keras.Model
+   :param confidence: The confidence threshold for the mask.
+   :type confidence: float
+   :param model_input_shape: The shape of the model input, including the batch and channel dimensions.
+   :type model_input_shape: tuple[int | None, int, int, int]
+   :param upper_norm_bound: The upper bound for normalising the image.
+   :type upper_norm_bound: float
+   :param lower_norm_bound: The lower bound for normalising the image.
+   :type lower_norm_bound: float
+
+   :returns: The predicted mask.
+   :rtype: npt.NDArray[np.bool_]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: make_bounding_box_square(crop_min_row: int, crop_min_col: int, crop_max_row: int, crop_max_col: int, image_shape: tuple[int, int]) -> tuple[int, int, int, int]
+
+   
+   Make a bounding box square.
+
+   :param crop_min_row: The minimum row index of the crop.
+   :type crop_min_row: int
+   :param crop_min_col: The minimum column index of the crop.
+   :type crop_min_col: int
+   :param crop_max_row: The maximum row index of the crop.
+   :type crop_max_row: int
+   :param crop_max_col: The maximum column index of the crop.
+   :type crop_max_col: int
+   :param image_shape: The shape of the image.
+   :type image_shape: tuple[int, int]
+
+   :returns: The new crop indices.
+   :rtype: tuple[int, int, int, int]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: pad_bounding_box(crop_min_row: int, crop_min_col: int, crop_max_row: int, crop_max_col: int, image_shape: tuple[int, int], padding: int) -> tuple[int, int, int, int]
+
+   
+   Pad a bounding box.
+
+   :param crop_min_row: The minimum row index of the crop.
+   :type crop_min_row: int
+   :param crop_min_col: The minimum column index of the crop.
+   :type crop_min_col: int
+   :param crop_max_row: The maximum row index of the crop.
+   :type crop_max_row: int
+   :param crop_max_col: The maximum column index of the crop.
+   :type crop_max_col: int
+   :param image_shape: The shape of the image.
+   :type image_shape: tuple[int, int]
+   :param padding: The padding to apply to the bounding box.
+   :type padding: int
+
+   :returns: The new crop indices.
+   :rtype: tuple[int, int, int, int]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

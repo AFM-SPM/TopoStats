@@ -1,0 +1,599 @@
+topostats.plotting
+==================
+
+.. py:module:: topostats.plotting
+
+.. autoapi-nested-parse::
+
+   Plotting and summary of TopoStats output statistics.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.plotting.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.plotting.TopoSum
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.plotting.toposum
+   topostats.plotting.run_toposum
+   topostats.plotting.plot_crossing_linetrace_halfmax
+   topostats.plotting.plot_height_profiles
+   topostats.plotting._pad_array
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: TopoSum(df: pandas.DataFrame = None, base_dir: str | pathlib.Path = None, csv_file: str | pathlib.Path = None, stat_to_sum: str = None, molecule_id: str = 'grain_number', image_id: str = 'image', hist: bool = True, stat: str = 'count', bins: int = 12, kde: bool = True, cut: float = 20, figsize: tuple = (16, 9), alpha: float = 0.5, palette: str = 'deep', savefig_format: str = 'png', output_dir: str | pathlib.Path = '.', var_to_label: dict = None, hue: str = 'basename')
+
+   
+   Class for summarising grain statistics in plots.
+
+   :param df: Pandas data frame of data to be summarised.
+   :type df: pd.DataFrame
+   :param base_dir: Base directory from which all paths are relative to.
+   :type base_dir: str | Path
+   :param csv_file: CSV file of data to be summarised.
+   :type csv_file: str | Path
+   :param stat_to_sum: Variable to summarise.
+   :type stat_to_sum: str
+   :param molecule_id: Variable that uniquely identifies molecules.
+   :type molecule_id: str
+   :param image_id: Variable that uniquely identifies images.
+   :type image_id: str
+   :param hist: Whether to plot histograms.
+   :type hist: bool
+   :param stat: Statistic to plot on histogram 'count' (default), 'freq'.
+   :type stat: str
+   :param bins: Number of bins to plot.
+   :type bins: int
+   :param kde: Whether to include a Kernel Density Estimate.
+   :type kde: bool
+   :param cut: Cut point for KDE.
+   :type cut: float = 20,
+   :param figsize: Figure dimensions.
+   :type figsize: tuple
+   :param alpha: Opacity to use in plots.
+   :type alpha: float
+   :param palette: Seaborn colour plot to use.
+   :type palette: str = "deep"
+   :param savefig_format: File type to save plots as 'png' (default), 'pdf', 'svg'.
+   :type savefig_format: str
+   :param output_dir: Location to save plots to.
+   :type output_dir: str | Path
+   :param var_to_label: Variable to label dictionary for automatically adding titles to plots.
+   :type var_to_label: dict
+   :param hue: Dataframe column to group plots by.
+   :type hue: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: df
+      :value: None
+
+
+
+   .. py:attribute:: base_dir
+      :value: None
+
+
+
+   .. py:attribute:: stat_to_sum
+      :value: None
+
+
+
+   .. py:attribute:: molecule_id
+      :value: 'grain_number'
+
+
+
+   .. py:attribute:: image_id
+      :value: 'image'
+
+
+
+   .. py:attribute:: hist
+      :value: True
+
+
+
+   .. py:attribute:: bins
+      :value: 12
+
+
+
+   .. py:attribute:: stat
+      :value: 'count'
+
+
+
+   .. py:attribute:: kde
+      :value: True
+
+
+
+   .. py:attribute:: cut
+      :value: 20
+
+
+
+   .. py:attribute:: figsize
+      :value: (16, 9)
+
+
+
+   .. py:attribute:: alpha
+      :value: 0.5
+
+
+
+   .. py:attribute:: palette
+      :value: 'deep'
+
+
+
+   .. py:attribute:: savefig_format
+      :value: 'png'
+
+
+
+   .. py:attribute:: output_dir
+
+
+   .. py:attribute:: var_to_label
+      :value: None
+
+
+
+   .. py:attribute:: hue
+      :value: 'basename'
+
+
+
+   .. py:attribute:: melted_data
+      :value: None
+
+
+
+   .. py:attribute:: summary_data
+      :value: None
+
+
+
+   .. py:attribute:: label
+      :value: None
+
+
+
+   .. py:method:: _setup_figure()
+
+      
+      Setup Matplotlib figure and axes.
+
+      :returns: Matplotlib fig and ax objects.
+      :rtype: fig, ax
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _outfile(plot_suffix: str) -> str
+
+      
+      Generate the output file name with the appropriate suffix.
+
+      :param plot_suffix: The suffix to append to the output file.
+      :type plot_suffix: str
+
+      :returns: Concanenated string of the outfile and plot_suffix.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sns_plot() -> tuple[matplotlib.pyplot.Figure, matplotlib.pyplot.Axes] | None
+
+      
+      Plot the distribution of one or more statistics as either histogram, kernel density estimates or both.
+
+      Uses base Seaborn.
+
+      :returns: Tuple of Matplotlib figure and axes if plotting is successful, None otherwise.
+      :rtype: Optional[Union[Tuple[plt.Figure, plt.Axes], None]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sns_violinplot() -> None
+
+      
+      Violin plot of data.
+
+      :returns: Matplotlib fig and ax objects.
+      :rtype: fig, ax
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: melt_data(df: pandas.DataFrame, stat_to_summarize: str, var_to_label: dict) -> pandas.DataFrame
+      :staticmethod:
+
+
+      
+      Melt a dataframe into long format for plotting with Seaborn.
+
+      :param df: Statistics to melt.
+      :type df: pd.DataFrame
+      :param stat_to_summarize: Statistics to summarise.
+      :type stat_to_summarize: str
+      :param var_to_label: Mapping of variable names to descriptions.
+      :type var_to_label: dict
+
+      :returns: Data in long-format with descriptive variable names.
+      :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: set_xlim(percent: float = 0.1) -> None
+
+      
+      Set the range of the x-axis.
+
+      :param percent: Percentage of the observed range by which to extend the x-axis. Only used if supplied range is outside the
+                      observed values.
+      :type percent: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: set_palette()
+
+      
+      Set the color palette.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_plot(outfile: pathlib.Path) -> None
+
+      
+      Save the plot to the output_dir.
+
+      :param outfile: Output file name to save figure to.
+      :type outfile: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _set_label(var: str)
+
+      
+      Get the label based on the column name(s).
+
+      :param var: The variable for which a label is required.
+      :type var: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: toposum(config: dict) -> dict
+
+   
+   Process plotting and summarisation of data.
+
+   :param config: Dictionary of summarisation options.
+   :type config: dict
+
+   :returns:  Dictionary of nested dictionaries. Each variable has its own dictionary with keys 'dist' and 'violin' which
+              contain distribution like plots and violin plots respectively (if the later are required). Each 'dist' and
+             'violin' is itself a dictionary with two elements 'figures' and 'axes' which correspond to MatplotLib 'fig' and
+             'ax' for that plot.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_toposum(args=None) -> None
+
+   
+   Run Plotting.
+
+   :param args: Arguments to pass and update configuration.
+   :type args: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plot_crossing_linetrace_halfmax(branch_stats_dict: dict, mask_cmap: matplotlib.colors.Colormap, title: str) -> tuple
+
+   
+   Plot the height-map line traces of the branches found in the 'branch_stats' dictionary, and their meetings.
+
+   :param branch_stats_dict: Dictionary containing branch height, distance and fwhm info.
+   :type branch_stats_dict: dict
+   :param mask_cmap: Colormap for plotting.
+   :type mask_cmap: matplotlib.colors.Colormap
+   :param title: Title for the plot.
+   :type title: str
+
+   :returns: Matplotlib fig and ax objects.
+   :rtype: fig, ax
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: plot_height_profiles(height_profiles: list | numpy.typing.NDArray) -> tuple
+
+   
+   Plot height profiles.
+
+   :param height_profiles: Single height profile (1-D numpy array of heights) or array of height profiles. If the later the profiles plot
+                           will be overlaid.
+   :type height_profiles: npt.NDArray
+
+   :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: _pad_array(profile: numpy.typing.NDArray, max_array_length: int) -> numpy.typing.NDArray
+
+   
+   Pad array so that it matches the largest profile and plots are somewhat aligned.
+
+   Centering is done based on the mid-point of longest grain and heights of zero ('0.0') are used in padding.
+
+   :param profile: 1-D Height profile.
+   :type profile: npt.NDArray
+   :param max_array_length: The longest height profile across a range of detected grains.
+   :type max_array_length: int
+
+   :returns: Array padded to the same length as max_array_length.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

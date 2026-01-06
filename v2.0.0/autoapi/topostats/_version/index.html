@@ -1,0 +1,989 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats._version &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/_version/index';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="topostats.filters" href="../filters/index.html" />
+    <link rel="prev" title="topostats.__main__" href="../__main__/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.filters.html">
+    filters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.grains.html">
+    grains
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.grainstats.html">
+    grainstats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.io.html">
+    io
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.plottingfuncs.html">
+    plottingfuncs
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.run_topostats.html">
+    run_topostats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.tracing.html">
+    tracing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../topostats.utils.html">
+    utils
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats._version</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats._version">
+<span id="topostats-version"></span><h1>topostats._version<a class="headerlink" href="#module-topostats._version" title="Link to this heading">#</a></h1>
+<p>Git implementation of _version.py.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.LONG_VERSION_PY" title="topostats._version.LONG_VERSION_PY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LONG_VERSION_PY</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.HANDLERS" title="topostats._version.HANDLERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HANDLERS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.NotThisMethod" title="topostats._version.NotThisMethod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NotThisMethod</span></code></a></p></td>
+<td><p>Exception raised if a method is not valid for the current scenario.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.VersioneerConfig" title="topostats._version.VersioneerConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VersioneerConfig</span></code></a></p></td>
+<td><p>Container for Versioneer configuration parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.get_keywords" title="topostats._version.get_keywords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_keywords</span></code></a>()</p></td>
+<td><p>Get the keywords needed to look up the version information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.get_config" title="topostats._version.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
+<td><p>Create, populate and return the VersioneerConfig() object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.register_vcs_handler" title="topostats._version.register_vcs_handler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_vcs_handler</span></code></a>(vcs, method)</p></td>
+<td><p>Create decorator to mark a method as the handler of a VCS.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.run_command" title="topostats._version.run_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_command</span></code></a>(commands, args[, cwd, verbose, ...])</p></td>
+<td><p>Call the given command(s).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.versions_from_parentdir" title="topostats._version.versions_from_parentdir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">versions_from_parentdir</span></code></a>(parentdir_prefix, root, verbose)</p></td>
+<td><p>Try to determine the version from the parent directory name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.git_get_keywords" title="topostats._version.git_get_keywords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">git_get_keywords</span></code></a>(versionfile_abs)</p></td>
+<td><p>Extract version information from the given file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.git_versions_from_keywords" title="topostats._version.git_versions_from_keywords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">git_versions_from_keywords</span></code></a>(keywords, tag_prefix, verbose)</p></td>
+<td><p>Get version information from git keywords.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.git_pieces_from_vcs" title="topostats._version.git_pieces_from_vcs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">git_pieces_from_vcs</span></code></a>(tag_prefix, root, verbose[, runner])</p></td>
+<td><p>Get version from 'git describe' in the root of the source tree.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.plus_or_dot" title="topostats._version.plus_or_dot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plus_or_dot</span></code></a>(pieces)</p></td>
+<td><p>Return a + if we don't already have one, else return a .</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.render_pep440" title="topostats._version.render_pep440"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440</span></code></a>(pieces)</p></td>
+<td><p>Build up version string, with post-release &quot;local version identifier&quot;.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.render_pep440_branch" title="topostats._version.render_pep440_branch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440_branch</span></code></a>(pieces)</p></td>
+<td><p>TAG[[.dev0]+DISTANCE.gHEX[.dirty]] .</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.pep440_split_post" title="topostats._version.pep440_split_post"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pep440_split_post</span></code></a>(ver)</p></td>
+<td><p>Split pep440 version string at the post-release segment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.render_pep440_pre" title="topostats._version.render_pep440_pre"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440_pre</span></code></a>(pieces)</p></td>
+<td><p>TAG[.postN.devDISTANCE] -- No -dirty.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.render_pep440_post" title="topostats._version.render_pep440_post"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440_post</span></code></a>(pieces)</p></td>
+<td><p>TAG[.postDISTANCE[.dev0]+gHEX] .</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.render_pep440_post_branch" title="topostats._version.render_pep440_post_branch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440_post_branch</span></code></a>(pieces)</p></td>
+<td><p>TAG[.postDISTANCE[.dev0]+gHEX[.dirty]] .</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.render_pep440_old" title="topostats._version.render_pep440_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_pep440_old</span></code></a>(pieces)</p></td>
+<td><p>TAG[.postDISTANCE[.dev0]] .</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.render_git_describe" title="topostats._version.render_git_describe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_git_describe</span></code></a>(pieces)</p></td>
+<td><p>TAG[-DISTANCE-gHEX][-dirty].</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.render_git_describe_long" title="topostats._version.render_git_describe_long"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render_git_describe_long</span></code></a>(pieces)</p></td>
+<td><p>TAG-DISTANCE-gHEX[-dirty].</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats._version.render" title="topostats._version.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(pieces, style)</p></td>
+<td><p>Render the given version pieces into the requested style.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats._version.get_versions" title="topostats._version.get_versions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_versions</span></code></a>()</p></td>
+<td><p>Get version information or return default if unable to do so.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.get_keywords">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">get_keywords</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.get_keywords" title="Link to this definition">#</a></dt>
+<dd><p>Get the keywords needed to look up the version information.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats._version.VersioneerConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">VersioneerConfig</span></span><a class="headerlink" href="#topostats._version.VersioneerConfig" title="Link to this definition">#</a></dt>
+<dd><p>Container for Versioneer configuration parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.get_config">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.get_config" title="Link to this definition">#</a></dt>
+<dd><p>Create, populate and return the VersioneerConfig() object.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="topostats._version.NotThisMethod">
+<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">NotThisMethod</span></span><a class="headerlink" href="#topostats._version.NotThisMethod" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception raised if a method is not valid for the current scenario.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats._version.LONG_VERSION_PY">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">LONG_VERSION_PY</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats._version.LONG_VERSION_PY" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats._version.HANDLERS">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">HANDLERS</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats._version.HANDLERS" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.register_vcs_handler">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">register_vcs_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vcs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.register_vcs_handler" title="Link to this definition">#</a></dt>
+<dd><p>Create decorator to mark a method as the handler of a VCS.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.run_command">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">run_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">commands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cwd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hide_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.run_command" title="Link to this definition">#</a></dt>
+<dd><p>Call the given command(s).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.versions_from_parentdir">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">versions_from_parentdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parentdir_prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.versions_from_parentdir" title="Link to this definition">#</a></dt>
+<dd><p>Try to determine the version from the parent directory name.</p>
+<p>Source tarballs conventionally unpack into a directory that includes both
+the project name and a version string. We will also support searching up
+two directory levels for an appropriately named parent directory</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.git_get_keywords">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">git_get_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">versionfile_abs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.git_get_keywords" title="Link to this definition">#</a></dt>
+<dd><p>Extract version information from the given file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.git_versions_from_keywords">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">git_versions_from_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.git_versions_from_keywords" title="Link to this definition">#</a></dt>
+<dd><p>Get version information from git keywords.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.git_pieces_from_vcs">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">git_pieces_from_vcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag_prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">run_command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.git_pieces_from_vcs" title="Link to this definition">#</a></dt>
+<dd><p>Get version from ‘git describe’ in the root of the source tree.</p>
+<p>This only gets called if the git-archive ‘subst’ keywords were <em>not</em>
+expanded, and _version.py hasn’t already been rewritten with a short
+version string, meaning we’re inside a checked out source tree.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.plus_or_dot">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">plus_or_dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.plus_or_dot" title="Link to this definition">#</a></dt>
+<dd><p>Return a + if we don’t already have one, else return a .</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440" title="Link to this definition">#</a></dt>
+<dd><p>Build up version string, with post-release “local version identifier”.</p>
+<p>Our goal: TAG[+DISTANCE.gHEX[.dirty]] . Note that if you
+get a tagged build and then dirty it, you’ll get TAG+0.gHEX.dirty</p>
+<p>Exceptions:
+1: no tags. git_describe was just HEX. 0+untagged.DISTANCE.gHEX[.dirty]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440_branch">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440_branch" title="Link to this definition">#</a></dt>
+<dd><p>TAG[[.dev0]+DISTANCE.gHEX[.dirty]] .</p>
+<p>The “.dev0” means not master branch. Note that .dev0 sorts backwards
+(a feature branch will appear “older” than the master branch).</p>
+<p>Exceptions:
+1: no tags. 0[.dev0]+untagged.DISTANCE.gHEX[.dirty]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.pep440_split_post">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">pep440_split_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ver</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.pep440_split_post" title="Link to this definition">#</a></dt>
+<dd><p>Split pep440 version string at the post-release segment.</p>
+<p>Returns the release segments before the post-release and the
+post-release version number (or -1 if no post-release segment is present).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440_pre">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440_pre</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440_pre" title="Link to this definition">#</a></dt>
+<dd><p>TAG[.postN.devDISTANCE] – No -dirty.</p>
+<p>Exceptions:
+1: no tags. 0.post0.devDISTANCE</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440_post">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440_post" title="Link to this definition">#</a></dt>
+<dd><p>TAG[.postDISTANCE[.dev0]+gHEX] .</p>
+<p>The “.dev0” means dirty. Note that .dev0 sorts backwards
+(a dirty tree will appear “older” than the corresponding clean one),
+but you shouldn’t be releasing software with -dirty anyways.</p>
+<p>Exceptions:
+1: no tags. 0.postDISTANCE[.dev0]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440_post_branch">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440_post_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440_post_branch" title="Link to this definition">#</a></dt>
+<dd><p>TAG[.postDISTANCE[.dev0]+gHEX[.dirty]] .</p>
+<p>The “.dev0” means not master branch.</p>
+<p>Exceptions:
+1: no tags. 0.postDISTANCE[.dev0]+gHEX[.dirty]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_pep440_old">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_pep440_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_pep440_old" title="Link to this definition">#</a></dt>
+<dd><p>TAG[.postDISTANCE[.dev0]] .</p>
+<p>The “.dev0” means dirty.</p>
+<p>Exceptions:
+1: no tags. 0.postDISTANCE[.dev0]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_git_describe">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_git_describe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_git_describe" title="Link to this definition">#</a></dt>
+<dd><p>TAG[-DISTANCE-gHEX][-dirty].</p>
+<p>Like ‘git describe –tags –dirty –always’.</p>
+<p>Exceptions:
+1: no tags. HEX[-dirty]  (note: no ‘g’ prefix)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render_git_describe_long">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render_git_describe_long</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render_git_describe_long" title="Link to this definition">#</a></dt>
+<dd><p>TAG-DISTANCE-gHEX[-dirty].</p>
+<p>Like ‘git describe –tags –dirty –always -long’.
+The distance/hash is unconditional.</p>
+<p>Exceptions:
+1: no tags. HEX[-dirty]  (note: no ‘g’ prefix)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.render">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.render" title="Link to this definition">#</a></dt>
+<dd><p>Render the given version pieces into the requested style.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats._version.get_versions">
+<span class="sig-prename descclassname"><span class="pre">topostats._version.</span></span><span class="sig-name descname"><span class="pre">get_versions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topostats._version.get_versions" title="Link to this definition">#</a></dt>
+<dd><p>Get version information or return default if unable to do so.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../__main__/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.__main__</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../filters/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.filters</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exceptions">Exceptions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.get_keywords"><code class="docutils literal notranslate"><span class="pre">get_keywords()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.VersioneerConfig"><code class="docutils literal notranslate"><span class="pre">VersioneerConfig</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.get_config"><code class="docutils literal notranslate"><span class="pre">get_config()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.NotThisMethod"><code class="docutils literal notranslate"><span class="pre">NotThisMethod</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.LONG_VERSION_PY"><code class="docutils literal notranslate"><span class="pre">LONG_VERSION_PY</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.HANDLERS"><code class="docutils literal notranslate"><span class="pre">HANDLERS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.register_vcs_handler"><code class="docutils literal notranslate"><span class="pre">register_vcs_handler()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.run_command"><code class="docutils literal notranslate"><span class="pre">run_command()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.versions_from_parentdir"><code class="docutils literal notranslate"><span class="pre">versions_from_parentdir()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.git_get_keywords"><code class="docutils literal notranslate"><span class="pre">git_get_keywords()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.git_versions_from_keywords"><code class="docutils literal notranslate"><span class="pre">git_versions_from_keywords()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.git_pieces_from_vcs"><code class="docutils literal notranslate"><span class="pre">git_pieces_from_vcs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.plus_or_dot"><code class="docutils literal notranslate"><span class="pre">plus_or_dot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440"><code class="docutils literal notranslate"><span class="pre">render_pep440()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440_branch"><code class="docutils literal notranslate"><span class="pre">render_pep440_branch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.pep440_split_post"><code class="docutils literal notranslate"><span class="pre">pep440_split_post()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440_pre"><code class="docutils literal notranslate"><span class="pre">render_pep440_pre()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440_post"><code class="docutils literal notranslate"><span class="pre">render_pep440_post()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440_post_branch"><code class="docutils literal notranslate"><span class="pre">render_pep440_post_branch()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_pep440_old"><code class="docutils literal notranslate"><span class="pre">render_pep440_old()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_git_describe"><code class="docutils literal notranslate"><span class="pre">render_git_describe()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render_git_describe_long"><code class="docutils literal notranslate"><span class="pre">render_git_describe_long()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.render"><code class="docutils literal notranslate"><span class="pre">render()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats._version.get_versions"><code class="docutils literal notranslate"><span class="pre">get_versions()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../_sources/autoapi/topostats/_version/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

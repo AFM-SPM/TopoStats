@@ -1,0 +1,743 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Grain finding &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'advanced/grain_finding';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../v2.3.0/advanced/grain_finding.html">v2.3.0</a></li>
+  <li><a href="../../v2.3.1/advanced/grain_finding.html">v2.3.1</a></li>
+  <li><a href="../../v2.3.2/advanced/grain_finding.html">v2.3.2</a></li>
+  <li><a href="grain_finding.html">v2.3.2rc1</a></li>
+  <li><a href="../../v2.3.2rc2/advanced/grain_finding.html">v2.3.2rc2</a></li>
+  <li><a href="../../main/advanced/grain_finding.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Grain finding</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="grain-finding">
+<h1>Grain finding<a class="headerlink" href="#grain-finding" title="Link to this heading">#</a></h1>
+<section id="at-a-glance-identifying-objects-of-interest">
+<h2>At a Glance - Identifying Objects of Interest<a class="headerlink" href="#at-a-glance-identifying-objects-of-interest" title="Link to this heading">#</a></h2>
+<p>TopoStats automatically tries to find grains (objects of interest) in your AFM images. There are several steps to this.</p>
+<ul class="simple">
+<li><p><strong>Height thresholding</strong>: We find grains based on their height in the image.</p></li>
+<li><p><strong>Remove edge grains</strong>: We remove grains that intersect the image border.</p></li>
+<li><p><strong>Size thresholding</strong>: We remove grains that are too small or too large.</p></li>
+<li><p><strong>Optional: U-Net mask improvement</strong>: We can use a U-Net to improve the mask of each grain.</p></li>
+</ul>
+<section id="basic-height-thresholding">
+<h3>Basic Height Thresholding<a class="headerlink" href="#basic-height-thresholding" title="Link to this heading">#</a></h3>
+<p>Grain finding is the process of detecting useful objects in your AFM images. This might be DNA, proteins, holes in a
+surface or ridges on a surface.
+In the standard operation of TopoStats, the way we find objects is based on a height threshold. This means that we
+detect where things are based on how high up they are.</p>
+<p>For example, with our example minicircles.spm image, we have DNA that is poking up from the sample surface, represented
+by
+bright regions in the image, alongside impurities and proteins, also above the surface:</p>
+<p><img alt="minicircles image" src="../_images/grain_finding_minicircles.png" /></p>
+<p>If we want to select the DNA, then we can take only the regions of the image that are above a certain height
+threshold (standard deviation - <code class="docutils literal notranslate"><span class="pre">std_dev</span></code>, absolute - <code class="docutils literal notranslate"><span class="pre">absolute</span></code>, otsu - <code class="docutils literal notranslate"><span class="pre">otsu</span></code>).</p>
+<p>Here are several thresholds to show you what happens as we increase the absolute height threshold:</p>
+<p><img alt="height thresholds" src="../_images/grain_finding_grain_thresholds.png" /></p>
+<p>Notice that the amount of data decreases, until we are only left with the very highest points.</p>
+<p>The aim is to choose a threshold that keeps the data you want, while removing the background and other low objects
+that you don’t want including.
+So in this example, a threshold of 0.5 would be best, since it keeps the DNA while removing the background.</p>
+<p>There are lots of objects in this mask that we don’t want to analyse, but we can remove those using area thresholds in
+the next steps. These objects have been detectd because while they are small, they are still high up and above the
+background.</p>
+<p>For more information on the types of thresholding, and how to set them, see the <a class="reference internal" href="thresholding.html"><span class="std std-doc">thresholding</span></a> page.</p>
+</section>
+<section id="multiple-thresholds">
+<h3>Multiple thresholds<a class="headerlink" href="#multiple-thresholds" title="Link to this heading">#</a></h3>
+<p>TopoStats also allows use of multiple thresholds. This means that the thresholding can be done in multiple steps, using
+different thresholds for each step, producing several masks. This is useful for example if you want to separately
+segment DNA and proteins. To use multiple thresholds, simply provide a list of thresholds in the config file for the
+threshold method that you want to use. For example if you want to use absolute height thresholding with two
+thresholds of 1.2 for DNA and 2.5 for protein, then you would set this in the <code class="docutils literal notranslate"><span class="pre">grains</span></code> section of the config file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">threshold_absolute</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">below</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-1.0</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># Thresholds for grains below the image background. List[float].</span>
+<span class="w">  </span><span class="nt">above</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1.2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.5</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># Thresholds for grains above the image background. List[float].</span>
+</pre></div>
+</div>
+<p>TopoStats will then treat the resulting multiple masks (tensor) as separate classes, as if it were produced by a
+multi-class U-Net model. Read the U-Net section for more information on multi-class processing.</p>
+</section>
+</section>
+<section id="remove-edge-grains">
+<h2>Remove edge grains<a class="headerlink" href="#remove-edge-grains" title="Link to this heading">#</a></h2>
+<p>Some grains may intersect the image border. In these cases, the grain will not be able to have accuracte statistics
+calculated for it, since it is not fully in the image. Because of this, we have the option of removing grains that
+intersect the image border with the <code class="docutils literal notranslate"><span class="pre">remove_edge_intersecting_grains</span></code> flag in the config file. This simply removes
+any grains that intersect the image border.</p>
+<p>Here is a before and after example of removing edge grains:</p>
+<p><img alt="size_thresholding" src="../_images/grain_finding_tidy_borders.png" /></p>
+</section>
+<section id="size-thresholding">
+<h2>Size thresholding<a class="headerlink" href="#size-thresholding" title="Link to this heading">#</a></h2>
+<p>In our thresholded image, you will notice that we have a lot of small grains that we do not want to analyse in our
+image. We can get rid of those with size thresholding. This is where TopoStats will remove grains based on their area,
+leaving only the right size of molecules. You will need to play around with the thresholds to get the right results.</p>
+<p>You can set the size threshold using the <code class="docutils literal notranslate"><span class="pre">area_thresholds</span></code> in the config file. This sets the minimum and
+maximum area of the grains that you want to keep, in nanometers squared. Eg if you want to keep grains that are between
+10nm^2 and 100nm^2, you would set <code class="docutils literal notranslate"><span class="pre">area_thresholds</span></code> to <code class="docutils literal notranslate"><span class="pre">[10,</span> <span class="pre">100]</span></code>.</p>
+<p><img alt="size_thresholding" src="../_images/grain_finding_size_thresholding.png" /></p>
+</section>
+<section id="tensors">
+<h2>Tensors<a class="headerlink" href="#tensors" title="Link to this heading">#</a></h2>
+<p>After basic grain finding is performed in order to identify objects of interest, the grain mask is turned into a tensor.
+A tensor is simply a 3D array. In this case, the tensor is the same shape as the AFM image, Width x Height, but with an
+added dimension, Class, making the tensor a W x H x C shaped 3D object. Imagine lots of printed out paper sheets stacked
+on top of each other to form a block of paper.</p>
+<p>This data structure allows us to have multiple masks per image, and so allows for masking of different types of
+features, for example DNA and proteins. This is called “multi-class-masking”.</p>
+<p>Initially, this tensor is just given two binary classes, <code class="docutils literal notranslate"><span class="pre">0</span></code>, and <code class="docutils literal notranslate"><span class="pre">1</span></code>. Class <code class="docutils literal notranslate"><span class="pre">0</span></code> is the background class and is 1 where
+there are no grains in the other classes and 0 where there are grains in any of the other classes. Class <code class="docutils literal notranslate"><span class="pre">1</span></code> is simply
+the mask produced by the basic grain detection, which usually is designed to be segmenting <code class="docutils literal notranslate"><span class="pre">DNA</span></code> but could really be
+anything.</p>
+<p>Multi class masking is able to be performed on the existing grains by using a
+<a class="reference external" href="https://en.wikipedia.org/wiki/U-Net">U-Net</a> (a deep-learning feature detection program) which can optionally be ran
+after simple grain finding, though needs training.</p>
+<p>It is planned to be able to run multiple rounds of traditional thresholding instead of running a U-Net for easier but
+less powerful multi-class segmentation implementations.</p>
+</section>
+<section id="grain-crops">
+<h2>Grain Crops<a class="headerlink" href="#grain-crops" title="Link to this heading">#</a></h2>
+<p>Once the mask has been turned into a tensor, the grains are then cropped from the tensor to produce a mini tensor for
+each grain, allowing for easier processing of individual grains. They are stored in <code class="docutils literal notranslate"><span class="pre">GrainCrop</span></code> dataclasses and are held
+in a dictionary within a <code class="docutils literal notranslate"><span class="pre">GrainCropDirection</span></code> dataclass instance, which in turn is held in the <code class="docutils literal notranslate"><span class="pre">ImageGrainCrops</span></code>
+dataclass instance for the whole image.</p>
+<p>For more information on the <code class="docutils literal notranslate"><span class="pre">ImageGrainCrop</span></code>, <code class="docutils literal notranslate"><span class="pre">GrainCropDirection</span></code>, and <code class="docutils literal notranslate"><span class="pre">GrainCrop</span></code> dataclasses, see the <a class="reference external" href="https://afm-spm.github.io/TopoStats/main/autoapi/index.html">TopoStats API documentation.</a></p>
+</section>
+<section id="optional-u-net-mask-improvement">
+<h2>Optional: U-Net mask improvement<a class="headerlink" href="#optional-u-net-mask-improvement" title="Link to this heading">#</a></h2>
+<p>As an additional optional step, each grain that reaches this stage can be improved by using a U-Net to mask the grain
+again. This requires a U-Net model path to be supplied in the config file. To supply a U-Net model, you will need to
+train a model on your own data, or use a pre-trained model. The Pyne Lab increasingly uses U-Nets for segmentation
+and feature detection in AFM images, our models can be found in the datasets for our papers where U-Nets are used.</p>
+<p>Once a model is obtained, add it as the <code class="docutils literal notranslate"><span class="pre">unet_model_path</span></code> in the config file. The U-Net model should be a tensorflow
+model saved in the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> or <code class="docutils literal notranslate"><span class="pre">.keras</span></code> format.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">GrainCrop</span></code>’s image crop is passed to a trained U-Net model which makes a prediction for a better mask, which then
+replaces the original mask tensor.</p>
+<p>Here is an example comparing absolute height thresholding to U-Net masking for one of our projects. The white boxes
+indicate regions where the height threhsold performs poorly and is improved by the U-Net mask.</p>
+<p><img alt="unet_example" src="../_images/grain_finding_unet_example.png" /></p>
+<section id="multi-class-masking">
+<h3>Multi-class masking<a class="headerlink" href="#multi-class-masking" title="Link to this heading">#</a></h3>
+<p>TopoStats supports masking with multiple classes. This means that you could use a U-Net to mask DNA and proteins
+separately.</p>
+<p>This requires a U-Net that has been trained on multiple classes.</p>
+<p>Here is an example of multi-class masking using a U-Net which was used for one of our projects.</p>
+<p><img alt="multi_class_unet_example" src="../_images/grain_finding_unet_multi_class_example.png" /></p>
+</section>
+<section id="vetting-steps">
+<h3>Vetting steps<a class="headerlink" href="#vetting-steps" title="Link to this heading">#</a></h3>
+<p>TopoStats offers a number of vetting steps that can be used to optimise multi-class masking. These can be found
+under the <code class="docutils literal notranslate"><span class="pre">vetting</span></code> heading within the <code class="docutils literal notranslate"><span class="pre">grains</span></code> config. Each of the vetting steps is described below, these can
+either be used in isolation or in combination, but will be performed in the order in which they are listed within
+the config file.
+<img alt="vetting" src="../_images/vetting.png" /></p>
+</section>
+</section>
+<section id="technical-details">
+<h2>Technical details<a class="headerlink" href="#technical-details" title="Link to this heading">#</a></h2>
+<section id="details-multi-class-masking">
+<h3>Details: Multi-class masking<a class="headerlink" href="#details-multi-class-masking" title="Link to this heading">#</a></h3>
+<p>Multi class masking is implemented by having each image be a tensor of shape N x N x C, where N is the image size,
+and C is the number of classes. Each class is a binary mask, where 1 is the class, and 0 is not the class.
+The first channel is background, where 1 is background, and 0 is not background. The rest of the channels
+are arbitrary, and defined by how the U-Net was trained, however we conventially recommend that the first class
+be for DNA (if applicable) and the next classes for other objects.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-a-glance-identifying-objects-of-interest">At a Glance - Identifying Objects of Interest</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-height-thresholding">Basic Height Thresholding</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiple-thresholds">Multiple thresholds</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#remove-edge-grains">Remove edge grains</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#size-thresholding">Size thresholding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tensors">Tensors</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grain-crops">Grain Crops</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-u-net-mask-improvement">Optional: U-Net mask improvement</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-class-masking">Multi-class masking</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vetting-steps">Vetting steps</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#technical-details">Technical details</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#details-multi-class-masking">Details: Multi-class masking</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/advanced/grain_finding.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

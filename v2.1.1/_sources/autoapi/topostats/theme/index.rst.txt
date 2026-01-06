@@ -1,0 +1,199 @@
+topostats.theme
+===============
+
+.. py:module:: topostats.theme
+
+.. autoapi-nested-parse::
+
+   Custom Bruker Nanoscope colorscale.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.theme.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.theme.Colormap
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Colormap(name: str = 'nanoscope')
+
+   
+   Class for setting the COlormap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: name
+      :value: 'nanoscope'
+
+
+
+   .. py:attribute:: cmap
+      :value: None
+
+
+
+   .. py:method:: __str__()
+
+
+   .. py:method:: set(name: str)
+
+      
+      Set the ColorMap.
+
+      :param name: Name of colormap
+      :type name: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cmap()
+
+      
+      Return the matplotlib.cm colormap object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: nanoscope()
+      :staticmethod:
+
+
+      
+      Returns a matplotlib compatible colormap that replicates the Bruker Nanoscope colorscale
+      The colormap is implemented in Gwyddion's GwyGradient via 'Nanoscope.txt'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gwyddion()
+      :staticmethod:
+
+
+      
+      The RGBA colour map for the Gwyddion.net colour gradient.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: blu()
+      :staticmethod:
+
+
+      
+      RGBA colour map of just the colour blue.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

@@ -1,0 +1,1821 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.nodestats &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/nodestats/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.tracing.ordered_tracing" href="../ordered_tracing/index.html" />
+    <link rel="prev" title="topostats.tracing.dnacurvature" href="../dnacurvature/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="index.html">v2.3.0</a></li>
+  <li><a href="../../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">topostats</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.nodestats</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.nodestats">
+<span id="topostats-tracing-nodestats"></span><h1>topostats.tracing.nodestats<a class="headerlink" href="#module-topostats.tracing.nodestats" title="Link to this heading">#</a></h1>
+<p>Perform Crossing Region Processing and Analysis.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.LOGGER" title="topostats.tracing.nodestats.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.NodeDict" title="topostats.tracing.nodestats.NodeDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeDict</span></code></a></p></td>
+<td><p>Dictionary containing the node information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatchedBranch</span></code></a></p></td>
+<td><p>Dictionary containing the matched branches.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.ImageDict" title="topostats.tracing.nodestats.ImageDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImageDict</span></code></a></p></td>
+<td><p>Dictionary containing the image information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.nodeStats" title="topostats.tracing.nodestats.nodeStats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nodeStats</span></code></a></p></td>
+<td><p>Class containing methods to find and analyse the nodes/crossings within a grain.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.nodestats.nodestats_image" title="topostats.tracing.nodestats.nodestats_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nodestats_image</span></code></a>(→ tuple)</p></td>
+<td><p>Initialise the nodeStats class.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.tracing.nodestats.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">NodeDict</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#NodeDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Dictionary containing the node information.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict.error">
+<span class="sig-name descname"><span class="pre">error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict.error" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict.pixel_to_nm_scaling">
+<span class="sig-name descname"><span class="pre">pixel_to_nm_scaling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.float64</span></em><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict.pixel_to_nm_scaling" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict.branch_stats">
+<span class="sig-name descname"><span class="pre">branch_stats</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><span class="pre">MatchedBranch</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict.branch_stats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict.node_coords">
+<span class="sig-name descname"><span class="pre">node_coords</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict.node_coords" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.NodeDict.confidence">
+<span class="sig-name descname"><span class="pre">confidence</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.NodeDict.confidence" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">MatchedBranch</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#MatchedBranch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Dictionary containing the matched branches.</p>
+<dl class="simple">
+<dt>matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]</dt><dd><p>Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “ordered_coords” : npt.NDArray[np.int32]. The ordered coordinates of the branch.
+- “heights” : npt.NDArray[np.number]. Heights of the branch coordinates.
+- “distances” : npt.NDArray[np.number]. Distances of the branch coordinates.
+- “fwhm” : npt.NDArray[np.number]. Full width half maximum of the branch.
+- “angles” : np.float64. The initial direction angle of the branch, added in later steps.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch.ordered_coords">
+<span class="sig-name descname"><span class="pre">ordered_coords</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch.ordered_coords" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.number</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch.heights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch.distances">
+<span class="sig-name descname"><span class="pre">distances</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.number</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch.distances" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch.fwhm">
+<span class="sig-name descname"><span class="pre">fwhm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch.fwhm" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.MatchedBranch.angles">
+<span class="sig-name descname"><span class="pre">angles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.MatchedBranch.angles" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.ImageDict">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">ImageDict</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#ImageDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.ImageDict" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Dictionary containing the image information.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.ImageDict.nodes">
+<span class="sig-name descname"><span class="pre">nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.ImageDict.nodes" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.ImageDict.grain">
+<span class="sig-name descname"><span class="pre">grain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.ImageDict.grain" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">nodeStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothed_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.float64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_joining_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_extend_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_pairing_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_odd_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats" title="Link to this definition">#</a></dt>
+<dd><p>Class containing methods to find and analyse the nodes/crossings within a grain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – The name of the file being processed. For logging purposes.</p></li>
+<li><p><strong>image</strong> (<em>npt.npt.NDArray</em>) – The array of pixels.</p></li>
+<li><p><strong>mask</strong> (<em>npt.npt.NDArray</em>) – The binary segmentation mask.</p></li>
+<li><p><strong>smoothed_mask</strong> (<em>npt.NDArray</em>) – A smoothed version of the bianary segmentation mask.</p></li>
+<li><p><strong>skeleton</strong> (<em>npt.NDArray</em>) – A binary single-pixel wide mask of objects in the ‘image’.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>np.float32</em>) – The pixel to nm scaling factor.</p></li>
+<li><p><strong>n_grain</strong> (<em>int</em>) – The grain number.</p></li>
+<li><p><strong>node_joining_length</strong> (<em>float</em>) – The length over which to join skeletal intersections to be counted as one crossing.</p></li>
+<li><p><strong>node_joining_length</strong> – The distance over which to join nearby odd-branched nodes.</p></li>
+<li><p><strong>node_extend_dist</strong> (<em>float</em>) – The distance under which to join odd-branched node regions.</p></li>
+<li><p><strong>branch_pairing_length</strong> (<em>float</em>) – The length from the crossing point to pair and trace, obtaining FWHM’s.</p></li>
+<li><p><strong>pair_odd_branches</strong> (<em>bool</em>) – Whether to try and pair odd-branched nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.filename" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.smoothed_mask">
+<span class="sig-name descname"><span class="pre">smoothed_mask</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.smoothed_mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.skeleton">
+<span class="sig-name descname"><span class="pre">skeleton</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.pixel_to_nm_scaling">
+<span class="sig-name descname"><span class="pre">pixel_to_nm_scaling</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.pixel_to_nm_scaling" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.n_grain">
+<span class="sig-name descname"><span class="pre">n_grain</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.n_grain" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.node_joining_length">
+<span class="sig-name descname"><span class="pre">node_joining_length</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.node_joining_length" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.node_extend_dist">
+<span class="sig-name descname"><span class="pre">node_extend_dist</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.node_extend_dist" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.branch_pairing_length">
+<span class="sig-name descname"><span class="pre">branch_pairing_length</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.branch_pairing_length" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.pair_odd_branches">
+<span class="sig-name descname"><span class="pre">pair_odd_branches</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.pair_odd_branches" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.conv_skelly">
+<span class="sig-name descname"><span class="pre">conv_skelly</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.conv_skelly" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.connected_nodes">
+<span class="sig-name descname"><span class="pre">connected_nodes</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.connected_nodes" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.all_connected_nodes">
+<span class="sig-name descname"><span class="pre">all_connected_nodes</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.all_connected_nodes" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.whole_skel_graph">
+<span class="sig-name descname"><span class="pre">whole_skel_graph</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">networkx.classes.graph.Graph</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.whole_skel_graph" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.node_centre_mask">
+<span class="sig-name descname"><span class="pre">node_centre_mask</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.node_centre_mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.metrics">
+<span class="sig-name descname"><span class="pre">metrics</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.metrics" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.node_dicts">
+<span class="sig-name descname"><span class="pre">node_dicts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.NodeDict" title="topostats.tracing.nodestats.NodeDict"><span class="pre">NodeDict</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.node_dicts" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.image_dict">
+<span class="sig-name descname"><span class="pre">image_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.ImageDict" title="topostats.tracing.nodestats.ImageDict"><span class="pre">ImageDict</span></a></em><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.image_dict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.full_dict">
+<span class="sig-name descname"><span class="pre">full_dict</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.full_dict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.mol_coords">
+<span class="sig-name descname"><span class="pre">mol_coords</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.mol_coords" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.visuals">
+<span class="sig-name descname"><span class="pre">visuals</span></span><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.visuals" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.all_visuals_img">
+<span class="sig-name descname"><span class="pre">all_visuals_img</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.all_visuals_img" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.get_node_stats">
+<span class="sig-name descname"><span class="pre">get_node_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.get_node_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.get_node_stats" title="Link to this definition">#</a></dt>
+<dd><p>Run the workflow to obtain the node statistics.</p>
+<div class="highlight-RST notranslate"><div class="highlight"><pre><span></span>node_dict key structure:  &lt;grain_number&gt;
+                            └-&gt; &lt;node_number&gt;
+                                |-&gt; &#39;error&#39;
+                                └-&gt; &#39;node_coords&#39;
+                                └-&gt; &#39;branch_stats&#39;
+                                    └-&gt; &lt;branch_number&gt;
+                                        |-&gt; &#39;ordered_coords&#39;
+                                        |-&gt; &#39;heights&#39;
+                                        |-&gt; &#39;gaussian_fit&#39;
+                                        |-&gt; &#39;fwhm&#39;
+                                        └-&gt; &#39;angles&#39;
+
+image_dict key structure:  &#39;nodes&#39;
+                                &lt;node_number&gt;
+                                    |-&gt; &#39;node_area_skeleton&#39;
+                                    |-&gt; &#39;node_branch_mask&#39;
+                                    └-&gt; &#39;node_avg_mask
+                            &#39;grain&#39;
+                                |-&gt; &#39;grain_image&#39;
+                                |-&gt; &#39;grain_mask&#39;
+                                └-&gt; &#39;grain_skeleton&#39;
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionaries of the node_information and images.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[dict, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.skeleton_image_to_graph">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">skeleton_image_to_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">networkx.classes.graph.Graph</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.skeleton_image_to_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.skeleton_image_to_graph" title="Link to this definition">#</a></dt>
+<dd><p>Convert a skeletonised mask into a Graph representation.</p>
+<p>Graphs conserve the coordinates via the node label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>skeleton</strong> (<em>npt.NDArray</em>) – A binary single-pixel wide mask, or result from conv_skelly().</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A networkX graph connecting the pixels in the skeleton to their neighbours.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>nx.classes.graph.Graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.graph_to_skeleton_image">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">graph_to_skeleton_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">networkx.Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.graph_to_skeleton_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.graph_to_skeleton_image" title="Link to this definition">#</a></dt>
+<dd><p>Convert the skeleton graph back to a binary image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g</strong> (<em>nx.Graph</em>) – Graph with coordinates as node labels.</p></li>
+<li><p><strong>im_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>]</em>) – The shape of the image to dump.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Skeleton binary image from the graph representation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.tidy_branches">
+<span class="sig-name descname"><span class="pre">tidy_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connect_node_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.tidy_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.tidy_branches" title="Link to this definition">#</a></dt>
+<dd><p>Wrangle distant connected nodes back towards the main cluster.</p>
+<p>Works by filling and reskeletonising soely the node areas.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connect_node_mask</strong> (<em>npt.NDArray</em>) – The connected node mask - a skeleton where node regions = 3, endpoints = 2, and skeleton = 1.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – The intensity image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The wrangled connected_node_mask.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.keep_biggest_object">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">keep_biggest_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.keep_biggest_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.keep_biggest_object" title="Link to this definition">#</a></dt>
+<dd><p>Retain the largest object in a binary mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary mask.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A binary mask with only one object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.connect_close_nodes">
+<span class="sig-name descname"><span class="pre">connect_close_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conv_skelly</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.85</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.connect_close_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.connect_close_nodes" title="Link to this definition">#</a></dt>
+<dd><p>Connect nodes within the ‘node_width’ boundary distance.</p>
+<p>This labels them as part of the same node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conv_skelly</strong> (<em>npt.NDArray</em>) – A labeled skeleton image with skeleton = 1, endpoints = 2, crossing points =3.</p></li>
+<li><p><strong>node_width</strong> (<em>float</em>) – The width of the dna in the grain, used to connect close nodes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The skeleton (label=1) with close nodes connected (label=3).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.highlight_node_centres">
+<span class="sig-name descname"><span class="pre">highlight_node_centres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.highlight_node_centres"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.highlight_node_centres" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the node centres based on height and re-plot on the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – 2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D array with the highest node coordinate for each node labeled as 3.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.connect_extended_nodes_nearest">
+<span class="sig-name descname"><span class="pre">connect_extended_nodes_nearest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_extend_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.connect_extended_nodes_nearest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.connect_extended_nodes_nearest" title="Link to this definition">#</a></dt>
+<dd><p>Extend the odd branched nodes to other odd branched nodes within the ‘extend_dist’ threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connected_nodes</strong> (<em>npt.NDArray</em>) – A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
+node_centres = 3.</p></li>
+<li><p><strong>node_extend_dist</strong> (<em>int</em><em> | </em><em>float</em><em>, </em><em>optional</em>) – The distance over which to connect odd-branched nodes, by default -1 for no-limit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Connected nodes array with odd-branched nodes connected.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.find_branch_starts">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">find_branch_starts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduced_node_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.find_branch_starts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.find_branch_starts" title="Link to this definition">#</a></dt>
+<dd><p>Find the coordinates where the branches connect to the node region through binary dilation of the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reduced_node_image</strong> (<em>npt.NDArray</em>) – A 2D numpy array containing a single node region (=3) and its connected branches (=1).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Coordinate array of pixels next to crossing points (=3 in input).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.analyse_nodes">
+<span class="sig-name descname"><span class="pre">analyse_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_branch_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.analyse_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.analyse_nodes" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the main analyses for the nodes of a single molecule along the ‘max_branch_length’(nm) from the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_branch_length</strong> (<em>float</em>) – The side length of the box around the node to analyse (in nm).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.add_branches_to_labelled_image">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add_branches_to_labelled_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch_under_over_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matched_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><span class="pre">MatchedBranch</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masked_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.bool_</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_start_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_trace_advised</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.add_branches_to_labelled_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.add_branches_to_labelled_image" title="Link to this definition">#</a></dt>
+<dd><p>Add branches to a labelled image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>branch_under_over_order</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – The order of the branches.</p></li>
+<li><p><strong>matched_branches</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><em>MatchedBranch</em></a><em>]</em><em>]</em>) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “ordered_coords” : npt.NDArray[np.int32].
+- “heights” : npt.NDArray[np.number]. Heights of the branches.
+- “distances” :
+- “fwhm” : npt.NDArray[np.number]. Full width half maximum of the branches.</p></li>
+<li><p><strong>masked_image</strong> (dict[int, dict[str, npt.NDArray[<a href="#id1"><span class="problematic" id="id2">np.bool_</span></a>]]]) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “avg_mask” : npt.NDArray[<a href="#id3"><span class="problematic" id="id4">np.bool_</span></a>]. Average mask of the branches.</p></li>
+<li><p><strong>branch_start_coords</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – An Nx2 numpy array of the coordinates of the branches connected to the node.</p></li>
+<li><p><strong>ordered_branches</strong> (<em>list</em><em>[</em><em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em><em>]</em>) – List of numpy arrays of ordered branch coordinates.</p></li>
+<li><p><strong>pairs</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Nx2 numpy array of pairs of branches that are matched through a node.</p></li>
+<li><p><strong>average_trace_advised</strong> (<em>bool</em>) – Flag to determine whether to use the average trace.</p></li>
+<li><p><strong>image_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>]</em>) – The shape of the image, to create a mask from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The branch image and the average image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.analyse_node_branches">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">analyse_node_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_to_nm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.float64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_node_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_start_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length_px</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.float64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_skeleton_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">networkx.classes.graph.Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.number</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_trace_advised</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_coord</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_odd_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><span class="pre">MatchedBranch</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.bool_</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.analyse_node_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.analyse_node_branches" title="Link to this definition">#</a></dt>
+<dd><p>Analyse the branches of a single node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_to_nm</strong> (<em>np.float64</em>) – The pixel to nm scaling factor.</p></li>
+<li><p><strong>reduced_node_area</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – An NxM numpy array of the node in question and the branches connected to it.
+Node is marked by 3, and branches by 1.</p></li>
+<li><p><strong>branch_start_coords</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – An Nx2 numpy array of the coordinates of the branches connected to the node.</p></li>
+<li><p><strong>max_length_px</strong> (<em>np.int32</em>) – The maximum length in pixels to traverse along while ordering.</p></li>
+<li><p><strong>reduced_skeleton_graph</strong> (<em>nx.classes.graph.Graph</em>) – The graph representation of the reduced node area.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em><em>[</em><em>np.number</em><em>]</em>) – The full image of the grain.</p></li>
+<li><p><strong>average_trace_advised</strong> (<em>bool</em>) – Flag to determine whether to use the average trace.</p></li>
+<li><p><strong>node_coord</strong> (<em>tuple</em><em>[</em><em>np.int32</em><em>, </em><em>np.int32</em><em>]</em>) – The node coordinates.</p></li>
+<li><p><strong>pair_odd_branches</strong> (<em>bool</em>) – Whether to try and pair odd-branched nodes.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The filename of the image.</p></li>
+<li><p><strong>resolution_threshold</strong> (<em>np.float64</em>) – The resolution threshold below which to warn the user that the node is difficult to analyse.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>pairs</strong> (<em>npt.NDArray[np.int32]</em>) – Nx2 numpy array of pairs of branches that are matched through a node.</p></li>
+<li><p><strong>matched_branches</strong> (<em>dict[int, MatchedBranch]]</em>) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “ordered_coords” : npt.NDArray[np.int32].
+- “heights” : npt.NDArray[np.number]. Heights of the branches.
+- “distances” : npt.NDArray[np.number]. The accumulating distance along the branch.
+- “fwhm” : npt.NDArray[np.number]. Full width half maximum of the branches.
+- “angles” : np.float64. The angle of the branch, added in later steps.</p></li>
+<li><p><strong>ordered_branches</strong> (<em>list[npt.NDArray[np.int32]]</em>) – List of numpy arrays of ordered branch coordinates.</p></li>
+<li><p><strong>masked_image</strong> (<em>dict[int, dict[str, npt.NDArray[np.bool_]]]</em>) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “avg_mask” : npt.NDArray[<a href="#id5"><span class="problematic" id="id6">np.bool_</span></a>]. Average mask of the branches.</p></li>
+<li><p><strong>branch_under_over_order</strong> (<em>npt.NDArray[np.int32]</em>) – The order of the branches based on the FWHM.</p></li>
+<li><p><strong>confidence</strong> (<em>np.float64 | None</em>) – The confidence of the crossing. Optional.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.join_matching_branches_through_node">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">join_matching_branches_through_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced_skeleton_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">networkx.classes.graph.Graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.number</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_trace_advised</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#topostats.tracing.nodestats.MatchedBranch" title="topostats.tracing.nodestats.MatchedBranch"><span class="pre">MatchedBranch</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.bool_</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.join_matching_branches_through_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.join_matching_branches_through_node" title="Link to this definition">#</a></dt>
+<dd><p>Join branches that are matched through a node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pairs</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Nx2 numpy array of pairs of branches that are matched through a node.</p></li>
+<li><p><strong>ordered_branches</strong> (<em>list</em><em>[</em><em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em><em>]</em>) – List of numpy arrays of ordered branch coordinates.</p></li>
+<li><p><strong>reduced_skeleton_graph</strong> (<em>nx.classes.graph.Graph</em>) – Graph representation of the skeleton.</p></li>
+<li><p><strong>image</strong> (<em>npt.NDArray</em><em>[</em><em>np.number</em><em>]</em>) – The full image of the grain.</p></li>
+<li><p><strong>average_trace_advised</strong> (<em>bool</em>) – Flag to determine whether to use the average trace.</p></li>
+<li><p><strong>node_coords</strong> (<em>tuple</em><em>[</em><em>np.int32</em><em>, </em><em>np.int32</em><em>]</em>) – The node coordinates.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The filename of the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>matched_branches</strong> (<em>dict[int, dict[str, npt.NDArray[np.number]]]</em>) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “ordered_coords” : npt.NDArray[np.int32].
+- “heights” : npt.NDArray[np.number]. Heights of the branches.
+- “distances” :
+- “fwhm” : npt.NDArray[np.number]. Full width half maximum of the branches.</p></li>
+<li><p><strong>masked_image</strong> (<em>dict[int, dict[str, npt.NDArray[np.bool_]]]</em>) – Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+keys:
+- “avg_mask” : npt.NDArray[<a href="#id7"><span class="problematic" id="id8">np.bool_</span></a>]. Average mask of the branches.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.get_ordered_branches_and_vectors">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ordered_branches_and_vectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduced_node_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_start_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length_px</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.get_ordered_branches_and_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.get_ordered_branches_and_vectors" title="Link to this definition">#</a></dt>
+<dd><p>Get ordered branches and vectors for a node.</p>
+<p>Branches are ordered so they are no longer just a disordered set of coordinates, and vectors are calculated to
+represent the general direction tendency of the branch, this allows for alignment matching later on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reduced_node_area</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – An NxM numpy array of the node in question and the branches connected to it.
+Node is marked by 3, and branches by 1.</p></li>
+<li><p><strong>branch_start_coords</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – An Px2 numpy array of coordinates representing the start of branches where P is the number of branches.</p></li>
+<li><p><strong>max_length_px</strong> (<em>np.int32</em>) – The maximum length in pixels to traverse along while ordering.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing a list of ordered branches and a list of vectors.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.cross_confidence">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cross_confidence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pair_combinations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.cross_confidence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.cross_confidence" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the average confidence of the combinations using a reciprical function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pair_combinations</strong> (<em>list</em>) – List of length 2 combinations of FWHM values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The average crossing confidence.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.recip">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">recip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.recip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.recip" title="Link to this definition">#</a></dt>
+<dd><p>Compute 1 - (max / min) of the two values provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vals</strong> (<em>list</em>) – List of 2 values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Result of applying the 1-(min / max) function to the two values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.get_vector">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.get_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.get_vector" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the normalised vector of the coordinate means in a branch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> (<em>npt.NDArray</em>) – 2xN array of x, y coordinates.</p></li>
+<li><p><strong>origin</strong> (<em>npt.NDArray</em>) – 2x1 array of an x, y coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalised vector from origin to the mean coordinate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.calc_angles">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.calc_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.calc_angles" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the angles between vectors in an array.</p>
+<p>Uses the formula:</p>
+<div class="highlight-RST notranslate"><div class="highlight"><pre><span></span>cos(theta) = |a|•|b|/|a||b|
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vectors</strong> (<em>npt.NDArray</em>) – Array of 2x1 vectors.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of the cosine of the angles between the vectors.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.pair_vectors">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pair_vectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.pair_vectors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.pair_vectors" title="Link to this definition">#</a></dt>
+<dd><p>Take a list of vectors and pairs them based on the angle between them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vectors</strong> (<em>npt.NDArray</em>) – Array of 2x1 vectors to be paired.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of the matching pair indices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.best_matches">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">best_matches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_weight_matching</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.best_matches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.best_matches" title="Link to this definition">#</a></dt>
+<dd><p>Turn a matrix into a graph and calculates the best matching index pairs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>npt.NDArray</em>) – Transpose symmetric MxM array where the value of index i, j represents a weight between i and j.</p></li>
+<li><p><strong>max_weight_matching</strong> (<em>bool</em>) – Whether to obtain best matching pairs via maximum weight, or minimum weight matching.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of pairs of indexes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.create_weighted_graph">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_weighted_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">networkx.Graph</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.create_weighted_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.create_weighted_graph" title="Link to this definition">#</a></dt>
+<dd><p>Create a bipartite graph connecting i &lt;-&gt; j from a square matrix of weights matrix[i, j].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>matrix</strong> (<em>npt.NDArray</em>) – Square array of weights between rows and columns.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bipatrite graph with edge weight i-&gt;j matching matrix[i,j].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>nx.Graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.pair_angles">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pair_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.pair_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.pair_angles" title="Link to this definition">#</a></dt>
+<dd><p>Pair angles that are 180 degrees to each other and removes them before selecting the next pair.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>angles</strong> (<em>npt.NDArray</em>) – Square array (i,j) of angles between i and j.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of paired indexes in a list.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.gaussian">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.gaussian" title="Link to this definition">#</a></dt>
+<dd><p>Apply the gaussian function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>npt.NDArray</em>) – X values to be passed into the gaussian.</p></li>
+<li><p><strong>h</strong> (<em>float</em>) – The peak height of the gaussian.</p></li>
+<li><p><strong>mean</strong> (<em>float</em>) – The mean of the x values.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – The standard deviation of the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The y-values of the gaussian performed on the x values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.interpolate_between_yvalue">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">interpolate_between_yvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.interpolate_between_yvalue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.interpolate_between_yvalue" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the x value between the two points either side of yvalue in y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>npt.NDArray</em>) – An array of length y.</p></li>
+<li><p><strong>y</strong> (<em>npt.NDArray</em>) – An array of length x.</p></li>
+<li><p><strong>yvalue</strong> (<em>float</em>) – A value within the bounds of the y array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The linearly interpolated x value between the arrays.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.calculate_fwhm">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_fwhm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.calculate_fwhm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.calculate_fwhm" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the FWHM value.</p>
+<p>First identifyies the HM then finding the closest values in the distances array and using
+linear interpolation to calculate the FWHM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>heights</strong> (<em>npt.NDArray</em>) – Array of heights.</p></li>
+<li><p><strong>distances</strong> (<em>npt.NDArray</em>) – Array of distances.</p></li>
+<li><p><strong>hm</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The halfmax value to match (if wanting the same HM between curves), by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The FWHM value, [distance at hm for 1st half of trace, distance at hm for 2nd half of trace,
+HM value], [index of the highest point, distance at highest point, height at highest point].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, list, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.lin_interp">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lin_interp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.lin_interp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.lin_interp" title="Link to this definition">#</a></dt>
+<dd><p>Linear interp 2 points by finding line equation and subbing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_1</strong> (<em>list</em>) – List of an x and y coordinate.</p></li>
+<li><p><strong>point_2</strong> (<em>list</em>) – List of an x and y coordinate.</p></li>
+<li><p><strong>xvalue</strong> (<em>Union</em><em>[</em><em>float</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Value at which to interpolate to get a y coordinate, by default None.</p></li>
+<li><p><strong>yvalue</strong> (<em>Union</em><em>[</em><em>float</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Value at which to interpolate to get an x coordinate, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Value of x or y linear interpolation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.order_branches">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">order_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">branch1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.order_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.order_branches" title="Link to this definition">#</a></dt>
+<dd><p>Order the two ordered arrays based on the closest endpoint coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>branch1</strong> (<em>npt.NDArray</em>) – An Nx2 array describing coordinates.</p></li>
+<li><p><strong>branch2</strong> (<em>npt.NDArray</em>) – An Nx2 array describing coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An tuple with the each coordinate array ordered to follow on from one-another.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.binary_line">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">binary_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.binary_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.binary_line" title="Link to this definition">#</a></dt>
+<dd><p>Create a binary path following the straight line between 2 points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<em>npt.NDArray</em>) – A coordinate.</p></li>
+<li><p><strong>end</strong> (<em>npt.NDArray</em>) – Another coordinate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An Nx2 coordinate array that the line passes through.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.coord_dist_rad">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coord_dist_rad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.coord_dist_rad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.coord_dist_rad" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the distance from the centre coordinate to a point along the ordered coordinates.</p>
+<p>This differs to traversal along the coordinates taken. This also averages any common distance
+values and makes those in the trace before the node index negative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> (<em>npt.NDArray</em>) – Nx2 array of branch coordinates.</p></li>
+<li><p><strong>centre</strong> (<em>npt.NDArray</em>) – A 1x2 array of the centre coordinates to identify a 0 point for the node.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em><em>, </em><em>optional</em>) – The pixel to nanometer scaling factor to provide real units, by default 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Nx1 array of the distance from the node centre.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.above_below_value_idx">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">above_below_value_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.above_below_value_idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.above_below_value_idx" title="Link to this definition">#</a></dt>
+<dd><p>Identify indices of the array neighbouring the specified value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>npt.NDArray</em>) – Array of values.</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – Value to identify indices between.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the lower index and higher index around the value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>IndexError</strong> – When the value is in the array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.average_height_trace">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">average_height_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.average_height_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.average_height_trace" title="Link to this definition">#</a></dt>
+<dd><p>Average two side-by-side ordered skeleton distance and height traces.</p>
+<p>Dilate the original branch to create two additional side-by-side branches
+in order to get a more accurate average of the height traces. This function produces
+the common distances between these 3 branches, and their averaged heights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>npt.NDArray</em>) – An array of numbers pertaining to an image.</p></li>
+<li><p><strong>branch_mask</strong> (<em>npt.NDArray</em>) – A binary array of the branch, must share the same dimensions as the image.</p></li>
+<li><p><strong>branch_coords</strong> (<em>npt.NDArray</em>) – Ordered coordinates of the branch mask.</p></li>
+<li><p><strong>centre</strong> (<em>Union</em><em>[</em><em>float</em><em>, </em><em>None</em><em>]</em>) – The coordinates to centre the branch around.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of the averaged heights from the linetrace and their corresponding distances
+from the crossing.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.fill_holes">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fill_holes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.fill_holes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.fill_holes" title="Link to this definition">#</a></dt>
+<dd><p>Fill all holes within a binary mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array of object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Binary array of object with any interior holes filled in.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats._remove_re_entering_branches">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_remove_re_entering_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remaining_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats._remove_re_entering_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats._remove_re_entering_branches" title="Link to this definition">#</a></dt>
+<dd><p>Remove smallest branches which branches exit and re-enter the viewing area.</p>
+<p>Contninues until only &lt;remaining_branches&gt; remain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>npt.NDArray</em>) – Skeletonised binary mask of an object.</p></li>
+<li><p><strong>remaining_branches</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of objects (branches) to keep, by default 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask with only a single skeletonised branch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.only_centre_branches">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">only_centre_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_coordinate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.int32</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.only_centre_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.only_centre_branches" title="Link to this definition">#</a></dt>
+<dd><p>Remove all branches not connected to the current node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_image</strong> (<em>npt.NDArray</em>) – An image of the skeletonised area surrounding the node where
+the background = 0, skeleton = 1, termini = 2, nodes = 3.</p></li>
+<li><p><strong>node_coordinate</strong> (<em>npt.NDArray</em>) – 2x1 coordinate describing the position of a node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The initial node image but only with skeletal branches
+connected to the middle node.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.average_uniques">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">average_uniques</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arr2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.average_uniques"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.average_uniques" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the unique values of both arrays, and the average of common values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr1</strong> (<em>npt.NDArray</em>) – An array.</p></li>
+<li><p><strong>arr2</strong> (<em>npt.NDArray</em>) – An array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The unique values of both arrays, and the averaged common values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.average_crossing_confs">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">average_crossing_confs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.average_crossing_confs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.average_crossing_confs" title="Link to this definition">#</a></dt>
+<dd><p>Return the average crossing confidence of all crossings in the molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_dict</strong> (<em>dict</em>) – A dictionary containing node statistics and information.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of minimum confidence or none if not possible.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[None, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.minimum_crossing_confs">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">minimum_crossing_confs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.minimum_crossing_confs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.minimum_crossing_confs" title="Link to this definition">#</a></dt>
+<dd><p>Return the minimum crossing confidence of all crossings in the molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_dict</strong> (<em>dict</em>) – A dictionary containing node statistics and information.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of minimum confidence or none if not possible.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[None, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodeStats.compile_metrics">
+<span class="sig-name descname"><span class="pre">compile_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodeStats.compile_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodeStats.compile_metrics" title="Link to this definition">#</a></dt>
+<dd><p>Add the number of crossings, average and minimum crossing confidence to the metrics dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="topostats.tracing.nodestats.nodestats_image">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.nodestats.</span></span><span class="sig-name descname"><span class="pre">nodestats_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disordered_tracing_direction_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_to_nm_scaling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_joining_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_extend_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branch_pairing_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_odd_branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/nodestats.html#nodestats_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.nodestats.nodestats_image" title="Link to this definition">#</a></dt>
+<dd><p>Initialise the nodeStats class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – The array of pixels.</p></li>
+<li><p><strong>disordered_tracing_direction_data</strong> (<em>dict</em>) – The images and bbox coordinates of the pruned skeletons.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The name of the file being processed. For logging purposes.</p></li>
+<li><p><strong>pixel_to_nm_scaling</strong> (<em>float</em>) – The pixel to nm scaling factor.</p></li>
+<li><p><strong>node_joining_length</strong> (<em>float</em>) – The length over which to join skeletal intersections to be counted as one crossing.</p></li>
+<li><p><strong>node_joining_length</strong> – The distance over which to join nearby odd-branched nodes.</p></li>
+<li><p><strong>node_extend_dist</strong> (<em>float</em>) – The distance under which to join odd-branched node regions.</p></li>
+<li><p><strong>branch_pairing_length</strong> (<em>float</em>) – The length from the crossing point to pair and trace, obtaining FWHM’s.</p></li>
+<li><p><strong>pair_odd_branches</strong> (<em>bool</em>) – Whether to try and pair odd-branched nodes.</p></li>
+<li><p><strong>pad_width</strong> (<em>int</em>) – The number of edge pixels to pad the image by.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
+an image dictionary of nodestats steps for the entire image, and single grain images.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, pd.DataFrame, dict, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../dnacurvature/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing.dnacurvature</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../ordered_tracing/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.tracing.ordered_tracing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict"><code class="docutils literal notranslate"><span class="pre">NodeDict</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict.error"><code class="docutils literal notranslate"><span class="pre">NodeDict.error</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict.pixel_to_nm_scaling"><code class="docutils literal notranslate"><span class="pre">NodeDict.pixel_to_nm_scaling</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict.branch_stats"><code class="docutils literal notranslate"><span class="pre">NodeDict.branch_stats</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict.node_coords"><code class="docutils literal notranslate"><span class="pre">NodeDict.node_coords</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.NodeDict.confidence"><code class="docutils literal notranslate"><span class="pre">NodeDict.confidence</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch"><code class="docutils literal notranslate"><span class="pre">MatchedBranch</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch.ordered_coords"><code class="docutils literal notranslate"><span class="pre">MatchedBranch.ordered_coords</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch.heights"><code class="docutils literal notranslate"><span class="pre">MatchedBranch.heights</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch.distances"><code class="docutils literal notranslate"><span class="pre">MatchedBranch.distances</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch.fwhm"><code class="docutils literal notranslate"><span class="pre">MatchedBranch.fwhm</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.MatchedBranch.angles"><code class="docutils literal notranslate"><span class="pre">MatchedBranch.angles</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.ImageDict"><code class="docutils literal notranslate"><span class="pre">ImageDict</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.ImageDict.nodes"><code class="docutils literal notranslate"><span class="pre">ImageDict.nodes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.ImageDict.grain"><code class="docutils literal notranslate"><span class="pre">ImageDict.grain</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats"><code class="docutils literal notranslate"><span class="pre">nodeStats</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.filename"><code class="docutils literal notranslate"><span class="pre">nodeStats.filename</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.image"><code class="docutils literal notranslate"><span class="pre">nodeStats.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.mask"><code class="docutils literal notranslate"><span class="pre">nodeStats.mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.smoothed_mask"><code class="docutils literal notranslate"><span class="pre">nodeStats.smoothed_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.skeleton"><code class="docutils literal notranslate"><span class="pre">nodeStats.skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.pixel_to_nm_scaling"><code class="docutils literal notranslate"><span class="pre">nodeStats.pixel_to_nm_scaling</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.n_grain"><code class="docutils literal notranslate"><span class="pre">nodeStats.n_grain</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.node_joining_length"><code class="docutils literal notranslate"><span class="pre">nodeStats.node_joining_length</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.node_extend_dist"><code class="docutils literal notranslate"><span class="pre">nodeStats.node_extend_dist</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.branch_pairing_length"><code class="docutils literal notranslate"><span class="pre">nodeStats.branch_pairing_length</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.pair_odd_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats.pair_odd_branches</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.conv_skelly"><code class="docutils literal notranslate"><span class="pre">nodeStats.conv_skelly</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.connected_nodes"><code class="docutils literal notranslate"><span class="pre">nodeStats.connected_nodes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.all_connected_nodes"><code class="docutils literal notranslate"><span class="pre">nodeStats.all_connected_nodes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.whole_skel_graph"><code class="docutils literal notranslate"><span class="pre">nodeStats.whole_skel_graph</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.node_centre_mask"><code class="docutils literal notranslate"><span class="pre">nodeStats.node_centre_mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.metrics"><code class="docutils literal notranslate"><span class="pre">nodeStats.metrics</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.node_dicts"><code class="docutils literal notranslate"><span class="pre">nodeStats.node_dicts</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.image_dict"><code class="docutils literal notranslate"><span class="pre">nodeStats.image_dict</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.full_dict"><code class="docutils literal notranslate"><span class="pre">nodeStats.full_dict</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.mol_coords"><code class="docutils literal notranslate"><span class="pre">nodeStats.mol_coords</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.visuals"><code class="docutils literal notranslate"><span class="pre">nodeStats.visuals</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.all_visuals_img"><code class="docutils literal notranslate"><span class="pre">nodeStats.all_visuals_img</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.get_node_stats"><code class="docutils literal notranslate"><span class="pre">nodeStats.get_node_stats()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.skeleton_image_to_graph"><code class="docutils literal notranslate"><span class="pre">nodeStats.skeleton_image_to_graph()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.graph_to_skeleton_image"><code class="docutils literal notranslate"><span class="pre">nodeStats.graph_to_skeleton_image()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.tidy_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats.tidy_branches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.keep_biggest_object"><code class="docutils literal notranslate"><span class="pre">nodeStats.keep_biggest_object()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.connect_close_nodes"><code class="docutils literal notranslate"><span class="pre">nodeStats.connect_close_nodes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.highlight_node_centres"><code class="docutils literal notranslate"><span class="pre">nodeStats.highlight_node_centres()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.connect_extended_nodes_nearest"><code class="docutils literal notranslate"><span class="pre">nodeStats.connect_extended_nodes_nearest()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.find_branch_starts"><code class="docutils literal notranslate"><span class="pre">nodeStats.find_branch_starts()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.analyse_nodes"><code class="docutils literal notranslate"><span class="pre">nodeStats.analyse_nodes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.add_branches_to_labelled_image"><code class="docutils literal notranslate"><span class="pre">nodeStats.add_branches_to_labelled_image()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.analyse_node_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats.analyse_node_branches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.join_matching_branches_through_node"><code class="docutils literal notranslate"><span class="pre">nodeStats.join_matching_branches_through_node()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.get_ordered_branches_and_vectors"><code class="docutils literal notranslate"><span class="pre">nodeStats.get_ordered_branches_and_vectors()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.cross_confidence"><code class="docutils literal notranslate"><span class="pre">nodeStats.cross_confidence()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.recip"><code class="docutils literal notranslate"><span class="pre">nodeStats.recip()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.get_vector"><code class="docutils literal notranslate"><span class="pre">nodeStats.get_vector()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.calc_angles"><code class="docutils literal notranslate"><span class="pre">nodeStats.calc_angles()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.pair_vectors"><code class="docutils literal notranslate"><span class="pre">nodeStats.pair_vectors()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.best_matches"><code class="docutils literal notranslate"><span class="pre">nodeStats.best_matches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.create_weighted_graph"><code class="docutils literal notranslate"><span class="pre">nodeStats.create_weighted_graph()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.pair_angles"><code class="docutils literal notranslate"><span class="pre">nodeStats.pair_angles()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.gaussian"><code class="docutils literal notranslate"><span class="pre">nodeStats.gaussian()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.interpolate_between_yvalue"><code class="docutils literal notranslate"><span class="pre">nodeStats.interpolate_between_yvalue()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.calculate_fwhm"><code class="docutils literal notranslate"><span class="pre">nodeStats.calculate_fwhm()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.lin_interp"><code class="docutils literal notranslate"><span class="pre">nodeStats.lin_interp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.order_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats.order_branches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.binary_line"><code class="docutils literal notranslate"><span class="pre">nodeStats.binary_line()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.coord_dist_rad"><code class="docutils literal notranslate"><span class="pre">nodeStats.coord_dist_rad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.above_below_value_idx"><code class="docutils literal notranslate"><span class="pre">nodeStats.above_below_value_idx()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.average_height_trace"><code class="docutils literal notranslate"><span class="pre">nodeStats.average_height_trace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.fill_holes"><code class="docutils literal notranslate"><span class="pre">nodeStats.fill_holes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats._remove_re_entering_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats._remove_re_entering_branches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.only_centre_branches"><code class="docutils literal notranslate"><span class="pre">nodeStats.only_centre_branches()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.average_uniques"><code class="docutils literal notranslate"><span class="pre">nodeStats.average_uniques()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.average_crossing_confs"><code class="docutils literal notranslate"><span class="pre">nodeStats.average_crossing_confs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.minimum_crossing_confs"><code class="docutils literal notranslate"><span class="pre">nodeStats.minimum_crossing_confs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodeStats.compile_metrics"><code class="docutils literal notranslate"><span class="pre">nodeStats.compile_metrics()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.nodestats.nodestats_image"><code class="docutils literal notranslate"><span class="pre">nodestats_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/autoapi/topostats/tracing/nodestats/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

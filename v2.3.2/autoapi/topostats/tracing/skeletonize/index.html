@@ -1,0 +1,1208 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.skeletonize &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/skeletonize/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.tracing.splining" href="../splining/index.html" />
+    <link rel="prev" title="topostats.tracing.pruning" href="../pruning/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="index.html">v2.3.2</a></li>
+  <li><a href="../../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">topostats</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.skeletonize</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.skeletonize">
+<span id="topostats-tracing-skeletonize"></span><h1>topostats.tracing.skeletonize<a class="headerlink" href="#module-topostats.tracing.skeletonize" title="Link to this heading">#</a></h1>
+<p>Skeletonize molecules.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.skeletonize.LOGGER" title="topostats.tracing.skeletonize.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.skeletonize.getSkeleton" title="topostats.tracing.skeletonize.getSkeleton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getSkeleton</span></code></a></p></td>
+<td><p>Class skeletonising images.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.skeletonize.topostatsSkeletonize" title="topostats.tracing.skeletonize.topostatsSkeletonize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">topostatsSkeletonize</span></code></a></p></td>
+<td><p>Skeletonise a binary array following Zhang's algorithm (Zhang and Suen, 1984).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">topostats.tracing.skeletonize.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#topostats.tracing.skeletonize.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.skeletonize.</span></span><span class="sig-name descname"><span class="pre">getSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'zhang'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_bias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton" title="Link to this definition">#</a></dt>
+<dd><p>Class skeletonising images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Image used to generate the mask.</p></li>
+<li><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary mask of features.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Method for skeletonizing. Options ‘zhang’ (default), ‘lee’, ‘medial_axis’, ‘thin’ and ‘topostats’.</p></li>
+<li><p><strong>height_bias</strong> (<em>float</em>) – Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+smiilar to Zhang.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton.mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'zhang'</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton.method" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton.height_bias">
+<span class="sig-name descname"><span class="pre">height_bias</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.6</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton.height_bias" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton.get_skeleton">
+<span class="sig-name descname"><span class="pre">get_skeleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton.get_skeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton.get_skeleton" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonise molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Skeletonised version of the binary mask (possibly using criteria from the image).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._get_skeletonize">
+<span class="sig-name descname"><span class="pre">_get_skeletonize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">collections.abc.Callable</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._get_skeletonize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._get_skeletonize" title="Link to this definition">#</a></dt>
+<dd><p>Determine which skeletonise method to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Returns the function appropriate for the required skeletonizing method.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._skeletonize_zhang">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_skeletonize_zhang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._skeletonize_zhang"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_zhang" title="Link to this definition">#</a></dt>
+<dd><p>Use scikit-image implementation of the Zhang skeletonisation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array to skeletonise.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask array reduced to a single pixel thickness.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._skeletonize_lee">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_skeletonize_lee</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._skeletonize_lee"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_lee" title="Link to this definition">#</a></dt>
+<dd><p>Use scikit-image implementation of the Lee skeletonisation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array to skeletonise.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask array reduced to a single pixel thickness.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._skeletonize_medial_axis">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_skeletonize_medial_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._skeletonize_medial_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_medial_axis" title="Link to this definition">#</a></dt>
+<dd><p>Use scikit-image implementation of the Medial axis skeletonisation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array to skeletonise.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask array reduced to a single pixel thickness.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._skeletonize_thin">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_skeletonize_thin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._skeletonize_thin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_thin" title="Link to this definition">#</a></dt>
+<dd><p>Use scikit-image implementation of the thinning skeletonisation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array to skeletonise.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mask array reduced to a single pixel thickness.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.getSkeleton._skeletonize_topostats">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_skeletonize_topostats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_bias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.6</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#getSkeleton._skeletonize_topostats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_topostats" title="Link to this definition">#</a></dt>
+<dd><p>Use scikit-image implementation of the Zhang skeletonisation method.</p>
+<p>This method is based on Zhang’s method but produces different results (less branches but slightly less
+accurate).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Original image with heights.</p></li>
+<li><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary array to skeletonise.</p></li>
+<li><p><strong>height_bias</strong> (<em>float</em>) – Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all
+pixels smiilar to Zhang.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Masked array reduced to a single pixel thickness.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.skeletonize.</span></span><span class="sig-name descname"><span class="pre">topostatsSkeletonize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_bias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize" title="Link to this definition">#</a></dt>
+<dd><p>Skeletonise a binary array following Zhang’s algorithm (Zhang and Suen, 1984).</p>
+<p>Modifications are made to the published algorithm during the removal step to remove a fraction of the smallest pixel
+values opposed to all of them in the aforementioned algorithm. All operations are performed on the mask entered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>npt.NDArray</em>) – Original 2D image containing the height data.</p></li>
+<li><p><strong>mask</strong> (<em>npt.NDArray</em>) – Binary image containing the object to be skeletonised. Dimensions should match those of ‘image’.</p></li>
+<li><p><strong>height_bias</strong> (<em>float</em>) – Ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1 is all pixels
+smiilar to Zhang.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.image">
+<span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.image" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.mask">
+<span class="sig-name descname"><span class="pre">mask</span></span><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.mask" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.height_bias">
+<span class="sig-name descname"><span class="pre">height_bias</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.6</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.height_bias" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.skeleton_converged">
+<span class="sig-name descname"><span class="pre">skeleton_converged</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.skeleton_converged" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p2">
+<span class="sig-name descname"><span class="pre">p2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p3">
+<span class="sig-name descname"><span class="pre">p3</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p3" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p4">
+<span class="sig-name descname"><span class="pre">p4</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p4" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p5">
+<span class="sig-name descname"><span class="pre">p5</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p5" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p6">
+<span class="sig-name descname"><span class="pre">p6</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p6" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p7">
+<span class="sig-name descname"><span class="pre">p7</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p7" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p8">
+<span class="sig-name descname"><span class="pre">p8</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p8" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.p9">
+<span class="sig-name descname"><span class="pre">p9</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p9" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.counter">
+<span class="sig-name descname"><span class="pre">counter</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.counter" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.do_skeletonising">
+<span class="sig-name descname"><span class="pre">do_skeletonising</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize.do_skeletonising"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.do_skeletonising" title="Link to this definition">#</a></dt>
+<dd><p>Perform skeletonisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The single pixel thick, skeletonised array.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._do_skeletonising_iteration">
+<span class="sig-name descname"><span class="pre">_do_skeletonising_iteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._do_skeletonising_iteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._do_skeletonising_iteration" title="Link to this definition">#</a></dt>
+<dd><p>Obtain the local binary pixel environment and assess the local pixel values.</p>
+<p>This determines whether to delete a point according to the Zhang algorithm.</p>
+<p>Then removes ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1
+is all pixels smiilar to Zhang.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit1">
+<span class="sig-name descname"><span class="pre">_delete_pixel_subit1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._delete_pixel_subit1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit1" title="Link to this definition">#</a></dt>
+<dd><p>Check whether a single point (P1) should be deleted based on its local binary environment.</p>
+<ol class="loweralpha simple">
+<li><p>2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.</p></li>
+</ol>
+<p>(b) A(P1) = 1, where A(P1) is the # of 01’s around P1.
+(C) P2 * P4 * P6 = 0
+(d) P4 * P6 * P8 = 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> (<em>list</em>) – List of [x, y] coordinate positions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Indicates whether to delete depending on whether the surrounding points have met the criteria of the binary
+thin a, b returncount, c and d checks below.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit2">
+<span class="sig-name descname"><span class="pre">_delete_pixel_subit2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._delete_pixel_subit2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit2" title="Link to this definition">#</a></dt>
+<dd><p>Check whether a single point (P1) should be deleted based on its local binary environment.</p>
+<ol class="loweralpha simple">
+<li><p>2 ≤ B(P1) ≤ 6, where B(P1) is the number of non-zero neighbours of P1.</p></li>
+</ol>
+<p>(b) A(P1) = 1, where A(P1) is the # of 01’s around P1.
+(c’) P2 * P4 * P8 = 0
+(d’) P2 * P6 * P8 = 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> (<em>list</em>) – List of [x, y] coordinate positions.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether surrounding points have met the criteria of the binary thin a, b returncount, csharp and dsharp
+checks below.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_a">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_a" title="Link to this definition">#</a></dt>
+<dd><p>Check the surrounding area to see if the point lies on the edge of the grain.</p>
+<p>Condition A protects the endpoints (which will be &lt; 2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If point lies on edge of graph and isn’t an endpoint.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_b_returncount">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_b_returncount</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_b_returncount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_b_returncount" title="Link to this definition">#</a></dt>
+<dd><p>Count local area 01’s in order around P1.</p>
+<p>??? What does this mean?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of 01’s around P1.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_c">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_c</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_c" title="Link to this definition">#</a></dt>
+<dd><p>Check if p2, p4 or p6 is 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If p2, p4 or p6 is 0.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_d">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_d</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_d" title="Link to this definition">#</a></dt>
+<dd><p>Check if p4, p6 or p8 is 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If p4, p6 or p8 is 0.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_csharp">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_csharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_csharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_csharp" title="Link to this definition">#</a></dt>
+<dd><p>Check if p2, p4 or p8 is 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If p2, p4 or p8 is 0.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_dsharp">
+<span class="sig-name descname"><span class="pre">_binary_thin_check_dsharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_thin_check_dsharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_dsharp" title="Link to this definition">#</a></dt>
+<dd><p>Check if p2, p6 or p8 is 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>If p2, p6 or p8 is 0.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.final_skeletonisation_iteration">
+<span class="sig-name descname"><span class="pre">final_skeletonisation_iteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize.final_skeletonisation_iteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.final_skeletonisation_iteration" title="Link to this definition">#</a></dt>
+<dd><p>Remove “hanging” pixels.</p>
+<dl>
+<dt>Examples of such pixels are:</dt><dd><blockquote>
+<div><p>[0, 0, 0]               [0, 1, 0]              [0, 0, 0]
+[0, 1, 1]               [0, 1, 1]              [0, 1, 1]</p>
+</div></blockquote>
+<p>case 1: [0, 1, 0]   or  case 2: [0, 1, 0]   or case 3: [1, 1, 0]</p>
+</dd>
+</dl>
+<p>This is useful for the future functions that rely on local pixel environment
+to make assessments about the overall shape/structure of traces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_a">
+<span class="sig-name descname"><span class="pre">_binary_final_thin_check_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_final_thin_check_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_a" title="Link to this definition">#</a></dt>
+<dd><p>Assess if local area has 4-connectivity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Logical indicator of whether if any neighbours of the 4-connections have a near pixel.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_b">
+<span class="sig-name descname"><span class="pre">_binary_final_thin_check_b</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize._binary_final_thin_check_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_b" title="Link to this definition">#</a></dt>
+<dd><p>Assess if local area 4-connectivity is connected to multiple branches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Logical indicator of whether if any neighbours of the 4-connections have a near pixel.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.binary_thin_check_diag">
+<span class="sig-name descname"><span class="pre">binary_thin_check_diag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize.binary_thin_check_diag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.binary_thin_check_diag" title="Link to this definition">#</a></dt>
+<dd><p>Check if opposite corner diagonals are present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether a diagonal exists.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.get_local_pixels_binary">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_local_pixels_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.typing.NDArray</span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize.get_local_pixels_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.get_local_pixels_binary" title="Link to this definition">#</a></dt>
+<dd><p>Value of pixels in the local 8-connectivity area around the coordinate (P1) described by x and y.</p>
+<p>P1 must not lie on the edge of the binary map.</p>
+<dl class="simple">
+<dt>[[p7, p8, p9],    [[0,1,2],</dt><dd><p>[p6, P1, p2], -&gt;  [3,4,5], -&gt; [0,1,2,3,5,6,7,8]
+[p5, p4, p3]]     [6,7,8]]</p>
+</dd>
+</dl>
+<p>delete P1 to only get local area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>binary_map</strong> (<em>npt.NDArray</em>) – Binary mask of image.</p></li>
+<li><p><strong>x</strong> (<em>int</em>) – X coordinate within the binary map.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Y coordinate within the binary map.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Flattened 8-long array describing the values in the binary map around the x,y point.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.skeletonize.topostatsSkeletonize.sort_and_shuffle">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sort_and_shuffle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.typing.NDArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">23790101</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing.NDArray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/skeletonize.html#topostatsSkeletonize.sort_and_shuffle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.skeletonize.topostatsSkeletonize.sort_and_shuffle" title="Link to this definition">#</a></dt>
+<dd><p>Sort array in ascending order and shuffle the order of identical values are the same.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>npt.NDArray</em>) – A flattened (1D) array.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Seed for random number generator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>npt.NDArray</em> – An ascending order array where identical value orders are also shuffled.</p></li>
+<li><p><em>npt.NDArray</em> – An ascending order index array of above where identical value orders are also shuffled.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../pruning/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing.pruning</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../splining/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.tracing.splining</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton.image"><code class="docutils literal notranslate"><span class="pre">getSkeleton.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton.mask"><code class="docutils literal notranslate"><span class="pre">getSkeleton.mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton.method"><code class="docutils literal notranslate"><span class="pre">getSkeleton.method</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton.height_bias"><code class="docutils literal notranslate"><span class="pre">getSkeleton.height_bias</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton.get_skeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton.get_skeleton()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._get_skeletonize"><code class="docutils literal notranslate"><span class="pre">getSkeleton._get_skeletonize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_zhang"><code class="docutils literal notranslate"><span class="pre">getSkeleton._skeletonize_zhang()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_lee"><code class="docutils literal notranslate"><span class="pre">getSkeleton._skeletonize_lee()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_medial_axis"><code class="docutils literal notranslate"><span class="pre">getSkeleton._skeletonize_medial_axis()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_thin"><code class="docutils literal notranslate"><span class="pre">getSkeleton._skeletonize_thin()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.getSkeleton._skeletonize_topostats"><code class="docutils literal notranslate"><span class="pre">getSkeleton._skeletonize_topostats()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.image"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.image</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.mask"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.mask</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.height_bias"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.height_bias</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.skeleton_converged"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.skeleton_converged</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p2"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p2</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p3"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p3</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p4"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p4</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p5"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p5</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p6"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p6</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p7"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p7</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p8"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p8</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.p9"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.p9</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.counter"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.counter</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.do_skeletonising"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.do_skeletonising()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._do_skeletonising_iteration"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._do_skeletonising_iteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit1"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._delete_pixel_subit1()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit2"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._delete_pixel_subit2()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_a"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_b_returncount"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_b_returncount()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_c"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_c()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_d"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_d()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_csharp"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_csharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_dsharp"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_thin_check_dsharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.final_skeletonisation_iteration"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.final_skeletonisation_iteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_a"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_final_thin_check_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_b"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize._binary_final_thin_check_b()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.binary_thin_check_diag"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.binary_thin_check_diag()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.get_local_pixels_binary"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.get_local_pixels_binary()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.skeletonize.topostatsSkeletonize.sort_and_shuffle"><code class="docutils literal notranslate"><span class="pre">topostatsSkeletonize.sort_and_shuffle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/autoapi/topostats/tracing/skeletonize/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1140 @@
+topostats.tracing.tracingfuncs
+==============================
+
+.. py:module:: topostats.tracing.tracingfuncs
+
+.. autoapi-nested-parse::
+
+   Miscellaneous tracing functions.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.tracingfuncs.getSkeleton
+   topostats.tracing.tracingfuncs.reorderTrace
+   topostats.tracing.tracingfuncs.genTracingFuncs
+
+
+Module Contents
+---------------
+
+.. py:class:: getSkeleton(image_data: numpy.typing.NDArray, binary_map: numpy.typing.NDArray, number_of_columns: int, number_of_rows: int, pixel_size: float)
+
+   
+   Skeltonisation : "A Fast Parallel Algorithm for Thinning Digital Patterns" by Zhang et al., 1984.
+
+   :param image_data: Image to be traced.
+   :type image_data: npt.NDArray
+   :param binary_map: Image mask.
+   :type binary_map: npt.NDArray
+   :param number_of_columns: Number of columns.
+   :type number_of_columns: int
+   :param number_of_rows: Number of rows.
+   :type number_of_rows: int
+   :param pixel_size: Pixel to nm scaling.
+   :type pixel_size: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image_data
+
+
+   .. py:attribute:: binary_map
+
+
+   .. py:attribute:: number_of_columns
+
+
+   .. py:attribute:: number_of_rows
+
+
+   .. py:attribute:: pixel_size
+
+
+   .. py:attribute:: p2
+      :value: 0
+
+
+
+   .. py:attribute:: p3
+      :value: 0
+
+
+
+   .. py:attribute:: p4
+      :value: 0
+
+
+
+   .. py:attribute:: p5
+      :value: 0
+
+
+
+   .. py:attribute:: p6
+      :value: 0
+
+
+
+   .. py:attribute:: p7
+      :value: 0
+
+
+
+   .. py:attribute:: p8
+      :value: 0
+
+
+
+   .. py:attribute:: mask_being_skeletonised
+      :value: []
+
+
+
+   .. py:attribute:: output_skeleton
+      :value: []
+
+
+
+   .. py:attribute:: skeleton_converged
+      :value: False
+
+
+
+   .. py:attribute:: pruning
+      :value: True
+
+
+
+   .. py:attribute:: average_height
+      :value: 0
+
+
+
+   .. py:attribute:: highest_points
+
+
+   .. py:attribute:: search_window
+
+
+   .. py:attribute:: dir_search
+
+
+   .. py:method:: getDNAmolHeightStats()
+
+      
+      Get molecule heights.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: doSkeletonising()
+
+      
+      Check if the skeletonising is finished.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _doSkeletonisingIteration()
+
+      
+      Do an iteration of skeletonisation.
+
+      Check for the local binary pixel environment and assess the local height values to decide whether to delete a
+      point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _deletePixelSubit1(point: numpy.typing.NDArray) -> bool
+
+      
+      Check whether a point should be deleted based on local binary environment and local height values.
+
+      :param point: Point to be checked.
+      :type point: npt.NDArray
+
+      :returns: Whether the point should be deleted.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _deletePixelSubit2(point: numpy.typing.NDArray) -> bool
+
+      
+      Check whether a point should be deleted based on local binary environment and local height values.
+
+      :param point: Point to be checked.
+      :type point: npt.NDArray
+
+      :returns: Whether the point should be deleted.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_a() -> bool
+
+      
+      Binary thin check A.
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_b() -> bool
+
+      
+      Binary thin check B.
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_c() -> bool
+
+      
+      Binary thin check C.
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_d() -> bool
+
+      
+      Binary thin check D.
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_csharp() -> bool
+
+      
+      Binary thin check C#.
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_dsharp() -> bool
+
+      
+      Binary thin check D#
+
+      :returns: Whether the condition is met.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _checkHeights(candidate_points: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Check heights.
+
+      :param candidate_points: Candidate points to be checked.
+      :type candidate_points: npt.NDArray) - > npt.NDArra
+
+      :returns: Candidate points.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _checkWhichHeightPoints()
+
+      
+      Check which height points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _initialiseHeightFindingDict()
+
+
+   .. py:method:: _getHorizontalLeftHeights(x: int, y: int) -> float
+
+      
+      Calculate heights left (west).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height left (west).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getHorizontalRightHeights(x, y)
+
+      
+      Calculate heights right (east).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height right (east).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getVerticalUpwardHeights(x, y)
+
+      
+      Calculate heights upwards (north).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height upwards (north).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getVerticalDonwardHeights(x, y)
+
+      
+      Calculate heights downwards (south).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height downwards (south).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getDiaganolLeftUpwardHeights(x, y)
+
+      
+      Calculate heights diagonal left upwards (north east).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height to diagonal left upwards (north east).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getDiaganolLeftDownwardHeights(x, y)
+
+      
+      Calculate heights diagonal left downwards (south west).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height diagonal left downwards (south west).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getDiaganolRightUpwardHeights(x: int, y: int) -> float
+
+      
+      Calculate heights diagonal right upwards (north east).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height diagonal right upwards (north east).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _getDiaganolRightDownwardHeights(x, y)
+
+      
+      Calculate heights diagonal right downwards (south east).
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height heights diagonal right downwards (south east).
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _condemnPoint(x: int, y: int) -> float
+
+      
+      Condemn a point.
+
+      :param x: X coordinate.
+      :type x: int
+      :param y: Y coordinate.
+      :type y: int
+
+      :returns: Height to be condemned.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _identifyHighestPoint(x, y, index_direction, indexed_heights)
+
+
+   .. py:method:: finalSkeletonisationIteration()
+
+      
+      A final skeletonisation iteration that removes "hanging" pixels.
+
+      Examples of such pixels are:
+
+                  [0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+                  [0, 1, 1]               [0, 1, 1]            [0, 1, 1]
+          case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]
+
+      This is useful for the future functions that rely on local pixel environment
+      to make assessments about the overall shape/structure of traces
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryFinalThinCheck_a()
+
+      
+      Binary final thin check A.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryFinalThinCheck_b()
+
+      
+      Binary final thin check B.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _binaryThinCheck_b_returncount()
+
+      
+      Binary final thin check B return count.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pruneSkeleton()
+
+      
+      Function to remove the hanging branches from the skeletons.
+
+      These are a persistent problem in the overall tracing process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _findBranchEnds(coordinates)
+
+
+   .. py:method:: _deleteSquareEnds(coordinates)
+
+
+.. py:class:: reorderTrace
+
+   .. py:method:: linearTrace(trace_coordinates)
+      :staticmethod:
+
+
+      
+      My own function to order the points from a linear trace.
+
+      This works by checking the local neighbours for a given pixel (starting
+      at one of the ends). If this pixel has only one neighbour in the array
+      of unordered points, this must be the next pixel in the trace -- and it
+      is added to the ordered points trace and removed from the
+      remaining_unordered_coords array.
+
+      If there is more than one neighbouring pixel, a fairly simple function
+      (checkVectorsCandidatePoints) finds which pixel incurs the smallest
+      change in angle compared with the rest of the trace and chooses that as
+      the next point.
+
+      This process is repeated until all the points are placed in the ordered
+      trace array or the other end point is reached.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: circularTrace(trace_coordinates)
+      :staticmethod:
+
+
+      
+      An alternative implementation of the linear tracing algorithm but
+      with some adaptations to work with circular dna molecules
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: circularTrace_old(trace_coordinates)
+      :staticmethod:
+
+
+      
+      Reorders the coordinates of a trace from a circular DNA molecule
+      (with no loops) using a polar coordinate system with reference to the
+      center of mass
+
+      I think every step of this can be vectorised for speed up
+
+      This is vulnerable to bugs if the dna molecule folds in on itself slightly
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: loopedCircularTrace()
+
+
+   .. py:method:: loopedLinearTrace()
+
+
+.. py:class:: genTracingFuncs
+
+   .. py:method:: getLocalPixelsBinary(binary_map, x, y)
+      :staticmethod:
+
+
+
+   .. py:method:: countNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Counts the number of neighbouring points for a given coordinate in
+      a list of points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: getNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Returns an array containing the neighbouring points for a given
+      coordinate in a list of points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: countandGetNeighbours(x, y, trace_coordinates)
+      :staticmethod:
+
+
+      
+      Returns the number of neighbouring points for a coordinate and an
+      array containing the those points
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: returnPointsInArray(points_array, trace_coordinates)
+      :staticmethod:
+
+
+
+   .. py:method:: makeGrid(x, y, size)
+      :staticmethod:
+
+
+
+   .. py:method:: findBestNextPoint(x, y, ordered_points, candidate_points)
+      :staticmethod:
+
+
+
+   .. py:method:: checkVectorsCandidatePoints(x, y, ordered_points, candidate_points)
+      :staticmethod:
+
+
+      
+      Finds which neighbouring pixel incurs the smallest angular change
+      with reference to a previous pixel in the ordered trace, and chooses that
+      as the next point
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

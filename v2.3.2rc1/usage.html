@@ -1,0 +1,1063 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'usage';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../v2.0.0/usage.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/usage.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/usage.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/usage.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/usage.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/usage.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/usage.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/usage.html">v2.3.0</a></li>
+  <li><a href="../v2.3.1/usage.html">v2.3.1</a></li>
+  <li><a href="../v2.3.2/usage.html">v2.3.2</a></li>
+  <li><a href="usage.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/usage.html">v2.3.2rc2</a></li>
+  <li><a href="../main/usage.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Usage</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h1>
+<p>After having <a class="reference internal" href="installation.html"><span class="doc std std-doc">installed</span></a> TopoStats you are ready to run it. For convenience TopoStats provides a command
+line interface <code class="docutils literal notranslate"><span class="pre">topostats</span></code> that will load a default configuration file and process all images with reasonable
+default configuration options.</p>
+<p>However, because the location of your image files can not be known in advance you must make a copy of the default
+configuration and modify it to work with your files. This guide will hopefully take you through the process of running
+TopoStats and customising the configuration file with which it is run. If you encounter any problems please ask
+questions in the <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/discussions">Discussions</a>. If you think you have encountered a
+bug or have a feature suggestion please create an <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/issues">Issue</a>.</p>
+<section id="organising-scans">
+<h2>Organising Scans<a class="headerlink" href="#organising-scans" title="Link to this heading">#</a></h2>
+<p>You should place all files you wish to batch process in a single directory. They can be nested in separate folders as
+TopoStats will scan for all images within this directory but currently it will only process one scan type at a time
+(i.e. <code class="docutils literal notranslate"><span class="pre">.spm</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">.jpk</span></code> <em>or</em> <code class="docutils literal notranslate"><span class="pre">.asd</span></code>). This may change in the future.</p>
+</section>
+<section id="command-line-navigation">
+<h2>Command Line Navigation<a class="headerlink" href="#command-line-navigation" title="Link to this heading">#</a></h2>
+<p>TopoStats currently runs as a command-line program. To use it you will have to use a “prompt” or “terminal” (they’re
+essentially the same thing). What you use will depend on your operating system, but the following are some simple
+commands on navigation. If you use Windows then for consistency it is recommended to install and use
+<a class="reference external" href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell">PowerShell</a>.</p>
+<p>At the command line you use <code class="docutils literal notranslate"><span class="pre">cd</span></code> to <code class="docutils literal notranslate"><span class="pre">c</span></code>hange <code class="docutils literal notranslate"><span class="pre">d</span></code>irectory to the location of your files. For example if your scans are on
+the C-drive in <code class="docutils literal notranslate"><span class="pre">C:\User\me\work\spm\2022-12-08\scans</span></code> then you would</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>c:/User/me/work/spm/2022-12-08/scans
+</pre></div>
+</div>
+<p>If you are on a Linux or OSX system then paths are not prefixed with letters and your files may be saved to
+<code class="docutils literal notranslate"><span class="pre">/home/me/work/spm/2022-12-08/scans</span></code>. To change directory there you would…</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/home/me/work/spm/2022-12-08/scans
+</pre></div>
+</div>
+<p><strong>NB</strong> - Always use a forward-slash (<code class="docutils literal notranslate"><span class="pre">/</span></code>) when typing directory paths. Windows will display back-slash (<code class="docutils literal notranslate"><span class="pre">\</span></code>) but
+understands forward-slash. Under Linux and OSX they mean different things and so you should always use forward-slash
+(<code class="docutils literal notranslate"><span class="pre">/</span></code>).</p>
+<p>You can always find out what location you are at in the command line using the <code class="docutils literal notranslate"><span class="pre">pwd</span></code> command (<code class="docutils literal notranslate"><span class="pre">p</span></code>rint <code class="docutils literal notranslate"><span class="pre">w</span></code>orking
+<code class="docutils literal notranslate"><span class="pre">d</span></code>irectory) and it will print out the directory you are currently at.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">pwd</span>
+/home/me/work/spm/2022-12-08/scans
+</pre></div>
+</div>
+<p>To navigate up one directory level use <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">..</span></code>. These can be chained together and directories separated with <code class="docutils literal notranslate"><span class="pre">/</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Move up a single directory level</span>
+<span class="nb">cd</span><span class="w"> </span>..
+<span class="nb">pwd</span>
+/home/me/work/spm/2022-12-08
+<span class="c1"># Move up another two directory levels</span>
+<span class="nb">cd</span><span class="w"> </span>../../
+<span class="nb">pwd</span>
+/home/me/
+</pre></div>
+</div>
+<p>You can list the files in a directory using the <code class="docutils literal notranslate"><span class="pre">ls</span></code> command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls
+sample_image_scan_2022-12-08-1204.spm
+</pre></div>
+</div>
+<p>To learn more about the command line see the <a class="reference external" href="https://datacarpentry.org/shell-genomics/">Introduction to the Command Line for
+Genomics</a>.</p>
+</section>
+<section id="running-topostats">
+<h2>Running TopoStats<a class="headerlink" href="#running-topostats" title="Link to this heading">#</a></h2>
+<p>The default location that TopoStats looks for scans is the directory from which it is invoked. Once you start your
+shell/terminal you will therefore need to do two things.</p>
+<ol class="arabic simple">
+<li><p>Navigate to the location of the scans you wish to process using <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">/path/to/where/scans/are/located</span></code>.</p></li>
+<li><p>Activate the virtual environment under which you installed TopoStats (refer to <a class="reference internal" href="installation.html"><span class="doc std std-doc">installed</span></a> if unsure).</p></li>
+</ol>
+<p>You can now run topostats by invoking <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code> and you should start to see some output similar to that below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/path/to/where/scans/are/located
+topostats<span class="w"> </span>process
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>is<span class="w"> </span>valid.
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Plotting<span class="w"> </span>configuration<span class="w"> </span>is<span class="w"> </span>valid.
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>file<span class="w"> </span>loaded<span class="w"> </span>from<span class="w">      </span>:<span class="w"> </span>None
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span><span class="k">in</span><span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Output<span class="w"> </span>directory<span class="w">                    </span>:<span class="w"> </span>output
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Looking<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>extension<span class="w">   </span>:<span class="w"> </span>.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Images<span class="w"> </span>with<span class="w"> </span>extension<span class="w"> </span>.spm<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/neil/work/projects/topostats/TopoStats<span class="w"> </span>:<span class="w"> </span><span class="m">32</span>
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Filtering<span class="o">)</span><span class="w">     </span>:<span class="w"> </span>std_dev
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Grains<span class="o">)</span><span class="w">        </span>:<span class="w"> </span>std_dev
+...
+</pre></div>
+</div>
+<p>On a successful completion you should see a message similar to the following which indicates various aspects of the run
+along with information about how to give feedback, report bugs and cite the software.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+<span class="w">  </span>_______<span class="w">      </span>_____<span class="w">      </span>__<span class="w"> </span>__<span class="w">       </span>_____<span class="w">     </span>______<span class="w">    </span>_______<span class="w">      </span>_____<span class="w">      </span>_______<span class="w">    </span>______
+/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span><span class="w">  </span><span class="o">)</span><span class="w"> </span>___<span class="w"> </span><span class="o">(</span><span class="w">    </span>/_/<span class="se">\_</span>_/<span class="se">\ </span><span class="w">   </span><span class="o">)</span><span class="w"> </span>___<span class="w"> </span><span class="o">(</span><span class="w">   </span>/<span class="w"> </span>____/<span class="se">\ </span>/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span><span class="w">  </span>/<span class="se">\_</span>__/<span class="se">\ </span><span class="w">  </span>/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span>/<span class="w"> </span>____/<span class="se">\</span>
+<span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w">  </span>/<span class="w"> </span>/<span class="se">\_</span>/<span class="se">\ \ </span><span class="w">  </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">  </span>/<span class="w"> </span>/<span class="se">\_</span>/<span class="se">\ \ </span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span>__<span class="se">\/</span><span class="w"> </span><span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>_<span class="w"> </span><span class="se">\ \ </span><span class="w"> </span><span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span>__<span class="se">\/</span>
+<span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">     </span>/<span class="w"> </span>/_/<span class="w"> </span><span class="o">(</span>_<span class="se">\ \ </span>/_/<span class="w"> </span>/_/<span class="w"> </span>/<span class="w">  </span>/<span class="w"> </span>/_/<span class="w"> </span><span class="o">(</span>_<span class="se">\ \ </span><span class="w"> </span><span class="se">\ \ \ </span><span class="w">    </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">      </span><span class="se">\ \(</span>_<span class="o">)</span>/<span class="w"> </span>/<span class="w">    </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">      </span><span class="se">\ \ \</span>
+<span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">      </span><span class="se">\ \ </span><span class="o">)</span>_/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span><span class="se">\ \ \_\/</span><span class="w">   </span><span class="se">\ \ </span><span class="o">)</span>_/<span class="w"> </span>/<span class="w"> </span>/<span class="w">  </span>_<span class="se">\ \ \ </span><span class="w">  </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">       </span>/<span class="w"> </span>/<span class="w"> </span>_<span class="w"> </span><span class="se">\ \ </span><span class="w">  </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">       </span>_<span class="se">\ \ \</span>
+<span class="w">  </span><span class="se">\ \ \ </span><span class="w">     </span><span class="se">\ \/</span>_<span class="se">\/</span><span class="w"> </span>/<span class="w">   </span><span class="o">)</span>_<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">      </span><span class="se">\ \/</span>_<span class="se">\/</span><span class="w"> </span>/<span class="w">  </span><span class="o">)</span>____<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">   </span><span class="se">\ \ \ </span><span class="w">    </span><span class="o">(</span><span class="w"> </span><span class="o">(</span>_<span class="o">(</span><span class="w"> </span><span class="o">)</span>_<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">   </span><span class="se">\ \ \ </span><span class="w">    </span><span class="o">)</span>____<span class="o">)</span><span class="w"> </span><span class="o">)</span>
+<span class="w">  </span>/_/_/<span class="w">       </span><span class="o">)</span>_____<span class="o">(</span><span class="w">    </span><span class="se">\_\/</span><span class="w">        </span><span class="o">)</span>_____<span class="o">(</span><span class="w">   </span><span class="se">\_</span>___<span class="se">\/</span><span class="w">    </span>/_/_/<span class="w">      </span><span class="se">\/</span>_/<span class="w"> </span><span class="se">\_\/</span><span class="w">    </span>/_/_/<span class="w">     </span><span class="se">\_</span>___<span class="se">\/</span>
+
+
+<span class="o">[</span>Thu,<span class="w"> </span><span class="m">14</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2024</span><span class="w"> </span><span class="m">09</span>:40:56<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span>
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<span class="w"> </span>COMPLETE<span class="w"> </span>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+<span class="w">  </span>Base<span class="w"> </span>Directory<span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+<span class="w">  </span>File<span class="w"> </span>Extension<span class="w">              </span>:<span class="w"> </span>.spm
+<span class="w">  </span>Files<span class="w"> </span>Found<span class="w">                 </span>:<span class="w"> </span><span class="m">1</span>
+<span class="w">  </span>Successfully<span class="w"> </span>Processed<span class="w">      </span>:<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">(</span><span class="m">100</span>.0%<span class="o">)</span>
+<span class="w">  </span>Configuration<span class="w">               </span>:<span class="w"> </span>output/config.yaml
+<span class="w">  </span>All<span class="w"> </span>statistics<span class="w">              </span>:<span class="w"> </span>output/grain_statistics.csv
+<span class="w">  </span>Distribution<span class="w"> </span>Plots<span class="w">          </span>:<span class="w"> </span>output/summary_distributions
+
+<span class="w">  </span>Email<span class="w">                       </span>:<span class="w"> </span>topostats@sheffield.ac.uk
+<span class="w">  </span>Documentation<span class="w">               </span>:<span class="w"> </span>https://afm-spm.github.io/topostats/
+<span class="w">  </span>Source<span class="w"> </span>Code<span class="w">                 </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/
+<span class="w">  </span>Bug<span class="w"> </span>Reports/Feature<span class="w"> </span>Request<span class="w"> </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/issues/new/choose
+<span class="w">  </span>Citation<span class="w"> </span>File<span class="w"> </span>Format<span class="w">        </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff
+
+<span class="w">  </span>If<span class="w"> </span>you<span class="w"> </span>encounter<span class="w"> </span>bugs/issues<span class="w"> </span>or<span class="w"> </span>have<span class="w"> </span>feature<span class="w"> </span>requests<span class="w"> </span>please<span class="w"> </span>report<span class="w"> </span>them<span class="w"> </span>at<span class="w"> </span>the<span class="w"> </span>above<span class="w"> </span>URL
+<span class="w">  </span>or<span class="w"> </span>email<span class="w"> </span>us.
+
+<span class="w">  </span>If<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span>found<span class="w"> </span>TopoStats<span class="w"> </span>useful<span class="w"> </span>please<span class="w"> </span>consider<span class="w"> </span>citing<span class="w"> </span>it.<span class="w"> </span>A<span class="w"> </span>Citation<span class="w"> </span>File<span class="w"> </span>Format<span class="w"> </span>is
+<span class="w">  </span>linked<span class="w"> </span>above<span class="w"> </span>and<span class="w"> </span>available<span class="w"> </span>from<span class="w"> </span>the<span class="w"> </span>Source<span class="w"> </span>Code<span class="w"> </span>page.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</pre></div>
+</div>
+</section>
+<section id="help-options">
+<h2>Help Options<a class="headerlink" href="#help-options" title="Link to this heading">#</a></h2>
+<p>The main <code class="docutils literal notranslate"><span class="pre">topostats</span></code> program has a number of flags which can be specified to change the behaviour of how the program
+runs. You can view the possible options by supplying the <code class="docutils literal notranslate"><span class="pre">-h</span></code> or <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>❱<span class="w"> </span>topostats<span class="w"> </span>--help
+usage:<span class="w"> </span>topostats<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-v<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>CONFIG_FILE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-s<span class="w"> </span>SUMMARY_CONFIG<span class="o">]</span><span class="w"> </span><span class="o">[</span>--matplotlibrc<span class="w"> </span>MATPLOTLIBRC<span class="o">]</span><span class="w"> </span><span class="o">[</span>-b<span class="w"> </span>BASE_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>OUTPUT_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>LOG_LEVEL<span class="o">]</span><span class="w"> </span><span class="o">[</span>-j<span class="w"> </span>CORES<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>FILE_EXT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--channel<span class="w"> </span>CHANNEL<span class="o">]</span><span class="w"> </span><span class="o">{</span>process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc<span class="o">}</span><span class="w"> </span>...
+
+Run<span class="w"> </span>various<span class="w"> </span>programs<span class="w"> </span>relating<span class="w"> </span>to<span class="w"> </span>AFM<span class="w"> </span>data.<span class="w"> </span>Add<span class="w"> </span>the<span class="w"> </span>name<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>program<span class="w"> </span>you<span class="w"> </span>wish<span class="w"> </span>to<span class="w"> </span>run.
+
+options:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>-v,<span class="w"> </span>--version<span class="w">         </span>Report<span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>version<span class="w"> </span>of<span class="w"> </span>TopoStats<span class="w"> </span>that<span class="w"> </span>is<span class="w"> </span>installed
+<span class="w">  </span>-c<span class="w"> </span>CONFIG_FILE,<span class="w"> </span>--config-file<span class="w"> </span>CONFIG_FILE
+<span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>YAML<span class="w"> </span>configuration<span class="w"> </span>file.
+<span class="w">  </span>-s<span class="w"> </span>SUMMARY_CONFIG,<span class="w"> </span>--summary-config<span class="w"> </span>SUMMARY_CONFIG
+<span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>YAML<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span><span class="k">for</span><span class="w"> </span>summary<span class="w"> </span>plots<span class="w"> </span>and<span class="w"> </span>statistics.
+<span class="w">  </span>--matplotlibrc<span class="w"> </span>MATPLOTLIBRC
+<span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>matplotlibrc<span class="w"> </span>file.
+<span class="w">  </span>-b<span class="w"> </span>BASE_DIR,<span class="w"> </span>--base-dir<span class="w"> </span>BASE_DIR
+<span class="w">                        </span>Base<span class="w"> </span>directory<span class="w"> </span>to<span class="w"> </span>scan<span class="w"> </span><span class="k">for</span><span class="w"> </span>images.
+<span class="w">  </span>-o<span class="w"> </span>OUTPUT_DIR,<span class="w"> </span>--output-dir<span class="w"> </span>OUTPUT_DIR
+<span class="w">                        </span>Output<span class="w"> </span>directory<span class="w"> </span>to<span class="w"> </span>write<span class="w"> </span>results<span class="w"> </span>to.
+<span class="w">  </span>-l<span class="w"> </span>LOG_LEVEL,<span class="w"> </span>--log-level<span class="w"> </span>LOG_LEVEL
+<span class="w">                        </span>Logging<span class="w"> </span>level<span class="w"> </span>to<span class="w"> </span>use,<span class="w"> </span>default<span class="w"> </span>is<span class="w"> </span><span class="s1">&#39;info&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>verbose<span class="w"> </span>output<span class="w"> </span>use<span class="w"> </span><span class="s1">&#39;debug&#39;</span>.
+<span class="w">  </span>-j<span class="w"> </span>CORES,<span class="w"> </span>--cores<span class="w"> </span>CORES
+<span class="w">                        </span>Number<span class="w"> </span>of<span class="w"> </span>CPU<span class="w"> </span>cores<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span>when<span class="w"> </span>processing.
+<span class="w">  </span>-f<span class="w"> </span>FILE_EXT,<span class="w"> </span>--file-ext<span class="w"> </span>FILE_EXT
+<span class="w">                        </span>File<span class="w"> </span>extension<span class="w"> </span>to<span class="w"> </span>scan<span class="w"> </span><span class="k">for</span>.
+<span class="w">  </span>--channel<span class="w"> </span>CHANNEL<span class="w">     </span>Channel<span class="w"> </span>to<span class="w"> </span>extract.
+
+program:
+<span class="w">  </span>Available<span class="w"> </span>programs,<span class="w"> </span>listed<span class="w"> </span>below:
+
+<span class="w">  </span><span class="o">{</span>process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc<span class="o">}</span>
+<span class="w">    </span>process<span class="w">             </span>Process<span class="w"> </span>AFM<span class="w"> </span>images.<span class="w"> </span>Additional<span class="w"> </span>arguments<span class="w"> </span>over-ride<span class="w"> </span>defaults<span class="w"> </span>or<span class="w"> </span>those<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>configuration<span class="w"> </span>file.
+<span class="w">    </span>load<span class="w">                </span>Load<span class="w"> </span>and<span class="w"> </span>save<span class="w"> </span>all<span class="w"> </span>images<span class="w"> </span>as<span class="w"> </span>.topostats<span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span>subsequent<span class="w"> </span>processing.
+<span class="w">    </span>filter<span class="w">              </span>Load<span class="w"> </span>and<span class="w"> </span>filter<span class="w"> </span>images,<span class="w"> </span>saving<span class="w"> </span>as<span class="w"> </span>.topostats<span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span>subsequent<span class="w"> </span>processing.
+<span class="w">    </span>grains<span class="w">              </span>Load<span class="w"> </span>filtered<span class="w"> </span>images<span class="w"> </span>from<span class="w"> </span><span class="s1">&#39;.topostats&#39;</span><span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>detect<span class="w"> </span>grains.
+<span class="w">    </span>grainstats<span class="w">          </span>Load<span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>grains<span class="w"> </span>from<span class="w"> </span><span class="s1">&#39;.topostats&#39;</span><span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>calculate<span class="w"> </span>statistics.
+<span class="w">    </span>disordered-tracing<span class="w">  </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Skeletonise<span class="w"> </span>and<span class="w"> </span>prune<span class="w"> </span>objects<span class="w"> </span>to<span class="w"> </span>disordered<span class="w"> </span>traces.
+<span class="w">    </span>nodestats<span class="w">           </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Calculate<span class="w"> </span>node<span class="w"> </span>statistics<span class="w"> </span>and<span class="w"> </span>disentangle<span class="w"> </span>molecules.
+<span class="w">    </span>ordered-tracing<span class="w">     </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Ordered<span class="w"> </span>traces<span class="w"> </span>of<span class="w"> </span>pruned<span class="w"> </span>skeletons.
+<span class="w">    </span>splining<span class="w">            </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Splining<span class="w"> </span>of<span class="w"> </span>traced<span class="w"> </span>molecules<span class="w"> </span>to<span class="w"> </span>produce<span class="w"> </span>smooth<span class="w"> </span>curves.
+<span class="w">    </span>summary<span class="w">             </span>Plotting<span class="w"> </span>and<span class="w"> </span>summary<span class="w"> </span>of<span class="w"> </span>TopoStats<span class="w"> </span>output<span class="w"> </span>statistics.
+<span class="w">    </span>create-config<span class="w">       </span>Create<span class="w"> </span>a<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+<span class="w">    </span>create-matplotlibrc
+<span class="w">                        </span>Create<span class="w"> </span>a<span class="w"> </span>Matplotlibrc<span class="w"> </span>parameters<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+</pre></div>
+</div>
+<p>The global flags/options for modifying behaviour are listed. You then need to provide the name of the program you wish
+to run which are listed at the bottom of the output along with a description.</p>
+<p>Each sub-program has its own specific set of options too which can be specified to override the settings in the
+configuration file that is loaded (either the default or the user specified configuration). To view these again use the
+<code class="docutils literal notranslate"><span class="pre">-h</span></code> or <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag. For a more detailed description of the options see the <a class="reference internal" href="configuration.html"><span class="doc std std-doc">configuration</span></a> page.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w"> </span>❱<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span>--help
+usage:<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>FILENAME<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>OUTPUT_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>CONFIG<span class="o">]</span><span class="w"> </span><span class="o">[</span>-s<span class="o">]</span>
+
+Create<span class="w"> </span>a<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+
+options:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+<span class="w">  </span>-f<span class="w"> </span>FILENAME,<span class="w"> </span>--filename<span class="w"> </span>FILENAME
+<span class="w">                        </span>Name<span class="w"> </span>of<span class="w"> </span>YAML<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>save<span class="w"> </span>configuration<span class="w"> </span>to<span class="w"> </span><span class="o">(</span>default<span class="w"> </span><span class="s1">&#39;config.yaml&#39;</span><span class="o">)</span>.
+<span class="w">  </span>-o<span class="w"> </span>OUTPUT_DIR,<span class="w"> </span>--output-dir<span class="w"> </span>OUTPUT_DIR
+<span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>where<span class="w"> </span>the<span class="w"> </span>YAML<span class="w"> </span>file<span class="w"> </span>should<span class="w"> </span>be<span class="w"> </span>saved<span class="w"> </span><span class="o">(</span>default<span class="w"> </span><span class="s1">&#39;./&#39;</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>directory<span class="o">)</span>.
+<span class="w">  </span>-c<span class="w"> </span>CONFIG,<span class="w"> </span>--config<span class="w"> </span>CONFIG
+<span class="w">                        </span>Configuration<span class="w"> </span>to<span class="w"> </span>use,<span class="w"> </span>currently<span class="w"> </span>only<span class="w"> </span>one<span class="w"> </span>is<span class="w"> </span>supported,<span class="w"> </span>the<span class="w"> </span><span class="s1">&#39;default&#39;</span>.
+<span class="w">  </span>-s,<span class="w"> </span>--simple<span class="w">          </span>Create<span class="w"> </span>a<span class="w"> </span>simple<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>with<span class="w"> </span>only<span class="w"> </span>the<span class="w"> </span>most<span class="w"> </span>common<span class="w"> </span>options.
+</pre></div>
+</div>
+<p><strong>NB</strong> The <code class="docutils literal notranslate"><span class="pre">process</span></code> program has a <em>lot</em> of options as it runs the processing pipeline in full.</p>
+<section id="reducing-output">
+<h3>Reducing Output<a class="headerlink" href="#reducing-output" title="Link to this heading">#</a></h3>
+<p>If you find the output too verbose or of no use you can reduce it by setting the <code class="docutils literal notranslate"><span class="pre">log_level</span></code> to either <code class="docutils literal notranslate"><span class="pre">error</span></code> or
+<code class="docutils literal notranslate"><span class="pre">warning</span></code>. This can be done either in the configuration file (see <a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a> below)
+or using the <code class="docutils literal notranslate"><span class="pre">-l</span></code>/<code class="docutils literal notranslate"><span class="pre">--log-level</span></code> flag for example <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span> <span class="pre">--log_level</span> <span class="pre">warning</span></code>.</p>
+</section>
+</section>
+<section id="configuring-topostats">
+<h2>Configuring TopoStats<a class="headerlink" href="#configuring-topostats" title="Link to this heading">#</a></h2>
+<p>Configuration of TopoStats is done through a <a class="reference external" href="https://yaml.org/">YAML</a> file and a full description of the fields used
+can be found under the <a class="reference internal" href="configuration.html"><span class="std std-doc">configuration</span></a> section.</p>
+<p>Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
+want to make to the default configuration and how to make them.</p>
+<section id="generating-configuration-file">
+<h3>Generating Configuration File<a class="headerlink" href="#generating-configuration-file" title="Link to this heading">#</a></h3>
+<p>TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
+parameters that are used. This is achieved using a <a class="reference internal" href="configuration.html"><span class="doc std std-doc">configuration</span></a> file. This is a
+<a class="reference external" href="https://yaml.org">YAML</a> file that contains parameters for different settings. For convenience you can generate
+a sample configuration file in your current working directory using the <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">create-config</span></code> sub-command. There are
+a number of arguments available. They key one is <code class="docutils literal notranslate"><span class="pre">--config</span></code> which defines what configuration file is written and
+currently has three possible options <code class="docutils literal notranslate"><span class="pre">default</span></code>, <code class="docutils literal notranslate"><span class="pre">simple</span></code>, <code class="docutils literal notranslate"><span class="pre">mplstyle</span></code> or <code class="docutils literal notranslate"><span class="pre">var_to_label</span></code>. See <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">create-config</span> <span class="pre">---help</span></code>
+for descriptions of other available options. <strong>NB</strong> if <code class="docutils literal notranslate"><span class="pre">--filename</span></code> is omitted then the value of <code class="docutils literal notranslate"><span class="pre">--config</span></code> determines
+the filename the configuration is written to as shown below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>create-config<span class="w"> </span>--config<span class="w"> </span>default<span class="w"> </span>--filename<span class="w"> </span>my_default_config.yaml
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:16<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>TopoStats<span class="w"> </span>version<span class="w"> </span>:<span class="w"> </span><span class="m">2</span>.3.2.dev600
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:16<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Commit<span class="w">            </span>:<span class="w"> </span>54e4b940a
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:16<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>A<span class="w"> </span>sample<span class="w"> </span>configuration<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>:<span class="w"> </span>my_default_config.yaml
+topostats<span class="w"> </span>create-config<span class="w"> </span>--config<span class="w"> </span>default
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:18<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>TopoStats<span class="w"> </span>version<span class="w"> </span>:<span class="w"> </span><span class="m">2</span>.3.2.dev600
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:18<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Commit<span class="w">            </span>:<span class="w"> </span>54e4b940a
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:18<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>A<span class="w"> </span>sample<span class="w"> </span>configuration<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>:<span class="w"> </span>default_config.yaml
+❱<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span>--config<span class="w"> </span>simple
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:22<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>TopoStats<span class="w"> </span>version<span class="w"> </span>:<span class="w"> </span><span class="m">2</span>.3.2.dev600
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:22<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Commit<span class="w">            </span>:<span class="w"> </span>54e4b940a
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:22<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>A<span class="w"> </span>sample<span class="w"> </span>configuration<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>:<span class="w"> </span>simple_config.yaml
+❱<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span>--config<span class="w"> </span>mplstyle
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:47<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>TopoStats<span class="w"> </span>version<span class="w"> </span>:<span class="w"> </span><span class="m">2</span>.3.2.dev600
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:47<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Commit<span class="w">            </span>:<span class="w"> </span>54e4b940a
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:12:47<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>A<span class="w"> </span>sample<span class="w"> </span>configuration<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>:<span class="w"> </span>topostats.mplstyle
+topostats<span class="w"> </span>create-config<span class="w"> </span>--config<span class="w"> </span>var_to_label
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:13:03<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>TopoStats<span class="w"> </span>version<span class="w"> </span>:<span class="w"> </span><span class="m">2</span>.3.2.dev600
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:13:03<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Commit<span class="w">            </span>:<span class="w"> </span>54e4b940a
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">28</span><span class="w"> </span>Oct<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">16</span>:13:03<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>A<span class="w"> </span>sample<span class="w"> </span>configuration<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>:<span class="w"> </span>var_to_label.yaml
+</pre></div>
+</div>
+<p>You can now edit and/or rename the <code class="docutils literal notranslate"><span class="pre">my_config.yaml</span></code>. It can be called anything you want,
+e.g. <code class="docutils literal notranslate"><span class="pre">todays_first_run_configuration.yaml</span></code> is a valid name.</p>
+</section>
+<section id="editing-config-yaml">
+<h3>Editing <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code><a class="headerlink" href="#editing-config-yaml" title="Link to this heading">#</a></h3>
+<p><strong>IMPORTANT</strong> This file is an ASCII text file and you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
+(GNU/Linux) or any other text editor. Do <em>not</em> use Microsoft Word or any other Word Processor to edit this file.</p>
+<p>You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
+ones you may want to change are….</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">base_dir</span></code> (default: <code class="docutils literal notranslate"><span class="pre">./</span></code>) the directory in which to search for scans. By default this is <code class="docutils literal notranslate"><span class="pre">./</span></code> which represents the
+directory from which <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code> is called and it is good practice to have one configuration file per batch of
+scans that are being processed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_dir</span></code> (default: <code class="docutils literal notranslate"><span class="pre">output</span></code>) the location where the output is saved, by default this is the directory <code class="docutils literal notranslate"><span class="pre">output</span></code>
+which will be created if it doesn’t exist. If you wish for the output to be somewhere else specify it here. If you
+want <code class="docutils literal notranslate"><span class="pre">Processed</span></code> directories to sit within the directories that images are found then simply set the <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> to
+the same value as <code class="docutils literal notranslate"><span class="pre">base_dir</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_level</span></code> (default: <code class="docutils literal notranslate"><span class="pre">info</span></code>) the verbosity of output to the console and log file, the options in order of verbosity
+are <code class="docutils literal notranslate"><span class="pre">debug</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">info</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">warning</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">error</span></code>. If you want less output set to <code class="docutils literal notranslate"><span class="pre">warning</span></code> or <code class="docutils literal notranslate"><span class="pre">error</span></code>. If you encounter
+errors please set to <code class="docutils literal notranslate"><span class="pre">debug</span></code> and run again and include the log in your <a class="reference external" href="https://github.com/AFM-SPM/TopoStats/issues/new?assignees=&amp;amp;labels=bug&amp;amp;template=bug_report.md&amp;amp;title=">bug
+report</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cores</span></code> (default: <code class="docutils literal notranslate"><span class="pre">2</span></code>) the number of parallel processes to run processing of all found images. Set this to a maximum
+of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
+this to at least <code class="docutils literal notranslate"><span class="pre">4</span></code> quite safely.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">file_ext</span></code> (default: <code class="docutils literal notranslate"><span class="pre">.spm</span></code>) the file extension of scans to search for within the current directory. The default is
+<code class="docutils literal notranslate"><span class="pre">.spm</span></code> but other file format support is in the pipeline.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plotting</span></code> : <code class="docutils literal notranslate"><span class="pre">image_set</span></code> (default <code class="docutils literal notranslate"><span class="pre">core</span></code>) specifies which steps of the processing to plot images of. The value <code class="docutils literal notranslate"><span class="pre">all</span></code>
+gets images for all stages, <code class="docutils literal notranslate"><span class="pre">core</span></code> saves only a subset of images.</p></li>
+</ul>
+<p>Most of the other configuration options can be left on their default values for now but the file is fully commented and
+should you wish to change settings you should read these comments.</p>
+<p>Once you have made any changes save the file and return to your terminal.</p>
+</section>
+<section id="running-topostats-with-my-config-yaml">
+<h3>Running TopoStats with <code class="docutils literal notranslate"><span class="pre">my_config.yaml</span></code><a class="headerlink" href="#running-topostats-with-my-config-yaml" title="Link to this heading">#</a></h3>
+<p>To use your new configuration file you need to inform <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code> to use that file rather than the defaults,
+this is done using the <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">config.yaml</span></code> file.</p>
+<p><strong>NB</strong> this assumes that you are in the same directory as your scans where you have saved the <code class="docutils literal notranslate"><span class="pre">my_config.yaml</span></code> file that
+you edited. That doesn’t <em>have</em> to be the case but it makes life easier for if you are not familiar with absolute
+and relative paths.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>--config<span class="w"> </span>my_config.yaml<span class="w"> </span>process
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>is<span class="w"> </span>valid.
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Plotting<span class="w"> </span>configuration<span class="w"> </span>is<span class="w"> </span>valid.
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>file<span class="w"> </span>loaded<span class="w"> </span>from<span class="w">      </span>:<span class="w"> </span>None
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span><span class="k">in</span><span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Output<span class="w"> </span>directory<span class="w">                    </span>:<span class="w"> </span>output
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Looking<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>extension<span class="w">   </span>:<span class="w"> </span>.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Images<span class="w"> </span>with<span class="w"> </span>extension<span class="w"> </span>.spm<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/neil/work/projects/topostats/TopoStats<span class="w"> </span>:<span class="w"> </span><span class="m">1</span>
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Filtering<span class="o">)</span><span class="w">     </span>:<span class="w"> </span>std_dev
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Grains<span class="o">)</span><span class="w">        </span>:<span class="w"> </span>std_dev
+...
+</pre></div>
+</div>
+<p>On successful completion you should see the same message noted above.</p>
+</section>
+<section id="renaming-bruker-files">
+<h3>Renaming Bruker Files<a class="headerlink" href="#renaming-bruker-files" title="Link to this heading">#</a></h3>
+<p>Older Bruker devices output files with somewhat uninformative numerical file extensions (e.g. <code class="docutils literal notranslate"><span class="pre">.001</span></code>, <code class="docutils literal notranslate"><span class="pre">.002</span></code>, <code class="docutils literal notranslate"><span class="pre">.003</span></code>
+etc.). TopoStats will automatically detect and process these if the configuration file is <code class="docutils literal notranslate"><span class="pre">file_ext:</span> <span class="pre">.spm</span></code> (or on the
+command line the <code class="docutils literal notranslate"><span class="pre">--file-ext/-f</span> <span class="pre">.spm</span></code> option is used). However, for convenience a sub-processor is provided which will
+append the suffix <code class="docutils literal notranslate"><span class="pre">.spm</span></code> to all files found recursively with numerical extensions in the specified directory. You can
+specify the <code class="docutils literal notranslate"><span class="pre">--base-dir</span> <span class="pre">/path/to/a/directory</span></code> if you are not already in the same directory as the files, otherwise it
+will use the current directory. You then use the sub-command <code class="docutils literal notranslate"><span class="pre">bruker-rename</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>--base-dir<span class="w"> </span>/path/to/a/directory<span class="w"> </span>bruker-rename
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>The<span class="w"> </span>YAML<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>is<span class="w"> </span>valid.
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Total<span class="w"> </span>Bruker<span class="w"> </span>files<span class="w"> </span>found<span class="w"> </span>:<span class="w"> </span><span class="m">5</span>
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Old<span class="w"> </span>style<span class="w"> </span>files<span class="w"> </span>found<span class="w">    </span>:<span class="w"> </span><span class="m">5</span>
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Renaming<span class="w"> </span>files...
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>test.002<span class="w"> </span>&gt;<span class="w"> </span>test.002.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>test.001<span class="w"> </span>&gt;<span class="w"> </span>test.001.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>nested/directory/test.004<span class="w"> </span>&gt;<span class="w"> </span>nested/directory/test.004.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>nested/directory/test.999999<span class="w"> </span>&gt;<span class="w"> </span>nested/directory/test.999999.spm
+<span class="o">[</span>Tue,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2025</span><span class="w"> </span><span class="m">12</span>:18:15<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>nested/directory/test.003<span class="w"> </span>&gt;<span class="w"> </span>nested/directory/test.003.spm
+</pre></div>
+</div>
+</section>
+</section>
+<section id="output">
+<h2>Output<a class="headerlink" href="#output" title="Link to this heading">#</a></h2>
+<p>The output from running TopoStats is saved in the location defined in the configuration file by <code class="docutils literal notranslate"><span class="pre">output_dir</span></code>. The
+default is the directory <code class="docutils literal notranslate"><span class="pre">output</span></code> within the directory from which <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code>. This may differ if you have
+used your own customised configuration file (specifically if you have modified the <code class="docutils literal notranslate"><span class="pre">output_dir:</span></code> option).</p>
+<p>At the top level of the output directory are a few files produced:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> : a copy of the configuration used to process the images.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code> : a Comma Separated Variable ASCII plain-text file of the grain statistics.</p></li>
+</ul>
+<p>If the <code class="docutils literal notranslate"><span class="pre">output_stats</span></code> option has been set to <code class="docutils literal notranslate"><span class="pre">full</span></code> the following additional files will be written to the output directory:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">output/branch_statistics.csv</span></code> : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+statistics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output/molecule_statistics.csv</span></code> : a Comma Separated Variable ASCII plain-text file of the molecule statistics.</p></li>
+</ul>
+<p><strong>Note:</strong> - If all grains / branch segments of a column have a <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">NaN</span></code> value, the column will not be present in
+the output <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file.</p>
+<p>The remaining directories of results is contingent on the structure of files within the <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> that is specified in
+the configuration. If all files are in the top-level directory (i.e. no nesting) then you will have just a <code class="docutils literal notranslate"><span class="pre">Processed</span></code>
+directory. If there is a nested structure then there will be a <code class="docutils literal notranslate"><span class="pre">Processed</span></code> directory in each folder that an image with
+the specified <code class="docutils literal notranslate"><span class="pre">file_ext</span></code> has been found. This is perhaps best illustrated by way of example.</p>
+<p>If you have the following three <code class="docutils literal notranslate"><span class="pre">.spm</span></code> files within your current directory, one at the top level, one under <code class="docutils literal notranslate"><span class="pre">level1</span></code> and
+one under <code class="docutils literal notranslate"><span class="pre">level1/a</span></code>…</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:55<span class="o">]</span><span class="w">  </span>.
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1
+<span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/a
+<span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/a/minicircle.spm
+<span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/minicircle.spm
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./minicircle.spm
+</pre></div>
+</div>
+<p>…then under <code class="docutils literal notranslate"><span class="pre">output</span></code> (the default for<code class="docutils literal notranslate"><span class="pre">output_dir</span></code>) you will see the following directory structure.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">381</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/grain_statistics.csv
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">733</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/all_disordered_tracing_statistics.csv
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">254</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/molecule_statistics.csv
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">7</span>.4K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/config.yaml
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">222</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/image_statistics.csv
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1
+<span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/a
+<span class="p">|</span><span class="w">   </span><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/a/Processed
+<span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/Processed
+<span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/Processed
+</pre></div>
+</div>
+<p>…where there is one <code class="docutils literal notranslate"><span class="pre">Processed</span></code> directory at the sub-directory level that each image was found.</p>
+<p><strong>NB</strong> If you want <code class="docutils literal notranslate"><span class="pre">Processed</span></code> directories to sit within the directories that images are found then simply set the <code class="docutils literal notranslate"><span class="pre">output_dir</span></code>
+to the same value as <code class="docutils literal notranslate"><span class="pre">base_dir</span></code>.</p>
+<p>Within each <code class="docutils literal notranslate"><span class="pre">Processed</span></code> directory is a directory for each file found with the specified <code class="docutils literal notranslate"><span class="pre">file_ext</span></code> and within these are
+the resulting images from processing scans. If the <code class="docutils literal notranslate"><span class="pre">plotting</span></code> : <code class="docutils literal notranslate"><span class="pre">image_set</span></code> is <code class="docutils literal notranslate"><span class="pre">core</span></code> then there is a single image for
+each. If this option is <code class="docutils literal notranslate"><span class="pre">all</span></code> then there is also a sub-directory for each image found within which there are the
+directories <code class="docutils literal notranslate"><span class="pre">filters</span></code>, <code class="docutils literal notranslate"><span class="pre">grains/below</span></code> and <code class="docutils literal notranslate"><span class="pre">grains/above</span></code> which contain additional images from the processing stages and
+an accompanying histogram for each image showing the distribution of pixel heights for that image.</p>
+<section id="topostats-files">
+<h3><code class="docutils literal notranslate"><span class="pre">.topostats</span></code> files<a class="headerlink" href="#topostats-files" title="Link to this heading">#</a></h3>
+<p>TopoStats has implemented its own file format for saving data with the extension <code class="docutils literal notranslate"><span class="pre">.topostats</span></code>. This is an <a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5</a>
+file that uses a hierarchical structure for storing data. Initially an independent versioning system was implemented to
+denote the version of files, however after <code class="docutils literal notranslate"><span class="pre">0.2</span></code> of the file format indicator and release <code class="docutils literal notranslate"><span class="pre">v2.4.0</span></code> of TopoStats we
+switched to storing the version of TopoStats that the file was processed with (this aids with reproducibility and aligns
+with the <a class="reference external" href="https://www.nature.com/articles/s41597-022-01710-x">FAIR for Research Software Principles</a>).</p>
+<p>By saving data in this format it makes it easy to carry out “experiments” on the by re-running processing steps without
+having to re-run the whole pipeline (currently a work in progress).</p>
+<p>If you want to look at the structure of these files you can use <a class="reference external" href="https://pypi.org/project/h5glance/">h5glance</a> at the command line or load them
+into Notebooks. The structure is fairly self-explanatory as its based on a dictionary structure with descriptive keys
+denoting what the contents are (typically Numpy arrays).</p>
+<p>Originally (<code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">2.4.0</span></code> and upto <code class="docutils literal notranslate"><span class="pre">0.2</span></code>) the structure was orientated around the stage of processing. Subsequent to this
+(<code class="docutils literal notranslate"><span class="pre">&gt;=</span> <span class="pre">2.4.0</span></code>) the unit of organisation became the individual detected grains and their sub-molecules/grains.</p>
+</section>
+</section>
+<section id="summary-plots">
+<h2>Summary Plots<a class="headerlink" href="#summary-plots" title="Link to this heading">#</a></h2>
+<p>By default TopoStats will take the data that has been summarised across all files and generate a series of plots,
+<a class="reference external" href="https://en.wikipedia.org/wiki/Histogram">histograms</a> with <a class="reference external" href="https://en.wikipedia.org/wiki/Kernel_density_estimation">Kernel Density Estimates
+(KDE)</a> overlaid and <a class="reference external" href="https://en.wikipedia.org/wiki/Violin_plot">Violin
+plots</a>. The default location of these if no custom configuration file is used
+is <code class="docutils literal notranslate"><span class="pre">output/summary_distributions</span></code>. If you have used a custom configuration file it will be the sub-directory
+<code class="docutils literal notranslate"><span class="pre">summary_distributions</span></code> nested under the directory specified for the <code class="docutils literal notranslate"><span class="pre">output</span></code>, e.g. if you used the current directory as
+output you will have a <code class="docutils literal notranslate"><span class="pre">summary_distributions</span></code> directory present.</p>
+<p>Sometimes you may have a <code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code> from a run and wish to plot distributions of additional statistics that
+were not already plotted. This can be achieved using the command line program <code class="docutils literal notranslate"><span class="pre">toposum</span></code> which is included.</p>
+<p><strong>NB</strong> Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
+configured. It uses the plotting library <a class="reference external" href="https://seaborn.pydata.org/">Seaborn</a> (which is built on top of
+<a class="reference external" href="https://matplotlib.org/">Matplotlib</a>) to produce basic plots, which are not intended for publication. If you want to
+tweak or customise plots it is recommended to load <code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code> into a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a>
+and generate the plots you want there. A sample notebook is included to show how to do this.</p>
+<section id="configuring-summary-plots">
+<h3>Configuring Summary Plots<a class="headerlink" href="#configuring-summary-plots" title="Link to this heading">#</a></h3>
+<p>Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
+<a class="reference internal" href="configuration.html#summary-configuration"><span class="std std-ref">configuration</span></a> page. You can generate a sample configuration by invoking the
+<code class="docutils literal notranslate"><span class="pre">--create-config-file</span></code> option to <code class="docutils literal notranslate"><span class="pre">toposum</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>toposum<span class="w"> </span>--create-config-file<span class="w"> </span>custom_summary_config.yaml
+</pre></div>
+</div>
+<p>The file <code class="docutils literal notranslate"><span class="pre">custom_summary_config.yaml</span></code> can then be edited to change what plots are generated, where they are saved to and
+so forth. Typically you will only want to adjust a few settings such as toggling the types of plots (<code class="docutils literal notranslate"><span class="pre">hist</span></code>, <code class="docutils literal notranslate"><span class="pre">kde</span></code> and
+<code class="docutils literal notranslate"><span class="pre">violin</span></code>), the number of <code class="docutils literal notranslate"><span class="pre">bins</span></code> in a histogram or the statistic to plot in histograms (<code class="docutils literal notranslate"><span class="pre">count</span></code>, <code class="docutils literal notranslate"><span class="pre">frequency</span></code> etc.). You
+can change the <code class="docutils literal notranslate"><span class="pre">palette</span></code> that is used by Seaborn and crucially toggle which statistics are summarised by commenting
+and uncommenting the statistic names under <code class="docutils literal notranslate"><span class="pre">stats_to_sum</span></code>.</p>
+</section>
+<section id="labels">
+<h3>Labels<a class="headerlink" href="#labels" title="Link to this heading">#</a></h3>
+<p>Labels for the plots are generated from the file <code class="docutils literal notranslate"><span class="pre">topostats/var_to_label.yaml</span></code> which provides a dictionary that maps the
+variable name as the dictionary <code class="docutils literal notranslate"><span class="pre">key</span></code> to its description stored in the dictionary <code class="docutils literal notranslate"><span class="pre">value</span></code>. If you wish to customise
+these you can do so and pass it to <code class="docutils literal notranslate"><span class="pre">toposum</span></code> using the <code class="docutils literal notranslate"><span class="pre">--plotting_dictionary</span></code> which takes as an argument the path to
+the file you have created.</p>
+</section>
+<section id="pickles">
+<h3>Pickles<a class="headerlink" href="#pickles" title="Link to this heading">#</a></h3>
+<p>The option <code class="docutils literal notranslate"><span class="pre">pickle_plots:</span> <span class="pre">True</span></code> will save to the specified <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> the file <code class="docutils literal notranslate"><span class="pre">distribution_plots.pkl</span></code> which is a
+binary format that saves the plots that have been generated and saved in nested dictionaries so that they can be loaded
+again. The Notebook <code class="docutils literal notranslate"><span class="pre">notebooks/02-Summary-statistics-and-plots.ipynb</span></code> shows how to load these and make simple
+modifications to the the plots.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="installation.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Installation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="configuration.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Configuration</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organising-scans">Organising Scans</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#command-line-navigation">Command Line Navigation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-topostats">Running TopoStats</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#help-options">Help Options</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reducing-output">Reducing Output</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-topostats">Configuring TopoStats</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-configuration-file">Generating Configuration File</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#editing-config-yaml">Editing <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-topostats-with-my-config-yaml">Running TopoStats with <code class="docutils literal notranslate"><span class="pre">my_config.yaml</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#renaming-bruker-files">Renaming Bruker Files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output">Output</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats-files"><code class="docutils literal notranslate"><span class="pre">.topostats</span></code> files</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-plots">Summary Plots</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#configuring-summary-plots">Configuring Summary Plots</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#labels">Labels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pickles">Pickles</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/usage.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

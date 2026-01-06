@@ -1,0 +1,798 @@
+topostats.grainstats
+====================
+
+.. py:module:: topostats.grainstats
+
+.. autoapi-nested-parse::
+
+   Contains class for calculating the statistics of grains - 2d raster images
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.grainstats.LOGGER
+   topostats.grainstats.GRAIN_STATS_COLUMNS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.grainstats.GrainStats
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:data:: GRAIN_STATS_COLUMNS
+   :value: ['Molecule Number', 'centre_x', 'centre_y', 'radius_min', 'radius_max', 'radius_mean',...
+
+
+.. py:class:: GrainStats(data: numpy.ndarray, labelled_data: numpy.ndarray, pixel_to_nanometre_scaling: float, direction: str, base_output_dir: Union[str, pathlib.Path], image_name: str = None, save_cropped_grains: bool = False, cropped_size: float = -1, plot_opts: dict = None)
+
+   
+   Class for calculating grain stats.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: labelled_data
+
+
+   .. py:attribute:: pixel_to_nanometre_scaling
+
+
+   .. py:attribute:: direction
+
+
+   .. py:attribute:: base_output_dir
+
+
+   .. py:attribute:: start_point
+      :value: None
+
+
+
+   .. py:attribute:: image_name
+      :value: None
+
+
+
+   .. py:attribute:: save_cropped_grains
+      :value: False
+
+
+
+   .. py:attribute:: cropped_size
+      :value: -1
+
+
+
+   .. py:attribute:: plot_opts
+      :value: None
+
+
+
+   .. py:method:: get_angle(point_1: tuple, point_2: tuple) -> float
+      :staticmethod:
+
+
+      
+      Function that calculates the angle in radians between two points.
+
+      :param point1: Coordinate vectors for the first point to find the angle between.
+      :type point1: tuple
+      :param point2: Coordinate vectors for the second point to find the angle between.
+      :type point2: tuple
+
+      :returns: **angle** -- The angle in radians between the two input vectors.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool
+      :staticmethod:
+
+
+      
+      Function to determine if three points make a clockwise or counter-clockwise turn.
+
+      :param p_1: First point to be used to calculate turn.
+      :type p_1: tuple
+      :param p_2: Second point to be used to calculate turn.
+      :type p_2: tuple
+      :param p_3: Third point to be used to calculate turn.
+      :type p_3: tuple
+
+      :returns: Indicator of whether turn is clockwise.
+      :rtype: boolean
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_stats() -> Dict
+
+      
+      Calculate the stats of grains in the labelled image
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_points(grain_mask: numpy.ndarray)
+      :staticmethod:
+
+
+      
+      Class method that takes a 2D boolean numpy array image of a grain and returns a list containing the
+      co-ordinates of the points in the grain.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: np.ndarray
+
+      :returns: **points** -- A python list containing the coordinates of the pixels in the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_edges(grain_mask: numpy.ndarray)
+      :staticmethod:
+
+
+      
+      Class method that takes a 2D boolean numpy array image of a grain and returns a python list of the
+      coordinates of the edges of the grain.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: np.ndarray
+
+      :returns: **edges** -- List containing the coordinates of the edges of the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_radius_stats(edges: list, points: list) -> Tuple
+
+      
+      Class method that calculates the statistics relating to the radius. The radius in this context
+      is the distance from the centroid to points on the edge of the grain.
+
+      :param edges: A 2D python list containing the coordinates of the edges of a grain.
+      :type edges: list
+      :param points: A 2D python list containing the coordinates of the points in a grain.
+      :type points: list
+
+      :returns: A tuple of the minimum, maximum, mean and median radius of the grain
+      :rtype: Tuple[float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_centroid(points: numpy.array) -> tuple
+      :staticmethod:
+
+
+      
+      Calculate the centroid of a bounding box.
+
+      :param points: A 2D python list containing the co-ordinates of the points in a grain.
+      :type points: list
+
+      :returns: The co-ordinates of the centroid.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_displacement(edges: numpy.array, centroid: tuple) -> numpy.array
+      :staticmethod:
+
+
+      
+      Calculate the displacement between the centroid and edges
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_radius(displacements) -> numpy.array
+      :staticmethod:
+
+
+      
+      Calculate the radius of each point from the centroid
+
+      :param displacements:
+      :type displacements: List[list]
+      :param Retrurns:
+      :param --------:
+      :param np.array:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: convex_hull(edges: list, base_output_dir: pathlib.Path, debug: bool = False)
+
+      
+      Class method that takes a grain mask and the edges of the grain and returns the grain's convex hull. Based
+      off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
+
+      :param edges: A python list contianing the coordinates of the edges of the grain.
+      :type edges: list
+      :param base_output_dir: Directory to save output to.
+      :type base_output_dir: Union[str, Path]
+      :param debug: Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls and edges will be saved.
+      :type debug: bool
+
+      :returns: * **hull** (*list*) -- Coordinates of the points in the hull.
+                * **hull_indices** (*list*) -- The hull points indices inside the edges list. In other words, this provides a way to find the points from the hull inside the edges list that was passed.
+                * **simplices** (*list*) -- List of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such that they follow each other in counterclockwise order.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_squared_distance(point_2: tuple, point_1: tuple = None) -> float
+
+      
+      Function that calculates the distance squared between two points. Used for distance sorting purposes and
+      therefore does not perform a square root in the interests of efficiency.
+
+      :param point_2: The point to find the squared distance to.
+      :type point_2: tuple
+      :param point_1: Optional - defaults to the starting point defined in the graham_scan() function. The point to find the
+      :type point_1: tuple
+      :param squared distance from.:
+
+      :returns: **distance_squared** -- The squared distance between the two points.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sort_points(points: List) -> List
+
+      
+      Function to sort points in counter-clockwise order of angle made with the starting point.
+
+      :param points: A python list of the coordinates to sort.
+      :type points: list
+
+      :returns: **sorted_points** -- A python list of sorted points.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_start_point(edges) -> int
+
+      
+      Determine the index of the bottom most point of the hull when sorted by x-position.
+
+      :param edges:
+      :type edges: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: graham_scan(edges: list)
+
+      
+      A function based on the Graham Scan algorithm that constructs a convex hull from points in 2D cartesian
+      space. Ideally this algorithm will take O( n * log(n) ) time.
+
+      :param edges: A python list of coordinates that make up the edges of the grain.
+      :type edges: list
+
+      :returns: * **hull** (*list*) -- A list containing coordinates of the points in the hull.
+                * **hull_indices** (*list*) -- A list containing the hull points indices inside the edges list. In other words, this provides a way to find
+                  the points from the hull inside the edges list that was passed.
+                * **simplices** (*list*) -- A  list of tuples, each tuple representing a simplex of the convex hull. These simplices are sorted such
+                  that they follow each other in counterclockwise order.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot(edges: list, convex_hull: list = None, file_path: pathlib.Path = None)
+      :staticmethod:
+
+
+      
+      A function that plots and saves the coordinates of the edges in the grain and optionally the hull. The
+      plot is saved as the file name that is provided.
+
+      :param coordinates: A list of points to be plotted.
+      :type coordinates: list
+      :param convex_hull: Optional argument. A list of points that form the convex hull. Will be plotted with the coordinates if
+                          provided.
+      :type convex_hull: list
+      :param file_path: Path of the file to save the plot as.
+      :type file_path: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_aspect_ratio(edges: list, hull_simplices: numpy.ndarray, path: pathlib.Path, debug: bool = False) -> tuple
+
+      
+      Class method that takes a list of edge points for a grain, and convex hull simplices and returns the width,
+         length and aspect ratio of the smallest bounding rectangle for the grain.
+
+      :param edges: A python list of coordinates of the edge of the grain.
+      :type edges: list
+      :param hull_simplices: A 2D numpy array of simplices that the hull is comprised of.
+      :type hull_simplices: np.ndarray
+      :param path: Path to the save folder for the grain.
+      :type path: Path
+      :param debug: If true, various plots will be saved for diagnostic purposes.
+      :type debug: bool
+
+      :returns: * **smallest_bounding_width** (*float*) -- The width in pixels (not nanometres), of the smallest bounding rectangle for the grain.
+                * **smallest_bounding_length** (*float*) -- The length in pixels (not nanometres), of the smallest bounding rectangle for the grain.
+                * **aspect_ratio** (*float*) -- The width divided by the length of the smallest bounding rectangle for the grain. It will always be greater
+                  or equal to 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_cartesian_extremes(rotated_points: numpy.ndarray) -> Dict
+      :staticmethod:
+
+
+      
+      Find the limits of x and y of rotated points.
+
+      :param rotated_points: 2-D array of rotated points.
+      :type rotated_points: np.ndarray
+
+      :returns: Dictionary of the x and y min and max.__annotations__
+      :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_shift(coords: numpy.ndarray, shape: numpy.ndarray) -> int
+      :staticmethod:
+
+
+      
+      Obtains the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+
+      :param coords: Value representing integer coordinates which may be outside of the image.
+      :type coords: np.ndarray
+      :param shape: Array of the shape of an image.
+      :type shape: np.ndarray
+
+      :returns: Max value of the shift to reflect the croped region so it stays within the image.
+      :rtype: np.int64
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cropped_region(image: numpy.ndarray, length: int, centre: numpy.ndarray) -> numpy.ndarray
+
+      
+      Crops the image with respect to a given pixel length around the centre coordinates.
+
+      :param image: The image array.
+      :type image: np.ndarray
+      :param length: The length (in pixels) of the resultant cropped image.
+      :type length: int
+      :param centre: The centre of the object to crop.
+      :type centre: np.ndarray
+
+      :returns: Cropped array of the image.
+      :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_triangle_height(base_point_1: numpy.array, base_point_2: numpy.array, top_point: numpy.array) -> float
+      :staticmethod:
+
+
+      
+      Returns the height of a triangle defined by the input point vectors.
+      :param base_point_1: a base point of the triangle, eg: [5, 3].
+      :type base_point_1: np.ndarray
+      :param base_point_2: a base point of the triangle, eg: [8, 3].
+      :type base_point_2: np.ndarray
+      :param top_point: the top point of the triangle, defining the height from the line between the two base points, eg: [6,10].
+      :type top_point: np.ndarray
+
+      :returns: The height of the triangle - ie the shortest distance between the top point and the line between the two base points.
+      :rtype: Float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_max_min_ferets(edge_points: list)
+      :staticmethod:
+
+
+      
+      Returns the minimum and maximum feret diameters for a grain.
+      These are defined as the smallest and greatest distances between
+      a pair of callipers that are rotating around a 2d object, maintaining
+      contact at all times.
+
+      :param edge_points: a list of the vector positions of the pixels comprising the edge of the
+                          grain. Eg: [[0, 0], [1, 0], [2, 1]]
+      :type edge_points: list
+
+      :returns: * **min_feret** (*float*) -- the minimum feret diameter of the grain
+                * **max_feret** (*float*) -- the maximum feret diameter of the grain
+
+      .. rubric:: Notes
+
+      The method starts out by calculating the upper and lower convex hulls using
+      an algorithm based on the Graham Scan Algorithm [1]. Using these upper and
+      lower hulls, the callipers are simulated as rotating clockwise around the grain.
+      We determine the order in which vertices are encountered by comparing the
+      gradients of the slopes between vertices. An array of pairs of points that
+      are in contact with either calliper at a given time is created in order to
+      be able to calculate the maximum feret diameter. The minimum diameter is a
+      little tricky, since it won't simply be the shortest distance between two
+      contact points, but it will occur somewhere during the rotation around a
+      pair of contact points. It turns out that the point will always be such
+      that two points are in contact with one calliper while the other calliper
+      is in contact with another point. We can use this fact to be sure of finding
+      the smallest feret diameter, simply by testing each triangle of 3 contact points
+      as we iterate, finding the height of the triangle that is formed between the
+      three aforementioned points, as this will be the perpendicular distance between
+      the callipers.
+
+      .. rubric:: References
+
+      [1] Graham, R.L. (1972).
+          "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set".
+          Information Processing Letters. 1 (4): 132-133.
+          doi:10.1016/0020-0190(72)90045-2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

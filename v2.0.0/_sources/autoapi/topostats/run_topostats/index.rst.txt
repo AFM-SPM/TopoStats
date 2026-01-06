@@ -1,0 +1,126 @@
+topostats.run_topostats
+=======================
+
+.. py:module:: topostats.run_topostats
+
+.. autoapi-nested-parse::
+
+   Run TopoStats
+
+   This provides an entry point for running TopoStats as a command line programme.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.run_topostats.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.run_topostats.create_parser
+   topostats.run_topostats.process_scan
+   topostats.run_topostats.main
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: create_parser() -> argparse.ArgumentParser
+
+   
+   Create a parser for reading options.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process_scan(image_path: Union[str, pathlib.Path], base_dir: Union[str, pathlib.Path], loading_config: dict, filter_config: dict, grains_config: dict, grainstats_config: dict, dnatracing_config: dict, plotting_config: dict, output_dir: Union[str, pathlib.Path] = 'output') -> None
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param image_path: Path to image to process.
+   :type image_path: Union[str, Path]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param loading_config: Dictionary of configuration options for running the Load Scan stage.
+   :type loading_config: dict
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param dnatracing_config: Dictionary of configuration options for running the DNA Tracing stage.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: Union[str, Path]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: main()
+
+   
+   Run processing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

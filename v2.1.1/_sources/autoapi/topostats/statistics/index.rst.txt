@@ -1,0 +1,98 @@
+topostats.statistics
+====================
+
+.. py:module:: topostats.statistics
+
+.. autoapi-nested-parse::
+
+   Function for calculating statistics about a whole image, for example number of grains or surface roughness.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.statistics.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.statistics.image_statistics
+   topostats.statistics.roughness_rms
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: image_statistics(image: numpy.ndarray, filename: str, pixel_to_nm_scaling: float, results_df: pandas.DataFrame) -> pandas.DataFrame
+
+   
+   Calculate statistics pertaining to the whole image, for example the size of the image in pixels and
+   metres, the root-mean-squared roughness and the grains per metre squared.
+
+   :param image: Numpy 2D image array of the image to calculate stats for.
+   :type image: np.ndarray
+   :param filename: The name of the file being processed.
+   :type filename: str
+   :param pixel_to_nm_scaling: Float of the scaling factor between pixels and nanometres.
+   :type pixel_to_nm_scaling: float
+   :param results_df: Pandas DataFrame of statistics pertaining to individual grains including from grainstats and
+                      dna tracing.
+   :type results_df: pd.DataFrame
+
+   :returns: Dictionary of image statistics.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: roughness_rms(image: numpy.ndarray) -> float
+
+   
+   Calculate the root-mean-square roughness of a heightmap image.
+
+   :param image: 2D numpy array of heightmap data to calculate the roughness of
+   :type image: np.ndarray
+   :param Returns:
+   :param float: The RMS roughness of the input array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

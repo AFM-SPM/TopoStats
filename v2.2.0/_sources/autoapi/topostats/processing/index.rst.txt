@@ -1,0 +1,371 @@
+topostats.processing
+====================
+
+.. py:module:: topostats.processing
+
+.. autoapi-nested-parse::
+
+   Functions for processing data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.processing.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.processing.run_filters
+   topostats.processing.run_grains
+   topostats.processing.run_grainstats
+   topostats.processing.run_dnatracing
+   topostats.processing.get_out_paths
+   topostats.processing.process_scan
+   topostats.processing.check_run_steps
+   topostats.processing.completion_message
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: run_filters(unprocessed_image: numpy.ndarray, pixel_to_nm_scaling: float, filename: str, filter_out_path: pathlib.Path, core_out_path: pathlib.Path, filter_config: dict, plotting_config: dict) -> numpy.ndarray
+
+   
+   Filter and flatten an image.
+
+   Optionally plots the results, returning the flattened image.
+
+   :param unprocessed_image: Image to be flattened
+   :type unprocessed_image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param filename: File name for the image
+   :type filename: str
+   :param filter_out_path: Output directory for step-by-step flattening plots.
+   :type filter_out_path: Path
+   :param core_out_path: General output directory for outputs such as the flattened image.
+   :type core_out_path: Path
+   :param filter_config: Dictionary of configuration for the Filters class to use when initialised.
+   :type filter_config: dict
+   :param plotting_config: Dictionary of configuration for plotting output images.
+   :type plotting_config: dict
+
+   :returns: Either a numpy array of the flattened image, or None if an error occurs or
+             flattening is disabled in the configuration.
+   :rtype: Union[np.ndarray, None]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grains(image: numpy.ndarray, pixel_to_nm_scaling: float, filename: str, grain_out_path: pathlib.Path, core_out_path: pathlib.Path, plotting_config: dict, grains_config: dict)
+
+   
+   Find grains within an image.
+
+   Identifies grains (molecules) and optionally plots the results.
+
+   :param image: 2d numpy array image to find grains in
+   :type image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param grain_out_path: Output path for step-by-step grain finding plots
+   :param core_out_path: General output directory for outputs such as the flattened image with
+                         grain masks overlaid.
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :param grains_config: Dictionary of configuration for the Grains class to use when initialised.
+
+   :returns: Either None in the case of error or grain finding being disabled or a dictionary
+             with keys of "above" and or "below" containing binary masks depicting where grains
+             have been detected.
+   :rtype: Union[dict, None]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_grainstats(image: numpy.ndarray, pixel_to_nm_scaling: float, grain_masks: dict, filename: str, grainstats_config: dict, plotting_config: dict, grain_out_path: pathlib.Path)
+
+   
+   Calculate grain statistics.
+
+   Calculates grain statistics for an image and optionally plots the results.
+
+   :param image: 2D numpy array image for grain statistics calculations.
+   :type image: np.ndarray
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+                       boolean arrays indicating the pixels that have been masked as grains.
+   :type grain_masks: dict
+   :param filename: Name of the image.
+   :type filename: str
+   :param grainstats_config: Dictionary of configuration for the GrainStats class to be used when initialised.
+   :type grainstats_config: dict
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+   :param grain_out_path: Directory to save optional grain statistics visual information to.
+
+   :returns: A pandas DataFrame containing the statsistics for each grain. The index is the
+             filename and grain number.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_dnatracing(image: numpy.ndarray, grain_masks: dict, pixel_to_nm_scaling: float, image_path: pathlib.Path, filename: str, core_out_path: pathlib.Path, grain_out_path: pathlib.Path, dnatracing_config: dict, plotting_config: dict, results_df: pandas.DataFrame = None)
+
+   
+   Calculate DNA traces.
+
+   Traces DNA molecules for the supplied grains adding results to statistics data frames and optionally plots results.
+
+   :param image: Image containing the DNA to pass to the dna tracing function
+   :type image: np.ndarray
+   :param grain_masks: Dictionary of grain masks, keys "above" or "below" with values of 2d numpy
+                       boolean arrays indicating the pixels that have been masked as grains.
+   :type grain_masks: dict
+   :param pixel_to_nm_scaling: Scaling factor for converting pixel length scales to nanometres.
+                               ie the number of pixels per nanometre.
+   :type pixel_to_nm_scaling: float
+   :param image_path: Path to the image file. Used for DataFrame indexing.
+   :type image_path: Path
+   :param filename: Name of the image.
+   :type filename: str
+   :param core_out_path: General output directory for outputs such as the grain statistics
+                         DataFrame.
+   :type core_out_path: Path
+   :param grain_out_path: Directory to save optional dna tracing visual information to.
+   :type grain_out_path: Path
+   :param dna_tracing_config: Dictionary configuration for the dna tracing function.
+   :type dna_tracing_config: dict
+   :param plotting_config: Dictionary configuration for plotting images.
+   :type plotting_config: dict
+   :param results_df: Pandas DataFrame containing grain statistics.
+   :type results_df: pd.DataFrame
+
+   :returns: Pandas DataFrame containing grain statistics and dna tracing statistics.
+             Keys are file path and molecule number.
+   :rtype: pd.DataFrame
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_out_paths(image_path: pathlib.Path, base_dir: pathlib.Path, output_dir: pathlib.Path, filename: str, plotting_config: dict)
+
+   
+   Determine components of output paths for a given image and plotting config.
+
+   :param image_path: Path of the image being processed
+   :type image_path: Path
+   :param base_dir: Path of the data folder
+   :type base_dir: Path
+   :param output_dir: Base output directory for output data
+   :type output_dir: Path
+   :param filename: Name of the image being processed
+   :type filename: str
+   :param plotting_config: Dictionary of configuration for plotting images.
+   :type plotting_config: dict
+
+   :returns: Core output path for general file outputs, filter output path for flattening related files and
+             grain output path for grain finding related files.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: process_scan(topostats_object: dict, base_dir: str | pathlib.Path, filter_config: dict, grains_config: dict, grainstats_config: dict, dnatracing_config: dict, plotting_config: dict, output_dir: str | pathlib.Path = 'output') -> tuple[dict, pandas.DataFrame, dict]
+
+   
+   Process a single image, filtering, finding grains and calculating their statistics.
+
+   :param img_path_px2nm: A dictionary with keys 'image', 'img_path' and 'px_2_nm' containing a file or frames' image, it's path and it's pixel to namometre scaling value.
+   :type img_path_px2nm: Dict[str, Union[np.ndarray, Path, float]]
+   :param base_dir: Directory to recursively search for files, if not specified the current directory is scanned.
+   :type base_dir: Union[str, Path]
+   :param filter_config: Dictionary of configuration options for running the Filter stage.
+   :type filter_config: dict
+   :param grains_config: Dictionary of configuration options for running the Grain detection stage.
+   :type grains_config: dict
+   :param grainstats_config: Dictionary of configuration options for running the Grain Statistics stage.
+   :type grainstats_config: dict
+   :param dnatracing_config: Dictionary of configuration options for running the DNA Tracing stage.
+   :type dnatracing_config: dict
+   :param plotting_config: Dictionary of configuration options for plotting figures.
+   :type plotting_config: dict
+   :param output_dir: Directory to save output to, it will be created if it does not exist. If it already exists then it is possible
+                      that output will be over-written.
+   :type output_dir: Union[str, Path]
+
+   :returns: TopoStats dictionary object, DataFrame containing grain statistics and dna tracing statistics,
+             and dictionary containing general image statistics
+   :rtype: tuple[dict, pd.DataFrame, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: check_run_steps(filter_run: bool, grains_run: bool, grainstats_run: bool, dnatracing_run: bool) -> None
+
+   
+   Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
+
+   This checks that earlier steps required are enabled.
+
+   :param filter_run: Flag for running Filtering.
+   :type filter_run: bool
+   :param grains_run: Flag for running Grains.
+   :type grains_run: bool
+   :param grainstats_run: Flag for running GrainStats.
+   :type grainstats_run: bool
+   :param dnatracing_run: Flag for running DNA Tracing.
+   :type dnatracing_run: bool
+
+   :rtype: None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: completion_message(config: dict, img_files: list, summary_config: dict, images_processed: int) -> None
+
+   
+   Print a completion message summarising images processed.
+
+   :param config: Configuration dictionary.
+   :type config: dict
+   :param img_files: List of found image paths.
+   :type img_files: list()
+   :param summary_config: Configuration for plotting summary statistics.
+   :type summary_config: dict(
+   :param images_processed: Pandas DataFrame of results.
+   :type images_processed: int
+   :param Results:
+   :param -------:
+   :param None:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

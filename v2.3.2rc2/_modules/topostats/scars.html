@@ -1,0 +1,1372 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.scars &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/scars';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="scars.html">v2.3.2rc2</a></li>
+  <li><a href="../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topostats.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.scars</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.scars</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Image artefact correction functions that interpolates values filling the space of any detected scars.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+<span class="c1"># pylint: disable=too-many-arguments</span>
+<span class="c1"># pylint: disable=too-many-instance-attributes</span>
+
+
+<div class="viewcode-block" id="_mark_if_positive_scar">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._mark_if_positive_scar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mark_if_positive_scar</span><span class="p">(</span>
+    <span class="n">row_col</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span>
+    <span class="n">stddev</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">marked</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mark scars as positive (i.e. a ridge rather than a dip).</span>
+
+<span class="sd">    Determine if the points below and including the pixel at the specified row and column are a positive scar (a</span>
+<span class="sd">    ridge rather than a dip). If they are, mark them in the marked 2d npt.NDArray. Note that this only detects positive</span>
+<span class="sd">    scars.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    row_col : tuple</span>
+<span class="sd">        A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that</span>
+<span class="sd">        the first value is the row index, and the second is the column index.</span>
+<span class="sd">    stddev : float</span>
+<span class="sd">        The standard deviation, or the root-mean-square value for the image.</span>
+<span class="sd">    img : npt.NDArray</span>
+<span class="sd">        A 2-D image of the data to remove scars from.</span>
+<span class="sd">    marked : np.ndarry</span>
+<span class="sd">        A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a</span>
+<span class="sd">        floating point value that represents how strongly the algorithm considers it to be a scar.</span>
+<span class="sd">        This may or may not already contain non-zero values given that previous iterations of scar removal</span>
+<span class="sd">        may have been performed.</span>
+<span class="sd">    threshold_low : float</span>
+<span class="sd">        A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase</span>
+<span class="sd">        or decrease in height might constitute the top or bottom of a scar.</span>
+<span class="sd">    max_scar_width : int</span>
+<span class="sd">        A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,</span>
+<span class="sd">        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is</span>
+<span class="sd">        vertical and their length is horizontal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Unpack row, col</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">row_col</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">row_col</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># If sharp enough rise</span>
+    <span class="n">min_scar_value</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+    <span class="n">max_border_value</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">min_scar_value</span> <span class="o">-</span> <span class="n">max_border_value</span> <span class="o">&gt;</span> <span class="n">threshold_low</span> <span class="o">*</span> <span class="n">stddev</span><span class="p">:</span>
+        <span class="c1"># Possibly in a scar</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_scar_width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="c1"># Bottom of image, break</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bottom of image.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">min_scar_value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_scar_value</span><span class="p">,</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+            <span class="n">max_border_value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">],</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+            <span class="c1"># Check if scar ended</span>
+            <span class="k">if</span> <span class="n">min_scar_value</span> <span class="o">-</span> <span class="n">max_border_value</span> <span class="o">&gt;</span> <span class="n">threshold_low</span> <span class="o">*</span> <span class="n">stddev</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">-</span> <span class="n">max_border_value</span><span class="p">)</span> <span class="o">/</span> <span class="n">stddev</span>
+                    <span class="n">marked</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                    <span class="n">k</span> <span class="o">-=</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="_mark_if_negative_scar">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._mark_if_negative_scar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mark_if_negative_scar</span><span class="p">(</span>
+    <span class="n">row_col</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span>
+    <span class="n">stddev</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">marked</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mark scars as negative (i.e. a dip rather than a ridge).</span>
+
+<span class="sd">    Determine if the points below and including the pixel at the specified row and column are a negative scar (a</span>
+<span class="sd">    dip rather than a ridge). If they are, mark them in the marked 2d npt.NDArray. Note that this only detects negative</span>
+<span class="sd">    scars.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    row_col : tuple</span>
+<span class="sd">        A tuple containing the row and column indices of the pixel for the top of the potential scar. Note that</span>
+<span class="sd">        the first value is the row index, and the second is the column index.</span>
+<span class="sd">    stddev : float</span>
+<span class="sd">        The standard deviation, or the root-mean-square value for the image.</span>
+<span class="sd">    img : npt.NDArray</span>
+<span class="sd">        A 2-D image of the data to remove scars from.</span>
+<span class="sd">    marked : np.ndarry</span>
+<span class="sd">        A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a</span>
+<span class="sd">        floating point value that represents how strongly the algorithm considers it to be a scar.</span>
+<span class="sd">        This may or may not already contain non-zero values given that previous iterations of scar removal</span>
+<span class="sd">        may have been performed.</span>
+<span class="sd">    threshold_low : float</span>
+<span class="sd">        A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase</span>
+<span class="sd">        or decrease in height might constitute the top or bottom of a scar.</span>
+<span class="sd">    max_scar_width : int</span>
+<span class="sd">        A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,</span>
+<span class="sd">        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is</span>
+<span class="sd">        vertical and their length is horizontal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Unpack row, col</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">row_col</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">row_col</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># If sharp enough dip</span>
+    <span class="n">min_scar_value</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+    <span class="n">max_border_value</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">min_scar_value</span> <span class="o">-</span> <span class="n">max_border_value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">threshold_low</span> <span class="o">*</span> <span class="n">stddev</span><span class="p">:</span>
+        <span class="c1"># Possibly in a scar</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_scar_width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="c1"># Bottom of image, break</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bottom of image.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="n">min_scar_value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_scar_value</span><span class="p">,</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+            <span class="n">max_border_value</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">],</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+            <span class="c1"># Check if scar ended</span>
+            <span class="k">if</span> <span class="n">min_scar_value</span> <span class="o">-</span> <span class="n">max_border_value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">threshold_low</span> <span class="o">*</span> <span class="n">stddev</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_border_value</span> <span class="o">-</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span> <span class="o">/</span> <span class="n">stddev</span>
+                    <span class="n">marked</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                    <span class="n">k</span> <span class="o">-=</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="_spread_scars">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._spread_scars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_spread_scars</span><span class="p">(</span>
+    <span class="n">marked</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Spread high-marked pixels into adjacent low-marked pixels.</span>
+
+<span class="sd">    This is a smudging function that attempts to catch any pixels that are parts of scars that might not have been</span>
+<span class="sd">    extreme enough to get marked above the high_threshold. Any remaining marked pixels below high_threshold are</span>
+<span class="sd">    considered not to be scars and are removed from the mask.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    marked : npt.NDArray</span>
+<span class="sd">        A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a</span>
+<span class="sd">        floating point value that represents how strongly the algorithm considers it to be a scar.</span>
+<span class="sd">        This may or may not already contain non-zero values given that previous iterations of scar removal</span>
+<span class="sd">        may have been performed.</span>
+<span class="sd">    threshold_low : float</span>
+<span class="sd">        A floating point value, that when multiplied by the standard deviation of the image, acts as a</span>
+<span class="sd">        threshold for sharp inclines or descents in pixel values and thus marks potential scars.</span>
+<span class="sd">        A lower value will make the algorithm</span>
+<span class="sd">        more sensitive, and a higher value will make it less sensitive.</span>
+<span class="sd">    threshold_high : float</span>
+<span class="sd">        A floating point value that is used similarly to threshold_low, however sharp inclines or descents</span>
+<span class="sd">        that result in values in the mask higher than this threshold are automatically considered scars.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Spread scars that have close to threshold edge-points</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">marked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1"># Spread right</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">marked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold_low</span> <span class="ow">and</span> <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold_high</span><span class="p">:</span>
+                <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold_high</span>
+
+        <span class="c1"># Spread left</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">marked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold_low</span> <span class="ow">and</span> <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold_high</span><span class="p">:</span>
+                <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold_high</span></div>
+
+
+
+<div class="viewcode-block" id="_remove_short_scars">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._remove_short_scars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_short_scars</span><span class="p">(</span><span class="n">marked</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove scars that are too short (horizontally), based on the minimum length.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    marked : npt.NDArray</span>
+<span class="sd">        A 2-D image of pixels that stores the positions of scars marked for removal. The value of the pixel is a</span>
+<span class="sd">        floating point value that represents how strongly the algorithm considers it to be a scar.</span>
+<span class="sd">        This may or may not already contain non-zero values given that previous iterations of scar removal</span>
+<span class="sd">        may have been performed.</span>
+
+<span class="sd">    threshold_high : float</span>
+<span class="sd">        A floating point value that is used similarly to threshold_low, however sharp inclines or descents</span>
+<span class="sd">        that result in values in the mask higher than this threshold are automatically considered scars.</span>
+
+<span class="sd">    min_scar_length : int</span>
+<span class="sd">        A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,</span>
+<span class="sd">        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is</span>
+<span class="sd">        vertical and their length is horizontal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Remove too-short scars</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">marked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">marked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="c1"># If greater than threshold, set value to true</span>
+            <span class="k">if</span> <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold_high</span><span class="p">:</span>
+                <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="c1"># If not greater than threshold,</span>
+            <span class="c1"># either we reached the end of the scar,</span>
+            <span class="c1"># or haven&#39;t found one.</span>
+            <span class="c1"># Check if too short. If so, remove.</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">min_scar_length</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">k</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="c1"># Long enough, just not bright anymore.</span>
+            <span class="c1"># Reached the end of the scar that is long enough. Stop and reset.</span>
+            <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Reached the end of the line, so check current scar&#39;s</span>
+        <span class="c1"># length to see if too short and should be deleted.</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">min_scar_length</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">k</span><span class="p">:</span>
+                <span class="n">marked</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">k</span> <span class="o">-=</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="_mark_scars">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._mark_scars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mark_scars</span><span class="p">(</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mark scars within an image, returning a boolean 2D npt.NDArray of pixels that have been detected as scars.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : npt.NDArray</span>
+<span class="sd">        A 2-D image of the data to detect scars in.</span>
+<span class="sd">    direction : str</span>
+<span class="sd">        Options : &#39;positive&#39;, &#39;negative&#39;. The direction of scars to detect. For example, to detect scars</span>
+<span class="sd">        that lie above the data, select &#39;positive&#39;.</span>
+<span class="sd">    threshold_low : float</span>
+<span class="sd">        A floating point value, that when multiplied by the standard deviation of the image, acts as a</span>
+<span class="sd">        threshold for sharp inclines or descents in pixel values and thus marks potential scars.</span>
+<span class="sd">        A lower value will make the algorithm</span>
+<span class="sd">        more sensitive, and a higher value will make it less sensitive.</span>
+<span class="sd">    threshold_high : float</span>
+<span class="sd">        A floating point value that is used similarly to threshold_low, however sharp inclines or descents</span>
+<span class="sd">        that result in values in the mask higher than this threshold are automatically considered scars.</span>
+<span class="sd">    max_scar_width : int</span>
+<span class="sd">        An integer that restricts the algorithm to only mark scars that are as thin or thinner than this width.</span>
+<span class="sd">        This is important for ensuring that legitimate grain data is not detected as scarred data.</span>
+<span class="sd">        Note that width here is vertical, as scars are thin, horizontal features.</span>
+<span class="sd">    min_scar_length : int</span>
+<span class="sd">        An integer that restricts the algorithm to only mark scars that are as long or longer than this length.</span>
+<span class="sd">        This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.</span>
+<span class="sd">        Note that length here is horizontal, as scars are thin, horizontal features.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    marked: npt.NDArray</span>
+<span class="sd">        Returns a 2-D image of the same shape as the data image, where each pixel&#39;s value represents</span>
+<span class="sd">        a metric for how strongly that pixel is considered to be a scar. Higher values mean more likely</span>
+<span class="sd">        to be a scar.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="n">stddev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">marked</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;positive&quot;</span><span class="p">:</span>
+                <span class="n">_mark_if_positive_scar</span><span class="p">(</span>
+                    <span class="n">row_col</span><span class="o">=</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">),</span>
+                    <span class="n">stddev</span><span class="o">=</span><span class="n">stddev</span><span class="p">,</span>
+                    <span class="n">img</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+                    <span class="n">marked</span><span class="o">=</span><span class="n">marked</span><span class="p">,</span>
+                    <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+                    <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;negative&quot;</span><span class="p">:</span>
+                <span class="n">_mark_if_negative_scar</span><span class="p">(</span>
+                    <span class="n">row_col</span><span class="o">=</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">),</span>
+                    <span class="n">stddev</span><span class="o">=</span><span class="n">stddev</span><span class="p">,</span>
+                    <span class="n">img</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+                    <span class="n">marked</span><span class="o">=</span><span class="n">marked</span><span class="p">,</span>
+                    <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+                    <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;direction </span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2"> invalid.&quot;</span><span class="p">)</span>
+
+    <span class="n">_spread_scars</span><span class="p">(</span><span class="n">marked</span><span class="o">=</span><span class="n">marked</span><span class="p">,</span> <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span> <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">)</span>
+
+    <span class="n">_remove_short_scars</span><span class="p">(</span><span class="n">marked</span><span class="o">=</span><span class="n">marked</span><span class="p">,</span> <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span> <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">marked</span></div>
+
+
+
+<div class="viewcode-block" id="_remove_marked_scars">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars._remove_marked_scars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_marked_scars</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">scar_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpolate values covered by marked scars.</span>
+
+<span class="sd">    Takes an image, and a marked scar boolean mask for that image. Returns the image where the marked scars are replaced</span>
+<span class="sd">    by interpolated values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : npt.NDArray</span>
+<span class="sd">        A 2-D image of the data to remove scars from.</span>
+<span class="sd">    scar_mask : npt.NDArray</span>
+<span class="sd">        A boolean image of pixels that determine which values are flagged as scars and therefore should</span>
+<span class="sd">        be interpolated over in the original data image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">scar_mask</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="c1"># Determine how wide the scar is by incrementing scar_width until either the bottom</span>
+            <span class="c1"># of the image is reached, or a non-marked pixel is encountered.</span>
+            <span class="n">scar_width</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">row</span> <span class="o">+</span> <span class="n">scar_width</span> <span class="o">&lt;</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">scar_mask</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">scar_width</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="n">scar_width</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">above</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+            <span class="n">below</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">scar_width</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">scar_width</span>
+            <span class="k">while</span> <span class="n">k</span><span class="p">:</span>
+                <span class="c1"># Linearly interpolate</span>
+                <span class="n">interp_val</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="p">(</span><span class="n">scar_width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">below</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="p">(</span><span class="n">scar_width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">*</span> <span class="n">above</span>
+                <span class="n">img</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_val</span>
+                <span class="n">scar_mask</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">k</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Scar removed&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="remove_scars">
+<a class="viewcode-back" href="../../autoapi/topostats/scars/index.html#topostats.scars.remove_scars">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_scars</span><span class="p">(</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">removal_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">threshold_low</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.250</span><span class="p">,</span>
+    <span class="n">threshold_high</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.666</span><span class="p">,</span>
+    <span class="n">max_scar_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">min_scar_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove scars from an image.</span>
+
+<span class="sd">    Scars are long, typically 1-4 pixels wide streaks of high or low data in AFM images. They are a problem</span>
+<span class="sd">    resulting from random errors in the AFM data collection process and are hard to avoid. This function</span>
+<span class="sd">    detects and removes these artefacts by interpolating over them between the pixels above and below them.</span>
+<span class="sd">    This method takes no parameters as it uses parameters already established as instance variables when the</span>
+<span class="sd">    class was instantiated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : npt.NDArray</span>
+<span class="sd">        A 2-D image to remove scars from.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        The filename (used for logging outputs only).</span>
+<span class="sd">    removal_iterations : int</span>
+<span class="sd">        The number of times the scar removal should run on the image.</span>
+<span class="sd">        Running just once sometimes isn&#39;t enough to remove some of the</span>
+<span class="sd">        more difficult to remove scars.</span>
+<span class="sd">    threshold_low : float</span>
+<span class="sd">        A value that when multiplied with the standard deviation, acts as a threshold to determine if an increase</span>
+<span class="sd">        or decrease in height might constitute the top or bottom of a scar.</span>
+<span class="sd">    threshold_high : float</span>
+<span class="sd">        A floating point value that is used similarly to threshold_low, however sharp inclines or descents</span>
+<span class="sd">        that result in values in the mask higher than this threshold are automatically considered scars.</span>
+<span class="sd">    max_scar_width : int</span>
+<span class="sd">        A value that dictates the maximum width that a scar can be. Note that this does not mean horizontal width,</span>
+<span class="sd">        rather vertical, this is because we consider scars to be laying flat, horizontally, so their width is</span>
+<span class="sd">        vertical and their length is horizontal.</span>
+<span class="sd">    min_scar_length : int</span>
+<span class="sd">        An integer that restricts the algorithm to only mark scars that are as long or longer than this length.</span>
+<span class="sd">        This is important for ensuring that noise or legitimate but sharp datapoints do not get detected as scars.</span>
+<span class="sd">        Note that length here is horizontal, as scars are thin, horizontal features.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    self.img</span>
+<span class="sd">        The original 2-D image with scars removed, unless the config has run set to False, in which case it</span>
+<span class="sd">        will not remove the scars.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Removing scars&quot;</span><span class="p">)</span>
+
+    <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">removal_iterations</span><span class="p">):</span>
+        <span class="n">marked_positive</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;positive&quot;</span><span class="p">,</span>
+            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
+            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">marked_negative</span> <span class="o">=</span> <span class="n">_mark_scars</span><span class="p">(</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;negative&quot;</span><span class="p">,</span>
+            <span class="n">threshold_low</span><span class="o">=</span><span class="n">threshold_low</span><span class="p">,</span>
+            <span class="n">threshold_high</span><span class="o">=</span><span class="n">threshold_high</span><span class="p">,</span>
+            <span class="n">max_scar_width</span><span class="o">=</span><span class="n">max_scar_width</span><span class="p">,</span>
+            <span class="n">min_scar_length</span><span class="o">=</span><span class="n">min_scar_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Combine the upper and lower scar masks</span>
+        <span class="n">marked_both</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_or</span><span class="p">(</span><span class="n">marked_positive</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">),</span> <span class="n">marked_negative</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">first_marked_mask</span> <span class="o">=</span> <span class="n">marked_both</span>
+
+        <span class="n">_remove_marked_scars</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">marked_both</span><span class="p">))</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Scars removed&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">first_marked_mask</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

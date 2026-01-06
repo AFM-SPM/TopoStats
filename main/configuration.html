@@ -1,0 +1,1660 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Configuration &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'configuration';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../v2.0.0/configuration.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/configuration.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/configuration.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/configuration.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/configuration.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/configuration.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/configuration.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/configuration.html">v2.3.0</a></li>
+  <li><a href="../v2.3.1/configuration.html">v2.3.1</a></li>
+  <li><a href="../v2.3.2/configuration.html">v2.3.2</a></li>
+  <li><a href="../v2.3.2rc1/configuration.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/configuration.html">v2.3.2rc2</a></li>
+  <li><a href="configuration.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Configuration</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
+<p>Configuration for TopoStats is done using a <a class="reference external" href="https://yaml.org/">YAML</a> configuration file that is specified on the
+command line when invoking. If no configuration file is provided this default configuration is loaded automatically and
+used.</p>
+<p>The current configuration file is provided in the TopoStats repository at
+<a class="reference external" href="https://github.com/AFM-SPM/TopoStats/blob/main/topostats/default_config.yaml"><code class="docutils literal notranslate"><span class="pre">topostats/default_config.yaml</span></code></a> but
+please be aware this may not work with your installed version, particularly if you installed from PyPI.</p>
+<section id="generating-a-configuration">
+<h2>Generating a configuration<a class="headerlink" href="#generating-a-configuration" title="Link to this heading">#</a></h2>
+<p>You can always generate a configuration file appropriate for the version you have installed (bar v2.0.0 as this option
+was added afterwards). This writes the default configuration to the specified filename (i.e. it does not have to be
+called <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> it could be called <code class="docutils literal notranslate"><span class="pre">spm-2023-02-20.yaml</span></code>). There are a few options available (use <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">create-config</span> <span class="pre">--help</span></code> for further details).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>create-config
+</pre></div>
+</div>
+</section>
+<section id="partial-configurations">
+<h2>Partial configurations<a class="headerlink" href="#partial-configurations" title="Link to this heading">#</a></h2>
+<p>TopoStats supports using a partial configuration, where you specify only the fields you wish to override. This is
+useful if you only want to change a few parameters from the default configuration or would like to use a configuration
+file that is smaller and easier to read.</p>
+<p>To create a partial configuration file, simply create a new config file and delete anything you don’t want to override.</p>
+<p>TopoStats will take the partial configuration file and merge it with the default configuration file, with the partial
+configuration taking precedence. This means that any fields you specify in the partial configuration will override the
+default configuration, while any fields you don’t specify will be taken from the default configuration. Command-line
+arguments will override both the default and partial configurations.</p>
+<p>For example, you could use a configuration as simple as:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">base_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./mydata/</span>
+<span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./myoutput/</span>
+<span class="nt">filter</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">remove_scars</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">grains</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">threshold_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">absolute</span>
+<span class="w">  </span><span class="nt">threshold_absolute</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">above</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2</span>
+<span class="w">  </span><span class="nt">area_thresholds</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">above</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">400</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1000</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+</section>
+<section id="using-a-custom-configuration">
+<h2>Using a custom configuration<a class="headerlink" href="#using-a-custom-configuration" title="Link to this heading">#</a></h2>
+<p>If you have generated a configuration file you can modify and edit a configuration it to change the parameters (see
+fields below). Once these changes have been saved, you can run TopoStats with this configuration file as shown below.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>--config<span class="w"> </span>my_config.yaml<span class="w"> </span>process
+</pre></div>
+</div>
+<p>On completion a copy of the configuration that was used is written to the output directory so you have a record of the
+parameters used to generate the results you have. This file can be used in subsequent runs of TopoStats.</p>
+</section>
+<section id="yaml-structure">
+<h2>YAML Structure<a class="headerlink" href="#yaml-structure" title="Link to this heading">#</a></h2>
+<p>YAML files have key and value pairs, the first word, e.g. <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> is the key this is followed by a colon to separate
+it from the value that it takes, by default <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> takes the value <code class="docutils literal notranslate"><span class="pre">./</span></code> (which means the current directory) and so
+the entry in the file is a single line with <code class="docutils literal notranslate"><span class="pre">base_dir:</span> <span class="pre">./</span></code>. Other data structures are available in YAML files including
+nested values and lists.</p>
+<p>A list in YAML consists of a key (e.g. <code class="docutils literal notranslate"><span class="pre">above:</span></code>) followed by the values in square brackets separated by commas such as
+<code class="docutils literal notranslate"><span class="pre">above:</span> <span class="pre">[</span> <span class="pre">500,</span> <span class="pre">800</span> <span class="pre">]</span></code>. This means the <code class="docutils literal notranslate"><span class="pre">above</span></code> key is a list of the values <code class="docutils literal notranslate"><span class="pre">500</span></code> and <code class="docutils literal notranslate"><span class="pre">800</span></code>. Long lists can be split over
+separate lines as shown below</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">above</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">400</span>
+</pre></div>
+</div>
+</section>
+<section id="fields">
+<h2>Fields<a class="headerlink" href="#fields" title="Link to this heading">#</a></h2>
+<p>Aside from the comments in YAML file itself the fields are described below.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th style="text-align: left;">Section</th>
+<th style="text-align: left;">Sub-Section</th>
+<th style="text-align: left;">Data Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>base_dir</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>./</code></td>
+<td style="text-align: left;">Directory to recursively search for files within. (See <a href="#absolute-v-relative-paths">Absolute v Relative Paths</a>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>output_dir</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>./output</code></td>
+<td style="text-align: left;">Directory that output should be saved to. (See <a href="#absolute-v-relative-paths">Absolute v Relative Paths</a>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>log_level</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>info</code></td>
+<td style="text-align: left;">Verbosity of logging, options are (in increasing order) <code>warning</code>, <code>error</code>, <code>info</code>, <code>debug</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>cores</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">Number of cores to run parallel processes on.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_ext</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>.spm</code></td>
+<td style="text-align: left;">File extensions to search for.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>output_stats</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>full</code></td>
+<td style="text-align: left;">The amount of statistics to write to <code>.csv</code> files, options are <code>full</code> (all information on grains as well as branch and molecule statistics) or <code>basic</code> (just grain level statistics)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>loading</code></td>
+<td style="text-align: left;"><code>channel</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>Height</code></td>
+<td style="text-align: left;">The channel of data to be processed, what this is will depend on the file-format you are processing and the channel you wish to process.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>extract</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>raw</code></td>
+<td style="text-align: left;">The array to extract when loading from <code>.topostats</code> images.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filter</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run the filtering stage, without this other stages won't run so leave as <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>row_alignment_quantile</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">Quantile (0.0 to 1.0) to be used to determine the average background for the image. below values may improve flattening of large features.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>std_dev</code></td>
+<td style="text-align: left;">Threshold method for filtering, options are <code>ostu</code>, <code>std_dev</code> or <code>absolute</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>otsu_threshold_multiplier</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">Factor by which the derived Otsu Threshold should be scaled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_std_dev</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"><code>10.0, 1.0</code></td>
+<td style="text-align: left;">A pair of values that scale the standard deviation, after scaling the standard deviation <code>below</code> is subtracted from the image mean to give the below/lower threshold and the <code>above</code> is added to the image mean to give the above/upper threshold. These values should <em>always</em> be positive.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"><code>-1.0, 1.0</code></td>
+<td style="text-align: left;">Below (first) and above (second) absolute threshold for separating data from the image background.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>gaussian_size</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">The number of standard deviations to build the Gaussian kernel and thus affects the degree of blurring. See <a href="https://scikit-image.org/docs/dev/api/skimage.filters.html#skimage.filters.gaussian">skimage.filters.gaussian</a> and <code>sigma</code> for more information.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>gaussian_mode</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>nearest</code></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>filter</code> <br> ∟ <code>remove_scars</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run scar removal.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>removal_iterations</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">The number of times to run scar removal. More iterations can improve scar removal by tidying up remaining artefacts after removal, though will cause more data distortion.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_low</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.250</code></td>
+<td style="text-align: left;">The threshold determining whether to further assess if a pixel is a scar. This is the first check, and lowering it will allow more pixels to undergo further analysis in determining if they are scars.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_high</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.666</code></td>
+<td style="text-align: left;">The threshold above which a pixel ridge is automatically determined to be a scar. Lowering this value will increase the number of pixels that are flagged as scars with no additional checks.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>max_scar_width</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">The maximum thickness of scars in pixels, along their short axis, ie vertical distance in an AFM image. This parameter can be reduced to only allow marking of thin scars or increased to allow thicker regions to be marked as scars. Be careful - if this value in pixels approaches the thickness of DNA, then it will start deleting regions of DNA (or other relevant data).</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>min_scar_length</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>16</code></td>
+<td style="text-align: left;">The minimum length of scars in pixels, along their long axis, ie horizontal distance in an AFM image. This parameter can be reduced to allow shorter ridges to be marked as scars, or increased to only allow longer regions to be marked. This can be used to attempt to avoid marking data such as DNA from being marked as a scar, as it may be unlikely that you have a section of DNA that is straight and more than 16 pixels long.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grains</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run grain finding. Options <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>grain_crop_padding</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">The padding to apply to grains during cropping. Must be &gt;= 1.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>smallest_grain_size_nm2</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>100</code></td>
+<td style="text-align: left;">The smallest size of grains to be included (in nm^2), anything smaller than this is considered noise and removed. <strong>NB</strong> must be <code>&gt; 0.0</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_method</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>std_dev</code></td>
+<td style="text-align: left;">Threshold method for grain finding. Options : <code>otsu</code>, <code>std_dev</code>, <code>absolute</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>otsu_threshold_multiplier</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">Factor by which the derived Otsu Threshold should be scaled.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_std_dev</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"><code>10.0, 1.0</code></td>
+<td style="text-align: left;">A pair of values that scale the standard deviation, after scaling the standard deviation <code>below</code> is subtracted from the image mean to give the below/lower threshold and the <code>above</code> is added to the image mean to give the above/upper threshold. These values should <em>always</em> be positive.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>threshold_absolute</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"><code>-1.0, 1.0</code></td>
+<td style="text-align: left;">Below (first), above (second) absolute threshold for separating grains from the image background.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>direction</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>above</code></td>
+<td style="text-align: left;">Defines whether to look for grains above or below thresholds or both. Options: <code>above</code>, <code>below</code>, <code>both</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>smallest_grain_size</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>50</code></td>
+<td style="text-align: left;">Catch-all value for the minimum size of grains. Measured in nanometres squared. All grains with area below than this value are removed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>absolute_area_threshold</code></td>
+<td style="text-align: left;">dictionary</td>
+<td style="text-align: left;"><code>[300, 3000], [null, null]</code></td>
+<td style="text-align: left;">Area thresholds for above the image background (first) and below the image background (second), which grain sizes are permitted, measured in nanometres squared. All grains outside this area range are removed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>remove_edge_intersecting_grains</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to remove grains that intersect the image border. <em>Do not change this unless you know what you are doing</em>. This will ruin any statistics relating to grain size, shape and DNA traces.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grains</code> <br> ∟ <code>unet_config</code></td>
+<td style="text-align: left;"><code>path_to_model</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">The path to the U-Net model to override traditional segmentation. Supply a path to a tensorflow U-net model to use, else U-Net segmentation will be skipped.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>grain_crop_padding</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">The amount of padding to be applied to grain crops before they are passed to the U-Net model. Increasing this value within reason may reduce edge-anomalies within the crops. Additionally, models are usually trained assuming the grain will take up a certain proportion of the image. If segmentation is poor, try increasing this.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>upper_norm_bound</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">The upper normalisation bound for normalising grain crops before sending to the segmentation model. The model will have been trained with particular normalisation bounds, use those. If in doubt, talk to the person who trained the model or use a sensible range, eg if DNA is expected between 0 and 2nm, try using -1 to 3 as normalisation bounds.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>lower_norm_bound</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>-1</code></td>
+<td style="text-align: left;">The lower normalisation bound for normalising grain crops before sending to the segmentation model. The model will have been trained with particular normalisation bounds, use those. If in doubt, talk to the person who trained the model or use a sensible range, eg if DNA is expected between 0 and 2nm, try using -1 to 3 as normalisation bounds.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>remove_disconnected_grains</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>False</code></td>
+<td style="text-align: left;">Whether to remove subgrains that are not connected to the original grain mask.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">Confidence threshold for the UNet model. Smaller is more generous, large is stricter.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grains</code> <br> ∟ <code>vetting</code></td>
+<td style="text-align: left;"><code>class_region_number_thresholds</code></td>
+<td style="text-align: left;">list[tuple[int, int, int]]</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Class region number thresholds, list of lists, <code>[[class, low, high]]</code>, eg: <code>[[1, 2, 4], [2, 1 ,1]]</code> for class 1 to have 2-4 regions and class 2 to have 1 region. Can use Noneto not set an upper/lower bound.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_conversion_size_thresholds</code></td>
+<td style="text-align: left;">list[tuple[tuple[int, int, int], tuple[int, int]]]</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Class conversion size thresholds, list of tuples of 3 integers and 2 integers, ie <code>list[tuple[tuple[int, int, int], tuple[int, int]]]</code> eg <code>[[[1, 2, 3], [5, 10]]]</code> for each region of class 1 to convert to 2 if smaller than 5 nm^2 and to class 3 if larger than 10 nm^2.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_size_thresholds</code></td>
+<td style="text-align: left;">list[tuple[int, int, int]]</td>
+<td style="text-align: left;">null</td>
+<td style="text-align: left;">Class size thresholds (nm^2), list of tuples of 3 integers, ie <code>[[class, low, high],]</code> eg <code>[[1, 100, 1000], [2, 1000, None]]</code> for class 1 to have 100-1000 nm^2 and class 2 to have 1000-any nm^2. Can use None to not set an upper/lower bound.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>nearby_conversion_classes_to_convert</code></td>
+<td style="text-align: left;">list[tuple[tuple[int, int], tuple[int, int]]]</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Class conversion for nearby regions, list of tuples of two-integer tuples, eg <code>[[[1, 2], [3, 4]]]</code> to convert class 1 to 2 and 3 to 4 for small touching regions</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_touching_threshold</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">Number of dilation steps to use for detecting touching regions, higher value will mean further away regions will be considered touching</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>keep_largest_labelled_regions_classes</code></td>
+<td style="text-align: left;">list[int]</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Classes to keep only the largest labelled regions for, list of integers eg <code>[1, 2]</code> to keep only the largest labelled regions for classes 1 and 2</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_connection_point_thresholds</code></td>
+<td style="text-align: left;">list[tuple[tuple[int, int] tuple[int, int]]]</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Class connection point thresholds, <code>[[[class_1, class_2], [min, max]]]</code> eg <code>[[[1, 2], [1, 1]]]</code> for class 1 to have 1 connection point with class 2</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>grainstats</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to calculate grain statistics. Options : <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>edge_detection_method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>binary_erosion</code></td>
+<td style="text-align: left;">Type of edge detection method to use when determining the edges of grain masks before calculating statistics on them. Options : <code>binary_erosion</code>, <code>canny</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_names</code></td>
+<td style="text-align: left;">list(str)</td>
+<td style="text-align: left;"><code>["DNA", "Protein"]</code></td>
+<td style="text-align: left;">Names of the objects found by the segmentation methods (objects are linked to the <code>class_number</code> output in the grainstats csv).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>disordered_tracing</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run the Disordered Traces pipeline. Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_index</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">The class index to run tracing on. 1 is typically the DNA class.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>min_skeleton_size</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>10</code></td>
+<td style="text-align: left;">The minimum number of pixels a skeleton should be for statistics to be calculated on it. Anything smaller than this is dropped but grain statistics are retained.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>disordered_tracing</code> <br> ∟ <code>mask_smoothing_params</code></td>
+<td style="text-align: left;"><code>gaussian_sigma</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">Amount of smoothing by a gaussian kernel. This will compete with <code>dilation_iteration</code> to see which changes the grain mask least, ensuring quality over different scan sizes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>dilation_iterations</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">The the number of dilations to perform to smooth. This will compete with <code>gaussian_sigma</code> to see which changes the grain mask least, ensuring quality over different scan sizes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>holearea_min_max</code></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;"><code>[0, null]</code></td>
+<td style="text-align: left;">As smoothing fill holes in the mask, this replaces those within a size range (in nm^2).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>disordered_tracing</code> <br> ∟ <code>skeletonisation_params</code></td>
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>topostats</code></td>
+<td style="text-align: left;">The Skeletonisation method to use, possible options are <code>zhang</code>, <code>lee</code>, <code>thin</code> (from <a href="https://scikit-image.org/docs/stable/api/skimage.morphology.html">Scikit-image Morphology module</a>) or the original bespoke TopoStats (height-biasing) method topostats.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>height_bias</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.6</code></td>
+<td style="text-align: left;">The percentage of lowest pixels to remove during each skeletonisation iteration of the <code>topostats</code> method.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>disordered_tracing</code> <br> ∟ <code>pruning_params</code></td>
+<td style="text-align: left;"><code>max_length</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>-1</code></td>
+<td style="text-align: left;">The length in nanometres below which to prune branches. Default is <code>-1</code>, meaning 15% of the total length.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>height_threshold</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">The height threshold in nanometres below which to prune branches.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method_values</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>mid</code></td>
+<td style="text-align: left;">The method that determines how branch height is calculated. Options: <code>min</code>, <code>median</code>, <code>mid</code> (middle).</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method_outliers</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>mean_abs</code></td>
+<td style="text-align: left;">How to compare the threshold and branch heights to remove low branches. Options are; the inter-quartile range <code>iqr</code>, the height_threshold as an absolute value <code>abs</code>, or the mean of all branches minus the height_threshold value <code>mean_abs</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>only_height_prune_endpoints</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">Whether to restrict height-based pruning to skeleton segments containing an endpoint or not. Options are; <code>True</code> which will only attempt to prune branches with an endpoint, or <code>False</code> where height pruning will attempt to prune all branches according to the height-based pruning criteria - this is useful for removing false bridging points in the skeleton.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nodestats</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to quantify the crossings in an image. Required for over/under tracing through crossings. Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>node_joining_length</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>7.0</code></td>
+<td style="text-align: left;">The distance (nm) over which to join nearby crossing points as the skeletonisation will not always force crossing points to connect.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>node_extend_list</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>14.0</code></td>
+<td style="text-align: left;">The distance (nm) over which to join nearby odd-branched nodes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>branch_pairing_length</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>nodestats</code></td>
+<td style="text-align: left;">The length (nm) from the crossing point to pair the emainating branches and trace along to obtain the over/under distinguishing full-width half-maximum (FWHM's) values.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>pair_odd_branches</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to try and pair branches at odd-branch crossing regions and leave one hanging branch, or to leave all branches hanging here. Options: <code>true</code> or <code>false</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ordered_tracing</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to order the pruned skeletons of Disordered Traces. Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>ordering_method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>nodestats</code></td>
+<td style="text-align: left;">The method of ordering the disordered traces either using the nodestats output or solely the disordered traces. Options: <code>nodestats</code> or <code>topostats</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>splining</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run ordered trace splining to generate smooth traces. Options : true, false</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>rolling_window</code></td>
+<td style="text-align: left;">The method used to smooth out the ordered traces. Options: <code>rolling_window</code> or <code>spline</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>rolling_window_size</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>20.0e-9</code></td>
+<td style="text-align: left;">The length (in meters) of the coordinate averaging window to smooth the ordered trace.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>rolling_window_resampling</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to resample the trace or not.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>rolling_window_resample_regular_spatial_interval</code></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;"><code>0.5e-9</code></td>
+<td style="text-align: left;">The spatial interval to resample the trace to in nm.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>spline_step_size</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>7.0e-9</code></td>
+<td style="text-align: left;">The sampling length of the spline (in meters) to obtain an average of splines.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>spline_linear_smoothing</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">The amount of smoothing to apply to linear molecule splines.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>spline_circular_smoothing</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">The amount of smoothing to apply to circular molecule splines.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>spline_degree</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">The polynomial degree of the spline. Smaller, odd degrees work best <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splrep.html">SciPy - slprep</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>plotting</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to run plotting. Options : <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>style</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>topostats.mplstyle</code></td>
+<td style="text-align: left;">The default loads a custom <a href="https://matplotlib.org/stable/users/explain/customizing.html#the-matplotlibrc-file">matplotlibrc param file</a> that comes with TopoStats. Users can specify the path to their own style file as an alternative.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>save_format</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Format to save images in, <code>null</code> defaults to <code>png</code> see <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html">matplotlib.pyplot.savefig</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>savefig_dpi</code></td>
+<td style="text-align: left;">string / float</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Dots Per Inch (DPI), if <code>null</code> then the value <code>figure</code> is used, for other values (typically integers) see [#further-customisation] and <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html">Matplotlib</a>. Low DPI's improve processing time but can reduce the plotted trace (but not the actual trace) accuracy.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>pixel_interpolation</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Interpolation method for image plots. Recommended default 'null' prevents banding that occurs in some images. If interpolation is needed, we recommend <code>gaussian</code>. See <a href="https://matplotlib.org/stable/gallery/images_contours_and_fields/interpolation_methods.html">matplotlib imshow interpolations documentation</a> for details.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>grain_crop_plot_size_nm</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>-1</code></td>
+<td style="text-align: left;">Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>image_set</code></td>
+<td style="text-align: left;">list(strings)</td>
+<td style="text-align: left;"><code>[core]</code></td>
+<td style="text-align: left;">A list of which images to plot. Single options : <code>[all]</code>, <code>[core]</code>, multiples of: <code>filters</code>, <code>grains</code>, <code>grain_crops</code>, <code>disordered_tracing</code>, <code>nodestats</code>, <code>ordered_tracing</code>, and <code>splining</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>zrange</code></td>
+<td style="text-align: left;">list</td>
+<td style="text-align: left;"><code>[0, 3]</code></td>
+<td style="text-align: left;">Low (first number) and high (second number) height range for core images (can take [null, null]). <strong>NB</strong> <code>low &lt;= high</code> otherwise you will see a <code>ValueError: minvalue must be less than or equal to maxvalue</code> error.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>colorbar</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to include the colorbar scale in plots. Options <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>axes</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to include the axes in the produced plots.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>num_ticks</code></td>
+<td style="text-align: left;">null / int</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Number of ticks to have along the x and y axes. Options : <code>null</code> (auto) or an integer &gt;1</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>cmap</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Colormap/colourmap to use. Defaults to 'nanoscope' if null (defined in <code>topostats/topostats.mplstyle</code>). Other options are 'afmhot', 'viridis' etc., see <a href="https://matplotlib.org/stable/users/explain/colors/colormaps.html">Matplotlib : Choosing Colormaps</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>mask_cmap</code></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>blu</code></td>
+<td style="text-align: left;">Color used when masking regions. Options <code>blu</code>, <code>jet_r</code> or any valid Matplotlib colour.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>histogram_log_axis</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Whether to plot hisograms using a logarithmic scale or not. Options: <code>true</code>, <code>false</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>number_grains</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to number the grain masks plotted in masked_overlay images. Options: <code>true</code>, <code>false</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>summary_stats</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to generate summary statistical plots of the distribution of different metrics grouped by the image that has been processed.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>config</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Path to a summary config YAML file that configures/controls how plotting is done. If one is not specified either the command line argument <code>--summary_config</code> value will be used or if that option is not invoked the default <code>topostats/summary_config.yaml</code> will be used.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="summary-configuration">
+<h2>Summary Configuration<a class="headerlink" href="#summary-configuration" title="Link to this heading">#</a></h2>
+<p>Plots summarising the distribution of metrics are generated by default. The behaviour is controlled by a configuration
+file. The default example can be found in <code class="docutils literal notranslate"><span class="pre">topostats/summary_config.yaml</span></code>. The fields of this file are described below.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th style="text-align: left;">Section</th>
+<th style="text-align: left;">Sub-Section</th>
+<th style="text-align: left;">Data Type</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>output_dir</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>./output/</code></td>
+<td style="text-align: left;">Where output plots should be saved to.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>csv_file</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Where the results file should be loaded when running <code>toposum</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>file_ext</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>png</code></td>
+<td style="text-align: left;">File type to save images as.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>var_to_label</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">Optional YAML file that maps variable names to labels, uses <code>topostats/var_to_label.yaml</code> if null.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>molecule_id</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>molecule_number</code></td>
+<td style="text-align: left;">Variable containing the molecule number.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>image_id</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>image</code></td>
+<td style="text-align: left;">Variable containing the image identifier.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hist</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">Whether to plot a histogram of statistics.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>bins</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>int</code></td>
+<td style="text-align: left;"><code>20</code></td>
+<td style="text-align: left;">Number of bins to plot in histogram.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stat</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>count</code></td>
+<td style="text-align: left;">What metric to plot on histogram valid values are <code>count</code> (default), <code>frequency</code>, <code>probability</code>, <code>percent</code>, <code>density</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>kde</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">Whether to include a Kernel Density Estimate on histograms. <strong>NB</strong> if both <code>hist</code> and <code>kde</code> are true they are overlaid.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>violin</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">Whether to generate <a href="https://en.wikipedia.org/wiki/Violin_plot">Violin Plots</a>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>figsize</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>[16, 9]</code></td>
+<td style="text-align: left;">Figure size (x then y dimensions).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>alpha</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">Level of transparency to use when plotting.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>palette</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;"><code>bright</code></td>
+<td style="text-align: left;">Seaborn color palette. Options <code>colorblind</code>, <code>deep</code>, <code>muted</code>, <code>pastel</code>, <code>bright</code>, <code>dark</code>, <code>Spectral</code>, <code>Set2</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stats_to_sum</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>str</code></td>
+<td style="text-align: left;">A list of strings of variables to plot, comment (placing a <code>#</code> at the start of the line) and uncomment as required. Possible values are <code>area</code>, <code>area_cartesian_bbox</code>, <code>aspect_ratio</code>, <code>banding_angle</code>, <code>contour_length</code>, <code>end_to_end_distance</code>, <code>height_max</code>, <code>height_mean</code>, <code>height_median</code>, <code>height_min</code>, <code>radius_max</code>, <code>radius_mean</code>, <code>radius_median</code>, <code>radius_min</code>, <code>smallest_bounding_area</code>, <code>smallest_bounding_length</code>, <code>smallest_bounding_width</code>, <code>volume</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Link to this heading">#</a></h2>
+<p>Configuration files are validated against a schema to check that the values in the configuration file are within the
+expected ranges or valid parameters. This helps capture problems early and should provide informative messages as to
+what needs correcting if there are errors.</p>
+</section>
+<section id="matplotlib-style">
+<h2>Matplotlib Style<a class="headerlink" href="#matplotlib-style" title="Link to this heading">#</a></h2>
+<p>TopoStats generates a number of images of the scans at various steps in the processing. These are plotted using the
+Python library <a class="reference external" href="https://matplotlib.org/stable/">Matplotlib</a>. A custom
+<a class="reference external" href="https://matplotlib.org/stable/users/explain/customizing.html#the-matplotlibrc-file"><code class="docutils literal notranslate"><span class="pre">matplotlibrc</span></code></a> file is included in
+TopoStats which defines the default parameters for generating images. This covers <em>all</em> aspects of a plot that can be
+customised, for example we define custom colour maps <code class="docutils literal notranslate"><span class="pre">nanoscope</span></code> and <code class="docutils literal notranslate"><span class="pre">afmhot</span></code>. By default the former is configured to
+be used. Other parameters that are customised are the <code class="docutils literal notranslate"><span class="pre">font.size</span></code> which affects axis labels and titles.</p>
+<p>If you wish to modify the look of all images that are output you can generate a copy of the default configuration using
+<code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">create-matplotlibrc</span></code> command which will write the output to <code class="docutils literal notranslate"><span class="pre">topostats.mplstyle</span></code> by default (<strong>NB</strong> there are
+flags which allow you to specify the location and filename to write to, see <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">create-matplotlibrc</span> <span class="pre">--help</span></code> for
+further details).</p>
+<p>You should read and understand this commented file in detail. Once changes have been made you can run TopoStats using
+this custom file using the following command (substituting <code class="docutils literal notranslate"><span class="pre">my_custom_topostats.mplstyle</span></code> for whatever you have saved
+your file as).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>--matplotlibrc<span class="w"> </span>my_custom_topostats.mplstyle<span class="w"> </span>process
+</pre></div>
+</div>
+<p><strong>NB</strong> Plotting with Matplotlib is highly configurable and there are a plethora of options that you may wish to
+tweak. Before delving into customising <code class="docutils literal notranslate"><span class="pre">matplotlibrc</span></code> files it is recommended that you develop and build the style of
+plot you wish to generate using Jupyter Notebooks and then translate them to the configuration file. Detailing all of
+the possible options is beyond the scope of TopoStats but the <a class="reference external" href="https://matplotlib.org/">Matplotlib documentation</a> is
+comprehensive and there are some sample Jupyter Notebooks (see <code class="docutils literal notranslate"><span class="pre">notebooks/03-plotting-scans.ipynb</span></code>) that guide you
+through the basics.</p>
+<section id="further-customisation">
+<h3>Further customisation<a class="headerlink" href="#further-customisation" title="Link to this heading">#</a></h3>
+<p>Whilst the overall look of images is controlled in this manner there is one additional file that controls how
+images are plotted in terms of filenames, titles and image types and whether an image is part of the <code class="docutils literal notranslate"><span class="pre">core</span></code> subset
+(flattened image, grain mask overlay and trace overlay) that are always generated or not.</p>
+<p>This is the <code class="docutils literal notranslate"><span class="pre">topostats/plotting_dictionary.yaml</span></code> which for each image stage defines whether it is a component of the
+<code class="docutils literal notranslate"><span class="pre">core</span></code> subset of images that are always generated, sets the <code class="docutils literal notranslate"><span class="pre">filename</span></code>, the <code class="docutils literal notranslate"><span class="pre">title</span></code> on the plot, the <code class="docutils literal notranslate"><span class="pre">image_type</span></code>
+(whether it is a binary image), the <code class="docutils literal notranslate"><span class="pre">savefig_dpi</span></code> which controls the Dots Per Inch (essentially the resolution). Each
+image has the following structure.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">z_threshed</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Height</span><span class="nv"> </span><span class="s">Thresholded&quot;</span>
+<span class="w">  </span><span class="nt">image_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;non-binary&quot;</span>
+<span class="w">  </span><span class="nt">savefig_dpi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">core_set</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>Whilst it is possible to edit this file it is not recommended to do so.</p>
+<p>The following section describes how to override the DPI settings defined in this file and change the global <code class="docutils literal notranslate"><span class="pre">cmap</span></code>
+(colormap/colourmap) used in plotting and output format.</p>
+<section id="dpi">
+<h4>DPI<a class="headerlink" href="#dpi" title="Link to this heading">#</a></h4>
+<p>During development it was found that setting high DPI globally for all images had a detrimental impact on processing
+speeds, slowing down the overall processing time. The solution we have implemented is to use the
+<code class="docutils literal notranslate"><span class="pre">topostats/plotting_dictionary.yaml</span></code> file and set the <code class="docutils literal notranslate"><span class="pre">savefig_dpi</span></code> parameter on a per-image basis.</p>
+<p>If you wish to change the DPI there are two options, you can change the value for <em>all</em> images by modifying the setting
+in your a <a class="reference internal" href="#generating-a-configuration">custom configuration</a> by modifying the <code class="docutils literal notranslate"><span class="pre">savefig_dpi</span></code> from <code class="docutils literal notranslate"><span class="pre">null</span></code> to your desired
+value. The example below shows a section of the configuration file you can generate and setting this value to <code class="docutils literal notranslate"><span class="pre">400</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plotting</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># Options : true, false</span>
+<span class="w">  </span><span class="nt">style</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">topostats.mplstyle</span><span class="w"> </span><span class="c1"># Options : topostats.mplstyle or path to a matplotlibrc params file</span>
+<span class="w">  </span><span class="nt">savefig_format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w"> </span><span class="c1"># Options : null (defaults to png) or see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html</span>
+<span class="w">  </span><span class="nt">savefig_dpi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">400</span><span class="w"> </span><span class="c1"># Options : null (defaults to format) see https://afm-spm.github.io/TopoStats/main/configuration.html#further-customisation and https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html</span>
+</pre></div>
+</div>
+<p>The value in the configuration file (or the default if none is specified) can also be configured at run-time
+using the <code class="docutils literal notranslate"><span class="pre">--savefig-dpi</span> <span class="pre">###</span></code> option to the <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code>. This will over-ride both the default or any value
+specified in a custom configuration you may have set. The following sets this to <code class="docutils literal notranslate"><span class="pre">400</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>process<span class="w"> </span>--savefig-dpi<span class="w"> </span><span class="m">400</span>
+</pre></div>
+</div>
+<p><strong>NB</strong> Changing the DPI in this manner will apply to <em>all</em> images and may significantly reduce processing speed as it
+takes longer to write images with high DPI to disk.</p>
+<p>If you wish to have fine grained control over the DPI on a per-image basis when batch processing then your only recourse
+is to change the values in <code class="docutils literal notranslate"><span class="pre">topostats/plotting_dictionary.yaml</span></code>. Where this is depends on how you have installed
+TopoStats, if it is from a clone of the Git repository then it can be found in
+<code class="docutils literal notranslate"><span class="pre">TopoStats/topostats/plotting_dictionary.yaml</span></code>. If you have installed from PyPI using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">topostats</span></code> then it
+will be under the virtual environment you have created
+e.g. <code class="docutils literal notranslate"><span class="pre">~/.virtualenvs/topostats/lib/python3.11/site-packages/topostats/topostats/plotting_dictionary.yaml</span></code> if you are
+using plain virtual environments or
+<code class="docutils literal notranslate"><span class="pre">~/miniconda3/envs/topostats/lib/python3.11/site-packages/topostats/topostats/plotting_dictionary.yaml</span></code> if you are using
+Conda environments and chose <code class="docutils literal notranslate"><span class="pre">~/miniconda3</span></code> as the base directory when installing Conda.</p>
+<p>If you have installed TopoStats from the cloned Git repository the file will be under
+<code class="docutils literal notranslate"><span class="pre">TopoStats/topostats/plotting_dictionary.yaml</span></code>.</p>
+<p><strong>NB</strong> The exact location will be highly specific to your system so the above are just guides as to where to find
+things.</p>
+</section>
+<section id="colormap">
+<h4>Colormap<a class="headerlink" href="#colormap" title="Link to this heading">#</a></h4>
+<p>The colormap used to plot images is set globally in <code class="docutils literal notranslate"><span class="pre">topostats/default_config.yaml</span></code>. TopoStats includes two custom
+colormaps <code class="docutils literal notranslate"><span class="pre">nanoscope</span></code> and <code class="docutils literal notranslate"><span class="pre">afmhot</span></code> but any colormap recognised by Matplotlib can be used (see the <a class="reference external" href="https://matplotlib.org/stable/gallery/color/colormap_reference.html">Matplotlib Colormap
+reference</a> for choices).</p>
+<p>If you want to modify the colormap that is used you have two options. Firstly you can <a class="reference internal" href="#generating-a-configuration">generate a
+configuration</a> file and modify the field <code class="docutils literal notranslate"><span class="pre">cmap</span></code> to your choice. The example below shows
+changing this from <code class="docutils literal notranslate"><span class="pre">null</span></code> (which defaults to <code class="docutils literal notranslate"><span class="pre">nanoscope</span></code> as defined in <code class="docutils literal notranslate"><span class="pre">topostats.mplstyle</span></code>) to <code class="docutils literal notranslate"><span class="pre">rainbow</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plotting</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">cmap</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rainbow</span><span class="w"> </span><span class="c1"># Colormap/colourmap to use (default is &#39;nanoscope&#39; which is used if null, other options are &#39;afmhot&#39;, &#39;viridis&#39; etc.)</span>
+</pre></div>
+</div>
+<p>Alternatively it is possible to specify the colormap that is used on the command line using the <code class="docutils literal notranslate"><span class="pre">--cmap</span></code> option to
+<code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code>. This will over-ride both the default or any value specified in a custom configuration you may have
+set. The following sets this to <code class="docutils literal notranslate"><span class="pre">rainbow</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>process<span class="w"> </span>--cmap<span class="w"> </span>rainbow
+</pre></div>
+</div>
+</section>
+<section id="saved-image-format">
+<h4>Saved Image format<a class="headerlink" href="#saved-image-format" title="Link to this heading">#</a></h4>
+<p>Matplotlib, and by extension TopoStats, supports saving images in a range of different formats including <code class="docutils literal notranslate"><span class="pre">png</span></code>
+(<a class="reference external" href="https://en.wikipedia.org/wiki/PNG">Portable Network Graphic</a>), <code class="docutils literal notranslate"><span class="pre">svg</span></code> (<a class="reference external" href="https://en.wikipedia.org/wiki/SVG">Scalable Vector
+Graphics</a>), <code class="docutils literal notranslate"><span class="pre">pdf</span></code> (<a class="reference external" href="https://en.wikipedia.org/wiki/PDF">Portable Document
+Format</a>), and <code class="docutils literal notranslate"><span class="pre">tif</span></code> (<a class="reference external" href="https://en.wikipedia.org/wiki/TIFF">Tag Image File
+Format</a>). The default is <code class="docutils literal notranslate"><span class="pre">png</span></code> but, as with both DPI and Colormap, these can be
+easily changed via a custom configuration file or command line options to change these without having to edit the
+<a class="reference internal" href="#matplotlib-style"><span class="xref myst">Matplotlib Style file</span></a>. If using <code class="docutils literal notranslate"><span class="pre">tif</span></code> it is worth being aware that although the image will be saved,
+this will be without metadata since this is not supported for <code class="docutils literal notranslate"><span class="pre">tif</span></code> files (see the note under <code class="docutils literal notranslate"><span class="pre">metadata</span></code> of <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html">Matplotlib
+savefig</a>).</p>
+<p>If you want to modify the output file format that is used you have two options. Firstly you can <a class="reference internal" href="#generating-a-configuration"><span class="xref myst">generate a
+configuration</span></a> file and modify the field <code class="docutils literal notranslate"><span class="pre">savefig_format</span></code> to your choice. The example below
+shows changing this from <code class="docutils literal notranslate"><span class="pre">null</span></code> (which defaults to <code class="docutils literal notranslate"><span class="pre">png</span></code> as defined in <code class="docutils literal notranslate"><span class="pre">topostats.mplstyle</span></code>) to <code class="docutils literal notranslate"><span class="pre">svg</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plotting</span><span class="p">:</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">savefig_format</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">svg</span><span class="w"> </span><span class="c1"># Options : null (defaults to png) or see https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html</span>
+</pre></div>
+</div>
+<p>Alternatively it is possible to specify the output image format that is used on the command line using the
+<code class="docutils literal notranslate"><span class="pre">--savefig-format</span></code> option to <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code>. This will over-ride both the default or any value specified in a
+custom configuration you may have set. The following sets this to <code class="docutils literal notranslate"><span class="pre">svg</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>process<span class="w"> </span>--savefig-format<span class="w"> </span>svg
+</pre></div>
+</div>
+<p><strong>NB</strong> Note that these options are not mutually exclusive and can therefore be combined along with any of the other
+options available to <code class="docutils literal notranslate"><span class="pre">topostats</span> <span class="pre">process</span></code>. The following would use a DPI of <code class="docutils literal notranslate"><span class="pre">400</span></code>, set the colormap to <code class="docutils literal notranslate"><span class="pre">rainbow</span></code> and the
+output format to <code class="docutils literal notranslate"><span class="pre">svg</span></code> when running Topostats and would over-ride options in any custom configuration file or matplotlib
+style file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>topostats<span class="w"> </span>process<span class="w"> </span>--savefig-dpi<span class="w"> </span><span class="m">400</span><span class="w"> </span>--cmap<span class="w"> </span>rainbow<span class="w"> </span>--savefig-format<span class="w"> </span>svg
+</pre></div>
+</div>
+</section>
+</section>
+<section id="absolute-v-relative-paths">
+<h3>Absolute v Relative paths<a class="headerlink" href="#absolute-v-relative-paths" title="Link to this heading">#</a></h3>
+<p>When writing file paths you can use absolute or relative paths. On Windows systems absolute paths start with the
+drive letter (e.g. <code class="docutils literal notranslate"><span class="pre">c:/</span></code>) on Linux and OSX systems they start with <code class="docutils literal notranslate"><span class="pre">/</span></code>. Relative paths are started either with a <code class="docutils literal notranslate"><span class="pre">./</span></code>
+which denotes the current directory or one or more <code class="docutils literal notranslate"><span class="pre">../</span></code> which means the higher level directory from the current
+directory. You can always find the current directory you are in using the <code class="docutils literal notranslate"><span class="pre">pwd</span></code> (<code class="docutils literal notranslate"><span class="pre">p</span></code>rint <code class="docutils literal notranslate"><span class="pre">w</span></code>orking <code class="docutils literal notranslate"><span class="pre">d</span></code>irectory). If
+your work is in <code class="docutils literal notranslate"><span class="pre">/home/user/path/to/my/data</span></code> and <code class="docutils literal notranslate"><span class="pre">pwd</span></code> prints <code class="docutils literal notranslate"><span class="pre">/home/user</span></code> then the relative path to your data is
+<code class="docutils literal notranslate"><span class="pre">./path/to/my/data</span></code>. The <code class="docutils literal notranslate"><span class="pre">cd</span></code> command is used to <code class="docutils literal notranslate"><span class="pre">c</span></code>hange <code class="docutils literal notranslate"><span class="pre">d</span></code>irectory.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">pwd</span>
+/home/user/
+<span class="c1"># Two ways of changing directory using a relative path</span>
+<span class="nb">cd</span><span class="w"> </span>./path/to/my/data
+<span class="nb">pwd</span>
+/home/user/path/to/my/data
+<span class="c1"># Using an absolute path</span>
+<span class="nb">cd</span><span class="w"> </span>/home/user/path/to/my/data
+<span class="nb">pwd</span>
+/home/user/path/to/my/data
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="usage.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Usage</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="contributing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#generating-a-configuration">Generating a configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#partial-configurations">Partial configurations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-a-custom-configuration">Using a custom configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-structure">YAML Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fields">Fields</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary-configuration">Summary Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validation">Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matplotlib-style">Matplotlib Style</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#further-customisation">Further customisation</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpi">DPI</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#colormap">Colormap</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#saved-image-format">Saved Image format</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#absolute-v-relative-paths">Absolute v Relative paths</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

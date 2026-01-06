@@ -1,0 +1,2965 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="genindex.html">v2.3.2</a></li>
+  <li><a href="../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.__eq__">__eq__() (topostats.grains.GrainCrop method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.__eq__">(topostats.grains.GrainCropsDirection method)</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops.__eq__">(topostats.grains.ImageGrainCrops method)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.ImageGrainCrops.__eq__">(topostats.ImageGrainCrops method)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.__eq__">(topostats.TopoStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.__post_init__">__post_init__() (topostats.grains.GrainCropsDirection method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.__release__">__release__ (in module topostats)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.__str__">__str__() (topostats.Colormap method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.__str__">(topostats.theme.Colormap method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/index.html#topostats.__version__">__version__ (in module topostats)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret._angle_between">_angle_between() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_a">_binary_final_thin_check_a() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_final_thin_check_b">_binary_final_thin_check_b() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_a">_binary_thin_check_a() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_b_returncount">_binary_thin_check_b_returncount() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_c">_binary_thin_check_c() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_csharp">_binary_thin_check_csharp() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_d">_binary_thin_check_d() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._binary_thin_check_dsharp">_binary_thin_check_dsharp() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_centroid">_calculate_centroid() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_displacement">_calculate_displacement() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature._calculate_local_curvature">_calculate_local_curvature() (topostats.tracing.dnacurvature.Curvature method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats._calculate_radius">_calculate_radius() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans._check_image_size_and_add_to_dict">_check_image_size_and_add_to_dict() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit1">_delete_pixel_subit1() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._delete_pixel_subit2">_delete_pixel_subit2() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize._do_skeletonising_iteration">_do_skeletonising_iteration() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune._find_branch_ends">_find_branch_ends() (topostats.tracing.pruning.topostatsPrune static method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io._find_old_bruker_files">_find_old_bruker_files() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_abs_thresh_idx">_get_abs_thresh_idx() (topostats.tracing.pruning.heightPruning static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_branch_medians">_get_branch_medians() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_branch_middles">_get_branch_middles() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_branch_mins">_get_branch_mins() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_iqr_thresh_idx">_get_iqr_thresh_idx() (topostats.tracing.pruning.heightPruning static method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils._get_mask">_get_mask() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._get_mean_abs_thresh_idx">_get_mean_abs_thresh_idx() (topostats.tracing.pruning.heightPruning static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._get_skeletonize">_get_skeletonize() (topostats.tracing.skeletonize.getSkeleton method)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._get_threshold">_get_threshold() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules._log_setup">_log_setup() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._mark_if_negative_scar">_mark_if_negative_scar() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._mark_if_positive_scar">_mark_if_positive_scar() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._mark_scars">_mark_scars() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret._min_feret_coord">_min_feret_coord() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._outfile">_outfile() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting._pad_array">_pad_array() (in module topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules._parse_configuration">_parse_configuration() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune._prune_by_length">_prune_by_length() (topostats.tracing.pruning.topostatsPrune method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning._prune_method">_prune_method() (in module topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning._prune_topostats">_prune_topostats() (in module topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._remove_marked_scars">_remove_marked_scars() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats._remove_re_entering_branches">_remove_re_entering_branches() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._remove_short_scars">_remove_short_scars() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._set_label">_set_label() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules._set_logging">_set_logging() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum._setup_figure">_setup_figure() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._skeletonize_lee">_skeletonize_lee() (topostats.tracing.skeletonize.getSkeleton static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._skeletonize_medial_axis">_skeletonize_medial_axis() (topostats.tracing.skeletonize.getSkeleton static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._skeletonize_thin">_skeletonize_thin() (topostats.tracing.skeletonize.getSkeleton static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._skeletonize_topostats">_skeletonize_topostats() (topostats.tracing.skeletonize.getSkeleton static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton._skeletonize_zhang">_skeletonize_zhang() (topostats.tracing.skeletonize.getSkeleton static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning._split_skeleton">_split_skeleton() (topostats.tracing.pruning.heightPruning static method)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars._spread_scars">_spread_scars() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._threshold_mean">_threshold_mean() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._threshold_minimum">_threshold_minimum() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._threshold_otsu">_threshold_otsu() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._threshold_triangle">_threshold_triangle() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds._threshold_yen">_threshold_yen() (in module topostats.thresholds)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#id2">above (topostats.grains.ImageGrainCrops attribute)</a>, <a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops.above">[1]</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#id0">(topostats.ImageGrainCrops attribute)</a>, <a href="autoapi/topostats/index.html#topostats.ImageGrainCrops.above">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.above_below_value_idx">above_below_value_idx() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.add_bounding_boxes_to_plot">add_bounding_boxes_to_plot() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.add_branches_to_labelled_image">add_branches_to_labelled_image() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.add_pixel_to_nm_to_plotting_config">add_pixel_to_nm_to_plotting_config() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.add_to_dict">add_to_dict() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.all_connected_nodes">all_connected_nodes (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.all_pairs">all_pairs() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.all_visuals_img">all_visuals_img (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.alpha">alpha (topostats.plotting.TopoSum attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.analyse_node_branches">analyse_node_branches() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.analyse_nodes">analyse_nodes() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/curvature/index.html#curvature.angle_diff_signed">angle_diff_signed() (in module curvature)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch.angles">angles (topostats.tracing.nodestats.MatchedBranch attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.area_thresholding_tensor">area_thresholding_tensor() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.area_thresholds">area_thresholds (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.assemble_grain_mask_tensor_from_crops">assemble_grain_mask_tensor_from_crops() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.average_background">average_background() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.average_crossing_confs">average_crossing_confs() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.average_height_trace">average_height_trace() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.average_uniques">average_uniques() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.axes">axes (topostats.plottingfuncs.Images attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.base_dir">base_dir (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.base_output_dir">base_output_dir (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.bbox">bbox (topostats.grains.GrainCrop property)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.bbox_size_thresholding_tensor">bbox_size_thresholding_tensor() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#id3">below (topostats.grains.ImageGrainCrops attribute)</a>, <a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops.below">[1]</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#id1">(topostats.ImageGrainCrops attribute)</a>, <a href="autoapi/topostats/index.html#topostats.ImageGrainCrops.below">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.best_matches">best_matches() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.binary_line">binary_line() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.binary_thin_check_diag">binary_thin_check_diag() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.bins">bins (topostats.plotting.TopoSum attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.blue">blue() (topostats.Colormap static method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.blue">(topostats.theme.Colormap static method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.blue_purple_green">blue_purple_green() (topostats.Colormap static method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.blue_purple_green">(topostats.theme.Colormap static method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.bound_padded_coordinates_to_image">bound_padded_coordinates_to_image() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.bounding_box_cartesian_points_float">bounding_box_cartesian_points_float() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.bounding_box_cartesian_points_integer">bounding_box_cartesian_points_integer() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.branch_pairing_length">branch_pairing_length (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict.branch_stats">branch_stats (topostats.tracing.nodestats.NodeDict attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.bruker_rename">bruker_rename() (in module topostats.run_modules)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.calc_angles">calc_angles() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.calc_diff">calc_diff() (topostats.filters.Filters static method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.calc_gradient">calc_gradient() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_aspect_ratio">calculate_aspect_ratio() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/curvature/index.html#curvature.calculate_curvature_stats_image">calculate_curvature_stats_image() (in module curvature)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.calculate_derivatives">calculate_derivatives() (topostats.tracing.dnacurvature.Curvature method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.calculate_dna_width">calculate_dna_width() (topostats.tracing.disordered_tracing.disorderedTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_edges">calculate_edges() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.calculate_fwhm">calculate_fwhm() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_points">calculate_points() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_radius_stats">calculate_radius_stats() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.calculate_region_connection_regions">calculate_region_connection_regions() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.calculate_shortest_branch_distances">calculate_shortest_branch_distances() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_squared_distance">calculate_squared_distance() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.calculate_stats">calculate_stats() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.channel">channel (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.channel_data">channel_data (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.check_node_errorless">check_node_errorless() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.check_pixel_touching_edge">check_pixel_touching_edge() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.check_run_steps">check_run_steps() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.check_skeleton_one_object">check_skeleton_one_object() (topostats.tracing.pruning.heightPruning static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs.check_vectors_candidate_points">check_vectors_candidate_points() (topostats.tracing.tracingfuncs.genTracingFuncs static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.circular">circular (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.reorderTrace.circularTrace">circularTrace() (topostats.tracing.tracingfuncs.reorderTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.classes_to_merge">classes_to_merge (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.clean_dict">clean_dict() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.cmap">cmap (topostats.Colormap attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.cmap">(topostats.plottingfuncs.Images attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.cmap">(topostats.theme.Colormap attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.colorbar">colorbar (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap">Colormap (class in topostats)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap">(class in topostats.theme)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.COLUMN_SETS">COLUMN_SETS (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_images">compile_images() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.compile_metrics">compile_metrics() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.compile_skan_stats">compile_skan_stats() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.compile_trace">compile_trace() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.completion_message">completion_message() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict.confidence">confidence (topostats.tracing.nodestats.NodeDict attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.CONFIG_DOCUMENTATION_REFERENCE">CONFIG_DOCUMENTATION_REFERENCE (in module topostats)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.connect_best_matches">connect_best_matches() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.connect_close_nodes">connect_close_nodes() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.connect_extended_nodes_nearest">connect_extended_nodes_nearest() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.connected_nodes">connected_nodes (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.construct_full_mask_from_graincrops">construct_full_mask_from_graincrops() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.conv_skelly">conv_skelly (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.convert_basename_to_relative_paths">convert_basename_to_relative_paths() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.convert_classes_to_nearby_classes">convert_classes_to_nearby_classes() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.convert_classes_when_too_big_or_small">convert_classes_when_too_big_or_small() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.convert_path">convert_path() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.convex_hull">convex_hull() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.convolve_skeleton">convolve_skeleton() (in module topostats.utils)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.convolve_skeleton">(topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.coord_dist">coord_dist() (in module topostats.tracing.tracingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.coord_dist_rad">coord_dist_rad() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.coords_2_img">coords_2_img() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.core_set">core_set (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs.count_and_get_neighbours">count_and_get_neighbours() (topostats.tracing.tracingfuncs.genTracingFuncs static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.counter">counter (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.create_empty_dataframe">create_empty_dataframe() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/entry_point/index.html#topostats.entry_point.create_parser">create_parser() (in module topostats.entry_point)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.create_weighted_graph">create_weighted_graph() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.crop_array">crop_array() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#id0">crops (topostats.grains.GrainCropsDirection attribute)</a>, <a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.crops">[1]</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.cross2d">cross2d() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.cross_confidence">cross_confidence() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li>
+    curvature
+
+      <ul>
+        <li><a href="autoapi/curvature/index.html#module-curvature">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature">Curvature (class in topostats.tracing.dnacurvature)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.cut">cut (topostats.plotting.TopoSum attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.data">data (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.debug_locate_difference">debug_locate_difference() (topostats.grains.GrainCrop method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.debug_locate_difference">(topostats.grains.GrainCropsDirection method)</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops.debug_locate_difference">(topostats.grains.ImageGrainCrops method)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.ImageGrainCrops.debug_locate_difference">(topostats.ImageGrainCrops method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/validation/index.html#topostats.validation.DEFAULT_CONFIG_SCHEMA">DEFAULT_CONFIG_SCHEMA (in module topostats.validation)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.df">df (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.dice_loss">dice_loss() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.dict_almost_equal">dict_almost_equal() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.dict_to_hdf5">dict_to_hdf5() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.dict_to_json">dict_to_json() (in module topostats.io)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.dilate_binary_image">dilate_binary_image() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.direction">direction (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/curvature/index.html#curvature.discrete_angle_difference_per_nm_circular">discrete_angle_difference_per_nm_circular() (in module curvature)</a>
+</li>
+      <li><a href="autoapi/curvature/index.html#curvature.discrete_angle_difference_per_nm_linear">discrete_angle_difference_per_nm_linear() (in module curvature)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.disordered_trace">disordered_trace (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disordered_trace_grain">disordered_trace_grain() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.disordered_tracing">disordered_tracing() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace">disorderedTrace (class in topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch.distances">distances (topostats.tracing.nodestats.MatchedBranch attribute)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.do_points_in_arrays_touch">do_points_in_arrays_touch() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.do_skeletonising">do_skeletonising() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.edge_detection_method">edge_detection_method (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/entry_point/index.html#topostats.entry_point.entry_point">entry_point() (in module topostats.entry_point)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict.error">error (topostats.tracing.nodestats.NodeDict attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.extract">extract (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.extract_grains_from_full_image_tensor">extract_grains_from_full_image_tensor() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.extract_height_profile">extract_height_profile (topostats.grainstats.GrainStats attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    feret
+
+      <ul>
+        <li><a href="autoapi/feret/index.html#module-feret">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.figsize">figsize (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.filename">filename (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.filename">(topostats.grains.GrainCrop property)</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.filename">(topostats.grains.Grains attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.filename">(topostats.io.LoadScans attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.filename">(topostats.plottingfuncs.Images attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.filename">(topostats.TopoStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#id3">(topostats.TopoStats property)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.filename">(topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.filename">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.filename">(topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.fill_holes">fill_holes() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.filter_image">filter_image() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.filter_segments">filter_segments() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters">Filters (class in topostats.filters)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.filters">filters() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.final_skeletonisation_iteration">final_skeletonisation_iteration() (topostats.tracing.skeletonize.topostatsSkeletonize method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs.find_best_next_point">find_best_next_point() (topostats.tracing.tracingfuncs.genTracingFuncs static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.find_branch_starts">find_branch_starts() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/geometry/index.html#geometry.find_branches_for_nodes">find_branches_for_nodes() (in module geometry)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.find_cartesian_extremes">find_cartesian_extremes() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.find_connections">find_connections() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.find_files">find_files() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.find_grains">find_grains() (topostats.grains.Grains method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.first_derivative">first_derivative (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.flatten_multi_class_tensor">flatten_multi_class_tensor() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.full_dict">full_dict (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.full_mask_tensor">full_mask_tensor (topostats.grains.GrainCropsDirection attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#id1">(topostats.grains.GrainCropsDirection property)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch.fwhm">fwhm (topostats.tracing.nodestats.MatchedBranch attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.gaussian">gaussian() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.gaussian_filter">gaussian_filter() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.gaussian_mode">gaussian_mode (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.gaussian_size">gaussian_size (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs">genTracingFuncs (class in topostats.tracing.tracingfuncs)</a>
+</li>
+      <li>
+    geometry
+
+      <ul>
+        <li><a href="autoapi/geometry/index.html#module-geometry">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_angle">get_angle() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.get_cmap">get_cmap() (topostats.Colormap method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.get_cmap">(topostats.theme.Colormap method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_cropped_region">get_cropped_region() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.get_data">get_data() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.get_date_time">get_date_time() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.get_feret_from_labelim">get_feret_from_labelim() (in module feret)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.get_feret_from_mask">get_feret_from_mask() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.get_individual_grain_crops">get_individual_grain_crops() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.get_local_pixels_binary">get_local_pixels_binary() (topostats.tracing.skeletonize.topostatsSkeletonize static method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.get_mask">get_mask() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_mols_img">get_mols_img() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.get_multi_class_grain_bounding_boxes">get_multi_class_grain_bounding_boxes() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.get_node_stats">get_node_stats() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.get_ordered_branches_and_vectors">get_ordered_branches_and_vectors() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.get_ordered_traces">get_ordered_traces() (topostats.tracing.ordered_tracing.OrderedTraceTopostats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.get_out_path">get_out_path() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.get_out_paths">get_out_paths() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_over_under_img">get_over_under_img() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.get_region_properties">get_region_properties() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.get_relative_paths">get_relative_paths() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_shift">get_shift() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.get_skan_image">get_skan_image() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton.get_skeleton">get_skeleton() (topostats.tracing.skeletonize.getSkeleton method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.get_splined_traces">get_splined_traces() (topostats.tracing.splining.splineTrace method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.get_start_point">get_start_point() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.get_thresholds">get_thresholds() (in module topostats.utils)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_topology">get_topology() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_idxs">get_trace_idxs() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.get_trace_segment">get_trace_segment() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.get_vector">get_vector() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton">getSkeleton (class in topostats.tracing.skeletonize)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.graham_scan">graham_scan() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.ImageDict.grain">grain (topostats.tracing.nodestats.ImageDict attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.grain_anchor">grain_anchor() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.grain_crop_padding">grain_crop_padding (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.grain_crop_to_dict">grain_crop_to_dict() (topostats.grains.GrainCrop method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.grain_crops">grain_crops (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.grain_crops_direction_to_dict">grain_crops_direction_to_dict() (topostats.grains.GrainCropsDirection method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.grain_masks">grain_masks (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GRAIN_STATS_COLUMNS">GRAIN_STATS_COLUMNS (in module topostats.grainstats)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.grain_trace_data">grain_trace_data (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.grain_tracing_stats">grain_tracing_stats (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.grain_tracing_stats">(topostats.tracing.ordered_tracing.OrderedTraceTopostats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop">GrainCrop (class in topostats.grains)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.graincrops_merge_classes">graincrops_merge_classes() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.graincrops_remove_objects_too_small_to_process">graincrops_remove_objects_too_small_to_process() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.graincrops_update_background_class">graincrops_update_background_class() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection">GrainCropsDirection (class in topostats.grains)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains">Grains (class in topostats.grains)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.grains">grains() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats">GrainStats (class in topostats.grainstats)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.grainstats">grainstats() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.graph_to_skeleton_image">graph_to_skeleton_image() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.gwyddion">gwyddion() (topostats.Colormap static method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.gwyddion">(topostats.theme.Colormap static method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.hdf5_to_dict">hdf5_to_dict() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton.height_bias">height_bias (topostats.tracing.skeletonize.getSkeleton attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.height_bias">(topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      </ul></li>
+      <li>
+    height_profiles
+
+      <ul>
+        <li><a href="autoapi/height_profiles/index.html#module-height_profiles">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.height_profiles">height_profiles (topostats.grains.GrainCrop property)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.height_prune">height_prune() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.height_threshold">height_threshold (topostats.tracing.pruning.heightPruning attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.height_threshold">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning">heightPruning (class in topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch.heights">heights (topostats.tracing.nodestats.MatchedBranch attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.highlight_node_centres">highlight_node_centres() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.hist">hist (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.histogram_bins">histogram_bins (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.histogram_log_axis">histogram_log_axis (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.hue">hue (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.hulls">hulls() (in module feret)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.identify_writhes">identify_writhes() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.image">image (topostats.grains.GrainCrop property)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.image">(topostats.grains.Grains attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.image">(topostats.io.LoadScans attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.image">(topostats.TopoStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#id6">(topostats.TopoStats property)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.image">(topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.image">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.image">(topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.image">(topostats.tracing.ordered_tracing.OrderedTraceTopostats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.image">(topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton.image">(topostats.tracing.skeletonize.getSkeleton attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.image">(topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.image">(topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.image_dict">image_dict (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.image_grain_crops">image_grain_crops (topostats.grains.Grains attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.image_grain_crops">(topostats.TopoStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#id2">(topostats.TopoStats property)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops.image_grain_crops_to_dict">image_grain_crops_to_dict() (topostats.grains.ImageGrainCrops method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#topostats.ImageGrainCrops.image_grain_crops_to_dict">(topostats.ImageGrainCrops method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.image_id">image_id (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.image_name">image_name (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.TopoStats.image_original">image_original (topostats.TopoStats attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#id7">(topostats.TopoStats property)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.image_set">image_set (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/statistics/index.html#topostats.statistics.image_statistics">image_statistics() (in module topostats.statistics)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.image_type">image_type (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.ImageDict">ImageDict (class in topostats.tracing.nodestats)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.ImageGrainCrops">ImageGrainCrops (class in topostats)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.ImageGrainCrops">(class in topostats.grains)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images">Images (class in topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.images">images (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.images">(topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.images">(topostats.tracing.ordered_tracing.OrderedTraceTopostats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.img">img (topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.img_dict">img_dict (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.img_idx_to_node">img_idx_to_node (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.img_path">img_path (topostats.io.LoadScans attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.img_path">(topostats.TopoStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#id5">(topostats.TopoStats property)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.img_paths">img_paths (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.improve_grain_segmentation_unet">improve_grain_segmentation_unet() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.interpolate_between_two_points_distance">interpolate_between_two_points_distance() (in module topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.interpolate_between_yvalue">interpolate_between_yvalue() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/height_profiles/index.html#height_profiles.interpolate_height_profile">interpolate_height_profile() (in module height_profiles)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.interpolation">interpolation (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.iou_loss">iou_loss() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.is_clockwise">is_clockwise() (topostats.grainstats.GrainStats static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.join_matching_branches_through_node">join_matching_branches_through_node() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.kde">kde (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.keep_biggest_object">keep_biggest_object() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.keep_largest_labelled_region">keep_largest_labelled_region() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.keep_largest_labelled_region_classes">keep_largest_labelled_region_classes() (topostats.grains.Grains static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.label">label (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.label_branches">label_branches() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.label_regions">label_regions() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.lin_interp">lin_interp() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.linear_or_circular">linear_or_circular() (in module topostats.tracing.ordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.reorderTrace.linearTrace">linearTrace() (topostats.tracing.tracingfuncs.reorderTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.lists_almost_equal">lists_almost_equal() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.load_array">load_array() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_asd">load_asd() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_gwy">load_gwy() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_ibw">load_ibw() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_jpk">load_jpk() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.load_mplstyle">load_mplstyle() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.load_pkl">load_pkl() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_spm">load_spm() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_stp">load_stp() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_top">load_top() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.load_topostats">load_topostats() (topostats.io.LoadScans method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans">LoadScans (class in topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.local_area_sum">local_area_sum() (in module topostats.tracing.pruning)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.local_area_sum">(in module topostats.tracing.tracingfuncs)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.local_curvature">local_curvature (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/logs/logs/index.html#topostats.logs.logs.LOG_ERROR_FORMATTER">LOG_ERROR_FORMATTER (in module topostats.logs.logs)</a>
+</li>
+      <li><a href="autoapi/topostats/logs/logs/index.html#topostats.logs.logs.LOG_INFO_FORMATTER">LOG_INFO_FORMATTER (in module topostats.logs.logs)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.log_topostats_version">log_topostats_version() (in module topostats)</a>
+</li>
+      <li><a href="autoapi/curvature/index.html#curvature.LOGGER">LOGGER (in module curvature)</a>
+
+      <ul>
+        <li><a href="autoapi/feret/index.html#feret.LOGGER">(in module feret)</a>
+</li>
+        <li><a href="autoapi/height_profiles/index.html#height_profiles.LOGGER">(in module height_profiles)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.LOGGER">(in module topostats)</a>
+</li>
+        <li><a href="autoapi/topostats/array_manipulation/index.html#topostats.array_manipulation.LOGGER">(in module topostats.array_manipulation)</a>
+</li>
+        <li><a href="autoapi/topostats/config/index.html#topostats.config.LOGGER">(in module topostats.config)</a>
+</li>
+        <li><a href="autoapi/topostats/filters/index.html#topostats.filters.LOGGER">(in module topostats.filters)</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.LOGGER">(in module topostats.grains)</a>
+</li>
+        <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.LOGGER">(in module topostats.grainstats)</a>
+</li>
+        <li><a href="autoapi/topostats/io/index.html#topostats.io.LOGGER">(in module topostats.io)</a>
+</li>
+        <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.LOGGER">(in module topostats.plotting)</a>
+</li>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.LOGGER">(in module topostats.plottingfuncs)</a>
+</li>
+        <li><a href="autoapi/topostats/processing/index.html#topostats.processing.LOGGER">(in module topostats.processing)</a>
+</li>
+        <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.LOGGER">(in module topostats.run_modules)</a>
+</li>
+        <li><a href="autoapi/topostats/scars/index.html#topostats.scars.LOGGER">(in module topostats.scars)</a>
+</li>
+        <li><a href="autoapi/topostats/statistics/index.html#topostats.statistics.LOGGER">(in module topostats.statistics)</a>
+</li>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.LOGGER">(in module topostats.theme)</a>
+</li>
+        <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds.LOGGER">(in module topostats.thresholds)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.LOGGER">(in module topostats.tracing.disordered_tracing)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.LOGGER">(in module topostats.tracing.dnacurvature)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.LOGGER">(in module topostats.tracing.nodestats)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.LOGGER">(in module topostats.tracing.ordered_tracing)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.LOGGER">(in module topostats.tracing.pruning)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.LOGGER">(in module topostats.tracing.skeletonize)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.LOGGER">(in module topostats.tracing.splining)</a>
+</li>
+        <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.LOGGER">(in module topostats.unet_masking)</a>
+</li>
+        <li><a href="autoapi/topostats/utils/index.html#topostats.utils.LOGGER">(in module topostats.utils)</a>
+</li>
+        <li><a href="autoapi/topostats/validation/index.html#topostats.validation.LOGGER">(in module topostats.validation)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/logs/logs/index.html#topostats.logs.logs.LOGGER_NAME">LOGGER_NAME (in module topostats.logs.logs)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.make_bounding_box_square">make_bounding_box_square() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.make_crop_square">make_crop_square() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs.make_grid">make_grid() (topostats.tracing.tracingfuncs.genTracingFuncs static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.mask">mask (topostats.grains.GrainCrop property)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.mask">(topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.mask">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton.mask">(topostats.tracing.skeletonize.getSkeleton attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.mask">(topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.mask_cmap">mask_cmap (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.mask_images">mask_images (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.mask_smoothing_params">mask_smoothing_params (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.masked_array">masked_array (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch">MatchedBranch (class in topostats.tracing.nodestats)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.max_length">max_length (topostats.tracing.pruning.heightPruning attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.max_length">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.mean_iou">mean_iou() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.measure_contour_length">measure_contour_length() (in module topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.measure_end_to_end_distance">measure_end_to_end_distance() (in module topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.median_flatten">median_flatten() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.medians">medians (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.melt_data">melt_data() (topostats.plotting.TopoSum static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.melted_data">melted_data (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.merge_classes">merge_classes() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.merge_mappings">merge_mappings() (in module topostats.config)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.getSkeleton.method">method (topostats.tracing.skeletonize.getSkeleton attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.method_outlier">method_outlier (topostats.tracing.pruning.heightPruning attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.method_outlier">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.method_values">method_values (topostats.tracing.pruning.heightPruning attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.method_values">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.metre_scaling_factor">metre_scaling_factor (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.metrics">metrics (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.min_max_feret">min_max_feret() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.min_skeleton_size">min_skeleton_size (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.minimum_bbox_size_px">minimum_bbox_size_px (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.minimum_crossing_confs">minimum_crossing_confs() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.minimum_grain_size_px">minimum_grain_size_px (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.MINIMUM_IMAGE_SIZE">MINIMUM_IMAGE_SIZE (topostats.io.LoadScans attribute)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="autoapi/curvature/index.html#module-curvature">curvature</a>
+</li>
+        <li><a href="autoapi/feret/index.html#module-feret">feret</a>
+</li>
+        <li><a href="autoapi/geometry/index.html#module-geometry">geometry</a>
+</li>
+        <li><a href="autoapi/height_profiles/index.html#module-height_profiles">height_profiles</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#module-topostats">topostats</a>
+</li>
+        <li><a href="autoapi/topostats/array_manipulation/index.html#module-topostats.array_manipulation">topostats.array_manipulation</a>
+</li>
+        <li><a href="autoapi/topostats/config/index.html#module-topostats.config">topostats.config</a>
+</li>
+        <li><a href="autoapi/topostats/entry_point/index.html#module-topostats.entry_point">topostats.entry_point</a>
+</li>
+        <li><a href="autoapi/topostats/filters/index.html#module-topostats.filters">topostats.filters</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#module-topostats.grains">topostats.grains</a>
+</li>
+        <li><a href="autoapi/topostats/grainstats/index.html#module-topostats.grainstats">topostats.grainstats</a>
+</li>
+        <li><a href="autoapi/topostats/io/index.html#module-topostats.io">topostats.io</a>
+</li>
+        <li><a href="autoapi/topostats/logs/index.html#module-topostats.logs">topostats.logs</a>
+</li>
+        <li><a href="autoapi/topostats/logs/logs/index.html#module-topostats.logs.logs">topostats.logs.logs</a>
+</li>
+        <li><a href="autoapi/topostats/plotting/index.html#module-topostats.plotting">topostats.plotting</a>
+</li>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#module-topostats.plottingfuncs">topostats.plottingfuncs</a>
+</li>
+        <li><a href="autoapi/topostats/processing/index.html#module-topostats.processing">topostats.processing</a>
+</li>
+        <li><a href="autoapi/topostats/run_modules/index.html#module-topostats.run_modules">topostats.run_modules</a>
+</li>
+        <li><a href="autoapi/topostats/scars/index.html#module-topostats.scars">topostats.scars</a>
+</li>
+        <li><a href="autoapi/topostats/statistics/index.html#module-topostats.statistics">topostats.statistics</a>
+</li>
+        <li><a href="autoapi/topostats/theme/index.html#module-topostats.theme">topostats.theme</a>
+</li>
+        <li><a href="autoapi/topostats/thresholds/index.html#module-topostats.thresholds">topostats.thresholds</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/index.html#module-topostats.tracing">topostats.tracing</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#module-topostats.tracing.disordered_tracing">topostats.tracing.disordered_tracing</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#module-topostats.tracing.dnacurvature">topostats.tracing.dnacurvature</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#module-topostats.tracing.nodestats">topostats.tracing.nodestats</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#module-topostats.tracing.ordered_tracing">topostats.tracing.ordered_tracing</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#module-topostats.tracing.pruning">topostats.tracing.pruning</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#module-topostats.tracing.skeletonize">topostats.tracing.skeletonize</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#module-topostats.tracing.splining">topostats.tracing.splining</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#module-topostats.tracing.tracingfuncs">topostats.tracing.tracingfuncs</a>
+</li>
+        <li><a href="autoapi/topostats/unet_masking/index.html#module-topostats.unet_masking">topostats.unet_masking</a>
+</li>
+        <li><a href="autoapi/topostats/utils/index.html#module-topostats.utils">topostats.utils</a>
+</li>
+        <li><a href="autoapi/topostats/validation/index.html#module-topostats.validation">topostats.validation</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.module">module (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.mol_coords">mol_coords (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.mol_is_circular">mol_is_circular (topostats.tracing.splining.splineTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.mol_is_circular">(topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.mol_ordered_trace">mol_ordered_trace (topostats.tracing.splining.splineTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.mol_ordered_trace">(topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.mol_tracing_stats">mol_tracing_stats (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.mol_tracing_stats">(topostats.tracing.ordered_tracing.OrderedTraceTopostats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.molecule_coordinates">molecule_coordinates (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.molecule_id">molecule_id (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.multi_class_thresholding">multi_class_thresholding() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.MutableMappingType">MutableMappingType (in module topostats.config)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.n_grain">n_grain (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.n_grain">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.n_points">n_points (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.name">name (topostats.Colormap attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.name">(topostats.theme.Colormap attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.nanoscope">nanoscope() (topostats.Colormap static method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.nanoscope">(topostats.theme.Colormap static method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.node_centre_mask">node_centre_mask (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict.node_coords">node_coords (topostats.tracing.nodestats.NodeDict attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.node_dicts">node_dicts (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.node_extend_dist">node_extend_dist (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.node_joining_length">node_joining_length (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict">NodeDict (class in topostats.tracing.nodestats)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.ImageDict.nodes">nodes (topostats.tracing.nodestats.ImageDict attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats">nodeStats (class in topostats.tracing.nodestats)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.nodestats">nodestats() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.nodestats_dict">nodestats_dict (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodestats_image">nodestats_image() (in module topostats.tracing.nodestats)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.num_ticks">num_ticks (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.number_grain_plots">number_grain_plots() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.number_grains">number_grains (topostats.plottingfuncs.Images attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.only_centre_branches">only_centre_branches() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.only_height_prune_endpoints">only_height_prune_endpoints (topostats.tracing.pruning.heightPruning attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.only_height_prune_endpoints">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.order_branch">order_branch() (in module topostats.tracing.tracingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.order_branch_from_end">order_branch_from_end() (in module topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.order_branch_from_start">order_branch_from_start() (in module topostats.tracing.tracingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.order_branches">order_branches() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.order_from_end">order_from_end() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.ordered_coordinates">ordered_coordinates (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.MatchedBranch.ordered_coords">ordered_coords (topostats.tracing.nodestats.MatchedBranch attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.ordered_trace_mask">ordered_trace_mask() (in module topostats.tracing.ordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.ordered_tracing">ordered_tracing() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.ordered_tracing_image">ordered_tracing_image() (in module topostats.tracing.ordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats">OrderedTraceNodestats (class in topostats.tracing.ordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats">OrderedTraceTopostats (class in topostats.tracing.ordered_tracing)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.orientation">orientation() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.otsu_threshold_multiplier">otsu_threshold_multiplier (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.otsu_threshold_multiplier">(topostats.grains.Grains attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.output_dir">output_dir (topostats.plotting.TopoSum attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.output_dir">(topostats.plottingfuncs.Images attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p2">p2 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p3">p3 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p4">p4 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p5">p5 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p6">p6 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p7">p7 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p8">p8 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.p9">p9 (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.pad_bounding_box">pad_bounding_box() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.pad_bounding_box_cutting_off_at_image_bounds">pad_bounding_box_cutting_off_at_image_bounds() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/array_manipulation/index.html#topostats.array_manipulation.pad_bounding_box_dynamically_at_limits">pad_bounding_box_dynamically_at_limits() (in module topostats.array_manipulation)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.pad_crop">pad_crop() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.padding">padding (topostats.grains.GrainCrop property)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.pair_angles">pair_angles() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.pair_odd_branches">pair_odd_branches (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.pair_vectors">pair_vectors() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.palette">palette (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.path_to_str">path_to_str() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.pixel_to_nm_scaling">pixel_to_nm_scaling (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.pixel_to_nm_scaling">(topostats.grains.GrainCrop property)</a>
+</li>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.pixel_to_nm_scaling">(topostats.grains.Grains attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.pixel_to_nm_scaling">(topostats.io.LoadScans attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.pixel_to_nm_scaling">(topostats.plottingfuncs.Images attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#topostats.TopoStats.pixel_to_nm_scaling">(topostats.TopoStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/index.html#id4">(topostats.TopoStats property)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.pixel_to_nm_scaling">(topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.NodeDict.pixel_to_nm_scaling">(topostats.tracing.nodestats.NodeDict attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.pixel_to_nm_scaling">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.pixel_to_nm_scaling">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.pixel_to_nm_scaling">(topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.pixel_to_nm_scaling">(topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.plot">plot() (topostats.grainstats.GrainStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.plot_and_save">plot_and_save() (topostats.plottingfuncs.Images method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.plot_coords">plot_coords (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.plot_crossing_linetrace_halfmax">plot_crossing_linetrace_halfmax() (in module topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.plot_curvatures">plot_curvatures() (topostats.plottingfuncs.Images method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.plot_curvatures_individual_grains">plot_curvatures_individual_grains() (topostats.plottingfuncs.Images method)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.plot_feret">plot_feret() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.plot_height_profiles">plot_height_profiles() (in module topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.plot_histogram_and_save">plot_histogram_and_save() (topostats.plottingfuncs.Images method)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.plot_opts">plot_opts (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/validation/index.html#topostats.validation.PLOTTING_SCHEMA">PLOTTING_SCHEMA (in module topostats.validation)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.pool_trace_circular">pool_trace_circular() (topostats.tracing.splining.windowTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.pool_trace_linear">pool_trace_linear() (topostats.tracing.splining.windowTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/unet_masking/index.html#topostats.unet_masking.predict_unet">predict_unet() (in module topostats.unet_masking)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.process">process() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.process_filters">process_filters() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.process_grains">process_grains() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.process_grainstats">process_grainstats() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.process_scan">process_scan() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.profiles">profiles (topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.prune_skeleton">prune_skeleton() (in module topostats.tracing.pruning)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.prune_skeleton">(topostats.tracing.pruning.topostatsPrune method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.pruned_skeleton">pruned_skeleton (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.pruning_params">pruning_params (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.re_add_holes">re_add_holes() (topostats.tracing.disordered_tracing.disorderedTrace method)</a>
+</li>
+      <li><a href="autoapi/topostats/array_manipulation/index.html#topostats.array_manipulation.re_crop_grain_image_and_mask_to_set_size_nm">re_crop_grain_image_and_mask_to_set_size_nm() (in module topostats.array_manipulation)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_64d">read_64d() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_char">read_char() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_gwy_component_dtype">read_gwy_component_dtype() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_null_terminated_string">read_null_terminated_string() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_u32i">read_u32i() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.read_yaml">read_yaml() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.recip">recip() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.reconcile_config_args">reconcile_config_args() (in module topostats.config)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.reduce_rows">reduce_rows() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.region_properties">region_properties (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.remove_common_values">remove_common_values() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.remove_disconnected_grains">remove_disconnected_grains() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.remove_duplicate_consecutive_tuples">remove_duplicate_consecutive_tuples() (topostats.tracing.splining.splineTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.remove_edge_intersecting_grains">remove_edge_intersecting_grains (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.remove_nonlinear_polynomial">remove_nonlinear_polynomial() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.remove_objects_too_small_to_process">remove_objects_too_small_to_process() (topostats.grains.Grains method)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.remove_quadratic">remove_quadratic() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/scars/index.html#topostats.scars.remove_scars">remove_scars() (in module topostats.scars)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.remove_scars_config">remove_scars_config (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.remove_tilt">remove_tilt() (topostats.filters.Filters method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.remove_touching_edge">remove_touching_edge() (topostats.tracing.disordered_tracing.disorderedTrace static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.reorderTrace">reorderTrace (class in topostats.tracing.tracingfuncs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.resample_points_regular_interval">resample_points_regular_interval() (in module topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/utils/index.html#topostats.utils.ResolutionError">ResolutionError</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.results">results (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#topostats.tracing.tracingfuncs.genTracingFuncs.return_points_in_array">return_points_in_array() (topostats.tracing.tracingfuncs.genTracingFuncs static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.rm_nibs">rm_nibs() (in module topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.rolling_window_resample_regular_spatial_interval_nm">rolling_window_resample_regular_spatial_interval_nm (topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.rolling_window_resampling">rolling_window_resampling (topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.rolling_window_size">rolling_window_size (topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.rotating_calipers">rotating_calipers() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/statistics/index.html#topostats.statistics.roughness_rms">roughness_rms() (in module topostats.statistics)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.row_alignment_quantile">row_alignment_quantile (topostats.filters.Filters attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_curvature_stats">run_curvature_stats() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_disordered_tracing">run_disordered_tracing() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_filters">run_filters() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_grains">run_grains() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_grainstats">run_grainstats() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_nodestats">run_nodestats() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.run_nodestats_tracing">run_nodestats_tracing() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_ordered_tracing">run_ordered_tracing() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.run_spline_trace">run_spline_trace() (topostats.tracing.splining.splineTrace method)</a>
+</li>
+      <li><a href="autoapi/topostats/processing/index.html#topostats.processing.run_splining">run_splining() (in module topostats.processing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.run_topostats_tracing">run_topostats_tracing() (topostats.tracing.ordered_tracing.OrderedTraceTopostats method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.run_toposum">run_toposum() (in module topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.run_window_trace">run_window_trace() (topostats.tracing.splining.windowTrace method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.save">save (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.save_array">save_array() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.save_figure">save_figure() (topostats.plottingfuncs.Images method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.save_folder_grainstats">save_folder_grainstats() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.save_pkl">save_pkl() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.save_plot">save_plot() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.save_topostats_file">save_topostats_file() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.savefig_dpi">savefig_dpi (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.savefig_format">savefig_format (topostats.plotting.TopoSum attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.savefig_format">(topostats.plottingfuncs.Images attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#topostats.tracing.dnacurvature.Curvature.second_derivative">second_derivative (topostats.tracing.dnacurvature.Curvature attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.segment_heights">segment_heights() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.segment_middles">segment_middles() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.segment_skeleton">segment_skeleton() (topostats.tracing.pruning.heightPruning method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.Colormap.set_cmap">set_cmap() (topostats.Colormap method)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#topostats.theme.Colormap.set_cmap">(topostats.theme.Colormap method)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.set_n_ticks">set_n_ticks() (in module topostats.plottingfuncs)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.set_palette">set_palette() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.set_xlim">set_xlim() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.setup_logger">setup_logger() (in module topostats)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/logs/logs/index.html#topostats.logs.logs.setup_logger">(in module topostats.logs.logs)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.skeleton">skeleton (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.skeleton">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.skeleton">(topostats.tracing.ordered_tracing.OrderedTraceNodestats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceTopostats.skeleton">(topostats.tracing.ordered_tracing.OrderedTraceTopostats attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.skeleton">(topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune.skeleton">(topostats.tracing.pruning.topostatsPrune attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.skeleton_branches">skeleton_branches (topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.skeleton_branches_labelled">skeleton_branches_labelled (topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.skeleton_converged">skeleton_converged (topostats.tracing.skeletonize.topostatsSkeletonize attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.skeleton_convolved">skeleton_convolved (topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.skeleton_image_to_graph">skeleton_image_to_graph() (topostats.tracing.nodestats.nodeStats static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.heightPruning.skeleton_pruned">skeleton_pruned (topostats.tracing.pruning.heightPruning attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.skeletonisation_params">skeletonisation_params (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.smooth_mask">smooth_mask() (topostats.tracing.disordered_tracing.disorderedTrace method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.smoothed_mask">smoothed_mask (topostats.tracing.disordered_tracing.disorderedTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.smoothed_mask">(topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.sns_plot">sns_plot() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.sns_violinplot">sns_violinplot() (topostats.plotting.TopoSum method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize.sort_and_shuffle">sort_and_shuffle() (topostats.tracing.skeletonize.topostatsSkeletonize static method)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.sort_clockwise">sort_clockwise() (in module feret)</a>
+</li>
+      <li><a href="autoapi/feret/index.html#feret.sort_coords">sort_coords() (in module feret)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.sort_points">sort_points() (topostats.grainstats.GrainStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.spline_circular_smoothing">spline_circular_smoothing (topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.spline_degree">spline_degree (topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.spline_linear_smoothing">spline_linear_smoothing (topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.spline_step_size">spline_step_size (topostats.tracing.splining.splineTrace attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace">splineTrace (class in topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/run_modules/index.html#topostats.run_modules.splining">splining() (in module topostats.run_modules)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splining_image">splining_image() (in module topostats.tracing.splining)</a>
+</li>
+      <li><a href="autoapi/topostats/logs/logs/index.html#topostats.logs.logs.start">start (in module topostats.logs.logs)</a>
+</li>
+      <li><a href="autoapi/topostats/grainstats/index.html#topostats.grainstats.GrainStats.start_point">start_point (topostats.grainstats.GrainStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.stat">stat (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.stat_to_sum">stat_to_sum (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCrop.stats">stats (topostats.grains.GrainCrop property)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.LoadScans.suffix">suffix (topostats.io.LoadScans attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.summary_data">summary_data (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/validation/index.html#topostats.validation.SUMMARY_SCHEMA">SUMMARY_SCHEMA (in module topostats.validation)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/thresholds/index.html#topostats.thresholds.threshold">threshold() (in module topostats.thresholds)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.threshold_absolute">threshold_absolute (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.threshold_directions">threshold_directions (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.threshold_method">threshold_method (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.threshold_method">(topostats.grains.Grains attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.threshold_std_dev">threshold_std_dev (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/filters/index.html#topostats.filters.Filters.thresholds">thresholds (topostats.filters.Filters attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.thresholds">(topostats.grains.Grains attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.tidy_border_tensor">tidy_border_tensor() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.tidy_branches">tidy_branches() (topostats.tracing.nodestats.nodeStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.title">title (topostats.plottingfuncs.Images attribute)</a>
+</li>
+      <li>
+    topostats
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#module-topostats">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/index.html#topostats.TopoStats">TopoStats (class in topostats)</a>
+</li>
+      <li>
+    topostats.array_manipulation
+
+      <ul>
+        <li><a href="autoapi/topostats/array_manipulation/index.html#module-topostats.array_manipulation">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.config
+
+      <ul>
+        <li><a href="autoapi/topostats/config/index.html#module-topostats.config">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.entry_point
+
+      <ul>
+        <li><a href="autoapi/topostats/entry_point/index.html#module-topostats.entry_point">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.filters
+
+      <ul>
+        <li><a href="autoapi/topostats/filters/index.html#module-topostats.filters">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.grains
+
+      <ul>
+        <li><a href="autoapi/topostats/grains/index.html#module-topostats.grains">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.grainstats
+
+      <ul>
+        <li><a href="autoapi/topostats/grainstats/index.html#module-topostats.grainstats">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.io
+
+      <ul>
+        <li><a href="autoapi/topostats/io/index.html#module-topostats.io">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.logs
+
+      <ul>
+        <li><a href="autoapi/topostats/logs/index.html#module-topostats.logs">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.logs.logs
+
+      <ul>
+        <li><a href="autoapi/topostats/logs/logs/index.html#module-topostats.logs.logs">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.plotting
+
+      <ul>
+        <li><a href="autoapi/topostats/plotting/index.html#module-topostats.plotting">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.plottingfuncs
+
+      <ul>
+        <li><a href="autoapi/topostats/plottingfuncs/index.html#module-topostats.plottingfuncs">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.processing
+
+      <ul>
+        <li><a href="autoapi/topostats/processing/index.html#module-topostats.processing">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.run_modules
+
+      <ul>
+        <li><a href="autoapi/topostats/run_modules/index.html#module-topostats.run_modules">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.scars
+
+      <ul>
+        <li><a href="autoapi/topostats/scars/index.html#module-topostats.scars">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.statistics
+
+      <ul>
+        <li><a href="autoapi/topostats/statistics/index.html#module-topostats.statistics">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    topostats.theme
+
+      <ul>
+        <li><a href="autoapi/topostats/theme/index.html#module-topostats.theme">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.thresholds
+
+      <ul>
+        <li><a href="autoapi/topostats/thresholds/index.html#module-topostats.thresholds">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/index.html#module-topostats.tracing">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.disordered_tracing
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#module-topostats.tracing.disordered_tracing">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.dnacurvature
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/dnacurvature/index.html#module-topostats.tracing.dnacurvature">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.nodestats
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/nodestats/index.html#module-topostats.tracing.nodestats">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.ordered_tracing
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#module-topostats.tracing.ordered_tracing">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.pruning
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/pruning/index.html#module-topostats.tracing.pruning">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.skeletonize
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/skeletonize/index.html#module-topostats.tracing.skeletonize">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.splining
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#module-topostats.tracing.splining">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.tracing.tracingfuncs
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/tracingfuncs/index.html#module-topostats.tracing.tracingfuncs">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.unet_masking
+
+      <ul>
+        <li><a href="autoapi/topostats/unet_masking/index.html#module-topostats.unet_masking">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.utils
+
+      <ul>
+        <li><a href="autoapi/topostats/utils/index.html#module-topostats.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    topostats.validation
+
+      <ul>
+        <li><a href="autoapi/topostats/validation/index.html#module-topostats.validation">module</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/index.html#topostats.TOPOSTATS_BASE_VERSION">TOPOSTATS_BASE_VERSION (in module topostats)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.TopoStats.topostats_to_dict">topostats_to_dict() (topostats.TopoStats method)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.TOPOSTATS_VERSION">TOPOSTATS_VERSION (in module topostats)</a>
+</li>
+      <li><a href="autoapi/topostats/index.html#topostats.TopoStats.topostats_version">topostats_version (topostats.TopoStats attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/index.html#id8">(topostats.TopoStats property)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/topostats/tracing/pruning/index.html#topostats.tracing.pruning.topostatsPrune">topostatsPrune (class in topostats.tracing.pruning)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/skeletonize/index.html#topostats.tracing.skeletonize.topostatsSkeletonize">topostatsSkeletonize (class in topostats.tracing.skeletonize)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum">TopoSum (class in topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.toposum">toposum() (in module topostats.plotting)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.trace">trace() (topostats.tracing.ordered_tracing.OrderedTraceNodestats method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.trace_dna">trace_dna() (topostats.tracing.disordered_tracing.disorderedTrace method)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.trace_image_disordered">trace_image_disordered() (in module topostats.tracing.disordered_tracing)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.splineTrace.tracing_stats">tracing_stats (topostats.tracing.splining.splineTrace attribute)</a>
+
+      <ul>
+        <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace.tracing_stats">(topostats.tracing.splining.windowTrace attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="autoapi/feret/index.html#feret.triangle_height">triangle_height() (in module feret)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.unet_config">unet_config (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.update_background_class">update_background_class() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.update_config">update_config() (in module topostats.config)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.GrainCropsDirection.update_full_mask_tensor">update_full_mask_tensor() (topostats.grains.GrainCropsDirection method)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.update_module">update_module() (in module topostats.config)</a>
+</li>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.update_plotting_config">update_plotting_config() (in module topostats.config)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/validation/index.html#topostats.validation.validate_config">validate_config() (in module topostats.validation)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.validate_full_mask_tensor_shape">validate_full_mask_tensor_shape() (in module topostats.grains)</a>
+</li>
+      <li><a href="autoapi/topostats/plotting/index.html#topostats.plotting.TopoSum.var_to_label">var_to_label (topostats.plotting.TopoSum attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vet_class_connection_points">vet_class_connection_points() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vet_class_sizes_single_grain">vet_class_sizes_single_grain() (topostats.grains.Grains static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vet_grains">vet_grains() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vet_numbers_of_regions_single_grain">vet_numbers_of_regions_single_grain() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vet_whole_grain_size">vet_whole_grain_size() (topostats.grains.Grains static method)</a>
+</li>
+      <li><a href="autoapi/topostats/grains/index.html#topostats.grains.Grains.vetting_config">vetting_config (topostats.grains.Grains attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.visuals">visuals (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/tracing/nodestats/index.html#topostats.tracing.nodestats.nodeStats.whole_skel_graph">whole_skel_graph (topostats.tracing.nodestats.nodeStats attribute)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/splining/index.html#topostats.tracing.splining.windowTrace">windowTrace (class in topostats.tracing.splining)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/config/index.html#topostats.config.write_config_with_comments">write_config_with_comments() (in module topostats.config)</a>
+</li>
+      <li><a href="autoapi/topostats/io/index.html#topostats.io.write_yaml">write_yaml() (in module topostats.io)</a>
+</li>
+      <li><a href="autoapi/topostats/tracing/ordered_tracing/index.html#topostats.tracing.ordered_tracing.OrderedTraceNodestats.writhe_direction">writhe_direction() (topostats.tracing.ordered_tracing.OrderedTraceNodestats static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/topostats/plottingfuncs/index.html#topostats.plottingfuncs.Images.zrange">zrange (topostats.plottingfuncs.Images attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

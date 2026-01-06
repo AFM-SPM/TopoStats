@@ -1,0 +1,745 @@
+topostats.grainstats
+====================
+
+.. py:module:: topostats.grainstats
+
+.. autoapi-nested-parse::
+
+   Contains class for calculating the statistics of grains - 2d raster images.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.grainstats.LOGGER
+   topostats.grainstats.GRAIN_STATS_COLUMNS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.grainstats.GrainStats
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:data:: GRAIN_STATS_COLUMNS
+   :value: ['molecule_number', 'centre_x', 'centre_y', 'radius_min', 'radius_max', 'radius_mean',...
+
+
+.. py:class:: GrainStats(data: numpy.typing.NDArray, labelled_data: numpy.typing.NDArray, pixel_to_nanometre_scaling: float, direction: str, base_output_dir: str | pathlib.Path, image_name: str = None, edge_detection_method: str = 'binary_erosion', cropped_size: float = -1, plot_opts: dict = None, metre_scaling_factor: float = 1e-09)
+
+   
+   Class for calculating grain stats.
+
+   :param data: 2D Numpy array containing the flattened afm image. Data in this 2D array is floating point.
+   :type data: npt.NDArray
+   :param labelled_data: 2D Numpy array containing all the grain masks in the image. Data in this 2D array is boolean.
+   :type labelled_data: npt.NDArray
+   :param pixel_to_nanometre_scaling: Floating point value that defines the scaling factor between nanometres and pixels.
+   :type pixel_to_nanometre_scaling: float
+   :param direction: Direction for which grains have been detected ("above" or "below").
+   :type direction: str
+   :param base_output_dir: Path to the folder that will store the grain stats output images and data.
+   :type base_output_dir: Path
+   :param image_name: The name of the file being processed.
+   :type image_name: str
+   :param edge_detection_method: Method used for detecting the edges of grain masks before calculating statistics on them.
+                                 Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+   :type edge_detection_method: str
+   :param cropped_size: Length of square side (in nm) to crop grains to.
+   :type cropped_size: float
+   :param plot_opts: Plotting options dictionary for the cropped grains.
+   :type plot_opts: dict
+   :param metre_scaling_factor: Multiplier to convert the current length scale to metres. Default: 1e-9 for the
+                                usual AFM length scale of nanometres.
+   :type metre_scaling_factor: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: labelled_data
+
+
+   .. py:attribute:: pixel_to_nanometre_scaling
+
+
+   .. py:attribute:: direction
+
+
+   .. py:attribute:: base_output_dir
+
+
+   .. py:attribute:: start_point
+      :value: None
+
+
+
+   .. py:attribute:: image_name
+      :value: None
+
+
+
+   .. py:attribute:: edge_detection_method
+      :value: 'binary_erosion'
+
+
+
+   .. py:attribute:: cropped_size
+      :value: -1
+
+
+
+   .. py:attribute:: plot_opts
+      :value: None
+
+
+
+   .. py:attribute:: metre_scaling_factor
+      :value: 1e-09
+
+
+
+   .. py:method:: get_angle(point_1: tuple, point_2: tuple) -> float
+      :staticmethod:
+
+
+      
+      Calculate the angle in radians between two points.
+
+      :param point_1: Coordinate vectors for the first point to find the angle between.
+      :type point_1: tuple
+      :param point_2: Coordinate vectors for the second point to find the angle between.
+      :type point_2: tuple
+
+      :returns: The angle in radians between the two input vectors.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: is_clockwise(p_1: tuple, p_2: tuple, p_3: tuple) -> bool
+      :staticmethod:
+
+
+      
+      Determine if three points make a clockwise or counter-clockwise turn.
+
+      :param p_1: First point to be used to calculate turn.
+      :type p_1: tuple
+      :param p_2: Second point to be used to calculate turn.
+      :type p_2: tuple
+      :param p_3: Third point to be used to calculate turn.
+      :type p_3: tuple
+
+      :returns: Indicator of whether turn is clockwise.
+      :rtype: boolean
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_stats() -> tuple(pd.DataFrame, dict)
+
+      
+      Calculate the stats of grains in the labelled image.
+
+      :returns: Consists of a pd.DataFrame containing all the grain stats that have been calculated for the labelled image
+                and a list of dictionaries containing grain data to be plotted.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_points(grain_mask: numpy.typing.NDArray) -> list
+      :staticmethod:
+
+
+      
+      Convert a 2D boolean array to a list of coordinates.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: npt.NDArray
+
+      :returns: A python list containing the coordinates of the pixels in the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_edges(grain_mask: numpy.typing.NDArray, edge_detection_method: str) -> list
+      :staticmethod:
+
+
+      
+      Convert 2D boolean array to list of the coordinates of the edges of the grain.
+
+      :param grain_mask: A 2D numpy array image of a grain. Data in the array must be boolean.
+      :type grain_mask: npt.NDArray
+      :param edge_detection_method: Method used for detecting the edges of grain masks before calculating statistics on them.
+                                    Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
+      :type edge_detection_method: str
+
+      :returns: List containing the coordinates of the edges of the grain.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_radius_stats(edges: list, points: list) -> tuple[float]
+
+      
+      Calculate the radius of grains.
+
+      The radius in this context is the distance from the centroid to points on the edge of the grain.
+
+      :param edges: A 2D python list containing the coordinates of the edges of a grain.
+      :type edges: list
+      :param points: A 2D python list containing the coordinates of the points in a grain.
+      :type points: list
+
+      :returns: A tuple of the minimum, maximum, mean and median radius of the grain.
+      :rtype: tuple[float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_centroid(points: numpy.array) -> tuple
+      :staticmethod:
+
+
+      
+      Calculate the centroid of a bounding box.
+
+      :param points: A 2D python list containing the coordinates of the points in a grain.
+      :type points: list
+
+      :returns: The coordinates of the centroid.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_displacement(edges: numpy.typing.NDArray, centroid: tuple) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the displacement between the edges and centroid.
+
+      :param edges: Coordinates of the edge points.
+      :type edges: npt.NDArray
+      :param centroid: Coordinates of the centroid.
+      :type centroid: tuple
+
+      :returns: Array of displacements.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _calculate_radius(displacements: list[list]) -> numpy.typing.NDarray
+      :staticmethod:
+
+
+      
+      Calculate the radius of each point from the centroid.
+
+      :param displacements: A list of displacements.
+      :type displacements: List[list]
+
+      :returns: Array of radii of each point from the centroid.
+      :rtype: npt.NDarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: convex_hull(edges: list, base_output_dir: pathlib.Path, debug: bool = False) -> tuple[list, list, list]
+
+      
+      Calculate a grain's convex hull.
+
+      Based off of the Graham Scan algorithm and should ideally scale in time with O(nlog(n)).
+
+      :param edges: A python list containing the coordinates of the edges of the grain.
+      :type edges: list
+      :param base_output_dir: Directory to save output to.
+      :type base_output_dir: Path
+      :param debug: Default false. If true, debug information will be displayed to the terminal and plots for the convex hulls
+                    and edges will be saved.
+      :type debug: bool
+
+      :returns: A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+                from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+                of the convex hull, these are sorted in a counter-clockwise order.
+      :rtype: tuple[list, list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_squared_distance(point_2: tuple, point_1: tuple = None) -> float
+
+      
+      Calculate the squared distance between two points.
+
+      Used for distance sorting purposes and therefore does not perform a square root in the interests of efficiency.
+
+      :param point_2: The point to find the squared distance to.
+      :type point_2: tuple
+      :param point_1: Optional - defaults to the starting point defined in the graham_scan() function. The point to find the
+                      squared distance from.
+      :type point_1: tuple
+
+      :returns: The squared distance between the two points.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: sort_points(points: list) -> list
+
+      
+      Sort points in counter-clockwise order of angle made with the starting point.
+
+      :param points: A python list of the coordinates to sort.
+      :type points: list
+
+      :returns: Points (coordinates) sorted counter-clockwise.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_start_point(edges: numpy.typing.NDArray) -> None
+
+      
+      Determine the index of the bottom most point of the hull when sorted by x-position.
+
+      :param edges: Array of coordinates.
+      :type edges: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: graham_scan(edges: list) -> tuple[list, list, list]
+
+      
+      Construct the convex hull using the  Graham Scan algorithm.
+
+      Ideally this algorithm will take O( n * log(n) ) time.
+
+      :param edges: A python list of coordinates that make up the edges of the grain.
+      :type edges: list
+
+      :returns: A hull (list) of the coordinates of each point on the hull. Hull indices providing a way to find the points
+                from the hill inside the edge list that was passed. Simplices (list) of tuples each representing a simplex
+                of the convex hull, these are sorted in a counter-clockwise order.
+      :rtype: tuple[list, list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot(edges: list, convex_hull: list = None, file_path: pathlib.Path = None) -> None
+      :staticmethod:
+
+
+      
+      Plot and save the coordinates of the edges in the grain and optionally the hull.
+
+      :param edges: A list of points to be plotted.
+      :type edges: list
+      :param convex_hull: Optional argument. A list of points that form the convex hull. Will be plotted with the coordinates if
+                          provided.
+      :type convex_hull: list
+      :param file_path: Path of the file to save the plot as.
+      :type file_path: Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_aspect_ratio(edges: list, hull_simplices: numpy.typing.NDArray, path: pathlib.Path, debug: bool = False) -> tuple
+
+      
+      Calculate the width, length and aspect ratio of the smallest bounding rectangle of a grain.
+
+      :param edges: A python list of coordinates of the edge of the grain.
+      :type edges: list
+      :param hull_simplices: A 2D numpy array of simplices that the hull is comprised of.
+      :type hull_simplices: npt.NDArray
+      :param path: Path to the save folder for the grain.
+      :type path: Path
+      :param debug: If true, various plots will be saved for diagnostic purposes.
+      :type debug: bool
+
+      :returns: The smallest_bouning_width (float) in pixels (not nanometres) of the smallest bounding rectangle for the
+                grain. The smallest_bounding_length (float) in pixels (not nanometres), of the smallest bounding rectangle
+                for the grain. And the aspect_ratio (float) the width divided by the length of the smallest bounding
+                rectangle for the grain. It will always be greater or equal to 1.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_cartesian_extremes(rotated_points: numpy.typing.NDArray) -> dict
+      :staticmethod:
+
+
+      
+      Find the limits of x and y of rotated points.
+
+      :param rotated_points: 2-D array of rotated points.
+      :type rotated_points: npt.NDArray
+
+      :returns: Dictionary of the x and y min and max.__annotations__.
+      :rtype: Dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_shift(coords: numpy.typing.NDArray, shape: numpy.typing.NDArray) -> int
+      :staticmethod:
+
+
+      
+      Obtain the coordinate shift to reflect the cropped image box for molecules near the edges of the image.
+
+      :param coords: Value representing integer coordinates which may be outside of the image.
+      :type coords: npt.NDArray
+      :param shape: Array of the shape of an image.
+      :type shape: npt.NDArray
+
+      :returns: Max value of the shift to reflect the croped region so it stays within the image.
+      :rtype: np.int64
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_cropped_region(image: numpy.typing.NDArray, length: int, centre: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Crop the image with respect to a given pixel length around the centre coordinates.
+
+      :param image: The image array.
+      :type image: npt.NDArray
+      :param length: The length (in pixels) of the resultant cropped image.
+      :type length: int
+      :param centre: The centre of the object to crop.
+      :type centre: npt.NDArray
+
+      :returns: Cropped array of the image.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

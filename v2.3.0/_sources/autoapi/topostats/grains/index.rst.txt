@@ -1,0 +1,1117 @@
+topostats.grains
+================
+
+.. py:module:: topostats.grains
+
+.. autoapi-nested-parse::
+
+   Find grains in an image.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.grains.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.grains.Grains
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: Grains(image: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None, threshold_method: str | None = None, otsu_threshold_multiplier: float | None = None, threshold_std_dev: dict | None = None, threshold_absolute: dict | None = None, absolute_area_threshold: dict | None = None, direction: str | None = None, smallest_grain_size_nm2: float | None = None, remove_edge_intersecting_grains: bool = True, classes_to_merge: list[tuple[int, int]] | None = None, vetting: dict | None = None)
+
+   
+   Find grains in an image.
+
+   :param image: 2-D Numpy array of image.
+   :type image: npt.NDArray
+   :param filename: File being processed (used in logging).
+   :type filename: str
+   :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+   :type pixel_to_nm_scaling: float
+   :param unet_config: Configuration for the UNet model.
+                       model_path: str
+                           Path to the UNet model.
+                       grain_crop_padding: int
+                           Padding to add to the bounding box of the grain before cropping.
+                       upper_norm_bound: float
+                           Upper bound for normalising the image.
+                       lower_norm_bound: float
+                           Lower bound for normalising the image.
+   :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+   :param threshold_method: Method for determining thershold to mask values, default is 'otsu'.
+   :type threshold_method: str
+   :param otsu_threshold_multiplier: Factor by which the below threshold is to be scaled prior to masking.
+   :type otsu_threshold_multiplier: float
+   :param threshold_std_dev: Dictionary of 'below' and 'above' factors by which standard deviation is multiplied to derive the threshold
+                             if threshold_method is 'std_dev'.
+   :type threshold_std_dev: dict
+   :param threshold_absolute: Dictionary of absolute 'below' and 'above' thresholds for grain finding.
+   :type threshold_absolute: dict
+   :param absolute_area_threshold: Dictionary of above and below grain's area thresholds.
+   :type absolute_area_threshold: dict
+   :param direction: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type direction: str
+   :param smallest_grain_size_nm2: Whether or not to remove grains that intersect the edge of the image.
+   :type smallest_grain_size_nm2: float
+   :param remove_edge_intersecting_grains: Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
+   :type remove_edge_intersecting_grains: bool
+   :param classes_to_merge: List of tuples of classes to merge.
+   :type classes_to_merge: list[tuple[int, int]] | None
+   :param vetting: Dictionary of vetting parameters.
+   :type vetting: dict | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: threshold_method
+      :value: None
+
+
+
+   .. py:attribute:: otsu_threshold_multiplier
+      :value: None
+
+
+
+   .. py:attribute:: threshold_std_dev
+      :value: None
+
+
+
+   .. py:attribute:: threshold_absolute
+      :value: None
+
+
+
+   .. py:attribute:: absolute_area_threshold
+      :value: None
+
+
+
+   .. py:attribute:: direction
+
+
+   .. py:attribute:: smallest_grain_size_nm2
+      :value: None
+
+
+
+   .. py:attribute:: remove_edge_intersecting_grains
+      :value: True
+
+
+
+   .. py:attribute:: thresholds
+      :value: None
+
+
+
+   .. py:attribute:: images
+
+
+   .. py:attribute:: directions
+
+
+   .. py:attribute:: minimum_grain_size
+      :value: None
+
+
+
+   .. py:attribute:: region_properties
+
+
+   .. py:attribute:: bounding_boxes
+
+
+   .. py:attribute:: grainstats
+      :value: None
+
+
+
+   .. py:attribute:: unet_config
+      :value: None
+
+
+
+   .. py:attribute:: vetting
+      :value: None
+
+
+
+   .. py:attribute:: classes_to_merge
+      :value: None
+
+
+
+   .. py:attribute:: minimum_grain_size_px
+      :value: 10
+
+
+
+   .. py:attribute:: minimum_bbox_size_px
+      :value: 5
+
+
+
+   .. py:method:: tidy_border(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove grains touching the border.
+
+      :param image: 2-D Numpy array representing the image.
+      :type image: npt.NDarray
+      :param \*\*kwargs: Arguments passed to 'skimage.segmentation.clear_border(**kwargs)'.
+
+      :returns: 2-D Numpy array of image without objects touching the border.
+      :rtype: npt.NDarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: label_regions(image: numpy.typing.NDArray, background: int = 0) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Label regions.
+
+      This method is used twice, once prior to removal of small regions and again afterwards which is why an image
+      must be supplied rather than using 'self'.
+
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param background: Value used to indicate background of image. Default = 0.
+      :type background: int
+
+      :returns: 2-D Numpy array of image with regions numbered.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_minimum_grain_size(image: numpy.typing.NDArray) -> float
+
+      
+      Calculate the minimum grain size in pixels squared.
+
+      Very small objects are first removed via thresholding before calculating the below extreme.
+
+      :param image: 2-D Numpy image from which to calculate the minimum grain size.
+      :type image: npt.NDArray
+
+      :returns: Minimum grains size in pixels squared. If there are areas a value of -1 is returned.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_noise(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove noise which are objects smaller than the 'smallest_grain_size_nm2'.
+
+      This ensures that the smallest objects ~1px are removed regardless of the size distribution of the grains.
+
+      :param image: 2-D Numpy array to be cleaned.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < smallest_grain_size_nm2 removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_small_objects(image: numpy.array, **kwargs) -> numpy.typing.NDArray
+
+      
+      Remove small objects from the input image.
+
+      Threshold determined by the minimum grain size, in pixels squared, of the classes initialisation.
+
+      :param image: 2-D Numpy array to remove small objects from.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.morphology.remove_small_objects(**kwargs)'.
+
+      :returns: 2-D Numpy array of image with objects < minimumm_grain_size removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_objects_too_small_to_process(image: numpy.typing.NDArray, minimum_size_px: int, minimum_bbox_size_px: int) -> numpy.typing.NDArray[numpy.bool_]
+
+      
+      Remove objects whose dimensions in pixels are too small to process.
+
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param minimum_size_px: Minimum number of pixels for an object.
+      :type minimum_size_px: int
+      :param minimum_bbox_size_px: Limit for the minimum dimension of an object in pixels. Eg: 5 means the object's bounding box must be at
+                                   least 5x5.
+      :type minimum_bbox_size_px: int
+
+      :returns: 2-D Numpy array of image with objects removed that are too small to process.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: area_thresholding(image: numpy.typing.NDArray, area_thresholds: tuple) -> numpy.typing.NDArray
+
+      
+      Remove objects larger and smaller than the specified thresholds.
+
+      :param image: Image array where the background == 0 and grains are labelled as integers >0.
+      :type image: npt.NDArray
+      :param area_thresholds: List of area thresholds (in nanometres squared, not pixels squared), first is the lower limit for size,
+                              second is the upper.
+      :type area_thresholds: tuple
+
+      :returns: Array with small and large objects removed.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: colour_regions(image: numpy.typing.NDArray, **kwargs) -> numpy.typing.NDArray
+
+      
+      Colour the regions.
+
+      :param image: 2-D array of labelled regions to be coloured.
+      :type image: npt.NDArray
+      :param \*\*kwargs: Arguments passed to 'skimage.color.label2rgb(**kwargs)'.
+
+      :returns: Numpy array of image with objects coloured.
+      :rtype: np.array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_region_properties(image: numpy.array, **kwargs) -> list
+      :staticmethod:
+
+
+      
+      Extract the properties of each region.
+
+      :param image: Numpy array representing image.
+      :type image: np.array
+      :param \*\*kwargs: Arguments passed to 'skimage.measure.regionprops(**kwargs)'.
+
+      :returns: List of region property objects.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_bounding_boxes(direction: str) -> dict
+
+      
+      Derive a list of bounding boxes for each region from the derived region_properties.
+
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+
+      :returns: Dictionary of bounding boxes indexed by region area.
+      :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_grains()
+
+      
+      Find grains.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: improve_grain_segmentation_unet(filename: str, direction: str, unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None], image: numpy.typing.NDArray, labelled_grain_regions: numpy.typing.NDArray) -> tuple[numpy.typing.NDArray, numpy.typing.NDArray]
+      :staticmethod:
+
+
+      
+      Use a UNet model to re-segment existing grains to improve their accuracy.
+
+      :param filename: File being processed (used in logging).
+      :type filename: str
+      :param direction: Direction of threshold for which bounding boxes are being calculated.
+      :type direction: str
+      :param unet_config: Configuration for the UNet model.
+                          model_path: str
+                              Path to the UNet model.
+                          grain_crop_padding: int
+                              Padding to add to the bounding box of the grain before cropping.
+                          upper_norm_bound: float
+                              Upper bound for normalising the image.
+                          lower_norm_bound: float
+                              Lower bound for normalising the image.
+      :type unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None]
+      :param image: 2-D Numpy array of image.
+      :type image: npt.NDArray
+      :param labelled_grain_regions: 2-D Numpy array of labelled grain regions.
+      :type labelled_grain_regions: npt.NDArray
+
+      :returns: * *npt.NDArray* -- NxNxC Numpy array of the UNet mask.
+                * *npt.NDArray* -- NxNxC Numpy array of the labelled regions from the UNet mask.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: keep_largest_labelled_region(labelled_image: numpy.typing.NDArray[numpy.int32]) -> numpy.typing.NDArray[numpy.bool_]
+      :staticmethod:
+
+
+      
+      Keep only the largest region in a labelled image.
+
+      :param labelled_image: 2-D Numpy array of labelled regions.
+      :type labelled_image: npt.NDArray
+
+      :returns: 2-D Numpy boolean array of labelled regions with only the largest region.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: flatten_multi_class_tensor(grain_mask_tensor: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Flatten a multi-class image tensor to a single binary mask.
+
+      The returned tensor is of boolean type in case there are multiple hits in the same pixel. We dont want to have
+      2s, 3s etc because this would cause issues in labelling and cause erroneous grains within grains.
+
+      :param grain_mask_tensor: Multi class grain mask tensor tensor of shape (N, N, C).
+      :type grain_mask_tensor: npt.NDArray
+
+      :returns: Combined binary mask of all but the background class (:, :, 0).
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_multi_class_grain_bounding_boxes(grain_mask_tensor: numpy.typing.NDArray) -> dict
+      :staticmethod:
+
+
+      
+      Get the bounding boxes for each grain in a multi-class image tensor.
+
+      Finds the bounding boxes for each grain in a multi-class image tensor. Grains can span multiple classes, so the
+      bounding boxes are found for the combined binary mask of contiguous grains across all classes.
+
+      :param grain_mask_tensor: 3-D Numpy array of grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+
+      :returns: Dictionary of bounding boxes indexed by grain number.
+      :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: update_background_class(grain_mask_tensor: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Update the background class to reflect the other classes.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+
+      :returns: 3-D Numpy array of image tensor with updated background class.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: vet_class_sizes_single_grain(single_grain_mask_tensor: numpy.typing.NDArray, pixel_to_nm_scaling: float, class_size_thresholds: list[tuple[int, int, int]] | None) -> tuple[numpy.typing.NDArray, bool]
+      :staticmethod:
+
+
+      
+      Remove regions of particular classes based on size thresholds.
+
+      Regions of classes that are too large or small may need to be removed for many reasons (eg removing noise
+      erroneously detected by the model or larger-than-expected molecules that are obviously erroneous), this method
+      allows for the removal of these regions based on size thresholds.
+
+      :param single_grain_mask_tensor: 3-D Numpy array of the mask tensor.
+      :type single_grain_mask_tensor: npt.NDArray
+      :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+      :type pixel_to_nm_scaling: float
+      :param class_size_thresholds: List of class size thresholds. Structure is [(class_index, lower, upper)].
+      :type class_size_thresholds: list[list[int, int, int]] | None
+
+      :returns: * *npt.NDArray* -- 3-D Numpy array of the mask tensor with grains removed based on size thresholds.
+                * *bool* -- True if the grain passes the vetting, False if it fails.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_individual_grain_crops(grain_mask_tensor: numpy.typing.NDArray, padding: int = 1) -> tuple[list[numpy.typing.NDArray], list[numpy.typing.NDArray], int]
+      :staticmethod:
+
+
+      
+      Get individual grain crops from an image tensor.
+
+      Fetches individual grain crops from an image tensor, but zeros any non-connected grains
+      in the crop region. This is to ensure that other grains do not affect further processing
+      steps.
+
+      :param grain_mask_tensor: 3-D Numpy array of image tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param padding: Padding to add to the bounding box of the grain before cropping. Default is 1.
+      :type padding: int
+
+      :returns: * *list[npt.NDArray]* -- List of individual grain crops.
+                * *list[npt.NDArray]* -- List of bounding boxes for each grain.
+                * *int* -- Padding used for the bounding boxes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: vet_numbers_of_regions_single_grain(grain_mask_tensor: numpy.typing.NDArray, class_region_number_thresholds: list[tuple[int, int, int]] | None) -> tuple[numpy.typing.NDArray, bool]
+      :staticmethod:
+
+
+      
+      Check if the number of regions of different classes for a single grain is within thresholds.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor, should be of only one grain.
+      :type grain_mask_tensor: npt.NDArray
+      :param class_region_number_thresholds: List of class region number thresholds. Structure is [(class_index, lower, upper)].
+      :type class_region_number_thresholds: list[list[int, int, int]]
+
+      :returns: * *npt.NDArray* -- 3-D Numpy array of the grain mask tensor with grains removed based on region number thresholds.
+                * *bool* -- True if the grain passes the vetting, False if it fails.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: convert_classes_to_nearby_classes(grain_mask_tensor: numpy.typing.NDArray, classes_to_convert: list[tuple[int, int]] | None, class_touching_threshold: int = 1) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Convert all but the largest regions of one class into another class provided the former touches the latter.
+
+      Specifically, it takes a list of tuples of two integers (dubbed class A and class B). For each class A, class B
+      pair, it will find the largest region of class A and flag it to be ignored. Then for each non-largest region of
+      class A, it will check if it touches any class B region (within the ``class_touching_threshold`` distance). If it
+      does, it will convert the region to class B.
+
+      This is useful for situations where you want just one region of class A and the model has a habit of producing
+      small regions of class A interspersed in the class B regions, which should be class B instead.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param classes_to_convert: List of tuples of classes to convert. Structure is [(class_a, class_b)].
+      :type classes_to_convert: list
+      :param class_touching_threshold: Number of dilation passes to do to determine class A connectivity with class B.
+      :type class_touching_threshold: int
+
+      :returns: 3-D Numpy array of the grain mask tensor with classes converted.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: keep_largest_labelled_region_classes(single_grain_mask_tensor: numpy.typing.NDArray, keep_largest_labelled_regions_classes: list[int] | None) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Keep only the largest region in specific classes.
+
+      :param single_grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type single_grain_mask_tensor: npt.NDArray
+      :param keep_largest_labelled_regions_classes: List of classes to keep only the largest region.
+      :type keep_largest_labelled_regions_classes: list[int]
+
+      :returns: 3-D Numpy array of the grain mask tensor with only the largest regions in specific classes.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_region_connection_regions(grain_mask_tensor: numpy.typing.NDArray, classes: tuple[int, int]) -> tuple[int, numpy.typing.NDArray, dict[int, numpy.typing.NDArray[int]]]
+      :staticmethod:
+
+
+      
+      Get a list of connection regions between two classes.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param classes: Tuple pair of classes to calculate the connection regions.
+      :type classes: tuple[int, int]
+
+      :returns: * *int* -- Number of connection regions.
+                * *npt.NDArray* -- 2-D Numpy array of the intersection labels.
+                * *dict* -- Dictionary of connection points indexed by region label.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: vet_class_connection_points(grain_mask_tensor: numpy.typing.NDArray, class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None) -> bool
+      :staticmethod:
+
+
+      
+      Vet the number of connection points between regions in specific classes.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param class_connection_point_thresholds: List of tuples of classes and connection point thresholds. Structure is [(class_pair, (lower, upper))].
+      :type class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None
+
+      :returns: True if the grain passes the vetting, False if it fails.
+      :rtype: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: assemble_grain_mask_tensor_from_crops(grain_mask_tensor_shape: tuple[int, int, int], grain_crops_and_bounding_boxes: list[dict[str, numpy.typing.NDArray]]) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Combine individual grain crops into a single grain mask tensor.
+
+      :param grain_mask_tensor_shape: Shape of the grain mask tensor.
+      :type grain_mask_tensor_shape: tuple
+      :param grain_crops_and_bounding_boxes: List of dictionaries containing the grain crops and bounding boxes.
+                                             Structure: [{"grain_tensor": npt.NDArray, "bounding_box": tuple, "padding": int}].
+      :type grain_crops_and_bounding_boxes: list
+
+      :returns: 3-D Numpy array of the grain mask tensor.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: convert_classes_when_too_big_or_small(grain_mask_tensor: numpy.typing.NDArray, pixel_to_nm_scaling: float, class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Convert classes when they are too big or too small based on size thresholds.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+      :type pixel_to_nm_scaling: float
+      :param class_conversion_size_thresholds: List of class conversion size thresholds.
+                                               Structure is [(class_index, class_to_convert_to_if_to_small, class_to_convert_to_if_too_big),
+                                               (lower_threshold, upper_threshold)].
+      :type class_conversion_size_thresholds: list
+
+      :returns: 3-D Numpy array of the grain mask tensor with classes converted based on size thresholds.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: vet_grains(grain_mask_tensor: numpy.typing.NDArray, pixel_to_nm_scaling: float, class_conversion_size_thresholds: list[tuple[tuple[int, int, int], tuple[int, int]]] | None, class_size_thresholds: list[tuple[int, int, int]] | None, class_region_number_thresholds: list[tuple[int, int, int]] | None, nearby_conversion_classes_to_convert: list[tuple[int, int]] | None, class_touching_threshold: int, keep_largest_labelled_regions_classes: list[int] | None, class_connection_point_thresholds: list[tuple[tuple[int, int], tuple[int, int]]] | None) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Vet grains in a grain mask tensor based on a variety of criteria.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param pixel_to_nm_scaling: Scaling of pixels to nanometres.
+      :type pixel_to_nm_scaling: float
+      :param class_conversion_size_thresholds: List of class conversion size thresholds. Structure is [(class_index, class_to_convert_to_if_too_small,
+                                               class_to_convert_to_if_too_big), (lower_threshold, upper_threshold)].
+      :type class_conversion_size_thresholds: list
+      :param class_size_thresholds: List of class size thresholds. Structure is [(class_index, lower, upper)].
+      :type class_size_thresholds: list
+      :param class_region_number_thresholds: List of class region number thresholds. Structure is [(class_index, lower, upper)].
+      :type class_region_number_thresholds: list
+      :param nearby_conversion_classes_to_convert: List of tuples of classes to convert. Structure is [(class_a, class_b)].
+      :type nearby_conversion_classes_to_convert: list
+      :param class_touching_threshold: Number of dilation passes to do to determine class A connectivity with class B.
+      :type class_touching_threshold: int
+      :param keep_largest_labelled_regions_classes: List of classes to keep only the largest region.
+      :type keep_largest_labelled_regions_classes: list
+      :param class_connection_point_thresholds: List of tuples of classes and connection point thresholds. Structure is [(class_pair, (lower, upper))].
+      :type class_connection_point_thresholds: list
+
+      :returns: 3-D Numpy array of the vetted grain mask tensor.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: merge_classes(grain_mask_tensor: numpy.typing.NDArray, classes_to_merge: list[tuple[int]] | None) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Merge classes in a grain mask tensor and add them to the grain tensor.
+
+      :param grain_mask_tensor: 3-D Numpy array of the grain mask tensor.
+      :type grain_mask_tensor: npt.NDArray
+      :param classes_to_merge: List of tuples for classes to merge, can be any number of classes.
+      :type classes_to_merge: list | None
+
+      :returns: 3-D Numpy array of the grain mask tensor with classes merged.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

@@ -1,0 +1,947 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Dictionary &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=766c09a3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'data_dictionary';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Related Software" href="related_software.html" />
+    <link rel="prev" title="Workflow" href="workflow.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../v2.0.0/data_dictionary.html">v2.0.0</a></li>
+  <li><a href="../v2.1.0/data_dictionary.html">v2.1.0</a></li>
+  <li><a href="../v2.1.1/data_dictionary.html">v2.1.1</a></li>
+  <li><a href="../v2.1.2/data_dictionary.html">v2.1.2</a></li>
+  <li><a href="../v2.2.0/data_dictionary.html">v2.2.0</a></li>
+  <li><a href="../v2.2.1/data_dictionary.html">v2.2.1</a></li>
+  <li><a href="../v2.2.post0/data_dictionary.html">v2.2.post0</a></li>
+  <li><a href="../v2.3.0/data_dictionary.html">v2.3.0</a></li>
+  <li><a href="../v2.3.1/data_dictionary.html">v2.3.1</a></li>
+  <li><a href="data_dictionary.html">v2.3.2</a></li>
+  <li><a href="../v2.3.2rc1/data_dictionary.html">v2.3.2rc1</a></li>
+  <li><a href="../v2.3.2rc2/data_dictionary.html">v2.3.2rc2</a></li>
+  <li><a href="../main/data_dictionary.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Data Dictionary</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="data-dictionary">
+<h1>Data Dictionary<a class="headerlink" href="#data-dictionary" title="Link to this heading">#</a></h1>
+<p>Output from TopoStats includes two sets of statistics in ASCII text <code class="docutils literal notranslate"><span class="pre">.csv</span></code> files. The tables below detail the columns of
+these files, the data types, a description and their units where appropriate.</p>
+<section id="grain-statistics-csv">
+<h2><code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code><a class="headerlink" href="#grain-statistics-csv" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code> file contains details on each grain that has been detected and traced and has the following fields.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column / field / feature</th>
+<th>Description</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>Filename (minus extension) of scan.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>threshold</code></td>
+<td>Whether grain is <code>above</code> or <code>below</code> a threshold.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_number</code></td>
+<td>Number of found grain (starts at <code>0</code>)</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>class_number</code></td>
+<td>Class of the object (eg DNA or protein)</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>class_name</code></td>
+<td>Name of the object corresponding to the class number.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>subgrain_number</code></td>
+<td>Number of the sub-grain within the grain</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>centre_x</code></td>
+<td>x coordinate of grain centre.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>centre_y</code></td>
+<td>y coordinate of grain centre.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>radius_min</code></td>
+<td>minimum distance from the centroid to edge of the grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>radius_max</code></td>
+<td>maximum distance from the centroid to edge of the grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>radius_mean</code></td>
+<td>mean distance from the centroid to the edge of the grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>radius_median</code></td>
+<td>median distance from the centroid to the edge of the grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>height_min</code></td>
+<td>Minimum height of grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>height_max</code></td>
+<td>Maximum height of grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>height_median</code></td>
+<td>Median height of grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>height_mean</code></td>
+<td>Mean height of grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>volume</code></td>
+<td>Volume of the grain calculated as the number of pixels multiplied by each height and scaled to metres.</td>
+<td><code>float</code></td>
+<td>m^3</td>
+</tr>
+<tr>
+<td><code>area</code></td>
+<td>Area of the grain itself calculated as the number of pixels scaled to metres.</td>
+<td><code>float</code></td>
+<td>m^2</td>
+</tr>
+<tr>
+<td><code>area_cartesian_bbox</code></td>
+<td>Area of the bounding box for the grain along the cartesian axes. (Not the smallest bounding box).</td>
+<td><code>float</code></td>
+<td>m^2</td>
+</tr>
+<tr>
+<td><code>smallest_bounding_width</code></td>
+<td>Width of the smallest bounding box for the grain (not along cartesian axes).</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>smallest_bounding_length</code></td>
+<td>Length of the smallest bounding box for the grain (not along cartesian axes).</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>smallest_bounding_area</code></td>
+<td>Area of the smallest bounding box for the grain (not along cartesian axes).</td>
+<td><code>float</code></td>
+<td>m^2</td>
+</tr>
+<tr>
+<td><code>aspect_ratio</code></td>
+<td>Aspect ratio of the grain (length / width), always &gt;= 1.</td>
+<td><code>float</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>max_feret</code></td>
+<td>Longest length of the grain (see <a href="https://en.wikipedia.org/wiki/Feret_diameter">Feret diameter</a>).</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>min_feret</code></td>
+<td>Shortest width of the grain (see <a href="https://en.wikipedia.org/wiki/Feret_diameter">Feret diameter</a>).</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>basename</code></td>
+<td>Directory in which images was found.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_endpoints</code></td>
+<td>The number of pixels designated as endpoints (only 1 neighbour) in the pruned skeleton. <strong>NB</strong> molecules with zero end-points are circular/closed loops.</td>
+<td><code>integer</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grain_junctions</code></td>
+<td>The number of pixels designated as junctions (&gt;2 neighbours) in the pruned skeleton.</td>
+<td><code>integer</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>total_branch_length</code></td>
+<td>The sum of all branch lengths in the pruned skeleton.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>grain_width_mean</code></td>
+<td>The mean width of the grain.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>num_crossings</code></td>
+<td>The number of crossing regions found in the grain. Note: this will be equal to or lower than the number of junctions explained in the previous section.</td>
+<td><code>integer</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>avg_crossing_confidence</code></td>
+<td>The average of all pseudo crossing confidences. Used to estimate quality of predictions.</td>
+<td><code>float</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>min_crossing_confidence</code></td>
+<td>The minimum of all pseudo crossing confidences. Used to estimate quality of predictions.</td>
+<td><code>float</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>num_molecules</code></td>
+<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
+<td><code>integer</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>writhe_string</code></td>
+<td>The writhe sign (+/-) which describes the crossing directionality. If a crossing contains &gt; 2 crossing branches, the single crossing region is split into pairs and the writhe calculated in brackets i.e. "+(-++)".</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>total_contour_length</code></td>
+<td>The total length along the splined trace of all identified molecules.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>average_end_to_end_distance</code></td>
+<td>The average distance from two endpoints of the spline of all identified linear molecules.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="image-statistics-csv">
+<h2><code class="docutils literal notranslate"><span class="pre">image_statistics.csv</span></code><a class="headerlink" href="#image-statistics-csv" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">image_statistics.csv</span></code> contains summary metrics at the individual scan.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column / field / feature</th>
+<th>Description</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>Filename of image statistics pertain to.</td>
+<td><code>str</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>image_size_x_m</code></td>
+<td>Width of image.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>image_size_y_m</code></td>
+<td>Height of image.</td>
+<td><code>float</code></td>
+<td>m</td>
+</tr>
+<tr>
+<td><code>image_area_m2</code></td>
+<td>Area of image (width x height).</td>
+<td><code>float</code></td>
+<td>m^2</td>
+</tr>
+<tr>
+<td><code>image_size_x_px</code></td>
+<td>Width of image in pixels.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>image_size_y_px</code></td>
+<td>Height of image in pixels.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>image_area_px2</code></td>
+<td>Area of image in pixels squared.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grains_number_above</code></td>
+<td>Number of grains found above threshold.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grains_per_m2_above</code></td>
+<td>Density of grains above upper threshold.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grains_number_below</code></td>
+<td>Number of grains found below threshold.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>grains_per_m2_below</code></td>
+<td>Density of grains below lower threshold.</td>
+<td><code>int</code></td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><code>rms_roughness</code></td>
+<td>Root Mean Square Roughness, the square root of the mean squared heights across the surface (<a href="https://www.sciencedirect.com/topics/materials-science/surface-roughness">Surface Roughness</a>; <a href="https://en.wikipedia.org/wiki/Surface_roughness">Surface roughness (Wikipedia)</a>)</td>
+<td><code>float</code></td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="branch-statistics-csv">
+<h2><code class="docutils literal notranslate"><span class="pre">branch_statistics.csv</span></code><a class="headerlink" href="#branch-statistics-csv" title="Link to this heading">#</a></h2>
+<p>Please refer to the specific sections on output from running <a class="reference internal" href="advanced/disordered_tracing.html#disordered-segment-statistics"><span class="std std-ref">Disordered Segment Statistics
+Tracing</span></a> section of the <a class="reference internal" href="advanced/disordered_tracing.html"><span class="std std-doc">Disordered
+Tracing</span></a> page for the data dictionary of the <code class="docutils literal notranslate"><span class="pre">branch_statistics.csv</span></code>
+output.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="workflow.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Workflow</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="related_software.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Related Software</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grain-statistics-csv"><code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#image-statistics-csv"><code class="docutils literal notranslate"><span class="pre">image_statistics.csv</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#branch-statistics-csv"><code class="docutils literal notranslate"><span class="pre">branch_statistics.csv</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/data_dictionary.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

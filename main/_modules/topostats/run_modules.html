@@ -1,0 +1,1568 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.run_modules &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/run_modules';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="run_modules.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topostats.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.run_modules</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.run_modules</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Run TopoStats modules.</span>
+
+<span class="sd">This provide entry points for running TopoStats as a command line programme. Each function within this module is a</span>
+<span class="sd">wrapper which runs various functions from the &#39;&#39;processing&#39;&#39; module in parallel.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">resources</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pformat</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">reconcile_config_args</span><span class="p">,</span> <span class="n">update_config</span><span class="p">,</span> <span class="n">update_plotting_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LoadScans</span><span class="p">,</span>
+    <span class="n">dict_to_json</span><span class="p">,</span>
+    <span class="n">find_files</span><span class="p">,</span>
+    <span class="n">read_yaml</span><span class="p">,</span>
+    <span class="n">save_folder_grainstats</span><span class="p">,</span>
+    <span class="n">write_yaml</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">toposum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.processing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">check_run_steps</span><span class="p">,</span>
+    <span class="n">completion_message</span><span class="p">,</span>
+    <span class="n">process_filters</span><span class="p">,</span>
+    <span class="n">process_grains</span><span class="p">,</span>
+    <span class="n">process_grainstats</span><span class="p">,</span>
+    <span class="n">process_scan</span><span class="p">,</span>
+    <span class="n">run_disordered_tracing</span><span class="p">,</span>
+    <span class="n">run_nodestats</span><span class="p">,</span>
+    <span class="n">run_ordered_tracing</span><span class="p">,</span>
+    <span class="n">run_splining</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_CONFIG_SCHEMA</span><span class="p">,</span> <span class="n">PLOTTING_SCHEMA</span><span class="p">,</span> <span class="n">SUMMARY_SCHEMA</span><span class="p">,</span> <span class="n">validate_config</span>
+
+<span class="c1"># We already setup the logger in __init__.py and it is idempotent so calling it here returns the same object as from</span>
+<span class="c1"># __init__.py</span>
+<span class="c1"># Ref : https://stackoverflow.com/a/57799639/1444043</span>
+<span class="c1"># LOGGER = setup_logger(LOGGER_NAME)</span>
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+
+<span class="c1"># pylint: disable=too-many-branches</span>
+<span class="c1"># pylint: disable=too-many-locals</span>
+<span class="c1"># pylint: disable=too-many-statements</span>
+<span class="c1"># pylint: disable=unnecessary-dict-index-lookup</span>
+<span class="c1"># pylint: disable=too-many-nested-blocks</span>
+
+
+<div class="viewcode-block" id="_set_logging">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules._set_logging">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_logging</span><span class="p">(</span><span class="n">log_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the logging level.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    log_level : str</span>
+<span class="sd">        String for the desired log-level.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">log_level</span> <span class="o">==</span> <span class="s2">&quot;warning&quot;</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">log_level</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">&quot;ERROR&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">log_level</span> <span class="o">==</span> <span class="s2">&quot;debug&quot;</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_log_setup">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules._log_setup">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_log_setup</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">img_files</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Log the current configuration.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Dictionary of configuration options.</span>
+<span class="sd">    args : argparse.Namespace | None</span>
+<span class="sd">        Arguments function was invoked with.</span>
+<span class="sd">    img_files : dict</span>
+<span class="sd">        Dictionary of image files that have been found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plotting configuration after update :</span><span class="se">\n</span><span class="si">{</span><span class="n">pformat</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">],</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration file loaded from      : </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scanning for images in              : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output directory                    : </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Looking for images with extension   : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Images with extension </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No images with extension </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;file_ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please check your configuration and directories.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thresholding method (Filtering)     : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;filter&#39;</span><span class="p">][</span><span class="s1">&#39;threshold_method&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thresholding method (Grains)        : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;grains&#39;</span><span class="p">][</span><span class="s1">&#39;threshold_method&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration after update         : </span><span class="se">\n</span><span class="si">{</span><span class="n">pformat</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># noqa: T203</span></div>
+
+
+
+<div class="viewcode-block" id="_parse_configuration">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules._parse_configuration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load configurations, validate and check run steps are consistent.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace | None</span>
+<span class="sd">        Arguments.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[dict, dict]</span>
+<span class="sd">        Returns the dictionary of configuration options and a dictionary of image files found on the input path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parse command line options, load config (or default) and update with command line options</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">reconcile_config_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Validate configuration</span>
+    <span class="n">validate_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">DEFAULT_CONFIG_SCHEMA</span><span class="p">,</span> <span class="n">config_type</span><span class="o">=</span><span class="s2">&quot;YAML configuration file&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set logging level</span>
+    <span class="n">_set_logging</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;log_level&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Create base output directory</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Load plotting_dictionary and validate then update with command line options</span>
+    <span class="n">plotting_dictionary</span> <span class="o">=</span> <span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;plotting_dictionary.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">][</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">plotting_dictionary</span><span class="p">)</span>
+    <span class="n">validate_config</span><span class="p">(</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">][</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">],</span> <span class="n">schema</span><span class="o">=</span><span class="n">PLOTTING_SCHEMA</span><span class="p">,</span> <span class="n">config_type</span><span class="o">=</span><span class="s2">&quot;YAML plotting configuration file&quot;</span>
+    <span class="p">)</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_config</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span> <span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Check earlier stages of processing are enabled for later.</span>
+    <span class="n">check_run_steps</span><span class="p">(</span>
+        <span class="n">filter_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;filter&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">grains_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grains&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">grainstats_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">disordered_tracing_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;disordered_tracing&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">nodestats_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nodestats&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">ordered_tracing_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;ordered_tracing&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+        <span class="n">splining_run</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;splining&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="c1"># Ensures each image has all plotting options which are passed as **kwargs</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_plotting_config</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">])</span>
+    <span class="n">img_files</span> <span class="o">=</span> <span class="n">find_files</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span> <span class="n">file_ext</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">])</span>
+    <span class="n">_log_setup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">img_files</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span></div>
+
+
+
+<div class="viewcode-block" id="process">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.process">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: C901</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find and process all files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">processing_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">process_scan</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span>
+        <span class="n">filter_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;filter&quot;</span><span class="p">],</span>
+        <span class="n">grains_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grains&quot;</span><span class="p">],</span>
+        <span class="n">grainstats_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">],</span>
+        <span class="n">disordered_tracing_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;disordered_tracing&quot;</span><span class="p">],</span>
+        <span class="n">nodestats_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nodestats&quot;</span><span class="p">],</span>
+        <span class="n">ordered_tracing_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;ordered_tracing&quot;</span><span class="p">],</span>
+        <span class="n">splining_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;splining&quot;</span><span class="p">],</span>
+        <span class="n">curvature_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;curvature&quot;</span><span class="p">],</span>
+        <span class="n">plotting_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="c1"># Ensure we load the original images as we are running the whole pipeline</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">][</span><span class="s2">&quot;extract&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span>
+
+    <span class="n">output_full_stats</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_stats&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;full&quot;</span>
+
+    <span class="n">all_scan_data</span> <span class="o">=</span> <span class="n">LoadScans</span><span class="p">(</span><span class="n">img_files</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">])</span>
+    <span class="n">all_scan_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="c1"># Get a dictionary of all the image data dictionaries.</span>
+    <span class="c1"># Keys are the image names</span>
+    <span class="c1"># Values are the individual image data dictionaries</span>
+    <span class="n">scan_data_dict</span> <span class="o">=</span> <span class="n">all_scan_data</span><span class="o">.</span><span class="n">img_dict</span>
+
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;cores&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="n">image_stats_all</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="n">mols_results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="n">disordered_trace_results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="n">height_profile_all</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Processing images from </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, results are under </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="p">(</span>
+                <span class="n">img</span><span class="p">,</span>
+                <span class="n">result</span><span class="p">,</span>
+                <span class="n">height_profiles</span><span class="p">,</span>
+                <span class="n">individual_image_stats_df</span><span class="p">,</span>
+                <span class="n">disordered_trace_result</span><span class="p">,</span>
+                <span class="n">mols_result</span><span class="p">,</span>
+            <span class="p">)</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                <span class="n">processing_function</span><span class="p">,</span>
+                <span class="n">scan_data_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="p">):</span>
+                <span class="n">results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+                <span class="n">disordered_trace_results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">disordered_trace_result</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+                <span class="n">mols_results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mols_result</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+                <span class="c1"># Add the dataframe to the results dict</span>
+                <span class="n">image_stats_all</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">individual_image_stats_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Combine all height profiles</span>
+                <span class="n">height_profile_all</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">height_profiles</span>
+
+                <span class="c1"># Display completion message for the image</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">img</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">] Processing completed.&quot;</span><span class="p">)</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving image stats to : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/image_statistics.csv.&quot;</span><span class="p">)</span>
+    <span class="c1"># Concatenate all the dictionary&#39;s values into a dataframe. Ignore the keys since</span>
+    <span class="c1"># the dataframes have the file names in them already.</span>
+    <span class="n">image_stats_all_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">image_stats_all</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">image_stats_all_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;image_statistics.csv&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No grains found in any images, consider adjusting your thresholds.&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">disordered_trace_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No skeletons found in any images, consider adjusting disordered tracing parameters.&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mols_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">mols_results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No mols found in any images, consider adjusting ordered tracing / splining parameters.&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="c1"># If requested save height profiles</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">][</span><span class="s2">&quot;extract_height_profile&quot;</span><span class="p">]:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving all height profiles to </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/height_profiles.json&quot;</span><span class="p">)</span>
+        <span class="n">dict_to_json</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">height_profile_all</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;height_profiles.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Summary Statistics and Plots</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;summary_stats&quot;</span><span class="p">][</span><span class="s2">&quot;run&quot;</span><span class="p">]:</span>
+        <span class="c1"># Load summary plots/statistics configuration and validate, location depends on command line args or value in</span>
+        <span class="c1"># any config file given, if neither are provided the default topostats/summary_config.yaml is loaded</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">summary_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">summary_config</span> <span class="o">=</span> <span class="n">read_yaml</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">summary_config</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;summary_stats&quot;</span><span class="p">][</span><span class="s2">&quot;config&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">summary_config</span> <span class="o">=</span> <span class="n">read_yaml</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;summary_stats&quot;</span><span class="p">][</span><span class="s2">&quot;config&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">summary_yaml</span> <span class="o">=</span> <span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;summary_config.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+            <span class="n">summary_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">summary_yaml</span><span class="p">)</span>
+
+        <span class="c1"># Do not pass command line arguments to toposum as they clash with process command line arguments</span>
+        <span class="n">summary_config</span> <span class="o">=</span> <span class="n">update_config</span><span class="p">(</span><span class="n">summary_config</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">])</span>
+
+        <span class="n">validate_config</span><span class="p">(</span><span class="n">summary_config</span><span class="p">,</span> <span class="n">SUMMARY_SCHEMA</span><span class="p">,</span> <span class="n">config_type</span><span class="o">=</span><span class="s2">&quot;YAML summarisation config&quot;</span><span class="p">)</span>
+        <span class="c1"># We never want to load data from CSV as we are using the data that has just been processed.</span>
+        <span class="n">summary_config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;csv_file&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Load variable to label mapping</span>
+        <span class="n">plotting_yaml</span> <span class="o">=</span> <span class="p">(</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="n">__package__</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;var_to_label.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="n">summary_config</span><span class="p">[</span><span class="s2">&quot;var_to_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">plotting_yaml</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;[plotting] Default variable to labels mapping loaded.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If we don&#39;t have a dataframe or we do and it is all NaN there is nothing to plot</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># If summary_config[&quot;output_dir&quot;] does not match or is not a sub-dir of config[&quot;output_dir&quot;] it</span>
+                <span class="c1"># needs creating</span>
+                <span class="n">summary_config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;summary_distributions&quot;</span>
+                <span class="n">summary_config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Summary plots and statistics will be saved to : </span><span class="si">{</span><span class="n">summary_config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Plot summaries</span>
+                <span class="n">summary_config</span><span class="p">[</span><span class="s2">&quot;df&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                <span class="n">toposum</span><span class="p">(</span><span class="n">summary_config</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;There are fewer than two grains that have been detected, so&quot;</span>
+                    <span class="s2">&quot; summary plots cannot be made for this image.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;There are no results to plot, either...</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;* you have disabled grains/grainstats etc.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;* no grains have been detected across all scans.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;* there have been errors.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;If you are not expecting to detect grains please consider disabling&quot;</span>
+                <span class="s2">&quot; grains/grainstats etc/plotting/summary_stats. If you are expecting to detect grains&quot;</span>
+                <span class="s2">&quot; please check log-files for further information.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">summary_config</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Write statistics to CSV if there is data.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">results</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;grain_number&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;grain_statistics.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">save_folder_grainstats</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span> <span class="n">results</span><span class="p">,</span> <span class="s2">&quot;grain_stats&quot;</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># So we can access unique image names</span>
+        <span class="n">images_processed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">images_processed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are no grainstats statistics to write to CSV.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_full_stats</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">disordered_trace_results</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;grain_number&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;branch_statistics.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">save_folder_grainstats</span><span class="p">(</span>
+                <span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span> <span class="n">disordered_trace_results</span><span class="p">,</span> <span class="s2">&quot;disordered_trace_stats&quot;</span>
+            <span class="p">)</span>
+            <span class="n">disordered_trace_results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># So we can access unique image names</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are no disordered tracing statistics to write to CSV.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mols_results</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">mols_results</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">mols_results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">mols_results</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;grain_number&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">mols_results</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;molecule_statistics.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">save_folder_grainstats</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span> <span class="n">mols_results</span><span class="p">,</span> <span class="s2">&quot;mol_stats&quot;</span><span class="p">)</span>
+            <span class="n">mols_results</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># So we can access unique image names</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are no molecule tracing statistics to write to CSV.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;molecule_statistics.csv and branch_statistics.csv skipped&quot;</span><span class="p">)</span>
+    <span class="c1"># Write config to file</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">)</span>
+    <span class="n">write_yaml</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">])</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Images processed : </span><span class="si">{</span><span class="n">images_processed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Update config with plotting defaults for printing</span>
+    <span class="n">completion_message</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">img_files</span><span class="p">,</span> <span class="n">summary_config</span><span class="p">,</span> <span class="n">images_processed</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># WIP these will be added from args once the dictionary keys have been wrangled</span>
+<span class="c1"># pylint: disable=no-value-for-parameter</span>
+<span class="c1"># pylint: disable=unused-argument</span>
+
+
+<div class="viewcode-block" id="filters">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.filters">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filters</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run filtering.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="c1"># If loading existing .topostats files the images need filtering again so we need to extract the raw image</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">][</span><span class="s2">&quot;extract&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span>
+    <span class="n">all_scan_data</span> <span class="o">=</span> <span class="n">LoadScans</span><span class="p">(</span><span class="n">img_files</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">])</span>
+    <span class="n">all_scan_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+    <span class="n">processing_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">process_filters</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span>
+        <span class="n">filter_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;filter&quot;</span><span class="p">],</span>
+        <span class="n">plotting_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;cores&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Processing images from </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, results are under </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                <span class="n">processing_function</span><span class="p">,</span>
+                <span class="n">all_scan_data</span><span class="o">.</span><span class="n">img_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="p">):</span>
+                <span class="n">results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+                <span class="c1"># Display completion message for the image</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">img</span><span class="si">}</span><span class="s2">] Filtering completed.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write config to file</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">)</span>
+    <span class="n">write_yaml</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">])</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Images processed : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Update config with plotting defaults for printing</span>
+    <span class="n">completion_message</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">img_files</span><span class="p">,</span> <span class="n">summary_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">images_processed</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
+
+
+
+<div class="viewcode-block" id="grains">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.grains">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grains</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grain finding.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="c1"># Triggers extraction of filtered images from existing .topostats files</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">][</span><span class="s2">&quot;extract&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;grains&quot;</span>
+    <span class="n">all_scan_data</span> <span class="o">=</span> <span class="n">LoadScans</span><span class="p">(</span><span class="n">img_files</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">])</span>
+    <span class="n">all_scan_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+    <span class="n">processing_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">process_grains</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span>
+        <span class="n">grains_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grains&quot;</span><span class="p">],</span>
+        <span class="n">plotting_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;cores&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Processing images from </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, results are under </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                <span class="n">processing_function</span><span class="p">,</span>
+                <span class="n">all_scan_data</span><span class="o">.</span><span class="n">img_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="p">):</span>
+                <span class="n">results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+                <span class="c1"># Display completion message for the image</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">img</span><span class="si">}</span><span class="s2">] Grain detection completed (NB - Filtering was *not* re-run).&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write config to file</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">)</span>
+    <span class="n">write_yaml</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">])</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Images processed : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Update config with plotting defaults for printing</span>
+    <span class="n">completion_message</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">img_files</span><span class="p">,</span> <span class="n">summary_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">images_processed</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
+
+
+
+<div class="viewcode-block" id="grainstats">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.grainstats">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grainstats</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grainstats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>  <span class="c1"># pylint: disable=unused-variable</span>
+    <span class="c1"># Triggers extraction of filtered images from existing .topostats files</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span><span class="p">:</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">][</span><span class="s2">&quot;extract&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;grainstats&quot;</span>
+    <span class="n">all_scan_data</span> <span class="o">=</span> <span class="n">LoadScans</span><span class="p">(</span><span class="n">img_files</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;loading&quot;</span><span class="p">])</span>
+    <span class="n">all_scan_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+    <span class="n">processing_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+        <span class="n">process_grainstats</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span>
+        <span class="n">grainstats_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">],</span>
+        <span class="n">plotting_config</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">],</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;cores&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="n">height_profile_all</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">),</span>
+            <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Processing images from </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, results are under </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">height_profiles</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                <span class="n">processing_function</span><span class="p">,</span>
+                <span class="n">all_scan_data</span><span class="o">.</span><span class="n">img_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="p">):</span>
+                <span class="n">results</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="n">height_profile_all</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">)]</span> <span class="o">=</span> <span class="n">height_profiles</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+                <span class="c1"># Display completion message for the image</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">img</span><span class="si">}</span><span class="s2">] Grainstats completed (NB - Filtering was *not* re-run).&quot;</span><span class="p">)</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving image stats to : </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/image_statistics.csv.&quot;</span><span class="p">)</span>
+    <span class="c1"># Concatenate all the dictionary&#39;s values into a dataframe. Ignore the keys since</span>
+    <span class="c1"># the dataframes have the file names in them already.</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">image_stats_all_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">image_stats_all_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;image_statistics.csv&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No grains found in any images, consider adjusting your thresholds.&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="c1"># If requested save height profiles</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">][</span><span class="s2">&quot;extract_height_profile&quot;</span><span class="p">]:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving all height profiles to </span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/height_profiles.json&quot;</span><span class="p">)</span>
+        <span class="n">dict_to_json</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">height_profile_all</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">],</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;height_profiles.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write config to file</span>
+    <span class="n">config</span><span class="p">[</span><span class="s2">&quot;plotting&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;plot_dict&quot;</span><span class="p">)</span>
+    <span class="n">write_yaml</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dir&quot;</span><span class="p">])</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Images processed : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Update config with plotting defaults for printing</span>
+    <span class="n">completion_message</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">img_files</span><span class="p">,</span> <span class="n">summary_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">images_processed</span><span class="o">=</span><span class="n">image_stats_all_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="disordered_tracing">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.disordered_tracing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">disordered_tracing</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grainstats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>  <span class="c1"># pylint: disable=unused-variable</span>
+    <span class="n">run_disordered_tracing</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="nodestats">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.nodestats">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nodestats</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grainstats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>  <span class="c1"># pylint: disable=unused-variable</span>
+    <span class="n">run_nodestats</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ordered_tracing">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.ordered_tracing">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ordered_tracing</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grainstats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>  <span class="c1"># pylint: disable=unused-variable</span>
+    <span class="n">run_ordered_tracing</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="splining">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.splining">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">splining</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load files from disk and run grainstats.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">img_files</span> <span class="o">=</span> <span class="n">_parse_configuration</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>  <span class="c1"># pylint: disable=unused-variable</span>
+    <span class="n">run_splining</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="bruker_rename">
+<a class="viewcode-back" href="../../autoapi/topostats/run_modules/index.html#topostats.run_modules.bruker_rename">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bruker_rename</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find files old-format Bruker files in the specified directory and append the suffix ``.spm``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace | None</span>
+<span class="sd">        Arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parse command line options, load config (or default) and update with command line options</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">reconcile_config_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Validate configuration</span>
+    <span class="n">validate_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">DEFAULT_CONFIG_SCHEMA</span><span class="p">,</span> <span class="n">config_type</span><span class="o">=</span><span class="s2">&quot;YAML configuration file&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set logging level</span>
+    <span class="n">_set_logging</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;log_level&quot;</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.spm&quot;</span>
+    <span class="p">),</span> <span class="s2">&quot;Can only rename old .spm files, change your file-ext in config or command line&quot;</span>
+    <span class="n">all_spm_files</span> <span class="o">=</span> <span class="n">find_files</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;base_dir&quot;</span><span class="p">],</span> <span class="n">file_ext</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;file_ext&quot;</span><span class="p">])</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Bruker files found : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_spm_files</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">OLD_BRUKER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.\d+$&quot;</span><span class="p">)</span>
+    <span class="n">old_spm_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">spm_file</span> <span class="k">for</span> <span class="n">spm_file</span> <span class="ow">in</span> <span class="n">all_spm_files</span> <span class="k">if</span> <span class="n">OLD_BRUKER_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">spm_file</span><span class="o">.</span><span class="n">suffix</span><span class="p">)]</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Old style files found    : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">old_spm_files</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Renaming files...&quot;</span><span class="p">)</span>
+    <span class="c1"># Could rename files using list comprehension (no logging though)</span>
+    <span class="c1"># [spm_file.rename(f&quot;{spm_file}.spm&quot;) for spm_file in old_spm_files]</span>
+    <span class="c1"># Instead loop with logging showing each rename</span>
+    <span class="k">for</span> <span class="n">spm_file</span> <span class="ow">in</span> <span class="n">old_spm_files</span><span class="p">:</span>
+        <span class="n">spm_file</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spm_file</span><span class="si">}</span><span class="s2">.spm&quot;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spm_file</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">spm_file</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_dir&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">.spm&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

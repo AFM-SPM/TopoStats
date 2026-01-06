@@ -1,0 +1,518 @@
+topostats.plottingfuncs
+=======================
+
+.. py:module:: topostats.plottingfuncs
+
+.. autoapi-nested-parse::
+
+   Plotting data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.Images
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.add_pixel_to_nm_to_plotting_config
+   topostats.plottingfuncs.dilate_binary_image
+   topostats.plottingfuncs.load_mplstyle
+   topostats.plottingfuncs.add_bounding_boxes_to_plot
+   topostats.plottingfuncs.set_n_ticks
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: add_pixel_to_nm_to_plotting_config(plotting_config: dict, pixel_to_nm_scaling: float) -> dict
+
+   
+   Add the pixel to nanometre scaling factor to plotting configs.
+
+   Ensures plots are in nanometres and not pixels.
+
+   :param plotting_config: TopoStats plotting configuration dictionary.
+   :type plotting_config: dict
+   :param pixel_to_nm_scaling: Pixel to nanometre scaling factor for the image.
+   :type pixel_to_nm_scaling: float
+
+   :returns: Updated plotting config with the pixel to nanometre scaling factor applied to all the image configurations.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: dilate_binary_image(binary_image: numpy.typing.NDArray, dilation_iterations: int) -> numpy.typing.NDArray
+
+   
+   Dilate a supplied binary image a given number of times.
+
+   :param binary_image: Binary image to be dilated.
+   :type binary_image: npt.NDArray
+   :param dilation_iterations: Number of dilation iterations to be performed.
+   :type dilation_iterations: int
+
+   :returns: Dilated binary image.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: load_mplstyle(style: str | pathlib.Path) -> None
+
+   
+   Load the Matplotlibrc parameter file.
+
+   :param style: Path to a Matplotlib Style file.
+   :type style: str | Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: Images(data: numpy.typing.NDarray, output_dir: str | pathlib.Path, filename: str, style: str | pathlib.Path = None, pixel_to_nm_scaling: float = 1.0, masked_array: numpy.typing.NDarray = None, plot_coords: numpy.typing.NDArray = None, title: str = None, image_type: str = 'non-binary', image_set: str = 'core', core_set: bool = False, pixel_interpolation: str | None = None, cmap: str | None = None, mask_cmap: str = 'jet_r', region_properties: dict = None, zrange: list = None, colorbar: bool = True, axes: bool = True, num_ticks: tuple[int | None] = (None, None), save: bool = True, savefig_format: str | None = None, histogram_log_axis: bool = True, histogram_bins: int | None = None, savefig_dpi: str | float | None = None)
+
+   
+   Plots image arrays.
+
+   :param data: Numpy array to plot.
+   :type data: npt.NDarray
+   :param output_dir: Output directory to save the file to.
+   :type output_dir: str | Path
+   :param filename: Filename to save image as.
+   :type filename: str
+   :param style: Filename of matplotlibrc parameters.
+   :type style: str | Path
+   :param pixel_to_nm_scaling: The scaling factor showing the real length of 1 pixel in nanometers (nm).
+   :type pixel_to_nm_scaling: float
+   :param masked_array: Optional mask array to overlay onto an image.
+   :type masked_array: npt.NDarray
+   :param plot_coords: ??? Needs defining.
+   :type plot_coords: npt.NDArray
+   :param title: Title for plot.
+   :type title: str
+   :param image_type: The image data type, options are 'binary' or 'non-binary'.
+   :type image_type: str
+   :param image_set: The set of images to process, options are 'core' or 'all'.
+   :type image_set: str
+   :param core_set: Flag to identify image as part of the core image set or not.
+   :type core_set: bool
+   :param pixel_interpolation: Interpolation to use (default is 'None').
+   :type pixel_interpolation: str, optional
+   :param cmap: Colour map to use (default 'nanoscope', 'afmhot' also available).
+   :type cmap: str, optional
+   :param mask_cmap: Colour map to use for the secondary (masked) data (default 'jet_r', 'blu' provides more contrast).
+   :type mask_cmap: str
+   :param region_properties: Dictionary of region properties, adds bounding boxes if specified.
+   :type region_properties: dict
+   :param zrange: Lower and upper bound to clip core images to.
+   :type zrange: list
+   :param colorbar: Optionally add a colorbar to plots, default is False.
+   :type colorbar: bool
+   :param axes: Optionally add/remove axes from the image.
+   :type axes: bool
+   :param num_ticks: The number of x and y ticks to display on the iage.
+   :type num_ticks: tuple[int | None]
+   :param save: Whether to save the image.
+   :type save: bool
+   :param savefig_format: Format to save the image as.
+   :type savefig_format: str, optional
+   :param histogram_log_axis: Optionally use a loagrithmic y-axis for the histogram plots.
+   :type histogram_log_axis: bool
+   :param histogram_bins: Number of bins for histograms to use.
+   :type histogram_bins: int, optional
+   :param savefig_dpi: The resolution of the saved plot (default 'figure').
+   :type savefig_dpi: str | float, optional
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: output_dir
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+      :value: 1.0
+
+
+
+   .. py:attribute:: masked_array
+      :value: None
+
+
+
+   .. py:attribute:: plot_coords
+      :value: None
+
+
+
+   .. py:attribute:: title
+      :value: None
+
+
+
+   .. py:attribute:: image_type
+      :value: 'non-binary'
+
+
+
+   .. py:attribute:: image_set
+      :value: 'core'
+
+
+
+   .. py:attribute:: core_set
+      :value: False
+
+
+
+   .. py:attribute:: interpolation
+
+
+   .. py:attribute:: cmap
+      :value: None
+
+
+
+   .. py:attribute:: mask_cmap
+      :value: None
+
+
+
+   .. py:attribute:: region_properties
+      :value: None
+
+
+
+   .. py:attribute:: zrange
+      :value: None
+
+
+
+   .. py:attribute:: colorbar
+      :value: True
+
+
+
+   .. py:attribute:: axes
+      :value: True
+
+
+
+   .. py:attribute:: num_ticks
+      :value: (None, None)
+
+
+
+   .. py:attribute:: save
+      :value: True
+
+
+
+   .. py:attribute:: savefig_format
+
+
+   .. py:attribute:: histogram_log_axis
+      :value: True
+
+
+
+   .. py:attribute:: histogram_bins
+
+
+   .. py:attribute:: savefig_dpi
+
+
+   .. py:method:: plot_histogram_and_save() -> tuple | None
+
+      
+      Plot and save a histogram of the height map.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple | None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot_curvatures(image: numpy.typing.NDArray, cropped_images: dict, grains_curvature_stats_dict: dict, all_grain_smoothed_data: dict, colourmap_normalisation_bounds: tuple[float, float]) -> tuple[matplotlib.pyplot.Figure | None, matplotlib.pyplot.Axes | None]
+
+      
+      Plot curvature intensity and defects of grains in an image.
+
+      :param image: Image to plot.
+      :type image: npt.NDArray
+      :param cropped_images: Dictionary containing cropped images of grains and the bounding boxes and padding.
+      :type cropped_images: dict
+      :param grains_curvature_stats_dict: Dictionary of grain curvature statistics.
+      :type grains_curvature_stats_dict: dict
+      :param all_grain_smoothed_data: Dictionary containing smoothed grain traces.
+      :type all_grain_smoothed_data: dict
+      :param colourmap_normalisation_bounds: Tuple of the colour map normalisation bounds.
+      :type colourmap_normalisation_bounds: tuple[float, float]
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple[plt.Figure | None, plt.Axes | None]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot_curvatures_individual_grains(cropped_images: dict, grains_curvature_stats_dict: dict, all_grains_smoothed_data: dict, colourmap_normalisation_bounds: tuple[float, float]) -> None
+
+      
+      Plot curvature intensity and defects of individual grains.
+
+      :param cropped_images: Dictionary of cropped images.
+      :type cropped_images: dict
+      :param grains_curvature_stats_dict: Dictionary of grain curvature statistics.
+      :type grains_curvature_stats_dict: dict
+      :param all_grains_smoothed_data: Dictionary containing smoothed grain traces.
+      :type all_grains_smoothed_data: dict
+      :param colourmap_normalisation_bounds: Tuple of the colour map normalisation bounds.
+      :type colourmap_normalisation_bounds: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot_and_save()
+
+      
+      Plot and save the image.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_figure()
+
+      
+      Save figures as plt.savefig objects.
+
+      :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: add_bounding_boxes_to_plot(fig, ax, shape: tuple, region_properties: list, pixel_to_nm_scaling: float) -> tuple
+
+   
+   Add the bounding boxes to a plot.
+
+   :param fig: Matplotlib.pyplot figure object.
+   :type fig: plt.figure.Figure
+   :param ax: Matplotlib.pyplot axes object.
+   :type ax: plt.axes._subplots.AxesSubplot
+   :param shape: Tuple of the image-to-be-plot's shape.
+   :type shape: tuple
+   :param region_properties: Region properties to add bounding boxes from.
+   :type region_properties: list
+   :param pixel_to_nm_scaling: The scaling factor from px to nm.
+   :type pixel_to_nm_scaling: float
+
+   :returns: Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
+   :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: set_n_ticks(ax: matplotlib.pyplot.Axes.axes, n_xy: list[int | None, int | None]) -> None
+
+   
+   Set the number of ticks along the y and x axes and lets matplotlib assign the values.
+
+   :param ax: The axes to add ticks to.
+   :type ax: plt.Axes.axes
+   :param n_xy: The number of ticks.
+   :type n_xy: list[int, int]
+
+   :returns: The axes with the new ticks.
+   :rtype: plt.Axes.axes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

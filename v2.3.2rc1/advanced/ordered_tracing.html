@@ -1,0 +1,820 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Ordered Tracing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'advanced/ordered_tracing';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../v2.3.0/advanced/ordered_tracing.html">v2.3.0</a></li>
+  <li><a href="../../v2.3.1/advanced/ordered_tracing.html">v2.3.1</a></li>
+  <li><a href="../../v2.3.2/advanced/ordered_tracing.html">v2.3.2</a></li>
+  <li><a href="ordered_tracing.html">v2.3.2rc1</a></li>
+  <li><a href="../../v2.3.2rc2/advanced/ordered_tracing.html">v2.3.2rc2</a></li>
+  <li><a href="../../main/advanced/ordered_tracing.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Ordered Tracing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="ordered-tracing">
+<h1>Ordered Tracing<a class="headerlink" href="#ordered-tracing" title="Link to this heading">#</a></h1>
+<p>This section gives an in-depth overview of the steps taken in the ordered tracing module.</p>
+<section id="at-a-glance-traversing-a-path">
+<h2>At a Glance : Traversing a Path<a class="headerlink" href="#at-a-glance-traversing-a-path" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ordered_tracing.py</span></code> module handles all the functions associated with ordering the pixels one-after-another from the
+disordered trace (pruned skeleton).</p>
+<p>The quality of the resultant metrics and ordered coordinates will depend on the ordering method chosen, whether the
+skeleton matches the conformation, and if selected, the performance (pairing) of the branch crossing points in
+NodeStats.</p>
+<p><img alt="disordered skeleton to ordered trace" src="../_images/overview2.png" /></p>
+<p>This module orders the disordered trace pixel-by-pixel (<code class="docutils literal notranslate"><span class="pre">topostats</span></code> method) or segment-by-segment (<code class="docutils literal notranslate"><span class="pre">nodestats</span></code> method),
+giving direction to the trace and creating a path to follow. It adds the number of identified molecules (found by
+restarting the trace when using the <code class="docutils literal notranslate"><span class="pre">nodestats</span></code> method) and whether the trace contains endpoints and is therefore
+circular or not to the <code class="docutils literal notranslate"><span class="pre">grain_statistics.csv</span></code>.</p>
+<p>Some quick FYI’s:</p>
+<ul class="simple">
+<li><p><strong>Multiple molecules</strong> - By design the <code class="docutils literal notranslate"><span class="pre">topostats</span></code> ordering method will only produce a single ordered trace per grain,
+however, the <code class="docutils literal notranslate"><span class="pre">nodestats</span></code> method may identify multiple (useful for separating overlapping structures etc).</p></li>
+<li><p><strong>No skeletons in image</strong> - The Ordered Traces <code class="docutils literal notranslate"><span class="pre">all</span></code> image set may not show the resultant skeletons if the plotting
+<code class="docutils literal notranslate"><span class="pre">dpi</span></code> value is too low (varies based on image size) as these single pixel lines cannot be resolved by matplotlib.</p></li>
+<li><p><strong>Circular field not circular</strong> - The grain stats (and molecule stats) field labelled “circular” does not check if the
+path starts and ends at the same place. Instead, it is a True/False indicator of the presence of any endpoints.</p></li>
+<li><p><strong>Failed NodeStats ordering</strong> - If the “nodestats” method is selected in the configurations file and an error occurs
+in the NodeStats module for a particular grain, and that grain isn’t added to the noodestats dictionary, it will
+default to “topostats” ordering.</p></li>
+<li><p><strong>Overlapping traces</strong> - Because the crossing region is shared by both crossing strands, the pixels in the mask may
+show a discontinuity in one “leg” of the crossing in the ordered trace image, this is purely visual and does not
+affect the underlying data.</p></li>
+</ul>
+</section>
+<section id="processing-steps">
+<h2>Processing Steps<a class="headerlink" href="#processing-steps" title="Link to this heading">#</a></h2>
+<section id="nodestats-method">
+<h3>NodeStats Method<a class="headerlink" href="#nodestats-method" title="Link to this heading">#</a></h3>
+<section id="compile-segments">
+<h4>1. Compile Segments<a class="headerlink" href="#compile-segments" title="Link to this heading">#</a></h4>
+<p>The first stage is to use the branch coordinates and disordered trace skeleton to compile a labelled image and
+associated set of coordinates and their stacking orders. To do this, the crossing branch coordinates are removed from
+the disordered trace and all remaining segments labelled 1 to N. Then, branch-by-branch the crossing coordinates are
+replaced with following labels, resulting in an image where each skeleton and crossing segment are labelled.</p>
+<p><img alt="Disordered trace segment image" src="../_images/ns_segments.png" /></p>
+</section>
+<section id="the-nodestats-tracing-loop">
+<h4>2. The NodeStats Tracing Loop<a class="headerlink" href="#the-nodestats-tracing-loop" title="Link to this heading">#</a></h4>
+<p>The trace aims to use the labelled segments described above to link to the full set of coordinates and build,
+segment-by-segment, an ordered path.</p>
+<p>It starts by looking for any endpoints, and uses the index of the endpoint segment to start the trace, if there are no
+endpoints, the starting index will all ways be the first labelled index (1 in the image, 0 in the coordinate list) -
+this also has the advantage of starting from a non-crossing segment. The coordinates are added to the ordered trace and
+the currently indexed segment is then removed from the guide image containing all the segments. Then, the maximum value
+found in a 3x3 area around the final coordinate in the ordered trace is used to identify the following trace
+segment. This repeats until a segment terminates and the only values in that 3x3 area are 0’s (background).</p>
+<p><img alt="Trace segment image &amp; next index selector" src="../_images/ns_tracing.png" /></p>
+<p>If there are no more remaining segments, the trace is finished. However, if any segments remain, a new ordered trace is
+started, again from an endpoint segment if possible, hence why this method is able to untangle two interlinked molecules
+such as DNA catenanes.</p>
+<p><img alt="Two molecule trace" src="../_images/ns_sep_mols.png" /> *Skeletons dilated for visual aid</p>
+</section>
+<section id="a-simple-trace">
+<h4>2.2. A Simple Trace<a class="headerlink" href="#a-simple-trace" title="Link to this heading">#</a></h4>
+<p>While the above is happening, ordered trace segment coordinates are also being added to a simplified ordered trace to be
+used with the <a class="reference external" href="https://topoly.cent.uw.edu.pl/documentation.html">Topoly</a>package to determine it’s topological species. A
+pseudo Z (height) is used to distinguish between skeleton segments (Z=0) and crossing segments (Z=-1, 1, 2…). However,
+these traces (N, X, Y, Z) can be too long and cause Topoly to hang, so they are reduced to ~100 coordinates. Each
+reduced points of each segments ensure the points capture the start and end of each segment.</p>
+<p><img alt="3D simple trace" src="../_images/ns_3d.png" /></p>
+<p>Topoly then uses this NXYZ coordinate trace to produce a topological classification using Homfly polynomials. In
+addition, another trace is built up which flips the stacking order of the lowest confidence crossing to generate a
+secondary topology.</p>
+<ul class="simple">
+<li><p>Future work may aim to ensure these reduced segments don’t accidentally cross.</p></li>
+</ul>
+</section>
+<section id="writhe-sign">
+<h4>2.3. Writhe Sign<a class="headerlink" href="#writhe-sign" title="Link to this heading">#</a></h4>
+<p>The ordered trace and crossing branch coordinates are also used to calculate the writhe of each crossing via the cross
+product of the branches normalised vectors, with their direction following the path of the trace. The writhe sign is
+calculated as “+” or “-”. If a crossing contains &gt; 2 crossing branches, the single crossing region is split into pairs
+and the writhe calculated in brackets i.e. “+(-++)”</p>
+<p><img alt="ordered img, crossing img and sign" src="../_images/ns_writhe.png" /></p>
+<p>For overlapping molecules, the writhe signs are still calculated but this is greatly dependent on the directionality of
+each molecule. In the case of DNA catenanes, a positive or negative writhe would depend on the relative direction of
+each trace. In these cases, the writhe string should only be used to observe relative writhe signs i.e. “++-+” equals
+“–+-”, as directionality cannot be observed in AFM images.</p>
+<ul class="simple">
+<li><p>Future work may be to separate self and intra-molecule writhes.</p></li>
+</ul>
+</section>
+</section>
+<section id="topostats-method">
+<h3>TopoStats Method<a class="headerlink" href="#topostats-method" title="Link to this heading">#</a></h3>
+<section id="classifying-circularity">
+<h4>1. Classifying Circularity<a class="headerlink" href="#classifying-circularity" title="Link to this heading">#</a></h4>
+<p>The TopoStats tracing algorithms slightly differ depending on whether the trace is circular or not. The disordered trace
+is defined as circular by counting the number of neighbours of each pixel in the skeleton. If a skeleton contains at
+least one skeleton with only one neighbour it is defined as non-circular.</p>
+<p><img alt="circular vs linear trace" src="../_images/ts_circular.png" /></p>
+</section>
+<section id="circular-and-linear-topostats-tracing">
+<h4>2. Circular and Linear TopoStats Tracing<a class="headerlink" href="#circular-and-linear-topostats-tracing" title="Link to this heading">#</a></h4>
+<p>If the disordered trace is not deemed circular, the trace starts by first finding and selecting an endpoint (pixel with
+one neighbour).</p>
+<p>If the disordered trace is deemed circular, the trace starts by first finding and selecting a point with two
+neighbours. Then, the selected coordinate is added to the ordered path, and deleted from the skeleton. One of the
+neighbouring points are randomly selected.</p>
+<p>The selected point is then added to the path and deleted from the skeleton enabling the path to then follow the sole
+remaining pixel to traverse the path. However, above assumes there is always only one pixel to follow around the path,
+but if there are more, the trace will look up to 4 pixels earlier in the ordered trace, and try to identify the next
+pixel which has the lowest angular change.</p>
+<p><img alt="pixel diagram making the trace" src="../_images/ts_trace.png" /></p>
+</section>
+</section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;_&lt;threshold&gt;_ordered_traces</span></code> image shows the direction of ordered coordinates.</p>
+<p>For each grain, the following new columns are added to the <code class="docutils literal notranslate"><span class="pre">grainstats.csv</span></code> file:</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>num_molecules</code></td>
+<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>circular</code></td>
+<td>Whether the disordered trace contains an endpoint.</td>
+<td><code>bool</code></td>
+</tr>
+<tr>
+<td><code>writhe_string</code></td>
+<td>The writhe sign (+/-) which describes the crossing directionality. If a crossing contains &gt; 2 crossing branches, the single crossing region is split into pairs and the writhe calculated in brackets i.e. "+(-++)".</td>
+<td><code>str</code></td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p><img alt="Ordered tracing grain metrics visualisation" src="../_images/ts2_ord_metrics.png" /></p>
+<p>For each molecule found by the ordering algorithm(s), the following new columns are added to the <code class="docutils literal notranslate"><span class="pre">molstats.csv</span></code> file:</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>circular</code></td>
+<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>Whether the disordered trace contains an endpoint.</td>
+<td><code>bool</code></td>
+</tr>
+<tr>
+<td><code>topology_flip</code></td>
+<td>The number of molecules found by following the tracing paths. Note: This will always be 1 for the TopoStats method.</td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>processing</code></td>
+<td>The method used for ordering.</td>
+<td><code>str</code></td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p><img alt="Ordered tracing molecule metrics visualisation" src="../_images/ts2_metrics-mols.png" /></p>
+<p>Note: Most information obtained during the Ordered Tracing processing can be obtained from the <code class="docutils literal notranslate"><span class="pre">&lt;image_name&gt;.topostats</span></code>
+file found within the <code class="docutils literal notranslate"><span class="pre">processed</span></code> folder and contains a multitude of molecule related objects such as:</p>
+<ul class="simple">
+<li><p>bounding box</p></li>
+<li><p>cumulative distance along the trace</p></li>
+<li><p>height along the trace</p></li>
+<li><p>the ordered coordinates</p></li>
+<li><p>molecule statistics explained above</p></li>
+<li><p>The writhe sign for each crossing is added to the NodeStats dictionary.</p></li>
+</ul>
+<p><img alt="TopoStats file - NodeStats structure" src="../_images/topostats_file1.png" /></p>
+</section>
+<section id="diagnostic-images">
+<h2>Diagnostic Images<a class="headerlink" href="#diagnostic-images" title="Link to this heading">#</a></h2>
+<p>Images produced by the <code class="docutils literal notranslate"><span class="pre">plotting.image_set:</span> <span class="pre">all</span></code> for this module are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">27-trace_segments</span></code> - The labelled skeleton and crossing segments that the NodeStats trace is built from.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">28-all_molecule_crossings</span></code> - The skeleton, underlying and overlying crossing segments in blue, pink and green
+respectively. The colourmap used is three-tone meaning that middle crossing branches when there are more than two
+branches will appear blue too.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">29-all_molecules</span></code> - A labelled image of all the identified molecules in the grain found by the ordering method. In
+the default colourmap, only three traces will show - blue, green, and pink.</p></li>
+</ul>
+<p><img alt="Examples of diagnostic images" src="../_images/diagnostics2.png" /></p>
+</section>
+<section id="possible-uses">
+<h2>Possible Uses<a class="headerlink" href="#possible-uses" title="Link to this heading">#</a></h2>
+<p>This module would lend itself useful for separating overlapping or intertwined structures, and is a requirement for the
+<code class="docutils literal notranslate"><span class="pre">splining</span></code> module which smooths the ordered traces to obtain contour lengths of individual molecules.</p>
+<p>Additionally, you could use this module and the writhe string obtained to assess the supercoiling degree (via writhe
+only, not twist) in DNA samples as well as a preliminary step to obtaining the lengths of the individual molecules.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-a-glance-traversing-a-path">At a Glance : Traversing a Path</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing Steps</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nodestats-method">NodeStats Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#compile-segments">1. Compile Segments</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#the-nodestats-tracing-loop">2. The NodeStats Tracing Loop</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-simple-trace">2.2. A Simple Trace</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#writhe-sign">2.3. Writhe Sign</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats-method">TopoStats Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#classifying-circularity">1. Classifying Circularity</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#circular-and-linear-topostats-tracing">2. Circular and Linear TopoStats Tracing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-images">Diagnostic Images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#possible-uses">Possible Uses</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/advanced/ordered_tracing.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

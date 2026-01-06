@@ -1,0 +1,1821 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.tracing.disordered_tracing &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/tracing/disordered_tracing';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="disordered_tracing.html">v2.3.1</a></li>
+  <li><a href="../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.disordered_tracing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.tracing.disordered_tracing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Generates disordered traces (pruned skeletons) and metrics.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skan</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">skimage_measure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndimage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.morphology</span><span class="w"> </span><span class="kn">import</span> <span class="n">label</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.tracing.pruning</span><span class="w"> </span><span class="kn">import</span> <span class="n">prune_skeleton</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.tracing.skeletonize</span><span class="w"> </span><span class="kn">import</span> <span class="n">getSkeleton</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convolve_skeleton</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+<span class="c1"># too-many-positional-arguments</span>
+<span class="c1"># pylint: disable=R0917</span>
+
+
+<div class="viewcode-block" id="disorderedTrace">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">disorderedTrace</span><span class="p">:</span>  <span class="c1"># pylint: disable=too-many-instance-attributes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate disordered traces for a DNA molecule and calculates statistics from those traces.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        Cropped image, typically padded beyond the bounding box.</span>
+<span class="sd">    mask : npt.NDArray</span>
+<span class="sd">        Labelled mask for the grain, typically padded beyond the bounding box.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Filename being processed.</span>
+<span class="sd">    pixel_to_nm_scaling : float</span>
+<span class="sd">        Pixel to nm scaling.</span>
+<span class="sd">    min_skeleton_size : int</span>
+<span class="sd">        Minimum skeleton size below which tracing statistics are not calculated.</span>
+<span class="sd">    mask_smoothing_params : dict</span>
+<span class="sd">        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains</span>
+<span class="sd">        a gaussian &#39;sigma&#39; and number of dilation iterations.</span>
+<span class="sd">    skeletonisation_params : dict</span>
+<span class="sd">        Skeletonisation Parameters. Method of skeletonisation to use &#39;topostats&#39; is the original TopoStats</span>
+<span class="sd">        method. Three methods from scikit-image are available &#39;zhang&#39;, &#39;lee&#39; and &#39;thin&#39;.</span>
+<span class="sd">    pruning_params : dict</span>
+<span class="sd">        Dictionary of pruning parameters. Contains &#39;method&#39;, &#39;max_length&#39;, &#39;height_threshold&#39;, &#39;method_values&#39; and</span>
+<span class="sd">        &#39;method_outlier&#39;.</span>
+<span class="sd">    n_grain : int</span>
+<span class="sd">        Grain number being processed (only  used in logging).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">pixel_to_nm_scaling</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">min_skeleton_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">mask_smoothing_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skeletonisation_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pruning_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_grain</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate disordered traces for a DNA molecule and calculates statistics from those traces.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            Cropped image, typically padded beyond the bounding box.</span>
+<span class="sd">        mask : npt.NDArray</span>
+<span class="sd">            Labelled mask for the grain, typically padded beyond the bounding box.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Filename being processed.</span>
+<span class="sd">        pixel_to_nm_scaling : float</span>
+<span class="sd">            Pixel to nm scaling.</span>
+<span class="sd">        min_skeleton_size : int</span>
+<span class="sd">            Minimum skeleton size below which tracing statistics are not calculated.</span>
+<span class="sd">        mask_smoothing_params : dict</span>
+<span class="sd">            Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains</span>
+<span class="sd">            a gaussian &#39;sigma&#39; and number of dilation iterations.</span>
+<span class="sd">        skeletonisation_params : dict</span>
+<span class="sd">            Skeletonisation Parameters. Method of skeletonisation to use &#39;topostats&#39; is the original TopoStats</span>
+<span class="sd">            method. Three methods from scikit-image are available &#39;zhang&#39;, &#39;lee&#39; and &#39;thin&#39;.</span>
+<span class="sd">        pruning_params : dict</span>
+<span class="sd">            Dictionary of pruning parameters. Contains &#39;method&#39;, &#39;max_length&#39;, &#39;height_threshold&#39;, &#39;method_values&#39; and</span>
+<span class="sd">            &#39;method_outlier&#39;.</span>
+<span class="sd">        n_grain : int</span>
+<span class="sd">            Grain number being processed (only  used in logging).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="n">pixel_to_nm_scaling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_skeleton_size</span> <span class="o">=</span> <span class="n">min_skeleton_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_smoothing_params</span> <span class="o">=</span> <span class="n">mask_smoothing_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeletonisation_params</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">skeletonisation_params</span> <span class="k">if</span> <span class="n">skeletonisation_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;zhang&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruning_params</span> <span class="o">=</span> <span class="n">pruning_params</span> <span class="k">if</span> <span class="n">pruning_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;topostats&quot;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_grain</span> <span class="o">=</span> <span class="n">n_grain</span>
+        <span class="c1"># Images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smoothed_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruned_skeleton</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="c1"># Trace</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># suppresses scipy splining warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] Performing Disordered Tracing&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="disorderedTrace.trace_dna">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.trace_dna">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trace_dna</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform the DNA skeletonisation and cleaning pipeline.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smoothed_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_smoothing_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">getSkeleton</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smoothed_mask</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skeletonisation_params</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">],</span>
+            <span class="n">height_bias</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skeletonisation_params</span><span class="p">[</span><span class="s2">&quot;height_bias&quot;</span><span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get_skeleton</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruned_skeleton</span> <span class="o">=</span> <span class="n">prune_skeleton</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">pruning_params</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pruned_skeleton</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_touching_edge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pruned_skeleton</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pruned_skeleton</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Grain </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grain</span><span class="si">}</span><span class="s2"> failed to Skeletonise.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_skeleton_size</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Grain </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grain</span><span class="si">}</span><span class="s2"> skeleton &lt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_skeleton_size</span><span class="si">}</span><span class="s2">, skipping.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="disorderedTrace.re_add_holes">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.re_add_holes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">re_add_holes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">orig_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">smoothed_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">holearea_min_max</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Restore holes in masks that were occluded by dilation.</span>
+
+<span class="sd">        As Gaussian dilation smoothing methods can close holes in the original mask, this function obtains those holes</span>
+<span class="sd">        (based on the general background being the first due to padding) and adds them back into the smoothed mask. When</span>
+<span class="sd">        paired with ``smooth_mask``, this essentially just smooths the outer edge of the mask.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        orig_mask : npt.NDArray</span>
+<span class="sd">            Original mask.</span>
+<span class="sd">        smoothed_mask : npt.NDArray</span>
+<span class="sd">            Original mask but with inner and outer edged smoothed. The smoothing operation may have closed up important</span>
+<span class="sd">            holes in the mask.</span>
+<span class="sd">        holearea_min_max : tuple[float | int | None]</span>
+<span class="sd">            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed</span>
+<span class="sd">            mask.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            Smoothed mask with holes restored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># handle none&#39;s</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">holearea_min_max</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="kc">None</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="n">smoothed_mask</span>
+        <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">holearea_min_max</span><span class="p">:</span>
+            <span class="n">none_index</span> <span class="o">=</span> <span class="n">holearea_min_max</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">holearea_min_max</span><span class="p">[</span><span class="n">none_index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">none_index</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="c1"># obtain px holesizes</span>
+        <span class="n">holesize_min_px</span> <span class="o">=</span> <span class="n">holearea_min_max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">holesize_max_px</span> <span class="o">=</span> <span class="n">holearea_min_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># obtain a hole mask</span>
+        <span class="n">holes</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">orig_mask</span>
+        <span class="n">holes</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">holes</span><span class="p">)</span>
+        <span class="n">hole_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">holes</span><span class="p">[</span><span class="n">holes</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">holes</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">holes</span><span class="p">[</span><span class="n">holes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># set background to 0 assuming it is the first hole seen (from top left)</span>
+
+        <span class="c1"># remove too small or too big holes from mask</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hole_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hole_sizes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">hole_size</span> <span class="o">&lt;</span> <span class="n">holesize_min_px</span> <span class="ow">or</span> <span class="n">hole_size</span> <span class="o">&gt;</span> <span class="n">holesize_max_px</span><span class="p">:</span>  <span class="c1"># small holes may be fake are left out</span>
+                <span class="n">holes</span><span class="p">[</span><span class="n">holes</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">holes</span><span class="p">[</span><span class="n">holes</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># set correct sixe holes to 1</span>
+
+        <span class="c1"># replace correct sized holes</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">holes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">smoothed_mask</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="disorderedTrace.remove_touching_edge">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.remove_touching_edge">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_touching_edge</span><span class="p">(</span><span class="n">skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove any skeleton points touching the border (to prevent errors later).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        skeleton : npt.NDArray</span>
+<span class="sd">            A binary array where touching clusters of 1&#39;s become 0&#39;s if touching the edge of the array.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            Skeleton without points touching the border.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="p">[</span><span class="n">skeleton</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">skeleton</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">skeleton</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">skeleton</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]]:</span>
+            <span class="n">uniques</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">uniques</span><span class="p">:</span>
+                <span class="n">skeleton</span><span class="p">[</span><span class="n">skeleton</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">skeleton</span></div>
+
+
+<div class="viewcode-block" id="disorderedTrace.smooth_mask">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.smooth_mask">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">smooth_mask</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">grain</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+        <span class="n">dilation_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">gaussian_sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">holearea_min_max</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Smooth a grain mask based on the lower number of binary pixels added from dilation or gaussian.</span>
+
+<span class="sd">        This method ensures gaussian smoothing isn&#39;t too aggressive and covers / creates gaps in the mask.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        grain : npt.NDArray</span>
+<span class="sd">            Numpy array of the grain mask.</span>
+<span class="sd">        dilation_iterations : int</span>
+<span class="sd">            Number of times to dilate the grain to smooth it. Default is 2.</span>
+<span class="sd">        gaussian_sigma : float | None</span>
+<span class="sd">            Gaussian sigma value to smooth the grains after an Otsu threshold. If None, defaults to 2.</span>
+<span class="sd">        holearea_min_max : tuple[float | int | None]</span>
+<span class="sd">            Tuple of minimum and maximum hole area (in nanometers) to replace from the original mask into the smoothed</span>
+<span class="sd">            mask.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        npt.NDArray</span>
+<span class="sd">            Numpy array of smoothed image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Option to disable the smoothing (i.e. U-Net masks are already smooth)</span>
+        <span class="k">if</span> <span class="n">dilation_iterations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gaussian_sigma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : no grain smoothing done&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">grain</span>
+
+        <span class="c1"># Option to only do gaussian or dilation</span>
+        <span class="k">if</span> <span class="n">dilation_iterations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dilation</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="n">dilation_iterations</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">gaussian_sigma</span><span class="p">)</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gauss</span> <span class="o">&gt;</span> <span class="n">filters</span><span class="o">.</span><span class="n">threshold_otsu</span><span class="p">(</span><span class="n">gauss</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">gauss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : smoothing done by gaussian </span><span class="si">{</span><span class="n">gaussian_sigma</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_add_holes</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">gauss</span><span class="p">,</span> <span class="n">holearea_min_max</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gaussian_sigma</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">gaussian_sigma</span><span class="p">)</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gauss</span> <span class="o">&gt;</span> <span class="n">filters</span><span class="o">.</span><span class="n">threshold_otsu</span><span class="p">(</span><span class="n">gauss</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">gauss</span> <span class="o">=</span> <span class="n">gauss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : smoothing done by dilation </span><span class="si">{</span><span class="n">dilation_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_add_holes</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">dilation</span><span class="p">,</span> <span class="n">holearea_min_max</span><span class="p">)</span>
+
+        <span class="c1"># Competition option between dilation and gaussian mask differences wrt original grains</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dilation</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">grain</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gauss</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">grain</span><span class="o">.</span><span class="n">sum</span><span class="p">()):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : smoothing done by gaussian </span><span class="si">{</span><span class="n">gaussian_sigma</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_add_holes</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">gauss</span><span class="p">,</span> <span class="n">holearea_min_max</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : smoothing done by dilation </span><span class="si">{</span><span class="n">dilation_iterations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_add_holes</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">dilation</span><span class="p">,</span> <span class="n">holearea_min_max</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="disorderedTrace.calculate_dna_width">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disorderedTrace.calculate_dna_width">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_dna_width</span><span class="p">(</span>
+        <span class="n">smoothed_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">pruned_skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">pixel_to_nm_scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the mean width in metres of the DNA using the trace and mask.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        smoothed_mask : npt.NDArray</span>
+<span class="sd">            Smoothed mask to be measured.</span>
+<span class="sd">        pruned_skeleton : npt.NDArray</span>
+<span class="sd">            Pruned skeleton.</span>
+<span class="sd">        pixel_to_nm_scaling : float</span>
+<span class="sd">            Scaling of pixels to nanometres.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Width of grain in metres.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dist_trans</span> <span class="o">=</span> <span class="n">ndimage</span><span class="o">.</span><span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">smoothed_mask</span><span class="p">)</span>
+        <span class="n">comb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pruned_skeleton</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dist_trans</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">comb</span><span class="p">[</span><span class="n">comb</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pixel_to_nm_scaling</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="trace_image_disordered">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.trace_image_disordered">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">trace_image_disordered</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments,too-many-locals</span>
+    <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">grains_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pixel_to_nm_scaling</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">min_skeleton_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mask_smoothing_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">skeletonisation_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">pruning_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">pad_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processor function for tracing image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        Full image as Numpy Array.</span>
+<span class="sd">    grains_mask : npt.NDArray</span>
+<span class="sd">        Full image as Grains that are labelled.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        File being processed.</span>
+<span class="sd">    pixel_to_nm_scaling : float</span>
+<span class="sd">        Pixel to nm scaling.</span>
+<span class="sd">    min_skeleton_size : int</span>
+<span class="sd">        Minimum size of grain in pixels after skeletonisation.</span>
+<span class="sd">    mask_smoothing_params : dict</span>
+<span class="sd">        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains</span>
+<span class="sd">        a gaussian &#39;sigma&#39; and number of dilation iterations.</span>
+<span class="sd">    skeletonisation_params : dict</span>
+<span class="sd">        Dictionary of options for skeletonisation, options are &#39;zhang&#39; (scikit-image) / &#39;lee&#39; (scikit-image) / &#39;thin&#39;</span>
+<span class="sd">        (scikitimage) or &#39;topostats&#39; (original TopoStats method).</span>
+<span class="sd">    pruning_params : dict</span>
+<span class="sd">        Dictionary of options for pruning.</span>
+<span class="sd">    pad_width : int</span>
+<span class="sd">        Padding to the cropped image mask.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[dict, pd.DataFrame, dict, pd.DataFrame]</span>
+<span class="sd">        Binary and integer labeled cropped and full-image masks from skeletonising and pruning the grains in the image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check both arrays are the same shape - should this be a test instead, why should this ever occur?</span>
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">grains_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Image shape (</span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">) and Mask shape (</span><span class="si">{</span><span class="n">grains_mask</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">) should match.&quot;</span><span class="p">)</span>
+
+    <span class="n">cropped_images</span><span class="p">,</span> <span class="n">cropped_masks</span><span class="p">,</span> <span class="n">bboxs</span> <span class="o">=</span> <span class="n">prep_arrays</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">grains_mask</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span>
+    <span class="n">n_grains</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cropped_images</span><span class="p">)</span>
+    <span class="n">img_base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">disordered_trace_crop_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">grainstats_additions</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">disordered_tracing_stats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="c1"># want to get each cropped image, use some anchor coords to match them onto the image,</span>
+    <span class="c1">#   and compile all the grain images onto a single image</span>
+    <span class="n">all_images</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;smoothed_grain&quot;</span><span class="p">:</span> <span class="n">img_base</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="s2">&quot;skeleton&quot;</span><span class="p">:</span> <span class="n">img_base</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">:</span> <span class="n">img_base</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="s2">&quot;branch_indexes&quot;</span><span class="p">:</span> <span class="n">img_base</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+        <span class="s2">&quot;branch_types&quot;</span><span class="p">:</span> <span class="n">img_base</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+    <span class="p">}</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Calculating Disordered Tracing statistics for </span><span class="si">{</span><span class="n">n_grains</span><span class="si">}</span><span class="s2"> grains...&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">cropped_image_index</span><span class="p">,</span> <span class="n">cropped_image</span> <span class="ow">in</span> <span class="n">cropped_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cropped_mask</span> <span class="o">=</span> <span class="n">cropped_masks</span><span class="p">[</span><span class="n">cropped_image_index</span><span class="p">]</span>
+            <span class="n">disordered_trace_images</span> <span class="o">=</span> <span class="n">disordered_trace_grain</span><span class="p">(</span>
+                <span class="n">cropped_image</span><span class="o">=</span><span class="n">cropped_image</span><span class="p">,</span>
+                <span class="n">cropped_mask</span><span class="o">=</span><span class="n">cropped_mask</span><span class="p">,</span>
+                <span class="n">pixel_to_nm_scaling</span><span class="o">=</span><span class="n">pixel_to_nm_scaling</span><span class="p">,</span>
+                <span class="n">mask_smoothing_params</span><span class="o">=</span><span class="n">mask_smoothing_params</span><span class="p">,</span>
+                <span class="n">skeletonisation_params</span><span class="o">=</span><span class="n">skeletonisation_params</span><span class="p">,</span>
+                <span class="n">pruning_params</span><span class="o">=</span><span class="n">pruning_params</span><span class="p">,</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">min_skeleton_size</span><span class="o">=</span><span class="n">min_skeleton_size</span><span class="p">,</span>
+                <span class="n">n_grain</span><span class="o">=</span><span class="n">cropped_image_index</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Disordered Traced grain </span><span class="si">{</span><span class="n">cropped_image_index</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">n_grains</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">disordered_trace_images</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># obtain segment stats</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">skan_skeleton</span> <span class="o">=</span> <span class="n">skan</span><span class="o">.</span><span class="n">Skeleton</span><span class="p">(</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">disordered_trace_images</span><span class="p">[</span><span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cropped_image</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                        <span class="n">spacing</span><span class="o">=</span><span class="n">pixel_to_nm_scaling</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">skan_df</span> <span class="o">=</span> <span class="n">skan</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                    <span class="n">skan_df</span> <span class="o">=</span> <span class="n">compile_skan_stats</span><span class="p">(</span><span class="n">skan_df</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">cropped_image</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">cropped_image_index</span><span class="p">)</span>
+                    <span class="n">total_branch_length</span> <span class="o">=</span> <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;branch_distance&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="mf">1e-9</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Skeleton for grain </span><span class="si">{</span><span class="n">cropped_image_index</span><span class="si">}</span><span class="s2"> has been pruned out of existence.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">total_branch_length</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">skan_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+                <span class="n">disordered_tracing_stats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">disordered_tracing_stats</span><span class="p">,</span> <span class="n">skan_df</span><span class="p">))</span>
+
+                <span class="c1"># obtain stats</span>
+                <span class="n">conv_pruned_skeleton</span> <span class="o">=</span> <span class="n">convolve_skeleton</span><span class="p">(</span><span class="n">disordered_trace_images</span><span class="p">[</span><span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">])</span>
+                <span class="n">grainstats_additions</span><span class="p">[</span><span class="n">cropped_image_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_number&quot;</span><span class="p">:</span> <span class="n">cropped_image_index</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_endpoints&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">((</span><span class="n">conv_pruned_skeleton</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                    <span class="s2">&quot;grain_junctions&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">((</span><span class="n">conv_pruned_skeleton</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                    <span class="s2">&quot;total_branch_lengths&quot;</span><span class="p">:</span> <span class="n">total_branch_length</span><span class="p">,</span>
+                    <span class="s2">&quot;grain_width_mean&quot;</span><span class="p">:</span> <span class="n">disorderedTrace</span><span class="o">.</span><span class="n">calculate_dna_width</span><span class="p">(</span>
+                        <span class="n">disordered_trace_images</span><span class="p">[</span><span class="s2">&quot;smoothed_grain&quot;</span><span class="p">],</span>
+                        <span class="n">disordered_trace_images</span><span class="p">[</span><span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">],</span>
+                        <span class="n">pixel_to_nm_scaling</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="mf">1e-9</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="c1"># remap the cropped images back onto the original</span>
+            <span class="k">for</span> <span class="n">image_name</span><span class="p">,</span> <span class="n">full_image</span> <span class="ow">in</span> <span class="n">all_images</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="n">disordered_trace_images</span><span class="p">[</span><span class="n">image_name</span><span class="p">]</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">bboxs</span><span class="p">[</span><span class="n">cropped_image_index</span><span class="p">]</span>
+                <span class="n">full_image</span><span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">crop</span><span class="p">[</span><span class="n">pad_width</span><span class="p">:</span><span class="o">-</span><span class="n">pad_width</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span><span class="o">-</span><span class="n">pad_width</span><span class="p">]</span>
+            <span class="n">disordered_trace_crop_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;grain_</span><span class="si">{</span><span class="n">cropped_image_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">disordered_trace_images</span>
+            <span class="n">disordered_trace_crop_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;grain_</span><span class="si">{</span><span class="n">cropped_image_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">][</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bboxs</span><span class="p">[</span><span class="n">cropped_image_index</span><span class="p">]</span>
+            <span class="n">disordered_trace_crop_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;grain_</span><span class="si">{</span><span class="n">cropped_image_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">][</span><span class="s2">&quot;pad_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pad_width</span>
+
+        <span class="c1"># when skel too small, pruned to 0&#39;s, skan -&gt; ValueError -&gt; skipped</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-exception-caught</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>  <span class="c1"># pylint: disable=logging-not-lazy</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Disordered tracing of grain &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cropped_image_index</span><span class="si">}</span><span class="s2"> failed. Consider raising an issue on GitHub. Error: &quot;</span><span class="p">,</span>
+                <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># convert stats dict to dataframe</span>
+        <span class="n">grainstats_additions_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">grainstats_additions</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">disordered_trace_crop_data</span><span class="p">,</span> <span class="n">grainstats_additions_df</span><span class="p">,</span> <span class="n">all_images</span><span class="p">,</span> <span class="n">disordered_tracing_stats</span></div>
+
+
+
+<div class="viewcode-block" id="compile_skan_stats">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.compile_skan_stats">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_skan_stats</span><span class="p">(</span>
+    <span class="n">skan_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">:</span> <span class="n">skan</span><span class="o">.</span><span class="n">Skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">grain_number</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain and add more stats to the resultant Skan dataframe.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    skan_df : pd.DataFrame</span>
+<span class="sd">        The statistics DataFrame produced by Skan&#39;s `summarize` function.</span>
+<span class="sd">    skan_skeleton : skan.Skeleton</span>
+<span class="sd">        The graphical representation of the skeleton produced by Skan.</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        The image the skeleton was produced from.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Name of the file being processed.</span>
+<span class="sd">    grain_number : int</span>
+<span class="sd">        The number of the grain being processed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        A dataframe containing the filename, grain_number, branch-distance, branch-type, connected_segments,</span>
+<span class="sd">        mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;branch-type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;branch_type&quot;</span><span class="p">])</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;grain_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grain_number</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;connected_segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skan_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">find_connections</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">skan_df</span><span class="o">=</span><span class="n">skan_df</span><span class="p">)</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;min_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skan_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">segment_heights</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;median_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skan_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">segment_heights</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;middle_value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skan_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">segment_middles</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="o">=</span><span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># remove unused skan columns</span>
+    <span class="k">return</span> <span class="n">skan_df</span><span class="p">[</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;grain_number&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;branch_distance&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;branch_type&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;connected_segments&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mean_pixel_value&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stdev_pixel_value&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;min_value&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;median_value&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;middle_value&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="segment_heights">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.segment_heights">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">segment_heights</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">:</span> <span class="n">skan</span><span class="o">.</span><span class="n">Skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain an ordered list of heights from the skan defined skeleton segment.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    row : pd.Series</span>
+<span class="sd">        A row from the Skan summarize dataframe.</span>
+<span class="sd">    skan_skeleton : skan.Skeleton</span>
+<span class="sd">        The graphical representation of the skeleton produced by Skan.</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        The image the skeleton was produced from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray</span>
+<span class="sd">        Heights along the segment, naturally ordered by Skan.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">skan_skeleton</span><span class="o">.</span><span class="n">path_coordinates</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span><span class="p">[</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span></div>
+
+
+
+<div class="viewcode-block" id="segment_middles">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.segment_middles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">segment_middles</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">:</span> <span class="n">skan</span><span class="o">.</span><span class="n">csr</span><span class="o">.</span><span class="n">Skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain the pixel value in the middle of the ordered segment.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    row : pd.Series</span>
+<span class="sd">        A row from the Skan summarize dataframe.</span>
+<span class="sd">    skan_skeleton : skan.csr.Skeleton</span>
+<span class="sd">        The graphical representation of the skeleton produced by Skan.</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        The image the skeleton was produced from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The single or mean pixel value corresponding to the middle coordinate(s) of the segment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">heights</span> <span class="o">=</span> <span class="n">segment_heights</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+    <span class="n">middle_idx</span><span class="p">,</span> <span class="n">middle_remainder</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">heights</span><span class="p">[[</span><span class="n">middle_idx</span><span class="p">,</span> <span class="n">middle_idx</span> <span class="o">+</span> <span class="n">middle_remainder</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="find_connections">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.find_connections">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_connections</span><span class="p">(</span><span class="n">row</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">skan_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compile the neighbouring branch indexes of the row.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    row : pd.Series</span>
+<span class="sd">        A row from the Skan summarize dataframe.</span>
+<span class="sd">    skan_df : pd.DataFrame</span>
+<span class="sd">        The statistics DataFrame produced by Skan&#39;s `summarize` function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string representation of a list of matching row indices where the node src and dst</span>
+<span class="sd">        columns match that of the rows.</span>
+<span class="sd">        String is needed for csv compatibility since csvs can&#39;t hold lists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">connections</span> <span class="o">=</span> <span class="n">skan_df</span><span class="p">[</span>
+        <span class="p">(</span><span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;node_id_src&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;node_id_src&quot;</span><span class="p">])</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;node_id_dst&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;node_id_dst&quot;</span><span class="p">])</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;node_id_src&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;node_id_dst&quot;</span><span class="p">])</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">skan_df</span><span class="p">[</span><span class="s2">&quot;node_id_dst&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;node_id_src&quot;</span><span class="p">])</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="c1"># Remove the index of the current row itself from the list of connections</span>
+    <span class="n">connections</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">connections</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="prep_arrays">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.prep_arrays">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">prep_arrays</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">labelled_grains_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take an image and labelled mask and crops individual grains and original heights to a list.</span>
+
+<span class="sd">    A second padding is made after cropping to ensure for &quot;edge cases&quot; where grains are close to bounding box edges that</span>
+<span class="sd">    they are traced correctly. This is accounted for when aligning traces to the whole image mask.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : npt.NDArray</span>
+<span class="sd">        Gaussian filtered image. Typically filtered_image.images[&quot;gaussian_filtered&quot;].</span>
+<span class="sd">    labelled_grains_mask : npt.NDArray</span>
+<span class="sd">        2D Numpy array of labelled grain masks, with each mask being comprised solely of unique integer (not</span>
+<span class="sd">        zero). Typically this will be output from &#39;grains.directions[&lt;direction&gt;[&quot;labelled_region_02]&#39;.</span>
+<span class="sd">    pad_width : int</span>
+<span class="sd">        Cells by which to pad cropped regions by.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Tuple</span>
+<span class="sd">        Returns a tuple of three dictionaries, the cropped images, cropped masks and bounding boxes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get bounding boxes for each grain</span>
+    <span class="n">region_properties</span> <span class="o">=</span> <span class="n">skimage_measure</span><span class="o">.</span><span class="n">regionprops</span><span class="p">(</span><span class="n">labelled_grains_mask</span><span class="p">)</span>
+    <span class="c1"># Subset image and grains then zip them up</span>
+    <span class="n">cropped_images</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cropped_masks</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># for index, grain in enumerate(region_properties):</span>
+    <span class="c1">#    cropped_image, cropped_bbox = crop_array(image, grain.bbox, pad_width)</span>
+
+    <span class="n">cropped_images</span> <span class="o">=</span> <span class="p">{</span><span class="n">index</span><span class="p">:</span> <span class="n">crop_array</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">grain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">grain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">region_properties</span><span class="p">)}</span>
+    <span class="n">cropped_images</span> <span class="o">=</span> <span class="p">{</span><span class="n">index</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">grain</span> <span class="ow">in</span> <span class="n">cropped_images</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">cropped_masks</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">index</span><span class="p">:</span> <span class="n">crop_array</span><span class="p">(</span><span class="n">labelled_grains_mask</span><span class="p">,</span> <span class="n">grain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">grain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">region_properties</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">cropped_masks</span> <span class="o">=</span> <span class="p">{</span><span class="n">index</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">grain</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">grain</span> <span class="ow">in</span> <span class="n">cropped_masks</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">cropped_masks</span> <span class="o">=</span> <span class="p">{</span><span class="n">index</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">grain</span> <span class="o">==</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">grain</span> <span class="ow">in</span> <span class="n">cropped_masks</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># Get BBOX coords to remap crops to images</span>
+    <span class="n">bboxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pad_bounding_box</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">grain</span><span class="o">.</span><span class="n">bbox</span><span class="p">),</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">grain</span> <span class="ow">in</span> <span class="n">region_properties</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">cropped_images</span><span class="p">,</span> <span class="n">cropped_masks</span><span class="p">,</span> <span class="n">bboxs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="grain_anchor">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.grain_anchor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grain_anchor</span><span class="p">(</span><span class="n">array_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array_shape : tuple</span>
+<span class="sd">        Shape of original array.</span>
+<span class="sd">    bounding_box : list</span>
+<span class="sd">        A list of region properties returned by &#39;skimage.measure.regionprops()&#39;.</span>
+<span class="sd">    pad_width : int</span>
+<span class="sd">        Padding for image.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list(Tuple)</span>
+<span class="sd">        A list of tuples of the min_row, min_col of each bounding box.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bounding_coordinates</span> <span class="o">=</span> <span class="n">pad_bounding_box</span><span class="p">(</span><span class="n">array_shape</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">bounding_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bounding_coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="disordered_trace_grain">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.disordered_trace_grain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">disordered_trace_grain</span><span class="p">(</span>  <span class="c1"># pylint: disable=too-many-arguments</span>
+    <span class="n">cropped_image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">cropped_mask</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">pixel_to_nm_scaling</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">mask_smoothing_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">skeletonisation_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">pruning_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_skeleton_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">n_grain</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trace an individual grain.</span>
+
+<span class="sd">    Tracing involves multiple steps...</span>
+
+<span class="sd">    1. Skeletonisation</span>
+<span class="sd">    2. Pruning of side branches (artefacts from skeletonisation).</span>
+<span class="sd">    3. Ordering of the skeleton.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cropped_image : npt.NDArray</span>
+<span class="sd">        Cropped array from the original image defined as the bounding box from the labelled mask.</span>
+<span class="sd">    cropped_mask : npt.NDArray</span>
+<span class="sd">        Cropped array from the labelled image defined as the bounding box from the labelled mask. This should have been</span>
+<span class="sd">        converted to a binary mask.</span>
+<span class="sd">    pixel_to_nm_scaling : float</span>
+<span class="sd">        Pixel to nm scaling.</span>
+<span class="sd">    mask_smoothing_params : dict</span>
+<span class="sd">        Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains</span>
+<span class="sd">        a gaussian &#39;sigma&#39; and number of dilation iterations.</span>
+<span class="sd">    skeletonisation_params : dict</span>
+<span class="sd">        Dictionary of skeletonisation parameters, options are &#39;zhang&#39; (scikit-image) / &#39;lee&#39; (scikit-image) / &#39;thin&#39;</span>
+<span class="sd">        (scikitimage) or &#39;topostats&#39; (original TopoStats method).</span>
+<span class="sd">    pruning_params : dict</span>
+<span class="sd">        Dictionary of pruning parameters.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        File being processed.</span>
+<span class="sd">    min_skeleton_size : int</span>
+<span class="sd">        Minimum size of grain in pixels after skeletonisation.</span>
+<span class="sd">    n_grain : int</span>
+<span class="sd">        Grain number being processed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array</span>
+<span class="sd">        of coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">disorderedtrace</span> <span class="o">=</span> <span class="n">disorderedTrace</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="n">cropped_image</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">cropped_mask</span><span class="p">,</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+        <span class="n">pixel_to_nm_scaling</span><span class="o">=</span><span class="n">pixel_to_nm_scaling</span><span class="p">,</span>
+        <span class="n">min_skeleton_size</span><span class="o">=</span><span class="n">min_skeleton_size</span><span class="p">,</span>
+        <span class="n">mask_smoothing_params</span><span class="o">=</span><span class="n">mask_smoothing_params</span><span class="p">,</span>
+        <span class="n">skeletonisation_params</span><span class="o">=</span><span class="n">skeletonisation_params</span><span class="p">,</span>
+        <span class="n">pruning_params</span><span class="o">=</span><span class="n">pruning_params</span><span class="p">,</span>
+        <span class="n">n_grain</span><span class="o">=</span><span class="n">n_grain</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">trace_dna</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">disordered_trace</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;original_image&quot;</span><span class="p">:</span> <span class="n">cropped_image</span><span class="p">,</span>
+        <span class="s2">&quot;original_grain&quot;</span><span class="p">:</span> <span class="n">cropped_mask</span><span class="p">,</span>
+        <span class="s2">&quot;smoothed_grain&quot;</span><span class="p">:</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">smoothed_mask</span><span class="p">,</span>
+        <span class="s2">&quot;skeleton&quot;</span><span class="p">:</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">skeleton</span><span class="p">,</span>
+        <span class="s2">&quot;pruned_skeleton&quot;</span><span class="p">:</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">pruned_skeleton</span><span class="p">,</span>
+        <span class="s2">&quot;branch_types&quot;</span><span class="p">:</span> <span class="n">get_skan_image</span><span class="p">(</span><span class="n">cropped_image</span><span class="p">,</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">pruned_skeleton</span><span class="p">,</span> <span class="s2">&quot;branch_type&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;branch_indexes&quot;</span><span class="p">:</span> <span class="n">get_skan_image</span><span class="p">(</span><span class="n">cropped_image</span><span class="p">,</span> <span class="n">disorderedtrace</span><span class="o">.</span><span class="n">pruned_skeleton</span><span class="p">,</span> <span class="s2">&quot;node_id_src&quot;</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="get_skan_image">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.get_skan_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_skan_image</span><span class="p">(</span><span class="n">original_image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">pruned_skeleton</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">skan_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Label each branch with it&#39;s Skan branch type label.</span>
+
+<span class="sd">    Branch types (+1 compared to Skan docs) are defined as:</span>
+<span class="sd">    1 = Endpoint-to-endpoint (isolated branch)</span>
+<span class="sd">    2 = Junction-to-endpoint</span>
+<span class="sd">    3 = Junction-to-junction</span>
+<span class="sd">    4 = Isolated cycle</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    original_image : npt.NDArray</span>
+<span class="sd">        Height image from which the pruned skeleton is derived from.</span>
+<span class="sd">    pruned_skeleton : npt.NDArray</span>
+<span class="sd">        Single pixel thick skeleton mask.</span>
+<span class="sd">    skan_column : str</span>
+<span class="sd">        A column from Skan&#39;s summarize function to colour the branch segments with.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray</span>
+<span class="sd">        2D array where the background is 0, and skeleton branches label as their Skan branch type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">branch_field_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">original_image</span><span class="p">)</span>
+    <span class="n">skeleton_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pruned_skeleton</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">original_image</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">skan_skeleton</span> <span class="o">=</span> <span class="n">skan</span><span class="o">.</span><span class="n">Skeleton</span><span class="p">(</span><span class="n">skeleton_image</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">value_is_height</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">skan</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">skan_skeleton</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">branch_field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="n">skan_column</span><span class="p">]):</span>
+            <span class="n">path_coords</span> <span class="o">=</span> <span class="n">skan_skeleton</span><span class="o">.</span><span class="n">path_coordinates</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">skan_column</span> <span class="o">==</span> <span class="s2">&quot;node_id_src&quot;</span><span class="p">:</span>
+                <span class="n">branch_field</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">branch_field_image</span><span class="p">[</span><span class="n">path_coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">path_coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">branch_field</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># when no skeleton to skan</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Skeleton has been pruned out of existence.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">branch_field_image</span></div>
+
+
+
+<div class="viewcode-block" id="crop_array">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.crop_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">crop_array</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crop an array.</span>
+
+<span class="sd">    Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,</span>
+<span class="sd">    in some cases, if a grain is near the edge of the image scan this results in requesting indexes outside of the</span>
+<span class="sd">    existing image. In which case we get as much of the image padded as possible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : npt.NDArray</span>
+<span class="sd">        2D Numpy array to be cropped.</span>
+<span class="sd">    bounding_box : Tuple</span>
+<span class="sd">        Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).</span>
+<span class="sd">    pad_width : int</span>
+<span class="sd">        Padding to apply to bounding box.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray()</span>
+<span class="sd">        Cropped array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bounding_box</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bounding_box</span><span class="p">)</span>
+    <span class="n">bounding_box</span> <span class="o">=</span> <span class="n">pad_bounding_box</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array</span><span class="p">[</span>
+        <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="pad_bounding_box">
+<a class="viewcode-back" href="../../../autoapi/topostats/tracing/disordered_tracing/index.html#topostats.tracing.disordered_tracing.pad_bounding_box">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pad_bounding_box</span><span class="p">(</span><span class="n">array_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pad coordinates, if they extend beyond image boundaries stop at boundary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array_shape : tuple</span>
+<span class="sd">        Shape of original image (row, columns).</span>
+<span class="sd">    bounding_box : list</span>
+<span class="sd">        List of coordinates &#39;min_row&#39;, &#39;min_col&#39;, &#39;max_row&#39;, &#39;max_col&#39;.</span>
+<span class="sd">    pad_width : int</span>
+<span class="sd">        Cells to pad arrays by.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">       List of padded coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Top Row : Make this the first column if too close</span>
+    <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_width</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_width</span>
+    <span class="c1"># Left Column : Make this the first column if too close</span>
+    <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_width</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pad_width</span>
+    <span class="c1"># Bottom Row : Make this the last row if too close</span>
+    <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">array_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">pad_width</span> <span class="o">&gt;</span> <span class="n">array_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">pad_width</span>
+    <span class="c1"># Right Column : Make this the last column if too close</span>
+    <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">array_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">pad_width</span> <span class="o">&gt;</span> <span class="n">array_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="n">bounding_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">pad_width</span>
+    <span class="k">return</span> <span class="n">bounding_box</span></div>
+
+
+
+<span class="c1"># 2023-06-09 - Code that runs dnatracing in parallel across grains, left deliberately for use when we remodularise the</span>
+<span class="c1">#              entry-points/workflow. Will require that the gaussian filtered array is saved and passed in along with</span>
+<span class="c1">#              the labelled regions. @ns-rse</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># if __name__ == &quot;__main__&quot;:</span>
+<span class="c1">#     cropped_images, cropped_masks = prep_arrays(image, grains_mask, pad_width)</span>
+<span class="c1">#     n_grains = len(cropped_images)</span>
+<span class="c1">#     LOGGER.info(f&quot;[{filename}] : Calculating statistics for {n_grains} grains.&quot;)</span>
+<span class="c1">#     # Process in parallel</span>
+<span class="c1">#     with Pool(processes=cores) as pool:</span>
+<span class="c1">#         results = {}</span>
+<span class="c1">#         with tqdm(total=n_grains) as pbar:</span>
+<span class="c1">#             x = 0</span>
+<span class="c1">#             for result in pool.starmap(</span>
+<span class="c1">#                 trace_grain,</span>
+<span class="c1">#                 zip(</span>
+<span class="c1">#                     cropped_images,</span>
+<span class="c1">#                     cropped_masks,</span>
+<span class="c1">#                     repeat(pixel_to_nm_scaling),</span>
+<span class="c1">#                     repeat(filename),</span>
+<span class="c1">#                     repeat(min_skeleton_size),</span>
+<span class="c1">#                     repeat(skeletonisation_method),</span>
+<span class="c1">#                 ),</span>
+<span class="c1">#             ):</span>
+<span class="c1">#                 LOGGER.info(f&quot;[{filename}] : Traced grain {x + 1} of {n_grains}&quot;)</span>
+<span class="c1">#                 results[x] = result</span>
+<span class="c1">#                 x += 1</span>
+<span class="c1">#                 pbar.update()</span>
+<span class="c1">#     try:</span>
+<span class="c1">#         results = pd.DataFrame.from_dict(results, orient=&quot;index&quot;)</span>
+<span class="c1">#         results.index.name = &quot;molecule_number&quot;</span>
+<span class="c1">#     except ValueError as error:</span>
+<span class="c1">#         LOGGER.error(&quot;No grains found in any images, consider adjusting your thresholds.&quot;)</span>
+<span class="c1">#         LOGGER.error(error)</span>
+<span class="c1">#     return results</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

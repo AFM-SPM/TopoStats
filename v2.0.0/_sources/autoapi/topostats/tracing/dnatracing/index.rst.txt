@@ -1,0 +1,634 @@
+topostats.tracing.dnatracing
+============================
+
+.. py:module:: topostats.tracing.dnatracing
+
+.. autoapi-nested-parse::
+
+   Perform DNA Tracing
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.dnatracing.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.dnatracing.dnaTrace
+   topostats.tracing.dnatracing.traceStats
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: dnaTrace(full_image_data, grains, filename, pixel_size, convert_nm_to_m: bool = True)
+
+   Bases: :py:obj:`object`
+
+
+   
+   This class gets all the useful functions from the old tracing code and staples
+   them together to create an object that contains the traces for each DNA molecule
+   in an image and functions to calculate stats from those traces.
+
+   The traces are stored in dictionaries labelled by their gwyddion defined grain
+   number and are represented as numpy arrays.
+
+   The object also keeps track of the skeletonised plots and other intermediates
+   in case these are useful for other things in the future.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: full_image_data
+
+
+   .. py:attribute:: grains_orig
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_size
+
+
+   .. py:attribute:: number_of_rows
+
+
+   .. py:attribute:: number_of_columns
+
+
+   .. py:attribute:: sigma
+
+
+   .. py:attribute:: gauss_image
+      :value: []
+
+
+
+   .. py:attribute:: grains
+
+
+   .. py:attribute:: dna_masks
+
+
+   .. py:attribute:: skeletons
+
+
+   .. py:attribute:: disordered_trace
+
+
+   .. py:attribute:: ordered_traces
+
+
+   .. py:attribute:: fitted_traces
+
+
+   .. py:attribute:: splined_traces
+
+
+   .. py:attribute:: contour_lengths
+
+
+   .. py:attribute:: end_to_end_distance
+
+
+   .. py:attribute:: mol_is_circular
+
+
+   .. py:attribute:: curvature
+
+
+   .. py:attribute:: number_of_traces
+      :value: 0
+
+
+
+   .. py:attribute:: num_circular
+      :value: 0
+
+
+
+   .. py:attribute:: num_linear
+      :value: 0
+
+
+
+   .. py:attribute:: neighbours
+      :value: 5
+
+
+
+   .. py:method:: trace_dna()
+
+      
+      Perform DNA tracing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_numpy_arrays()
+
+      
+      Function to get each grain as a numpy array which is stored in a
+      dictionary
+
+      Currently the grains are unnecessarily large (the full image) as I don't
+      know how to handle the cropped versions
+
+      I find using the gwyddion objects clunky and not helpful once the
+      grains have been found
+
+      There is some kind of discrepency between the ordering of arrays from
+      gwyddion and how they're usually handled in np arrays meaning you need
+      to be careful when indexing from gwyddion derived numpy arrays
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_grain_array(grain_number: int) -> numpy.ndarray
+
+      
+      Extract a single grains.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _get_bounding_box() -> numpy.ndarray
+
+      
+      Calculate bounding box for each grain.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _crop_array(bounding_box: Tuple) -> numpy.ndarray
+
+      
+      Crop an array.
+
+      :param array: 2D Numpy array to be cropped.
+      :type array: np.ndarray
+      :param bounding_box: Tuple of co-ordinates to crop, should be of form (max_x, min_x, max_y, min_y) as returned by
+      :type bounding_box: Tuple
+      :param _get_bounding_box().:
+
+      :returns: Cropped array
+      :rtype: np.ndarray()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gaussian_filter(**kwargs) -> numpy.array
+
+      
+      Apply Gaussian filter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_disordered_trace()
+
+      
+      Create a skeleton for each of the grains in the image.
+
+      Uses my own skeletonisation function from tracingfuncs module. I will
+      eventually get round to editing this function to try to reduce the branching
+      and to try to better trace from looped molecules
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: purge_obvious_crap()
+
+
+   .. py:method:: linear_or_circular(traces)
+
+      
+      Determines whether each molecule is circular or linear based on the local environment of each pixel from the trace
+
+      This function is sensitive to branches from the skeleton so might need to implement a function to remove them
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_ordered_traces()
+
+
+   .. py:method:: report_basic_stats()
+
+      
+      Report number of circular and linear DNA molecules detected.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_fitted_traces()
+
+      
+      Create trace coordinates (for each identified molecule) that are adjusted to lie
+      along the highest points of each traced molecule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_splined_traces()
+
+      
+      Gets a splined version of the fitted trace - useful for finding the radius of gyration etc
+
+      This function actually calculates the average of several splines which is important for getting a good fit on
+      the lower res data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: show_traces()
+
+
+   .. py:method:: saveTraceFigures(filename: Union[str, pathlib.Path], channel_name: str, vmaxval, vminval, output_dir: Union[str, pathlib.Path] = None)
+
+
+   .. py:method:: _checkForSaveDirectory(filename, new_directory_name)
+
+
+   .. py:method:: findWrithe()
+
+
+   .. py:method:: find_curvature()
+
+
+   .. py:method:: saveCurvature()
+
+
+   .. py:method:: plotCurvature(dna_num)
+
+      
+      Plot the curvature of the chosen molecule as a function of the contour length (in metres)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: measure_contour_length()
+
+      
+      Measures the contour length for each of the splined traces taking into
+      account whether the molecule is circular or linear
+
+      Contour length units are nm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: writeContourLengths(filename, channel_name)
+
+
+   .. py:method:: writeCoordinates(dna_num)
+
+
+   .. py:method:: measure_end_to_end_distance()
+
+      
+      Calculate the Euclidean distance between the start and end of linear molecules.
+      The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+      molecules. If the molecule is circular then the distance is set to zero (0).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: traceStats(trace_object: dnaTrace, image_path: Union[str, pathlib.Path])
+
+   Bases: :py:obj:`object`
+
+
+   
+   Combine and save trace statistics.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: trace_object
+
+
+   .. py:attribute:: image_path
+
+
+   .. py:attribute:: df
+      :value: []
+
+
+
+   .. py:method:: create_trace_stats()
+
+      
+      Creates a pandas dataframe of the contour length, whether its circular and end to end distance
+      combined with details of the working directory, directory images were found in and the image name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_trace_stats(save_path: Union[str, pathlib.Path], json: bool = True, csv: bool = True) -> None
+
+      
+      Write trace statistics to JSON and/or CSV.
+
+      :param save_path: Directory to save results to.
+      :type save_path: Union[str, Path]
+      :param json: Whether to save a JSON version of statistics.
+      :type json: bool
+      :param csv: Whether to save a CSV version of statistics.
+      :type csv: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

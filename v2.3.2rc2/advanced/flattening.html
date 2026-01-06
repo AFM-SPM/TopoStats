@@ -1,0 +1,713 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Flattening &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'advanced/flattening';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../v2.3.0/advanced/flattening.html">v2.3.0</a></li>
+  <li><a href="../../v2.3.1/advanced/flattening.html">v2.3.1</a></li>
+  <li><a href="../../v2.3.2/advanced/flattening.html">v2.3.2</a></li>
+  <li><a href="../../v2.3.2rc1/advanced/flattening.html">v2.3.2rc1</a></li>
+  <li><a href="flattening.html">v2.3.2rc2</a></li>
+  <li><a href="../../main/advanced/flattening.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Flattening</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="flattening">
+<h1>Flattening<a class="headerlink" href="#flattening" title="Link to this heading">#</a></h1>
+<p>Flattening is the process of taking a raw AFM image, and removing the image artefacts that are present due to the
+scanning probe microscopy (SPM) and AFM imaging. These encompass, but are not limited to; row alignment from the raster
+scanning motion, and polynomial flattening of a surface from piezoelectric bowing.
+For surface based samples, such as DNA on Mica, this results in an image where the background mica is flat and the
+sample is clearly visible resting on the surface.</p>
+<p>Here is a raw, unprocessed AFM image:</p>
+<p><img alt="raw AFM image" src="../_images/flattening_raw_afm_image.png" /></p>
+<p>You can see there is a large tilt in the image from the bottom right to the top left, as well as lots of horizontal
+banding throughout the rows in the image. These artefacts are removed
+during the flattening process in TopoStats knows as <code class="docutils literal notranslate"><span class="pre">Filters</span></code>.</p>
+<section id="at-a-glance-removing-afm-imaging-artefacts">
+<h2>At a Glance - Removing AFM Imaging Artefacts<a class="headerlink" href="#at-a-glance-removing-afm-imaging-artefacts" title="Link to this heading">#</a></h2>
+<p>Images are processed by:</p>
+<ul class="simple">
+<li><p>Row alignment (make each row median the same height)</p></li>
+<li><p>Tilt &amp; polynomial removal (fit a plane and quadratic polynomial to the image and subtract)</p></li>
+<li><p>Scar removal (remove long, thin, bright streaks in the data)</p></li>
+<li><p>Zero the average height (lower the image by the mean height) to make the background roughly centred at zero nm</p></li>
+<li><p>Masking (detect objects on the surface and flatten the image again, ignoring the data on the surface)</p></li>
+<li><p>Secondary flattening (re-process the data using the mask to tell us where the background is, and zero the data using
+the mean of the background mask)</p></li>
+<li><p>Gaussian filter (to smooth pixel differences / high-gain noise)</p></li>
+</ul>
+<p><img alt="flattening pipeline" src="../_images/flattening_pipeline.png" /></p>
+</section>
+<section id="row-alignment">
+<h2>Row alignment<a class="headerlink" href="#row-alignment" title="Link to this heading">#</a></h2>
+<p>The first step in the flattening process is <strong>row alignment</strong>. Row alignment is a process that adjusts the height of
+each row of the image so that they all share the same median height value. This “median” value is set by the
+<code class="docutils literal notranslate"><span class="pre">row_alignment_quartile</span></code> where the default of 0.5 is the median value, but can be adjusted depending on how much data
+is considered background. This gets rid of some of the horizontal
+banding and produces an image where the rows are aligned, but the image still has a clear tilt.</p>
+<p><img alt="row alignment" src="../_images/flattening_align_rows.png" /></p>
+</section>
+<section id="tilt-removal">
+<h2>Tilt removal<a class="headerlink" href="#tilt-removal" title="Link to this heading">#</a></h2>
+<p>After row alignment, tilt removal is applied. This is a simple process of fitting and subtracting a plane to the image,
+resulting in a mostly flat image. However as you can see in the following image, it’s not perfect and there still
+exists “shadows” on rows with lots of non-background data.
+Two images are provided here, one with the full z-range and one with an adjusted height range (z-range) to show
+the remaining artefacts better, such as the low regions or “shadows” on rows with lots of non-background data.</p>
+<p><img alt="tilt_removal_full_zrange" src="../_images/flattening_tilt_removal_full_zrange.png" /></p>
+<p><img alt="tilt removal_better_viewing" src="../_images/flattening_tilt_removal.png" /></p>
+</section>
+<section id="polynomial-removal">
+<h2>Polynomial removal<a class="headerlink" href="#polynomial-removal" title="Link to this heading">#</a></h2>
+<p>After the tilt, we remove the polynomial trends. In some images, there is also quadratic or occasionally cubic bowing to
+the image too. We remove this by fitting a two dimensional quadratic polynomial to the image (in the horizontal
+direction), and subtracting it from the image. We then do the same for a nonlinear polynomial (z = a<em>x</em>y) to eliminate
+“saddle” trends in the data. We could do all of these at the same time, but we like to be able to see the iterative
+differences.</p>
+</section>
+<section id="scar-removal-optional">
+<h2>Scar removal (optional)<a class="headerlink" href="#scar-removal-optional" title="Link to this heading">#</a></h2>
+<p>We then optionally run scar removal on the image. This is a special function that detects scars - long, thin, bright / dark
+streaks in the data, caused by physical problems in the AFM process. They are found by the parameters; <code class="docutils literal notranslate"><span class="pre">threshold_low</span></code>
+and <code class="docutils literal notranslate"><span class="pre">threshold_high</span></code> identifying great height changes between rows, and filtered for scars via <code class="docutils literal notranslate"><span class="pre">max_scar_width</span></code>
+and <code class="docutils literal notranslate"><span class="pre">min_scar_length</span></code> in pixel lengths. We are using a different image here as an example since our lovely
+minicircles.spm image doesn’t have any scars.</p>
+<p><img alt="scarred image" src="../_images/flattening_scarred_image.png" /></p>
+<p><img alt="scar removed" src="../_images/flattening_scar_removed.png" /></p>
+<p><strong>Note that scar removal can distort data, and it’s best to take data without scars if you can.</strong></p>
+</section>
+<section id="zero-the-average-height">
+<h2>Zero the average height<a class="headerlink" href="#zero-the-average-height" title="Link to this heading">#</a></h2>
+<p><img alt="height zeroing" src="../_images/flattening_height_zeroing.png" /></p>
+<p>We then lower the image by its mean height which causes the background of the image to be roughly centred at zero nm.
+If this function is provided a foreground mask such as in the second iteration of flattening, this function zeros the
+data only on the background data.
+Data zeroing is important since the raw AFM heights are relative, and these processing steps can shift the background
+height away from zero, so this makes it easier to obtain comparative height metrics.</p>
+</section>
+<section id="masking">
+<h2>Masking<a class="headerlink" href="#masking" title="Link to this heading">#</a></h2>
+<p>Now consider that all the processing we have done has assumed that every pixel of the image is background. We assumed
+that there were no objects on the surface, messing up our fitting, and row alignment. If there was a large amount of
+DNA on one side of the image, then the slope will be affected by it, and so flatten the image poorly.</p>
+<p>Because of this, once we have done our initial flattening, we detect our objects on the surface, and then flatten the
+image again! But this time, ignoring the data on the surface, and only considering the background.</p>
+<p>How do we do that?
+Well first, we need to find the data on the surface. We do this by thresholding.
+The type of threshold (standard deviation - <code class="docutils literal notranslate"><span class="pre">std_dev</span></code>, absolute - <code class="docutils literal notranslate"><span class="pre">absolute</span></code>, otsu - <code class="docutils literal notranslate"><span class="pre">otsu</span></code>), and the threshold values
+are set by the config file (have a look!). Any pixels that are below the threshold, are considered
+background (sample surface). Any pixels that are above the threshold are considered to be data (useful sample objects).
+This binary classification allows us to make a binary mask of where is foreground data, and where is background.</p>
+<p>For more information on thresholding and how to set it, see the <a class="reference internal" href="thresholding.html"><span class="std std-doc">thresholding</span></a> page.</p>
+<p>Here is the binary mask for minicircle.spm:</p>
+<p><img alt="tilt_removed_with_mask" src="../_images/tilt_removed_with_mask.png" /></p>
+<p>So you can see how all the interesting foreground (high) regions are now masked in white, and the background is in
+black.</p>
+<p>This allows TopoStats to use only the background (black pixels) in its calculations for slope removal, row alignment
+etc.</p>
+<p>So we re-do all the previous processing, but with this new useful binary mask to guide us.</p>
+</section>
+<section id="secondary-flattening">
+<h2>Secondary flattening<a class="headerlink" href="#secondary-flattening" title="Link to this heading">#</a></h2>
+<p>After re-processing the data using the mask to tell us where the background is, we get a better, more accurately
+flattened image. We can see the “shadows” on rows with lots of data have now been flattened correctly.</p>
+<p>From here, we can go on to do things like finding our objects of interest (grains) and get stats about them.</p>
+<p><img alt="secondary flattening" src="../_images/flattening_final_flattened_image.png" /></p>
+</section>
+<section id="gaussian-filter">
+<h2>Gaussian filter<a class="headerlink" href="#gaussian-filter" title="Link to this heading">#</a></h2>
+<p>Finally, we apply a Gaussian filter to the image to smooth height differences and remove high-gain noise. This allows
+you to get smoother data
+but will start to blur out important features if you apply it too strongly. The default strength is a sigma of 1.0, but
+you can adjust this in the config file under <code class="docutils literal notranslate"><span class="pre">gaussian_size</span></code>. The <code class="docutils literal notranslate"><span class="pre">gaussian_mode</span></code> parameter suggests how values at
+the border should be handled, see
+<a class="reference external" href="https://scikit-image.org/docs/stable/api/skimage.filters.html#skimage.filters.gaussian">skimage.filters.gaussian</a>
+for more details.</p>
+<p>Here are some examples of different gaussian sizes:</p>
+<p><img alt="gaussian_sizes" src="../_images/gaussian_sizes.png" /></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-a-glance-removing-afm-imaging-artefacts">At a Glance - Removing AFM Imaging Artefacts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#row-alignment">Row alignment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tilt-removal">Tilt removal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#polynomial-removal">Polynomial removal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scar-removal-optional">Scar removal (optional)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-the-average-height">Zero the average height</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#masking">Masking</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#secondary-flattening">Secondary flattening</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaussian-filter">Gaussian filter</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/advanced/flattening.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

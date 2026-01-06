@@ -1,0 +1,1087 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>topostats.tracing.tracingfuncs &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/topostats/tracing/tracingfuncs/index';</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="topostats.utils" href="../../utils/index.html" />
+    <link rel="prev" title="topostats.tracing.skeletonize" href="../skeletonize/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="index.html">v2.1.0</a></li>
+  <li><a href="../../../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="../../../../../v2.3.2rc2/index.html">v2.3.2rc2</a></li>
+  <li><a href="../../../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">API Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">topostats</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">topostats.tracing</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.tracing.tracingfuncs</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-topostats.tracing.tracingfuncs">
+<span id="topostats-tracing-tracingfuncs"></span><h1>topostats.tracing.tracingfuncs<a class="headerlink" href="#module-topostats.tracing.tracingfuncs" title="Link to this heading">#</a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.tracingfuncs.getSkeleton" title="topostats.tracing.tracingfuncs.getSkeleton"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getSkeleton</span></code></a></p></td>
+<td><p>Skeltonisation algorithm based on the paper &quot;A Fast Parallel Algorithm for</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#topostats.tracing.tracingfuncs.reorderTrace" title="topostats.tracing.tracingfuncs.reorderTrace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reorderTrace</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#topostats.tracing.tracingfuncs.genTracingFuncs" title="topostats.tracing.tracingfuncs.genTracingFuncs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genTracingFuncs</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.tracingfuncs.</span></span><span class="sig-name descname"><span class="pre">getSkeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton" title="Link to this definition">#</a></dt>
+<dd><p>Skeltonisation algorithm based on the paper “A Fast Parallel Algorithm for
+Thinning Digital Patterns” by Zhang et al., 1984</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.image_data">
+<span class="sig-name descname"><span class="pre">image_data</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.image_data" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.binary_map">
+<span class="sig-name descname"><span class="pre">binary_map</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.binary_map" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.number_of_columns">
+<span class="sig-name descname"><span class="pre">number_of_columns</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.number_of_columns" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.number_of_rows">
+<span class="sig-name descname"><span class="pre">number_of_rows</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.number_of_rows" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.pixel_size">
+<span class="sig-name descname"><span class="pre">pixel_size</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.pixel_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p2">
+<span class="sig-name descname"><span class="pre">p2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p3">
+<span class="sig-name descname"><span class="pre">p3</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p3" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p4">
+<span class="sig-name descname"><span class="pre">p4</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p4" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p5">
+<span class="sig-name descname"><span class="pre">p5</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p5" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p6">
+<span class="sig-name descname"><span class="pre">p6</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p6" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p7">
+<span class="sig-name descname"><span class="pre">p7</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p7" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.p8">
+<span class="sig-name descname"><span class="pre">p8</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.p8" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.mask_being_skeletonised">
+<span class="sig-name descname"><span class="pre">mask_being_skeletonised</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.mask_being_skeletonised" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.output_skeleton">
+<span class="sig-name descname"><span class="pre">output_skeleton</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.output_skeleton" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.skeleton_converged">
+<span class="sig-name descname"><span class="pre">skeleton_converged</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.skeleton_converged" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.pruning">
+<span class="sig-name descname"><span class="pre">pruning</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.pruning" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.average_height">
+<span class="sig-name descname"><span class="pre">average_height</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.average_height" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.highest_points">
+<span class="sig-name descname"><span class="pre">highest_points</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.highest_points" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.search_window">
+<span class="sig-name descname"><span class="pre">search_window</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.search_window" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.dir_search">
+<span class="sig-name descname"><span class="pre">dir_search</span></span><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.dir_search" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.getDNAmolHeightStats">
+<span class="sig-name descname"><span class="pre">getDNAmolHeightStats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.getDNAmolHeightStats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.getDNAmolHeightStats" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.doSkeletonising">
+<span class="sig-name descname"><span class="pre">doSkeletonising</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.doSkeletonising"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.doSkeletonising" title="Link to this definition">#</a></dt>
+<dd><p>Simple while loop to check if the skeletonising is finished</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._doSkeletonisingIteration">
+<span class="sig-name descname"><span class="pre">_doSkeletonisingIteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._doSkeletonisingIteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._doSkeletonisingIteration" title="Link to this definition">#</a></dt>
+<dd><p>Do an iteration of skeletonisation - check for the local binary pixel
+environment and assess the local height values to decide whether to
+delete a point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit1">
+<span class="sig-name descname"><span class="pre">_deletePixelSubit1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deletePixelSubit1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit1" title="Link to this definition">#</a></dt>
+<dd><p>Function to check whether a single point should be deleted based
+on both its local binary environment and its local height values</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit2">
+<span class="sig-name descname"><span class="pre">_deletePixelSubit2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deletePixelSubit2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit2" title="Link to this definition">#</a></dt>
+<dd><p>Function to check whether a single point should be deleted based
+on both its local binary environment and its local height values</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_a">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_a" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_b</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_c">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_c</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_c" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_d">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_d</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_d" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_csharp">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_csharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_csharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_csharp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_dsharp">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_dsharp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_dsharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_dsharp" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._checkHeights">
+<span class="sig-name descname"><span class="pre">_checkHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._checkHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._checkHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._checkWhichHeightPoints">
+<span class="sig-name descname"><span class="pre">_checkWhichHeightPoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._checkWhichHeightPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._checkWhichHeightPoints" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._initialiseHeightFindingDict">
+<span class="sig-name descname"><span class="pre">_initialiseHeightFindingDict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._initialiseHeightFindingDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._initialiseHeightFindingDict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getHorizontalLeftHeights">
+<span class="sig-name descname"><span class="pre">_getHorizontalLeftHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getHorizontalLeftHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getHorizontalLeftHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getHorizontalRightHeights">
+<span class="sig-name descname"><span class="pre">_getHorizontalRightHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getHorizontalRightHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getHorizontalRightHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getVerticalUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getVerticalUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getVerticalUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getVerticalUpwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getVerticalDonwardHeights">
+<span class="sig-name descname"><span class="pre">_getVerticalDonwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getVerticalDonwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getVerticalDonwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolLeftUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolLeftUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftUpwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftDownwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolLeftDownwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolLeftDownwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftDownwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightUpwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolRightUpwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolRightUpwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightUpwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightDownwardHeights">
+<span class="sig-name descname"><span class="pre">_getDiaganolRightDownwardHeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._getDiaganolRightDownwardHeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightDownwardHeights" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._condemnPoint">
+<span class="sig-name descname"><span class="pre">_condemnPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._condemnPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._condemnPoint" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._identifyHighestPoint">
+<span class="sig-name descname"><span class="pre">_identifyHighestPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexed_heights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._identifyHighestPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._identifyHighestPoint" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.finalSkeletonisationIteration">
+<span class="sig-name descname"><span class="pre">finalSkeletonisationIteration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.finalSkeletonisationIteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.finalSkeletonisationIteration" title="Link to this definition">#</a></dt>
+<dd><p>A final skeletonisation iteration that removes “hanging” pixels.
+Examples of such pixels are:</p>
+<blockquote>
+<div><blockquote>
+<div><p>[0, 0, 0]               [0, 1, 0]            [0, 0, 0]
+[0, 1, 1]               [0, 1, 1]            [0, 1, 1]</p>
+</div></blockquote>
+<p>case 1: [0, 1, 0]   or  case 2: [0, 1, 0] or case 3: [1, 1, 0]</p>
+</div></blockquote>
+<p>This is useful for the future functions that rely on local pixel environment
+to make assessments about the overall shape/structure of traces</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_a">
+<span class="sig-name descname"><span class="pre">_binaryFinalThinCheck_a</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryFinalThinCheck_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_a" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_b">
+<span class="sig-name descname"><span class="pre">_binaryFinalThinCheck_b</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryFinalThinCheck_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_b" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b_returncount">
+<span class="sig-name descname"><span class="pre">_binaryThinCheck_b_returncount</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._binaryThinCheck_b_returncount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b_returncount" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton.pruneSkeleton">
+<span class="sig-name descname"><span class="pre">pruneSkeleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton.pruneSkeleton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton.pruneSkeleton" title="Link to this definition">#</a></dt>
+<dd><p>Function to remove the hanging branches from the skeletons - these
+are a persistent problem in the overall tracing process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._findBranchEnds">
+<span class="sig-name descname"><span class="pre">_findBranchEnds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._findBranchEnds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._findBranchEnds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.getSkeleton._deleteSquareEnds">
+<span class="sig-name descname"><span class="pre">_deleteSquareEnds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#getSkeleton._deleteSquareEnds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.getSkeleton._deleteSquareEnds" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.tracingfuncs.</span></span><span class="sig-name descname"><span class="pre">reorderTrace</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace.linearTrace">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">linearTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.linearTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace.linearTrace" title="Link to this definition">#</a></dt>
+<dd><p>My own function to order the points from a linear trace.</p>
+<p>This works by checking the local neighbours for a given pixel (starting
+at one of the ends). If this pixel has only one neighbour in the array
+of unordered points, this must be the next pixel in the trace – and it
+is added to the ordered points trace and removed from the
+remaining_unordered_coords array.</p>
+<p>If there is more than one neighbouring pixel, a fairly simple function
+(checkVectorsCandidatePoints) finds which pixel incurs the smallest
+change in angle compared with the rest of the trace and chooses that as
+the next point.</p>
+<p>This process is repeated until all the points are placed in the ordered
+trace array or the other end point is reached.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace.circularTrace">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circularTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.circularTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace.circularTrace" title="Link to this definition">#</a></dt>
+<dd><p>An alternative implementation of the linear tracing algorithm but
+with some adaptations to work with circular dna molecules</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace.circularTrace_old">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">circularTrace_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.circularTrace_old"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace.circularTrace_old" title="Link to this definition">#</a></dt>
+<dd><p>Reorders the coordinates of a trace from a circular DNA molecule
+(with no loops) using a polar coordinate system with reference to the
+center of mass</p>
+<p>I think every step of this can be vectorised for speed up</p>
+<p>This is vulnerable to bugs if the dna molecule folds in on itself slightly</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace.loopedCircularTrace">
+<span class="sig-name descname"><span class="pre">loopedCircularTrace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.loopedCircularTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace.loopedCircularTrace" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.reorderTrace.loopedLinearTrace">
+<span class="sig-name descname"><span class="pre">loopedLinearTrace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#reorderTrace.loopedLinearTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.reorderTrace.loopedLinearTrace" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">topostats.tracing.tracingfuncs.</span></span><span class="sig-name descname"><span class="pre">genTracingFuncs</span></span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.getLocalPixelsBinary">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">getLocalPixelsBinary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.getLocalPixelsBinary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.getLocalPixelsBinary" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.countNeighbours">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">countNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.countNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.countNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Counts the number of neighbouring points for a given coordinate in
+a list of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.getNeighbours">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">getNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.getNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.getNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Returns an array containing the neighbouring points for a given
+coordinate in a list of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.countandGetNeighbours">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">countandGetNeighbours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.countandGetNeighbours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.countandGetNeighbours" title="Link to this definition">#</a></dt>
+<dd><p>Returns the number of neighbouring points for a coordinate and an
+array containing the those points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.returnPointsInArray">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">returnPointsInArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.returnPointsInArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.returnPointsInArray" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.makeGrid">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">makeGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.makeGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.makeGrid" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.findBestNextPoint">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">findBestNextPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.findBestNextPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.findBestNextPoint" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="topostats.tracing.tracingfuncs.genTracingFuncs.checkVectorsCandidatePoints">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkVectorsCandidatePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/topostats/tracing/tracingfuncs.html#genTracingFuncs.checkVectorsCandidatePoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#topostats.tracing.tracingfuncs.genTracingFuncs.checkVectorsCandidatePoints" title="Link to this definition">#</a></dt>
+<dd><p>Finds which neighbouring pixel incurs the smallest angular change
+with reference to a previous pixel in the ordered trace, and chooses that
+as the next point</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../skeletonize/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">topostats.tracing.skeletonize</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../../utils/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">topostats.utils</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.image_data"><code class="docutils literal notranslate"><span class="pre">getSkeleton.image_data</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.binary_map"><code class="docutils literal notranslate"><span class="pre">getSkeleton.binary_map</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.number_of_columns"><code class="docutils literal notranslate"><span class="pre">getSkeleton.number_of_columns</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.number_of_rows"><code class="docutils literal notranslate"><span class="pre">getSkeleton.number_of_rows</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.pixel_size"><code class="docutils literal notranslate"><span class="pre">getSkeleton.pixel_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p2"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p2</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p3"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p3</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p4"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p4</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p5"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p5</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p6"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p6</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p7"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p7</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.p8"><code class="docutils literal notranslate"><span class="pre">getSkeleton.p8</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.mask_being_skeletonised"><code class="docutils literal notranslate"><span class="pre">getSkeleton.mask_being_skeletonised</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.output_skeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton.output_skeleton</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.skeleton_converged"><code class="docutils literal notranslate"><span class="pre">getSkeleton.skeleton_converged</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.pruning"><code class="docutils literal notranslate"><span class="pre">getSkeleton.pruning</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.average_height"><code class="docutils literal notranslate"><span class="pre">getSkeleton.average_height</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.highest_points"><code class="docutils literal notranslate"><span class="pre">getSkeleton.highest_points</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.search_window"><code class="docutils literal notranslate"><span class="pre">getSkeleton.search_window</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.dir_search"><code class="docutils literal notranslate"><span class="pre">getSkeleton.dir_search</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.getDNAmolHeightStats"><code class="docutils literal notranslate"><span class="pre">getSkeleton.getDNAmolHeightStats()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.doSkeletonising"><code class="docutils literal notranslate"><span class="pre">getSkeleton.doSkeletonising()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._doSkeletonisingIteration"><code class="docutils literal notranslate"><span class="pre">getSkeleton._doSkeletonisingIteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit1"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deletePixelSubit1()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._deletePixelSubit2"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deletePixelSubit2()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_a"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_b()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_c"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_c()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_d"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_d()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_csharp"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_csharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_dsharp"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_dsharp()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._checkHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._checkHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._checkWhichHeightPoints"><code class="docutils literal notranslate"><span class="pre">getSkeleton._checkWhichHeightPoints()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._initialiseHeightFindingDict"><code class="docutils literal notranslate"><span class="pre">getSkeleton._initialiseHeightFindingDict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getHorizontalLeftHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getHorizontalLeftHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getHorizontalRightHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getHorizontalRightHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getVerticalUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getVerticalUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getVerticalDonwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getVerticalDonwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolLeftUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolLeftDownwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolLeftDownwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightUpwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolRightUpwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._getDiaganolRightDownwardHeights"><code class="docutils literal notranslate"><span class="pre">getSkeleton._getDiaganolRightDownwardHeights()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._condemnPoint"><code class="docutils literal notranslate"><span class="pre">getSkeleton._condemnPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._identifyHighestPoint"><code class="docutils literal notranslate"><span class="pre">getSkeleton._identifyHighestPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.finalSkeletonisationIteration"><code class="docutils literal notranslate"><span class="pre">getSkeleton.finalSkeletonisationIteration()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_a"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryFinalThinCheck_a()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryFinalThinCheck_b"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryFinalThinCheck_b()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._binaryThinCheck_b_returncount"><code class="docutils literal notranslate"><span class="pre">getSkeleton._binaryThinCheck_b_returncount()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton.pruneSkeleton"><code class="docutils literal notranslate"><span class="pre">getSkeleton.pruneSkeleton()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._findBranchEnds"><code class="docutils literal notranslate"><span class="pre">getSkeleton._findBranchEnds()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.getSkeleton._deleteSquareEnds"><code class="docutils literal notranslate"><span class="pre">getSkeleton._deleteSquareEnds()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace.linearTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.linearTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace.circularTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.circularTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace.circularTrace_old"><code class="docutils literal notranslate"><span class="pre">reorderTrace.circularTrace_old()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace.loopedCircularTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.loopedCircularTrace()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.reorderTrace.loopedLinearTrace"><code class="docutils literal notranslate"><span class="pre">reorderTrace.loopedLinearTrace()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.getLocalPixelsBinary"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.getLocalPixelsBinary()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.countNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.countNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.getNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.getNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.countandGetNeighbours"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.countandGetNeighbours()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.returnPointsInArray"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.returnPointsInArray()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.makeGrid"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.makeGrid()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.findBestNextPoint"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.findBestNextPoint()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#topostats.tracing.tracingfuncs.genTracingFuncs.checkVectorsCandidatePoints"><code class="docutils literal notranslate"><span class="pre">genTracingFuncs.checkVectorsCandidatePoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/autoapi/topostats/tracing/tracingfuncs/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

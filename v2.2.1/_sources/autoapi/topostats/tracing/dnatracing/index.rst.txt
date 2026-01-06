@@ -1,0 +1,1124 @@
+topostats.tracing.dnatracing
+============================
+
+.. py:module:: topostats.tracing.dnatracing
+
+.. autoapi-nested-parse::
+
+   Perform DNA Tracing.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.dnatracing.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.dnatracing.dnaTrace
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.dnatracing.trace_image
+   topostats.tracing.dnatracing.round_splined_traces
+   topostats.tracing.dnatracing.trim_array
+   topostats.tracing.dnatracing.adjust_coordinates
+   topostats.tracing.dnatracing.trace_mask
+   topostats.tracing.dnatracing.prep_arrays
+   topostats.tracing.dnatracing.grain_anchor
+   topostats.tracing.dnatracing.trace_grain
+   topostats.tracing.dnatracing.crop_array
+   topostats.tracing.dnatracing.pad_bounding_box
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: dnaTrace(image: numpy.typing.NDArray, grain: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, min_skeleton_size: int = 10, convert_nm_to_m: bool = True, skeletonisation_method: str = 'topostats', n_grain: int = None, spline_step_size: float = 7e-09, spline_linear_smoothing: float = 5.0, spline_circular_smoothing: float = 0.0, spline_quiet: bool = True, spline_degree: int = 3)
+
+   
+   Calculates traces for a DNA molecule and calculates statistics from those traces.
+
+   2023-06-09 : This class has undergone some refactoring so that it works with a single grain. The `trace_grain()`
+   helper function runs the class and returns the expected statistics whilst the `trace_image()` function handles
+   processing all detected grains within an image. The original methods of skeletonisation are available along with
+   additional methods from scikit-image.
+
+   Some bugs have been identified and corrected see commits for further details...
+
+   236750b2
+   2a79c4ff
+
+   :param image: Cropped image, typically padded beyond the bounding box.
+   :type image: npt.NDArray
+   :param grain: Labelled mask for the grain, typically padded beyond the bounding box.
+   :type grain: npt.NDArray
+   :param filename: Filename being processed.
+   :type filename: str
+   :param pixel_to_nm_scaling: Pixel to nm scaling.
+   :type pixel_to_nm_scaling: float
+   :param min_skeleton_size: Minimum skeleton size below which tracing statistics are not calculated.
+   :type min_skeleton_size: int
+   :param convert_nm_to_m: Convert nanometers to metres.
+   :type convert_nm_to_m: bool
+   :param skeletonisation_method: Method of skeletonisation to use 'topostats' is the original TopoStats method. Three methods from
+                                  scikit-image are available 'zhang', 'lee' and 'thin'.
+   :type skeletonisation_method: str
+   :param n_grain: Grain number being processed (only  used in logging).
+   :type n_grain: int
+   :param spline_step_size: Step size for spline evaluation in metres.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Smoothness of linear splines.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Smoothness of circular splines.
+   :type spline_circular_smoothing: float
+   :param spline_quiet: Suppresses scipy splining warnings.
+   :type spline_quiet: bool
+   :param spline_degree: Degree of the spline.
+   :type spline_degree: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: grain
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: min_skeleton_size
+      :value: 10
+
+
+
+   .. py:attribute:: skeletonisation_method
+      :value: 'topostats'
+
+
+
+   .. py:attribute:: n_grain
+      :value: None
+
+
+
+   .. py:attribute:: number_of_rows
+
+
+   .. py:attribute:: number_of_columns
+
+
+   .. py:attribute:: sigma
+
+
+   .. py:attribute:: gauss_image
+      :value: None
+
+
+
+   .. py:attribute:: disordered_trace
+      :value: None
+
+
+
+   .. py:attribute:: ordered_trace
+      :value: None
+
+
+
+   .. py:attribute:: fitted_trace
+      :value: None
+
+
+
+   .. py:attribute:: splined_trace
+      :value: None
+
+
+
+   .. py:attribute:: contour_length
+
+
+   .. py:attribute:: end_to_end_distance
+
+
+   .. py:attribute:: mol_is_circular
+
+
+   .. py:attribute:: curvature
+
+
+   .. py:attribute:: spline_step_size
+      :type:  float
+      :value: 7e-09
+
+
+
+   .. py:attribute:: spline_linear_smoothing
+      :type:  float
+      :value: 5.0
+
+
+
+   .. py:attribute:: spline_circular_smoothing
+      :type:  float
+      :value: 0.0
+
+
+
+   .. py:attribute:: spline_quiet
+      :type:  bool
+      :value: True
+
+
+
+   .. py:attribute:: spline_degree
+      :type:  int
+      :value: 3
+
+
+
+   .. py:attribute:: neighbours
+      :value: 5
+
+
+
+   .. py:attribute:: ordered_trace_heights
+      :value: None
+
+
+
+   .. py:attribute:: ordered_trace_cumulative_distances
+      :value: None
+
+
+
+   .. py:method:: trace_dna()
+
+      
+      Perform DNA tracing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gaussian_filter(**kwargs) -> numpy.array
+
+      
+      Apply Gaussian filter.
+
+      :param \*\*kwargs: Arguments passed to 'skimage.filter.gaussian(**kwargs)'.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_ordered_trace_heights() -> None
+
+      
+      Derive the pixel heights from the ordered trace `self.ordered_trace` list.
+
+      Gets the heights of each pixel in the ordered trace from the gaussian filtered image. The pixel coordinates
+      for the ordered trace are stored in the ordered trace list as part of the class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_ordered_trace_cumulative_distances() -> None
+
+      
+      Calculate the cumulative distances of each pixel in the `self.ordered_trace` list.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: coord_dist(coordinates: numpy.typing.NDArray, px_to_nm: float) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the cumulative real distances between each pixel in a trace.
+
+      Take a Nx2 numpy array of (grid adjacent) coordinates and produce a list of cumulative distances in
+      nanometres, travelling from pixel to pixel. 1D example: coordinates: [0, 0], [0, 1], [1, 1], [2, 2] cumulative
+      distances: [0, 1, 2, 3.4142]. Counts diagonal connections as 1.4142 distance. Converts distances from
+      pixels to nanometres using px_to_nm scaling factor.
+      Note that the pixels have to be adjacent.
+
+      :param coordinates: A Nx2 integer array of coordinates of the pixels of a trace from a binary trace image.
+      :type coordinates: npt.NDArray
+      :param px_to_nm: Pixel to nanometre scaling factor to allow for real length measurements of distances rather
+                       than pixels.
+      :type px_to_nm: float
+
+      :returns: Numpy array of length N containing the cumulative sum of distances (0 at the first entry,
+                full molecule length at the last entry).
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_disordered_trace() -> None
+
+      
+      Create a skeleton for each of the grains in the image.
+
+      Uses my own skeletonisation function from tracingfuncs module. I (Joe) will eventually get round to editing this
+      function to try to reduce the branching  and to try to better trace from looped molecules.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: linear_or_circular(traces) -> None
+
+      
+      Determine whether molecule is circular or linear based on the local environment of each pixel from the trace.
+
+      This function is sensitive to branches from the skeleton so might need to implement a function to remove them.
+
+      :param traces: The array of coordinates to be assessed.
+      :type traces: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_ordered_traces()
+
+      
+      Order a trace.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_fitted_traces()
+
+      
+      Create trace coordinates that are adjusted to lie along the highest points of each traced molecule.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: remove_duplicate_consecutive_tuples(tuple_list: list[tuple | numpy.typing.NDArray]) -> list[tuple]
+      :staticmethod:
+
+
+      
+      Remove duplicate consecutive tuples from a list.
+
+      :param tuple_list: List of tuples or numpy ndarrays to remove consecutive duplicates from.
+      :type tuple_list: list[tuple | npt.NDArray]
+
+      :returns: List of tuples with consecutive duplicates removed.
+      :rtype: list[Tuple]
+
+      .. rubric:: Examples
+
+      For the list of tuples [(1, 2), (1, 2), (1, 2), (2, 3), (2, 3), (3, 4)], this function will return
+      [(1, 2), (2, 3), (3, 4)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_splined_traces() -> None
+
+      
+      Get a splined version of the fitted trace - useful for finding the radius of gyration etc.
+
+      This function actually calculates the average of several splines which is important for getting a good fit on
+      the lower resolution data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: show_traces()
+
+      
+      Plot traces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: saveTraceFigures(filename: str | pathlib.Path, channel_name: str, vmaxval: float | int, vminval: float | int, output_dir: str | pathlib.Path = None) -> None
+
+      
+      Save the traces.
+
+      :param filename: Filename being processed.
+      :type filename: str | Path
+      :param channel_name: Channel.
+      :type channel_name: str
+      :param vmaxval: Maximum value for height.
+      :type vmaxval: float | int
+      :param vminval: Minimum value for height.
+      :type vminval: float | int
+      :param output_dir: Output directory.
+      :type output_dir: str | Path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _checkForSaveDirectory(filename: str, new_output_dir: str) -> str
+
+      
+      Create output directory and updates filename to account for this.
+
+      :param filename: Filename.
+      :type filename: str
+      :param new_output_dir: Target directory.
+      :type new_output_dir: str
+
+      :returns: Updated output directory.
+      :rtype: str
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_curvature()
+
+      
+      Calculate curvature of the molecule.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: saveCurvature() -> None
+
+      
+      Save curvature statistics.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plotCurvature(dna_num: int) -> None
+
+      
+      Plot the curvature of the chosen molecule as a function of the contour length (in metres).
+
+      :param dna_num: Molecule to plot, used for indexing.
+      :type dna_num: int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: measure_contour_length() -> None
+
+      
+      Contour lengthof the splined trace taking into account whether the molecule is circular or linear.
+
+      Contour length units are nm.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: measure_end_to_end_distance()
+
+      
+      Calculate the Euclidean distance between the start and end of linear molecules.
+
+      The hypotenuse is calculated between the start ([0,0], [0,1]) and end ([-1,0], [-1,1]) of linear
+      molecules. If the molecule is circular then the distance is set to zero (0).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: trace_image(image: numpy.typing.NDArray, grains_mask: numpy.typing.NDArray, filename: str, pixel_to_nm_scaling: float, min_skeleton_size: int, skeletonisation_method: str, spline_step_size: float = 7e-09, spline_linear_smoothing: float = 5.0, spline_circular_smoothing: float = 0.0, pad_width: int = 1, cores: int = 1) -> dict
+
+   
+   Processor function for tracing image.
+
+   :param image: Full image as Numpy Array.
+   :type image: npt.NDArray
+   :param grains_mask: Full image as Grains that are labelled.
+   :type grains_mask: npt.NDArray
+   :param filename: File being processed.
+   :type filename: str
+   :param pixel_to_nm_scaling: Pixel to nm scaling.
+   :type pixel_to_nm_scaling: float
+   :param min_skeleton_size: Minimum size of grain in pixels after skeletonisation.
+   :type min_skeleton_size: int
+   :param skeletonisation_method:  Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
+                                  'topostats' (original TopoStats method).
+   :type skeletonisation_method: str
+   :param spline_step_size: Step size for spline evaluation in metres.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Smoothness of linear splines.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Smoothness of circular splines.
+   :type spline_circular_smoothing: float
+   :param pad_width: Number of cells to pad arrays by, required to handle instances where grains touch the bounding box edges.
+   :type pad_width: int
+   :param cores: Number of cores to process with.
+   :type cores: int
+
+   :returns: Statistics from skeletonising and tracing the grains in the image.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: round_splined_traces(splined_traces: dict) -> dict
+
+   
+   Round a Dict of floating point coordinates to integer floating point coordinates.
+
+   :param splined_traces: Floating point coordinates to be rounded.
+   :type splined_traces: dict
+
+   :returns: Dictionary of rounded integer coordinates.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: trim_array(array: numpy.typing.NDArray, pad_width: int) -> numpy.typing.NDArray
+
+   
+   Trim an array by the specified pad_width.
+
+   Removes a border from an array. Typically this is the second padding that is added to the image/masks for edge cases
+   that are near image borders and means traces will be correctly aligned as a mask for the original image.
+
+   :param array: Numpy array to be trimmed.
+   :type array: npt.NDArray
+   :param pad_width: Padding to be removed.
+   :type pad_width: int
+
+   :returns: Trimmed array.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: adjust_coordinates(coordinates: numpy.typing.NDArray, pad_width: int) -> numpy.typing.NDArray
+
+   
+   Adjust coordinates of a trace by the pad_width.
+
+   A second padding is made to allow for grains that are "edge cases" and close to the bounding box edge. This adds the
+   pad_width to the cropped grain array. In order to realign the trace with the original image we need to remove this
+   padding so that when the coordinates are combined with the "grain_anchor", which isn't padded twice, the
+   coordinates correctly align with the original image.
+
+   :param coordinates: An array of trace coordinates (typically ordered).
+   :type coordinates: npt.NDArray
+   :param pad_width: The amount of padding used.
+   :type pad_width: int
+
+   :returns: Array of trace coordinates adjusted for secondary padding.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: trace_mask(grain_anchors: list[numpy.typing.NDArray], ordered_traces: dict[str, numpy.typing.NDArray], image_shape: tuple, pad_width: int) -> numpy.typing.NDArray
+
+   
+   Place the traced skeletons into an array of the original image for plotting/overlaying.
+
+   Adjusts the coordinates back to the original position based on each grains anchor coordinates of the padded
+   bounding box. Adjustments are made for the secondary padding that is made.
+
+   :param grain_anchors: List of grain anchors for the padded bounding box.
+   :type grain_anchors: List[npt.NDArray]
+   :param ordered_traces: Coordinates for each grain trace.
+                          Dict of coordinates for each grains trace.
+   :type ordered_traces: Dict[npt.NDArray]
+   :param image_shape: Shape of original image.
+   :type image_shape: tuple
+   :param pad_width: The amount of padding used on the image.
+   :type pad_width: int
+
+   :returns: Mask of traces for all grains that can be overlaid on original image.
+   :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: prep_arrays(image: numpy.typing.NDArray, labelled_grains_mask: numpy.typing.NDArray, pad_width: int) -> tuple[dict[int, numpy.typing.NDArray], dict[int, numpy.typing.NDArray]]
+
+   
+   Take an image and labelled mask and crops individual grains and original heights to a list.
+
+   A second padding is made after cropping to ensure for "edge cases" where grains are close to bounding box edges that
+   they are traced correctly. This is accounted for when aligning traces to the whole image mask.
+
+   :param image: Gaussian filtered image. Typically filtered_image.images["gaussian_filtered"].
+   :type image: npt.NDArray
+   :param labelled_grains_mask: 2D Numpy array of labelled grain masks, with each mask being comprised solely of unique integer (not
+                                zero). Typically this will be output from 'grains.directions[<direction>["labelled_region_02]'.
+   :type labelled_grains_mask: npt.NDArray
+   :param pad_width: Cells by which to pad cropped regions by.
+   :type pad_width: int
+
+   :returns: Returns a tuple of two dictionaries, each consisting of cropped arrays.
+   :rtype: Tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: grain_anchor(array_shape: tuple, bounding_box: list, pad_width: int) -> list
+
+   
+   Extract anchor (min_row, min_col) from labelled regions and align individual traces over the original image.
+
+   :param array_shape: Shape of original array.
+   :type array_shape: tuple
+   :param bounding_box: A list of region properties returned by 'skimage.measure.regionprops()'.
+   :type bounding_box: list
+   :param pad_width: Padding for image.
+   :type pad_width: int
+
+   :returns: A list of tuples of the min_row, min_col of each bounding box.
+   :rtype: list(Tuple)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: trace_grain(cropped_image: numpy.typing.NDArray, cropped_mask: numpy.typing.NDArray, pixel_to_nm_scaling: float, filename: str = None, min_skeleton_size: int = 10, skeletonisation_method: str = 'topostats', spline_step_size: float = 7e-09, spline_linear_smoothing: float = 5.0, spline_circular_smoothing: float = 0.0, n_grain: int = None) -> dict
+
+   
+   Trace an individual grain.
+
+   Tracing involves multiple steps...
+
+   1. Skeletonisation
+   2. Pruning of side branch artefacts from skeletonisation.
+   3. Ordering of the skeleton.
+   4. Determination of molecule shape.
+   5. Jiggling/Fitting
+   6. Splining to improve resolution of image.
+
+   :param cropped_image: Cropped array from the original image defined as the bounding box from the labelled mask.
+   :type cropped_image: npt.NDArray
+   :param cropped_mask: Cropped array from the labelled image defined as the bounding box from the labelled mask. This should have been
+                        converted to a binary mask.
+   :type cropped_mask: npt.NDArray
+   :param pixel_to_nm_scaling: Pixel to nm scaling.
+   :type pixel_to_nm_scaling: float
+   :param filename: File being processed.
+   :type filename: str
+   :param min_skeleton_size: Minimum size of grain in pixels after skeletonisation.
+   :type min_skeleton_size: int
+   :param skeletonisation_method:  Method of skeletonisation, options are 'zhang' (scikit-image) / 'lee' (scikit-image) / 'thin' (scikitimage) or
+                                  'topostats' (original TopoStats method).
+   :type skeletonisation_method: str
+   :param spline_step_size: Step size for spline evaluation in metres.
+   :type spline_step_size: float
+   :param spline_linear_smoothing: Smoothness of linear splines.
+   :type spline_linear_smoothing: float
+   :param spline_circular_smoothing: Smoothness of circular splines.
+   :type spline_circular_smoothing: float
+   :param n_grain: Grain number being processed.
+   :type n_grain: int
+
+   :returns: Dictionary of the contour length, whether the image is circular or linear, the end-to-end distance and an array
+             of coordinates.
+   :rtype: dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: crop_array(array: numpy.typing.NDArray, bounding_box: tuple, pad_width: int = 0) -> numpy.typing.NDArray
+
+   
+   Crop an array.
+
+   Ideally we pad the array that is being cropped so that we have heights outside of the grains bounding box. However,
+   in some cases, if an grain is near the edge of the image scan this results in requesting indexes outside of the
+   existing image. In which case we get as much of the image padded as possible.
+
+   :param array: 2D Numpy array to be cropped.
+   :type array: npt.NDArray
+   :param bounding_box: Tuple of coordinates to crop, should be of form (min_row, min_col, max_row, max_col).
+   :type bounding_box: Tuple
+   :param pad_width: Padding to apply to bounding box.
+   :type pad_width: int
+
+   :returns: Cropped array.
+   :rtype: npt.NDArray()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: pad_bounding_box(array_shape: tuple, bounding_box: list, pad_width: int) -> list
+
+   
+   Pad coordinates, if they extend beyond image boundaries stop at boundary.
+
+   :param array_shape: Shape of original image.
+   :type array_shape: tuple
+   :param bounding_box: List of coordinates 'min_row', 'min_col', 'max_row', 'max_col'.
+   :type bounding_box: list
+   :param pad_width: Cells to pad arrays by.
+   :type pad_width: int
+
+   :returns: List of padded coordinates.
+   :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

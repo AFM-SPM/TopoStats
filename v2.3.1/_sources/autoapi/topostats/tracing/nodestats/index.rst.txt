@@ -1,0 +1,1692 @@
+topostats.tracing.nodestats
+===========================
+
+.. py:module:: topostats.tracing.nodestats
+
+.. autoapi-nested-parse::
+
+   Perform Crossing Region Processing and Analysis.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.tracing.nodestats.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.tracing.nodestats.NodeDict
+   topostats.tracing.nodestats.MatchedBranch
+   topostats.tracing.nodestats.ImageDict
+   topostats.tracing.nodestats.nodeStats
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.tracing.nodestats.nodestats_image
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:class:: NodeDict
+
+   Bases: :py:obj:`TypedDict`
+
+
+   
+   Dictionary containing the node information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: error
+      :type:  bool
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+      :type:  numpy.float64
+
+
+   .. py:attribute:: branch_stats
+      :type:  dict[int, MatchedBranch] | None
+
+
+   .. py:attribute:: node_coords
+      :type:  numpy.typing.NDArray[numpy.int32] | None
+
+
+   .. py:attribute:: confidence
+      :type:  numpy.float64 | None
+
+
+.. py:class:: MatchedBranch
+
+   Bases: :py:obj:`TypedDict`
+
+
+   
+   Dictionary containing the matched branches.
+
+   matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
+       Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+       keys:
+       - "ordered_coords" : npt.NDArray[np.int32]. The ordered coordinates of the branch.
+       - "heights" : npt.NDArray[np.number]. Heights of the branch coordinates.
+       - "distances" : npt.NDArray[np.number]. Distances of the branch coordinates.
+       - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branch.
+       - "angles" : np.float64. The initial direction angle of the branch, added in later steps.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: ordered_coords
+      :type:  numpy.typing.NDArray[numpy.int32]
+
+
+   .. py:attribute:: heights
+      :type:  numpy.typing.NDArray[numpy.number]
+
+
+   .. py:attribute:: distances
+      :type:  numpy.typing.NDArray[numpy.number]
+
+
+   .. py:attribute:: fwhm
+      :type:  dict[str, numpy.float64 | tuple[numpy.float64]]
+
+
+   .. py:attribute:: angles
+      :type:  numpy.float64 | None
+
+
+.. py:class:: ImageDict
+
+   Bases: :py:obj:`TypedDict`
+
+
+   
+   Dictionary containing the image information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: nodes
+      :type:  dict[str, dict[str, numpy.typing.NDArray[numpy.int32]]]
+
+
+   .. py:attribute:: grain
+      :type:  dict[str, numpy.typing.NDArray[numpy.int32] | dict[str, numpy.typing.NDArray[numpy.int32]]]
+
+
+.. py:class:: nodeStats(filename: str, image: numpy.typing.NDArray, mask: numpy.typing.NDArray, smoothed_mask: numpy.typing.NDArray, skeleton: numpy.typing.NDArray, pixel_to_nm_scaling: numpy.float64, n_grain: int, node_joining_length: float, node_extend_dist: float, branch_pairing_length: float, pair_odd_branches: bool)
+
+   
+   Class containing methods to find and analyse the nodes/crossings within a grain.
+
+   :param filename: The name of the file being processed. For logging purposes.
+   :type filename: str
+   :param image: The array of pixels.
+   :type image: npt.npt.NDArray
+   :param mask: The binary segmentation mask.
+   :type mask: npt.npt.NDArray
+   :param smoothed_mask: A smoothed version of the bianary segmentation mask.
+   :type smoothed_mask: npt.NDArray
+   :param skeleton: A binary single-pixel wide mask of objects in the 'image'.
+   :type skeleton: npt.NDArray
+   :param pixel_to_nm_scaling: The pixel to nm scaling factor.
+   :type pixel_to_nm_scaling: np.float32
+   :param n_grain: The grain number.
+   :type n_grain: int
+   :param node_joining_length: The length over which to join skeletal intersections to be counted as one crossing.
+   :type node_joining_length: float
+   :param node_joining_length: The distance over which to join nearby odd-branched nodes.
+   :type node_joining_length: float
+   :param node_extend_dist: The distance under which to join odd-branched node regions.
+   :type node_extend_dist: float
+   :param branch_pairing_length: The length from the crossing point to pair and trace, obtaining FWHM's.
+   :type branch_pairing_length: float
+   :param pair_odd_branches: Whether to try and pair odd-branched nodes.
+   :type pair_odd_branches: bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: image
+
+
+   .. py:attribute:: mask
+
+
+   .. py:attribute:: smoothed_mask
+
+
+   .. py:attribute:: skeleton
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+
+
+   .. py:attribute:: n_grain
+
+
+   .. py:attribute:: node_joining_length
+
+
+   .. py:attribute:: node_extend_dist
+
+
+   .. py:attribute:: branch_pairing_length
+
+
+   .. py:attribute:: pair_odd_branches
+
+
+   .. py:attribute:: conv_skelly
+
+
+   .. py:attribute:: connected_nodes
+
+
+   .. py:attribute:: all_connected_nodes
+
+
+   .. py:attribute:: whole_skel_graph
+      :type:  networkx.classes.graph.Graph | None
+      :value: None
+
+
+
+   .. py:attribute:: node_centre_mask
+
+
+   .. py:attribute:: metrics
+
+
+   .. py:attribute:: node_dicts
+      :type:  dict[str, NodeDict]
+
+
+   .. py:attribute:: image_dict
+      :type:  ImageDict
+
+
+   .. py:attribute:: full_dict
+
+
+   .. py:attribute:: mol_coords
+
+
+   .. py:attribute:: visuals
+
+
+   .. py:attribute:: all_visuals_img
+      :value: None
+
+
+
+   .. py:method:: get_node_stats() -> tuple[dict, dict]
+
+      
+      Run the workflow to obtain the node statistics.
+
+      .. code-block:: RST
+
+          node_dict key structure:  <grain_number>
+                                      └-> <node_number>
+                                          |-> 'error'
+                                          └-> 'node_coords'
+                                          └-> 'branch_stats'
+                                              └-> <branch_number>
+                                                  |-> 'ordered_coords'
+                                                  |-> 'heights'
+                                                  |-> 'gaussian_fit'
+                                                  |-> 'fwhm'
+                                                  └-> 'angles'
+
+          image_dict key structure:  'nodes'
+                                          <node_number>
+                                              |-> 'node_area_skeleton'
+                                              |-> 'node_branch_mask'
+                                              └-> 'node_avg_mask
+                                      'grain'
+                                          |-> 'grain_image'
+                                          |-> 'grain_mask'
+                                          └-> 'grain_skeleton'
+
+      :returns: Dictionaries of the node_information and images.
+      :rtype: tuple[dict, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: skeleton_image_to_graph(skeleton: numpy.typing.NDArray) -> networkx.classes.graph.Graph
+      :staticmethod:
+
+
+      
+      Convert a skeletonised mask into a Graph representation.
+
+      Graphs conserve the coordinates via the node label.
+
+      :param skeleton: A binary single-pixel wide mask, or result from conv_skelly().
+      :type skeleton: npt.NDArray
+
+      :returns: A networkX graph connecting the pixels in the skeleton to their neighbours.
+      :rtype: nx.classes.graph.Graph
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: graph_to_skeleton_image(g: networkx.Graph, im_shape: tuple[int]) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Convert the skeleton graph back to a binary image.
+
+      :param g: Graph with coordinates as node labels.
+      :type g: nx.Graph
+      :param im_shape: The shape of the image to dump.
+      :type im_shape: tuple[int]
+
+      :returns: Skeleton binary image from the graph representation.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: tidy_branches(connect_node_mask: numpy.typing.NDArray, image: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Wrangle distant connected nodes back towards the main cluster.
+
+      Works by filling and reskeletonising soely the node areas.
+
+      :param connect_node_mask: The connected node mask - a skeleton where node regions = 3, endpoints = 2, and skeleton = 1.
+      :type connect_node_mask: npt.NDArray
+      :param image: The intensity image.
+      :type image: npt.NDArray
+
+      :returns: The wrangled connected_node_mask.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: keep_biggest_object(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Retain the largest object in a binary mask.
+
+      :param mask: Binary mask.
+      :type mask: npt.NDArray
+
+      :returns: A binary mask with only one object.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: connect_close_nodes(conv_skelly: numpy.typing.NDArray, node_width: float = 2.85) -> numpy.typing.NDArray
+
+      
+      Connect nodes within the 'node_width' boundary distance.
+
+      This labels them as part of the same node.
+
+      :param conv_skelly: A labeled skeleton image with skeleton = 1, endpoints = 2, crossing points =3.
+      :type conv_skelly: npt.NDArray
+      :param node_width: The width of the dna in the grain, used to connect close nodes.
+      :type node_width: float
+
+      :returns: The skeleton (label=1) with close nodes connected (label=3).
+      :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: highlight_node_centres(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+
+      
+      Calculate the node centres based on height and re-plot on the mask.
+
+      :param mask: 2D array with background = 0, skeleton = 1, endpoints = 2, node_centres = 3.
+      :type mask: npt.NDArray
+
+      :returns: 2D array with the highest node coordinate for each node labeled as 3.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: connect_extended_nodes_nearest(connected_nodes: numpy.typing.NDArray, node_extend_dist: float = -1) -> numpy.typing.NDArray[numpy.int32]
+
+      
+      Extend the odd branched nodes to other odd branched nodes within the 'extend_dist' threshold.
+
+      :param connected_nodes: A 2D array representing the network with background = 0, skeleton = 1, endpoints = 2,
+                              node_centres = 3.
+      :type connected_nodes: npt.NDArray
+      :param node_extend_dist: The distance over which to connect odd-branched nodes, by default -1 for no-limit.
+      :type node_extend_dist: int | float, optional
+
+      :returns: Connected nodes array with odd-branched nodes connected.
+      :rtype: npt.NDArray[np.int32]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: find_branch_starts(reduced_node_image: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Find the coordinates where the branches connect to the node region through binary dilation of the node.
+
+      :param reduced_node_image: A 2D numpy array containing a single node region (=3) and its connected branches (=1).
+      :type reduced_node_image: npt.NDArray
+
+      :returns: Coordinate array of pixels next to crossing points (=3 in input).
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: analyse_nodes(max_branch_length: float = 20) -> None
+
+      
+      Obtain the main analyses for the nodes of a single molecule along the 'max_branch_length'(nm) from the node.
+
+      :param max_branch_length: The side length of the box around the node to analyse (in nm).
+      :type max_branch_length: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: add_branches_to_labelled_image(branch_under_over_order: numpy.typing.NDArray[numpy.int32], matched_branches: dict[int, MatchedBranch], masked_image: dict[int, dict[str, numpy.typing.NDArray[numpy.bool_]]], branch_start_coords: numpy.typing.NDArray[numpy.int32], ordered_branches: list[numpy.typing.NDArray[numpy.int32]], pairs: numpy.typing.NDArray[numpy.int32], average_trace_advised: bool, image_shape: tuple[int, int]) -> tuple[numpy.typing.NDArray[numpy.int32], numpy.typing.NDArray[numpy.int32]]
+      :staticmethod:
+
+
+      
+      Add branches to a labelled image.
+
+      :param branch_under_over_order: The order of the branches.
+      :type branch_under_over_order: npt.NDArray[np.int32]
+      :param matched_branches: Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                               keys:
+                               - "ordered_coords" : npt.NDArray[np.int32].
+                               - "heights" : npt.NDArray[np.number]. Heights of the branches.
+                               - "distances" :
+                               - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
+      :type matched_branches: dict[int, dict[str, MatchedBranch]]
+      :param masked_image: Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                           keys:
+                           - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
+      :type masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]]
+      :param branch_start_coords: An Nx2 numpy array of the coordinates of the branches connected to the node.
+      :type branch_start_coords: npt.NDArray[np.int32]
+      :param ordered_branches: List of numpy arrays of ordered branch coordinates.
+      :type ordered_branches: list[npt.NDArray[np.int32]]
+      :param pairs: Nx2 numpy array of pairs of branches that are matched through a node.
+      :type pairs: npt.NDArray[np.int32]
+      :param average_trace_advised: Flag to determine whether to use the average trace.
+      :type average_trace_advised: bool
+      :param image_shape: The shape of the image, to create a mask from.
+      :type image_shape: tuple[int]
+
+      :returns: The branch image and the average image.
+      :rtype: tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: analyse_node_branches(p_to_nm: numpy.float64, reduced_node_area: numpy.typing.NDArray[numpy.int32], branch_start_coords: numpy.typing.NDArray[numpy.int32], max_length_px: numpy.float64, reduced_skeleton_graph: networkx.classes.graph.Graph, image: numpy.typing.NDArray[numpy.number], average_trace_advised: bool, node_coord: tuple[numpy.int32, numpy.int32], pair_odd_branches: bool, filename: str, resolution_threshold: numpy.float64) -> tuple[numpy.typing.NDArray[numpy.int32], dict[int, MatchedBranch], list[numpy.typing.NDArray[numpy.int32]], dict[int, dict[str, numpy.typing.NDArray[numpy.bool_]]], numpy.typing.NDArray[numpy.int32], numpy.float64 | None]
+      :staticmethod:
+
+
+      
+      Analyse the branches of a single node.
+
+      :param p_to_nm: The pixel to nm scaling factor.
+      :type p_to_nm: np.float64
+      :param reduced_node_area: An NxM numpy array of the node in question and the branches connected to it.
+                                Node is marked by 3, and branches by 1.
+      :type reduced_node_area: npt.NDArray[np.int32]
+      :param branch_start_coords: An Nx2 numpy array of the coordinates of the branches connected to the node.
+      :type branch_start_coords: npt.NDArray[np.int32]
+      :param max_length_px: The maximum length in pixels to traverse along while ordering.
+      :type max_length_px: np.int32
+      :param reduced_skeleton_graph: The graph representation of the reduced node area.
+      :type reduced_skeleton_graph: nx.classes.graph.Graph
+      :param image: The full image of the grain.
+      :type image: npt.NDArray[np.number]
+      :param average_trace_advised: Flag to determine whether to use the average trace.
+      :type average_trace_advised: bool
+      :param node_coord: The node coordinates.
+      :type node_coord: tuple[np.int32, np.int32]
+      :param pair_odd_branches: Whether to try and pair odd-branched nodes.
+      :type pair_odd_branches: bool
+      :param filename: The filename of the image.
+      :type filename: str
+      :param resolution_threshold: The resolution threshold below which to warn the user that the node is difficult to analyse.
+      :type resolution_threshold: np.float64
+
+      :returns: * **pairs** (*npt.NDArray[np.int32]*) -- Nx2 numpy array of pairs of branches that are matched through a node.
+                * **matched_branches** (*dict[int, MatchedBranch]]*) -- Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                  keys:
+                  - "ordered_coords" : npt.NDArray[np.int32].
+                  - "heights" : npt.NDArray[np.number]. Heights of the branches.
+                  - "distances" : npt.NDArray[np.number]. The accumulating distance along the branch.
+                  - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
+                  - "angles" : np.float64. The angle of the branch, added in later steps.
+                * **ordered_branches** (*list[npt.NDArray[np.int32]]*) -- List of numpy arrays of ordered branch coordinates.
+                * **masked_image** (*dict[int, dict[str, npt.NDArray[np.bool_]]]*) -- Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                  keys:
+                  - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
+                * **branch_under_over_order** (*npt.NDArray[np.int32]*) -- The order of the branches based on the FWHM.
+                * **confidence** (*np.float64 | None*) -- The confidence of the crossing. Optional.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: join_matching_branches_through_node(pairs: numpy.typing.NDArray[numpy.int32], ordered_branches: list[numpy.typing.NDArray[numpy.int32]], reduced_skeleton_graph: networkx.classes.graph.Graph, image: numpy.typing.NDArray[numpy.number], average_trace_advised: bool, node_coords: tuple[numpy.int32, numpy.int32], filename: str) -> tuple[dict[int, MatchedBranch], dict[int, dict[str, numpy.typing.NDArray[numpy.bool_]]]]
+      :staticmethod:
+
+
+      
+      Join branches that are matched through a node.
+
+      :param pairs: Nx2 numpy array of pairs of branches that are matched through a node.
+      :type pairs: npt.NDArray[np.int32]
+      :param ordered_branches: List of numpy arrays of ordered branch coordinates.
+      :type ordered_branches: list[npt.NDArray[np.int32]]
+      :param reduced_skeleton_graph: Graph representation of the skeleton.
+      :type reduced_skeleton_graph: nx.classes.graph.Graph
+      :param image: The full image of the grain.
+      :type image: npt.NDArray[np.number]
+      :param average_trace_advised: Flag to determine whether to use the average trace.
+      :type average_trace_advised: bool
+      :param node_coords: The node coordinates.
+      :type node_coords: tuple[np.int32, np.int32]
+      :param filename: The filename of the image.
+      :type filename: str
+
+      :returns: * **matched_branches** (*dict[int, dict[str, npt.NDArray[np.number]]]*) -- Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                  keys:
+                  - "ordered_coords" : npt.NDArray[np.int32].
+                  - "heights" : npt.NDArray[np.number]. Heights of the branches.
+                  - "distances" :
+                  - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
+                * **masked_image** (*dict[int, dict[str, npt.NDArray[np.bool_]]]*) -- Dictionary where the key is the index of the pair and the value is a dictionary containing the following
+                  keys:
+                  - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_ordered_branches_and_vectors(reduced_node_area: numpy.typing.NDArray[numpy.int32], branch_start_coords: numpy.typing.NDArray[numpy.int32], max_length_px: numpy.float64) -> tuple[list[numpy.typing.NDArray[numpy.int32]], list[numpy.typing.NDArray[numpy.int32]]]
+      :staticmethod:
+
+
+      
+      Get ordered branches and vectors for a node.
+
+      Branches are ordered so they are no longer just a disordered set of coordinates, and vectors are calculated to
+      represent the general direction tendency of the branch, this allows for alignment matching later on.
+
+      :param reduced_node_area: An NxM numpy array of the node in question and the branches connected to it.
+                                Node is marked by 3, and branches by 1.
+      :type reduced_node_area: npt.NDArray[np.int32]
+      :param branch_start_coords: An Px2 numpy array of coordinates representing the start of branches where P is the number of branches.
+      :type branch_start_coords: npt.NDArray[np.int32]
+      :param max_length_px: The maximum length in pixels to traverse along while ordering.
+      :type max_length_px: np.int32
+
+      :returns: A tuple containing a list of ordered branches and a list of vectors.
+      :rtype: tuple[list[npt.NDArray[np.int32]], list[npt.NDArray[np.int32]]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: cross_confidence(pair_combinations: list) -> float
+      :staticmethod:
+
+
+      
+      Obtain the average confidence of the combinations using a reciprical function.
+
+      :param pair_combinations: List of length 2 combinations of FWHM values.
+      :type pair_combinations: list
+
+      :returns: The average crossing confidence.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: recip(vals: list) -> float
+      :staticmethod:
+
+
+      
+      Compute 1 - (max / min) of the two values provided.
+
+      :param vals: List of 2 values.
+      :type vals: list
+
+      :returns: Result of applying the 1-(min / max) function to the two values.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: get_vector(coords: numpy.typing.NDArray, origin: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the normalised vector of the coordinate means in a branch.
+
+      :param coords: 2xN array of x, y coordinates.
+      :type coords: npt.NDArray
+      :param origin: 2x1 array of an x, y coordinate.
+      :type origin: npt.NDArray
+
+      :returns: Normalised vector from origin to the mean coordinate.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calc_angles(vectors: numpy.typing.NDArray) -> numpy.typing.NDArray[numpy.float64]
+      :staticmethod:
+
+
+      
+      Calculate the angles between vectors in an array.
+
+      Uses the formula:
+
+      .. code-block:: RST
+
+          cos(theta) = |a|•|b|/|a||b|
+
+      :param vectors: Array of 2x1 vectors.
+      :type vectors: npt.NDArray
+
+      :returns: An array of the cosine of the angles between the vectors.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pair_vectors(vectors: numpy.typing.NDArray) -> numpy.typing.NDArray[numpy.int32]
+      :staticmethod:
+
+
+      
+      Take a list of vectors and pairs them based on the angle between them.
+
+      :param vectors: Array of 2x1 vectors to be paired.
+      :type vectors: npt.NDArray
+
+      :returns: An array of the matching pair indices.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: best_matches(arr: numpy.typing.NDArray, max_weight_matching: bool = True) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Turn a matrix into a graph and calculates the best matching index pairs.
+
+      :param arr: Transpose symmetric MxM array where the value of index i, j represents a weight between i and j.
+      :type arr: npt.NDArray
+      :param max_weight_matching: Whether to obtain best matching pairs via maximum weight, or minimum weight matching.
+      :type max_weight_matching: bool
+
+      :returns: Array of pairs of indexes.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: create_weighted_graph(matrix: numpy.typing.NDArray) -> networkx.Graph
+      :staticmethod:
+
+
+      
+      Create a bipartite graph connecting i <-> j from a square matrix of weights matrix[i, j].
+
+      :param matrix: Square array of weights between rows and columns.
+      :type matrix: npt.NDArray
+
+      :returns: Bipatrite graph with edge weight i->j matching matrix[i,j].
+      :rtype: nx.Graph
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: pair_angles(angles: numpy.typing.NDArray) -> list
+      :staticmethod:
+
+
+      
+      Pair angles that are 180 degrees to each other and removes them before selecting the next pair.
+
+      :param angles: Square array (i,j) of angles between i and j.
+      :type angles: npt.NDArray
+
+      :returns: A list of paired indexes in a list.
+      :rtype: list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: gaussian(x: numpy.typing.NDArray, h: float, mean: float, sigma: float)
+      :staticmethod:
+
+
+      
+      Apply the gaussian function.
+
+      :param x: X values to be passed into the gaussian.
+      :type x: npt.NDArray
+      :param h: The peak height of the gaussian.
+      :type h: float
+      :param mean: The mean of the x values.
+      :type mean: float
+      :param sigma: The standard deviation of the image.
+      :type sigma: float
+
+      :returns: The y-values of the gaussian performed on the x values.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: interpolate_between_yvalue(x: numpy.typing.NDArray, y: numpy.typing.NDArray, yvalue: float) -> float
+      :staticmethod:
+
+
+      
+      Calculate the x value between the two points either side of yvalue in y.
+
+      :param x: An array of length y.
+      :type x: npt.NDArray
+      :param y: An array of length x.
+      :type y: npt.NDArray
+      :param yvalue: A value within the bounds of the y array.
+      :type yvalue: float
+
+      :returns: The linearly interpolated x value between the arrays.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: calculate_fwhm(heights: numpy.typing.NDArray, distances: numpy.typing.NDArray, hm: float | None = None) -> dict[str, numpy.float64 | list[numpy.float64 | float | None]]
+      :staticmethod:
+
+
+      
+      Calculate the FWHM value.
+
+      First identifyies the HM then finding the closest values in the distances array and using
+      linear interpolation to calculate the FWHM.
+
+      :param heights: Array of heights.
+      :type heights: npt.NDArray
+      :param distances: Array of distances.
+      :type distances: npt.NDArray
+      :param hm: The halfmax value to match (if wanting the same HM between curves), by default None.
+      :type hm: Union[None, float], optional
+
+      :returns: The FWHM value, [distance at hm for 1st half of trace, distance at hm for 2nd half of trace,
+                HM value], [index of the highest point, distance at highest point, height at highest point].
+      :rtype: tuple[float, list, list]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: lin_interp(point_1: list, point_2: list, xvalue: float | None = None, yvalue: float | None = None) -> float
+      :staticmethod:
+
+
+      
+      Linear interp 2 points by finding line equation and subbing.
+
+      :param point_1: List of an x and y coordinate.
+      :type point_1: list
+      :param point_2: List of an x and y coordinate.
+      :type point_2: list
+      :param xvalue: Value at which to interpolate to get a y coordinate, by default None.
+      :type xvalue: Union[float, None], optional
+      :param yvalue: Value at which to interpolate to get an x coordinate, by default None.
+      :type yvalue: Union[float, None], optional
+
+      :returns: Value of x or y linear interpolation.
+      :rtype: float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: order_branches(branch1: numpy.typing.NDArray, branch2: numpy.typing.NDArray) -> tuple
+      :staticmethod:
+
+
+      
+      Order the two ordered arrays based on the closest endpoint coordinates.
+
+      :param branch1: An Nx2 array describing coordinates.
+      :type branch1: npt.NDArray
+      :param branch2: An Nx2 array describing coordinates.
+      :type branch2: npt.NDArray
+
+      :returns: An tuple with the each coordinate array ordered to follow on from one-another.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: binary_line(start: numpy.typing.NDArray, end: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Create a binary path following the straight line between 2 points.
+
+      :param start: A coordinate.
+      :type start: npt.NDArray
+      :param end: Another coordinate.
+      :type end: npt.NDArray
+
+      :returns: An Nx2 coordinate array that the line passes through.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: coord_dist_rad(coords: numpy.typing.NDArray, centre: numpy.typing.NDArray, pixel_to_nm_scaling: float = 1) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Calculate the distance from the centre coordinate to a point along the ordered coordinates.
+
+      This differs to traversal along the coordinates taken. This also averages any common distance
+      values and makes those in the trace before the node index negative.
+
+      :param coords: Nx2 array of branch coordinates.
+      :type coords: npt.NDArray
+      :param centre: A 1x2 array of the centre coordinates to identify a 0 point for the node.
+      :type centre: npt.NDArray
+      :param pixel_to_nm_scaling: The pixel to nanometer scaling factor to provide real units, by default 1.
+      :type pixel_to_nm_scaling: float, optional
+
+      :returns: A Nx1 array of the distance from the node centre.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: above_below_value_idx(array: numpy.typing.NDArray, value: float) -> list
+      :staticmethod:
+
+
+      
+      Identify indices of the array neighbouring the specified value.
+
+      :param array: Array of values.
+      :type array: npt.NDArray
+      :param value: Value to identify indices between.
+      :type value: float
+
+      :returns: List of the lower index and higher index around the value.
+      :rtype: list
+
+      :raises IndexError: When the value is in the array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: average_height_trace(img: numpy.typing.NDArray, branch_mask: numpy.typing.NDArray, branch_coords: numpy.typing.NDArray, centre=(0, 0)) -> tuple
+      :staticmethod:
+
+
+      
+      Average two side-by-side ordered skeleton distance and height traces.
+
+      Dilate the original branch to create two additional side-by-side branches
+      in order to get a more accurate average of the height traces. This function produces
+      the common distances between these 3 branches, and their averaged heights.
+
+      :param img: An array of numbers pertaining to an image.
+      :type img: npt.NDArray
+      :param branch_mask: A binary array of the branch, must share the same dimensions as the image.
+      :type branch_mask: npt.NDArray
+      :param branch_coords: Ordered coordinates of the branch mask.
+      :type branch_coords: npt.NDArray
+      :param centre: The coordinates to centre the branch around.
+      :type centre: Union[float, None]
+
+      :returns: A tuple of the averaged heights from the linetrace and their corresponding distances
+                from the crossing.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: fill_holes(mask: numpy.typing.NDArray) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Fill all holes within a binary mask.
+
+      :param mask: Binary array of object.
+      :type mask: npt.NDArray
+
+      :returns: Binary array of object with any interior holes filled in.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: _remove_re_entering_branches(mask: numpy.typing.NDArray, remaining_branches: int = 1) -> numpy.typing.NDArray
+      :staticmethod:
+
+
+      
+      Remove smallest branches which branches exit and re-enter the viewing area.
+
+      Contninues until only <remaining_branches> remain.
+
+      :param mask: Skeletonised binary mask of an object.
+      :type mask: npt.NDArray
+      :param remaining_branches: Number of objects (branches) to keep, by default 1.
+      :type remaining_branches: int, optional
+
+      :returns: Mask with only a single skeletonised branch.
+      :rtype: npt.NDArray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: only_centre_branches(node_image: numpy.typing.NDArray, node_coordinate: numpy.typing.NDArray) -> numpy.typing.NDArray[numpy.int32]
+      :staticmethod:
+
+
+      
+      Remove all branches not connected to the current node.
+
+      :param node_image: An image of the skeletonised area surrounding the node where
+                         the background = 0, skeleton = 1, termini = 2, nodes = 3.
+      :type node_image: npt.NDArray
+      :param node_coordinate: 2x1 coordinate describing the position of a node.
+      :type node_coordinate: npt.NDArray
+
+      :returns: The initial node image but only with skeletal branches
+                connected to the middle node.
+      :rtype: npt.NDArray[np.int32]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: average_uniques(arr1: numpy.typing.NDArray, arr2: numpy.typing.NDArray) -> tuple
+      :staticmethod:
+
+
+      
+      Obtain the unique values of both arrays, and the average of common values.
+
+      :param arr1: An array.
+      :type arr1: npt.NDArray
+      :param arr2: An array.
+      :type arr2: npt.NDArray
+
+      :returns: The unique values of both arrays, and the averaged common values.
+      :rtype: tuple
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: average_crossing_confs(node_dict) -> None | float
+      :staticmethod:
+
+
+      
+      Return the average crossing confidence of all crossings in the molecule.
+
+      :param node_dict: A dictionary containing node statistics and information.
+      :type node_dict: dict
+
+      :returns: The value of minimum confidence or none if not possible.
+      :rtype: Union[None, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: minimum_crossing_confs(node_dict: dict) -> None | float
+      :staticmethod:
+
+
+      
+      Return the minimum crossing confidence of all crossings in the molecule.
+
+      :param node_dict: A dictionary containing node statistics and information.
+      :type node_dict: dict
+
+      :returns: The value of minimum confidence or none if not possible.
+      :rtype: Union[None, float]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: compile_metrics() -> None
+
+      
+      Add the number of crossings, average and minimum crossing confidence to the metrics dictionary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: nodestats_image(image: numpy.typing.NDArray, disordered_tracing_direction_data: dict, filename: str, pixel_to_nm_scaling: float, node_joining_length: float, node_extend_dist: float, branch_pairing_length: float, pair_odd_branches: float, pad_width: int) -> tuple
+
+   
+   Initialise the nodeStats class.
+
+   :param image: The array of pixels.
+   :type image: npt.NDArray
+   :param disordered_tracing_direction_data: The images and bbox coordinates of the pruned skeletons.
+   :type disordered_tracing_direction_data: dict
+   :param filename: The name of the file being processed. For logging purposes.
+   :type filename: str
+   :param pixel_to_nm_scaling: The pixel to nm scaling factor.
+   :type pixel_to_nm_scaling: float
+   :param node_joining_length: The length over which to join skeletal intersections to be counted as one crossing.
+   :type node_joining_length: float
+   :param node_joining_length: The distance over which to join nearby odd-branched nodes.
+   :type node_joining_length: float
+   :param node_extend_dist: The distance under which to join odd-branched node regions.
+   :type node_extend_dist: float
+   :param branch_pairing_length: The length from the crossing point to pair and trace, obtaining FWHM's.
+   :type branch_pairing_length: float
+   :param pair_odd_branches: Whether to try and pair odd-branched nodes.
+   :type pair_odd_branches: bool
+   :param pad_width: The number of edge pixels to pad the image by.
+   :type pad_width: int
+
+   :returns: The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
+             an image dictionary of nodestats steps for the entire image, and single grain images.
+   :rtype: tuple[dict, pd.DataFrame, dict, dict]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

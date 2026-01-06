@@ -1,0 +1,332 @@
+topostats.plottingfuncs
+=======================
+
+.. py:module:: topostats.plottingfuncs
+
+.. autoapi-nested-parse::
+
+   Plotting data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.LOGGER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.Images
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.plottingfuncs.dilate_binary_image
+   topostats.plottingfuncs.add_bounding_boxes_to_plot
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: dilate_binary_image(binary_image: numpy.ndarray, dilation_iterations: int) -> numpy.ndarray
+
+   
+   Dilate a supplied binary image a given number of times.
+
+   :param binary_image: Binary image to be dilated
+   :type binary_image: np.ndarray
+   :param dilation_iterations: Number of dilation iterations to be performed
+   :type dilation_iterations: int
+
+   :returns: **binary_image** -- Dilated binary image
+   :rtype: np.ndarray
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: Images(data: numpy.array, output_dir: Union[str, pathlib.Path], filename: str, pixel_to_nm_scaling: float = 1.0, masked_array: numpy.array = None, title: str = None, image_type: str = 'non-binary', image_set: str = 'core', core_set: bool = False, pixel_interpolation: Union[str, None] = None, cmap: str = 'nanoscope', mask_cmap: str = 'jet_r', region_properties: dict = None, zrange: list = [None, None], colorbar: bool = True, axes: bool = True, save: bool = True, save_format: str = 'png', histogram_log_axis: bool = True, histogram_bins: int = 200, dpi: Union[str, float] = 'figure')
+
+   
+   Plots image arrays
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: output_dir
+
+
+   .. py:attribute:: filename
+
+
+   .. py:attribute:: pixel_to_nm_scaling
+      :value: 1.0
+
+
+
+   .. py:attribute:: masked_array
+      :value: None
+
+
+
+   .. py:attribute:: title
+      :value: None
+
+
+
+   .. py:attribute:: image_type
+      :value: 'non-binary'
+
+
+
+   .. py:attribute:: image_set
+      :value: 'core'
+
+
+
+   .. py:attribute:: core_set
+      :value: False
+
+
+
+   .. py:attribute:: interpolation
+      :value: None
+
+
+
+   .. py:attribute:: cmap
+      :value: None
+
+
+
+   .. py:attribute:: mask_cmap
+      :value: None
+
+
+
+   .. py:attribute:: region_properties
+      :value: None
+
+
+
+   .. py:attribute:: zrange
+      :value: [None, None]
+
+
+
+   .. py:attribute:: colorbar
+      :value: True
+
+
+
+   .. py:attribute:: axes
+      :value: True
+
+
+
+   .. py:attribute:: save
+      :value: True
+
+
+
+   .. py:attribute:: save_format
+      :value: 'png'
+
+
+
+   .. py:attribute:: histogram_log_axis
+      :value: True
+
+
+
+   .. py:attribute:: histogram_bins
+      :value: 200
+
+
+
+   .. py:attribute:: dpi
+      :value: 'figure'
+
+
+
+   .. py:method:: plot_histogram_and_save()
+
+      
+      Plot and save a histogram of the height map
+
+      :returns: * **fig** (*plt.figure.Figure*) -- Matplotlib.pyplot figure object
+                * **ax** (*plt.axes._subplots.AxesSubplot*) -- Matplotlib.pyplot axes object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: plot_and_save()
+
+      
+      Plot and save the images with savefig or imsave depending on config file parameters.
+
+      :returns: * **fig** (*plt.figure.Figure*) -- Matplotlib.pyplot figure object
+                * **ax** (*plt.axes._subplots.AxesSubplot*) -- Matplotlib.pyplot axes object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_figure()
+
+      
+      This function saves figures as plt.savefig objects.
+
+      :returns: * **fig** (*plt.figure.Figure*) -- Matplotlib.pyplot figure object
+                * **ax** (*plt.axes._subplots.AxesSubplot*) -- Matplotlib.pyplot axes object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+   .. py:method:: save_array_figure() -> None
+
+      
+      This function saves only the image array as an image using plt.imsave
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: add_bounding_boxes_to_plot(fig, ax, shape, region_properties: list, pixel_to_nm_scaling: float) -> None
+
+   
+   Add the bounding boxes to a plot.
+
+   :param fig: Matplotlib.pyplot figure object
+   :type fig: plt.figure.Figure
+   :param ax: Matplotlib.pyplot axes object
+   :type ax: plt.axes._subplots.AxesSubplot.
+   :param shape: Tuple of the image-to-be-plot's shape.
+   :type shape: tuple
+   :param region_properties: Region properties to add bounding boxes from.
+   :param pixel_to_nm_scaling: The scaling factor from px to nm.
+   :type pixel_to_nm_scaling: float
+
+   :returns: * **fig** (*plt.figure.Figure*) -- Matplotlib.pyplot figure object.
+             * **ax** (*plt.axes._subplots.AxesSubplot*) -- Matplotlib.pyplot axes object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

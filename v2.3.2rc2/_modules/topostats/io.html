@@ -1,0 +1,2228 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>topostats.io &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";import elkLayouts from "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0.2.0/dist/mermaid-layout-elk.esm.min.mjs";mermaid.registerLayoutLoaders(elkLayouts);mermaid.initialize({startOnLoad:false});</script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+const defaultStyle = document.createElement('style');
+defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+`;
+document.head.appendChild(defaultStyle);
+
+const fullscreenStyle = document.createElement('style');
+fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+document.head.appendChild(fullscreenStyle);
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness < 128;
+    }
+    return false;
+};
+
+const load = async () => {
+    await mermaid.run();
+
+    const all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(load, 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(load, 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(load, 200);
+        return;
+    }
+
+    const darkTheme = isDarkTheme();
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    const modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    const modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    let previousScrollOffset = [window.scrollX, window.scrollY];
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    const allButtons = [];
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        container.appendChild(fullscreenBtn);
+        allButtons.push(fullscreenBtn);
+    });
+
+    // Update theme classes when theme changes
+    const updateTheme = () => {
+        const dark = isDarkTheme();
+        allButtons.forEach(btn => {
+            if (dark) {
+                btn.classList.add('dark-theme');
+            } else {
+                btn.classList.remove('dark-theme');
+            }
+        });
+        if (dark) {
+            modal.classList.add('dark-theme');
+            modalContent.classList.add('dark-theme');
+            closeBtn.classList.add('dark-theme');
+        } else {
+            modal.classList.remove('dark-theme');
+            modalContent.classList.remove('dark-theme');
+            closeBtn.classList.remove('dark-theme');
+        }
+    };
+
+    // Watch for theme changes
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+};
+
+window.addEventListener("load", load);
+</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/topostats/io';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../../v2.3.0/index.html">v2.3.0</a></li>
+  <li><a href="../../../v2.3.1/index.html">v2.3.1</a></li>
+  <li><a href="../../../v2.3.2/index.html">v2.3.2</a></li>
+  <li><a href="../../../v2.3.2rc1/index.html">v2.3.2rc1</a></li>
+  <li><a href="io.html">v2.3.2rc2</a></li>
+  <li><a href="../../../main/index.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../topostats.html" class="nav-link">topostats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">topostats.io</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for topostats.io</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for reading and writing data.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pkl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">AFMReader</span><span class="w"> </span><span class="kn">import</span> <span class="n">asd</span><span class="p">,</span> <span class="n">gwy</span><span class="p">,</span> <span class="n">ibw</span><span class="p">,</span> <span class="n">jpk</span><span class="p">,</span> <span class="n">spm</span><span class="p">,</span> <span class="n">stp</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">topostats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpyencoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumpyEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ruamel.yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">YAML</span><span class="p">,</span> <span class="n">YAMLError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats</span><span class="w"> </span><span class="kn">import</span> <span class="n">CONFIG_DOCUMENTATION_REFERENCE</span><span class="p">,</span> <span class="n">TOPOSTATS_BASE_VERSION</span><span class="p">,</span> <span class="n">TOPOSTATS_COMMIT</span><span class="p">,</span> <span class="n">__release__</span><span class="p">,</span> <span class="n">grains</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">topostats.logs.logs</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGER_NAME</span>
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">LOGGER_NAME</span><span class="p">)</span>
+
+
+<span class="c1"># pylint: disable=broad-except</span>
+<span class="c1"># pylint: disable=too-many-lines</span>
+<span class="c1"># pylint: disable=too-many-branches</span>
+
+
+<span class="c1"># Sylvia: Ruff says too complex but I think breaking this out would be more complex.</span>
+<span class="c1"># pylint: disable=too-many-return-statements</span>
+<div class="viewcode-block" id="dict_almost_equal">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.dict_almost_equal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dict_almost_equal</span><span class="p">(</span><span class="n">dict1</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">dict2</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">abs_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">):</span>  <span class="c1"># noqa: C901</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively check if two dictionaries are almost equal with a given absolute tolerance.</span>
+
+<span class="sd">    This should really just be iterative and is an affront to memory usage.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dict1 : dict</span>
+<span class="sd">        First dictionary to compare.</span>
+<span class="sd">    dict2 : dict</span>
+<span class="sd">        Second dictionary to compare.</span>
+<span class="sd">    abs_tol : float</span>
+<span class="sd">        Absolute tolerance to check for equality.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the dictionaries are almost equal, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure both dictionaries share the same keys</span>
+    <span class="k">if</span> <span class="n">dict1</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">!=</span> <span class="n">dict2</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Ensure the types of the values are the same</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict1</span><span class="p">:</span>
+        <span class="c1"># Sylvia: Pylint complains about calling the type() function in this way, but it is the only way to</span>
+        <span class="c1"># ensure that the types of the values in both dictionaries are the same (that I know of).</span>
+        <span class="c1"># Replace with better way if you know of one.</span>
+        <span class="c1"># pylint: disable=unidiomatic-typecheck</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]):</span>  <span class="c1"># noqa: E721</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> types not equal: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Comparing dictionaries&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dict1</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Comparing key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">dict_almost_equal</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">abs_tol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2"> not equal: </span><span class="si">{</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="c1"># Skip if both values are NaN</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">])):</span>
+                <span class="c1"># Check if both values are close</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">):</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2"> not equal: </span><span class="si">{</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lists_almost_equal</span><span class="p">(</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">abs_tol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> not equal: </span><span class="si">{</span><span class="n">dict1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">dict2</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="lists_almost_equal">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.lists_almost_equal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lists_almost_equal</span><span class="p">(</span><span class="n">list1</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">list2</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">abs_tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if two lists are almost equal with a given absolute tolerance.</span>
+
+<span class="sd">    Note: Currently the lists must be flat, the same length and contain only numbers (int or float).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    list1 : list</span>
+<span class="sd">        First list to compare.</span>
+<span class="sd">    list2 : list</span>
+<span class="sd">        Second list to compare.</span>
+<span class="sd">    abs_tol : float</span>
+<span class="sd">        Absolute tolerance to check for equality.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the lists are almost equal, False otherwise.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    NotImplementedError</span>
+<span class="sd">        If the items in the lists are not of type int or float.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check if both lists are the same length and only contain numbers</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list2</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lists not same length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">list1</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">list2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item2</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;List item </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> not equal: </span><span class="si">{</span><span class="n">item1</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">item2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Comparison of list items of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item1</span><span class="p">)</span><span class="si">}</span><span class="s2"> inside a list is not implemented.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="read_yaml">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_yaml">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_yaml</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a YAML file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : Union[str, Path]</span>
+<span class="sd">        YAML file to read.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict</span>
+<span class="sd">        Dictionary of the file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">yaml_file</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">yaml_file</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+
+
+<div class="viewcode-block" id="get_date_time">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.get_date_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_date_time</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a date and time for adding to generated files or logging.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string of the current date and time, formatted appropriately.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="write_yaml">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.write_yaml">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_yaml</span><span class="p">(</span>
+    <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span>
+    <span class="n">header_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a configuration (stored as a dictionary) to a YAML file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary.</span>
+<span class="sd">    output_dir : Union[str, Path]</span>
+<span class="sd">        Path to save the dictionary to as a YAML file (it will be called &#39;config.yaml&#39;).</span>
+<span class="sd">    config_file : str</span>
+<span class="sd">        Filename to write to.</span>
+<span class="sd">    header_message : str</span>
+<span class="sd">        String to write to the header message of the YAML file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Save the configuration to output directory</span>
+    <span class="n">output_config</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_file</span>
+    <span class="c1"># Revert PosixPath items to string</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">path_to_str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">header_message</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;# </span><span class="si">{</span><span class="n">header_message</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">get_date_time</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">CONFIG_DOCUMENTATION_REFERENCE</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;# Configuration from TopoStats run completed : </span><span class="si">{</span><span class="n">get_date_time</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">CONFIG_DOCUMENTATION_REFERENCE</span>
+
+    <span class="c1"># Add comment to config with topostats version + commit</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;# TopoStats version: </span><span class="si">{</span><span class="n">TOPOSTATS_BASE_VERSION</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;# Commit: </span><span class="si">{</span><span class="n">TOPOSTATS_COMMIT</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="n">output_config</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="n">yaml</span> <span class="o">=</span> <span class="n">YAML</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="s2">&quot;safe&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">output_config</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">YAMLError</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_array">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.save_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_array</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">outpath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">array_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save a Numpy array to disk.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : npt.NDArray</span>
+<span class="sd">        Numpy array to be saved.</span>
+<span class="sd">    outpath : Path</span>
+<span class="sd">        Location array should be saved.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Filename of the current image from which the array is derived.</span>
+<span class="sd">    array_type : str</span>
+<span class="sd">        Short string describing the array type e.g. z_threshold. Ideally should not have periods or spaces in (use</span>
+<span class="sd">        underscores &#39;_&#39; instead).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outpath</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">array_type</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] Numpy array saved to : </span><span class="si">{</span><span class="n">outpath</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">array_type</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_array">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.load_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_array</span><span class="p">(</span><span class="n">array_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a Numpy array from file.</span>
+
+<span class="sd">    Should have been saved using save_array() or numpy.save().</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array_path : Union[str, Path]</span>
+<span class="sd">        Path to the Numpy array on disk.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    npt.NDArray</span>
+<span class="sd">        Returns the loaded Numpy array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">array_path</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">e</span></div>
+
+
+
+<div class="viewcode-block" id="path_to_str">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.path_to_str">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">path_to_str</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively traverse a dictionary and convert any Path() objects to strings for writing to YAML.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Dictionary to be converted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict:</span>
+<span class="sd">        The same dictionary with any Path() objects converted to string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">path_to_str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+            <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+
+<div class="viewcode-block" id="get_out_path">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.get_out_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_out_path</span><span class="p">(</span><span class="n">image_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add the image path relative to the base directory to the output directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_path : Path</span>
+<span class="sd">        The path of the current image.</span>
+<span class="sd">    base_dir : Path</span>
+<span class="sd">        Directory to recursively search for files.</span>
+<span class="sd">    output_dir : Path</span>
+<span class="sd">        The output directory specified in the configuration file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Path</span>
+<span class="sd">        The output path that mirrors the input path structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If image_path is relative and doesn&#39;t include base_dir then a ValueError is raised, in which</span>
+    <span class="c1"># case we just want to append the image_path to the output_dir</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Remove the filename if there is a suffix, not always the case as</span>
+        <span class="c1"># get_out_path is called from save_folder_grainstats()</span>
+        <span class="k">if</span> <span class="n">image_path</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">image_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">image_path</span><span class="o">.</span><span class="n">stem</span>
+        <span class="k">return</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">image_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">image_path</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">image_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">image_path</span><span class="o">.</span><span class="n">stem</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">image_path</span><span class="p">))</span>
+    <span class="c1"># AttributeError is raised if image_path is a string (since it isn&#39;t a Path() object with a .suffix)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A string form of a Path has been passed to &#39;get_out_path()&#39; for image_path&quot;</span><span class="p">)</span>
+        <span class="k">raise</span></div>
+
+
+
+<div class="viewcode-block" id="find_files">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.find_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_files</span><span class="p">(</span><span class="n">base_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_ext</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.spm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively scan the specified directory for images with the given file extension.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    base_dir : Union[str, Path]</span>
+<span class="sd">        Directory to recursively search for files, if not specified the current directory is scanned.</span>
+<span class="sd">    file_ext : str</span>
+<span class="sd">        File extension to search for.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    List</span>
+<span class="sd">        List of files found with the extension in the given directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">base_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">base_dir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s2">&quot;.spm&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">base_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span> <span class="o">+</span> <span class="n">file_ext</span><span class="p">))</span> <span class="o">+</span> <span class="n">_find_old_bruker_files</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">base_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span> <span class="o">+</span> <span class="n">file_ext</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="_find_old_bruker_files">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io._find_old_bruker_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_old_bruker_files</span><span class="p">(</span><span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find old Bruker files that have old extensions.</span>
+
+<span class="sd">    Older Bruker files have extensions such as ``.001``, ``.002`` rather than ``.spm``. AFMReader can handle these fine</span>
+<span class="sd">    but TopoStats needs to include them when finding files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    base_dir : Path</span>
+<span class="sd">        Directory to search for files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[Path]</span>
+<span class="sd">        List of files that match the regex ``\.\d+$``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Compile regex to match files ending with a period and one or more digits. List comprehension of matches is</span>
+    <span class="c1"># returned.</span>
+    <span class="n">OLD_BRUKER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.\d+$&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">base_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">OLD_BRUKER_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">suffix</span><span class="p">)]</span></div>
+
+
+
+<div class="viewcode-block" id="save_folder_grainstats">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.save_folder_grainstats">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_folder_grainstats</span><span class="p">(</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">all_stats_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">stats_filename</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save a data frame of grain and tracing statistics at the folder level.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_dir : Union[str, Path]</span>
+<span class="sd">        Path of the output directory head.</span>
+<span class="sd">    base_dir : Union[str, Path]</span>
+<span class="sd">        Path of the base directory where files were found.</span>
+<span class="sd">    all_stats_df : pd.DataFrame</span>
+<span class="sd">        The dataframe containing all sample statistics run.</span>
+<span class="sd">    stats_filename : str</span>
+<span class="sd">        The name of the type of statistics dataframe to be saved.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        This only saves the dataframes and does not retain them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dirs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_stats_df</span><span class="p">[</span><span class="s2">&quot;basename&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Statistics :</span><span class="se">\n</span><span class="si">{</span><span class="n">all_stats_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_dir</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Statistics (</span><span class="si">{</span><span class="n">_dir</span><span class="si">}</span><span class="s2">) :</span><span class="se">\n</span><span class="si">{</span><span class="n">all_stats_df</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out_path</span> <span class="o">=</span> <span class="n">get_out_path</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">_dir</span><span class="p">),</span> <span class="n">base_dir</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+            <span class="c1"># Ensure &quot;processed&quot; directory exists at the stem of out_path, creating if needed</span>
+            <span class="k">if</span> <span class="n">out_path</span><span class="o">.</span><span class="n">stem</span> <span class="o">!=</span> <span class="s2">&quot;processed&quot;</span><span class="p">:</span>
+                <span class="n">out_path_processed</span> <span class="o">=</span> <span class="n">out_path</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span>
+                <span class="n">out_path_processed</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">all_stats_df</span><span class="p">[</span><span class="n">all_stats_df</span><span class="p">[</span><span class="s2">&quot;basename&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">_dir</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+                <span class="n">out_path</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;folder_</span><span class="si">{</span><span class="n">stats_filename</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder-wise statistics saved to: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span><span class="si">}</span><span class="s2">/folder_</span><span class="si">{</span><span class="n">stats_filename</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No folder-wise statistics for directory </span><span class="si">{</span><span class="n">_dir</span><span class="si">}</span><span class="s2">, no grains detected in any images.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="read_null_terminated_string">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_null_terminated_string">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_null_terminated_string</span><span class="p">(</span><span class="n">open_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read an open file from the current position in the open binary file, until the next null value.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_file : io.TextIOWrapper</span>
+<span class="sd">        An open file object.</span>
+<span class="sd">    encoding : str</span>
+<span class="sd">        Encoding to use when decoding the bytes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        String of the ASCII decoded bytes before the next null byte.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; with open(&quot;test.txt&quot;, &quot;rb&quot;) as f:</span>
+<span class="sd">    ...     print(read_null_terminated_string(f), encoding=&quot;utf-8&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">byte</span> <span class="o">=</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+    <span class="k">while</span> <span class="n">byte</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="n">byte</span>
+        <span class="n">byte</span> <span class="o">=</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Sometimes encodings cannot decode a byte that is not defined in the encoding.</span>
+    <span class="c1"># Try &#39;latin1&#39; in this case as it is able to handle symbols such as micro (µ).</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;codec can&#39;t decode byte&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">bad_byte</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;byte &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Decoding error while reading null terminated string. Encoding </span><span class="si">{</span><span class="n">encoding</span><span class="si">}</span><span class="s2"> encountered&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot; a byte that could not be decoded: </span><span class="si">{</span><span class="n">bad_byte</span><span class="si">}</span><span class="s2">. Trying &#39;latin1&#39; encoding.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;latin1&quot;</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">e</span></div>
+
+
+
+<div class="viewcode-block" id="read_u32i">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_u32i">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_u32i</span><span class="p">(</span><span class="n">open_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read an unsigned 32 bit integer from an open binary file (in little-endian form).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_file : io.TextIOWrapper</span>
+<span class="sd">        An open file object.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Python integer type cast from the unsigned 32 bit integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&lt;i&quot;</span><span class="p">,</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">4</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="read_64d">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_64d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_64d</span><span class="p">(</span><span class="n">open_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a 64-bit double from an open binary file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_file : io.TextIOWrapper</span>
+<span class="sd">        An open file object.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Python float type cast from the double.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">8</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="read_char">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_char">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_char</span><span class="p">(</span><span class="n">open_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a character from an open binary file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_file : io.TextIOWrapper</span>
+<span class="sd">        An open file object.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        A string type cast from the decoded character.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="read_gwy_component_dtype">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.read_gwy_component_dtype">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_gwy_component_dtype</span><span class="p">(</span><span class="n">open_file</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the data type of a `.gwy` file component.</span>
+
+<span class="sd">    Possible data types are as follows:</span>
+
+<span class="sd">    - &#39;b&#39;: boolean</span>
+<span class="sd">    - &#39;c&#39;: character</span>
+<span class="sd">    - &#39;i&#39;: 32-bit integer</span>
+<span class="sd">    - &#39;q&#39;: 64-bit integer</span>
+<span class="sd">    - &#39;d&#39;: double</span>
+<span class="sd">    - &#39;s&#39;: string</span>
+<span class="sd">    - &#39;o&#39;: `.gwy` format object</span>
+
+<span class="sd">    Capitalised versions of some of these data types represent arrays of values of that data type. Arrays are stored as</span>
+<span class="sd">    an unsigned 32 bit integer, describing the size of the array, followed by the unseparated array values:</span>
+
+<span class="sd">    - &#39;C&#39;: array of characters</span>
+<span class="sd">    - &#39;I&#39;: array of 32-bit integers</span>
+<span class="sd">    - &#39;Q&#39;: array of 64-bit integers</span>
+<span class="sd">    - &#39;D&#39;: array of doubles</span>
+<span class="sd">    - &#39;S&#39;: array of strings</span>
+<span class="sd">    - &#39;O&#39;: array of objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_file : io.TextIOWrapper</span>
+<span class="sd">        An open file object.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Python string (one character long) of the data type of the component&#39;s value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">open_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_relative_paths">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.get_relative_paths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_relative_paths</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract a list of relative paths, removing the common suffix.</span>
+
+<span class="sd">    From a list of paths, create a list where each path is relative to all path&#39;s closest common parent. For example,</span>
+<span class="sd">    [&#39;a/b/c&#39;, &#39;a/b/d&#39;, &#39;a/b/e/f&#39;] would return [&#39;c&#39;, &#39;d&#39;, &#39;e/f&#39;].</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    paths : list</span>
+<span class="sd">        List of string or pathlib paths.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        List of string paths, relative to the common parent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Ensure paths are all pathlib paths, and not strings</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+
+    <span class="c1"># If the paths list consists of all the same path, then the relative path will</span>
+    <span class="c1"># be &#39;.&#39;, which we don&#39;t want. we want the relative path to be the full path probably.</span>
+    <span class="c1"># len(set(my_list)) == 1 determines if all the elements in a list are the same.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">paths</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+
+    <span class="n">deepest_common_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">commonpath</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+    <span class="c1"># Have to convert to strings else the dataframe values will be slightly different</span>
+    <span class="c1"># to what is expected.</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">deepest_common_path</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="convert_basename_to_relative_paths">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.convert_basename_to_relative_paths">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_basename_to_relative_paths</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert paths in the &#39;basename&#39; column of a dataframe to relative paths.</span>
+
+<span class="sd">    If the &#39;basename&#39; column has the following paths: [&#39;/usr/topo/data/a/b&#39;, &#39;/usr/topo/data/c/d&#39;], the output will be:</span>
+<span class="sd">    [&#39;a/b&#39;, &#39;c/d&#39;].</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        A pandas dataframe containing a column &#39;basename&#39; which contains the paths</span>
+<span class="sd">        indicating the locations of the image data files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        A pandas dataframe where the &#39;basename&#39; column has paths relative to a common</span>
+<span class="sd">        parent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;basename&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+    <span class="n">relative_paths</span> <span class="o">=</span> <span class="n">get_relative_paths</span><span class="p">(</span><span class="n">paths</span><span class="o">=</span><span class="n">paths</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;basename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relative_paths</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+
+<span class="c1"># pylint: disable=too-many-instance-attributes</span>
+<div class="viewcode-block" id="LoadScans">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoadScans</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load the image and image parameters from a file path.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img_paths : list[str, Path]</span>
+<span class="sd">        Path to a valid AFM scan to load.</span>
+<span class="sd">    channel : str</span>
+<span class="sd">        Image channel to extract from the scan.</span>
+<span class="sd">    extract : str</span>
+<span class="sd">        What to extract from &#39;&#39;.topostats&#39;&#39; files, default is &#39;&#39;all&#39;&#39; which loads everything but if using in</span>
+<span class="sd">       &#39;&#39;run_topostats&#39;&#39; functions then specific subsets of data are required and this allows just those to be</span>
+<span class="sd">       loaded. Options include &#39;&#39;raw&#39;&#39; and &#39;&#39;filter&#39;&#39; at present.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">img_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">],</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">extract</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img_paths : list[str | Path]</span>
+<span class="sd">            Path to a valid AFM scan to load.</span>
+<span class="sd">        channel : str</span>
+<span class="sd">            Image channel to extract from the scan.</span>
+<span class="sd">        extract : str</span>
+<span class="sd">            What to extract from &#39;&#39;.topostats&#39;&#39; files, default is &#39;&#39;all&#39;&#39; which loads everything but if using in</span>
+<span class="sd">           &#39;&#39;run_topostats&#39;&#39; functions then specific subsets of data are required and this allows just those to be</span>
+<span class="sd">           loaded. Options include &#39;&#39;raw&#39;&#39; and &#39;&#39;filter&#39;&#39; at present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_paths</span> <span class="o">=</span> <span class="n">img_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="o">=</span> <span class="n">extract</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_masks</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grain_trace_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MINIMUM_IMAGE_SIZE</span> <span class="o">=</span> <span class="mi">10</span>
+
+<div class="viewcode-block" id="LoadScans.load_spm">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_spm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_spm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract image and pixel to nm scaling from the Bruker .spm file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">spm</span><span class="o">.</span><span class="n">load_spm</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File Not Found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_topostats">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_topostats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_topostats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extract</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a .topostats file (hdf5 format).</span>
+
+<span class="sd">        Loads and extracts the image, pixel to nanometre scaling factor and any grain masks.</span>
+
+<span class="sd">        Note that grain masks are stored via self.grain_masks rather than returned due to how we extract information for</span>
+<span class="sd">        all other file loading functions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        extract : str</span>
+<span class="sd">            String of which image (Numpy array) and data to extract, default is &#39;all&#39; which returns the cleaned</span>
+<span class="sd">            (post-Filter) image, `pixel_to_nm_scaling` and all `data`. It is possible to extract image arrays for other</span>
+<span class="sd">            stages of processing such as `raw` or &#39;filter&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, Any] | tuple[npt.NDArray, float, Any]</span>
+<span class="sd">            A dictionary of all previously processed data or tuple containing the image and its pixel to nanometre</span>
+<span class="sd">            scaling value. This is contingent on the &#39;&#39;extract&#39;&#39; option.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">topostats</span><span class="o">.</span><span class="n">load_topostats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File Not Found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="c1"># We want everything if performing any step beyond filtering (or explicitly ask for None/&quot;all&quot;)</span>
+        <span class="k">if</span> <span class="n">extract</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;grains&quot;</span><span class="p">,</span> <span class="s2">&quot;grainstats&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">data</span>
+        <span class="c1"># Otherwise we are re-running filtering we want the raw/image_original and scaling</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;image_original&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;pixel_to_nm_scaling&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_asd">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_asd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_asd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract image and pixel to nm scaling from .asd files.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+            <span class="n">pixel_to_nm_scaling</span><span class="p">:</span> <span class="nb">float</span>
+            <span class="n">_</span><span class="p">:</span> <span class="nb">dict</span>
+            <span class="n">frames</span><span class="p">,</span> <span class="n">pixel_to_nm_scaling</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">asd</span><span class="o">.</span><span class="n">load_asd</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Loaded image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found. Path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">pixel_to_nm_scaling</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_ibw">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_ibw">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_ibw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load image from Asylum Research (Igor) .ibw files.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ibw</span><span class="o">.</span><span class="n">load_ibw</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_jpk">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_jpk">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_jpk</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load image from JPK Instruments .jpk files.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">jpk</span><span class="o">.</span><span class="n">load_jpk</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_gwy">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_gwy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_gwy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract image and pixel to nm scaling from the Gwyddion .gwy file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">gwy</span><span class="o">.</span><span class="n">load_gwy</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_top">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_top">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_top</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract image and pixel to nm scaling from the WsXM .top file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">top</span><span class="o">.</span><span class="n">load_top</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.load_stp">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.load_stp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_stp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract image and pixel to nm scaling from the WsXM .stp file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[npt.NDArray, float]</span>
+<span class="sd">            A tuple containing the image and its pixel to nanometre scaling value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading image from : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stp</span><span class="o">.</span><span class="n">load_stp</span><span class="p">(</span><span class="n">file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.get_data">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.get_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: C901  # pylint: disable=too-many-branches</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract image, filepath and pixel to nm scaling value, and append these to the img_dic object.&quot;&quot;&quot;</span>
+        <span class="n">suffix_to_loader</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;.spm&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_spm</span><span class="p">,</span>
+            <span class="s2">&quot;.jpk&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_jpk</span><span class="p">,</span>
+            <span class="s2">&quot;.jpk-qi-image&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_jpk</span><span class="p">,</span>
+            <span class="s2">&quot;.ibw&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_ibw</span><span class="p">,</span>
+            <span class="s2">&quot;.gwy&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_gwy</span><span class="p">,</span>
+            <span class="s2">&quot;.topostats&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_topostats</span><span class="p">,</span>
+            <span class="s2">&quot;.asd&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_asd</span><span class="p">,</span>
+            <span class="s2">&quot;.stp&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_stp</span><span class="p">,</span>
+            <span class="s2">&quot;.top&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_top</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_paths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">img_path</span> <span class="o">=</span> <span class="n">img_path</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">img_path</span><span class="o">.</span><span class="n">stem</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="n">img_path</span><span class="o">.</span><span class="n">suffix</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracting image from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File extension : </span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">OLD_BRUKER_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\.\d+$&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check that the file extension is supported</span>
+            <span class="k">if</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">suffix_to_loader</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;grains&quot;</span><span class="p">,</span> <span class="s2">&quot;grainstats&quot;</span><span class="p">):</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_topostats</span><span class="p">(</span><span class="n">extract</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;pixel_to_nm_scaling&quot;</span><span class="p">]</span>
+                        <span class="c1"># If we need the grain masks for processing we extract them</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;grainstats&quot;</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grain_masks</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;grain_masks&quot;</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.topostats&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;filter&quot;</span><span class="p">,</span> <span class="s2">&quot;raw&quot;</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_topostats</span><span class="p">(</span><span class="n">extract</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="n">suffix_to_loader</span><span class="p">[</span><span class="n">suffix</span><span class="p">]()</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;Channel&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;not found&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+                        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># log the specific error message</span>
+                        <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">] Channel </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="si">}</span><span class="s2"> not found, skipping image.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.asd&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_check_image_size_and_add_to_dict</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># If we have extracted the image dictionary (only possible with .topostats files) we add that to the</span>
+                    <span class="c1"># dictionary</span>
+                    <span class="k">elif</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;img_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">img_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_dict</span><span class="p">(</span><span class="n">img_dict</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+                    <span class="c1"># Otherwise check the size and add image to dictionary</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_check_image_size_and_add_to_dict</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">OLD_BRUKER_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">suffix</span><span class="p">):</span>
+                <span class="c1"># This is an old Bruker file, treat as normal.</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Old Bruker file detected, treating as </span><span class="si">{</span><span class="n">suffix_to_loader</span><span class="p">[</span><span class="s1">&#39;.spm&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_spm</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_check_image_size_and_add_to_dict</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;File type </span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2"> not yet supported. Please make an issue at </span><span class="se">\</span>
+<span class="s2">                https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for </span><span class="se">\</span>
+<span class="s2">                this file type.&quot;</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadScans._check_image_size_and_add_to_dict">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans._check_image_size_and_add_to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_image_size_and_add_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the image is above a minimum size in both dimensions.</span>
+
+<span class="sd">        Images that do not meet the minimum size are not included for processing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            An array of the extracted AFM image.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The name of the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MINIMUM_IMAGE_SIZE</span> <span class="ow">or</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MINIMUM_IMAGE_SIZE</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] Skipping, image too small: </span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_to_dict</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] Image added to processing.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.add_to_dict">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.add_to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an image and metadata to the img_dict dictionary under the key filename.</span>
+
+<span class="sd">        Adds the image and associated metadata such as any grain masks, and pixel to nanometere</span>
+<span class="sd">        scaling factor to the img_dict dictionary which is used as a place to store the image</span>
+<span class="sd">        information for processing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : npt.NDArray</span>
+<span class="sd">            An array of the extracted AFM image.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The name of the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_dict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s2">&quot;img_path&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+            <span class="s2">&quot;pixel_to_nm_scaling&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_to_nm_scaling</span><span class="p">,</span>
+            <span class="s2">&quot;image_original&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span>
+            <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;grain_masks&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">grain_masks</span><span class="p">,</span>
+            <span class="s2">&quot;grain_trace_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">grain_trace_data</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="LoadScans.clean_dict">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.LoadScans.clean_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If we are loading .topostats files for reprocessing we already have the dictionary structure.</span>
+
+<span class="sd">        We therefore need to extract just the information that is required for the stage requested and remove everything</span>
+<span class="sd">        else.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img_dict : dict[str, Any]</span>
+<span class="sd">            Original image dictionary from which data is to be extracted.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, Any]</span>
+<span class="sd">            Returns the image dictionary with keys/values removed appropriate to the extraction stage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Reverse order so we remove things in reverse order, splining removes what it doesn&#39;t need then ordered</span>
+        <span class="c1"># tracing removes what it doesn&#39;t need, then nodestats, then disordered, then grainstats then grains, should be</span>
+        <span class="c1"># more succinct code with less popping</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;grains&quot;</span><span class="p">]:</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;disordered_traces&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;grain_curvature_stats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;grain_masks&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;height_profiles&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;nodestats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ordered_traces&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;splining&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">img_dict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;grainstats&quot;</span><span class="p">]:</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;disordered_traces&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;grain_curvature_stats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;height_profiles&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;nodestats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ordered_traces&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;splining&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">img_dict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;disordered_tracing&quot;</span><span class="p">,</span> <span class="s2">&quot;nodestats&quot;</span><span class="p">,</span> <span class="s2">&quot;ordered_tracing&quot;</span><span class="p">]:</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;disordered_traces&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;grain_curvature_stats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;nodestats&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ordered_tracing&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;splining&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">img_dict</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;splining&quot;</span><span class="p">]:</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;splining&quot;</span><span class="p">)</span>
+            <span class="n">img_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;grain_curvature_stats&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">img_dict</span>
+        <span class="k">return</span> <span class="n">img_dict</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="dict_to_hdf5">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.dict_to_hdf5">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">,</span> <span class="n">group_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: C901</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recursively save a dictionary to an open hdf5 file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_hdf5_file : h5py.File</span>
+<span class="sd">        An open hdf5 file object.</span>
+<span class="sd">    group_path : str</span>
+<span class="sd">        The path to the group in the hdf5 file to start saving data from.</span>
+<span class="sd">    dictionary : dict</span>
+<span class="sd">        A dictionary of the data to save.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># LOGGER.info(f&quot;Saving key: {key}&quot;)</span>
+
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Item &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; is None. Skipping.&quot;</span><span class="p">)</span>
+        <span class="c1"># Make sure the key is a string</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="c1"># Check if the item is a known datatype</span>
+        <span class="c1"># Ruff wants us to use the pipe operator here but it isn&#39;t supported by python 3.9</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">item</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="nb">list</span>
+                <span class="o">|</span> <span class="nb">str</span>
+                <span class="o">|</span> <span class="nb">int</span>
+                <span class="o">|</span> <span class="nb">float</span>
+                <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+                <span class="o">|</span> <span class="n">Path</span>
+                <span class="o">|</span> <span class="nb">dict</span>
+                <span class="o">|</span> <span class="n">grains</span><span class="o">.</span><span class="n">GrainCrop</span>
+                <span class="o">|</span> <span class="n">grains</span><span class="o">.</span><span class="n">GrainCropsDirection</span>
+                <span class="o">|</span> <span class="n">grains</span><span class="o">.</span><span class="n">ImageGrainCrops</span>
+            <span class="p">),</span>
+        <span class="p">):</span>  <span class="c1"># noqa: UP038</span>
+            <span class="c1"># Lists need to be converted to numpy arrays</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="c1"># Strings need to be encoded to bytes</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+            <span class="c1"># Integers, floats and numpy arrays can be added directly to the hdf5 file</span>
+            <span class="c1"># Ruff wants us to use the pipe operator here but it isn&#39;t supported by python 3.9</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>  <span class="c1"># noqa: UP038</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="c1"># Path objects need to be encoded to bytes</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+            <span class="c1"># Extract ImageGrainCrops</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">grains</span><span class="o">.</span><span class="n">ImageGrainCrops</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">,</span> <span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">image_grain_crops_to_dict</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">grains</span><span class="o">.</span><span class="n">GrainCropsDirection</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">,</span> <span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">grain_crops_direction_to_dict</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">grains</span><span class="o">.</span><span class="n">GrainCrop</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">,</span> <span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">grain_crop_to_dict</span><span class="p">())</span>
+            <span class="c1"># Dictionaries need to be recursively saved</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># a sub-dictionary, so we need to recurse</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[dict_to_hdf5] </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is of type : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">,</span> <span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># attempt to save an item that is not a numpy array or a dictionary</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot save key &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; to HDF5. Item type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">. Skipping. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="hdf5_to_dict">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.hdf5_to_dict">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hdf5_to_dict</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">,</span> <span class="n">group_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a dictionary from an open hdf5 file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    open_hdf5_file : h5py.File</span>
+<span class="sd">        An open hdf5 file object.</span>
+<span class="sd">    group_path : str</span>
+<span class="sd">        The path to the group in the hdf5 file to start reading data from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        A dictionary of the hdf5 file data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">open_hdf5_file</span><span class="p">[</span><span class="n">group_path</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading hdf5 key: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is a group&quot;</span><span class="p">)</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hdf5_to_dict</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="p">,</span> <span class="n">group_path</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="c1"># Decode byte strings to utf-8. The data type &quot;O&quot; is a byte string.</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is a byte string&quot;</span><span class="p">)</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[()]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is other type of dataset&quot;</span><span class="p">)</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[()]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data_dict</span></div>
+
+
+
+<div class="viewcode-block" id="save_topostats_file">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.save_topostats_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_topostats_file</span><span class="p">(</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">topostats_object</span><span class="p">:</span> <span class="n">grains</span><span class="o">.</span><span class="n">ImageGrainCrops</span><span class="p">,</span> <span class="n">topostats_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">__release__</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save &#39;&#39;ImageGrainCrops&#39;&#39; object to a &#39;&#39;.topostats&#39;&#39; (hdf5 format) file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_dir : Path</span>
+<span class="sd">        Directory to save the .topostats file in.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        File name of the .topostats file.</span>
+<span class="sd">    topostats_object : dict</span>
+<span class="sd">        Dictionary of the topostats data to save. Must include a flattened image and pixel to nanometre scaling</span>
+<span class="sd">        factor. May also include grain masks.</span>
+<span class="sd">    topostats_version : str</span>
+<span class="sd">        Version to save as, defaults to &#39;&#39;__release__&#39;&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">] : Saving image to .topostats file&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;.topostats&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filename</span><span class="p">:</span>
+        <span class="n">save_file_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.topostats&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">save_file_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">filename</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">save_file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># It may be possible for topostats_object[&quot;image&quot;] to be None.</span>
+        <span class="c1"># Make sure that this is not the case.</span>
+        <span class="k">if</span> <span class="n">topostats_object</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Recursively save the topostats object dictionary to the .topostats file</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topostats_object</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">topostats_version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[:</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&lt;</span> <span class="mf">2.4</span><span class="p">:</span>
+                <span class="n">topostats_object</span><span class="p">[</span><span class="s2">&quot;topostats_file_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">topostats_version</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">group_path</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">topostats_object</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">topostats_object</span><span class="p">[</span><span class="s2">&quot;topostats_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">topostats_version</span>
+                <span class="n">dict_to_hdf5</span><span class="p">(</span><span class="n">open_hdf5_file</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">group_path</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">topostats_object</span><span class="o">.</span><span class="n">image_grain_crops_to_dict</span><span class="p">())</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;TopoStats object dictionary does not contain an &#39;image&#39;. </span><span class="se">\</span>
+<span class="s2">                 TopoStats objects must be saved with a flattened image.&quot;</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_pkl">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.save_pkl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_pkl</span><span class="p">(</span><span class="n">outfile</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">to_pkl</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pickle objects for working with later.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    outfile : Path</span>
+<span class="sd">        Path and filename to save pickle to.</span>
+<span class="sd">    to_pkl : dict</span>
+<span class="sd">        Object to be picled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">outfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pkl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pkl</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_pkl">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.load_pkl">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_pkl</span><span class="p">(</span><span class="n">infile</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load data from a pickle.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    infile : Path</span>
+<span class="sd">        Path to a valid pickle.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict:</span>
+<span class="sd">        Dictionary of generated images.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    from pathlib import Path</span>
+
+<span class="sd">    from topostats.io import load_plots</span>
+
+<span class="sd">    pkl_path = &quot;output/distribution_plots.pkl&quot;</span>
+<span class="sd">    my_plots = load_pkl(pkl_path)</span>
+<span class="sd">    # Show the type of my_plots which is a dictionary of nested dictionaries</span>
+<span class="sd">    type(my_plots)</span>
+<span class="sd">    # Show the keys are various levels of nesting.</span>
+<span class="sd">    my_plots.keys()</span>
+<span class="sd">    my_plots[&quot;area&quot;].keys()</span>
+<span class="sd">    my_plots[&quot;area&quot;][&quot;dist&quot;].keys()</span>
+<span class="sd">    # Get the figure and axis object for a given metrics distribution plot</span>
+<span class="sd">    figure, axis = my_plots[&quot;area&quot;][&quot;dist&quot;].values()</span>
+<span class="sd">    # Get the figure and axis object for a given metrics violin plot</span>
+<span class="sd">    figure, axis = my_plots[&quot;area&quot;][&quot;violin&quot;].values()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">infile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pkl</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>  <span class="c1"># noqa: S301</span></div>
+
+
+
+<div class="viewcode-block" id="dict_to_json">
+<a class="viewcode-back" href="../../autoapi/topostats/io/index.html#topostats.io.dict_to_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dict_to_json</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a dictionary to a JSON file at the specified location with the given name.</span>
+
+<span class="sd">    NB : The `NumpyEncoder` class is used as the default encoder to ensure Numpy dtypes are written as strings (they are</span>
+<span class="sd">         not serialisable to JSON using the default JSONEncoder).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict</span>
+<span class="sd">        Data as a dictionary that is to be written to file.</span>
+<span class="sd">    output_dir : str | Path</span>
+<span class="sd">        Directory the file is to be written to.</span>
+<span class="sd">    filename : str | Path</span>
+<span class="sd">        Name of output file.</span>
+<span class="sd">    indent : int</span>
+<span class="sd">        Spaces to indent JSON with, default is 4.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">filename</span>
+    <span class="k">with</span> <span class="n">output_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NumpyEncoder</span><span class="p">)</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+topostats.run_topostats
+=======================
+
+.. py:module:: topostats.run_topostats
+
+.. autoapi-nested-parse::
+
+   Run TopoStats
+
+   This provides an entry point for running TopoStats as a command line programme.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   topostats.run_topostats.LOGGER
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   topostats.run_topostats.create_parser
+   topostats.run_topostats.main
+
+
+Module Contents
+---------------
+
+.. py:data:: LOGGER
+
+.. py:function:: create_parser() -> argparse.ArgumentParser
+
+   
+   Create a parser for reading options.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: main(args=None)
+
+   
+   Find and process all files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

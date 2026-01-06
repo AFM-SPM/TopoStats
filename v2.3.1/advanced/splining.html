@@ -1,0 +1,747 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Splining &#8212; TopoStats 2.3.3.dev27+g279473507 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=2b4ec01c" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=766c09a3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'advanced/splining';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.3" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TopoStats 2.3.3.dev27+g279473507 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../introduction.html">
+    Introduction
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../usage.html">
+    Usage
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../configuration.html">
+    Configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../notebooks.html">
+    Notebooks
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../advanced.html">
+    Advanced Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../workflow.html">
+    Workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../data_dictionary.html">
+    Data Dictionary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../related_software.html">
+    Related Software
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../faq.html">
+    Frequently Asked Questions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../autoapi/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<h3>Versions</h3>
+<ul>
+  <li><a href="../../v2.0.0/index.html">v2.0.0</a></li>
+  <li><a href="../../v2.1.0/index.html">v2.1.0</a></li>
+  <li><a href="../../v2.1.1/index.html">v2.1.1</a></li>
+  <li><a href="../../v2.1.2/index.html">v2.1.2</a></li>
+  <li><a href="../../v2.2.0/index.html">v2.2.0</a></li>
+  <li><a href="../../v2.2.1/index.html">v2.2.1</a></li>
+  <li><a href="../../v2.2.post0/index.html">v2.2.post0</a></li>
+  <li><a href="../../v2.3.0/advanced/splining.html">v2.3.0</a></li>
+  <li><a href="splining.html">v2.3.1</a></li>
+  <li><a href="../../v2.3.2/advanced/splining.html">v2.3.2</a></li>
+  <li><a href="../../v2.3.2rc1/advanced/splining.html">v2.3.2rc1</a></li>
+  <li><a href="../../v2.3.2rc2/advanced/splining.html">v2.3.2rc2</a></li>
+  <li><a href="../../main/advanced/splining.html">main</a></li>
+</ul>
+</div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Splining</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="splining">
+<h1>Splining<a class="headerlink" href="#splining" title="Link to this heading">#</a></h1>
+<p>This section gives an in-depth overview of the steps taken in the splining module.</p>
+<section id="at-a-glance-smoothing-pixelated-traces">
+<h2>At a Glance : Smoothing Pixelated Traces<a class="headerlink" href="#at-a-glance-smoothing-pixelated-traces" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">splining.py</span></code> module handles all the functions associated with smoothing the ordered pixel-wise trace from the
+“ordered_tracing” step, in order to produce curves which more closely follow the samples structure.</p>
+<p>The quality of the resultant metrics and smoothed coordinates will depend on the splining method chosen, whether the
+ordering worked successfully, and whether the skeleton matches the underlying sample conformation.</p>
+<p><img alt="ordered trace to spline" src="../_images/overview3.png" /></p>
+<p>This smooths the ordered trace by using an average of splines through the ordered coordinates (<code class="docutils literal notranslate"><span class="pre">spline</span></code> method) or using
+the mean coordinate of a rolling window (<code class="docutils literal notranslate"><span class="pre">rolling_window</span></code> method), helping to resolve length errors in jagged in the
+skeletons. It adds the contour length and end-to-end euclidean distance to the <code class="docutils literal notranslate"><span class="pre">all_mol_statistics.csv</span></code> and the sum and
+average of these respectively to the <code class="docutils literal notranslate"><span class="pre">all_statistics.csv</span></code>.</p>
+<p>Some quick FYI’s:</p>
+<ul class="simple">
+<li><p><strong>Constricted Traces</strong> - Using the <code class="docutils literal notranslate"><span class="pre">rolling_window</span></code> method with a rolling window size that is not far below the
+persistence length can result in over-smoothing where the spline is dragged away from regions of high curvature.</p></li>
+<li><p><strong>Unrepresentative Splines</strong> - The <code class="docutils literal notranslate"><span class="pre">spline</span></code> method’s parameters can be quite temperamental so it’s recommended that
+<code class="docutils literal notranslate"><span class="pre">spline_linear_smoothing</span></code>, <code class="docutils literal notranslate"><span class="pre">spline_circular_smoothing</span></code> and <code class="docutils literal notranslate"><span class="pre">spline_degree</span></code> are not changed unless understood.</p></li>
+<li><p><strong>Unrepresentative Splines 2</strong> - The <code class="docutils literal notranslate"><span class="pre">spline</span></code> method may produce unwanted results if the <code class="docutils literal notranslate"><span class="pre">spline_step_size</span></code> is too
+long. This is because the way the splines are averaged assumes that each spline point is sampled close to that of
+another’s.</p></li>
+</ul>
+</section>
+<section id="processing-steps">
+<h2>Processing Steps<a class="headerlink" href="#processing-steps" title="Link to this heading">#</a></h2>
+<section id="splining-method">
+<h3>Splining Method<a class="headerlink" href="#splining-method" title="Link to this heading">#</a></h3>
+<section id="trace-coordinate-subsets">
+<h4>1. Trace Coordinate Subsets<a class="headerlink" href="#trace-coordinate-subsets" title="Link to this heading">#</a></h4>
+<p>The first stage is to use the ordered coordinates and the <code class="docutils literal notranslate"><span class="pre">spline_step_size</span></code> parameter to define how many splines we
+want to average together. As the <code class="docutils literal notranslate"><span class="pre">spline_step_size</span></code> is the distance (in nm) at which to take every i’th coordinate for
+its spline. This means the number of splines to average is calculated below:</p>
+<p>$$ N = max(\text{spline step size} \div \text{px to nm}, 1) $$</p>
+<p>The coordinates used for each spline are then obtained from the initial ordered trace, i.e. the spline coordinate
+indexes: [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], where spline 1 takes every 4th coordinate, starting at position 0, then
+spline 2 takes every 4th coordinate starting at position 1, etc.</p>
+<p><img alt="multiple ordered coordinates" src="../_images/spl_multi.png" /></p>
+</section>
+<section id="obtaining-splines">
+<h4>2. Obtaining Splines<a class="headerlink" href="#obtaining-splines" title="Link to this heading">#</a></h4>
+<p>For each of these coordinate subsets, we use the
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep.html#scipy.interpolate.splprep">Sci-Py</a>
+library to find the B-Spline representation of the 2D curve using the smoothness parameters <code class="docutils literal notranslate"><span class="pre">spline_linear_smoothing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">spline_circular_smoothing</span></code>, and the <code class="docutils literal notranslate"><span class="pre">spline_degree</span></code>, found in the configuration file. The <code class="docutils literal notranslate"><span class="pre">spline_linear_smoothing</span></code> and
+<code class="docutils literal notranslate"><span class="pre">spline_circular_smoothing</span></code> define the degrees of smoothing for circular or linear molecules obtained in the Ordered
+Tracing step, which also tells TopoStats whether to make the spline periodic if circular. Larger smoothing values mean
+more smoothing and smaller values indicate less smoothing. The <code class="docutils literal notranslate"><span class="pre">spline_degree</span></code> should take odd values, or even with
+large smoothing. Read more on the Sci-Py documentation above.</p>
+<p><img alt="smoothing parameters" src="../_images/spl_smooth.png" /></p>
+<p>These splines are then averaged together via their index i.e. first spline coordinates are averaged, then second
+etc… until a single averaged B-Spline remain. However, because the splined are averaged on their index, it is assumed
+that each index is within close proximity, thus, the <code class="docutils literal notranslate"><span class="pre">spline_step_size</span></code> must be small enough for this assumption to hold
+true and for the splining to work as intended.</p>
+</section>
+</section>
+<section id="rolling-window-method">
+<h3>Rolling Window Method<a class="headerlink" href="#rolling-window-method" title="Link to this heading">#</a></h3>
+<section id="rolling-average">
+<h4>1. Rolling Average<a class="headerlink" href="#rolling-average" title="Link to this heading">#</a></h4>
+<p>This method simply uses a rolling average of the ordered trace coordinates within the <code class="docutils literal notranslate"><span class="pre">rolling_window_size</span></code> to produce
+the new smoothed trace. The rolling window will move one coordinate along each time, and continues until the start of
+the window returns back to its initial position.</p>
+<p><img alt="schematic of rolling window averaging" src="../_images/rw_schematic.png" /></p>
+<p>For linear smooth traces, the same as above occurs however, the initial and final coordinates are also added to the
+smoothed trace as to not drastically reduce the length of the smoothed trace.</p>
+<p><img alt="difference between window sizes" src="../_images/rw_sizes.png" /></p>
+</section>
+</section>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;image&gt;_&lt;threshold&gt;_ordered_traces</span></code> image shows the direction of ordered coordinates.</p>
+<p>For each grain, the following new columns are added to the <code class="docutils literal notranslate"><span class="pre">grainstats.csv</span></code> file:</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>total_contour_length</code></td>
+<td>The total length along the splined trace of all identified molecules.</td>
+<td><code>float</code></td>
+</tr>
+<tr>
+<td><code>average_end_to_end_distance</code></td>
+<td>The average distance from two endpoints of the spline of all identified linear molecules.</td>
+<td><code>float</code></td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p>For each molecule found by the ordering algorithm(s), the following new columns are added to the <code class="docutils literal notranslate"><span class="pre">molstats.csv</span></code> file:</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>contour_length</code></td>
+<td>The length along the splined trace of the molecule.</td>
+<td><code>float</code></td>
+</tr>
+<tr>
+<td><code>end_to_end_distance</code></td>
+<td>The distance from two endpoints of the spline of the linear molecule.</td>
+<td><code>float</code></td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<p>Note: Most information obtained during the Splining processing can be obtained from the <code class="docutils literal notranslate"><span class="pre">&lt;image_name&gt;.topostats</span></code> file
+found within the <code class="docutils literal notranslate"><span class="pre">processed</span></code> folder and contains a multitude of molecule related objects such as:</p>
+<ul class="simple">
+<li><p>bounding box</p></li>
+<li><p>spline coordinates</p></li>
+<li><p>tracing statistics of contour length and end to end distance</p></li>
+</ul>
+<p><img alt="TopoStats file - NodeStats structure" src="../_images/topostats_file2.png" /></p>
+</section>
+<section id="diagnostic-images">
+<h2>Diagnostic Images<a class="headerlink" href="#diagnostic-images" title="Link to this heading">#</a></h2>
+<p>There are no diagnostic images produced in this step.</p>
+</section>
+<section id="possible-uses">
+<h2>Possible Uses<a class="headerlink" href="#possible-uses" title="Link to this heading">#</a></h2>
+<p>This module would lend itself useful for accurately measuring the lengths of complex objects within samples, and
+obtaining an accurate representation of the underlying conformation of the sample.</p>
+<p>We have used this module to accurately measure the length of topologically complex DNA samples such as knots, catenanes,
+and theata-curves (replication intermediates). Additionally, we’ve used the end-to-end distance to measure the
+conformational variation of linear DNA in the presence of NDP-52 to show that it may also play a role in topological
+regulation. <a class="reference external" href="https://www.nature.com/articles/s41467-023-38572-9">See more here.</a>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-a-glance-smoothing-pixelated-traces">At a Glance : Smoothing Pixelated Traces</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing Steps</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#splining-method">Splining Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#trace-coordinate-subsets">1. Trace Coordinate Subsets</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-splines">2. Obtaining Splines</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rolling-window-method">Rolling Window Method</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#rolling-average">1. Rolling Average</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diagnostic-images">Diagnostic Images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#possible-uses">Possible Uses</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/advanced/splining.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023, TopoStats authors.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
