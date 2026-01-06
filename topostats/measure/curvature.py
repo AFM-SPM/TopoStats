@@ -2,12 +2,12 @@
 
 import logging
 
-from pydantic import BaseModel
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
 
 from topostats.logs.logs import LOGGER_NAME
+from topostats.classes import TopoStatsBaseModel
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -133,7 +133,7 @@ def discrete_angle_difference_per_nm_linear(
     return angles_per_nm
 
 
-class MoleculeCurvatureStats(BaseModel):
+class MoleculeCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single molecule."""
 
     curvatures: npt.NDArray[np.number]
@@ -147,7 +147,7 @@ class MoleculeCurvatureStats(BaseModel):
     curvature_iqr: float
 
 
-class GrainCurvatureStats(BaseModel):
+class GrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single grain."""
 
     molecules: dict[str, MoleculeCurvatureStats]
@@ -160,7 +160,7 @@ class GrainCurvatureStats(BaseModel):
     curvature_iqr: float
 
 
-class AllGrainCurvatureStats(BaseModel):
+class AllGrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for all grains."""
 
     grains: dict[str, GrainCurvatureStats]
