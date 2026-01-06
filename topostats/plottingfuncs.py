@@ -16,6 +16,7 @@ from skimage.morphology import binary_dilation
 import topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
+from topostats.measure.curvature import AllGrainCurvatureStats
 
 # pylint: disable=dangerous-default-value
 # pylint: disable=too-many-arguments
@@ -316,7 +317,7 @@ class Images:
         self,
         image: npt.NDArray,
         cropped_images: dict,
-        grains_curvature_stats_dict: dict,
+        all_grain_curvature_stats: AllGrainCurvatureStats,
         all_grain_smoothed_data: dict,
         colourmap_normalisation_bounds: tuple[float, float],
     ) -> tuple[plt.Figure | None, plt.Axes | None]:
@@ -360,8 +361,8 @@ class Images:
 
             # For each grain, plot the points with the colour determined by the curvature value
             # Iterate over the grains
-            for (_, grain_data_curvature), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
-                grains_curvature_stats_dict.items(), all_grain_smoothed_data.items(), cropped_images.items()
+            for (_, grain_curvature_stats), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
+                all_grain_curvature_stats.grains.items(), all_grain_smoothed_data.items(), cropped_images.items()
             ):
                 # Get the coordinate for the grain to accurately position the points
                 min_row = grain_image_container["bbox"][0]
@@ -370,12 +371,12 @@ class Images:
                 pad_width = grain_image_container["pad_width"]
 
                 # Iterate over molecules
-                for (_, molecule_data_curvature), (
+                for (_, molecule_curvature_stats), (
                     _,
                     molecule_data_smoothed_trace,
-                ) in zip(grain_data_curvature.items(), grain_data_smoothed_trace.items()):
+                ) in zip(grain_curvature_stats.molecules.items(), grain_data_smoothed_trace.items()):
                     # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = np.array(molecule_data_curvature)
+                    normalised_curvature = np.array(molecule_curvature_stats.curvatures)
                     normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
                     normalised_curvature = normalised_curvature / (
                         colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
@@ -423,7 +424,7 @@ class Images:
     def plot_curvatures_individual_grains(
         self,
         cropped_images: dict,
-        grains_curvature_stats_dict: dict,
+        all_grain_curvature_stats: AllGrainCurvatureStats,
         all_grains_smoothed_data: dict,
         colourmap_normalisation_bounds: tuple[float, float],
     ) -> None:
@@ -446,10 +447,12 @@ class Images:
         if "all" in self.image_set or self.module in self.image_set or self.core_set:
             # Iterate over grains
             for (
-                (grain_index, grain_data_curvature),
+                (grain_index, grain_curvature_stats),
                 (_, grain_data_smoothed_trace),
                 (_, grain_image_container),
-            ) in zip(grains_curvature_stats_dict.items(), all_grains_smoothed_data.items(), cropped_images.items()):
+            ) in zip(
+                all_grain_curvature_stats.grains.items(), all_grains_smoothed_data.items(), cropped_images.items()
+            ):
                 grain_image = grain_image_container["original_image"]
                 shape = grain_image.shape
                 fig, ax = plt.subplots(1, 1)
@@ -463,13 +466,13 @@ class Images:
                 )
 
                 # Iterate over molecules
-                for (_, molecule_data_curvature), (_, molecule_data_smoothed_trace) in zip(
-                    grain_data_curvature.items(), grain_data_smoothed_trace.items()
+                for (_, molecule_curvature_stats), (_, molecule_data_smoothed_trace) in zip(
+                    grain_curvature_stats.molecules.items(), grain_data_smoothed_trace.items()
                 ):
                     molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
 
                     # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = np.array(molecule_data_curvature)
+                    normalised_curvature = np.array(molecule_curvature_stats)
                     normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
                     normalised_curvature = normalised_curvature / (
                         colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]

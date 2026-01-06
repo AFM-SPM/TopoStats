@@ -942,6 +942,7 @@ def run_curvature_stats(
     tracing_out_path: Path,
     curvature_config: dict,
     plotting_config: dict,
+    grainstats_df: pd.DataFrame,
 ) -> dict | None:
     """
     Calculate curvature statistics for the traced DNA molecules.
@@ -969,6 +970,8 @@ def run_curvature_stats(
         Dictionary of configuration for running the curvature stats.
     plotting_config : dict
         Dictionary of configuration for plotting images.
+    grainstats_df : pd.DataFrame | None
+        The grain statistics dataframe to be added to.
 
     Returns
     -------
@@ -982,7 +985,7 @@ def run_curvature_stats(
             all_directions_grains_curvature_stats_dict: dict = {}
             for direction in grain_trace_data.keys():
                 # Pass the traces to the curvature stats function
-                grains_curvature_stats_dict = calculate_curvature_stats_image(
+                all_grain_curvature_stats = calculate_curvature_stats_image(
                     all_grain_smoothed_data=grain_trace_data[direction],
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                 )
@@ -995,7 +998,7 @@ def run_curvature_stats(
                 ).plot_curvatures(
                     image=image,
                     cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grain_curvature_stats=all_grain_curvature_stats,
                     all_grain_smoothed_data=grain_trace_data[direction],
                     colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
                 )
@@ -1006,12 +1009,22 @@ def run_curvature_stats(
                     **plotting_config["plot_dict"]["curvature_individual_grains"],
                 ).plot_curvatures_individual_grains(
                     cropped_images=cropped_image_data[direction],
-                    grains_curvature_stats_dict=grains_curvature_stats_dict,
+                    all_grain_curvature_stats=all_grain_curvature_stats,
                     all_grains_smoothed_data=grain_trace_data[direction],
                     colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
                 )
 
-                all_directions_grains_curvature_stats_dict[direction] = grains_curvature_stats_dict
+                all_grain_curvature_stats_df = all_grain_curvature_stats.create_grain_curvature_stats_dataframe()
+                all_grain_curvature_stats_df["threshold"] = direction
+                # merge grainstats data with other dataframe
+                grainstats_df = pd.merge(
+                    grainstats_df,
+                    all_grain_curvature_stats_df,
+                    how="outer",
+                    on=["image", "threshold", "grain_number"],
+                )
+
+                all_directions_grains_curvature_stats_dict[direction] = all_grain_curvature_stats
 
             return all_directions_grains_curvature_stats_dict
         except Exception as e:
