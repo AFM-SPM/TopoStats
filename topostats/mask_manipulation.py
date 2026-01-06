@@ -621,6 +621,16 @@ def skeletonise_and_join_close_ends(
             # remove the junctionpoints from the group
             connection_group.remove_all_junctionpoints()
 
+            # If there are no connectionpoint pairs, then this means that the two endpoints are not close enough
+            # to connect and they were only in the same group due to junctionpoints joining them. So skip this group.
+            if len(connection_group.close_connectionpoint_pairs) == 0:
+                LOGGER.info(
+                    f"[{filename}] : connection group {group_id} has "
+                    f"{len(connection_group.endpoints)} endpoints, "
+                    f"but no close endpoint pairs to connect, skipping."
+                )
+                continue
+
             pair = connection_group.close_connectionpoint_pairs[0]
             endpoint_1_id, endpoint_2_id = pair
             endpoint_1_coords = connection_group.endpoints[endpoint_1_id]
