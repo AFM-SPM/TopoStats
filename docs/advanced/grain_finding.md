@@ -110,7 +110,8 @@ each grain, allowing for easier processing of individual grains. They are stored
 in a dictionary within a `GrainCropDirection` dataclass instance, which in turn is held in the `ImageGrainCrops`
 dataclass instance for the whole image.
 
-For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCrop` dataclasses, see the [TopoStats API documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
+For more information on the `ImageGrainCrop`, `GrainCropDirection`, and `GrainCrop` dataclasses, see the [TopoStats API
+documentation.](https://afm-spm.github.io/TopoStats/main/autoapi/index.html)
 
 ## Optional: U-Net mask improvement
 
