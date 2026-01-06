@@ -2,6 +2,8 @@
 
 import logging
 
+from pydantic import BaseModel
+import pandas as pd
 import numpy as np
 import numpy.typing as npt
 
@@ -131,10 +133,94 @@ def discrete_angle_difference_per_nm_linear(
     return angles_per_nm
 
 
+class MoleculeCurvatureStats(BaseModel):
+    """Data model for storing curvature statistics for a single molecule."""
+
+    curvatures: npt.NDArray[np.number]
+    is_circular: bool
+    mean_curvature: float
+    max_curvature: float
+    min_curvature: float
+    std_curvature: float
+    total_curvature: float
+    median_curvature: float
+    curvature_iqr: float
+
+
+class GrainCurvatureStats(BaseModel):
+    """Data model for storing curvature statistics for a single grain."""
+
+    molecules: dict[str, MoleculeCurvatureStats]
+    mean_curvature: float
+    max_curvature: float
+    min_curvature: float
+    std_curvature: float
+    total_curvature: float
+    median_curvature: float
+    curvature_iqr: float
+
+
+class AllGrainCurvatureStats(BaseModel):
+    """Data model for storing curvature statistics for all grains."""
+
+    grains: dict[str, GrainCurvatureStats]
+
+    def create_grain_curvature_stats_dataframe(self) -> pd.DataFrame:
+        """
+        Create a dataframe of grain curvature statistics.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe of grain curvature statistics.
+        """
+
+        # Format: grain_index | <metric>
+        records = []
+        for grain_index, grain_curvature_stats in self.grains.items():
+            entry = {
+                "grain_index": grain_index,
+                "mean_curvature": grain_curvature_stats.mean_curvature,
+                "max_curvature": grain_curvature_stats.max_curvature,
+                "min_curvature": grain_curvature_stats.min_curvature,
+                "std_curvature": grain_curvature_stats.std_curvature,
+                "total_curvature": grain_curvature_stats.total_curvature,
+                "median_curvature": grain_curvature_stats.median_curvature,
+                "curvature_iqr": grain_curvature_stats.curvature_iqr,
+            }
+            records.append(entry)
+        return pd.DataFrame.from_records(records).set_index("grain_index")
+
+
+def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str, float]:
+    """
+    Calculate curvature metrics from an array of curvatures.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        Array of curvature values.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary of curvature metrics.
+    """
+    return {
+        "mean_curvature": float(np.mean(curvatures)),
+        "max_curvature": float(np.max(curvatures)),
+        "min_curvature": float(np.min(curvatures)),
+        "std_curvature": float(np.std(curvatures)),
+        "total_curvature": float(np.sum(curvatures)),
+        "median_curvature": float(np.median(curvatures)),
+        "curvature_iqr": float(np.percentile(curvatures, 75) - np.percentile(curvatures, 25)),
+    }
+
+
 def calculate_curvature_stats_image(
     all_grain_smoothed_data: dict,
     pixel_to_nm_scaling: float,
-) -> dict:
+) -> AllGrainCurvatureStats:
     """
     Perform curvature analysis for a whole image of grains.
 
@@ -150,24 +236,37 @@ def calculate_curvature_stats_image(
     dict
         The curvature statistics for each grain. Indexes are grain indexes.
     """
-    grain_curvature_stats: dict = {}
+    grains: dict[str, GrainCurvatureStats] = {}
 
     # Iterate over grains
     for grain_key, grain_data in all_grain_smoothed_data.items():
         # Iterate over molecules
-        grain_curvature_stats[grain_key] = {}
+        molecules: dict[str, MoleculeCurvatureStats] = {}
         for molecule_key, molecule_data in grain_data.items():
             trace_nm = molecule_data["spline_coords"] * pixel_to_nm_scaling
-            # Check if the molecule is circular or linear
-            if molecule_data["tracing_stats"]["end_to_end_distance"] == 0.0:
-                # Molecule is circular
-                grain_curvature_stats[grain_key][molecule_key] = np.abs(
-                    discrete_angle_difference_per_nm_circular(trace_nm)
-                )
-            else:
-                # Molecule is linear
-                grain_curvature_stats[grain_key][molecule_key] = np.abs(
-                    discrete_angle_difference_per_nm_linear(trace_nm)
-                )
+            is_circular = molecule_data["tracing_stats"]["end_to_end_distance"] == 0.0
 
-    return grain_curvature_stats
+            curvatures = (
+                discrete_angle_difference_per_nm_circular(trace_nm)
+                if is_circular
+                else discrete_angle_difference_per_nm_linear(trace_nm)
+            )
+
+            curvatures_absolute = np.abs(curvatures)
+
+            metrics = _calculate_curvature_metrics(curvatures_absolute)
+            molecules[molecule_key] = MoleculeCurvatureStats(
+                curvatures=curvatures_absolute,
+                is_circular=is_circular,
+                **metrics,
+            )
+
+        # Collate stats
+        all_curvatures = np.concatenate([molecule.curvatures for molecule in molecules.values()])
+        grain_metrics = _calculate_curvature_metrics(all_curvatures)
+        grains[grain_key] = GrainCurvatureStats(
+            molecules=molecules,
+            **grain_metrics,
+        )
+
+    return AllGrainCurvatureStats(grains=grains)
