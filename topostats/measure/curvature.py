@@ -164,6 +164,7 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for all grains."""
 
     grains: dict[str, GrainCurvatureStats]
+    filename: str
 
     def create_grain_curvature_stats_dataframe(self) -> pd.DataFrame:
         """
@@ -179,7 +180,8 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
         records = []
         for grain_index, grain_curvature_stats in self.grains.items():
             entry = {
-                "grain_index": grain_index,
+                "image": self.filename,
+                "grain_number": int(grain_index.split("_")[-1]),
                 "mean_curvature": grain_curvature_stats.mean_curvature,
                 "max_curvature": grain_curvature_stats.max_curvature,
                 "min_curvature": grain_curvature_stats.min_curvature,
@@ -189,7 +191,7 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
                 "curvature_iqr": grain_curvature_stats.curvature_iqr,
             }
             records.append(entry)
-        return pd.DataFrame.from_records(records).set_index("grain_index")
+        return pd.DataFrame.from_records(records)
 
 
 def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str, float]:
@@ -218,14 +220,17 @@ def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[st
 
 
 def calculate_curvature_stats_image(
+    filename: str,
     all_grain_smoothed_data: dict,
     pixel_to_nm_scaling: float,
-) -> AllGrainCurvatureStats:
+) -> tuple[AllGrainCurvatureStats, pd.DataFrame]:
     """
     Perform curvature analysis for a whole image of grains.
 
     Parameters
     ----------
+    filename : str
+        Filename of the image.
     all_grain_smoothed_data : dict
         Dictionary containing grain traces in pixel units.
     pixel_to_nm_scaling : float
@@ -233,8 +238,8 @@ def calculate_curvature_stats_image(
 
     Returns
     -------
-    dict
-        The curvature statistics for each grain. Indexes are grain indexes.
+    tuple[AllGrainCurvatureStats, pd.DataFrame]
+        All grain curvature statistics and dataframe of grain curvature statistics.
     """
     grains: dict[str, GrainCurvatureStats] = {}
 
@@ -269,4 +274,7 @@ def calculate_curvature_stats_image(
             **grain_metrics,
         )
 
-    return AllGrainCurvatureStats(grains=grains)
+        all_grain_curvature_stats = AllGrainCurvatureStats(filename=filename, grains=grains)
+        all_grain_curvature_stats_df = all_grain_curvature_stats.create_grain_curvature_stats_dataframe()
+
+    return all_grain_curvature_stats, all_grain_curvature_stats_df

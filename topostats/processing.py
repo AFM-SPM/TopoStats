@@ -604,6 +604,7 @@ def run_nodestats(  # noqa: C901
                 for plot_name, image_value in nodestats_full_images.items():
                     Images(
                         image,
+                        filename=f"{filename}_{direction}_{plot_name}",
                         masked_array=image_value,
                         output_dir=tracing_out_path / direction,
                         **plotting_config["plot_dict"][plot_name],
@@ -943,7 +944,7 @@ def run_curvature_stats(
     curvature_config: dict,
     plotting_config: dict,
     grainstats_df: pd.DataFrame,
-) -> dict | None:
+) -> tuple[dict | None, pd.DataFrame]:
     """
     Calculate curvature statistics for the traced DNA molecules.
 
@@ -975,8 +976,8 @@ def run_curvature_stats(
 
     Returns
     -------
-    dict
-        Dictionary containing curvature statistics.
+    tuple[dict | None, pd.DataFrame]
+        A dictionary of curvature statistics objects and the updated grainstats dataframe.
     """
     if curvature_config["run"]:
         try:
@@ -985,7 +986,8 @@ def run_curvature_stats(
             all_directions_grains_curvature_stats_dict: dict = {}
             for direction in grain_trace_data.keys():
                 # Pass the traces to the curvature stats function
-                all_grain_curvature_stats = calculate_curvature_stats_image(
+                all_grain_curvature_stats, all_grain_curvature_stats_df = calculate_curvature_stats_image(
+                    filename=filename,
                     all_grain_smoothed_data=grain_trace_data[direction],
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
                 )
@@ -1014,9 +1016,8 @@ def run_curvature_stats(
                     colourmap_normalisation_bounds=curvature_config["colourmap_normalisation_bounds"],
                 )
 
-                all_grain_curvature_stats_df = all_grain_curvature_stats.create_grain_curvature_stats_dataframe()
+                # Merge curvature stats into grainstats dataframe
                 all_grain_curvature_stats_df["threshold"] = direction
-                # merge grainstats data with other dataframe
                 grainstats_df = pd.merge(
                     grainstats_df,
                     all_grain_curvature_stats_df,
@@ -1026,14 +1027,15 @@ def run_curvature_stats(
 
                 all_directions_grains_curvature_stats_dict[direction] = all_grain_curvature_stats
 
-            return all_directions_grains_curvature_stats_dict
+            return all_directions_grains_curvature_stats_dict, grainstats_df
         except Exception as e:
             LOGGER.error(
-                f"[{filename}] : Splining failed - skipping. Consider raising an issue on GitHub. Error: ", exc_info=e
+                f"[{filename}] : Curvature stats failed - skipping. Consider raising an issue on GitHub. Error: ",
+                exc_info=e,
             )
-            return None
+            return None, grainstats_df
     LOGGER.info(f"[{filename}] : Calculation of Curvature Stats disabled, returning None.")
-    return None
+    return None, grainstats_df
 
 
 def get_out_paths(
@@ -1250,7 +1252,7 @@ def process_scan(
         topostats_object["splining"] = splined_data
 
         # Curvature Stats
-        grain_curvature_stats_dict = run_curvature_stats(
+        grain_curvature_stats_dict, grainstats_df = run_curvature_stats(
             image=topostats_object["image"],
             cropped_image_data=topostats_object["disordered_traces"],
             grain_trace_data=topostats_object["splining"],
@@ -1260,6 +1262,7 @@ def process_scan(
             tracing_out_path=tracing_out_path,
             curvature_config=curvature_config,
             plotting_config=plotting_config,
+            grainstats_df=grainstats_df,
         )
 
         topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
