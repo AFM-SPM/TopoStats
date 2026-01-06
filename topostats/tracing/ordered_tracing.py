@@ -902,22 +902,15 @@ def ordered_tracing_image(
                     f"[{topostats_object.filename}] : Grain {grain_no} does not have a disordered trace "
                     "skipping orderering."
                 )
-                # remap the cropped images back onto the original
-                for image_name, full_image in ordered_trace_full_images.items():
-                    crop = grain_crop.ordered_trace.images[image_name]
-                    full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
-
+            # remap the cropped images back onto the original
+            for image_name, full_image in ordered_trace_full_images.items():
+                crop = grain_crop.ordered_trace.images[image_name]
+                full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
             # Add the ordered_trace_full_image to topostats_object.full_image_plots
             if topostats_object.full_image_plots is None:
                 topostats_object.full_image_plots = ordered_trace_full_images
             elif isinstance(topostats_object.full_image_plots, dict):
                 topostats_object.full_image_plots = {**topostats_object.full_image_plots, **ordered_trace_full_images}
-
-            topostats_object.grain_crops[grain_no].grain_number = grain_no
-            # ns-rse 2025-12-18 store the threshold value here (may be a dictionary from which we would have to extract
-            # the value that applies to this grain)
-            # topostats_object.grain_crops[grain_no].threshold = direction
-
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
                 f"[{topostats_object.filename}] : Ordered tracing for {grain_no} failed. "

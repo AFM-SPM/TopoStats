@@ -49,8 +49,6 @@ class GrainCrop:
         Filename of the image from which the crop was taken.
     threshold : str
         Direction of the molecule from the threshold (above / below).
-    grain_number : int
-        Index of the grain.
     skeleton : npt.NDArray[np.bool_]
         3-D Numpy tensor of the skeletonised mask.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
@@ -67,7 +65,7 @@ class GrainCrop:
         Threshold method used to find grains.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-locals
         self,
         image: npt.NDArray[np.float32],
         mask: npt.NDArray[np.bool_],
@@ -77,7 +75,6 @@ class GrainCrop:
         thresholds: list[float],
         filename: str,
         threshold: str | None = None,
-        grain_number: int | None = None,
         skeleton: npt.NDArray[np.bool_] | None = None,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
@@ -107,8 +104,6 @@ class GrainCrop:
             Filename of the image from which the crop was taken.
         threshold : str
             Direction of the molecule from the threshold (above / below).
-        grain_number : int
-            Index of the grain.
         skeleton : npt.NDArray[np.bool_]
             3-D Numpy tensor of the skeletonised mask.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
@@ -134,7 +129,6 @@ class GrainCrop:
         self.thresholds = thresholds
         self.filename = filename
         self.threshold: str | None = threshold
-        self.grain_number: int | None = grain_number
         self.height_profiles = height_profiles
         self.stats = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
@@ -1155,7 +1149,7 @@ class Molecule:
             f"topology : {self.topology}\n"
             f"topology flip : {self.topology_flip}\n"
             f"number of ordered coords : {self.ordered_coords.shape}\n"
-            f"number of spline coords : {self.spline_coords}\n"
+            f"number of spline coords : {self.splined_coords}\n"
             f"contour length : {self.contour_length}\n"
             f"end to end distance : {self.end_to_end_distance}\n"
             f"bounding box coords : {self.bbox}"
