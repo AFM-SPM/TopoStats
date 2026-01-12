@@ -629,9 +629,9 @@ def run_ordered_tracing(  # noqa: C901
     )
     plotting_config = topostats_object.config["plotting"] if plotting_config is None else plotting_config
     tracing_out_path = (
-        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "ordered_tracing"
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "ordered"
         if tracing_out_path is None
-        else tracing_out_path / "ordered_tracing"
+        else tracing_out_path / "ordered"
     )
     if ordered_tracing_config["run"]:
         ordered_tracing_config.pop("run")
@@ -1137,6 +1137,12 @@ def process_scan(
                         basename=topostats_object.img_path,
                     )
                 )
+    for grain_number, _ in matched_branch_stats.items():
+        print(f"\n{grain_number=}\n")
+        for node_number, _ in matched_branch_stats[grain_number].items():
+            print(f"\n{node_number=}\n")
+            for branch_number, _ in matched_branch_stats[node_number].items():
+                print(f"\n{branch_number=}\n")
     matched_branch_df = pd.DataFrame.from_dict(
         {
             (grain_number, node_number, branch_number): matched_branch_stats[grain_number][node_number][branch_number]

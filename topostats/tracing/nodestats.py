@@ -111,7 +111,7 @@ class nodeStats:
         self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
         self.pair_odd_branches = pair_odd_branches
-        self.conv_skeleton = np.zeros_like(self.skeleton)
+        self.convolved_skeleton = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = np.zeros_like(self.skeleton)
         self.whole_skel_graph: nx.classes.graph.Graph | None = None
@@ -143,20 +143,22 @@ class nodeStats:
             Dictionary of images.
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
-        self.conv_skeleton = convolve_skeleton(self.skeleton)
-        if len(self.conv_skeleton[self.conv_skeleton == 3]) != 0:  # check if any nodes
+        self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
+        if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
-            # self.conv_skeleton = self.tidy_branches(self.conv_skeleton, self.image)
+            # self.grain_crop.convolved_skeleton = self.tidy_branches(self.grain_crop.convolved_skeleton, self.image)
             # reset skeleton var as tidy branches may have modified it
-            self.skeleton = np.where(self.conv_skeleton != 0, 1, 0)
+            self.skeleton = np.where(self.grain_crop.convolved_skeleton != 0, 1, 0)
             # self.image_dict["grain"]["grain_skeleton"] = self.skeleton
             self.grain_crop.skeleton = self.skeleton
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
-            self.connected_nodes = self.connect_close_nodes(self.conv_skeleton, node_width=self.node_joining_length)
+            self.connected_nodes = self.connect_close_nodes(
+                self.grain_crop.convolved_skeleton, node_width=self.node_joining_length
+            )
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
                 self.connected_nodes, node_extend_dist=self.node_extend_dist
@@ -1772,7 +1774,8 @@ def nodestats_image(
 
                     # compile images
                     nodestats_images = {
-                        "convolved_skeletons": nodestats.conv_skeleton,
+                        # "convolved_skeletons": nodestats.convolved_skeleton,
+                        "convolved_skeletons": grain_crop.convolved_skeleton,
                         "node_centres": nodestats.node_centre_mask,
                         "connected_nodes": nodestats.connected_nodes,
                     }

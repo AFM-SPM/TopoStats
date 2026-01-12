@@ -51,6 +51,8 @@ class GrainCrop:
         Direction of the molecule from the threshold (above / below).
     skeleton : npt.NDArray[np.bool_]
         3-D Numpy tensor of the skeletonised mask.
+    convolved_skeleton : npt.NDArray[np.int32] | None = None
+        2-D Numpy array of the convolved skeleton.
     height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
         Nested dictionary  height profiles.
     stats : dict[int, dict[int, Any]] | None
@@ -76,6 +78,7 @@ class GrainCrop:
         filename: str,
         threshold: str | None = None,
         skeleton: npt.NDArray[np.bool_] | None = None,
+        convolved_skeleton: npt.NDArray[np.int32] | None = None,
         height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
         disordered_trace: DisorderedTrace | None = None,
@@ -106,6 +109,8 @@ class GrainCrop:
             Direction of the molecule from the threshold (above / below).
         skeleton : npt.NDArray[np.bool_]
             3-D Numpy tensor of the skeletonised mask.
+        convolved_skeleton : npt.NDArray[np.int32] | None = None
+            2-D Numpy array of the convolved skeleton.
         height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
         stats : dict[str, int | float] | None
@@ -132,6 +137,7 @@ class GrainCrop:
         self.height_profiles = height_profiles
         self.stats = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
+        self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
         self.nodes: dict[int, Node] | None = nodes
         self.ordered_trace: OrderedTrace | None = ordered_trace
@@ -162,6 +168,8 @@ class GrainCrop:
             and self.thresholds == other.thresholds
             and self.filename == other.filename
             and self.stats == other.stats
+            and self.skeleton == other.skeleton
+            and self.convolved_skeleton == other.convolved_skeleton
             and self.height_profiles == other.height_profiles
             and self.disordered_trace == other.disordered_trace
             and np.array_equal(self.skeleton, other.skeleton)

@@ -44,8 +44,11 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             raise AttributeError(f"Node statistics do not exist for a grain within {grain_crop.filename}.")
         self.nodestats_dict: dict[str, Node] = grain_crop.nodes
         self.filename: str = grain_crop.filename
-        self.pruned_skeleton: npt.NDArray = grain_crop.disordered_trace.images["pruned_skeleton"]
-
+        self.pruned_skeleton: npt.NDArray = grain_crop.skeleton
+        # ns-rse 2026-01-12 Above works but in doing so during NodeStats the `grain_crop.skeleton` was updated, have
+        # tried using convolved skeleton as per below which is what `grain_crop.skeleton` is set to but without success,
+        # insufficient time to fix this.
+        # self.pruned_skeleton: npt.NDArray = np.where(grain_crop.convolved_skeleton != 0, 1, 0)
         self.grain_tracing_stats = {
             "num_mols": 0,
             "circular": None,
@@ -94,7 +97,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             for stats in self.nodestats_dict.values()
         ]
         crossing_coords = [lst for lst in crossing_coords if lst]
-
         fwhms = [
             [branch_stats.fwhm for branch_stats in stats.branch_stats.values() if branch_stats.fwhm]
             for stats in self.nodestats_dict.values()
@@ -120,7 +122,6 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             for crossing in crossings:
                 minus[crossing[:, 0], crossing[:, 1]] = 0
         minus = label(minus)
-
         # order minus segments
         z = []
         ordered = []
@@ -160,9 +161,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         for i, coords in enumerate(ordered):
             single_cross_img = coords_2_img(np.array(coords), cross_add)
             cross_add[single_cross_img != 0] = i + 1
-
         coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
-
         # obtain topology from the simple trace
         topology = self.get_topology(simple_trace)
         if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
@@ -648,7 +647,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         self.grain_tracing_stats["writhe_string"] = writhe_string
         for node_num, node_writhes in node_to_writhes.items():  # should self update as the dicts are linked
             self.nodestats_dict[node_num].writhe = node_writhes
-
+        # ns-rse 2026-01-06 - This appears to be used to determine the "topology flip" as it is the second call to
+        # compile_trace() but this time has reverse_min_conf_crossing=True and _only_ uses the returned topology. For
+        # each molecule this is stored along with the original
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
         molecule_data = {}
@@ -882,21 +883,22 @@ def ordered_tracing_image(
                 len(grain_crop.nodes) > 0
                 and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
             ):
-                LOGGER.debug(
+                LOGGER.info(
                     f"[{topostats_object.filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats."
                 )
                 nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
+
                 if nodestats_tracing.check_node_errorless():
                     grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
-                    LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
+                    LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no}")
+                    LOGGER.info(f"Nodestats dict has an error for grain : ({grain_no}")
             # if not doing nodestats ordering, do original TS ordering
             elif grain_crop.disordered_trace is not None:
-                LOGGER.debug(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
+                LOGGER.info(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
                 topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
                 grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
-                LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
+                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
             else:
                 LOGGER.info(
                     f"[{topostats_object.filename}] : Grain {grain_no} does not have a disordered trace "
