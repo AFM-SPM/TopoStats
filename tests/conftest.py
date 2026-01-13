@@ -504,8 +504,8 @@ def dummy_molecule() -> Molecule:
         processing="topostats",
         topology="a",
         topology_flip="maybe",
-        ordered_coords=np.array(4),
-        splined_coords=np.array(4),
+        ordered_coords=np.array([[0, 1], [2, 3], [4, 5], [6, 7]]),
+        splined_coords=np.array([[0, 1], [2, 3], [4, 5], [6, 7]]),
         contour_length=1.023e-7,
         end_to_end_distance=0.3456e-7,
         heights=np.array(4),
@@ -561,7 +561,6 @@ def dummy_graincrop(
     )
     return GrainCrop(
         threshold="above",
-        grain_number=0,
         image=image,
         mask=mask,
         padding=2,
@@ -602,7 +601,6 @@ def graincrop_catenanes_0(
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_0.npy")
     return GrainCrop(
         threshold="above",
-        grain_number=0,
         image=image,
         mask=mask,
         padding=1,
@@ -631,7 +629,6 @@ def graincrop_catenanes_1(
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_catenanes_mask_1.npy")
     return GrainCrop(
         threshold="above",
-        grain_number=1,
         image=image,
         mask=mask,
         padding=1,
@@ -699,7 +696,6 @@ def graincrop_rep_int_0(
     mask: npt.NDArray[bool] = np.load(GRAINCROP_DIR / "example_rep_int_mask_0.npy")
     return GrainCrop(
         threshold="above",
-        grain_number=0,
         image=image,
         mask=mask,
         padding=1,

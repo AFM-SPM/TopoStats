@@ -16,7 +16,6 @@ from topostats.classes import (
     TopoStats,
     UnMatchedBranch,
     convert_to_dict,
-    prepare_data_for_df,
 )
 
 BASE_DIR = Path.cwd()
@@ -37,11 +36,11 @@ def test_molecule_str(dummy_molecule: Molecule) -> None:
         "circular : True\n"
         "topology : a\n"
         "topology flip : maybe\n"
-        "number of ordered coords : ()\n"
-        "number of spline coords : None\n"
-        "contour length : None\n"
-        "end to end distance : None\n"
-        "bounding box coords : None"
+        "number of ordered coords : 4\n"
+        "number of spline coords : 4\n"
+        "contour length : 1.023e-07\n"
+        "end to end distance : 3.456e-08\n"
+        "bounding box coords : (1, 2, 3, 4)"
     )
     assert str(dummy_molecule) == expected
 
@@ -53,7 +52,7 @@ def test_molecule_collate_molecule_statistics(dummy_molecule: Molecule, snapshot
     assert molecule_statistics == snapshot
 
 
-def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.CaptureFixture) -> None:
+def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
     """Test the OrderedTrace.str() method."""
     expected = (
         "number of molecules : 2\nnumber of images : 4\nwrithe : negative\npixel to nm scaling : 1.0\nerror : True"
@@ -61,7 +60,7 @@ def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace, capsys: pytest.Cap
     assert str(dummy_ordered_trace) == expected
 
 
-def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
+def test_node_str(dummy_node: Node) -> None:
     """Test the Node.__str__() method."""
     expected = (
         "error : False\n"
@@ -75,7 +74,7 @@ def test_node_str(dummy_node: Node, capsys: pytest.CaptureFixture) -> None:
     assert str(dummy_node) == expected
 
 
-def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.CaptureFixture) -> None:
+def test_matched_branch_str(dummy_matched_branch: MatchedBranch) -> None:
     """Test the MatchedBranch.__str__() method."""
     expected = (
         "number of coords : 4\n"
@@ -87,13 +86,13 @@ def test_matched_branch_str(dummy_matched_branch: MatchedBranch, capsys: pytest.
     assert str(dummy_matched_branch) == expected
 
 
-def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch, capsys: pytest.CaptureFixture) -> None:
+def test_unmatched_branch_str(dummy_unmatched_branch: UnMatchedBranch) -> None:
     """Test the UnMatchedBranch.__str__() method."""
     expected = "angles : [143.163, 69.234, 12.465]"
     assert str(dummy_unmatched_branch) == expected
 
 
-def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace, capsys: pytest.CaptureFixture) -> None:
+def test_disordered_trace_str(dummy_disordered_trace: DisorderedTrace) -> None:
     """Test the DisorderedTrace.__str__() method."""
     expected = (
         "generated images : pruned_skeleton, skeleton, smoothed_mask, branch_indexes, branch_types\n"
@@ -111,7 +110,7 @@ def test_grain_crop_debug_locate_difference() -> None:
     """Test the GrainCrop.debug_locate_difference() method."""
 
 
-def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixture) -> None:
+def test_grain_crop_str(dummy_graincrop: GrainCrop) -> None:
     """Test the GrainCrop.__str__() method."""
     expected = (
         "filename : dummy\n"
@@ -130,8 +129,8 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixtur
 
 @pytest.mark.parametrize(
     (
-        "topostats_object",
-        "grain_crops",
+        "topostats_object_fixture",
+        "grain_crops_fixture",
         "filename",
         "pixel_to_nm_scaling",
         "topostats_version",
@@ -147,7 +146,7 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixtur
             0.488,
             "2.4.0",
             str(GRAINCROP_DIR),
-            rng.random((10, 10)),
+            rng.random((400, 400)),
             "tests/resources",
             id="catenane v2.4.0",
         ),
@@ -158,15 +157,15 @@ def test_grain_crop_str(dummy_graincrop: GrainCrop, capsys: pytest.CaptureFixtur
             0.488,
             "2.4.0",
             str(GRAINCROP_DIR),
-            rng.random((10, 10)),
+            rng.random((350, 350)),
             "tests/resources",
             id="rep_int v2.4.0",
         ),
     ],
 )
 def test_topostats_str(
-    topostats_object: str,
-    grain_crops: str,
+    topostats_object_fixture: str,
+    grain_crops_fixture: str,
     filename: str,
     pixel_to_nm_scaling: float,
     topostats_version: str,
@@ -174,23 +173,20 @@ def test_topostats_str(
     image: npt.NDArray | None,
     basename: str,
     request,
-    capsys: pytest.CaptureFixture,
 ) -> None:
     """Test the TopoStats.__str__ method."""
-    topostats_object = request.getfixturevalue(topostats_object)
-    expected = {
-        "filename": topostats_object.filename,
-        "grain_crops": topostats_object.grain_crops,
-        "pixel_to_nm_scaling": topostats_object.pixel_to_nm_scaling,
-        "img_path": img_path,
-        "image": topostats_object.image,
-        "image_original": topostats_object.image_original,
-        "full_mask_tensor": topostats_object.full_mask_tensor,
-        "topostats_version": topostats_object.topostats_version,
-        "config": topostats_object.config,
-        "full_image_plots": topostats_object.full_image_plots,
-    }
-    assert topostats_object.topostats_to_dict() == expected
+    topostats_object = request.getfixturevalue(topostats_object_fixture)
+    grain_crops = request.getfixturevalue(grain_crops_fixture)
+    expected = (
+        f"number of grain crops : {len(grain_crops)}\n"
+        f"filename : {filename}\n"
+        f"pixel to nm scaling : {pixel_to_nm_scaling}\n"
+        f"image shape (px) : {image.shape}\n"
+        f"image path : {img_path}\n"
+        f"TopoStats version : {topostats_version}\n"
+        f"Basename : {basename}"
+    )
+    assert str(topostats_object) == expected
 
 
 topostats_test_data = [
