@@ -12,8 +12,10 @@ RESOURCES = BASE_DIR / "tests" / "resources"
 
 def test_grainstats_regression(minicircle_grainstats: GrainStats, snapshot) -> None:
     """Regression tests for grainstats."""
-    statistics, _height_profiles = minicircle_grainstats.calculate_stats()
-    assert statistics.to_string() == snapshot
+    minicircle_grainstats.calculate_stats()
+    stats = {grain_number: grain_crop.stats for grain_number, grain_crop in minicircle_grainstats.grain_crops.items()}
+
+    assert stats == snapshot
 
 
 TARGET_HEIGHTS = [
@@ -105,7 +107,11 @@ TARGET_HEIGHTS = [
 def test_trace_extract_height_profile(minicircle_grainstats: GrainStats) -> None:
     """Test extraction of height profiles of minicircle.spm."""
     minicircle_grainstats.extract_height_profile = True
-    _statistics, height_profiles = minicircle_grainstats.calculate_stats()
+    minicircle_grainstats.calculate_stats()
+    height_profiles = {
+        grain_number: grain_crop.height_profiles
+        for grain_number, grain_crop in minicircle_grainstats.grain_crops.items()
+    }
     assert isinstance(height_profiles, dict)
     assert len(height_profiles) == 3
     for grain_index, grain_height_data in height_profiles.items():

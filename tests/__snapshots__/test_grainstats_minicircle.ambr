@@ -1,9 +1,80 @@
 # serializer version: 1
 # name: test_grainstats_regression
-  '''
-     grain_number  class_number  subgrain_number      centre_x      centre_y    radius_min    radius_max   radius_mean  radius_median    height_min    height_max  height_median   height_mean        volume          area  area_cartesian_bbox  smallest_bounding_width  smallest_bounding_length  smallest_bounding_area  aspect_ratio     max_feret     min_feret image
-  0             0             1                0  8.727385e-08  3.548872e-08  4.044948e-09  2.542964e-08  1.600048e-08   1.647888e-08  1.006306e-09  2.696640e-09   1.597337e-09  1.596062e-09  1.084371e-24  6.794043e-16         1.319762e-15             2.053897e-08              5.037861e-08            1.034725e-15      0.407692  5.037861e-08  2.053897e-08  None
-  1             1             1                0  8.685641e-08  7.238244e-08  6.658610e-09  2.623645e-08  1.609777e-08   1.573693e-08  1.009513e-09  2.480685e-09   1.668932e-09  1.683197e-09  1.031843e-24  6.130257e-16         1.526707e-15             2.017441e-08              4.942135e-08            9.970467e-16      0.408213  4.987228e-08  2.017441e-08  None
-  2             2             1                0  3.831267e-08  7.755846e-08  9.745734e-09  2.369314e-08  1.746942e-08   1.818722e-08  1.006681e-09  2.139365e-09   1.646541e-09  1.598842e-09  1.123717e-24  7.028320e-16         1.546230e-15             3.359220e-08              4.149625e-08            1.393950e-15      0.809524  4.440534e-08  3.176819e-08  None
-  '''
+  dict({
+    0: dict({
+      1: dict({
+        0: dict({
+          'area': np.float64(6.794042823988953e-16),
+          'area_cartesian_bbox': np.float64(1.3197623416714173e-15),
+          'aspect_ratio': np.float64(0.4076923076923078),
+          'centre_x': np.float64(8.727385091145833e-08),
+          'centre_y': np.float64(3.548871621318247e-08),
+          'height_max': np.float64(2.6966403693737797e-09),
+          'height_mean': np.float64(1.5960620537765677e-09),
+          'height_median': np.float64(1.597337289415788e-09),
+          'height_min': np.float64(1.0063055672969273e-09),
+          'max_feret': 5.037861156497134e-08,
+          'min_feret': np.float64(2.0538972407257548e-08),
+          'radius_max': np.float64(2.5429635845905427e-08),
+          'radius_mean': 1.600048417285083e-08,
+          'radius_median': 1.6478875961204126e-08,
+          'radius_min': np.float64(4.044947517579328e-09),
+          'smallest_bounding_area': np.float64(1.0347249128488926e-15),
+          'smallest_bounding_length': np.float64(5.037861156497134e-08),
+          'smallest_bounding_width': np.float64(2.053897240725755e-08),
+          'volume': np.float64(1.0843713943101761e-24),
+        }),
+      }),
+    }),
+    1: dict({
+      1: dict({
+        0: dict({
+          'area': np.float64(6.130257030840608e-16),
+          'area_cartesian_bbox': np.float64(1.5267073242411959e-15),
+          'aspect_ratio': np.float64(0.40821256038647347),
+          'centre_x': np.float64(8.685641319167995e-08),
+          'centre_y': np.float64(7.238244200338376e-08),
+          'height_max': np.float64(2.4806848192310903e-09),
+          'height_mean': np.float64(1.683196741718805e-09),
+          'height_median': np.float64(1.6689321332307633e-09),
+          'height_min': np.float64(1.0095130506696926e-09),
+          'max_feret': 4.987228101009597e-08,
+          'min_feret': np.float64(2.0174414477997966e-08),
+          'radius_max': np.float64(2.6236445295131806e-08),
+          'radius_mean': 1.6097765578533344e-08,
+          'radius_median': 1.573693155346677e-08,
+          'radius_min': np.float64(6.658609629450745e-09),
+          'smallest_bounding_area': np.float64(9.970467325765817e-16),
+          'smallest_bounding_length': np.float64(4.942134670941513e-08),
+          'smallest_bounding_width': np.float64(2.0174414477997966e-08),
+          'volume': np.float64(1.0318428660209707e-24),
+        }),
+      }),
+    }),
+    2: dict({
+      1: dict({
+        0: dict({
+          'area': np.float64(7.028320162747193e-16),
+          'area_cartesian_bbox': np.float64(1.5462304358043825e-15),
+          'aspect_ratio': np.float64(0.8095238095238095),
+          'centre_x': np.float64(3.831267165798612e-08),
+          'centre_y': np.float64(7.75584599609375e-08),
+          'height_max': np.float64(2.1393647321684934e-09),
+          'height_mean': np.float64(1.598841843887766e-09),
+          'height_median': np.float64(1.646540977554778e-09),
+          'height_min': np.float64(1.0066805762900778e-09),
+          'max_feret': 4.4405340533339585e-08,
+          'min_feret': np.float64(3.176818840144231e-08),
+          'radius_max': np.float64(2.3693137784769646e-08),
+          'radius_mean': 1.7469424613133592e-08,
+          'radius_median': 1.8187224587073845e-08,
+          'radius_min': np.float64(9.745734204754988e-09),
+          'smallest_bounding_area': np.float64(1.3939501656115266e-15),
+          'smallest_bounding_length': np.float64(4.149624609375e-08),
+          'smallest_bounding_width': np.float64(3.359219921875e-08),
+          'volume': np.float64(1.1237172368440285e-24),
+        }),
+      }),
+    }),
+  })
 # ---
