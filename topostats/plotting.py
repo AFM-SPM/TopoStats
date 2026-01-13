@@ -91,7 +91,7 @@ class TopoSum:
         palette: str = "deep",
         savefig_format: str = "png",
         output_dir: str | Path = ".",
-        var_to_label: dict = None,
+        var_to_label: dict | None = None,
         hue: str = "basename",
     ) -> None:
         """

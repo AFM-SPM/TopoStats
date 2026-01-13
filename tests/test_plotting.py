@@ -78,7 +78,7 @@ def test_args_input_csv() -> None:
     ("var", "expected_label"),
     [
         ("total_contour_length", "Total Contour Length"),
-        ("average_end_to_end_distance", "Average End to End Distance"),
+        ("mean_end_to_end_distance", "Mean End to End Distance"),
         ("grain_bound_len", "Circumference"),
         ("grain_curvature1", "Smaller Curvature"),
     ],
