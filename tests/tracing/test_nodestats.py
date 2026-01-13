@@ -70,7 +70,7 @@ def test_connect_extended_nodes() -> None:
 
 
 @pytest.mark.parametrize(
-    ("connected_nodes", "expected_nodes"),
+    ("connected_nodes", "pruned_skeleton", "expected_nodes"),
     [
         pytest.param(
             np.array(
@@ -83,6 +83,24 @@ def test_connect_extended_nodes() -> None:
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
@@ -139,6 +157,24 @@ def test_connect_extended_nodes() -> None:
                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
                     [0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                    [0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+                    [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
                     [0, 1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0],
                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
                     [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
@@ -153,7 +189,9 @@ def test_connect_extended_nodes() -> None:
     ],
 )
 def test_connect_extended_nodes_nearest(
-    connected_nodes: npt.NDArray[np.number], expected_nodes: npt.NDArray[np.number]
+    connected_nodes: npt.NDArray[np.int32],
+    pruned_skeleton: npt.NDArray[np.int32],
+    expected_nodes: npt.NDArray[np.number],
 ) -> None:
     """Test of nodeStats.connect_extended_nodes_nearest() method of nodeStats class."""
     grain_crop = GrainCrop(
@@ -165,11 +203,13 @@ def test_connect_extended_nodes_nearest(
         pixel_to_nm_scaling=1,
         padding=1,
         bbox=(0, 0, 10, 10),
-        thresholds=None,
+        thresholds=[0.1],
+        threshold=None,
         disordered_trace=DisorderedTrace(
             images={
                 "skeleton": connected_nodes.astype(bool),
                 "smoothed_mask": np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+                "pruned_skeleton": pruned_skeleton,
             }
         ),
     )
@@ -370,8 +410,6 @@ def test_analyse_node_branches(
         filename=filename,
         resolution_threshold=resolution_threshold,
     )
-
-    # ns-rse : Could potentially replace the `expected_` with == snapshot ?
     np.testing.assert_equal(result_pairs, expected_pairs)
     np.testing.assert_equal(result_branch_idx_order, expected_branch_under_over_order)
     np.testing.assert_almost_equal(result_conf, expected_conf, decimal=6)
@@ -916,9 +954,3 @@ def test_nodestats_image(
     # connected_nodes = result_all_images["connected_nodes"]
 
     assert topostats_object.grain_crops[0].nodes == snapshot
-    # ns-rse 2025-12-12 Update these when we extract pandas dataframes
-    # ns-rse: syrupy doesn't yet support Pandas DataFrames so we convert to string
-    #         https://github.com/syrupy-project/syrupy/issues/887
-    # assert result_nodestats_grainstats.to_string() == snapshot
-    # assert result_nodestats_all_images == snapshot
-    # assert result_nodestats_branch_images == snapshot
