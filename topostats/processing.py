@@ -1123,39 +1123,23 @@ def process_scan(
         },
         orient="index",
     )
-
     # Matched Branch Statistics
-    matched_branch_stats = {}
-    for grain_number, grain_crop in topostats_object.grain_crops.items():
-        matched_branch_stats[grain_number] = {}
-        for node_number, node in grain_crop.nodes.items():
-            matched_branch_stats[grain_number][node_number] = {}
-            for branch_number, matched_branch in node.branch_stats.items():
-                matched_branch_stats[grain_number][node_number][branch_number] = (
-                    matched_branch.collate_branch_statistics(
-                        image=topostats_object.filename,
-                        basename=topostats_object.img_path,
-                    )
-                )
-    for grain_number, _ in matched_branch_stats.items():
-        print(f"\n{grain_number=}\n")
-        for node_number, _ in matched_branch_stats[grain_number].items():
-            print(f"\n{node_number=}\n")
-            for branch_number, _ in matched_branch_stats[node_number].items():
-                print(f"\n{branch_number=}\n")
     matched_branch_df = pd.DataFrame.from_dict(
-        {
-            (grain_number, node_number, branch_number): matched_branch_stats[grain_number][node_number][branch_number]
-            for grain_number, _ in matched_branch_stats.items()
-            for node_number, _ in matched_branch_stats[grain_number].items()
-            for branch_number, _ in matched_branch_stats[node_number].items()
+        data={
+            (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
+                image=topostats_object.filename,
+                basename=topostats_object.img_path,
+            )
+            for grain_number, grain_crop in topostats_object.grain_crops.items()
+            if len(grain_crop.nodes) > 0
+            for node_number, node in grain_crop.nodes.items()
+            if len(node.branch_stats) > 0
+            for branch_number, matched_branch in node.branch_stats.items()
         },
         orient="index",
     )
     # Grain Statistics
-    grain_stats = {}
-    for grain_number, grain_crop in topostats_object.grain_crops.items():
-        grain_stats[grain_number] = grain_crop.stats
+    grain_stats = {grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()}
     grain_stats_df = pd.DataFrame.from_dict(
         {
             (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
@@ -1168,8 +1152,7 @@ def process_scan(
     grain_stats_df["image"] = topostats_object.filename
     grain_stats_df["basename"] = topostats_object.img_path
     grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
-
-    # Save the topostats dictionary object to .topostats file.
+    # Save the topostats object to .topostats file.
     save_topostats_file(
         output_dir=core_out_path,
         filename=str(topostats_object.filename),

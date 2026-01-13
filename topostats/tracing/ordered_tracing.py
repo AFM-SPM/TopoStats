@@ -884,24 +884,24 @@ def ordered_tracing_image(
                 and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
             ):
                 LOGGER.info(
-                    f"[{topostats_object.filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats."
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} present in NodeStats. Tracing via Nodestats."
                 )
                 nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
 
                 if nodestats_tracing.check_node_errorless():
                     grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
-                    LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no} ordered via NodeStats.")
+                    LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
                 else:
-                    LOGGER.info(f"Nodestats dict has an error for grain : ({grain_no}")
+                    LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")
             # if not doing nodestats ordering, do original TS ordering
             elif grain_crop.disordered_trace is not None:
-                LOGGER.info(f"[{topostats_object.filename}] : {grain_no} not in NodeStats. Tracing normally.")
+                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. Tracing normally.")
                 topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
                 grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
-                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no} ordered via TopoStats.")
+                LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
             else:
-                LOGGER.info(
-                    f"[{topostats_object.filename}] : Grain {grain_no} does not have a disordered trace "
+                LOGGER.debug(
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
                     "skipping orderering."
                 )
             # remap the cropped images back onto the original
