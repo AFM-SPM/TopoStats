@@ -4,6 +4,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import h5py
 import numpy as np
@@ -267,15 +268,15 @@ def test_dict_almost_equal(dict1: dict, dict2: dict, tolerance: float, expected:
             id="list equal within tolerance",
         ),
         pytest.param(
-            [[1, 2],[2, 3]],
-            [[1, 2],[2, 3]],
+            [[1, 2], [2, 3]],
+            [[1, 2], [2, 3]],
             0.00001,
             True,
             id="lists equal: nested lists",
         ),
         pytest.param(
-            [[1, 2],[2, 3]],
-            [[1, 2, 3],[2, 3]],
+            [[1, 2], [2, 3]],
+            [[1, 2, 3], [2, 3]],
             0.00001,
             False,
             id="lists not equal: nested lists",
@@ -644,9 +645,9 @@ def test_load_scan_top(load_scan_top: LoadScans) -> None:
         pytest.param("file_does_not_exist.topostats", "dummy_channel", id="non-existent .topostats"),
     ],
 )
-def test_get_data_file_not_found(non_existent_file: str, channel: str) -> None:
+def test_get_data_file_not_found(non_existent_file: str, channel: str, default_config: dict[str, Any]) -> None:
     """Test file not found exceptions are raised by .load_*() methods called by get_data()."""
-    load_scan = LoadScans([Path(non_existent_file)], channel=channel)
+    load_scan = LoadScans([Path(non_existent_file)], channel=channel, config=default_config)
     with pytest.raises(FileNotFoundError):
         load_scan.get_data()
 

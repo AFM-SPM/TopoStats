@@ -53,7 +53,7 @@ CHANNEL = "Height"
 
 
 @pytest.fixture()
-def default_config() -> dict:
+def default_config() -> dict[str, Any]:
     """Sample configuration."""
     config = read_yaml(BASE_DIR / "topostats" / "default_config.yaml")
     plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
