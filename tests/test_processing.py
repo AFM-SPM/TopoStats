@@ -39,7 +39,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
-    _, results, _, img_stats, _, _ = process_scan(
+    _, _, results, _, img_stats, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -101,7 +101,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     process_scan_config["plotting"]["savefig_dpi"] = 50
     img_dic = load_scan_data.img_dict
-    _, _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -118,16 +118,14 @@ def test_save_cropped_grains(
 
     assert (
         Path.exists(
-            tmp_path
-            / "tests/resources/test_image/processed/minicircle_small/grains/above"
-            / "minicircle_small_grain_0.png"
+            tmp_path / "tests/resources/test_image/processed/minicircle_small/grains/" / "minicircle_small_grain_0.png"
         )
         == expected
     )
     assert (
         Path.exists(
             tmp_path
-            / "tests/resources/test_image/processed/minicircle_small/grains/above"
+            / "tests/resources/test_image/processed/minicircle_small/grains/"
             / "minicircle_small_grain_mask_0_class_1.png"
         )
         == expected
@@ -166,7 +164,6 @@ def test_save_cropped_grains(
                 "splining": True,
             },
             id="all",
-            marks=pytest.mark.xfail(reason="No 26-node_centres.png at the very least."),
         ),
         pytest.param(
             ["filters"],
@@ -237,7 +234,6 @@ def test_save_cropped_grains(
                 "splining": False,
             },
             id="only nodestats",
-            marks=pytest.mark.xfail(reason="No 26-node_centres.png at the very least."),
         ),
         pytest.param(
             ["ordered_tracing"],
@@ -294,7 +290,6 @@ def test_save_cropped_grains(
                 "splining": False,
             },
             id="grains, nodestats, ordered_tracing",
-            marks=pytest.mark.xfail(reason="No 26-node_centres.png at the very least."),
         ),
         pytest.param(
             ["filters", "disordered_tracing", "splining"],
@@ -345,9 +340,9 @@ def test_image_set(
         "filters": "minicircle_small/filters/01-pixels.png",
         "grains": "minicircle_small/grains/24-area_thresholded_class_1.png",
         "grain_crop": "minicircle_small/grains/minicircle_small_grain_0.png",
-        "disordered_tracing": "minicircle_small/dnatracing/22-original_skeletons.png",
-        "nodestats": "minicircle_small/dnatracing/26-node_centres.png",
-        "ordered_tracing": "minicircle_small/dnatracing/28-molecule_crossings.png",
+        "disordered_tracing": "minicircle_small/dnatracing/disordered/22-original_skeletons.png",
+        "nodestats": "minicircle_small/dnatracing/nodes/26-node_centres.png",
+        "ordered_tracing": "minicircle_small/dnatracing/ordered/28-molecule_crossings.png",
         "splining": "minicircle_small/dnatracing/curvature/0_curvature.png",
     }
     for key, img_path in images.items():
@@ -364,7 +359,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
     img_dic = load_scan_data.img_dict
-    _, _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -381,7 +376,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
 
     guess = filetype.guess(
         tmp_path
-        / "tests/resources/test_image/processed/minicircle_small/grains/above"
+        / "tests/resources/test_image/processed/minicircle_small/grains/"
         / f"minicircle_small_grain_mask_0_class_1.{extension}"
     )
     assert guess.extension == extension
@@ -673,8 +668,8 @@ def test_check_run_steps(
             False,  # Ordered tracing
             False,  # Splining
             False,  # Curvature
-            "You have not included running the initial filter stage.",
-            "Please check your configuration file.",
+            "Your configuration disables running the initial filter stage.",
+            "Please correct your configuration file.",
             id="All stages are disabled",
         ),
         pytest.param(
@@ -699,7 +694,7 @@ def test_check_run_steps(
             False,  # Ordered tracing
             False,  # Splining
             False,  # Curvature
-            "Calculation of grainstats disabled, returning empty dataframe and empty height_profiles.",
+            "Calculation of grainstats disabled.",
             "",
             id="Filtering and Grain enabled",
         ),
@@ -713,7 +708,7 @@ def test_check_run_steps(
             False,  # Splining
             False,  # Curvature
             "Processing grain",
-            "Calculation of Disordered Tracing disabled, returning empty dictionary.",
+            "Disordered Tracing disabled.",
             id="Filtering, Grain and GrainStats enabled",
         ),
         pytest.param(
@@ -726,7 +721,7 @@ def test_check_run_steps(
             True,  # Splining
             False,  # Curvature
             "Processing grain",
-            "Calculation of Curvature Stats disabled, returning None.",
+            "Calculation of curvature statistics disabled.",
             id="All but curvature enabled",
         ),
         # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
@@ -773,7 +768,7 @@ def test_process_stages(
     process_scan_config["ordered_tracing"]["run"] = ordered_tracing_run
     process_scan_config["splining"]["run"] = splining_run
     process_scan_config["curvature"]["run"] = curvature_run
-    _, _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -787,7 +782,6 @@ def test_process_stages(
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-
     assert log_msg1 in caplog.text
     assert log_msg2 in caplog.text
 
@@ -797,7 +791,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     img_dic = load_scan_data.img_dict
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
-    _, _, _, _, _, _ = process_scan(
+    _, _, _, _, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -811,7 +805,7 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
         plotting_config=process_scan_config["plotting"],
         output_dir=tmp_path,
     )
-    assert "Grains found: 0 above, 0 below" in caplog.text
+    assert "Grains found 0" in caplog.text
     assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
@@ -1633,7 +1627,6 @@ def test_run_nodestats(  # noqa: C901
             # We only check the first grain
             if grain_crop.nodes is not None and grain == 0:
                 for node, nodestats in grain_crop.nodes.items():
-                    # print(f"\n{nodestats=}\n")
                     if node == 1:
                         assert nodestats.error == expected_nodes[grain][node]["error"]
                         assert nodestats.unmatched_branch_stats == expected_nodes[grain][node]["unmatched_branch_stats"]

@@ -841,7 +841,7 @@ class TopoStats:
             image=self.image,
             filename=self.filename,
             pixel_to_nm_scaling=self.pixel_to_nm_scaling,
-            n_grains=len(self.grain_crops),
+            n_grains=len(self.grain_crops) if self.grain_crops is not None and len(self.grain_crops) > 0 else 0,
         )
         return self.image_statistics
 

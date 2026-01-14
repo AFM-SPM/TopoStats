@@ -181,12 +181,15 @@ def run_grains(  # noqa: C901
                 **grains_config,
             )
             grains.find_grains()
-            LOGGER.info(
-                f"[{topostats_object.filename}] : Grain Finding stage completed."
-                f"Grains found : {len(topostats_object.grain_crops)}"
+            LOGGER.info(f"[{topostats_object.filename}] : Grain Finding stage completed.")
+            n_grains = (
+                0
+                if topostats_object.grain_crops is None or len(topostats_object.grain_crops)
+                else len(topostats_object.grain_crops)
             )
-            if len(topostats_object.grain_crops) == 0:
-                LOGGER.warning(f"[{topostats_object.filename}] : No grains found.")
+            LOGGER.info(f"[{topostats_object.filename}] Grains found : {n_grains}")
+            LOGGER.warning(f"[{topostats_object.filename}] : No grains found.")
+
         except Exception as e:
             LOGGER.error(
                 f"[{topostats_object.filename}] : An error occurred during grain finding, skipping following steps.",
@@ -588,15 +591,24 @@ def run_nodestats(  # noqa: C901
                                     tracing_out_path / f"grain_{grain_number}_node_{node_number}_linetrace_halfmax.png",
                                     format="png",
                                 )
+                for plot_name, image_value in topostats_object.full_image_plots.items():
+                    if plot_name in {"convolved_skeletons", "node_centres", "connected_nodes"}:
+                        Images(
+                            data=topostats_object.image,
+                            masked_array=image_value,
+                            output_dir=tracing_out_path,
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
+
                 LOGGER.info(f"[{topostats_object.filename}] : Nodestats plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting nodestats failed. Consider raising an issue on"
+                    f"[{topostats_object.filename}] : Plotting nodestats failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of nodestats disabled, returning empty dataframe.")
+    LOGGER.info(f"[{topostats_object.filename}] : Calculation of nodestats disabled.")
     return
 
 
@@ -722,6 +734,7 @@ def run_ordered_tracing(  # noqa: C901
                         exc_info=e,
                     )
         return
+    LOGGER.info(f"[{topostats_object.filename}] : Calculation of ordered tracing disabled.")
     return
 
 
@@ -792,6 +805,7 @@ def run_splining(
                         exc_info=e,
                     )
         return
+    LOGGER.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
     return
 
 
@@ -889,7 +903,7 @@ def run_curvature_stats(
                 )
             return
         return
-    LOGGER.info(f"[{topostats_object.filename}] : Calculation of Curvature Stats disabled, returning None.")
+    LOGGER.info(f"[{topostats_object.filename}] : Calculation of curvature statistics disabled.")
     return
 
 
@@ -1094,64 +1108,94 @@ def process_scan(
     # Image Statistics
     image_stats_df = pd.DataFrame([topostats_object.calculate_image_statistics()])
     image_stats_df.set_index("image", inplace=True)
-    molecule_stats = {}
-    disordered_tracing_stats = {}
     # Collate molecule and disordered tracing statistics
-    for grain_number, grain_crop in topostats_object.grain_crops.items():
-        molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
-        disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
-    # Molecule Statistics - restructure nested dictionary
-    molecule_stats_df = pd.DataFrame.from_dict(
-        {
-            (grain_number, molecule_number): molecule_stats[grain_number][molecule_number]
-            for grain_number, _ in molecule_stats.items()
-            for molecule_number, _ in molecule_stats[grain_number].items()
-        },
-        orient="index",
-    )
-    molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
-    molecule_stats_df.reset_index(inplace=True)
-    molecule_stats_df["image"] = topostats_object.filename
-    molecule_stats_df["basename"] = topostats_object.img_path
-
-    # Disordered Tracing Statistics
-    disordered_tracing_df = pd.DataFrame.from_dict(
-        {
-            (grain_number, index): disordered_tracing_stats[grain_number][index]
-            for grain_number, _ in disordered_tracing_stats.items()
-            for index, _ in disordered_tracing_stats[grain_number].items()
-        },
-        orient="index",
-    )
-    # Matched Branch Statistics
-    matched_branch_df = pd.DataFrame.from_dict(
-        data={
-            (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
-                image=topostats_object.filename,
-                basename=topostats_object.img_path,
+    if topostats_object.grain_crops is not None and len(topostats_object.grain_crops) > 0:
+        molecule_stats = {}
+        disordered_tracing_stats = {}
+        # Loop over grains pulling out...
+        #
+        # - tracing statistics from disordered traces
+        # - molecule statistics from ordered traces
+        #
+        # Saving to a dictionary which we then flatten
+        for grain_number, grain_crop in topostats_object.grain_crops.items():
+            if grain_crop.disordered_trace is not None:
+                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
+            if grain_crop.ordered_trace is not None:
+                molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
+        # Molecule Statistics - convert nested dictionary to DataFrame
+        if len(molecule_stats) > 0:
+            molecule_stats_df = pd.DataFrame.from_dict(
+                {
+                    (grain_number, molecule_number): molecule_stats[grain_number][molecule_number]
+                    for grain_number, _ in molecule_stats.items()
+                    for molecule_number, _ in molecule_stats[grain_number].items()
+                },
+                orient="index",
             )
-            for grain_number, grain_crop in topostats_object.grain_crops.items()
-            if len(grain_crop.nodes) > 0
-            for node_number, node in grain_crop.nodes.items()
-            if len(node.branch_stats) > 0
-            for branch_number, matched_branch in node.branch_stats.items()
-        },
-        orient="index",
-    )
-    # Grain Statistics
-    grain_stats = {grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()}
-    grain_stats_df = pd.DataFrame.from_dict(
-        {
-            (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
-            for grain_number, _ in grain_stats.items()
-            for class_type, _ in grain_stats[grain_number].items()
-            for subgrain_number, _ in grain_stats[grain_number][class_type].items()
-        },
-        orient="index",
-    )
-    grain_stats_df["image"] = topostats_object.filename
-    grain_stats_df["basename"] = topostats_object.img_path
-    grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
+            molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
+            molecule_stats_df.reset_index(inplace=True)
+            molecule_stats_df["image"] = topostats_object.filename
+            molecule_stats_df["basename"] = topostats_object.img_path
+        else:
+            molecule_stats_df = None
+        # Disordered Tracing Statistics - convert nested dictionary to dataframe
+        if len(disordered_tracing_stats) > 0:
+            disordered_tracing_df = pd.DataFrame.from_dict(
+                {
+                    (grain_number, index): disordered_tracing_stats[grain_number][index]
+                    for grain_number, _ in disordered_tracing_stats.items()
+                    for index, _ in disordered_tracing_stats[grain_number].items()
+                },
+                orient="index",
+            )
+        else:
+            disordered_tracing_df = None
+        # Matched Branch Statistics - If we have at least one node we can do this directly.
+        if grain_crop.nodes is not None and len(grain_crop.nodes) > 0:
+            matched_branch_df = pd.DataFrame.from_dict(
+                data={
+                    (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
+                        image=topostats_object.filename,
+                        basename=topostats_object.img_path,
+                    )
+                    for grain_number, grain_crop in topostats_object.grain_crops.items()
+                    if len(grain_crop.nodes) > 0
+                    for node_number, node in grain_crop.nodes.items()
+                    if len(node.branch_stats) > 0
+                    for branch_number, matched_branch in node.branch_stats.items()
+                },
+                orient="index",
+            )
+        else:
+            matched_branch_df = None
+        # Grain Statistics
+        grain_stats = {
+            grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
+        }
+        grain_stats_df = pd.DataFrame.from_dict(
+            {
+                (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
+                for grain_number, _ in grain_stats.items()
+                for class_type, _ in grain_stats[grain_number].items()
+                for subgrain_number, _ in grain_stats[grain_number][class_type].items()
+            },
+            orient="index",
+        )
+        if grain_stats_df.shape != (0, 0):
+            grain_stats_df["image"] = topostats_object.filename
+            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
+        else:
+            grain_stats_df = None
+    else:
+        LOGGER.warning(f"[{topostats_object.filename}] : No statistics to return.")
+        grain_stats_df = None
+        image_stats_df = None
+        disordered_tracing_df = None
+        matched_branch_df = None
+        molecule_stats_df = None
+
     # Save the topostats object to .topostats file.
     save_topostats_file(
         output_dir=core_out_path,

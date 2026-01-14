@@ -1203,6 +1203,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "nodestats",
         },
         "connected_nodes": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",

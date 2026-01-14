@@ -287,6 +287,7 @@ node_centres:
   savefig_dpi: 600
   module: "nodestats"
 connected_nodes:
+  filename: "27-connected_nodes"
   title: "Skeletons and Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"

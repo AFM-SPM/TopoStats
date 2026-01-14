@@ -1748,7 +1748,7 @@ def nodestats_image(
         Whether to try and pair odd-branched nodes.
     """
     # Images for diagnostics edited during processing
-    all_images = {
+    nodestats_full_images = {
         "convolved_skeletons": np.zeros_like(topostats_object.image),
         "node_centres": np.zeros_like(topostats_object.image),
         "connected_nodes": np.zeros_like(topostats_object.image),
@@ -1782,7 +1782,7 @@ def nodestats_image(
                     nodestats_branch_images[n_grain] = node_image_dict
 
                     # remap the cropped images back onto the original
-                    for image_name, full_image in all_images.items():
+                    for image_name, full_image in nodestats_full_images.items():
                         crop = nodestats_images[image_name]
                         full_image[
                             grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
@@ -1793,6 +1793,12 @@ def nodestats_image(
                         "Please consider raising an issue on GitHub. Error: ",
                         exc_info=e,
                     )
+        # Add full image plots to dictionary
+        if topostats_object.full_image_plots is None:
+            topostats_object.full_image_plots = nodestats_full_images
+        elif isinstance(topostats_object.full_image_plots, dict):
+            topostats_object.full_image_plots = {**topostats_object.full_image_plots, **nodestats_full_images}
+
     # nodestats_data[n_grain] = {}
 
     # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
