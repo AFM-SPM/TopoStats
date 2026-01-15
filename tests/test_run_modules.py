@@ -183,8 +183,8 @@ def test_grains(attributes: dict, caplog) -> None:
         assert isinstance(grain_crop, GrainCrop)
 
 
-@pytest.mark.xfail(reason="Awaiting construction of dataframe/csv from TopoStats")
-def test_grainstats(caplog) -> None:
+# @pytest.mark.xfail(reason="Awaiting construction of dataframe/csv from TopoStats")
+def test_grainstats(caplog, snapshot) -> None:
     """Test running the grainstats module.
 
     We use the command line entry point to test that _just_ grains runs.
@@ -203,39 +203,9 @@ def test_grainstats(caplog) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output and check the keys
+    # Load the output and check contents
     data = pd.read_csv("output/image_statistics.csv")
-    assert list(data.columns) == [
-        "Unnamed: 0",
-        "image",
-        "basename",
-        "grain_number",
-        "area",
-        "area_cartesian_bbox",
-        "aspect_ratio",
-        "bending_angle",
-        "centre_x",
-        "centre_y",
-        "circular",
-        "contour_length",
-        "end_to_end_distance",
-        "height_max",
-        "height_mean",
-        "height_median",
-        "height_min",
-        "max_feret",
-        "min_feret",
-        "radius_max",
-        "radius_mean",
-        "radius_median",
-        "radius_min",
-        "smallest_bounding_area",
-        "smallest_bounding_length",
-        "smallest_bounding_width",
-        "threshold",
-        "volume",
-    ]
-    assert data.shape == (3, 23)
+    assert data.to_string(float_format="{:.4e}".format) == snapshot
 
 
 def test_bruker_rename(tmp_path: Path, caplog) -> None:

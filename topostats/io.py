@@ -1297,3 +1297,29 @@ def write_csv(
     # Return dataframe with index reset
     df.reset_index(inplace=True)
     return df
+
+
+def extract_height_profiles(
+    topostats_object_all: dict[str, TopoStats],
+    output_dir: str | Path,
+    filename: str = "height_profiles.json",
+) -> None:
+    """
+    Write height profiles from all grains across all processed images to JSON.
+
+    Parameters
+    ----------
+    topostats_object_all : dict[str, TopoStats]
+        Dictionary of processed TopoStats objects.
+    output_dir : str | Path
+        Path to save JSON to.
+    filename : str
+        Name of output file, default is ``height_profile.json``.
+    """
+    height_profile_all = {}
+    for image, topostats_object in topostats_object_all.items():
+        height_profile_all[image] = {}
+        for grain_number, grain_crop in topostats_object.grain_crops.items():
+            height_profile_all[image][grain_number] = grain_crop.height_profiles
+    dict_to_json(data=height_profile_all, output_dir=output_dir, filename=filename)
+    LOGGER.info(f"Saved all height profiles to {output_dir}/{filename}.")

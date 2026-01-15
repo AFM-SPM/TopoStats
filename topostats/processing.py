@@ -184,11 +184,12 @@ def run_grains(  # noqa: C901
             LOGGER.info(f"[{topostats_object.filename}] : Grain Finding stage completed.")
             n_grains = (
                 0
-                if topostats_object.grain_crops is None or len(topostats_object.grain_crops)
+                if topostats_object.grain_crops is None or len(topostats_object.grain_crops) < 1
                 else len(topostats_object.grain_crops)
             )
-            LOGGER.info(f"[{topostats_object.filename}] Grains found : {n_grains}")
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains found.")
+            LOGGER.info(f"[{topostats_object.filename}] : Grains found {n_grains}")
+            if n_grains == 0:
+                LOGGER.warning(f"[{topostats_object.filename}] : No grains found.")
 
         except Exception as e:
             LOGGER.error(
@@ -955,7 +956,7 @@ def get_out_paths(
 
 
 def process_scan(
-    topostats_object: dict,
+    topostats_object: TopoStats,
     base_dir: str | Path,
     filter_config: dict,
     grains_config: dict,
@@ -967,13 +968,13 @@ def process_scan(
     curvature_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
-) -> TopoStats:
+) -> tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Process a single image, filtering, finding grains and calculating their statistics.
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
+    topostats_object : TopoStats
         A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
         path and it's pixel to namometre scaling value.
     base_dir : str | Path
@@ -1002,8 +1003,9 @@ def process_scan(
 
     Returns
     -------
-    TopoStats
-        ``TopoStats`` object post-processing.
+    tuple[str, pd.DataFrame, TopoStats, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
+        Tuple of ``filename``, grain statistics dataframe, ``TopoStats``, image statistics dataframe, disordered tracing
+        dataframe, matched branch statistics dataframe and molecule statistics dataframe.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
@@ -1417,8 +1419,27 @@ def process_grainstats(
         except:  # noqa: E722  # pylint: disable=bare-except
             LOGGER.info(f"Grain detection failed for image : {topostats_object.filename}")
             return topostats_object
+        # Grain Statistics
+        grain_stats = {
+            grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
+        }
+        grain_stats_df = pd.DataFrame.from_dict(
+            {
+                (grain_number, class_type, subgrain_number): grain_stats[grain_number][class_type][subgrain_number]
+                for grain_number, _ in grain_stats.items()
+                for class_type, _ in grain_stats[grain_number].items()
+                for subgrain_number, _ in grain_stats[grain_number][class_type].items()
+            },
+            orient="index",
+        )
+        if grain_stats_df.shape != (0, 0):
+            grain_stats_df["image"] = topostats_object.filename
+            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
+        else:
+            grain_stats_df = None
     LOGGER.info(f"[{topostats_object.filename}] : No grains present, GrainStats skipped.")
-    return topostats_object
+    return topostats_object.filename, topostats_object, grain_stats_df
 
 
 def check_run_steps(  # noqa: C901

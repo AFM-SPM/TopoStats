@@ -1,0 +1,9 @@
+# serializer version: 1
+# name: test_grainstats
+  '''
+     grain_number  class  subgrain   centre_x   centre_y  radius_min  radius_max  radius_mean  radius_median  height_min  height_max  height_median  height_mean     volume       area  area_cartesian_bbox  smallest_bounding_width  smallest_bounding_length  smallest_bounding_area  aspect_ratio  max_feret  min_feret             image                                     basename
+  0             0      1         0 8.7145e-08 3.5546e-08  3.9794e-09  2.5562e-08   1.6016e-08     1.6610e-08  9.1925e-10  2.6486e-09     1.5455e-09   1.5367e-09 1.0620e-24 6.9112e-16           1.3198e-15               2.0539e-08                5.0379e-08              1.0347e-15    4.0769e-01 5.0379e-08 2.0539e-08  minicircle_small  tests/resources/test_image/minicircle_small
+  1             1      1         0 8.6579e-08 7.2283e-08  6.7674e-09  2.7215e-08   1.6234e-08     1.6307e-08  9.2293e-10  2.4607e-09     1.6191e-09   1.6309e-09 1.0316e-24 6.3255e-16           1.5931e-15               2.0174e-08                5.1212e-08              1.0332e-15    3.9394e-01 5.1262e-08 2.0174e-08  minicircle_small  tests/resources/test_image/minicircle_small
+  2             2      1         0 3.8149e-08 7.7594e-08  9.8868e-09  2.3627e-08   1.7533e-08     1.8353e-08  9.1482e-10  2.1029e-09     1.6024e-09   1.5524e-09 1.1093e-24 7.1455e-16           1.5462e-15               3.3592e-08                4.1496e-08              1.3940e-15    8.0952e-01 4.4405e-08 3.2528e-08  minicircle_small  tests/resources/test_image/minicircle_small
+  '''
+# ---

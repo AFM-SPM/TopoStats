@@ -7,6 +7,7 @@ import pickle
 from pathlib import Path
 from typing import Any
 
+from AFMReader.topostats import load_topostats
 import filetype
 import h5py
 import numpy as np
@@ -39,7 +40,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
-    _, _, results, _, img_stats, _, _ = process_scan(
+    _, grain_stats, topostats_object, img_stats, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -54,10 +55,9 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
         output_dir=tmp_path,
     )
     # Remove the Basename column as this differs on CI
-    results.drop(["basename"], axis=1, inplace=True)
     # ns-rse 2025-11-16 : Switch to syrupy
     print(img_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
-    print(results.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
+    print(grain_stats.to_string(float_format="{:.4e}".format), file=regtest)  # noqa: T201
 
     # Regtest for the topostats file
     assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
@@ -809,7 +809,6 @@ def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadS
     assert "No grains found, skipping grainstats and tracing stages." in caplog.text
 
 
-@pytest.mark.skip(reason="ns-rse 2025-12-12 Need to remove ImageGrainCrops from pickle loaded by fixture.")
 def test_run_filters(minicircle_small_topostats: TopoStats, tmp_path: Path) -> None:
     """Test the filter wrapper function of processing.py."""
     run_filters(
@@ -818,8 +817,8 @@ def test_run_filters(minicircle_small_topostats: TopoStats, tmp_path: Path) -> N
         core_out_path=tmp_path,
     )
     assert isinstance(minicircle_small_topostats.image, np.ndarray)
-    assert minicircle_small_topostats.shape == (64, 64)
-    assert np.sum(minicircle_small_topostats) == pytest.approx(1172.6088236592373)
+    assert minicircle_small_topostats.image.shape == (64, 64)
+    assert np.sum(minicircle_small_topostats.image) == pytest.approx(1172.6088236592373)
 
 
 def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:

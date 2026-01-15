@@ -1518,18 +1518,13 @@ def catenane_topostats() -> TopoStats:
         return pkl.load(f)
 
 
-# @ns-rse 2025-10-22 : Can we remove this and use one of the fixtures below?
 @pytest.fixture()
-def minicircle_small_topostats(load_scan_data: LoadScans) -> TopoStats:
+def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of the minicircle (small) image."""
-    topostats_object = load_scan_data.img_dict["minicircle_small"]
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
-    ) as f:
-        topostats_object.grain_crops = pkl.load(f)
-    topostats_object.image = np.load("./tests/resources/minicircle_cropped_flattened.npy")
-    topostats_object.filename = "minicircle_small"
-    return topostats_object
+    default_config["file_ext"] = ".topostats"
+    load_scan = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], config=default_config)
+    load_scan.get_data()
+    return load_scan.img_dict["minicircle_small"]
 
 
 # We have three sets of pickled TopoStats objects (as file sizes blow up in uncompressed HDF5 .topostats) as the

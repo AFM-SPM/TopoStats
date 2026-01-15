@@ -27,6 +27,7 @@ from topostats.io import (
     dict_to_hdf5,
     dict_to_json,
     dict_to_topostats,
+    extract_height_profiles,
     find_files,
     get_date_time,
     get_out_path,
@@ -1263,6 +1264,7 @@ def test_hdf5_to_dict_nested_dict_group_path(tmp_path: Path) -> None:
     np.testing.assert_equal(result, expected)
 
 
+@pytest.mark.skip(reason="Needs refactoring. We test saving elsewhere and load new format files as part of test suite.")
 @pytest.mark.parametrize(
     (
         "topostats_version",
@@ -1773,3 +1775,27 @@ def test_write_csv(
     """Test of write_csv() function."""
     _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path, base_dir="tests/")
     assert Path(tmp_path / filename).is_file()
+
+
+@pytest.mark.parametrize(
+    ("dummy_graincrop_fixture", "expected"),
+    [
+        pytest.param(
+            "dummy_graincrop",
+            {"file1": {"0": {"1": {"0": [1, 2, 3, 4, 5]}}, "1": {"1": {"0": [1, 2, 3, 4, 5]}}}},
+            id="sample dictionary of TopoStats with height profiles.",
+        ),
+    ],
+)
+def test_extract_height_profiles(
+    dummy_graincrop_fixture: str, tmp_path: Path, expected: dict[str, dict[int, list, int | float]], request
+) -> None:
+    """Test extract_height_profiles."""
+    dummy_graincrop = request.getfixturevalue(dummy_graincrop_fixture)
+    topostats_object_all = {"file1": TopoStats(grain_crops={0: dummy_graincrop, 1: dummy_graincrop})}
+    extract_height_profiles(topostats_object_all=topostats_object_all, output_dir=tmp_path, filename="heights.json")
+    assert Path(tmp_path / "heights.json").is_file()
+    with Path(tmp_path / "heights.json").open(mode="r", encoding="utf-8") as json_file:
+        height_data = json.load(json_file)
+        print(f"\n{height_data=}\n")
+        assert height_data == expected

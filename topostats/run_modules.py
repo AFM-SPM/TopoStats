@@ -23,7 +23,7 @@ from tqdm import tqdm
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
-    dict_to_json,
+    extract_height_profiles,
     find_files,
     read_yaml,
     write_csv,
@@ -344,13 +344,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
-        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
-        height_profile_all = {}
-        for image, topostats_object in topostats_object_all.items():
-            height_profile_all[image] = {}
-            for grain_number, grain_crop in topostats_object.grain_crops.items():
-                height_profile_all[image][grain_number] = grain_crop.height_profiles
-        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
+        extract_height_profiles(
+            topostats_object_all=topostats_object_all,
+            output_dir=config["output_dir"],
+            filename="height_profiles.json",
+        )
 
     # Write config to file
     config["plotting"].pop("plot_dict")
@@ -539,42 +537,49 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
         output_dir=config["output_dir"],
     )
     with Pool(processes=config["cores"]) as pool:
-        results = defaultdict()
-        height_profile_all = defaultdict()
+        grain_stats_all = defaultdict()
+        topostats_object_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, height_profiles in pool.imap_unordered(
+            for (
+                filename,
+                topostats_object,
+                grain_stats_df,
+            ) in pool.imap_unordered(
                 processing_function,
                 all_scan_data.img_dict.values(),
             ):
-                results[str(img)] = result
-                height_profile_all[str(img)] = height_profiles
+                topostats_object_all[filename] = topostats_object
+                grain_stats_all[filename] = grain_stats_df
                 pbar.update()
 
                 # Display completion message for the image
-                LOGGER.info(f"[{img}] Grainstats completed (NB - Filtering was *not* re-run).")
+                LOGGER.info(f"[{filename}] Grainstats completed (NB - Filtering was *not* re-run).")
 
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     try:
-        image_stats_all_df = pd.concat(results.values())
-        image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
+        grain_stats_all_df = pd.concat(grain_stats_all.values())
+        grain_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
-        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
-        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
+        extract_height_profiles(
+            topostats_object_all=topostats_object_all,
+            output_dir=config["output_dir"],
+            filename="height_profiles.json",
+        )
 
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {len(results)}")
+    LOGGER.debug(f"Images processed : {len(grain_stats_all)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=image_stats_all_df.shape[0])
+    completion_message(config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0])
 
 
 def disordered_tracing(args: argparse.Namespace | None = None) -> None:
