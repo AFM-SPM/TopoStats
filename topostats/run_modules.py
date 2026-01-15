@@ -223,8 +223,10 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 topostats_object_all[str(filename)] = topostats_object
                 image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
                 disordered_tracing_all[str(filename)] = disordered_tracing_df.dropna(axis=1, how="all")
-                branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
-                molecule_stats_all[str(filename)] = molecule_stats_df.dropna(axis=1, how="all")
+                if branch_stats_df is not None:
+                    branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
+                if molecule_stats_df is not None:
+                    molecule_stats_all[str(filename)] = molecule_stats_df.dropna(axis=1, how="all")
 
                 pbar.update()
                 # Display completion message for the image
