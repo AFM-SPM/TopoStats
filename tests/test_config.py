@@ -290,16 +290,14 @@ def test_write_config_with_comments(tmp_path: Path, filename: str, config: str, 
         pytest.param(
             "topostats",
             "nonsense",
-            FileNotFoundError,
-            id="topostats nonsense config",
-            marks=pytest.mark.xfail(reason="FileNotFoundError not recognised"),
+            ValueError,
+            id="topostats module for 'nonsense' config",
         ),
         pytest.param(
             "other_package",
             "default",
-            FileNotFoundError,
-            id="other_package default config",
-            marks=pytest.mark.xfail(reason="FileNotFoundError not recognised"),
+            AttributeError,
+            id="other_package module for 'default' config",
         ),
     ],
 )
@@ -310,7 +308,6 @@ def test_write_config_with_comments_user_warning(module: str, config: str, error
     args.output_dir = tmp_path
     args.config = config
     args.module = module
-    write_config_with_comments(args)
     with pytest.raises(error):
         write_config_with_comments(args)
 
