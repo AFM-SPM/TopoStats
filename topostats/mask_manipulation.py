@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
+from pathlib import Path
 from scipy import ndimage
 from skimage import filters
 from skimage.morphology import label
@@ -17,6 +18,7 @@ from skimage.graph import route_through_array
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import convolve_skeleton
 from topostats.tracing.skeletonize import getSkeleton
+from topostats.tracing.pruning import prune_skeleton
 from topostats.measure.geometry import calculate_mask_width_with_skeleton, calculate_pixel_path_distance
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -25,6 +27,8 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # TODO: DEBUG IMPORTS, REMOVE FOR PR
 import matplotlib.pyplot as plt
 from topostats.plottingfuncs import Colormap
+
+DEBUG_PLOT_DIR = Path("/Users/sylvi/Documents/TopoStats/debug-plots")
 
 colormap = Colormap()
 cmap = colormap.get_cmap()
@@ -466,6 +470,7 @@ def skeletonise_and_join_close_ends(
     skeletonisation_mask_smoothing_gaussian_sigma: float,
     skeletonisation_method: str,
     skeletonisation_height_bias: float,
+    pruning_kwargs: dict[str, Any],
     endpoint_connection_distance_nm: float,
     endpoint_connection_cost_map_height_maximum: float,
 ) -> npt.NDArray:
@@ -492,6 +497,8 @@ def skeletonise_and_join_close_ends(
         Method to use for skeletonisation.
     skeletonisation_height_bias : float
         Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+    pruning_kwargs : dict[str, Any]
+        Keyword arguments to pass to the skeleton pruning function.
     endpoint_connection_distance_nm : float
         Maximum distance between skeleton endpoints to connect (nm).
     endpoint_connection_cost_map_height_maximum : float
@@ -533,6 +540,14 @@ def skeletonise_and_join_close_ends(
         height_bias=skeletonisation_height_bias,
     ).get_skeleton()
 
+    # Prune the skeleton.
+    pruned_skeleton = prune_skeleton(
+        image=image,
+        skeleton=skeleton,
+        pixel_to_nm_scaling=p2nm,
+        **pruning_kwargs,
+    )
+
     # Calculate the mask width along the skeleton for later
     mean_mask_width_nm = calculate_mask_width_with_skeleton(
         mask=smoothed_mask,
@@ -542,7 +557,7 @@ def skeletonise_and_join_close_ends(
     mean_mask_width_px = mean_mask_width_nm / p2nm
 
     # Now to find the skeleton endpoints and connect close ones.
-    convolved_skeleton = convolve_skeleton(skeleton=skeleton)
+    convolved_skeleton = convolve_skeleton(skeleton=pruned_skeleton)
     # Get the endpoints, value = 2
     endpoint_coords: list[tuple[int, int]] = [tuple(coord) for coord in np.argwhere(convolved_skeleton == 2)]
     # Get the junctions, value = 3
@@ -579,6 +594,60 @@ def skeletonise_and_join_close_ends(
     connection_groups = group_connectionpoints(
         connectionpoints=connectionpoints, close_pairs=nearby_connectionpoint_pairs
     )
+
+    # make a debug plot of the connection groups
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.imshow(mask, cmap="gray", alpha=0.3)
+    ax.imshow(pruned_skeleton, cmap="Reds", alpha=0.7)
+    junctionpoint_colour = "teal"
+    endpoint_colour = "magenta"
+    # plot each connectiongroup
+    for group_id, connection_group in connection_groups.items():
+        # plot endpoints
+        for endpoint_id, endpoint in connection_group.endpoints.items():
+            ax.plot(endpoint.position[1], endpoint.position[0], "o", color=endpoint_colour, markersize=2)
+            ax.text(
+                endpoint.position[1] + 2,
+                endpoint.position[0] + 2,
+                f"E{endpoint_id}",
+                color=endpoint_colour,
+                fontsize=5,
+            )
+            # also plot the range circle
+            circle = plt.Circle(
+                (endpoint.position[1], endpoint.position[0]),
+                endpoint_connection_distance_nm / p2nm,
+                color=endpoint_colour,
+                fill=False,
+                linestyle="--",
+                linewidth=1,
+            )
+            ax.add_artist(circle)
+        # plot junctionpoints
+        for junctionpoint_id, junctionpoint in connection_group.junctionpoints.items():
+            ax.plot(junctionpoint.position[1], junctionpoint.position[0], "o", color=junctionpoint_colour, markersize=2)
+            ax.text(
+                junctionpoint.position[1] + 2,
+                junctionpoint.position[0] + 2,
+                f"J{junctionpoint_id}",
+                color=junctionpoint_colour,
+                fontsize=5,
+            )
+            # also plot the range circle
+            circle = plt.Circle(
+                (junctionpoint.position[1], junctionpoint.position[0]),
+                endpoint_connection_distance_nm / p2nm,
+                color=junctionpoint_colour,
+                fill=False,
+                linestyle="--",
+                linewidth=1,
+            )
+            ax.add_artist(circle)
+    ax.set_title(f"Connection Groups for {filename}")
+    # save it, don't show.
+    plt.savefig(DEBUG_PLOT_DIR / f"{filename}_connection_groups.png", dpi=300)
+    plt.close(fig)
 
     # Now consider each group and decide how to connect them
     for group_id, connection_group in connection_groups.items():
@@ -810,6 +879,7 @@ def multi_class_skeletonise_and_join_close_ends(
     skeletonisation_mask_smoothing_gaussian_sigma: float,
     skeletonisation_method: str,
     skeletonisation_height_bias: float,
+    pruning_params: dict[str, Any],
     endpoint_connection_distance_nm: float,
     endpoint_connection_cost_map_height_maximum: float,
 ) -> npt.NDArray:
@@ -862,6 +932,7 @@ def multi_class_skeletonise_and_join_close_ends(
             skeletonisation_mask_smoothing_gaussian_sigma=skeletonisation_mask_smoothing_gaussian_sigma,
             skeletonisation_method=skeletonisation_method,
             skeletonisation_height_bias=skeletonisation_height_bias,
+            pruning_kwargs=pruning_params,
             endpoint_connection_distance_nm=endpoint_connection_distance_nm,
             endpoint_connection_cost_map_height_maximum=endpoint_connection_cost_map_height_maximum,
         )

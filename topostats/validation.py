@@ -229,6 +229,21 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "skeletonisation_height_bias": lambda n: 0 < n <= 1,
                 "endpoint_connection_distance_nm": lambda n: n > 0.0,
                 "endpoint_connection_cost_map_height_maximum": lambda n: n > 0.0,
+                "pruning_params": {
+                    "method": Or(
+                        "topostats",
+                        error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
+                    ),
+                    "max_length": lambda n: n >= 0,
+                    "method_values": Or("min", "median", "mid"),
+                    "method_outlier": Or("abs", "mean_abs", "iqr"),
+                    "height_threshold": Or(int, float, None),
+                    "only_height_prune_endpoints": Or(
+                        True,
+                        False,
+                        error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'",
+                    ),
+                },
             },
             "unet_config": {
                 "model_path": Or(None, str),
