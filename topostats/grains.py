@@ -1030,6 +1030,24 @@ class Grains:
             )
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
+            # # optionally save mid-processing data for debugging
+            # if self.filename == "20251031_SCpicoz_8ng_nicl.0_00029":
+            #     import pickle
+
+            #     print("@" * 40)
+            #     print(f"@@@@@@@@@ saving mid-processing data for {self.filename} @@@@@@@@@")
+            #     with open(
+            #         f"/Users/sylvi/topo_data/connect-loose-ends/mid-topostats-processing-data-files/end-connecting-grain-finding-data-file-{self.filename.replace('.','_')}.pkl",
+            #         "wb",
+            #     ) as file:
+            #         data_to_save = {
+            #             "filename": self.filename,
+            #             "image": self.image,
+            #             "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
+            #             "full_mask_tensor": traditional_full_mask_tensor,
+            #         }
+            #         pickle.dump(data_to_save, file)
+
             # Connect loose ends in the grain mask
             if self.endpoint_connection_config is not None:
                 if self.endpoint_connection_config["run"] is True:
