@@ -891,168 +891,116 @@ def test_dict_to_hdf5_all_together_group_path_non_standard(tmp_path: Path) -> No
         np.testing.assert_array_equal(f["d"]["h"][()], expected["d"]["h"])
 
 
-def test_dict_to_hdf5_int(tmp_path: Path) -> None:
-    """Test saving a dictionary with an integer to HDF5 format."""
-    to_save = {"a": 1, "b": 2}
-    expected = {"a": 1, "b": 2}
-    group_path = "/"
-
-    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "w") as f:
+@pytest.mark.parametrize(
+    ("to_save", "expected", "group_path"),
+    [
+        pytest.param({"a": 1, "b": 2}, {"a": 1, "b": 2}, "/", id="int"),
+        pytest.param({"a": 0.01, "b": 0.02}, {"a": 0.01, "b": 0.02}, "/", id="float"),
+        pytest.param({"a": "test", "b": "test2"}, {"a": "test", "b": "test2"}, "/", id="str"),
+    ],
+)
+def test_dict_to_hdf5(to_save: Any, expected: Any, group_path: str, tmp_path) -> None:
+    """Test for dict_to_hdf5()."""
+    with h5py.File(tmp_path / "hdf5_file.hdf5", "w") as f:
         dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
     # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_int.hdf5", "r") as f:
-        # Check keys are the same
-        assert list(f.keys()) == list(expected.keys())
-        assert f["a"][()] == expected["a"]
-        assert f["b"][()] == expected["b"]
-
-
-def test_dict_to_hdf5_float(tmp_path: Path) -> None:
-    """Test saving a dictionary with a float to HDF5 format."""
-    to_save = {"a": 0.01, "b": 0.02}
-    expected = {"a": 0.01, "b": 0.02}
-    group_path = "/"
-
-    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_float.hdf5", "r") as f:
-        # Check keys are the same
-        assert list(f.keys()) == list(expected.keys())
-        assert f["a"][()] == expected["a"]
-        assert f["b"][()] == expected["b"]
-
-
-def test_dict_to_hdf5_str(tmp_path: Path) -> None:
-    """Test saving a dictionary with a string to HDF5 format."""
-    to_save = {"a": "test", "b": "test2"}
-    expected = {"a": "test", "b": "test2"}
-    group_path = "/"
-
-    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_str.hdf5", "r") as f:
-        # Check keys are the same
-        assert list(f.keys()) == list(expected.keys())
-        # pylint thinks that f["a"] is a group but it is a bytes object that can be decoded
-        # pylint: disable=no-member
-        assert f["a"][()].decode("utf-8") == expected["a"]
-        # pylint thinks that f["b"] is a group but it is a bytes object that can be decoded
-        # pylint: disable=no-member
-        assert f["b"][()].decode("utf-8") == expected["b"]
-
-
-def test_dict_to_hdf5_nested_lists(tmp_path: Path) -> None:
-    """Test saving a nested dictionary with lists to HDF5 format."""
-    to_save = {
-        "list": [1, 2, 3],
-        "2d list": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-    }
-
-    expected = {
-        "list": np.array([1, 2, 3]),
-        "2d list": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-    }
-
-    group_path = "/"
-
-    with h5py.File(tmp_path / "hdf5_file_nested_lists.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_nested_lists.hdf5", "r") as f:
+    with h5py.File(tmp_path / "hdf5_file.hdf5", "r") as f:
         # Check keys are the same
         assert sorted(f.keys()) == sorted(expected.keys())
-        np.testing.assert_array_equal(f["list"][()], expected["list"])
-        np.testing.assert_array_equal(f["2d list"][()], expected["2d list"])
+        # If we have strings they need decoding
+        if isinstance(expected["a"], str):
+            # pylint thinks that f["a"] is a group but it is a bytes object that can be decoded
+            assert f["a"][()].decode("utf8") == expected["a"]  # pylint: disable=no-member
+            assert f["b"][()].decode("utf8") == expected["b"]  # pylint: disable=no-member
+        else:
+            assert f["a"][()] == expected["a"]
+            assert f["b"][()] == expected["b"]
 
 
-def test_dict_to_hdf5_nested_dict(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("to_save", "expected", "group_path"),
+    [
+        pytest.param(
+            {"a": [1, 2, 3], "b": [4, 5, 6]},
+            {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6])},
+            "/",
+            id="simple lists",
+        ),
+        pytest.param(
+            {
+                "a": [1, 2, 3],
+                "b": [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            },
+            {
+                "a": np.array([1, 2, 3]),
+                "b": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            },
+            "/",
+            id="nested lists",
+        ),
+    ],
+)
+def test_dict_to_hdf5_arrays(to_save: Any, expected: Any, group_path: str, tmp_path) -> None:
+    """Test for dict_to_hdf5()."""
+    with h5py.File(tmp_path / "hdf5_file.hdf5", "w") as f:
+        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
+    # Load it back in and check if the dictionary is the same
+    with h5py.File(tmp_path / "hdf5_file.hdf5", "r") as f:
+        # Check keys are the same
+        assert sorted(f.keys()) == sorted(expected.keys())
+        np.testing.assert_array_equal(f["a"][()], expected["a"])
+        np.testing.assert_array_equal(f["b"][()], expected["b"])
+
+
+@pytest.mark.parametrize(
+    ("to_save", "expected", "group_path"),
+    [
+        pytest.param(
+            {
+                "a": 1,
+                "b": 2,
+                "c": {"d": 3, "e": 4},
+            },
+            {
+                "a": 1,
+                "b": 2,
+                "c": {"d": 3, "e": 4},
+            },
+            "/",
+            id="nested dictionary (default group_path)",
+        ),
+        pytest.param(
+            {
+                "a": 1,
+                "b": 2,
+                "c": {"d": 3, "e": 4},
+            },
+            {
+                "a": 1,
+                "b": 2,
+                "c": {"d": 3, "e": 4},
+            },
+            "/nested/",
+            id="nested dictionary (nested group_path)",
+        ),
+    ],
+)
+def test_dict_to_hdf5_nested_dict(
+    to_save: dict[str, Any], expected: dict[str, Any], group_path: str, tmp_path: Path
+) -> None:
     """Test saving a nested dictionary to HDF5 format."""
-    to_save = {
-        "a": 1,
-        "b": 2,
-        "c": {"d": 3, "e": 4},
-    }
-
-    expected = {
-        "a": 1,
-        "b": 2,
-        "c": {
-            "d": 3,
-            "e": 4,
-        },
-    }
-
-    group_path = "/"
-
     with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "w") as f:
         dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
 
     # Load it back in and check if the dictionary is the same
     with h5py.File(tmp_path / "hdf5_file_nested_dict.hdf5", "r") as f:
         # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        assert f["a"][()] == expected["a"]
-        assert f["b"][()] == expected["b"]
-        assert sorted(f["c"].keys()) == sorted(expected["c"].keys())
-        assert f["c"]["d"][()] == expected["c"]["d"]
-        assert f["c"]["e"][()] == expected["c"]["e"]
-
-
-def test_dict_to_hdf5_nested_dict_group_path(tmp_path: Path) -> None:
-    """Test saving a nested dictionary to HDF5 format with a non-standard group path."""
-    to_save = {
-        "a": 1,
-        "b": 2,
-        "c": {"d": 3, "e": 4},
-    }
-
-    expected = {
-        "nested": {
-            "a": 1,
-            "b": 2,
-            "c": {
-                "d": 3,
-                "e": 4,
-            },
-        }
-    }
-
-    group_path = "/nested/"
-
-    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_nested_dict_group_path.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        assert f["nested"]["a"][()] == expected["nested"]["a"]
-        assert f["nested"]["b"][()] == expected["nested"]["b"]
-        assert sorted(f["nested"]["c"].keys()) == sorted(expected["nested"]["c"].keys())
-        assert f["nested"]["c"]["d"][()] == expected["nested"]["c"]["d"]
-        assert f["nested"]["c"]["e"][()] == expected["nested"]["c"]["e"]
-
-
-def test_dict_to_hdf5_list(tmp_path: Path) -> None:
-    """Test saving a dictionary with a list to HDF5 format."""
-    to_save = {"list": [1, 2, 3]}
-    expected = {"list": np.array([1, 2, 3])}
-    group_path = "/"
-
-    with h5py.File(tmp_path / "hdf5_file_list.hdf5", "w") as f:
-        dict_to_hdf5(open_hdf5_file=f, group_path=group_path, dictionary=to_save)
-
-    # Load it back in and check if the dictionary is the same
-    with h5py.File(tmp_path / "hdf5_file_list.hdf5", "r") as f:
-        # Check keys are the same
-        assert sorted(f.keys()) == sorted(expected.keys())
-        np.testing.assert_array_equal(f["list"][()], expected["list"])
+        assert sorted(f[group_path].keys()) == sorted(expected.keys())
+        assert f[group_path]["a"][()] == expected["a"]
+        assert f[group_path]["b"][()] == expected["b"]
+        assert sorted(f[group_path]["c"].keys()) == sorted(expected["c"].keys())
+        assert f[group_path]["c"]["d"][()] == expected["c"]["d"]
+        assert f[group_path]["c"]["e"][()] == expected["c"]["e"]
 
 
 def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_path: Path) -> None:

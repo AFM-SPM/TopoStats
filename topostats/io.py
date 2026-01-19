@@ -974,19 +974,23 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
                 if any(x is None for x in item):
                     item = np.array([np.nan if x is None else x for x in item])
-                open_hdf5_file[group_path + key] = item
-            # Strings need to be encoded to bytes
+                open_hdf5_file.create_dataset(name=group_path + key, data=item, compression="gzip")
+            # Strings need to be encoded to bytes, but can not be compressed
             elif isinstance(item, str):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                open_hdf5_file[group_path + key] = item.encode("utf8")
-            # Integers, floats and numpy arrays can be added directly to the hdf5 file
-            elif isinstance(item, (int, float, np.ndarray)):  # noqa: UP038
+                open_hdf5_file.create_dataset(name=group_path + key, data=item.encode("utf8"))
+            # Integers, floats are added directly to the hdf5 file
+            elif isinstance(item, (int, float)):  # noqa: UP038
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                open_hdf5_file[group_path + key] = item
-            # Path objects need to be encoded to bytes
+                open_hdf5_file.create_dataset(name=group_path + key, data=item)
+            # Numpy arrays can be compressed added directly to the hdf5 file
+            elif isinstance(item, np.ndarray):  # noqa: UP038
+                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+                open_hdf5_file.create_dataset(name=group_path + key, data=item, compression="gzip")
+            # Path objects need to be converted to strings which can not be compressed
             elif isinstance(item, Path):
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                open_hdf5_file[group_path + key] = str(item).encode("utf8")
+                open_hdf5_file.create_dataset(name=group_path + key, data=str(item).encode("utf8"))
             # Dictionaries need to be recursively saved
             elif isinstance(item, dict):  # a sub-dictionary, so we need to recurse
                 LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")

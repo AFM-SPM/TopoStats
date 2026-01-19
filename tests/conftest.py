@@ -508,9 +508,9 @@ def dummy_molecule() -> Molecule:
         splined_coords=np.array([[0, 1], [2, 3], [4, 5], [6, 7]]),
         contour_length=1.023e-7,
         end_to_end_distance=0.3456e-7,
-        heights=np.array(4),
-        distances=np.array(4),
-        curvature_stats=np.array(4),
+        heights=np.array([4]),
+        distances=np.array([4]),
+        curvature_stats=np.array([4]),
         bbox=(1, 2, 3, 4),
         molecule_statistics=None,
     )
