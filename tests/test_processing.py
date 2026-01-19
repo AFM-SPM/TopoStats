@@ -7,7 +7,6 @@ import pickle
 from pathlib import Path
 from typing import Any
 
-from AFMReader.topostats import load_topostats
 import filetype
 import h5py
 import numpy as np
@@ -40,7 +39,7 @@ def test_process_scan_both(regtest, tmp_path, process_scan_config: dict, load_sc
     process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
     process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
-    _, grain_stats, topostats_object, img_stats, _, _, _ = process_scan(
+    _, grain_stats, _, img_stats, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
@@ -788,11 +787,12 @@ def test_process_stages(
 
 def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, caplog) -> None:
     """Test handling no grains found during grains.find_grains()."""
-    img_dic = load_scan_data.img_dict
+    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    topostats_object.grain_crops = None
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False
     _, _, _, _, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=topostats_object,
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],

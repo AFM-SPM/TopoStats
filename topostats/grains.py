@@ -159,9 +159,8 @@ class Grains:
         self.otsu_threshold_multiplier = (
             config["otsu_threshold_multiplier"] if otsu_threshold_multiplier is None else otsu_threshold_multiplier
         )
-        # Ensure thresholds are lists (might not be from passing in CLI args)
-        self.threshold_std_dev = config["threshold_std_dev"] if threshold_std_dev is None else threshold_std_dev
 
+        # Ensure thresholds are lists (might not be from passing in CLI args)
         def _make_list(x: int | float | list[int | float]) -> list[int | float]:
             """
             Ensure item(s) are stored in a list.
@@ -180,6 +179,7 @@ class Grains:
                 return [x]
             return x
 
+        self.threshold_std_dev = config["threshold_std_dev"] if threshold_std_dev is None else threshold_std_dev
         self.threshold_std_dev["above"] = _make_list(self.threshold_std_dev["above"])
         self.threshold_std_dev["below"] = _make_list(self.threshold_std_dev["below"])
         self.threshold_absolute = config["threshold_absolute"] if threshold_absolute is None else threshold_absolute
