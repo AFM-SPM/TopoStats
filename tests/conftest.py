@@ -1594,6 +1594,22 @@ def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats
 
 
 ##### Catenane #####
+# @pytest.fixture()
+# def catenenes_topostats_object() -> TopoStats:
+#     """
+#     Full Catenanes image after processing.
+#
+#     Various elements are removed from this to provide targets for other tests."""
+#     return load_topostats(RESOURCES / "")
+#     catenanes = np.load(RESOURCES / "example_catenanes.npy"_)
+#     full_mask_tensor = np.load(RESOURCES / "graincrop" / "example_catenanes_full_mask_tensor.npy")
+#     return TopoStats(image_name = "catenanes",
+#                      image_original = catenanes,
+#                      pixel_to_nm_scaling = 0.488,
+#                      grain_crops = None,
+#                      img_path = None)
+
+
 @pytest.fixture()
 def catenanes_post_grainstats() -> TopoStats:
     """TopoStats of Catenanes post disordered tracing."""
@@ -1731,7 +1747,7 @@ def plot_curvatures_topostats_object() -> TopoStats:
                 pixel_to_nm_scaling=1,
                 thresholds=[1],
                 filename="Curvature",
-                bbox=[1, 1, 5, 5],
+                bbox=[0, 0, 4, 4],
                 padding=1,
                 ordered_trace=OrderedTrace(
                     molecule_data={
@@ -1765,7 +1781,7 @@ def plot_curvatures_topostats_object() -> TopoStats:
                 pixel_to_nm_scaling=1,
                 thresholds=[1],
                 filename="Curvature",
-                bbox=[9, 9, 16, 16],
+                bbox=[8, 8, 15, 15],
                 padding=1,
                 ordered_trace=OrderedTrace(
                     molecule_data={
