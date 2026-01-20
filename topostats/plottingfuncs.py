@@ -359,8 +359,6 @@ class Images:
                 min_row = grain_crop.bbox[0]
                 min_col = grain_crop.bbox[1]
 
-                pad_width = grain_crop.padding
-
                 # Iterate over molecules within a grain
                 for _, molecule in grain_crop.ordered_trace.molecule_data.items():
                     # Normalise the curvature values to the colourmap bounds
@@ -377,13 +375,12 @@ class Images:
                             previous_point = molecule.splined_coords[index - 1]
                             ax.plot(
                                 [
-                                    (min_col - pad_width + previous_point[1]) * self.pixel_to_nm_scaling,
-                                    (min_col - pad_width + point[1]) * self.pixel_to_nm_scaling,
+                                    (min_col + previous_point[1]) * self.pixel_to_nm_scaling,
+                                    (min_col + point[1]) * self.pixel_to_nm_scaling,
                                 ],
                                 [
-                                    (image.shape[0] - (min_row - pad_width + previous_point[0]))
-                                    * self.pixel_to_nm_scaling,
-                                    (image.shape[0] - (min_row - pad_width + point[0])) * self.pixel_to_nm_scaling,
+                                    (image.shape[0] - (min_row + previous_point[0])) * self.pixel_to_nm_scaling,
+                                    (image.shape[0] - (min_row + point[0])) * self.pixel_to_nm_scaling,
                                 ],
                                 color=color,
                                 linewidth=1,
