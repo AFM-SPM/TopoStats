@@ -551,8 +551,13 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
-            # if coordinates are provided (such as in splines, plot those)
+            # If coordinates are provided (such as in splines), plot those. These can be in two forms, a list of numpy
+            # arrays for each grain (if plotting whole image) or a single list if plotting grain/molecule
             elif self.plot_coords is not None:
+                # If self.plot_coords is a numpy array then we are plotting on a grain/molecule basis and have nothing
+                # to loop over so addit to a list so we can loop over it
+                if isinstance(self.plot_coords, np.ndarray):
+                    self.plot_coords = [self.plot_coords]
                 for grain_coords in self.plot_coords:
                     ax.plot(
                         grain_coords[:, 1] * self.pixel_to_nm_scaling,

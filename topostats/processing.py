@@ -445,7 +445,7 @@ def run_disordered_tracing(  # noqa: C901
                 tracing_out_path.mkdir(parents=True, exist_ok=True)
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     # Plot pruned skeletons
-                    LOGGER.info(
+                    LOGGER.debug(
                         f"[{topostats_object.filename}] : Plotting disordered traces for grain {grain_number + 1}"
                     )
                     # Plot other disordered tracing stages...
@@ -562,7 +562,7 @@ def run_nodestats(  # noqa: C901
                 # For each node within each grain make three plots
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
                     for node_number, node in grain_crop.nodes.items():
-                        LOGGER.info(
+                        LOGGER.debug(
                             f"[{topostats_object.filename}] : Plotting Nodestats Grain {grain_number + 1} (Node {node_number})"
                         )
                         Images(
@@ -710,7 +710,7 @@ def run_ordered_tracing(  # noqa: C901
                         ).plot_and_save()
                     # Plot grains to dnatracing/ordered
                     for grain_number, grain_crop in topostats_object.grain_crops.items():
-                        LOGGER.info(
+                        LOGGER.debug(
                             f"[{topostats_object.filename}] : Plotting ordered traces for grain {grain_number + 1}"
                         )
                         for plot_name, image_value in grain_crop.ordered_trace.images.items():
@@ -726,6 +726,11 @@ def run_ordered_tracing(  # noqa: C901
                                     **plotting_config["plot_dict"][plot_name],
                                 ).plot_and_save()
                                 plotting_config["plot_dict"][plot_name]["filename"] = config_filename
+                                LOGGER.debug(
+                                    f"[{topostats_object.filename}] Plotting ordered trace {plot_name} for grain "
+                                    f"{grain_number + 1}"
+                                )
+
                             except KeyError:
                                 LOGGER.warning(
                                     f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
@@ -749,6 +754,7 @@ def run_splining(
     core_out_path: Path,
     splining_config: dict | None = None,
     plotting_config: dict | None = None,
+    tracing_out_path: str | Path | None = None,
 ) -> None:
     """
     Smooth the ordered trace coordinates and optionally plot results.
@@ -763,9 +769,17 @@ def run_splining(
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
+    tracing_out_path : str | Path
+        Directory to save images from splining to. The ``splining`` directory will be created within and images saved
+        there.
     """
     splining_config = topostats_object.config["splining"] if splining_config is None else splining_config
     plotting_config = topostats_object.config["plotting"] if plotting_config is None else plotting_config
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "splining"
+        if tracing_out_path is None
+        else Path(tracing_out_path) / "splining"
+    )
     if splining_config["run"]:
         splining_config.pop("run")
         if topostats_object.grain_crops is None:
@@ -792,9 +806,20 @@ def run_splining(
                 try:
                     # Extract coordinates for all splines into a single list for overlaying
                     all_splines = []
-                    for _, grain_crop in topostats_object.grain_crops.items():
-                        for _, molecule in grain_crop.ordered_trace.molecule_data.items():
+                    for grain_number, grain_crop in topostats_object.grain_crops.items():
+                        for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+                            Images(
+                                data=grain_crop.image,
+                                plot_coords=grain_crop.ordered_trace.molecule_data[molecule_number].splined_coords,
+                                output_dir=tracing_out_path,
+                                filename=f"{topostats_object.filename}_grain_{grain_number}_molecule_{molecule_number}",
+                                **plotting_config["plot_dict"]["splined_trace"],
+                            ).plot_and_save()
                             all_splines.append(molecule.splined_coords + grain_crop.bbox[:2])
+                            LOGGER.debug(
+                                f"[{topostats_object.filename}] : Plotting splined traces for grain "
+                                f"{grain_number + 1} molecule {molecule_number + 1}"
+                            )
                     Images(
                         data=topostats_object.image,
                         output_dir=core_out_path,
@@ -845,6 +870,11 @@ def run_curvature_stats(
     plotting_config = (
         deepcopy(topostats_object.config["plotting"]) if plotting_config is None else deepcopy(plotting_config)
     )
+    tracing_out_path = (
+        core_out_path / f"{topostats_object.filename}" / "dnatracing" / "curvature"
+        if tracing_out_path is None
+        else Path(tracing_out_path) / "curvature"
+    )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
@@ -863,30 +893,24 @@ def run_curvature_stats(
         else:
             try:
                 if plotting_config["run"]:
-                    # Setup dictionaries to aggregate components for the all image plot
-                    all_curvatures = {}
-                    all_smooth = {}
-                    all_images = {}
                     colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature_individual_grains"].pop(
                         "colourmap_normalisation_bounds"
                     )
                     for grain_number, grain_crop in topostats_object.grain_crops.items():
-                        all_curvatures[grain_number] = {}
-                        all_smooth[grain_number] = {}
-                        all_images[grain_number] = {}
-                        for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+                        for molecule_number, _molecule in grain_crop.ordered_trace.molecule_data.items():
                             Images(
                                 np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                                output_dir=tracing_out_path / "curvature",
+                                output_dir=tracing_out_path,
                                 **plotting_config["plot_dict"]["curvature_individual_grains"],
                             ).plot_curvatures_individual_grain(
                                 grain_crop=grain_crop,
                                 grain_number=grain_number,
                                 colourmap_normalisation_bounds=colourmap_normalisation_bounds,
                             )
-                            all_curvatures[grain_number][molecule_number] = molecule.curvature_stats
-                            all_smooth[grain_number][molecule_number] = molecule.splined_coords
-                            all_images[grain_number][molecule_number] = grain_crop.image
+                            LOGGER.debug(
+                                f"[{topostats_object.filename}] : Plotting curvature traces for grain "
+                                f"{grain_number + 1} molecule {molecule_number + 1}"
+                            )
                     colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature"].pop(
                         "colourmap_normalisation_bounds"
                     )
