@@ -453,28 +453,33 @@ def run_disordered_tracing(  # noqa: C901
                     # - pruned skeletons
                     # - branch_types
                     # - branch_indexes
-                    for plot_name, image_value in grain_crop.disordered_trace.images.items():
-                        # Skip plotting the image and grain themselves and pruned_skeleton (plotted above)
-                        if plot_name in {"image", "grain"}:
-                            continue
-                        try:
-                            # ns-rse 2025-12-04 : fudge to get filenames consistent
-                            config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
-                            filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
-                            Images(
-                                data=grain_crop.image,
-                                masked_array=image_value,
-                                output_dir=tracing_out_path,
-                                filename=filename,
-                                **plotting_config["plot_dict"][plot_name],
-                            ).plot_and_save()
-                            plotting_config["plot_dict"][plot_name]["filename"] = config_filename
-                        except KeyError:
-                            LOGGER.warning(
-                                f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                                "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                                "GitHub to report this problem."
-                            )
+                    if grain_crop.disordered_trace.images is not None:
+                        for plot_name, image_value in grain_crop.disordered_trace.images.items():
+                            # Skip plotting the image and grain themselves and pruned_skeleton (plotted above)
+                            if plot_name in {"image", "grain"}:
+                                continue
+                            try:
+                                # ns-rse 2025-12-04 : fudge to get filenames consistent
+                                config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
+                                filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
+                                Images(
+                                    data=grain_crop.image,
+                                    masked_array=image_value,
+                                    output_dir=tracing_out_path,
+                                    filename=filename,
+                                    **plotting_config["plot_dict"][plot_name],
+                                ).plot_and_save()
+                                plotting_config["plot_dict"][plot_name]["filename"] = config_filename
+                                LOGGER.debug(
+                                    f"[{topostats_object.filename}] : Plotting disordered trace {plot_name} for grain"
+                                    f" {grain_number + 1}"
+                                )
+                            except KeyError:
+                                LOGGER.warning(
+                                    f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
+                                    "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                    "GitHub to report this problem."
+                                )
                 for plot_name in ["smoothed_mask", "skeleton", "branch_indexes", "branch_types"]:
                     Images(
                         data=topostats_object.image,
@@ -1154,7 +1159,7 @@ def process_scan(
         else:
             disordered_tracing_df = None
         # Matched Branch Statistics - If we have at least one node we can do this directly.
-        if grain_crop.nodes is not None and len(grain_crop.nodes) > 0:
+        if topostats_object.grain_crops[0].nodes is not None and len(topostats_object.grain_crops[0].nodes) > 0:
             matched_branch_df = pd.DataFrame.from_dict(
                 data={
                     (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
