@@ -1666,9 +1666,9 @@ def rep_int_post_ordered_tracing() -> TopoStats:
 
 
 @pytest.fixture()
-def graincrop_rep_int(rep_int_post_disordered_trace: TopoStats) -> TopoStats:
+def graincrop_rep_int(rep_int_post_disordered_tracing: TopoStats) -> TopoStats:
     """GrainCrop of Rep Int post disordered tracing."""
-    return rep_int_post_disordered_trace.grain_crops.above.crops[0]
+    return rep_int_post_disordered_tracing.grain_crops.above.crops[0]
 
 
 @pytest.fixture()

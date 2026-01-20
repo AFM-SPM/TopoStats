@@ -240,47 +240,26 @@ def test_linear_or_circular(grain: np.ndarray, mol_is_circular: bool) -> None:
 
 
 @pytest.mark.parametrize(
-    (
-        "topostats_object_fixture",
-        "expected_ordered_tracing_data_filename",
-        "expected_ordered_tracing_full_images_filename",
-    ),
+    "topostats_object_fixture",
     [
         pytest.param(
-            "catenanes_post_disordered_tracing",
-            "catenanes_ordered_tracing_data.pkl",
-            "catenanes_ordered_tracing_full_images.pkl",
+            "catenanes_post_nodestats",
             id="catenanes",
         ),
         pytest.param(
-            "rep_int_post_disordered_trace",
-            "rep_int_ordered_tracing_data.pkl",
-            "rep_int_ordered_tracing_full_images.pkl",
+            "rep_int_post_nodestats",
             id="catenanes",
         ),
     ],
 )
-def test_ordered_tracing_image(
-    topostats_object_fixture: str,
-    expected_ordered_tracing_data_filename: str,
-    expected_ordered_tracing_full_images_filename: str,
-    request,
-) -> None:
+def test_ordered_tracing_image(topostats_object_fixture: str, request, snapshot) -> None:
     """Test the ordered tracing image method of ordered tracing."""
     topostats_object = request.getfixturevalue(topostats_object_fixture)
     ordered_tracing_image(
         topostats_object=topostats_object,
         ordering_method="nodestats",
     )
-    # Load the expected results
-    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_data_filename, "rb") as f:
-        expected_ordered_tracing_data = pickle.load(f)
-    with Path.open(ORDERED_TRACING_RESOURCES / expected_ordered_tracing_full_images_filename, "rb") as f:
-        expected_ordered_tracing_full_images = pickle.load(f)  # pylint: disable=unused-variable
-    print(f"\n{expected_ordered_tracing_data=}\n")
-    # Check the results
-    np.testing.assert_equal(topostats_object, expected_ordered_tracing_data)
-    # np.testing.assert_equal(result_ordered_tracing_full_images, expected_ordered_tracing_full_images)
+    assert topostats_object.grain_crops[0].ordered_trace == snapshot
 
 
 @pytest.mark.skip(reason="outdated, reworking to use topostats_object")
