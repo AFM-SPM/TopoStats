@@ -3,7 +3,6 @@
 """Test end-to-end running of topostats."""
 
 import logging
-import pickle
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +14,7 @@ from AFMReader.topostats import load_topostats
 
 from topostats.classes import DisorderedTrace, GrainCrop, TopoStats
 from topostats.config import update_plotting_config
-from topostats.io import LoadScans, dict_almost_equal
+from topostats.io import LoadScans
 from topostats.processing import (
     LOGGER_NAME,
     check_run_steps,
@@ -37,8 +36,8 @@ RESOURCES = BASE_DIR / "tests/resources"
 def test_process_scan_both(tmp_path, process_scan_config: dict, load_scan_data: LoadScans, snapshot) -> None:
     """Regression test for checking the process_scan functions correctly."""
     # Ensure there are below grains
-    process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
-    process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
+    # process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
+    # process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
     _, grain_stats, _, img_stats, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
@@ -59,25 +58,14 @@ def test_process_scan_both(tmp_path, process_scan_config: dict, load_scan_data: 
 
     # Regtest for the topostats file
     assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
-    expected_topostats = load_topostats(file_path=RESOURCES / "process_scan_topostats_file_regtest.topostats")
+    # Load the results, note that we use AFMReader.topostats.load_topostats() here which simply loads the data as
+    # dictionaries and means it is easy to compare to syrupy snapshots
     saved_topostats = load_topostats(
         file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats"
     )
-
-    # Remove the image path as this differs on CI
-    saved_topostats.pop("img_path")
-
-    # Script for updating the regtest file
-    # with h5py.File(RESOURCES / "process_scan_topostats_file_regtest.topostats", "w") as f:
-    #     dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=saved_topostats)
-
-    # Check the keys, this will flag all new keys when adding output stats
-    assert expected_topostats.keys() == saved_topostats.keys()
-    # Check the data (we pop the file version as we are interested in comparing the underlying data)
-    expected_topostats.pop("topostats_file_version")
-    saved_topostats.pop("topostats_file_version")
-    # ns-rse 2025-11-16 : Switch to syrupy
-    assert dict_almost_equal(expected_topostats, saved_topostats, abs_tol=1e-6)
+    # Drop the config as we don't want to test that
+    saved_topostats.pop("config")
+    assert saved_topostats == snapshot
 
 
 @pytest.mark.parametrize(
@@ -757,7 +745,9 @@ def test_process_stages(
     later stages can run and do not disable earlier stages.
     """
     caplog.set_level(logging.DEBUG, LOGGER_NAME)
-    img_dic = load_scan_data.img_dict
+    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    # Remove existing data so its calculated anew
+    topostats_object.grain_crops = None
     process_scan_config["filter"]["run"] = filter_run
     process_scan_config["grains"]["run"] = grains_run
     process_scan_config["grainstats"]["run"] = grainstats_run
@@ -766,10 +756,8 @@ def test_process_stages(
     process_scan_config["ordered_tracing"]["run"] = ordered_tracing_run
     process_scan_config["splining"]["run"] = splining_run
     process_scan_config["curvature"]["run"] = curvature_run
-    print(f'\n{img_dic["minicircle_small"]=}\n')
-    print(f'\n{img_dic["minicircle_small"].grain_crops=}\n')
     _, _, _, _, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=topostats_object,
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -853,49 +841,31 @@ def test_run_grains(process_scan_config: dict, tmp_path: Path) -> None:
         assert isinstance(grain_crop, GrainCrop)
 
 
-@pytest.mark.skip(reason="ns-rse 2025-12-12 Need to remove ImageGrainCrops from pickle loaded by fixture.")
-def test_run_grainstats(default_config: dict[str, Any], tmp_path: Path) -> None:
+def test_run_grainstats(post_processing_minicircle_topostats_object: TopoStats, tmp_path: Path, snapshot) -> None:
     """Test the grainstats_wrapper function of processing.py."""
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "minicircle_cropped_imagegraincrops.pkl", "rb"
-    ) as f:
-        image_grain_crops = pickle.load(f)
-    topostats_object = TopoStats(
-        grain_crops=image_grain_crops,
-        filename="dummy filename",
-        pixel_to_nm_scaling=0.4940029296875,
-        img_path=tmp_path,
-        image=None,
-        image_original=None,
-        config=default_config,
-        topostats_version=None,
-    )
+    # Remove results that are not required
+    for _, grain_crop in post_processing_minicircle_topostats_object.grain_crops.items():
+        grain_crop.convolved_skeleton = None
+        grain_crop.disordered_trace = None
+        grain_crop.height_profiles = None
+        grain_crop.nodes = None
+        grain_crop.ordered_trace = None
+        # Importantly for this test reset the `stats` attribute
+        grain_crop.stats = None
+        print(f"\n{grain_crop.stats=}\n")
     run_grainstats(
-        topostats_object=topostats_object,
+        topostats_object=post_processing_minicircle_topostats_object,
         core_out_path=tmp_path,
         grain_out_path=tmp_path,
     )
-    GRAIN_CROP_ATTRIBUTES = [
-        "bbox",
-        "debug_locate_difference",
-        "filename",
-        "grain_crop_to_dict",
-        "height_profiles",
-        "image",
-        "mask",
-        "padding",
-        "pixel_to_nm_scaling",
-        "stats",
-    ]
-    # assert isinstance(grainstats_df, pd.DataFrame)
-    # Expect 6 grains in the above direction for cropped minicircle
-    # assert grainstats_df.shape[0] == 6
-    # assert len(grainstats_df.columns) == 26
-    assert isinstance(topostats_object.grain_crops, dict)
-    assert len(topostats_object.grain_crops) == 6
-    for _, grain_crop in topostats_object.grain_crops.values():
-        assert isinstance(grain_crop, GrainCrop)
-        assert all(x in dir(grain_crop) for x in GRAIN_CROP_ATTRIBUTES)
+    assert isinstance(post_processing_minicircle_topostats_object.grain_crops, dict)
+    assert len(post_processing_minicircle_topostats_object.grain_crops) == 21
+    # Build a dictionary of grain_crop.stats to compare to a snapshot
+    grain_crop_statistics = {
+        grain_number: grain_crop.stats
+        for grain_number, grain_crop in post_processing_minicircle_topostats_object.grain_crops.items()
+    }
+    assert grain_crop_statistics == snapshot
 
 
 @pytest.mark.parametrize(

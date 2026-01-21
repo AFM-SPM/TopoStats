@@ -2,9 +2,16 @@
 
 TopoStats uses its own [Pydantic Data Classes][pydantic_data_classes] to store the original data, configuration settings
 and derived datasets. These are described in detail in the API. Using Pydantic means that data validation, checking that
-an attribute which is meant to be an integer is an integer, or that a Numpy arrays attribute is a Numpy array, is done
-automatically. This makes code development much easier. This page gives an overview of the classes and their attributes
-and details how to go about adding classes and all of the additional changes that are required.
+an attribute which is meant to be an integer is an integer, or that an attribute that is meant to be a Numpy array
+actually is, is done automatically. This makes code development much easier as the automated validation avoids errors
+that can arise when passing data of the wrong "type" into dataclasses that is inherent in dynamically typed languages
+such as Python.
+
+This page aims to...
+
+- Give an overview of the classes and their attributes.
+- Details how to go about adding classes and all of the additional changes that are required.
+- How to load `.topostats` files and reconstruct the classes.
 
 ## Class Overview
 
@@ -133,7 +140,7 @@ Class for Molecules identified during ordered tracing.
 
 ## Hierarchical Structure
 
-The top-level object is always `TopoStats` class, the remaining objects are nested within. This nesting structure is
+The top-level object is always the `TopoStats` class, the remaining objects are nested within. This nesting structure is
 retained when writing to `.topostats` a custom [HDF5][hdf5] format. The Python tool [h5glance][h5glance] can be used to
 show the nested structure.
 
@@ -175,7 +182,8 @@ class NewFeature:
 
 This is to be an attribute of `GrainCrop` so we add a new attribute to the `__init___` definition of `GrainCrop` in
 `classes.py` (note that `GrainCrop` is an exception as it is _not_ a Pydantic dataclass). Don't forget to include a
-description of the attribute to both the class docstring and the `__init__` docstring.
+description of the attribute to both the class docstring and the `__init__` docstring otherwise the Numpydoc validation
+will fail on commits and/or pull requests.
 
 ```python
 class GrainCrop:

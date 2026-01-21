@@ -1527,10 +1527,9 @@ def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
     return load_scan.img_dict["minicircle_small"]
 
 
-# We have three sets of pickled TopoStats objects (as file sizes blow up in uncompressed HDF5 .topostats) as the
-# amount of data increases.
-# These are loaded as fixtures from which different stages can be extracted and used in the tests of ordered tracing,
-# nodestats and disordered tracing.
+# In addition to `minicircles.spm` (and derivatives) we have three sets of pickled TopoStats objects (as file sizes blow
+# up in uncompressed HDF5 .topostats) as the amount of data increases. These are loaded as fixtures from which different
+# stages can be extracted and used in the tests of ordered tracing, nodestats and disordered tracing.
 #
 # - minicircle_small
 # - catenane
@@ -1545,13 +1544,74 @@ def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
 #
 # Various attributes are also extracted to make them available for some of the unit tests.
 #
-# @ns-rse 2025-10-22 : # Historically tests for these stages of processing are a) incomplete; b) messy with pickles
+# @ns-rse 2026-01-21 : Historically tests for these stages of processing are a) incomplete; b) messy with pickles
 # loaded in functions rather than being loaded as fixtures which can be reused and it all needs cleaning up at some
-# point. This goes some way to rectifying that but can be improved upon.
+# point. This goes some way to rectifying that but can be improved upon. I envision that improvement to be a completely
+# processed `.topostats` file for each of the test images that is loaded once as a fixture we can then drop the results
+# of various stages of processing to provide fixtures as input to different stages and use the full thing as a
+# comparator in those tests. Code is in place to load these but I haven't had sufficient time to go through and drop
+# what is required from each.
+
+
+@pytest.fixture()
+def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) -> TopoStats:
+    """
+    Full minicircle_Small image after processing.
+
+    Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
+    as the comparator to which the results of using those tests can be compared.
+    """
+    load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_minicircle.topostats"], config=default_config)
+    load_scans.get_data()
+    topostats_object = load_scans.img_dict["post_processing_minicircle"]
+    topostats_object.filename = "minicircle"
+    return topostats_object
+
+
+# @pytest.fixture()
+# def post_processing_minicircle_small_topostats_object(default_config: dict[str, Any]) -> TopoStats:
+#     """
+#     Full minicircle_Small image after processing.
 #
-# At some point in the future we should consider replacing this with a pickle after _all_ processing has been done. Can
-# then simply drop the attribute from the class prior to running tests. Don't have those yet as still working through
-# adding classes for ordered tracing, splining and curvature.
+#     Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
+#     as the comparator to which the results of using those tests can be compared.
+#     """
+#     load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_minicircle_small.topostats"],
+#                              config=default_config)
+#     load_scans.get_data()
+#     topostats_object = load_scans.img_dict["minicircle_small"]
+#     topostats_object.filename = "minicircle_small"
+#     return topostats_object
+
+# @pytest.fixture()
+# def post_processing_catenenes_topostats_object(default_config: dict[str, Any]) -> TopoStats:
+#     """
+#     Full Catenanes image after processing.
+#
+#     Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
+#     as the comparator to which the results of using those tests can be compared.
+#     """
+#     load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_catenanes.topostats"],
+#                              config=default_config)
+#     load_scans.get_data()
+#     topostats_object = load_scans.img_dict["example_catenanes"]
+#     topostats_object.filename = "catenanes"
+#     return topostats_object
+
+# @pytest.fixture()
+# def post_processing_rep_int_topostats_object(default_config: dict[str, Any]) -> TopoStats:
+#     """
+#     Full rep_Int image after processing.
+#
+#     Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
+#     as the comparator to which the results of using those tests can be compared.
+#     """
+#     load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_rep_int.topostats"],
+#                              config=default_config)
+#     load_scans.get_data()
+#     topostats_object = load_scans.img_dict["example_rep_int"]
+#     topostats_object.filename = "rep_int"
+#     return topostats_object
 
 
 ##### Minicircle Small #####
@@ -1594,22 +1654,6 @@ def graincrop_minicircle_small(minicircle_small_post_disordered_trace: TopoStats
 
 
 ##### Catenane #####
-# @pytest.fixture()
-# def catenenes_topostats_object() -> TopoStats:
-#     """
-#     Full Catenanes image after processing.
-#
-#     Various elements are removed from this to provide targets for other tests."""
-#     return load_topostats(RESOURCES / "")
-#     catenanes = np.load(RESOURCES / "example_catenanes.npy"_)
-#     full_mask_tensor = np.load(RESOURCES / "graincrop" / "example_catenanes_full_mask_tensor.npy")
-#     return TopoStats(image_name = "catenanes",
-#                      image_original = catenanes,
-#                      pixel_to_nm_scaling = 0.488,
-#                      grain_crops = None,
-#                      img_path = None)
-
-
 @pytest.fixture()
 def catenanes_post_grainstats() -> TopoStats:
     """TopoStats of Catenanes post disordered tracing."""

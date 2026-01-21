@@ -966,7 +966,6 @@ def dict_to_hdf5(  # noqa: C901 # pylint: disable=too-many-statements
             ),
         ):  # noqa: UP038
             # Exclude the plotting dictionary configuration, its excessive and users rarely tinker with it
-            # ns-rse 2025-12-04 - Make sure to load and add the plot_dict when loading .topostats files
             if key == "plot_dict":
                 continue
             # Lists need to be converted to numpy arrays
