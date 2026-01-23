@@ -1,12 +1,12 @@
 # serializer version: 1
-# name: test_process_scan_both
+# name: test_process_scan
   '''
                     image_size_x_m  image_size_y_m  image_area_m2  image_size_x_px  image_size_y_px  image_area_px2  grains  grains_per_m2  rms_roughness
   image                                                                                                                                                  
   minicircle_small      1.2646e-07      1.2646e-07     1.5993e-14               64               64            4096       3     1.8758e+14     6.8208e-10
   '''
 # ---
-# name: test_process_scan_both.1
+# name: test_process_scan.1
   '''
                                 centre_x   centre_y  radius_min  radius_max  radius_mean  radius_median  height_min  height_max  height_median  height_mean     volume       area  area_cartesian_bbox  smallest_bounding_width  smallest_bounding_length  smallest_bounding_area  aspect_ratio  max_feret  min_feret  num_crossings  mean_crossing_confidence  min_crossing_confidence  num_mols writhe_string             image                                                                               basename
   grain_number class subgrain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
@@ -15,7 +15,7 @@
   2            1     0        3.8100e-08 7.7556e-08  9.9461e-09  2.3654e-08   1.7561e-08     1.8364e-08  9.0641e-10  2.1066e-09     1.5939e-09   1.5493e-09 1.1192e-24 7.2236e-16           1.5462e-15               3.3592e-08                4.1496e-08              1.3940e-15    8.0952e-01 4.4405e-08 3.2528e-08            NaN                       NaN                      NaN         1            NA  minicircle_small  /home/neil/work/git/hub/AFM-SPM/TopoStats/tests/resources/test_image/minicircle_small
   '''
 # ---
-# name: test_process_scan_both.2
+# name: test_process_scan.2
   dict({
     'filename': 'minicircle_small',
     'full_image_plots': dict({

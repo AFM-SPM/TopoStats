@@ -33,11 +33,8 @@ RESOURCES = BASE_DIR / "tests/resources"
 # pylint: disable=too-many-positional-arguments
 
 
-def test_process_scan_both(tmp_path, process_scan_config: dict, load_scan_data: LoadScans, snapshot) -> None:
+def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadScans, snapshot) -> None:
     """Regression test for checking the process_scan functions correctly."""
-    # Ensure there are below grains
-    # process_scan_config["grains"]["threshold_std_dev"]["below"] = 0.8
-    # process_scan_config["grains"]["area_thresholds"]["below"] = [10, 1000000000]
     img_dic = load_scan_data.img_dict
     _, grain_stats, _, img_stats, _, _, _ = process_scan(
         topostats_object=img_dic["minicircle_small"],
