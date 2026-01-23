@@ -153,7 +153,7 @@ def test_filters(attributes: dict, caplog) -> None:
         ),
     ],
 )
-def test_grains(attributes: dict, caplog) -> None:
+def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     """Test running the grains module.
 
     We use the command line entry point to test that _just_ grains runs.
@@ -167,13 +167,15 @@ def test_grains(attributes: dict, caplog) -> None:
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "--output-dir",
+            f"{tmp_path}/output",
             "grains",  # This is the sub-command we wish to test, it will call run_modules.grains()
         ]
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output file with AFMReader check its a dictionary and convert to TopoStats
-    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats(tmp_path / "output/processed/minicircle_small.topostats")
     assert isinstance(data, dict)
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)
