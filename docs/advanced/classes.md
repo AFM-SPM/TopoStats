@@ -170,14 +170,21 @@ import numpy.typing as npt
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
 
- @dataclass(
-     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
- )
+
+@dataclass(
+    repr=True,
+    eq=True,
+    config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True),
+    validate_on_init=True,
+)
 class NewFeature:
-   """"""
-   left: bool | None
-   right: bool | None
-   data: dict[int, npt.NDArray | None]
+    """
+    A class that adds a new feature.
+    """
+
+    left: bool | None
+    right: bool | None
+    data: dict[int, npt.NDArray | None]
 ```
 
 This is to be an attribute of `GrainCrop` so we add a new attribute to the `__init___` definition of `GrainCrop` in
@@ -187,21 +194,14 @@ will fail on commits and/or pull requests.
 
 ```python
 class GrainCrop:
-    ...
-    def __init__(
-    self,
-    ...
-    new_feature: NewFeature | None = None
-    ):
-    """
-    ...
-    Parameters
-    ----------
-    ...
-    new_feature : NewFeature
-        A ``NewFeature``.
-    """
-    ...
+    def __init__(self, new_feature: NewFeature | None = None):
+        """
+        Parameters
+        ----------
+        new_feature : NewFeature
+            A ``NewFeature``.
+        """
+
     self.new_feature = new_feature
 ```
 
@@ -211,21 +211,18 @@ The `__str__` method provides a convenient method to represent the class when ca
 attributes you have defined shown then you should add them here. An example is shown below.
 
 ```python
-    def __str__(self) -> str:
-        """
-        Readable attributes.
+def __str__(self) -> str:
+    """
+    Readable attributes.
 
-        Returns
-        -------
-        str
-            Set of formatted statistics on matched branches.
-        """
-        return (
-            f"left  : {self.left}\n"
-            f"right : {self.right}\n"
-            f"data  :\n\n {self.data}\n"
-        )
-
+    Returns
+    -------
+    str
+        Set of formatted statistics on matched branches.
+    """
+    return (
+        f"left  : {self.left}\n" f"right : {self.right}\n" f"data  :\n\n {self.data}\n"
+    )
 ```
 
 ### `__eq__` method
@@ -234,8 +231,7 @@ Adding the equality dunder method means the object can easily be compared to ano
 equality.
 
 ```python
-
-    def __eq__(self, other: object) -> bool:
+def __eq__(self, other: object) -> bool:
     """
     Check equality of ``NewFeature`` object against another.
 
@@ -268,36 +264,37 @@ objects and a clause that recurrsively calls `io.dict_to_hdf5()` with the class 
 argument.
 
 ```python
-        if isinstance(
-            item,
-            (
-                list
-                | str
-                | int
-                | float
-                | np.ndarray
-                | Path
-                | dict
-                | GrainCrop
-                | GrainCropsDirection
-                | ImageGrainCrops
-                | Node
-                | OrderedTrace
-                | DisorderedTrace
-                | MatchedBranch
-                | Molecule
-                | NewFeature
-            ),
-        ):  # noqa: UP038
-            # Lists need to be converted to numpy arrays
-            if isinstance(item, list):
-                LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                item = np.array(item)
-                open_hdf5_file[group_path + key] = item
-            ...
-            elif isinstance(item, NewFeature):
-                logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
-                dict_to_hdf5(open_hdf5_file, group_path + key + "/", item.fancy_new_class_to_dict())
+if isinstance(
+    item,
+    (
+        list
+        | str
+        | int
+        | float
+        | np.ndarray
+        | Path
+        | dict
+        | GrainCrop
+        | GrainCropsDirection
+        | ImageGrainCrops
+        | Node
+        | OrderedTrace
+        | DisorderedTrace
+        | MatchedBranch
+        | Molecule
+        | NewFeature
+    ),
+):  # noqa: UP038
+    # Lists need to be converted to numpy arrays
+    if isinstance(item, list):
+        LOGGER.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+        item = np.array(item)
+        open_hdf5_file[group_path + key] = item
+    elif isinstance(item, NewFeature):
+        logger.debug(f"[dict_to_hdf5] {key} is of type : {type(item)}")
+        dict_to_hdf5(
+            open_hdf5_file, group_path + key + "/", item.fancy_new_class_to_dict()
+        )
 ```
 
 ### Input
@@ -312,11 +309,12 @@ all attributes will be present so we use an `if ... else None` single line const
 nested dictionary to the attribute only if the key is present.
 
 ```python
-                for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
-                    image = crop["image"] if "image" in crop.keys() else None
-                    ...
-                    new_feature = NewFeature(**crop["new_feature"]) if "new_feature" in crop.keys() else None
-
+for grain, crop in dictionary["image_grain_crops"][direction]["crops"].items():
+    image = crop["image"] if "image" in crop.keys() else None
+    ...
+    new_feature = (
+        NewFeature(**crop["new_feature"]) if "new_feature" in crop.keys() else None
+    )
 ```
 
 [afmreader]: https://afm-spm.github.io/AFMReader
