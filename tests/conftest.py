@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
+import matplotlib
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -50,6 +51,12 @@ THRESHOLD = 0.5
 CHANNEL = "Height"
 
 # ruff: noqa: D401
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_matplotlib():
+    """Force matplotlib to use the non-interactive 'Agg' backend to prevent Tcl/Tk threading errors during tests."""
+    matplotlib.use("Agg")
 
 
 @pytest.fixture()
