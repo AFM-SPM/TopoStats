@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from AFMReader import topostats
+from syrupy.matchers import path_type
 
 from topostats.classes import GrainCrop, TopoStats
 from topostats.entry_point import entry_point
@@ -207,7 +208,9 @@ def test_grainstats(caplog, snapshot) -> None:
     assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output and check contents
     data = pd.read_csv("output/image_statistics.csv")
-    assert data.to_string(float_format="{:.4e}".format) == snapshot
+    assert data.to_string(float_format="{:.4e}".format) == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 4))
+    )
 
 
 def test_bruker_rename(tmp_path: Path, caplog) -> None:

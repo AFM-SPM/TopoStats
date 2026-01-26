@@ -7,10 +7,11 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 import pytest
+from syrupy.matchers import path_type
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
-from topostats.classes import DisorderedTrace, GrainCrop, TopoStats
+from topostats.classes import DisorderedTrace, GrainCrop, TopoStats, convert_to_dict
 from topostats.tracing.nodestats import nodeStats, nodestats_image
 
 BASE_DIR = Path.cwd()
@@ -864,7 +865,6 @@ def test_minimum_crossing_confs() -> None:
             20.0,
             True,
             id="catenane",
-            # marks=pytest.mark.skip(reason="disable whilst testing other"),
         ),
         pytest.param(
             "example_rep_int.npy",
@@ -948,9 +948,20 @@ def test_nodestats_image(
         pair_odd_branches=pair_odd_branches,
     )
 
-    # # DEBUGGING (For viewing images)
-    # convolved_skeletons = result_all_images["convolved_skeletons"]
-    # node_centres = result_all_images["node_centres"]
-    # connected_nodes = result_all_images["connected_nodes"]
+    # Precision issues on OSX and M$-Win mean we need to break out some variables and test with different precision
+    unmatched_branch_stats = {}
+    matched_branch_stats = {}
+    for node_number, node in topostats_object.grain_crops[0].nodes.items():
+        unmatched_branch_stats[node_number] = convert_to_dict(node.unmatched_branch_stats)
+        node.unmatched_branch_stats = None
+        matched_branch_stats[node_number] = convert_to_dict(node.branch_stats)
+        node.branch_stats = None
 
-    assert topostats_object.grain_crops[0].nodes == snapshot
+    # Just test one node
+    assert topostats_object.grain_crops[0].nodes == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 12))
+    )
+    assert unmatched_branch_stats == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 10))
+    )
+    assert matched_branch_stats == snapshot(matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 10)))

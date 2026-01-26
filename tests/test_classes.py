@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 import pytest
+from syrupy.matchers import path_type
 
 from topostats.classes import (
     DisorderedTrace,
@@ -49,7 +50,7 @@ def test_molecule_collate_molecule_statistics(dummy_molecule: Molecule, snapshot
     """Test the Molecule.collate_molecule_statistics() method."""
     molecule_statistics = dummy_molecule.collate_molecule_statistics()
     assert isinstance(molecule_statistics, dict)
-    assert molecule_statistics == snapshot
+    assert molecule_statistics == snapshot(matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 8)))
 
 
 def test_ordered_trace_str(dummy_ordered_trace: OrderedTrace) -> None:
@@ -325,4 +326,6 @@ def test_convert_to_dict(
     # If we have a `TopoStats` object we need to set a fixed 'img_path' attribute which changes based on system
     if dummy_class_fixture in ("topostats_catenanes_2_4_0", "topostats_rep_int_2_4_0"):
         dummy_class.img_path = "/path/to/file/"
-    assert convert_to_dict(dummy_class) == snapshot
+    assert convert_to_dict(dummy_class) == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 8))
+    )

@@ -2,12 +2,11 @@
 # ruff: noqa: S301
 """Test the ordered tracing module."""
 
-import pickle
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
+from syrupy.matchers import path_type
 
 from topostats.tracing.ordered_tracing import linear_or_circular, ordered_tracing_image
 
@@ -259,4 +258,6 @@ def test_ordered_tracing_image(topostats_object_fixture: str, request, snapshot)
         topostats_object=topostats_object,
         ordering_method="nodestats",
     )
-    assert topostats_object.grain_crops[0].ordered_trace == snapshot
+    assert topostats_object.grain_crops[0].ordered_trace == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 12))
+    )

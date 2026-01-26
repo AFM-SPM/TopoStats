@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+from syrupy.matchers import path_type
 
 from topostats.grainstats import GrainStats
 
@@ -15,7 +16,7 @@ def test_grainstats_regression(minicircle_grainstats: GrainStats, snapshot) -> N
     minicircle_grainstats.calculate_stats()
     stats = {grain_number: grain_crop.stats for grain_number, grain_crop in minicircle_grainstats.grain_crops.items()}
 
-    assert stats == snapshot
+    assert stats == snapshot(matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 24)))
 
 
 TARGET_HEIGHTS = [

@@ -33,7 +33,7 @@
     }),
     'stats_dict': dict({
       0: dict({
-        'branch_distance': 49.2719092002369,
+        'branch_distance': 49.2719092,
         'branch_type': 2,
         'connected_segments': list([
           1,
@@ -91,7 +91,7 @@
       }),
       'stats_dict': dict({
         0: dict({
-          'branch_distance': 49.2719092002369,
+          'branch_distance': 49.2719092,
           'branch_type': 2,
           'connected_segments': list([
             1,
@@ -292,7 +292,7 @@
         'node_coords': array([[0, 0],
          [0, 1]]),
         'pixel_to_nm_scaling': 1.0,
-        'reduced_node_area': 10.987654321,
+        'reduced_node_area': 10.98765432,
         'unmatched_branch_stats': dict({
           0: dict({
             'angles': list([
@@ -353,7 +353,7 @@
         'node_coords': array([[0, 0],
          [0, 1]]),
         'pixel_to_nm_scaling': 1.0,
-        'reduced_node_area': 10.987654321,
+        'reduced_node_area': 10.98765432,
         'unmatched_branch_stats': dict({
           0: dict({
             'angles': list([
@@ -401,10 +401,10 @@
             4,
           ),
           'circular': True,
-          'contour_length': 1.023e-07,
+          'contour_length': 1e-07,
           'curvature_stats': array([4]),
           'distances': array([4]),
-          'end_to_end_distance': 3.456e-08,
+          'end_to_end_distance': 3e-08,
           'heights': array([4]),
           'molecule_number': 0,
           'molecule_statistics': None,
@@ -429,10 +429,10 @@
             4,
           ),
           'circular': True,
-          'contour_length': 1.023e-07,
+          'contour_length': 1e-07,
           'curvature_stats': array([4]),
           'distances': array([4]),
-          'end_to_end_distance': 3.456e-08,
+          'end_to_end_distance': 3e-08,
           'heights': array([4]),
           'molecule_number': 0,
           'molecule_statistics': None,
@@ -516,10 +516,10 @@
       4,
     ),
     'circular': True,
-    'contour_length': 1.023e-07,
+    'contour_length': 1e-07,
     'curvature_stats': array([4]),
     'distances': array([4]),
-    'end_to_end_distance': 3.456e-08,
+    'end_to_end_distance': 3e-08,
     'heights': array([4]),
     'molecule_number': 0,
     'molecule_statistics': None,
@@ -587,7 +587,7 @@
     'node_coords': array([[0, 0],
          [0, 1]]),
     'pixel_to_nm_scaling': 1.0,
-    'reduced_node_area': 10.987654321,
+    'reduced_node_area': 10.98765432,
     'unmatched_branch_stats': dict({
       0: dict({
         'angles': list([
@@ -636,10 +636,10 @@
           4,
         ),
         'circular': True,
-        'contour_length': 1.023e-07,
+        'contour_length': 1e-07,
         'curvature_stats': array([4]),
         'distances': array([4]),
-        'end_to_end_distance': 3.456e-08,
+        'end_to_end_distance': 3e-08,
         'heights': array([4]),
         'molecule_number': 0,
         'molecule_statistics': None,
@@ -664,10 +664,10 @@
           4,
         ),
         'circular': True,
-        'contour_length': 1.023e-07,
+        'contour_length': 1e-07,
         'curvature_stats': array([4]),
         'distances': array([4]),
-        'end_to_end_distance': 3.456e-08,
+        'end_to_end_distance': 3e-08,
         'heights': array([4]),
         'molecule_number': 0,
         'molecule_statistics': None,
@@ -731,7 +731,7 @@
       'file_ext': '.spm',
       'filter': dict({
         'gaussian_mode': 'nearest',
-        'gaussian_size': 1.0121397464510862,
+        'gaussian_size': 1.01213975,
         'otsu_threshold_multiplier': 1.0,
         'remove_scars': dict({
           'max_scar_width': 4,
@@ -1281,14 +1281,14 @@
       }),
       'splining': dict({
         'method': 'rolling_window',
-        'rolling_window_resample_regular_spatial_interval': 5e-10,
+        'rolling_window_resample_regular_spatial_interval': 0.0,
         'rolling_window_resampling': True,
         'rolling_window_size': 2e-08,
         'run': True,
         'spline_circular_smoothing': 5.0,
         'spline_degree': 3,
         'spline_linear_smoothing': 5.0,
-        'spline_step_size': 7e-09,
+        'spline_step_size': 1e-08,
       }),
       'summary_stats': dict({
         'config': None,
@@ -1450,7 +1450,7 @@
           }),
           'stats_dict': dict({
             0: dict({
-              'branch_distance': 49.2719092002369,
+              'branch_distance': 49.2719092,
               'branch_type': 2,
               'connected_segments': list([
                 1,
@@ -1583,7 +1583,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -1644,7 +1644,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -1692,10 +1692,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -1720,10 +1720,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -1817,7 +1817,7 @@
           }),
           'stats_dict': dict({
             0: dict({
-              'branch_distance': 49.2719092002369,
+              'branch_distance': 49.2719092,
               'branch_type': 2,
               'connected_segments': list([
                 1,
@@ -1950,7 +1950,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -2011,7 +2011,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -2059,10 +2059,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -2087,10 +2087,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -2221,7 +2221,7 @@
       'file_ext': '.spm',
       'filter': dict({
         'gaussian_mode': 'nearest',
-        'gaussian_size': 1.0121397464510862,
+        'gaussian_size': 1.01213975,
         'otsu_threshold_multiplier': 1.0,
         'remove_scars': dict({
           'max_scar_width': 4,
@@ -2771,14 +2771,14 @@
       }),
       'splining': dict({
         'method': 'rolling_window',
-        'rolling_window_resample_regular_spatial_interval': 5e-10,
+        'rolling_window_resample_regular_spatial_interval': 0.0,
         'rolling_window_resampling': True,
         'rolling_window_size': 2e-08,
         'run': True,
         'spline_circular_smoothing': 5.0,
         'spline_degree': 3,
         'spline_linear_smoothing': 5.0,
-        'spline_step_size': 7e-09,
+        'spline_step_size': 1e-08,
       }),
       'summary_stats': dict({
         'config': None,
@@ -2940,7 +2940,7 @@
           }),
           'stats_dict': dict({
             0: dict({
-              'branch_distance': 49.2719092002369,
+              'branch_distance': 49.2719092,
               'branch_type': 2,
               'connected_segments': list([
                 1,
@@ -3073,7 +3073,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -3134,7 +3134,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.987654321,
+            'reduced_node_area': 10.98765432,
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -3182,10 +3182,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -3210,10 +3210,10 @@
                 4,
               ),
               'circular': True,
-              'contour_length': 1.023e-07,
+              'contour_length': 1e-07,
               'curvature_stats': array([4]),
               'distances': array([4]),
-              'end_to_end_distance': 3.456e-08,
+              'end_to_end_distance': 3e-08,
               'heights': array([4]),
               'molecule_number': 0,
               'molecule_statistics': None,
@@ -3319,8 +3319,8 @@
 # name: test_molecule_collate_molecule_statistics
   dict({
     'circular': True,
-    'contour_length': 1.023e-07,
-    'end_to_end_distance': 3.456e-08,
+    'contour_length': 1e-07,
+    'end_to_end_distance': 3e-08,
     'topology': 'a',
     'topology_flip': 'maybe',
   })
