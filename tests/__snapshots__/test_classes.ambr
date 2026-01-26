@@ -2179,7 +2179,7 @@
          [0.65987263, 0.79797313, 0.13226049, 0.86629113, 0.70724855,
           0.34756816, 0.41495181, 0.27558004, 0.46345484, 0.44044984]]),
     'image_statistics': None,
-    'img_path': '/home/neil/work/git/hub/AFM-SPM/TopoStats/tests/resources/graincrop',
+    'img_path': '/path/to/file/',
     'pixel_to_nm_scaling': 0.488,
     'topostats_version': '2.4.0',
   })
@@ -3302,7 +3302,7 @@
          [0.65987263, 0.79797313, 0.13226049, 0.86629113, 0.70724855,
           0.34756816, 0.41495181, 0.27558004, 0.46345484, 0.44044984]]),
     'image_statistics': None,
-    'img_path': '/home/neil/work/git/hub/AFM-SPM/TopoStats/tests/resources/graincrop',
+    'img_path': '/path/to/file/',
     'pixel_to_nm_scaling': 0.488,
     'topostats_version': '2.4.0',
   })

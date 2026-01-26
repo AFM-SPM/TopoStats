@@ -275,7 +275,7 @@ def test_topostats_eq(
 
 
 @pytest.mark.parametrize(
-    ("dummy_class"),
+    ("dummy_class_fixture"),
     [
         pytest.param(
             "dummy_molecule",
@@ -316,10 +316,13 @@ def test_topostats_eq(
     ],
 )
 def test_convert_to_dict(
-    dummy_class,
+    dummy_class_fixture: str,
     snapshot,
     request,
 ) -> None:
     """Test converting each class to a dictionary using the convert_to_dict() method."""
-    dummy_class = request.getfixturevalue(dummy_class)
+    dummy_class = request.getfixturevalue(dummy_class_fixture)
+    # If we have a `TopoStats` object we need to set a fixed 'img_path' attribute which changes based on system
+    if dummy_class_fixture in ("topostats_catenanes_2_4_0", "topostats_rep_int_2_4_0"):
+        dummy_class.img_path = "/path/to/file/"
     assert convert_to_dict(dummy_class) == snapshot

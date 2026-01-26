@@ -51,6 +51,8 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
         output_dir=tmp_path,
     )
     assert img_stats.to_string(float_format="{:.4e}".format) == snapshot
+    # Have to drop 'basename' from dataframe as this varies between local machines and on CI
+    grain_stats.drop(["basename"], axis=1, inplace=True)
     assert grain_stats.to_string(float_format="{:.4e}".format) == snapshot
 
     # Regtest for the topostats file
@@ -60,8 +62,15 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     saved_topostats = load_topostats(
         file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats"
     )
-    # Drop the config as we don't want to test that
+    # Drop the config, img_path and topostats_version from top level of dictionary and and basename from
+    # disorded_trace.stats_dict) as we don't want to compare configuration nor test absolute paths.
     saved_topostats.pop("config")
+    saved_topostats.pop("img_path")
+    saved_topostats.pop("topostats_version")
+    saved_topostats["grain_crops"]["0"]["disordered_trace"]["stats_dict"]["0"].pop("basename")
+    saved_topostats["grain_crops"]["0"]["disordered_trace"]["stats_dict"]["1"].pop("basename")
+    saved_topostats["grain_crops"]["1"]["disordered_trace"]["stats_dict"]["0"].pop("basename")
+    saved_topostats["grain_crops"]["2"]["disordered_trace"]["stats_dict"]["0"].pop("basename")
     assert saved_topostats == snapshot
 
 
