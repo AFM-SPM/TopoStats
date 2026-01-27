@@ -255,7 +255,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         )
         grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
     except ValueError as error:
-        LOGGER.error("No moleculess found in any images, consider adjusting ordered tracing / splining parameters.")
+        LOGGER.error("No molecules found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
 
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
