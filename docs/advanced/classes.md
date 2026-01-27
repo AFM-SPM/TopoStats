@@ -99,7 +99,7 @@ constructed, for example when first creating a `TopoStats` object after reading 
 | `molecules`           | `int`                    | Number of molecules within the grain.                                                                  |
 | `writhe`              | `str`                    | The writhe sign, can be either `+`, `-` or `0` for positive, negative or no writhe.                    |
 | `pixel_to_nm_scaling` | `np.float64`             | Pixel to nm scaling.                                                                                   |
-| `images`              | `dict[str, npt.NDArray]` | Images of ???                                                                                          |
+| `images`              | `dict[str, npt.NDArray]` | Dictionary of diagnostic images for debugging.                                                         |
 | `error`               | `bool`                   | Errors encountered?                                                                                    |
 
 ## `MatchedBranch`
@@ -127,7 +127,7 @@ Class for Molecules identified during ordered tracing.
 | Attribute             | Type                        | Description                                                                                               |
 | --------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `circular`            | `str, bool`                 | Whether the molecule is circular or linear.                                                               |
-| `topology`            | `str`                       | Unknown?                                                                                                  |
+| `topology`            | `str`                       | Topological classification of the molecule.                                                               |
 | `topology_flip`       | `Any`                       | Unknown?                                                                                                  |
 | `ordered_coords`      | `npt.NDArray`               | Ordered coordinates for the molecule.                                                                     |
 | `splined_coords`      | `npt.NDArray`               | Smoothed (aka splined) coordinates for the molecule.                                                      |
@@ -162,7 +162,7 @@ h5glance output/processed/minicircle_small.topostats grain_crop/0/
 
 ## Extending
 
-Typically the unit of analysis is a `GrainCrop` so lets assume we are adding a new attribute `GrainCrop.new_feature` to
+Typically the unit of analysis is a `GrainCrop` so let's assume we are adding a new attribute `GrainCrop.new_feature` to
 the `GrainCrop` class and it is an object of class type `NewFeature`. We define `NewFeature` in the `classes.py` module.
 
 ```python

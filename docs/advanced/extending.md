@@ -39,4 +39,37 @@ modify the output filename with the `<your_package> create-config --filename my_
 to). You shouldn't have to do anything else, TopoStats will look for the `default_config.yaml` in your package and write
 that to disk.
 
+## Tests
+
+Functions and methods should follow the [single responsibility principle][srp] and perform very small focused
+calculations. This means that [unit tests][unit_tests] can be written to test the function does what it purports
+to. Ideally these should be [parameterised][param-tests] to cover all the possible combination of options. For example
+if a function takes a boolean argument (i.e. `True` or `False`) and this influences whether a particular element of
+calculation is undertaken and in turn the output differs, then tests should cover both scenarios.
+
+### Regression Tests
+
+In a number of places we perform [regression tests][regress-test] (also known as integration tests) which tests how
+several components perform. Typically this is for whole classes/modules which perform a bunch of different steps in the
+processing and the results are compared to what is expected. To do this we have moved to using the [Syrupy][syrupy]
+package which writes "snapshots" of tests to the `__snapshot__/test_<test-file-name>.ambr` against which a re-run of
+tests are compared. One of the challenges here is the precision of values written to these files and the fact that
+precision very occasionally varies between operating systems. To deal with this some of the values that do vary are
+separated from the rest of the values being tested and the [`matcher`][matcher] argument is used. For an example of how
+this is used see this [thread][matcher_example] of the `tests/test_processing.py::test_grainstats()` test.
+
+#### Paths
+
+Another consideration in writing regression tests is that TopoStats makes heavy usage of the [pathlib][pathlib]
+module. On POSIX systems such as GNU/Linux and OSX this results in path objects of type `PosixPath`, but because
+Microsoft Windows is not POSIX compliant tests that compare such values will fail.
+
+[matcher]: https://syrupy-project.github.io/syrupy/#matcher
+[matcher_example]: https://github.com/syrupy-project/syrupy/issues/913
+[param-tests]: https://blog.nshephard.dev/posts/pytest-param/
+[pathlib]: https://docs.python.org/3/library/pathlib.html
+[regress-test]: https://en.wikipedia.org/wiki/Regression_testing
+[srp]: https://en.wikipedia.org/wiki/Single-responsibility_principle
+[syrupy]: https://syrupy-project.github.io/syrupy/
+[unit_tests]: https://en.wikipedia.org/wiki/Unit_testing
 [yaml]: https://yaml.org
