@@ -40,8 +40,6 @@ class disorderedTrace:  # pylint: disable=too-many-instance-attributes
         Pixel to nm scaling.
     min_skeleton_size : int
         Minimum skeleton size below which tracing statistics are not calculated.
-    min_skeleton_size : int
-        Minimum skeleton size below which tracing statistics are not calculated.
     mask_smoothing_params : dict
         Dictionary of parameters to smooth the grain mask for better quality skeletonisation results. Contains
         a gaussian 'sigma' and number of dilation iterations.
@@ -394,14 +392,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         spacing=grain_crop.pixel_to_nm_scaling,
                     )
                     skan_df = skan.summarize(skel=skan_skeleton, separator="_")
-                    # skan_df = compile_skan_stats(
-                    #     topostats_object=topostats_object,
-                    #     skan_df=skan_df,
-                    #     skan_skeleton=skan_skeleton,
-                    #     image=grain_crop.image,
-                    #     filename=filename,
-                    #     grain_number=grain_number,
-                    # )
                     total_branch_length_nm = skan_df["branch_distance"].sum() * 1e-9
                 except ValueError:
                     LOGGER.warning(
@@ -445,9 +435,9 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 for index, _ in enumerate(skan_df.iterrows()):
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index] = {}
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["image"] = filename
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index][
-                        "branch_distance"
-                    ] = skan_skeleton.path_lengths()[index]
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_distance"] = (
+                        skan_skeleton.path_lengths()[index]
+                    )
                     topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_type"] = (
                         np.int64(skan_df["branch_type"])[index]
                     )
@@ -502,7 +492,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
             # .topostats object.
             topostats_object.full_image_plots = all_images
 
-        # when skel too small, pruned to 0's, skan -> ValueError -> skipped
+        # when skeleton is too small, pruned to 0's, skan -> ValueError -> skipped
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(  # pylint: disable=logging-not-lazy
                 f"[{grain_crop.filename}] : Disordered tracing of grain {grain_number} failed. "
@@ -514,57 +504,6 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
         grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
         # Set the name of the index column to be the grain number
         grainstats_additions_df.index.name = "grain_number"
-
-    # return disordered_trace_crop_data, grainstats_additions_df, all_images, disordered_tracing_stats
-
-
-def compile_skan_stats(
-    skan_df: pd.DataFrame, skan_skeleton: skan.Skeleton, image: npt.NDArray, filename: str, grain_number: int
-) -> pd.DataFrame:
-    """
-    Obtain and add more stats to the resultant Skan dataframe.
-
-    Parameters
-    ----------
-    skan_df : pd.DataFrame
-        The statistics DataFrame produced by Skan's `summarize` function.
-    skan_skeleton : skan.Skeleton
-        The graphical representation of the skeleton produced by Skan.
-    image : npt.NDArray
-        The image the skeleton was produced from.
-    filename : str
-        Name of the file being processed.
-    grain_number : int
-        The number of the grain being processed.
-
-    Returns
-    -------
-    pd.DataFrame
-        A dataframe containing the filename, grain_number, branch-distance, branch-type, connected_segments,
-        mean-pixel-value, stdev-pixel-value, min-value, median-value, and mid-value.
-    """
-    skan_df["image"] = filename
-    skan_df["branch-type"] = np.int64(skan_df["branch_type"])
-    skan_df["grain_number"] = grain_number
-    skan_df["connected_segments"] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)
-    skan_df["min_value"] = skan_df.apply(lambda x: segment_heights(x, skan_skeleton, image).min(), axis=1)
-    skan_df["median_value"] = skan_df.apply(lambda x: np.median(segment_heights(x, skan_skeleton, image)), axis=1)
-    skan_df["middle_value"] = skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=image, axis=1)
-    # remove unused skan columns
-    return skan_df[
-        [
-            "image",
-            "grain_number",
-            "branch_distance",
-            "branch_type",
-            "connected_segments",
-            "mean_pixel_value",
-            "stdev_pixel_value",
-            "min_value",
-            "median_value",
-            "middle_value",
-        ]
-    ]
 
 
 def segment_heights(row: pd.Series, skan_skeleton: skan.Skeleton, image: npt.NDArray) -> npt.NDArray:
