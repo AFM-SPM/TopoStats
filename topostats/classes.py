@@ -43,7 +43,7 @@ class GrainCrop:
         Bounding box of the crop including padding.
     pixel_to_nm_scaling : float
         Pixel to nanometre scaling factor for the crop.
-    thresholds : float
+    thresholds : list[float]
         Thresholds used to find the grain.
     filename : str
         Filename of the image from which the crop was taken.
@@ -53,7 +53,7 @@ class GrainCrop:
         3-D Numpy tensor of the skeletonised mask.
     convolved_skeleton : npt.NDArray[np.int32] | None = None
         2-D Numpy array of the convolved skeleton.
-    height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+    height_profiles : dict[int, dict[int, npt.NDArray[np.float32]]] | None
         Nested dictionary  height profiles.
     stats : dict[int, dict[int, Any]] | None
         Dictionary of grain statistics.
@@ -111,7 +111,7 @@ class GrainCrop:
             3-D Numpy tensor of the skeletonised mask.
         convolved_skeleton : npt.NDArray[np.int32] | None = None
             2-D Numpy array of the convolved skeleton.
-        height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
+        height_profiles : dict[int, dict[int, npt.NDArray[np.float32]]] | None
             3-D Numpy tensor of the height profiles.
         stats : dict[str, int | float] | None
             Dictionary of grain statistics.
@@ -134,8 +134,8 @@ class GrainCrop:
         self.thresholds = thresholds
         self.filename = filename
         self.threshold: str | None = threshold
-        self.height_profiles = height_profiles
-        self.stats = {} if stats is None else stats
+        self.height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = height_profiles
+        self.stats: dict[str, Any] | None = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
         self.disordered_trace: DisorderedTrace | None = disordered_trace
@@ -143,7 +143,7 @@ class GrainCrop:
         self.ordered_trace: OrderedTrace | None = ordered_trace
         self.threshold_method: str | None = threshold_method
 
-    def __eq__(self, other: GrainCrop) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Check if two GrainCrop objects are equal.
 
@@ -167,13 +167,14 @@ class GrainCrop:
             and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
             and self.thresholds == other.thresholds
             and self.filename == other.filename
-            and self.stats == other.stats
-            and self.skeleton == other.skeleton
-            and self.convolved_skeleton == other.convolved_skeleton
+            and self.threshold == other.threshold
             and self.height_profiles == other.height_profiles
-            and self.disordered_trace == other.disordered_trace
+            and self.stats == other.stats
             and np.array_equal(self.skeleton, other.skeleton)
+            and self.convolved_skeleton == other.convolved_skeleton
+            and self.disordered_trace == other.disordered_trace
             and self.nodes == other.nodes
+            and self.ordered_trace == other.ordered_trace
             and self.threshold_method == other.threshold_method
         )
 

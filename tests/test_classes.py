@@ -222,7 +222,6 @@ topostats_test_data = [
 ]
 
 
-# Needs updating to switch to grain_crop rather than image_grain_crop
 @pytest.mark.parametrize(
     (
         "topostats_object",
