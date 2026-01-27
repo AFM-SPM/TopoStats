@@ -3,7 +3,9 @@
 """Fixtures for testing."""
 
 import importlib.resources as pkg_resources
+import pathlib
 import pickle as pkl
+import platform
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -35,6 +37,9 @@ from topostats.grainstats import GrainStats
 from topostats.io import LoadScans, read_yaml
 from topostats.plotting import TopoSum
 from topostats.utils import get_mask, get_thresholds
+
+if platform.system() == "Windows":
+    pathlib.PosixPath = pathlib.WindowsPath
 
 # This is required because of the inheritance used throughout
 # pylint: disable=redefined-outer-name
@@ -1619,6 +1624,8 @@ def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) 
 #     topostats_object = load_scans.img_dict["example_rep_int"]
 #     topostats_object.filename = "rep_int"
 #     return topostats_object
+
+# ns-rse : Attempt to deal with PosixPath raising NotImplementedError on M$-Win systems
 
 
 ##### Minicircle Small #####
