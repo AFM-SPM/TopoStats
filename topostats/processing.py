@@ -129,7 +129,7 @@ def run_filters(  # noqa: C901
                     LOGGER.info(f"[{topostats_object.filename}] : Filters plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -301,7 +301,7 @@ def run_grains(  # noqa: C901
                     LOGGER.info(f"[{topostats_object.filename}] : Grain plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on "
                         "GitHub. Error",
                         exc_info=e,
                     )
@@ -430,8 +430,11 @@ def run_disordered_tracing(  # noqa: C901
         except ValueError as e:
             LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
         except AttributeError as e:
-            if topostats_object.image_grain_stats is None:
-                LOGGER.info(f"[{topostats_object.filename}] : Missing image_grain_stats attribute.")
+            if topostats_object.grain_crops is None:
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Missing 'grain_crops' attribute, "
+                    "no grains to run disordered tracing."
+                )
             else:
                 LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
         except Exception as e:
@@ -477,7 +480,7 @@ def run_disordered_tracing(  # noqa: C901
                             except KeyError:
                                 LOGGER.warning(
                                     f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                                    "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                    "If you are NOT using a custom plotting configuration then please raise an issue on "
                                     "GitHub to report this problem."
                                 )
                 for plot_name in ["smoothed_mask", "skeleton", "branch_indexes", "branch_types"]:
@@ -491,7 +494,7 @@ def run_disordered_tracing(  # noqa: C901
                 LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on"
+                    f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
@@ -735,12 +738,12 @@ def run_ordered_tracing(  # noqa: C901
                                 LOGGER.warning(
                                     f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
                                     "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                                    "GitHub to report this problem."
+                                    " GitHub to report this problem."
                                 )
                     LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -831,7 +834,7 @@ def run_splining(
                     LOGGER.info(f"[{topostats_object.filename}] : Splining plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -927,7 +930,7 @@ def run_curvature_stats(
                     LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
+                    f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
@@ -1467,8 +1470,9 @@ def process_grainstats(
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
+        return topostats_object.filename, topostats_object, grain_stats_df
     LOGGER.info(f"[{topostats_object.filename}] : No grains present, GrainStats skipped.")
-    return topostats_object.filename, topostats_object, grain_stats_df
+    return topostats_object.filename, topostats_object, None
 
 
 def check_run_steps(  # noqa: C901
