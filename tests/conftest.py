@@ -1520,16 +1520,6 @@ def mock_model_5_by_5_single_class() -> MagicMock:
     return model_mocker
 
 
-# @ns-rse 2025-10-22 : Can we remove this and use one of the fixtures below?
-@pytest.fixture()
-def catenane_topostats() -> TopoStats:
-    """TopoStats object of the catenane image."""
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "tracing" / "nodestats" / "catenane_post_disordered_tracing.pkl", "rb"
-    ) as f:
-        return pkl.load(f)
-
-
 @pytest.fixture()
 def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of the minicircle (small) image."""
@@ -1624,8 +1614,6 @@ def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) 
 #     topostats_object = load_scans.img_dict["example_rep_int"]
 #     topostats_object.filename = "rep_int"
 #     return topostats_object
-
-# ns-rse : Attempt to deal with PosixPath raising NotImplementedError on M$-Win systems
 
 
 ##### Minicircle Small #####
