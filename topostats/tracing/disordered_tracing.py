@@ -431,33 +431,33 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                 # Extract disordered tracing statistics using skan
                 # ns-rse 2025-12-22 : feels crude to pull things out of skan_df to build a dictionary which we
                 # ultimately convert back to pd.DataFrame later, should really augment skan_df with additional metrics
-                topostats_object.grain_crops[grain_number].disordered_trace.stats_dict = {}
+                topostats_object.grain_crops[grain_number].disordered_trace.stats = {}
                 for index, _ in enumerate(skan_df.iterrows()):
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index] = {}
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["image"] = filename
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_distance"] = (
-                        skan_skeleton.path_lengths()[index]
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index] = {}
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["image"] = filename
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index][
+                        "branch_distance"
+                    ] = skan_skeleton.path_lengths()[index]
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["branch_type"] = np.int64(
+                        skan_df["branch_type"]
+                    )[index]
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["connected_segments"] = (
+                        skan_df.apply(find_connections, axis=1, skan_df=skan_df)[index]
                     )
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["branch_type"] = (
-                        np.int64(skan_df["branch_type"])[index]
-                    )
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index][
-                        "connected_segments"
-                    ] = skan_df.apply(find_connections, axis=1, skan_df=skan_df)[index]
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index][
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index][
                         "mean_pixel_value"
                     ] = skan_skeleton.path_means()[index]
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index][
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index][
                         "stdev_pixel_value"
                     ] = skan_skeleton.path_stdev()[index]
                     # pylint: disable=cell-var-from-loop
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["min_value"] = (
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["min_value"] = (
                         skan_df.apply(
                             lambda x: segment_heights(x, skan_skeleton=skan_skeleton, image=grain_crop.image).min(),
                             axis=1,
                         )[index]
                     )
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["median_value"] = (
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["median_value"] = (
                         skan_df.apply(
                             lambda x: np.median(
                                 segment_heights(x, skan_skeleton=skan_skeleton, image=grain_crop.image)
@@ -466,12 +466,12 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         )[index]
                     )
                     # pylint: enable=cell-var-from-loop
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["middle_value"] = (
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["middle_value"] = (
                         skan_df.apply(segment_middles, skan_skeleton=skan_skeleton, image=grain_crop.image, axis=1)[
                             index
                         ]
                     )
-                    topostats_object.grain_crops[grain_number].disordered_trace.stats_dict[index]["basename"] = str(
+                    topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["basename"] = str(
                         topostats_object.img_path
                     )
                 # remap the cropped images back onto the original, there are many image crops that we want to

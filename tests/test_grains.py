@@ -880,8 +880,6 @@ def test_remove_edge_intersecting_grains(
     ],
 )
 def test_find_grains(
-    # image: npt.NDArray[np.float32],
-    # pixel_to_nm_scaling: float,
     topostats_object: TopoStats,
     threshold_method: str,
     otsu_threshold_multiplier: float,
@@ -920,6 +918,9 @@ def test_find_grains(
         result_graincrop_mask = result_graincrop.mask
         expected_graincrop_mask = expected_graincrop.mask
         assert np.array_equal(result_graincrop_mask, expected_graincrop_mask)
+        # ns-rse 2026-01-28 : Currently fails as despite custom GrainCrop.__eq__() method it attempts to compare the
+        # items memory address/id
+        # assert result_graincrop == expected_graincrop
 
 
 # Find grains with unet - needs mocking

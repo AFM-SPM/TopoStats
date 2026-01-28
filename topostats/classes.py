@@ -698,7 +698,7 @@ class DisorderedTrace:
         Total branch length in nanometres.
     grain_width_mean : float
         Mean grain width in nanometres.
-    stats_dict : dict[int, Any]
+    stats : dict[int, Any]
         Dictionary of stats for each branch of a grain.
     """
 
@@ -707,7 +707,7 @@ class DisorderedTrace:
     grain_junctions: int | None = None
     total_branch_length: float | None = None
     grain_width_mean: float | None = None
-    stats_dict: dict[int, Any] | None = None
+    stats: dict[int, Any] | None = None
 
     def __str__(self) -> str:
         """
@@ -725,7 +725,7 @@ class DisorderedTrace:
             f"grain junctions : {self.grain_junctions}\n"
             f"total branch length (nm) : {self.total_branch_length}\n"
             f"mean grain width (nm) : {self.grain_width_mean}\n"
-            f"number of branches : {len(self.stats_dict)}"
+            f"number of branches : {len(self.stats)}"
         )
 
 

@@ -1154,7 +1154,7 @@ def process_scan(
         # Saving to a dictionary which we then flatten
         for grain_number, grain_crop in topostats_object.grain_crops.items():
             if grain_crop.disordered_trace is not None:
-                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
+                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats
             if grain_crop.ordered_trace is not None:
                 molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
         # Molecule Statistics - convert nested dictionary to DataFrame
