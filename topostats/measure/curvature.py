@@ -157,8 +157,7 @@ def calculate_curvature_stats_image(
             # Check if the molecule is circular or linear
             if molecule_data.end_to_end_distance == 0.0:
                 # Molecule is circular
-                curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
+                molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
             else:
                 # Molecule is linear
-                curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
-            molecule_data.curvature_stats = curvature_stats
+                molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
