@@ -58,11 +58,30 @@ precision very occasionally varies between operating systems. To deal with this 
 separated from the rest of the values being tested and the [`matcher`][matcher] argument is used. For an example of how
 this is used see this [thread][matcher_example] of the `tests/test_processing.py::test_grainstats()` test.
 
-#### Paths
+#### Paths in output
+
+The `TopoStats.img_path` holds the path to the file that is being tested. This will vary between the machine the tests
+are being run on, whether that is a personal laptop or one of the Continuous Integration runners on GitHub. As a
+consequence any regression test which includes this will fail if it includes the `img_path` or as it is called in
+dataframes/`.csv` files the `basename`.
+
+The solution, when developing tests that might include these fields, is to set `TopoStats.img_path = None` for
+`TopoStats` objects and to drop them from data frames (e.g. `df.drop(["basename"], axis=1, inplace=True)`).
+
+#### Paths - Windows
 
 Another consideration in writing regression tests is that TopoStats makes heavy usage of the [pathlib][pathlib]
 module. On POSIX systems such as GNU/Linux and OSX this results in path objects of type `PosixPath`, but because
-Microsoft Windows is not POSIX compliant tests that compare such values will fail.
+Microsoft Windows is not POSIX compliant tests that compare such values will fail. The solution to this implemented in
+`tests/conftest.py` is to mask `pathlib.PosixPath` to be `pathlib.WindowsPath`
+
+```python
+import pathlib
+import platform
+
+if platform.system() == "Windows":
+    pathlib.PosixPath = pathlib.WindowsPath
+```
 
 [matcher]: https://syrupy-project.github.io/syrupy/#matcher
 [matcher_example]: https://github.com/syrupy-project/syrupy/issues/913

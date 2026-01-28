@@ -164,8 +164,6 @@ def test_save_cropped_grains(
     )
 
 
-# ns-rse 2025-12-17 It seems rather excessive to have so many options for which subset of images to output, would be
-# much simpler if we just provided 'core' or 'all'
 @pytest.mark.parametrize(
     ("image_set", "expected_image"),
     [
@@ -383,8 +381,6 @@ def test_image_set(
         assert Path.exists(tmp_path / "tests/resources/test_image/processed/" / img_path) == expected_image[key]
 
 
-# ns-rse 2025-11-26 : This seems a lot just to check files are output with the correct extension, I wonder if we could
-# check this as part of another test?
 @pytest.mark.parametrize("extension", [("png"), ("tif")])
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images."""
