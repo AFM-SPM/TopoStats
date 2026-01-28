@@ -86,7 +86,6 @@ class splineTrace:
         self.spline_linear_smoothing = spline_linear_smoothing
         self.spline_circular_smoothing = spline_circular_smoothing
         self.spline_degree = spline_degree
-        # ns-rse 2025-12-02 : remove, added as attributes
         self.tracing_stats = {
             "contour_length": None,
             "end_to_end_distance": None,
@@ -454,7 +453,7 @@ class windowTrace:
                     interval=self.rolling_window_resample_interval_nm / self.pixel_to_nm_scaling,
                     circular=False,
                 )
-        # compile CL & E2E distance
+        # compile contour length & end-to-end distance
         self.tracing_stats["contour_length"] = (
             measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
