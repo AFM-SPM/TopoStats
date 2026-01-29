@@ -148,12 +148,13 @@ def calculate_curvature_stats_image(
     # Iterate over grains
     for _, grain_crop in topostats_object.grain_crops.items():
         # Iterate over molecules
-        for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
-            trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
-            # Check if the molecule is circular or linear
-            if molecule_data.end_to_end_distance == 0.0:
-                # Molecule is circular
-                molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
-            else:
-                # Molecule is linear
-                molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
+        if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+            for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
+                trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
+                # Check if the molecule is circular or linear
+                if molecule_data.end_to_end_distance == 0.0:
+                    # Molecule is circular
+                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
+                else:
+                    # Molecule is linear
+                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))

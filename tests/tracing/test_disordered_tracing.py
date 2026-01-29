@@ -4,6 +4,7 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -1910,3 +1911,14 @@ def test_smooth_mask(
 
     assert expected_message in caplog.text
     np.testing.assert_array_equal(smoothed_grain, expected_array)
+
+
+def test_small_skeletons_ignored(
+    topostats_object_small_grain: TopoStats, disordered_tracing_config: dict[str, Any], caplog
+) -> None:
+    """Test that small skeletons < 10 pixels are ignored by checking log for error."""
+    disordered_tracing.trace_image_disordered(
+        topostats_object=topostats_object_small_grain, **disordered_tracing_config
+    )
+    assert f"Grain 0 skeleton < {disordered_tracing_config['min_skeleton_size']}, skipping" in caplog.text
+    assert topostats_object_small_grain.grain_crops[0].disordered_trace is None

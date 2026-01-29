@@ -880,7 +880,8 @@ def ordered_tracing_image(
             )
             # check if want to perform tracing based on node statistics
             if (
-                len(grain_crop.nodes) > 0
+                grain_crop.nodes is not None
+                and len(grain_crop.nodes) > 0
                 and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
             ):
                 LOGGER.info(
@@ -895,27 +896,36 @@ def ordered_tracing_image(
                     LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")
             # if not doing nodestats ordering, do original TS ordering
             elif grain_crop.disordered_trace is not None:
-                LOGGER.info(f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. Tracing normally.")
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. "
+                    "Attempting to trace normally."
+                )
                 topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
                 grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
                 LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
             else:
-                LOGGER.debug(
+                LOGGER.info(
                     f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
                     "skipping orderering."
                 )
             # remap the cropped images back onto the original
             for image_name, full_image in ordered_trace_full_images.items():
-                crop = grain_crop.ordered_trace.images[image_name]
-                full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
-            # Add the ordered_trace_full_image to topostats_object.full_image_plots
-            if topostats_object.full_image_plots is None:
-                topostats_object.full_image_plots = ordered_trace_full_images
-            elif isinstance(topostats_object.full_image_plots, dict):
-                topostats_object.full_image_plots = {**topostats_object.full_image_plots, **ordered_trace_full_images}
+                if grain_crop.ordered_trace.images is not None:
+                    print(f"\n{image_name=}\n")
+                    print(f"\n{grain_crop.ordered_trace.images=}\n")
+                    crop = grain_crop.ordered_trace.images[image_name]
+                    full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
+                # Add the ordered_trace_full_image to topostats_object.full_image_plots
+                if topostats_object.full_image_plots is None:
+                    topostats_object.full_image_plots = ordered_trace_full_images
+                elif isinstance(topostats_object.full_image_plots, dict):
+                    topostats_object.full_image_plots = {
+                        **topostats_object.full_image_plots,
+                        **ordered_trace_full_images,
+                    }
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
-                f"[{topostats_object.filename}] : Ordered tracing for {grain_no} failed. "
+                f"[{topostats_object.filename}] : Ordered tracing for {grain_no + 1} failed. "
                 "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )

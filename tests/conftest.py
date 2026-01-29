@@ -1882,3 +1882,73 @@ def plot_curvatures_topostats_object() -> TopoStats:
             ),
         },
     )
+
+
+@pytest.fixture()
+def topostats_object_small_grain() -> TopoStats:
+    """A ``TopoStats`` object with a grain < 10 pixels."""
+    image = np.asarray(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 5, 5, 5, 5, 5, 5, 5, 0],
+            [0, 5, 10, 10, 10, 10, 10, 5, 0],
+            [0, 5, 10, 5, 5, 5, 5, 5, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 5, 5, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ],
+        dtype=np.float32,
+    )
+    mask = np.stack(
+        arrays=[
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                dtype=np.int32,
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                dtype=np.int32,
+            ),
+        ],
+        axis=-1,
+    )
+    return TopoStats(
+        image=image,
+        image_original=image,
+        filename="small grain",
+        img_path="./",
+        pixel_to_nm_scaling=1,
+        grain_crops={
+            0: GrainCrop(
+                image=image,
+                mask=mask,
+                pixel_to_nm_scaling=1,
+                padding=1,
+                bbox=(0, 8, 0, 8),
+                filename="small_grain",
+                thresholds=[10],
+            )
+        },
+    )

@@ -606,59 +606,59 @@ def splining_image(
         if rolling_window_resample_regular_spatial_interval is None
         else rolling_window_resample_regular_spatial_interval
     )
-    mol_count = 0
-    for _, grain_crop in topostats_object.grain_crops.items():
-        mol_count += len(grain_crop.ordered_trace.molecule_data)
-    LOGGER.info(f"[{topostats_object.filename}] : Calculating Splining statistics for {mol_count} molecules...")
+    # mol_count = 0
+    # for _, grain_crop in topostats_object.grain_crops.items():
+    #     mol_count += len(grain_crop.ordered_trace.molecule_data)
+    # LOGGER.info(f"[{topostats_object.filename}] : Calculating Splining statistics for {mol_count} molecules...")
 
     # iterate through ordered_trace.molecule_data
     for grain_no, grain_crop in topostats_object.grain_crops.items():
         # grain_trace_stats is no longer used, length and end to end distance are added to molecules and averaged from
         # molecule_statistics_df before merging with grain_stats_df prior to writing to CSV
         mol_no = None
-        for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
-            try:
-                LOGGER.info(f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}")
-                # check if want to do nodestats tracing or not
-                if splining_method == "rolling_window":
-                    splined_data, tracing_stats = windowTrace(
-                        topostats_object=topostats_object,
-                        grain=grain_no,
-                        molecule=mol_no,
-                        rolling_window_size=rolling_window_size,
-                        rolling_window_resampling=rolling_window_resampling,
-                        rolling_window_resample_interval_nm=rolling_window_resample_regular_spatial_interval,
-                    ).run_window_trace()
-                # if not doing nodestats ordering, do original TopoStats ordering
-                elif splining_method == "spline":
-                    splined_data, tracing_stats = splineTrace(
-                        topostats_object=topostats_object,
-                        grain=grain_no,
-                        molecule=mol_no,
-                        spline_step_size=spline_step_size,
-                        spline_linear_smoothing=spline_linear_smoothing,
-                        spline_circular_smoothing=spline_circular_smoothing,
-                        spline_degree=spline_degree,
-                    ).run_spline_trace()
-                else:
-                    raise ValueError(
-                        f"Invalid parameter for splining.method : {splining_method}\n"
-                        "Please change your configuration, valid values are 'rolling_window' or 'splining'."
+        if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+            for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
+                try:
+                    LOGGER.info(f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}")
+                    # check if want to do nodestats tracing or not
+                    if splining_method == "rolling_window":
+                        splined_data, tracing_stats = windowTrace(
+                            topostats_object=topostats_object,
+                            grain=grain_no,
+                            molecule=mol_no,
+                            rolling_window_size=rolling_window_size,
+                            rolling_window_resampling=rolling_window_resampling,
+                            rolling_window_resample_interval_nm=rolling_window_resample_regular_spatial_interval,
+                        ).run_window_trace()
+                    # if not doing nodestats ordering, do original TopoStats ordering
+                    elif splining_method == "spline":
+                        splined_data, tracing_stats = splineTrace(
+                            topostats_object=topostats_object,
+                            grain=grain_no,
+                            molecule=mol_no,
+                            spline_step_size=spline_step_size,
+                            spline_linear_smoothing=spline_linear_smoothing,
+                            spline_circular_smoothing=spline_circular_smoothing,
+                            spline_degree=spline_degree,
+                        ).run_spline_trace()
+                    else:
+                        raise ValueError(
+                            f"Invalid parameter for splining.method : {splining_method}\n"
+                            "Please change your configuration, valid values are 'rolling_window' or 'splining'."
+                        )
+                    # Add statistics to Molecule object
+                    molecule.splined_coords = splined_data
+                    molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
+                    molecule.contour_length = tracing_stats["contour_length"]
+                    molecule.bbox = grain_crop.bbox
+                    LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
+
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Splining for {grain_no} failed. "
+                        "Consider raising an issue on GitHub. Error: ",
+                        exc_info=e,
                     )
-                # Add statistics to Molecule object
-                molecule.splined_coords = splined_data
-                molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
-                molecule.contour_length = tracing_stats["contour_length"]
-                molecule.bbox = grain_crop.bbox
-                LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
-
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                LOGGER.error(
-                    f"[{topostats_object.filename}] : Splining for {grain_no} failed. "
-                    "Consider raising an issue on GitHub. Error: ",
-                    exc_info=e,
-                )
-
         if mol_no is None:
             LOGGER.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
 
