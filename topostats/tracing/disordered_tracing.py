@@ -654,7 +654,6 @@ def disordered_trace_grain(  # pylint: disable=too-many-arguments
         of coordinates.
     """
     disorderedtrace = disorderedTrace(
-        # grain_crop=grain_crop,
         image=cropped_image,
         mask=cropped_mask,
         filename=filename,

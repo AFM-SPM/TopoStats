@@ -134,20 +134,16 @@ def discrete_angle_difference_per_nm_linear(
 
 def calculate_curvature_stats_image(
     topostats_object: TopoStats,
-) -> dict[int, dict[int, npt.NDArray[np.float64]]]:
+) -> None:
     """
     Perform curvature analysis for a whole image of grains.
+
+    Curvature statistics are added to the ``Molecule.curvature_stats`` attribute of the traces that are being processed.
 
     Parameters
     ----------
     topostats_object : TopoStats
         ``TopoStats`` object with attribute ``grain_crop``. Should be post-splining.
-
-    Returns
-    -------
-    dict[int, dict[int, npt.NDArray[npfloat64]]]
-        Nested dictionary of curvature statistics for each molecule within each grain. Top-level is indexed by grain and
-        nested dictionaries are indexed by molecule and contain an array of angles.
     """
     # Iterate over grains
     for _, grain_crop in topostats_object.grain_crops.items():

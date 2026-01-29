@@ -62,7 +62,7 @@ class Grains:
     Parameters
     ----------
     topostats_object : TopoStats
-        TopoStats object.
+        TopoStats object with a minimum of ``image``, ``filename`` and ``pixel_to_nm_scaling`` attributes defined.
     grain_crop_padding : int
         Padding to add to the bounding box of the grain during cropping.
     unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
@@ -142,6 +142,10 @@ class Grains:
         vetting : dict | None
             Dictionary of vetting parameters.
         """
+        assert topostats_object.config is not None, AttributeError(
+            f"[{topostats_object.filename}] : Missing 'config' "
+            "attribute. If loading '.topostats' objects you may need to run the whole processing pipeline anew."
+        )
         config = topostats_object.config["grains"]
         if unet_config is None:
             unet_config = {

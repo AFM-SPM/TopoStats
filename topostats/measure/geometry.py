@@ -291,7 +291,7 @@ def find_branches_for_nodes(
             (bounding_box[1] - 1) : (bounding_box[3] + 2),  # crop_top:crop_bottom
         ]
         # get coords of nodes and branches in box
-        # iterate through node coords and branches in bo to see which are within 8 dirs
+        # iterate through node coords and branches in box to see which are within 8 dirs
         for node_coord in np.argwhere(cropped_matrix == 3):
             for branch_coord in np.argwhere(cropped_matrix == 1):
                 distance = math.dist(node_coord, branch_coord)

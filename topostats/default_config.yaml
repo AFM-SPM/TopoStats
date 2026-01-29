@@ -92,7 +92,7 @@ nodestats:
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
 ordered_tracing:
   run: true
-  ordering_method: nodestats # The method of ordering the disordered traces.
+  ordering_method: nodestats # The method of ordering the disordered traces. Options : nodestats | original
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"

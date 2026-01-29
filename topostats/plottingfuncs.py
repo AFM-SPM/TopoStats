@@ -327,7 +327,8 @@ class Images:
         image : npt.NDArray
             Image to plot.
         grain_crops : dict[int, GrainCrop]
-            Dictionary containing cropped images of grains and the bounding boxes and padding.
+            Dictionary of ``GrainCrops`` which (should) contain cropped images of grains, bounding boxes and padding
+            attributes.
         colourmap_normalisation_bounds : tuple[float, float]
             Tuple of the colour map normalisation bounds.
 

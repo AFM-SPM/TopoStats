@@ -973,13 +973,10 @@ def get_out_paths(
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
-    # ns-rse 2025-12-25 Do we want to keep tracing nested or promote disordered/ordered/nodes/curvature/splining up a
-    # level?
     tracing_out_path = core_out_path / filename / "dnatracing"
     if "core" not in plotting_config["image_set"] and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         grain_out_path.mkdir(exist_ok=True, parents=True)
-        # ns-rse 2025-12-05 Do we want disordered and ordered subdirectories?
         Path.mkdir(tracing_out_path / "nodes", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "curvature", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "splining", parents=True, exist_ok=True)

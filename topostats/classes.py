@@ -973,9 +973,9 @@ class Node:
     node_coords : npt.NDArray[np.int32]
         Numpy array of node coordinates.
     confidence : np.float64
-        Confidence in ???.
-    reduced_node_area : ???
-        Reduced node area.
+        Normalised confidence of the crossing in the range of ``0-1``.
+    reduced_node_area : npt.NDArray[np.int32]
+        The molecule skeleton, with all branches removed that are not connected to the current node.
     node_area_skeleton : npt.NDArray[np.int32]
         Numpy array of skeleton.
     node_branch_mask : npt.NDArray[np.int32]
@@ -992,7 +992,7 @@ class Node:
     unmatched_branch_stats: dict[int, UnMatchedBranch] | None = None
     node_coords: npt.NDArray[np.int32] | None = None
     confidence: float | None = None
-    reduced_node_area: float | None = None
+    reduced_node_area: npt.NDArray[np.int32] | None = None
     node_area_skeleton: npt.NDArray[np.int32] | None = None
     node_branch_mask: npt.NDArray[np.int32] | None = None
     node_avg_mask: npt.NDArray[np.int32] | None = None
@@ -1038,7 +1038,7 @@ class OrderedTrace:
     pixel_to_nm_scaling: np.float64 | None
         Pixel to nm scaling.
     images: dict[str, npt.NDArray] | None
-        Images of ???
+        Diagnostic images produced during processing.
     error: bool | None
         Errors encountered?
     molecule_statistics : dict[int, dict[str, bool | str | float | None]] | None
@@ -1107,7 +1107,7 @@ class Molecule:
     processing : str
         Which processing type was used, topostats or nodestats.
     topology : str, optional
-        Unknown?
+        Topological classification of the molecule.
     topology_flip : Any, optional
         Unknown?
     ordered_coords : npt.NDArray, optional
