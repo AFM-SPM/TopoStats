@@ -911,8 +911,6 @@ def ordered_tracing_image(
             # remap the cropped images back onto the original
             for image_name, full_image in ordered_trace_full_images.items():
                 if grain_crop.ordered_trace.images is not None:
-                    print(f"\n{image_name=}\n")
-                    print(f"\n{grain_crop.ordered_trace.images=}\n")
                     crop = grain_crop.ordered_trace.images[image_name]
                     full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
                 # Add the ordered_trace_full_image to topostats_object.full_image_plots

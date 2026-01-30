@@ -423,7 +423,7 @@ def dummy_disordered_trace() -> DisorderedTrace:
         grain_junctions=3,
         total_branch_length=12.3456789,
         grain_width_mean=3.14152,
-        stats_dict={
+        stats={
             0: {
                 "branch_distance": 49.2719092002369,
                 "branch_type": 2,
@@ -452,7 +452,8 @@ def dummy_node(dummy_matched_branch: MatchedBranch, dummy_unmatched_branch) -> N
         # ns-rse 2025-10-07 Need to know what node_coords actually look like
         node_coords=np.array([[0, 0], [0, 1]]),
         confidence=0.987654,
-        reduced_node_area=10.987654321,
+        # ns-rse 2026-01-30 Pretty sure this should be a larger array
+        reduced_node_area=np.array([10.987654321]),
         # ns-rse 2025-10-07 Need to know what these attributes look like
         node_area_skeleton=np.zeros(5),
         node_branch_mask=np.zeros(6),

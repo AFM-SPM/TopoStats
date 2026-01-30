@@ -75,7 +75,7 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     grain_stats = {}
     volume_stats = {}
     for grain_number, grain_crop in saved_topostats["grain_crops"].items():
-        disordered_stats[grain_number] = grain_crop["disordered_trace"].pop("stats_dict")
+        disordered_stats[grain_number] = grain_crop["disordered_trace"].pop("stats")
         grain_stats[grain_number] = grain_crop.pop("stats")
         volume_stats[grain_number] = {}
         for key1, data in grain_stats[grain_number].items():
