@@ -1202,22 +1202,22 @@ def process_scan(
         else:
             disordered_tracing_df = None
         # Matched Branch Statistics - If we have at least one node we can do this directly.
-        if topostats_object.grain_crops[0].nodes is not None and len(topostats_object.grain_crops[0].nodes) > 0:
-            matched_branch_df = pd.DataFrame.from_dict(
-                data={
-                    (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
-                        image=topostats_object.filename,
-                        basename=topostats_object.img_path,
-                    )
-                    for grain_number, grain_crop in topostats_object.grain_crops.items()
-                    if len(grain_crop.nodes) > 0
-                    for node_number, node in grain_crop.nodes.items()
-                    if len(node.branch_stats) > 0
-                    for branch_number, matched_branch in node.branch_stats.items()
-                },
-                orient="index",
-            )
-        else:
+        matched_branch_df = pd.DataFrame.from_dict(
+            data={
+                (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
+                    image=topostats_object.filename,
+                    basename=topostats_object.img_path,
+                )
+                for grain_number, grain_crop in topostats_object.grain_crops.items()
+                if grain_crop.nodes is not None and len(grain_crop.nodes) > 0
+                for node_number, node in grain_crop.nodes.items()
+                if node.branch_stats is not None and len(node.branch_stats) > 0
+                for branch_number, matched_branch in node.branch_stats.items()
+            },
+            orient="index",
+        )
+        # ...but if everything has failed though we have an empty dataframe, instead return None
+        if matched_branch_df.shape == (0, 0):
             matched_branch_df = None
         # Grain Statistics
         grain_stats = {

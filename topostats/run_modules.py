@@ -219,10 +219,13 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 scan_data_dict.values(),
             ):
                 # Append each images returned dataframes to the dictionaries
-                grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
+                if grain_stats_df is not None:
+                    grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
                 topostats_object_all[str(filename)] = topostats_object
-                image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
-                disordered_tracing_all[str(filename)] = disordered_tracing_df.dropna(axis=1, how="all")
+                if image_stats_df is not None:
+                    image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
+                if disordered_tracing_df is not None:
+                    disordered_tracing_all[str(filename)] = disordered_tracing_df.dropna(axis=1, how="all")
                 if branch_stats_df is not None:
                     branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
                 if molecule_stats_df is not None:
@@ -259,88 +262,94 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.error(error)
 
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
-    try:
-        grain_stats_all = pd.concat(grain_stats_all.values())
-        grain_stats_all.reset_index(inplace=True)
-        grain_stats_all.set_index(["image", "grain_number"], inplace=True)
-    except ValueError as error:
-        LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
-        LOGGER.error(error)
-    if grain_stats_additions.shape[0] > 0:
-        grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
-    else:
-        LOGGER.warning("No molecule statistics to merge with grain statistics.")
-    # Write statistics to CSV if there is data.
-    if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
-        grain_stats_all = write_csv(
-            df=grain_stats_all,
-            dataset="grain_stats",
-            # Reset after above merge
-            names=["image", "grain_number"],
-            index=["image", "grain_number", "class", "subgrain"],
-            output_dir=config["output_dir"],
-            base_dir=config["base_dir"],
-        )
-        LOGGER.info(f"Saving grain stats to : {config['output_dir']}/grain_statistics.csv.")
+    if len(grain_stats_all) > 0:
+        try:
+            grain_stats_all = pd.concat(grain_stats_all.values())
+            grain_stats_all.reset_index(inplace=True)
+            grain_stats_all.set_index(["image", "grain_number"], inplace=True)
+        except ValueError as error:
+            LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+            LOGGER.error(error)
+        if grain_stats_additions.shape[0] > 0:
+            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
+        else:
+            LOGGER.warning("No molecule statistics to merge with grain statistics.")
+        # Write statistics to CSV if there is data.
+        if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+            grain_stats_all = write_csv(
+                df=grain_stats_all,
+                dataset="grain_stats",
+                # Reset after above merge
+                names=["image", "grain_number"],
+                index=["image", "grain_number", "class", "subgrain"],
+                output_dir=config["output_dir"],
+                base_dir=config["base_dir"],
+            )
+            LOGGER.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
     else:
         images_processed = 0
         LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
     # Optional output files
     if output_full_stats:
-        # Matched branch statistics
-        try:
-            branch_stats_all = pd.concat(branch_stats_all.values())
-        except ValueError as error:
-            LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
-            LOGGER.error(error)
-        if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
-            branch_stats_all = write_csv(
-                df=branch_stats_all,
-                dataset="matched_branch_stats",
-                names=["grain_number", "node", "branch"],
-                index=["image", "grain_number", "node", "branch"],
-                output_dir=config["output_dir"],
-                base_dir=config["base_dir"],
-            )
-            LOGGER.info(f"Saving matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
+        if branch_stats_all is not None:
+            # Matched branch statistics
+            try:
+                branch_stats_all = pd.concat(branch_stats_all.values())
+            except ValueError as error:
+                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
+                LOGGER.error(error)
+            if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
+                branch_stats_all = write_csv(
+                    df=branch_stats_all,
+                    dataset="matched_branch_stats",
+                    names=["grain_number", "node", "branch"],
+                    index=["image", "grain_number", "node", "branch"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
         else:
             LOGGER.warning("There are no matched branch statistics to write to CSV.")
         # Disordered trace statistics
-        try:
-            disordered_tracing_all = pd.concat(disordered_tracing_all.values())
-        except ValueError as error:
-            LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
-            LOGGER.error(error)
-        if isinstance(disordered_tracing_all, pd.DataFrame) and not disordered_tracing_all.isna().values.all():
-            disordered_tracing_all = write_csv(
-                df=disordered_tracing_all,
-                dataset="branch_statistics",
-                names=["grain_number", "index"],
-                index=["image", "grain_number", "index"],
-                output_dir=config["output_dir"],
-                base_dir=config["base_dir"],
-            )
-            LOGGER.info(f"Saving disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
+        if disordered_tracing_all is not None:
+            try:
+                disordered_tracing_all = pd.concat(disordered_tracing_all.values())
+            except ValueError as error:
+                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
+                LOGGER.error(error)
+            if isinstance(disordered_tracing_all, pd.DataFrame) and not disordered_tracing_all.isna().values.all():
+                disordered_tracing_all = write_csv(
+                    df=disordered_tracing_all,
+                    dataset="branch_statistics",
+                    names=["grain_number", "index"],
+                    index=["image", "grain_number", "index"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
         else:
             LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
 
         # Molecule statistics
-        if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
-            molecule_stats_all = write_csv(
-                df=molecule_stats_all,
-                dataset="mol_stats",
-                names=None,
-                index=["image", "grain_number"],
-                output_dir=config["output_dir"],
-                base_dir=config["base_dir"],
-            )
-            LOGGER.info(f"Saving molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
+        if molecule_stats_all is not None:
+            if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
+                molecule_stats_all = write_csv(
+                    df=molecule_stats_all,
+                    dataset="mol_stats",
+                    names=None,
+                    index=["image", "grain_number"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
             LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
 
     else:
-        LOGGER.info("molecule_statistics.csv, branch_statistics.csv and matched_branch_statistics.csv skipped")
+        LOGGER.info(
+            "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and'matched_branch_statistics.csv' skipped"
+        )
 
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
