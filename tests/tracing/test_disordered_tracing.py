@@ -1394,6 +1394,10 @@ def test_trace_image_disordered(
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
     )
+    # Have to remove basename from stats as it varies between computer tests run on
+    for _, grain_crop in topostats_object.grain_crops.items():
+        for _, stat in grain_crop.disordered_trace.stats.items():
+            stat["basename"] = None
     # Only the catenane image has a second GrainCrop to assess the disordered trace of
     assert topostats_object.grain_crops[0].disordered_trace == snapshot
     if request.node.callspec.id == "catenane":
@@ -1492,6 +1496,10 @@ def test_trace_image_disordered_dataframes(
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
     )
+    # Have to remove basename from stats as it varies between computer tests run on
+    for _, grain_crop in topostats_object.grain_crops.items():
+        for _, stat in grain_crop.disordered_trace.stats.items():
+            stat["basename"] = None
     assert {
         grain_number: grain_crop.disordered_trace.stats
         for grain_number, grain_crop in topostats_object.grain_crops.items()
