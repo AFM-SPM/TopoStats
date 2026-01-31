@@ -56,7 +56,7 @@ package which writes "snapshots" of tests to the `__snapshot__/test_<test-file-n
 tests are compared. One of the challenges here is the precision of values written to these files and the fact that
 precision very occasionally varies between operating systems. To deal with this some of the values that do vary are
 separated from the rest of the values being tested and the [`matcher`][matcher] argument is used. For an example of how
-this is used see this [thread][matcher_example] of the `tests/test_processing.py::test_grainstats()` test.
+this is used see this [thread][matcher_example] or the `tests/test_processing.py::test_grainstats()` test.
 
 #### Paths in output
 
