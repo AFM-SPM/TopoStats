@@ -683,9 +683,9 @@ def interpolate_between_two_points_distance(
         The new point at the specified distance between the two points.
     """
     distance_between_points = np.linalg.norm(point2 - point1)
-    assert distance_between_points > distance, (
-        f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
-    )
+    assert (
+        distance_between_points > distance
+    ), f"distance between points is less than the desired interval: {distance_between_points} < {distance}"
     proportion = distance / distance_between_points
     return point1 + proportion * (point2 - point1)
 
