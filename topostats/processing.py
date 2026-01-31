@@ -129,7 +129,7 @@ def run_filters(  # noqa: C901
                     LOGGER.info(f"[{topostats_object.filename}] : Filters plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting filtering failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -301,7 +301,7 @@ def run_grains(  # noqa: C901
                     LOGGER.info(f"[{topostats_object.filename}] : Grain plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting grains failed. Consider raising an issue on "
                         "GitHub. Error",
                         exc_info=e,
                     )
@@ -430,8 +430,11 @@ def run_disordered_tracing(  # noqa: C901
         except ValueError as e:
             LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with ValueError {e}")
         except AttributeError as e:
-            if topostats_object.image_grain_stats is None:
-                LOGGER.info(f"[{topostats_object.filename}] : Missing image_grain_stats attribute.")
+            if topostats_object.grain_crops is None:
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Missing 'grain_crops' attribute, "
+                    "no grains to run disordered tracing."
+                )
             else:
                 LOGGER.info(f"[{topostats_object.filename}] : Disordered tracing failed with AttributeError {e}")
         except Exception as e:
@@ -453,7 +456,7 @@ def run_disordered_tracing(  # noqa: C901
                     # - pruned skeletons
                     # - branch_types
                     # - branch_indexes
-                    if grain_crop.disordered_trace.images is not None:
+                    if grain_crop.disordered_trace is not None and grain_crop.disordered_trace.images is not None:
                         for plot_name, image_value in grain_crop.disordered_trace.images.items():
                             # Skip plotting the image and grain themselves and pruned_skeleton (plotted above)
                             if plot_name in {"image", "grain"}:
@@ -477,7 +480,7 @@ def run_disordered_tracing(  # noqa: C901
                             except KeyError:
                                 LOGGER.warning(
                                     f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                                    "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                    "If you are NOT using a custom plotting configuration then please raise an issue on "
                                     "GitHub to report this problem."
                                 )
                 for plot_name in ["smoothed_mask", "skeleton", "branch_indexes", "branch_types"]:
@@ -491,7 +494,7 @@ def run_disordered_tracing(  # noqa: C901
                 LOGGER.info(f"[{topostats_object.filename}] : Disordered trace plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on"
+                    f"[{topostats_object.filename}] : Plotting disordered traces failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
@@ -561,42 +564,44 @@ def run_nodestats(  # noqa: C901
             try:
                 # For each node within each grain make three plots
                 for grain_number, grain_crop in topostats_object.grain_crops.items():
-                    for node_number, node in grain_crop.nodes.items():
-                        LOGGER.debug(
-                            f"[{topostats_object.filename}] : Plotting Nodestats Grain {grain_number + 1} (Node {node_number})"
-                        )
-                        Images(
-                            data=grain_crop.image,
-                            masked_array=node.node_area_skeleton,
-                            output_dir=tracing_out_path,
-                            filename=f"grain_{grain_number}_node_{node_number}_node_area_skeleton.png",
-                            **plotting_config["plot_dict"]["node_area_skeleton"],
-                        ).plot_and_save()
-                        Images(
-                            data=grain_crop.image,
-                            masked_array=node.node_branch_mask,
-                            output_dir=tracing_out_path,
-                            filename=f"grain_{grain_number}_node_{node_number}_node_branch_mask.png",
-                            **plotting_config["plot_dict"]["node_branch_mask"],
-                        ).plot_and_save()
-                        Images(
-                            data=grain_crop.image,
-                            masked_array=node.node_avg_mask,
-                            output_dir=tracing_out_path,
-                            filename=f"grain_{grain_number}_node_{node_number}_node_avg_mask.png",
-                            **plotting_config["plot_dict"]["node_avg_mask"],
-                        ).plot_and_save()
-                        if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
-                            if not node.error:
-                                fig, _ = plot_crossing_linetrace_halfmax(
-                                    branch_stats=node.branch_stats,
-                                    mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
-                                    title=plotting_config["plot_dict"]["node_line_trace"]["title"],
-                                )
-                                fig.savefig(
-                                    tracing_out_path / f"grain_{grain_number}_node_{node_number}_linetrace_halfmax.png",
-                                    format="png",
-                                )
+                    if grain_crop.nodes is not None and len(grain_crop.nodes) > 0:
+                        for node_number, node in grain_crop.nodes.items():
+                            LOGGER.debug(
+                                f"[{topostats_object.filename}] : Plotting Nodestats Grain {grain_number + 1} (Node {node_number})"
+                            )
+                            Images(
+                                data=grain_crop.image,
+                                masked_array=node.node_area_skeleton,
+                                output_dir=tracing_out_path,
+                                filename=f"grain_{grain_number}_node_{node_number}_node_area_skeleton.png",
+                                **plotting_config["plot_dict"]["node_area_skeleton"],
+                            ).plot_and_save()
+                            Images(
+                                data=grain_crop.image,
+                                masked_array=node.node_branch_mask,
+                                output_dir=tracing_out_path,
+                                filename=f"grain_{grain_number}_node_{node_number}_node_branch_mask.png",
+                                **plotting_config["plot_dict"]["node_branch_mask"],
+                            ).plot_and_save()
+                            Images(
+                                data=grain_crop.image,
+                                masked_array=node.node_avg_mask,
+                                output_dir=tracing_out_path,
+                                filename=f"grain_{grain_number}_node_{node_number}_node_avg_mask.png",
+                                **plotting_config["plot_dict"]["node_avg_mask"],
+                            ).plot_and_save()
+                            if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
+                                if not node.error:
+                                    fig, _ = plot_crossing_linetrace_halfmax(
+                                        branch_stats=node.branch_stats,
+                                        mask_cmap=plotting_config["plot_dict"]["node_line_trace"]["mask_cmap"],
+                                        title=plotting_config["plot_dict"]["node_line_trace"]["title"],
+                                    )
+                                    fig.savefig(
+                                        tracing_out_path
+                                        / f"grain_{grain_number}_node_{node_number}_linetrace_halfmax.png",
+                                        format="png",
+                                    )
                 for plot_name, image_value in topostats_object.full_image_plots.items():
                     if plot_name in {"convolved_skeletons", "node_centres", "connected_nodes"}:
                         Images(
@@ -713,34 +718,47 @@ def run_ordered_tracing(  # noqa: C901
                         LOGGER.debug(
                             f"[{topostats_object.filename}] : Plotting ordered traces for grain {grain_number + 1}"
                         )
-                        for plot_name, image_value in grain_crop.ordered_trace.images.items():
-                            try:
-                                # ns-rse 2026-01-05 : fudge to get filenames consistent
-                                config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
-                                filename = f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
-                                Images(
-                                    data=grain_crop.image,
-                                    masked_array=image_value,
-                                    output_dir=tracing_out_path,
-                                    filename=filename,
-                                    **plotting_config["plot_dict"][plot_name],
-                                ).plot_and_save()
-                                plotting_config["plot_dict"][plot_name]["filename"] = config_filename
-                                LOGGER.debug(
-                                    f"[{topostats_object.filename}] Plotting ordered trace {plot_name} for grain "
-                                    f"{grain_number + 1}"
-                                )
+                        if grain_crop.ordered_trace.images is not None and len(grain_crop.ordered_trace.images) > 0:
+                            for plot_name, image_value in grain_crop.ordered_trace.images.items():
+                                try:
+                                    # ns-rse 2026-01-05 : fudge to get filenames consistent
+                                    config_filename = plotting_config["plot_dict"][plot_name].pop("filename")
+                                    filename = (
+                                        f"{topostats_object.filename}_grain_{grain_number}_" + config_filename[3:]
+                                    )
+                                    Images(
+                                        data=grain_crop.image,
+                                        masked_array=image_value,
+                                        output_dir=tracing_out_path,
+                                        filename=filename,
+                                        **plotting_config["plot_dict"][plot_name],
+                                    ).plot_and_save()
+                                    plotting_config["plot_dict"][plot_name]["filename"] = config_filename
+                                    LOGGER.debug(
+                                        f"[{topostats_object.filename}] Plotting ordered trace {plot_name} for grain "
+                                        f"{grain_number + 1}"
+                                    )
+                                except AttributeError:
+                                    LOGGER.warning(
+                                        f"[{topostats_object.filename}] : No ordered trace images to plot for grain"
+                                        f" {grain_number + 1}"
+                                    )
+                                except KeyError:
+                                    LOGGER.warning(
+                                        f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
+                                        "If you  are NOT using a custom plotting configuration then please raise an issue on"
+                                        " GitHub to report this problem."
+                                    )
+                        else:
+                            LOGGER.warning(
+                                f"[{topostats_object.filename}] : No ordered trace images to plot for grain"
+                                f" {grain_number + 1}"
+                            )
 
-                            except KeyError:
-                                LOGGER.warning(
-                                    f"[{topostats_object.filename}] : !!! No configuration to plot `{plot_name}` !!!\n\n "
-                                    "If you  are NOT using a custom plotting configuration then please raise an issue on"
-                                    "GitHub to report this problem."
-                                )
                     LOGGER.info(f"[{topostats_object.filename}] : Ordered tracing plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting ordered traces failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -749,7 +767,7 @@ def run_ordered_tracing(  # noqa: C901
     return
 
 
-def run_splining(
+def run_splining(  # noqa: C901
     topostats_object: TopoStats,
     core_out_path: Path,
     splining_config: dict | None = None,
@@ -807,19 +825,20 @@ def run_splining(
                     # Extract coordinates for all splines into a single list for overlaying
                     all_splines = []
                     for grain_number, grain_crop in topostats_object.grain_crops.items():
-                        for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
-                            Images(
-                                data=grain_crop.image,
-                                plot_coords=grain_crop.ordered_trace.molecule_data[molecule_number].splined_coords,
-                                output_dir=tracing_out_path,
-                                filename=f"{topostats_object.filename}_grain_{grain_number}_molecule_{molecule_number}",
-                                **plotting_config["plot_dict"]["splined_trace"],
-                            ).plot_and_save()
-                            all_splines.append(molecule.splined_coords + grain_crop.bbox[:2])
-                            LOGGER.debug(
-                                f"[{topostats_object.filename}] : Plotting splined traces for grain "
-                                f"{grain_number + 1} molecule {molecule_number + 1}"
-                            )
+                        if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+                            for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+                                Images(
+                                    data=grain_crop.image,
+                                    plot_coords=grain_crop.ordered_trace.molecule_data[molecule_number].splined_coords,
+                                    output_dir=tracing_out_path,
+                                    filename=f"{topostats_object.filename}_grain_{grain_number}_molecule_{molecule_number}",
+                                    **plotting_config["plot_dict"]["splined_trace"],
+                                ).plot_and_save()
+                                all_splines.append(molecule.splined_coords + grain_crop.bbox[:2])
+                                LOGGER.debug(
+                                    f"[{topostats_object.filename}] : Plotting splined traces for grain "
+                                    f"{grain_number + 1} molecule {molecule_number + 1}"
+                                )
                     Images(
                         data=topostats_object.image,
                         output_dir=core_out_path,
@@ -831,7 +850,7 @@ def run_splining(
                     LOGGER.info(f"[{topostats_object.filename}] : Splining plotting completed successfully.")
                 except Exception as e:
                     LOGGER.error(
-                        f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on"
+                        f"[{topostats_object.filename}] : Plotting splines failed. Consider raising an issue on "
                         "GitHub. Error : ",
                         exc_info=e,
                     )
@@ -897,20 +916,23 @@ def run_curvature_stats(
                         "colourmap_normalisation_bounds"
                     )
                     for grain_number, grain_crop in topostats_object.grain_crops.items():
-                        for molecule_number, _molecule in grain_crop.ordered_trace.molecule_data.items():
-                            Images(
-                                np.array([[0, 0], [0, 0]]),  # dummy data, as the image is passed in the method call.
-                                output_dir=tracing_out_path,
-                                **plotting_config["plot_dict"]["curvature_individual_grains"],
-                            ).plot_curvatures_individual_grain(
-                                grain_crop=grain_crop,
-                                grain_number=grain_number,
-                                colourmap_normalisation_bounds=colourmap_normalisation_bounds,
-                            )
-                            LOGGER.debug(
-                                f"[{topostats_object.filename}] : Plotting curvature traces for grain "
-                                f"{grain_number + 1} molecule {molecule_number + 1}"
-                            )
+                        if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+                            for molecule_number, _molecule in grain_crop.ordered_trace.molecule_data.items():
+                                Images(
+                                    np.array(
+                                        [[0, 0], [0, 0]]
+                                    ),  # dummy data, as the image is passed in the method call.
+                                    output_dir=tracing_out_path,
+                                    **plotting_config["plot_dict"]["curvature_individual_grains"],
+                                ).plot_curvatures_individual_grain(
+                                    grain_crop=grain_crop,
+                                    grain_number=grain_number,
+                                    colourmap_normalisation_bounds=colourmap_normalisation_bounds,
+                                )
+                                LOGGER.debug(
+                                    f"[{topostats_object.filename}] : Plotting curvature traces for grain "
+                                    f"{grain_number + 1} molecule {molecule_number + 1}"
+                                )
                     colourmap_normalisation_bounds = plotting_config["plot_dict"]["curvature"].pop(
                         "colourmap_normalisation_bounds"
                     )
@@ -927,7 +949,7 @@ def run_curvature_stats(
                     LOGGER.info(f"[{topostats_object.filename}] : Curvature plotting completed successfully.")
             except Exception as e:
                 LOGGER.error(
-                    f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on"
+                    f"[{topostats_object.filename}] : Plotting curvature failed. Consider raising an issue on "
                     "GitHub. Error : ",
                     exc_info=e,
                 )
@@ -970,13 +992,10 @@ def get_out_paths(
     core_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
-    # ns-rse 2025-12-25 Do we want to keep tracing nested or promote disordered/ordered/nodes/curvature/splining up a
-    # level?
     tracing_out_path = core_out_path / filename / "dnatracing"
     if "core" not in plotting_config["image_set"] and grain_dirs:
         filter_out_path.mkdir(exist_ok=True, parents=True)
         grain_out_path.mkdir(exist_ok=True, parents=True)
-        # ns-rse 2025-12-05 Do we want disordered and ordered subdirectories?
         Path.mkdir(tracing_out_path / "nodes", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "curvature", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "splining", parents=True, exist_ok=True)
@@ -1151,8 +1170,8 @@ def process_scan(
         # Saving to a dictionary which we then flatten
         for grain_number, grain_crop in topostats_object.grain_crops.items():
             if grain_crop.disordered_trace is not None:
-                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats_dict
-            if grain_crop.ordered_trace is not None:
+                disordered_tracing_stats[grain_number] = grain_crop.disordered_trace.stats
+            if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
                 molecule_stats[grain_number] = grain_crop.ordered_trace.collate_molecule_statistics()
         # Molecule Statistics - convert nested dictionary to DataFrame
         if len(molecule_stats) > 0:
@@ -1183,22 +1202,22 @@ def process_scan(
         else:
             disordered_tracing_df = None
         # Matched Branch Statistics - If we have at least one node we can do this directly.
-        if topostats_object.grain_crops[0].nodes is not None and len(topostats_object.grain_crops[0].nodes) > 0:
-            matched_branch_df = pd.DataFrame.from_dict(
-                data={
-                    (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
-                        image=topostats_object.filename,
-                        basename=topostats_object.img_path,
-                    )
-                    for grain_number, grain_crop in topostats_object.grain_crops.items()
-                    if len(grain_crop.nodes) > 0
-                    for node_number, node in grain_crop.nodes.items()
-                    if len(node.branch_stats) > 0
-                    for branch_number, matched_branch in node.branch_stats.items()
-                },
-                orient="index",
-            )
-        else:
+        matched_branch_df = pd.DataFrame.from_dict(
+            data={
+                (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
+                    image=topostats_object.filename,
+                    basename=topostats_object.img_path,
+                )
+                for grain_number, grain_crop in topostats_object.grain_crops.items()
+                if grain_crop.nodes is not None and len(grain_crop.nodes) > 0
+                for node_number, node in grain_crop.nodes.items()
+                if node.branch_stats is not None and len(node.branch_stats) > 0
+                for branch_number, matched_branch in node.branch_stats.items()
+            },
+            orient="index",
+        )
+        # ...but if everything has failed though we have an empty dataframe, instead return None
+        if matched_branch_df.shape == (0, 0):
             matched_branch_df = None
         # Grain Statistics
         grain_stats = {
@@ -1467,8 +1486,9 @@ def process_grainstats(
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
+        return topostats_object.filename, topostats_object, grain_stats_df
     LOGGER.info(f"[{topostats_object.filename}] : No grains present, GrainStats skipped.")
-    return topostats_object.filename, topostats_object, grain_stats_df
+    return topostats_object.filename, topostats_object, None
 
 
 def check_run_steps(  # noqa: C901

@@ -75,7 +75,7 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     grain_stats = {}
     volume_stats = {}
     for grain_number, grain_crop in saved_topostats["grain_crops"].items():
-        disordered_stats[grain_number] = grain_crop["disordered_trace"].pop("stats_dict")
+        disordered_stats[grain_number] = grain_crop["disordered_trace"].pop("stats")
         grain_stats[grain_number] = grain_crop.pop("stats")
         volume_stats[grain_number] = {}
         for key1, data in grain_stats[grain_number].items():
@@ -164,8 +164,6 @@ def test_save_cropped_grains(
     )
 
 
-# ns-rse 2025-12-17 It seems rather excessive to have so many options for which subset of images to output, would be
-# much simpler if we just provided 'core' or 'all'
 @pytest.mark.parametrize(
     ("image_set", "expected_image"),
     [
@@ -383,8 +381,6 @@ def test_image_set(
         assert Path.exists(tmp_path / "tests/resources/test_image/processed/" / img_path) == expected_image[key]
 
 
-# ns-rse 2025-11-26 : This seems a lot just to check files are output with the correct extension, I wonder if we could
-# check this as part of another test?
 @pytest.mark.parametrize("extension", [("png"), ("tif")])
 def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, extension: str):
     """Tests if save format applied to cropped images."""
@@ -935,7 +931,7 @@ def test_run_grainstats(post_processing_minicircle_topostats_object: TopoStats, 
 
 
 @pytest.mark.parametrize(
-    ("topostats_object", "detected_grains", "log_messages", "expected"),
+    ("topostats_object_fixture", "detected_grains", "log_messages", "expected"),
     [
         pytest.param(
             "minicircle_small_post_grainstats",
@@ -1002,10 +998,17 @@ def test_run_grainstats(post_processing_minicircle_topostats_object: TopoStats, 
             },
             id="rep int",
         ),
+        pytest.param(
+            "topostats_object_small_grain",
+            [0],
+            ["Grain 0 skeleton < 10, skipping"],
+            None,
+            id="small grain < 10 pixels",
+        ),
     ],
 )
 def test_run_disordered_tracing(
-    topostats_object: str,
+    topostats_object_fixture: str,
     detected_grains: list[int],
     log_messages: list[str],
     expected: dict[int, Any],
@@ -1015,7 +1018,7 @@ def test_run_disordered_tracing(
     request,
 ) -> None:
     """Test for run_grainstats()."""
-    topostats_object: TopoStats = request.getfixturevalue(topostats_object)
+    topostats_object: TopoStats = request.getfixturevalue(topostats_object_fixture)
     run_disordered_tracing(
         topostats_object=topostats_object,
         core_out_path=tmp_path,
@@ -1027,16 +1030,20 @@ def test_run_disordered_tracing(
     if log_messages is not None:
         for msg in log_messages:
             assert msg in caplog.text
-    # Check grains disordered_trace attribute against expected
-    for grain, grain_crop in topostats_object.grain_crops.items():
-        if grain in detected_grains:
-            assert grain_crop.disordered_trace is not None
-            assert isinstance(grain_crop.disordered_trace, DisorderedTrace)
-            assert isinstance(grain_crop.disordered_trace.images, dict)
-            assert grain_crop.disordered_trace.grain_endpoints == expected[grain]["grain_endpoints"]
-            assert grain_crop.disordered_trace.grain_junctions == expected[grain]["grain_junctions"]
-            assert grain_crop.disordered_trace.total_branch_length == expected[grain]["total_branch_length"]
-            assert grain_crop.disordered_trace.grain_width_mean == expected[grain]["grain_width_mean"]
+    # Check grains disordered_trace attribute against expected, if processing topostats_object_small_grain we are not
+    # expecting disordered tracing to have run
+    if topostats_object_fixture != "topostats_object_small_grain":
+        for grain, grain_crop in topostats_object.grain_crops.items():
+            if grain in detected_grains:
+                assert grain_crop.disordered_trace is not None
+                assert isinstance(grain_crop.disordered_trace, DisorderedTrace)
+                assert isinstance(grain_crop.disordered_trace.images, dict)
+                assert grain_crop.disordered_trace.grain_endpoints == expected[grain]["grain_endpoints"]
+                assert grain_crop.disordered_trace.grain_junctions == expected[grain]["grain_junctions"]
+                assert grain_crop.disordered_trace.total_branch_length == expected[grain]["total_branch_length"]
+                assert grain_crop.disordered_trace.grain_width_mean == expected[grain]["grain_width_mean"]
+    else:
+        assert topostats_object.grain_crops[0].disordered_trace is None
 
 
 @pytest.mark.parametrize(

@@ -70,7 +70,7 @@ def test_node_str(dummy_node: Node) -> None:
         "number of unmatched branches : 1\n"
         "number of coords : 2\n"
         "confidence : 0.987654\n"
-        "reduced node area : 10.987654321"
+        "reduced node area : [10.98765432]"
     )
     assert str(dummy_node) == expected
 
@@ -222,7 +222,6 @@ topostats_test_data = [
 ]
 
 
-# Needs updating to switch to grain_crop rather than image_grain_crop
 @pytest.mark.parametrize(
     (
         "topostats_object",

@@ -144,7 +144,7 @@ class nodeStats:
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
         self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
-        if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes
+        if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes are crossings
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
             # self.grain_crop.convolved_skeleton = self.tidy_branches(self.grain_crop.convolved_skeleton, self.image)
@@ -554,17 +554,14 @@ class nodeStats:
                     if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
                         vectors: list[npt.NDArray[np.float64]] = []
                         for _, values in matched_branches.items():
-                            # vectors.append(nodeStats.get_vector(values["ordered_coords"], np.array([node_x, node_y])))
                             vectors.append(nodeStats.get_vector(values.ordered_coords, np.array([node_x, node_y])))
                         # Calculate angles between the vectors
                         nodestats_calc_angles_result = nodeStats.calc_angles(np.asarray(vectors))
                         angles_between_vectors_along_branch: npt.NDArray[np.float64] = nodestats_calc_angles_result[0]
                         for branch_index, angle in enumerate(angles_between_vectors_along_branch):
                             if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
-                                # matched_branches[branch_index]["angles"] = angle
                                 matched_branches[branch_index].angles = angle
                     else:
-                        # self.image_dict["grain"]["grain_skeleton"][node_coords[:, 0], node_coords[:, 1]] = 0
                         self.grain_crop.skeleton[node_coords[:, 0], node_coords[:, 1]] = 0
 
                     # Eg: length 2 array: [array([ nan, 79.00]), array([79.00, 0.0])]
@@ -636,7 +633,6 @@ class nodeStats:
         avg_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
 
         for i, branch_index in enumerate(branch_under_over_order):
-            # branch_coords = matched_branches[branch_index]["ordered_coords"]
             branch_coords = matched_branches[branch_index].ordered_coords
 
             # Add the matched branch to the image, starting at index 1
@@ -759,7 +755,6 @@ class nodeStats:
         # Redo the FWHMs after the processing for more accurate determination of under/overs.
         hms = []
         for _, values in matched_branches.items():
-            # hms.append(values["fwhm"]["half_maxs"][2])
             hms.append(values.fwhm_half_maxs[2])
         for _, matched_branch in matched_branches.items():
             matched_branch.fwhm, matched_branch.fwhm_half_maxs, matched_branch.fwhm_peaks = nodeStats.calculate_fwhm(
@@ -836,13 +831,6 @@ class nodeStats:
         matched_branches: dict[int, MatchedBranch] = {}
         masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = {}
         for i, (branch_1, branch_2) in enumerate(pairs):
-            # matched_branches[i] = MatchedBranch(
-            #     ordered_coords=np.array([], dtype=np.int32),
-            #     heights=np.array([], dtype=np.float64),
-            #     distances=np.array([], dtype=np.float64),
-            #     fwhm={},
-            #     angles=None,
-            # )
             matched_branches[i] = MatchedBranch()
             masked_image[i] = {}
             # find close ends by rearranging branch coords
@@ -867,7 +855,6 @@ class nodeStats:
             single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = True
             single_branch_coords = order_branch(single_branch_img.astype(bool), [0, 0])
             # calc image-wide coords
-            # matched_branches[i]["ordered_coords"] = single_branch_coords
             matched_branches[i].ordered_coords = single_branch_coords
             # get heights and trace distance of branch
             try:
@@ -883,7 +870,6 @@ class nodeStats:
                 LOGGER.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
                 distances = nodeStats.coord_dist_rad(single_branch_coords, np.array([node_coords[0], node_coords[1]]))
-                # distances = self.coord_dist(single_branch_coords)
                 zero_dist = distances[
                     np.argmin(
                         np.sqrt(
@@ -1798,9 +1784,3 @@ def nodestats_image(
             topostats_object.full_image_plots = nodestats_full_images
         elif isinstance(topostats_object.full_image_plots, dict):
             topostats_object.full_image_plots = {**topostats_object.full_image_plots, **nodestats_full_images}
-
-    # nodestats_data[n_grain] = {}
-
-    # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
-    # grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-    # return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images

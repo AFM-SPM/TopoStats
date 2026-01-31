@@ -134,31 +134,27 @@ def discrete_angle_difference_per_nm_linear(
 
 def calculate_curvature_stats_image(
     topostats_object: TopoStats,
-) -> dict[int, dict[int, npt.NDArray[np.float64]]]:
+) -> None:
     """
     Perform curvature analysis for a whole image of grains.
+
+    Curvature statistics are added to the ``Molecule.curvature_stats`` attribute of the traces that are being processed.
 
     Parameters
     ----------
     topostats_object : TopoStats
         ``TopoStats`` object with attribute ``grain_crop``. Should be post-splining.
-
-    Returns
-    -------
-    dict[int, dict[int, npt.NDArray[npfloat64]]]
-        Nested dictionary of curvature statistics for each molecule within each grain. Top-level is indexed by grain and
-        nested dictionaries are indexed by molecule and contain an array of angles.
     """
     # Iterate over grains
     for _, grain_crop in topostats_object.grain_crops.items():
         # Iterate over molecules
-        for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
-            trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
-            # Check if the molecule is circular or linear
-            if molecule_data.end_to_end_distance == 0.0:
-                # Molecule is circular
-                curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
-            else:
-                # Molecule is linear
-                curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
-            molecule_data.curvature_stats = curvature_stats
+        if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+            for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
+                trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
+                # Check if the molecule is circular or linear
+                if molecule_data.end_to_end_distance == 0.0:
+                    # Molecule is circular
+                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
+                else:
+                    # Molecule is linear
+                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))

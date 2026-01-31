@@ -186,7 +186,6 @@ def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
         assert isinstance(grain_crop, GrainCrop)
 
 
-# @pytest.mark.xfail(reason="Awaiting construction of dataframe/csv from TopoStats")
 def test_grainstats(caplog, snapshot) -> None:
     """Test running the grainstats module.
 

@@ -423,7 +423,7 @@ def dummy_disordered_trace() -> DisorderedTrace:
         grain_junctions=3,
         total_branch_length=12.3456789,
         grain_width_mean=3.14152,
-        stats_dict={
+        stats={
             0: {
                 "branch_distance": 49.2719092002369,
                 "branch_type": 2,
@@ -452,7 +452,8 @@ def dummy_node(dummy_matched_branch: MatchedBranch, dummy_unmatched_branch) -> N
         # ns-rse 2025-10-07 Need to know what node_coords actually look like
         node_coords=np.array([[0, 0], [0, 1]]),
         confidence=0.987654,
-        reduced_node_area=10.987654321,
+        # ns-rse 2026-01-30 Pretty sure this should be a larger array
+        reduced_node_area=np.array([10.987654321]),
         # ns-rse 2025-10-07 Need to know what these attributes look like
         node_area_skeleton=np.zeros(5),
         node_branch_mask=np.zeros(6),
@@ -1520,16 +1521,6 @@ def mock_model_5_by_5_single_class() -> MagicMock:
     return model_mocker
 
 
-# @ns-rse 2025-10-22 : Can we remove this and use one of the fixtures below?
-@pytest.fixture()
-def catenane_topostats() -> TopoStats:
-    """TopoStats object of the catenane image."""
-    with Path.open(  # pylint: disable=unspecified-encoding
-        RESOURCES / "tracing" / "nodestats" / "catenane_post_disordered_tracing.pkl", "rb"
-    ) as f:
-        return pkl.load(f)
-
-
 @pytest.fixture()
 def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
     """TopoStats object of the minicircle (small) image."""
@@ -1624,8 +1615,6 @@ def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) 
 #     topostats_object = load_scans.img_dict["example_rep_int"]
 #     topostats_object.filename = "rep_int"
 #     return topostats_object
-
-# ns-rse : Attempt to deal with PosixPath raising NotImplementedError on M$-Win systems
 
 
 ##### Minicircle Small #####
@@ -1892,5 +1881,75 @@ def plot_curvatures_topostats_object() -> TopoStats:
                     },
                 ),
             ),
+        },
+    )
+
+
+@pytest.fixture()
+def topostats_object_small_grain() -> TopoStats:
+    """A ``TopoStats`` object with a grain < 10 pixels."""
+    image = np.asarray(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 5, 5, 5, 5, 5, 5, 5, 0],
+            [0, 5, 10, 10, 10, 10, 10, 5, 0],
+            [0, 5, 10, 5, 5, 5, 5, 5, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 10, 5, 0, 0, 0, 0, 0],
+            [0, 5, 5, 5, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ],
+        dtype=np.float32,
+    )
+    mask = np.stack(
+        arrays=[
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                dtype=np.int32,
+            ),
+            np.asarray(
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 1, 1, 1, 1, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                dtype=np.int32,
+            ),
+        ],
+        axis=-1,
+    )
+    return TopoStats(
+        image=image,
+        image_original=image,
+        filename="small grain",
+        img_path="./",
+        pixel_to_nm_scaling=1,
+        grain_crops={
+            0: GrainCrop(
+                image=image,
+                mask=mask,
+                pixel_to_nm_scaling=1,
+                padding=1,
+                bbox=(0, 8, 0, 8),
+                filename="small_grain",
+                thresholds=[10],
+            )
         },
     )

@@ -31,7 +31,7 @@
          [0., 0., 0., 0., 0.],
          [0., 0., 0., 0., 0.]]),
     }),
-    'stats_dict': dict({
+    'stats': dict({
       0: dict({
         'branch_distance': 49.2719092,
         'branch_type': 2,
@@ -89,7 +89,7 @@
          [0., 0., 0., 0., 0.],
          [0., 0., 0., 0., 0.]]),
       }),
-      'stats_dict': dict({
+      'stats': dict({
         0: dict({
           'branch_distance': 49.2719092,
           'branch_type': 2,
@@ -292,7 +292,7 @@
         'node_coords': array([[0, 0],
          [0, 1]]),
         'pixel_to_nm_scaling': 1.0,
-        'reduced_node_area': 10.98765432,
+        'reduced_node_area': array([10.98765432]),
         'unmatched_branch_stats': dict({
           0: dict({
             'angles': list([
@@ -353,7 +353,7 @@
         'node_coords': array([[0, 0],
          [0, 1]]),
         'pixel_to_nm_scaling': 1.0,
-        'reduced_node_area': 10.98765432,
+        'reduced_node_area': array([10.98765432]),
         'unmatched_branch_stats': dict({
           0: dict({
             'angles': list([
@@ -587,7 +587,7 @@
     'node_coords': array([[0, 0],
          [0, 1]]),
     'pixel_to_nm_scaling': 1.0,
-    'reduced_node_area': 10.98765432,
+    'reduced_node_area': array([10.98765432]),
     'unmatched_branch_stats': dict({
       0: dict({
         'angles': list([
@@ -1448,7 +1448,7 @@
          [0., 0., 0., 0., 0.],
          [0., 0., 0., 0., 0.]]),
           }),
-          'stats_dict': dict({
+          'stats': dict({
             0: dict({
               'branch_distance': 49.2719092,
               'branch_type': 2,
@@ -1583,7 +1583,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -1644,7 +1644,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -1815,7 +1815,7 @@
          [0., 0., 0., 0., 0.],
          [0., 0., 0., 0., 0.]]),
           }),
-          'stats_dict': dict({
+          'stats': dict({
             0: dict({
               'branch_distance': 49.2719092,
               'branch_type': 2,
@@ -1950,7 +1950,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -2011,7 +2011,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -2938,7 +2938,7 @@
          [0., 0., 0., 0., 0.],
          [0., 0., 0., 0., 0.]]),
           }),
-          'stats_dict': dict({
+          'stats': dict({
             0: dict({
               'branch_distance': 49.2719092,
               'branch_type': 2,
@@ -3073,7 +3073,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([
@@ -3134,7 +3134,7 @@
             'node_coords': array([[0, 0],
          [0, 1]]),
             'pixel_to_nm_scaling': 1.0,
-            'reduced_node_area': 10.98765432,
+            'reduced_node_area': array([10.98765432]),
             'unmatched_branch_stats': dict({
               0: dict({
                 'angles': list([

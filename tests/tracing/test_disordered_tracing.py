@@ -4,11 +4,13 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 import pytest
 
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing import disordered_tracing
 
@@ -1307,7 +1309,7 @@ def test_check_pixel_touching_edge(
 @pytest.mark.parametrize(
     (
         "image_filename",
-        "topostats_object",
+        "topostats_object_fixture",
         "min_skeleton_size",
         "mask_smoothing_params",
         "skeletonisation_params",
@@ -1339,9 +1341,6 @@ def test_check_pixel_touching_edge(
                 "method_outlier": "mean_abs",
             },
             id="catenane",
-            marks=pytest.mark.xfail(
-                reason="ns-rse 2025-12-12 Need to carefully check output matches. Possible array inversion"
-            ),
         ),
         pytest.param(
             "example_rep_int.npy",
@@ -1368,15 +1367,12 @@ def test_check_pixel_touching_edge(
                 "method_outlier": "mean_abs",
             },
             id="replication intermediate",
-            marks=pytest.mark.xfail(
-                reason="ns-rse 2025-12-12 Need to carefully check output matches. Possible array inversion"
-            ),
         ),
     ],
 )
 def test_trace_image_disordered(
     image_filename: str,
-    topostats_object: str,
+    topostats_object_fixture: str,
     min_skeleton_size: int,
     mask_smoothing_params: dict,
     skeletonisation_params: dict,
@@ -1388,7 +1384,7 @@ def test_trace_image_disordered(
     # Load the image
     image: npt.NDArray[float] = np.load(TRACING_RESOURCES / image_filename)
     # Load TopoStats fixture and set image
-    topostats_object = request.getfixturevalue(topostats_object)
+    topostats_object: TopoStats = request.getfixturevalue(topostats_object_fixture)
     topostats_object.image = image
     disordered_tracing.trace_image_disordered(
         topostats_object=topostats_object,
@@ -1398,12 +1394,11 @@ def test_trace_image_disordered(
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
     )
-
-    # assert result_disordered_trace_crop_data == snapshot
-    assert topostats_object.grain_crops == snapshot
-    # ns-rse 2025-12-12 - can we check this? Are result_images crop specific?
-    # assert result_images == snapshot
-    # Only the catenane set of parameters has a second GrainCrop to assess
+    # Have to remove basename from stats as it varies between computer tests run on
+    for _, grain_crop in topostats_object.grain_crops.items():
+        for _, stat in grain_crop.disordered_trace.stats.items():
+            stat["basename"] = None
+    # Only the catenane image has a second GrainCrop to assess the disordered trace of
     assert topostats_object.grain_crops[0].disordered_trace == snapshot
     if request.node.callspec.id == "catenane":
         assert topostats_object.grain_crops[1].disordered_trace == snapshot
@@ -1446,7 +1441,6 @@ def test_trace_image_disordered(
                 "method_outlier": "mean_abs",
             },
             id="catenane",
-            marks=pytest.mark.skip(reason="ns-rse 2025-12-12 awaiting merging of statistics/dataframe extraction"),
         ),
         pytest.param(
             "example_rep_int.npy",
@@ -1474,7 +1468,6 @@ def test_trace_image_disordered(
                 "method_outlier": "mean_abs",
             },
             id="replication intermediate",
-            marks=pytest.mark.skip(reason="ns-rse 2025-12-12 awaiting merging of statistics/dataframe extraction"),
         ),
     ],
 )
@@ -1487,7 +1480,7 @@ def test_trace_image_disordered_dataframes(
     skeletonisation_params: dict,
     pruning_params: dict,
     request: pytest.FixtureRequest,
-    # snapshot,
+    snapshot,
 ) -> None:
     """Test the trace image disordered method produces correct dataframes (/csv files)."""
     # Load the image
@@ -1503,13 +1496,14 @@ def test_trace_image_disordered_dataframes(
         skeletonisation_params=skeletonisation_params,
         pruning_params=pruning_params,
     )
-    # assert result_disordered_tracing_grainstats.to_string(float_format="{:.4e}".format) == snapshot
-    # assert result_disordered_tracing_stats.to_string(float_format="{:.4e}".format) == snapshot
-
-
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
-def test_compile_skan_stats() -> None:
-    """Test of prep_compile_skan_stats()."""
+    # Have to remove basename from stats as it varies between computer tests run on
+    for _, grain_crop in topostats_object.grain_crops.items():
+        for _, stat in grain_crop.disordered_trace.stats.items():
+            stat["basename"] = None
+    assert {
+        grain_number: grain_crop.disordered_trace.stats
+        for grain_number, grain_crop in topostats_object.grain_crops.items()
+    } == snapshot
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
@@ -1524,7 +1518,7 @@ def test_segment_middles() -> None:
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15.")
 def test_find_connections() -> None:
-    """Test of prep_find_connections()."""
+    """Test of find_connections()."""
 
 
 @pytest.mark.parametrize(
@@ -1925,3 +1919,14 @@ def test_smooth_mask(
 
     assert expected_message in caplog.text
     np.testing.assert_array_equal(smoothed_grain, expected_array)
+
+
+def test_small_skeletons_ignored(
+    topostats_object_small_grain: TopoStats, disordered_tracing_config: dict[str, Any], caplog
+) -> None:
+    """Test that small skeletons < 10 pixels are ignored by checking log for error."""
+    disordered_tracing.trace_image_disordered(
+        topostats_object=topostats_object_small_grain, **disordered_tracing_config
+    )
+    assert f"Grain 0 skeleton < {disordered_tracing_config['min_skeleton_size']}, skipping" in caplog.text
+    assert topostats_object_small_grain.grain_crops[0].disordered_trace is None

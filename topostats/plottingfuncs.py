@@ -22,6 +22,7 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-nested-blocks
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=unused-argument
 
@@ -327,7 +328,8 @@ class Images:
         image : npt.NDArray
             Image to plot.
         grain_crops : dict[int, GrainCrop]
-            Dictionary containing cropped images of grains and the bounding boxes and padding.
+            Dictionary of ``GrainCrops`` which (should) contain cropped images of grains, bounding boxes and padding
+            attributes.
         colourmap_normalisation_bounds : tuple[float, float]
             Tuple of the colour map normalisation bounds.
 
@@ -360,31 +362,32 @@ class Images:
                 min_col = grain_crop.bbox[1]
 
                 # Iterate over molecules within a grain
-                for _, molecule in grain_crop.ordered_trace.molecule_data.items():
-                    # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = (np.array(molecule.curvature_stats) - colourmap_normalisation_bounds[0]) / (
-                        colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
-                    )
+                if grain_crop.ordered_trace.molecule_data is not None:
+                    for _, molecule in grain_crop.ordered_trace.molecule_data.items():
+                        # Normalise the curvature values to the colourmap bounds
+                        normalised_curvature = (
+                            np.array(molecule.curvature_stats) - colourmap_normalisation_bounds[0]
+                        ) / (colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0])
 
-                    # pylint cannot see that mpl.cm.viridis is a valid attribute
-                    # pylint: disable=no-member
-                    cmap = mpl.cm.coolwarm
-                    for index, point in enumerate(molecule.splined_coords):
-                        color = cmap(normalised_curvature[index])
-                        if index > 0:
-                            previous_point = molecule.splined_coords[index - 1]
-                            ax.plot(
-                                [
-                                    (min_col + previous_point[1]) * self.pixel_to_nm_scaling,
-                                    (min_col + point[1]) * self.pixel_to_nm_scaling,
-                                ],
-                                [
-                                    (image.shape[0] - (min_row + previous_point[0])) * self.pixel_to_nm_scaling,
-                                    (image.shape[0] - (min_row + point[0])) * self.pixel_to_nm_scaling,
-                                ],
-                                color=color,
-                                linewidth=1,
-                            )
+                        # pylint cannot see that mpl.cm.viridis is a valid attribute
+                        # pylint: disable=no-member
+                        cmap = mpl.cm.coolwarm
+                        for index, point in enumerate(molecule.splined_coords):
+                            color = cmap(normalised_curvature[index])
+                            if index > 0:
+                                previous_point = molecule.splined_coords[index - 1]
+                                ax.plot(
+                                    [
+                                        (min_col + previous_point[1]) * self.pixel_to_nm_scaling,
+                                        (min_col + point[1]) * self.pixel_to_nm_scaling,
+                                    ],
+                                    [
+                                        (image.shape[0] - (min_row + previous_point[0])) * self.pixel_to_nm_scaling,
+                                        (image.shape[0] - (min_row + point[0])) * self.pixel_to_nm_scaling,
+                                    ],
+                                    color=color,
+                                    linewidth=1,
+                                )
 
             # save the figure
             plt.title(self.title)
