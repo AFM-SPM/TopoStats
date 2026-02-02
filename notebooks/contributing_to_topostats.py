@@ -6,12 +6,10 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     #Making use of TopoStats outputs
     Running TopoStats from the command line produces a .topostats file for each processed image. This file contains all of the data used at different stages within the TopoStats pipeline including filtered images, grain masks, and traces. These files are a really useful resource for using TopoStats outputs to develop new functions for your own analyses. Here we show one example of using the .topostats file to create a height profile of a DNA minicircle, enabling us to measure the distance between helices.
-    """
-    )
+    """)
     return
 
 
@@ -45,11 +43,9 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     First we read in the .topostats file and convert it to a usable dictionary format.
-    """
-    )
+    """)
     return
 
 
@@ -67,11 +63,9 @@ def _(Path, h5py, hdf5_to_dict):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     Printing the `data_dict` allows us to see what is contained within our .topostats file, including all of the file's metadata and other data generated through TopoStats.
-    """
-    )
+    """)
     return
 
 
@@ -83,11 +77,9 @@ def _(data_dict, pprint):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     Below is a helper function used to enable visualisation of plots within marimo. We can use it to plot our TopoStats processed image which is stored in `data_dict["image"]`. Note you could also view the raw image using `data_dict[image_original]`.
-    """
-    )
+    """)
     return
 
 
@@ -134,13 +126,11 @@ def _(data_dict, np, npt, plt):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     In the code below, we use the bounding box information for grain 0, stored in `data_dict["ordered_traces"]["above"]["grain_0"]["mol_0"]["bbox"]` to crop the image and centre the grain of interest.
 
     We can then extract the height values, provided in `data_dict["ordered_traces"]["above"]["grain_0"]["mol_0"]["heights"]` as well as distances along the trace, provided in `data_dict["ordered_traces"]["above"]["grain_0"]["mol_0"]["distances"]`.
-    """
-    )
+    """)
     return
 
 
@@ -164,11 +154,9 @@ def _(data_dict, np, show_image):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     We can use the height trace profiles to count the number of helices within our grain, and to measure the distance between helices. By using a threshold of 4nm, we see that DNA helices are shown as equidistant peaks within the height profile plot.
-    """
-    )
+    """)
     return
 
 

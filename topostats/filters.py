@@ -194,10 +194,8 @@ class Filters:
             if not np.isnan(m):
                 image[row, :] -= m
             else:
-                LOGGER.warning(
-                    """f[{self.filename}] Large grain detected image can not be
-processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information."""
-                )
+                LOGGER.warning("""f[{self.filename}] Large grain detected image can not be
+processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for more information.""")
 
         return image
 

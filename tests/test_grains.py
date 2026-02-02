@@ -3133,7 +3133,7 @@ def test_calculate_region_connection_regions(
     expected_intersection_points: list[tuple[int, int]],
 ) -> None:
     """Test the calculate_region_connection_regions method of the Grains class."""
-    (result_num_connection_regions, result_intersection_labels, result_intersection_points) = (
+    result_num_connection_regions, result_intersection_labels, result_intersection_points = (
         Grains.calculate_region_connection_regions(grain_mask_tensor, classes)
     )
 
