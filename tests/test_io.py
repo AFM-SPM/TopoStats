@@ -44,7 +44,7 @@ from topostats.io import (
     read_u32i,
     read_yaml,
     save_array,
-    save_folder_grainstats,
+    save_image_grainstats,
     save_pkl,
     write_csv,
     write_yaml,
@@ -538,15 +538,16 @@ def test_get_out_path_attributeerror() -> None:
         )
 
 
-def test_save_folder_grainstats(tmp_path: Path) -> None:
+def test_save_image_grainstats(tmp_path: Path) -> None:
     """Test a folder-wide grainstats file is made."""
     test_df = pd.DataFrame({"dummy1": [1, 2, 3], "dummy2": ["a", "b", "c"]})
     input_path = tmp_path / "minicircle"
     test_df["basename"] = input_path
-    out_path = tmp_path / "subfolder"
+    out_path = tmp_path / "output"
     Path.mkdir(out_path, parents=True)
-    save_folder_grainstats(out_path, input_path, test_df, "grainstats")
-    assert Path(out_path / "processed" / "folder_grainstats.csv").exists()
+    assert out_path.exists()
+    save_image_grainstats(out_path, input_path, test_df, "grainstats")
+    assert Path(out_path / "processed" / "image_grainstats.csv").exists()
 
 
 def test_load_scan_spm(load_scan_spm: LoadScans) -> None:

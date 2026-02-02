@@ -374,7 +374,7 @@ def _find_old_bruker_files(base_dir: Path) -> list[Path]:
     return [p for p in base_dir.glob("**/*") if OLD_BRUKER_RE.match(p.suffix)]
 
 
-def save_folder_grainstats(
+def save_image_grainstats(
     output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame, stats_filename: str
 ) -> None:
     """
@@ -397,21 +397,19 @@ def save_folder_grainstats(
         This only saves the dataframes and does not retain them.
     """
     dirs = set(all_stats_df["basename"].values)
+    if output_dir.stem != "processed":
+        output_dir_processed = Path(str(output_dir)) / "processed"
+        output_dir_processed.mkdir(parents=True, exist_ok=True)
     LOGGER.debug(f"Statistics :\n{all_stats_df}")
     for _dir in dirs:
         LOGGER.debug(f"Statistics ({_dir}) :\n{all_stats_df}")
         try:
-            out_path = get_out_path(Path(_dir), base_dir, output_dir)
             # Ensure "processed" directory exists at the stem of out_path, creating if needed
-            if out_path.stem != "processed":
-                out_path_processed = out_path / "processed"
-                out_path_processed.mkdir(parents=True, exist_ok=True)
-            all_stats_df[all_stats_df["basename"] == _dir].to_csv(
-                out_path / "processed" / f"folder_{stats_filename}.csv", index=True
-            )
-            LOGGER.info(f"Folder-wise statistics saved to: {str(out_path)}/folder_{stats_filename}.csv")
+            out_path = get_out_path(Path(_dir), base_dir, output_dir_processed)
+            all_stats_df[all_stats_df["basename"] == _dir].to_csv(out_path / f"image_{stats_filename}.csv", index=True)
+            LOGGER.info(f"Image-wise statistics saved to: {str(out_path)}/image_{stats_filename}.csv")
         except TypeError:
-            LOGGER.info(f"No folder-wise statistics for directory {_dir}, no grains detected in any images.")
+            LOGGER.info(f"No image-wise statistics for image {_dir}, no grains detected.")
 
 
 def read_null_terminated_string(open_file: io.TextIOWrapper, encoding: str = "utf-8") -> str:
@@ -1296,7 +1294,7 @@ def write_csv(
     # Write to CSV
     df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
     # Write statistics on per-folder basis
-    save_folder_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
+    save_image_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
     # Return dataframe with index reset
     df.reset_index(inplace=True)
     return df
