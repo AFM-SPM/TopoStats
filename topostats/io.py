@@ -406,6 +406,7 @@ def save_image_grainstats(
         try:
             # Ensure "processed" directory exists at the stem of out_path, creating if needed
             out_path = get_out_path(Path(_dir), base_dir, output_dir_processed)
+            out_path.mkdir(parents=True, exist_ok=True)
             all_stats_df[all_stats_df["basename"] == _dir].to_csv(out_path / f"image_{stats_filename}.csv", index=True)
             LOGGER.info(f"Image-wise statistics saved to: {str(out_path)}/image_{stats_filename}.csv")
         except TypeError:
