@@ -140,9 +140,225 @@ Class for Molecules identified during ordered tracing.
 
 ## Hierarchical Structure
 
-The top-level object is always the `TopoStats` class, the remaining objects are nested within. This nesting structure is
-retained when writing to `.topostats` a custom [HDF5][hdf5] format. The Python tool [h5glance][h5glance] can be used to
-show the nested structure.
+The top-level object is always the `TopoStats` class, the remaining objects are nested within. The key attribute being
+`TopoStats.grain_crops` which holds a dictionary of `GrainCrops`, each of which in turn holds various attributes, often
+dictionaries, of other attributes such as `DisorderedTrace`, `Nodes`, `OrderedTrace` and in turn `Molecule` nested
+within.
+
+The structure of an image with a single grain and all attributes is shown below.
+
+```shell
+output/processed/minicircle.topostats
+├config
+│ └ ...
+├filename
+├full_image_plots
+| └
+│ ├all_molecules
+│ ├branch_indexes
+│ ├branch_types
+│ ├connected_nodes
+│ ├convolved_skeletons
+│ ├node_centres
+│ ├ordered_traces
+│ ├over_under
+│ ├pruned_skeleton
+│ ├skeleton
+│ ├smoothed_mask
+│ └trace_segments
+├full_mask_tensor
+├grain_crops
+│ ├0
+│ │ ├bbox
+│ │ ├convolved_skeleton
+│ │ ├disordered_trace
+│ │ │ ├grain_endpoints
+│ │ │ ├grain_junctions
+│ │ │ ├grain_width_mean
+│ │ │ ├images
+│ │ │ │ ├branch_indexes
+│ │ │ │ ├branch_types
+│ │ │ │ ├grain
+│ │ │ │ ├image
+│ │ │ │ ├pruned_skeleton
+│ │ │ │ ├skeleton
+│ │ │ │ └smoothed_mask
+│ │ │ ├stats
+│ │ │ │ ├0
+│ │ │ │ │ ├basename
+│ │ │ │ │ ├branch_distance
+│ │ │ │ │ ├branch_type
+│ │ │ │ │ ├connected_segments
+│ │ │ │ │ ├image
+│ │ │ │ │ ├mean_pixel_value
+│ │ │ │ │ ├median_value
+│ │ │ │ │ ├middle_value
+│ │ │ │ │ ├min_value
+│ │ │ │ │ └stdev_pixel_value
+│ │ │ │ ├1
+│ │ │ │ │ ├basename
+│ │ │ │ │ ├branch_distance
+│ │ │ │ │ ├branch_type
+│ │ │ │ │ ├connected_segments
+│ │ │ │ │ ├image
+│ │ │ │ │ ├mean_pixel_value
+│ │ │ │ │ ├median_value
+│ │ │ │ │ ├middle_value
+│ │ │ │ │ ├min_value
+│ │ │ │ │ └stdev_pixel_value
+│ │ │ │ └2
+│ │ │ │   ├basename
+│ │ │ │   ├branch_distance
+│ │ │ │   ├branch_type
+│ │ │ │   ├connected_segments
+│ │ │ │   ├image
+│ │ │ │   ├mean_pixel_value
+│ │ │ │   ├median_value
+│ │ │ │   ├middle_value
+│ │ │ │   ├min_value
+│ │ │ │   └stdev_pixel_value
+│ │ │ └total_branch_length
+│ │ ├filename
+│ │ ├height_profiles
+│ │ │ └1
+│ │ │   └0
+│ │ ├image
+│ │ ├mask
+│ │ ├nodes
+│ │ │ └0
+│ │ │   ├branch_stats
+│ │ │   │ ├0
+│ │ │   │ │ ├angles
+│ │ │   │ │ ├branch_statistics
+│ │ │   │ │ │ ├basename
+│ │ │   │ │ │ ├fwhm
+│ │ │   │ │ │ ├fwhm_half_maxs
+│ │ │   │ │ │ ├fwhm_peaks
+│ │ │   │ │ │ └image
+│ │ │   │ │ ├distances
+│ │ │   │ │ ├fwhm
+│ │ │   │ │ ├fwhm_half_maxs
+│ │ │   │ │ ├fwhm_peaks
+│ │ │   │ │ ├heights
+│ │ │   │ │ └ordered_coords
+│ │ │   │ └1
+│ │ │   │   ├angles
+│ │ │   │   ├branch_statistics
+│ │ │   │   │ ├basename
+│ │ │   │   │ ├fwhm
+│ │ │   │   │ ├fwhm_half_maxs
+│ │ │   │   │ ├fwhm_peaks
+│ │ │   │   │ └image
+│ │ │   │   ├distances
+│ │ │   │   ├fwhm
+│ │ │   │   ├fwhm_half_maxs
+│ │ │   │   ├fwhm_peaks
+│ │ │   │   ├heights
+│ │ │   │   └ordered_coords
+│ │ │   ├confidence
+│ │ │   ├error
+│ │ │   ├node_area_skeleton
+│ │ │   ├node_avg_mask
+│ │ │   ├node_branch_mask
+│ │ │   ├node_coords
+│ │ │   ├pixel_to_nm_scaling
+│ │ │   ├unmatched_branch_stats
+│ │ │   │ ├0
+│ │ │   │ │ └angles
+│ │ │   │ ├1
+│ │ │   │ │ └angles
+│ │ │   │ ├2
+│ │ │   │ │ └angles
+│ │ │   │ └3
+│ │ │   │   └angles
+│ │ │   └writhe
+│ │ ├ordered_trace
+│ │ │ ├images
+│ │ │ │ ├all_molecules
+│ │ │ │ ├ordered_traces
+│ │ │ │ ├over_under
+│ │ │ │ └trace_segments
+│ │ │ ├molecule_data
+│ │ │ │ └0
+│ │ │ │   ├bbox
+│ │ │ │   ├circular
+│ │ │ │   ├contour_length
+│ │ │ │   ├curvature_stats
+│ │ │ │   ├distances
+│ │ │ │   ├end_to_end_distance
+│ │ │ │   ├heights
+│ │ │ │   ├molecule_statistics
+│ │ │ │   │ ├circular
+│ │ │ │   │ ├contour_length
+│ │ │ │   │ ├end_to_end_distance
+│ │ │ │   │ ├topology
+│ │ │ │   │ └topology_flip
+│ │ │ │   ├ordered_coords
+│ │ │ │   ├splined_coords
+│ │ │ │   ├topology
+│ │ │ │   └topology_flip
+│ │ │ └molecule_statistics
+│ │ │   └0
+│ │ │     ├circular
+│ │ │     ├contour_length
+│ │ │     ├end_to_end_distance
+│ │ │     ├topology
+│ │ │     └topology_flip
+│ │ ├padding
+│ │ ├pixel_to_nm_scaling
+│ │ ├skeleton
+│ │ ├stats
+│ │ │ └1
+│ │ │   └0
+│ │ │     ├area
+│ │ │     ├area_cartesian_bbox
+│ │ │     ├aspect_ratio
+│ │ │     ├centre_x
+│ │ │     ├centre_y
+│ │ │     ├height_max
+│ │ │     ├height_mean
+│ │ │     ├height_median
+│ │ │     ├height_min
+│ │ │     ├max_feret
+│ │ │     ├mean_crossing_confidence
+│ │ │     ├min_crossing_confidence
+│ │ │     ├min_feret
+│ │ │     ├num_crossings
+│ │ │     ├num_mols
+│ │ │     ├radius_max
+│ │ │     ├radius_mean
+│ │ │     ├radius_median
+│ │ │     ├radius_min
+│ │ │     ├smallest_bounding_area
+│ │ │     ├smallest_bounding_length
+│ │ │     ├smallest_bounding_width
+│ │ │     ├volume
+│ │ │     └writhe_string
+│ │ ├threshold_method
+│ │ └thresholds
+│ │   ├above
+│ │   └below
+│ └ ... <other GrainCrop>
+├image
+├image_original
+├image_statistics
+│ ├grains
+│ ├grains_per_m2
+│ ├image
+│ ├image_area_m2
+│ ├image_area_px2
+│ ├image_size_x_m
+│ ├image_size_x_px
+│ ├image_size_y_m
+│ ├image_size_y_px
+│ └rms_roughness
+├img_path
+├pixel_to_nm_scaling
+└topostats_version
+```
+
+This nesting structure is retained when writing to `.topostats` a custom [HDF5][hdf5] format. The Python tool
+[h5glance][h5glance] can be used to show the nested structure.
 
 The top level of nesting reflects the `TopoStats` object itself.
 
