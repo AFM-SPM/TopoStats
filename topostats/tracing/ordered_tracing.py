@@ -9,6 +9,7 @@ import pandas as pd
 from skimage.morphology import dilation, label
 from topoly import jones, translate_code
 
+from topostats.classes import GrainCrop, Molecule, Node, OrderedTrace, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.tracing.tracingfuncs import coord_dist, genTracingFuncs, order_branch, reorderTrace
 from topostats.utils import convolve_skeleton, coords_2_img
@@ -24,42 +25,30 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     Parameters
     ----------
-    image : npt.NDArray
-        A cropped image array.
-    nodestats_dict : dict
-        The nodestats results for a specific grain.
-    skeleton : npt.NDArray
-        The pruned skeleton mask array.
-    filename : str
-        The image filename (for logging purposes).
+    grain_crop : GrainCrop
+            Grain crop post nodestats.
     """
 
-    def __init__(
-        self,
-        image: npt.NDArray,
-        nodestats_dict: dict,
-        skeleton: npt.NDArray,
-        filename: str,
-    ) -> None:
+    def __init__(self, grain_crop: GrainCrop) -> None:
         """
         Initialise the OrderedTraceNodestats class.
 
         Parameters
         ----------
-        image : npt.NDArray
-            A cropped image array.
-        nodestats_dict : dict
-            The nodestats results for a specific grain.
-        skeleton : npt.NDArray
-            The pruned skeleton mask array.
-        filename : str
-            The image filename (for logging purposes).
+        grain_crop : GrainCrop
+            Grain crop post nodestats.
         """
-        self.image = image
-        self.nodestats_dict = nodestats_dict
-        self.filename = filename
-        self.skeleton = skeleton
-
+        self.grain_crop: GrainCrop = grain_crop
+        self.image: npt.NDArray = grain_crop.image
+        if grain_crop.nodes is None:
+            raise AttributeError(f"Node statistics do not exist for a grain within {grain_crop.filename}.")
+        self.nodestats_dict: dict[str, Node] = grain_crop.nodes
+        self.filename: str = grain_crop.filename
+        self.pruned_skeleton: npt.NDArray = grain_crop.skeleton
+        # ns-rse 2026-01-12 Above works but in doing so during NodeStats the `grain_crop.skeleton` was updated, have
+        # tried using convolved skeleton as per below which is what `grain_crop.skeleton` is set to but without success,
+        # insufficient time to fix this.
+        # self.pruned_skeleton: npt.NDArray = np.where(grain_crop.convolved_skeleton != 0, 1, 0)
         self.grain_tracing_stats = {
             "num_mols": 0,
             "circular": None,
@@ -67,10 +56,10 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         self.mol_tracing_stats = {"circular": None, "topology": None, "topology_flip": None, "processing": "nodestats"}
 
         self.images = {
-            "over_under": np.zeros_like(image),
-            "all_molecules": np.zeros_like(image),
-            "ordered_traces": np.zeros_like(image),
-            "trace_segments": np.zeros_like(image),
+            "all_molecules": np.zeros_like(grain_crop.image),
+            "ordered_traces": np.zeros_like(grain_crop.image),
+            "over_under": np.zeros_like(grain_crop.image),
+            "trace_segments": np.zeros_like(grain_crop.image),
         }
 
         self.profiles = {}
@@ -98,34 +87,22 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         tuple[list, npt.NDArray]
             A list of each complete path's ordered coordinates, and labeled crossing image array.
         """
-        # iterate through the dict to get branch coords, heights and fwhms
         node_coords = [
-            [stats["node_coords"] for branch_stats in stats["branch_stats"].values() if branch_stats["fwhm"]["fwhm"]]
-            for stats in self.nodestats_dict.values()
+            [node.node_coords for branch_stats in node.branch_stats.values() if branch_stats.fwhm]
+            for node in self.nodestats_dict.values()
         ]
         node_coords = [lst for lst in node_coords if lst]
-
         crossing_coords = [
-            [
-                branch_stats["ordered_coords"]
-                for branch_stats in stats["branch_stats"].values()
-                if branch_stats["fwhm"]["fwhm"]
-            ]
+            [branch_stats.ordered_coords for branch_stats in stats.branch_stats.values() if branch_stats.fwhm]
             for stats in self.nodestats_dict.values()
         ]
         crossing_coords = [lst for lst in crossing_coords if lst]
-
         fwhms = [
-            [
-                branch_stats["fwhm"]["fwhm"]
-                for branch_stats in stats["branch_stats"].values()
-                if branch_stats["fwhm"]["fwhm"]
-            ]
+            [branch_stats.fwhm for branch_stats in stats.branch_stats.values() if branch_stats.fwhm]
             for stats in self.nodestats_dict.values()
         ]
         fwhms = [lst for lst in fwhms if lst]
-
-        confidences = [stats["confidence"] for stats in self.nodestats_dict.values()]
+        confidences = [stats.confidence for stats in self.nodestats_dict.values()]
 
         # obtain the index of the underlying branch
         try:
@@ -133,72 +110,82 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         except ValueError:  # when no crossings or only 3-branch crossings
             low_conf_idx = None
 
+        # ns-rse 2024-10-09 - I suspect these loops could be vectorised in some manner to speed things up but don't have
+        # time to investigate and solve right now.
         # Get the image minus the crossing regions
-        nodes = np.zeros_like(self.skeleton)
+        nodes = np.zeros_like(self.pruned_skeleton)
         for node_no in node_coords:  # this stops unpaired branches from interacting with the pairs
             nodes[node_no[0][:, 0], node_no[0][:, 1]] = 1
-        minus = np.where(dilation(dilation(nodes)) == self.skeleton, 0, self.skeleton)
+        minus = np.where(dilation(dilation(nodes)) == self.pruned_skeleton, 0, self.pruned_skeleton)
         # remove crossings from skeleton
         for crossings in crossing_coords:
             for crossing in crossings:
                 minus[crossing[:, 0], crossing[:, 1]] = 0
+        # Label connected regions of an integer array using scikit-image, if there are no connected regions there is
+        # nothing to order and so the return values are set to None
         minus = label(minus)
+        if minus.sum() > 0:
+            # order minus segments
+            z = []
+            ordered = []
+            for non_cross_segment_idx in range(1, minus.max() + 1):
+                arr = np.where(minus, minus == non_cross_segment_idx, 0)
+                ordered.append(order_branch(arr, [0, 0]))  # orientated later
+                z.append(0)
+                self.img_idx_to_node[non_cross_segment_idx] = {}
+            # add crossing coords to ordered segment list
+            uneven_count = non_cross_segment_idx + 1
+            for node_num, node_crossing_coords in enumerate(crossing_coords):
+                z_idx = np.argsort(fwhms[node_num])
+                z_idx[z_idx == 0] = -1
+                if reverse_min_conf_crossing and low_conf_idx == node_num:
+                    z_idx = z_idx[::-1]
+                    fwhms[node_num] = fwhms[node_num][::-1]
+                for node_cross_idx, single_cross in enumerate(node_crossing_coords):
+                    # check current single cross has no duplicate coords with ordered, except crossing points
+                    uncommon_single_cross = np.array(single_cross).copy()
+                    for coords in ordered:
+                        uncommon_single_cross = self.remove_common_values(
+                            uncommon_single_cross, np.array(coords), retain=node_coords[node_num][node_cross_idx]
+                        )
+                    if len(uncommon_single_cross) > 0:
+                        ordered.append(uncommon_single_cross)
+                    z.append(z_idx[node_cross_idx])
+                    self.img_idx_to_node[uneven_count + node_cross_idx] = {
+                        "node_idx": node_num,
+                        "coords": single_cross,
+                        "z_idx": z_idx[node_cross_idx],
+                    }
+                uneven_count += len(node_crossing_coords)
 
-        # setup z array
-        z = []
-        # order minus segments
-        ordered = []
-        for non_cross_segment_idx in range(1, minus.max() + 1):
-            arr = np.where(minus, minus == non_cross_segment_idx, 0)
-            ordered.append(order_branch(arr, [0, 0]))  # orientated later
-            z.append(0)
-            self.img_idx_to_node[non_cross_segment_idx] = {}
-
-        # add crossing coords to ordered segment list
-        uneven_count = non_cross_segment_idx + 1
-        for node_num, node_crossing_coords in enumerate(crossing_coords):
-            z_idx = np.argsort(fwhms[node_num])
-            z_idx[z_idx == 0] = -1
-            if reverse_min_conf_crossing and low_conf_idx == node_num:
-                z_idx = z_idx[::-1]
-                fwhms[node_num] = fwhms[node_num][::-1]
-            for node_cross_idx, single_cross in enumerate(node_crossing_coords):
-                # check current single cross has no duplicate coords with ordered, except crossing points
-                uncommon_single_cross = np.array(single_cross).copy()
-                for coords in ordered:
-                    uncommon_single_cross = self.remove_common_values(
-                        uncommon_single_cross, np.array(coords), retain=node_coords[node_num][node_cross_idx]
-                    )
-                if len(uncommon_single_cross) > 0:
-                    ordered.append(uncommon_single_cross)
-                z.append(z_idx[node_cross_idx])
-                self.img_idx_to_node[uneven_count + node_cross_idx] = {
-                    "node_idx": node_num,
-                    "coords": single_cross,
-                    "z_idx": z_idx[node_cross_idx],
-                }
-            uneven_count += len(node_crossing_coords)
-
-        # get an image of each ordered segment
-        cross_add = np.zeros_like(self.image)
-        for i, coords in enumerate(ordered):
-            single_cross_img = coords_2_img(np.array(coords), cross_add)
-            cross_add[single_cross_img != 0] = i + 1
-
-        coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
-
-        # obtain topology from the simple trace
-        topology = self.get_topology(simple_trace)
-        if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
-            topology = [None for _ in enumerate(topology)]
-
+            # get an image of each ordered segment
+            cross_add = np.zeros_like(self.image)
+            for i, coords in enumerate(ordered):
+                single_cross_img = coords_2_img(np.array(coords), cross_add)
+                cross_add[single_cross_img != 0] = i + 1
+            coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
+            # obtain topology from the simple trace
+            topology = self.get_topology(simple_trace)
+            if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
+                topology = [None for _ in enumerate(topology)]
+        # If there are no connected regions we set parameters to None
+        else:
+            coord_trace = None
+            topology = None
+            cross_add = None
+            crossing_coords = None
+            fwhms = None
         return coord_trace, topology, cross_add, crossing_coords, fwhms
 
-    def compile_images(self, coord_trace: list, cross_add: npt.NDArray, crossing_coords: list, fwhms: list) -> None:
+    def compile_images(
+        self, coord_trace: list | None, cross_add: npt.NDArray | None, crossing_coords: list | None, fwhms: list | None
+    ) -> None:
         """
         Obtain all the diagnostic images based on the produced traces, and values.
 
         Crossing coords and fwhms are used as arguments as reversing the minimum confidence can modify these.
+
+        If compiling the image failed, i.e. all parameters are ``None`` then all images are set to ``None`` too.
 
         Parameters
         ----------
@@ -211,14 +198,18 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         fwhms : list
             A list of I nodes objects containing FWHM values for each crossing branch.
         """
-        # visual over under img
-        self.images["trace_segments"] = cross_add
-        try:
-            self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
-            self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
-        except IndexError:
-            pass
-        self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
+        # If compiling failed (i.e. all of these are None) we can not compile an image
+        if any([coord_trace, cross_add, crossing_coords, fwhms]):
+            # visual over under img
+            self.images["trace_segments"] = cross_add
+            try:
+                self.images["over_under"] = self.get_over_under_img(coord_trace, fwhms, crossing_coords)
+                self.images["all_molecules"] = self.get_mols_img(coord_trace, fwhms, crossing_coords)
+            except IndexError:
+                pass
+            self.images["ordered_traces"] = ordered_trace_mask(coord_trace, self.image.shape)
+        else:
+            self.images = None
 
     @staticmethod
     def remove_common_values(
@@ -494,7 +485,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             2D crossing order labelled image.
         """
         # put down traces
-        img = np.zeros_like(self.skeleton)
+        img = np.zeros_like(self.pruned_skeleton)
         for coords in coord_trace:
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
@@ -531,7 +522,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         npt.NDArray
             2D individual 'molecule' labelled image.
         """
-        img = np.zeros_like(self.skeleton)
+        img = np.zeros_like(self.pruned_skeleton)
         for mol_no, coords in enumerate(coord_trace):
             temp_img = np.zeros_like(img)
             temp_img[coords[:, 0], coords[:, 1]] = 1
@@ -591,7 +582,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             Whether the error is present.
         """
         for vals in self.nodestats_dict.values():
-            if vals["error"]:
+            # if vals["error"]:
+            if vals.error:
                 return False
         return True
 
@@ -652,7 +644,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             return "+"
         return "0"
 
-    def run_nodestats_tracing(self) -> tuple[list, dict, dict]:
+    def run_nodestats_tracing(self) -> dict[str, npt.NDArray]:
         """
         Run the nodestats tracing pipeline.
 
@@ -665,31 +657,42 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             reverse_min_conf_crossing=False
         )
         self.compile_images(ordered_traces, cross_add, crossing_coords, fwhms)
-        self.grain_tracing_stats["num_mols"] = len(ordered_traces)
+        self.grain_tracing_stats["num_mols"] = len(ordered_traces) if ordered_traces is not None else None
 
         writhe_string, node_to_writhes = self.identify_writhes()
         self.grain_tracing_stats["writhe_string"] = writhe_string
         for node_num, node_writhes in node_to_writhes.items():  # should self update as the dicts are linked
-            self.nodestats_dict[f"node_{node_num + 1}"]["writhe"] = node_writhes
-
+            self.nodestats_dict[node_num].writhe = node_writhes
+        # ns-rse 2026-01-06 - This appears to be used to determine the "topology flip" as it is the second call to
+        # compile_trace() but this time has reverse_min_conf_crossing=True and _only_ uses the returned topology. For
+        # each molecule this is stored along with the original
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
-        ordered_trace_data = {}
-        grain_mol_tracing_stats = {}
-        for i, mol_trace in enumerate(ordered_traces):
-            if len(mol_trace) > 3:  # if > 4 coords to trace
-                self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
-                self.mol_tracing_stats["topology"] = topology[i]
-                self.mol_tracing_stats["topology_flip"] = topology_flip[i]
-                ordered_trace_data[f"mol_{i}"] = {
-                    "ordered_coords": mol_trace[:, :2],
-                    "heights": self.image[mol_trace[:, 0], mol_trace[:, 1]],
-                    "distances": coord_dist(mol_trace[:, :2]),
-                    "mol_stats": self.mol_tracing_stats,
-                }
-                grain_mol_tracing_stats[f"{i}"] = self.mol_tracing_stats
+        molecule_data = {} if ordered_traces is not None else None
+        if ordered_traces is not None:
+            for i, mol_trace in enumerate(ordered_traces):
+                if len(mol_trace) > 3:  # if > 4 coords to trace
+                    self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
+                    self.mol_tracing_stats["topology"] = topology[i]
+                    self.mol_tracing_stats["topology_flip"] = topology_flip[i]
+                    molecule_data[i] = Molecule(
+                        circular=linear_or_circular(mol_trace[:, :2]),
+                        topology=topology[i],
+                        topology_flip=topology_flip[i],
+                        ordered_coords=mol_trace[:, :2],
+                        heights=self.image[mol_trace[:, 0], mol_trace[:, 1]],
+                        distances=coord_dist(mol_trace[:, :2]),
+                    )
+        # Add attributes to self.grain_crop
+        self.grain_crop.ordered_trace.molecule_data = molecule_data
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_mols"] = (
+                    len(molecule_data) if molecule_data is not None else 0
+                )
+                self.grain_crop.stats[class_number][subgrain_index]["writhe_string"] = writhe_string
 
-        return ordered_trace_data, self.grain_tracing_stats, grain_mol_tracing_stats, self.images
+        return self.images
 
 
 class OrderedTraceTopostats:
@@ -698,29 +701,25 @@ class OrderedTraceTopostats:
 
     Parameters
     ----------
-    image : npt.NDArray
-        A cropped image array.
-    skeleton : npt.NDArray
-        The pruned skeleton mask array.
+    grain_crop : GrainCrop
+        Grain crop to perform ordered tracing on.
     """
 
     def __init__(
         self,
-        image,
-        skeleton,
+        grain_crop: GrainCrop,
     ) -> None:
         """
         Initialise the OrderedTraceTopostats class.
 
         Parameters
         ----------
-        image : npt.NDArray
-            A cropped image array.
-        skeleton : npt.NDArray
-            The pruned skeleton mask array.
+        grain_crop : GrainCrop
+            Grain crop to perform ordered tracing on.
         """
-        self.image = image
-        self.skeleton = skeleton
+        self.grain_crop = grain_crop
+        self.image = grain_crop.image
+        self.pruned_skeleton = grain_crop.disordered_trace.images["pruned_skeleton"]
         self.grain_tracing_stats = {
             "num_mols": 1,
             "circular": None,
@@ -728,10 +727,10 @@ class OrderedTraceTopostats:
         self.mol_tracing_stats = {"circular": None, "topology": None, "topology_flip": None, "processing": "topostats"}
 
         self.images = {
-            "ordered_traces": np.zeros_like(image),
-            "all_molecules": skeleton.copy(),
-            "over_under": skeleton.copy(),
-            "trace_segments": skeleton.copy(),
+            "all_molecules": np.zeros_like(grain_crop.image),
+            "ordered_traces": np.zeros_like(grain_crop.image),
+            "over_under": np.zeros_like(grain_crop.image),
+            "trace_segments": np.zeros_like(grain_crop.image),
         }
 
     @staticmethod
@@ -775,8 +774,7 @@ class OrderedTraceTopostats:
         tuple[list, dict, dict]
             A list of each molecules ordered trace coordinates, the ordered_traicing stats, and the images.
         """
-        disordered_trace_coords = np.argwhere(self.skeleton == 1)
-
+        disordered_trace_coords = np.argwhere(self.pruned_skeleton == 1)
         self.mol_tracing_stats["circular"] = linear_or_circular(disordered_trace_coords)
         self.mol_tracing_stats["topology"] = "0_1" if self.mol_tracing_stats["circular"] else "linear"
 
@@ -784,16 +782,23 @@ class OrderedTraceTopostats:
 
         self.images["ordered_traces"] = ordered_trace_mask(ordered_trace, self.image.shape)
 
-        ordered_trace_data = {}
-        for i, mol_trace in enumerate(ordered_trace):
-            ordered_trace_data[f"mol_{i}"] = {
-                "ordered_coords": mol_trace,
-                "heights": self.image[ordered_trace[0][:, 0], ordered_trace[0][:, 1]],
-                "distances": coord_dist(ordered_trace[0]),
-                "mol_stats": self.mol_tracing_stats,
-            }
+        molecule_data = {}
+        self.grain_crop.ordered_trace.tracing_stats = {}
+        for molecule_number, mol_trace in enumerate(ordered_trace):
+            molecule_data[molecule_number] = Molecule(
+                circular=linear_or_circular(mol_trace[:, :2]),
+                ordered_coords=mol_trace[:, :2],
+                heights=self.image[mol_trace[:, 0], mol_trace[:, 1]],
+                distances=coord_dist(mol_trace[:, :2]),
+            )
+        # Add attributes to self.grain_crop
+        self.grain_crop.ordered_trace.molecule_data = molecule_data
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_mols"] = len(molecule_data)
+                self.grain_crop.stats[class_number][subgrain_index]["writhe_string"] = "NA"
 
-        return ordered_trace_data, self.grain_tracing_stats, {"0": self.mol_tracing_stats}, self.images
+        return self.images
 
 
 def linear_or_circular(traces) -> bool:
@@ -853,116 +858,91 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
     return ordered_mask
 
 
-# pylint: disable=too-many-locals
 def ordered_tracing_image(
-    image: npt.NDArray,
-    disordered_tracing_direction_data: dict,
-    nodestats_direction_data: dict,
-    filename: str,
+    topostats_object: TopoStats,
     ordering_method: str,
-) -> tuple[dict, pd.DataFrame, pd.DataFrame, dict]:
+) -> None:
     # pylint: disable=too-many-locals
     """
     Run ordered tracing for an entire image of >=1 grains.
 
     Parameters
     ----------
-    image : npt.NDArray
-        Whole FOV image.
-    disordered_tracing_direction_data : dict
-        Dictionary result from the disordered traces. Fields used are "original_image" and "pruned_skeleton".
-    nodestats_direction_data : dict
-        Dictionary result from the nodestats analysis.
-    filename : str
-        Image filename (for logging purposes).
+    topostats_object : TopoStats
+        TopoStats object to have ordered tracing performed on.
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
-
-    Returns
-    -------
-    tuple[dict, pd.DataFrame, pd.DataFrame, dict]
-        Results containing the ordered_trace_data (coordinates), any grain-level metrics to be added to the grains
-        dataframe, a dataframe of molecule statistics and a dictionary of diagnostic images.
     """
+    config = topostats_object.config.copy()
+    ordering_method = config["ordered_tracing"]["ordering_method"] if ordering_method is None else ordering_method
     ordered_trace_full_images = {
-        "ordered_traces": np.zeros_like(image),
-        "all_molecules": np.zeros_like(image),
-        "over_under": np.zeros_like(image),
-        "trace_segments": np.zeros_like(image),
+        "ordered_traces": np.zeros_like(topostats_object.image),
+        "all_molecules": np.zeros_like(topostats_object.image),
+        "over_under": np.zeros_like(topostats_object.image),
+        "trace_segments": np.zeros_like(topostats_object.image),
     }
-    grainstats_additions = {}
-    molstats = {}
-    all_traces_data = {}
-
     LOGGER.info(
-        f"[{filename}] : Calculating Ordered Traces and statistics for "
-        f"{len(disordered_tracing_direction_data)} grains..."
+        f"[{topostats_object.filename}] : Calculating Ordered Traces and Statistics for "
+        f"{len(topostats_object.grain_crops)} grains..."
     )
-
-    # iterate through disordered_tracing_dict
-    for grain_no, disordered_trace_data in disordered_tracing_direction_data.items():
+    for grain_no, grain_crop in topostats_object.grain_crops.items():
         try:
-            # check if want to do nodestats tracing or not
-            if grain_no in list(nodestats_direction_data["stats"].keys()) and ordering_method == "nodestats":
-                LOGGER.debug(f"[{filename}] : Grain {grain_no} present in NodeStats. Tracing via Nodestats.")
-                nodestats_tracing = OrderedTraceNodestats(
-                    image=nodestats_direction_data["images"][grain_no]["grain"]["grain_image"],
-                    filename=filename,
-                    nodestats_dict=nodestats_direction_data["stats"][grain_no],
-                    skeleton=nodestats_direction_data["images"][grain_no]["grain"]["grain_skeleton"],
+            grain_crop.ordered_trace = OrderedTrace(
+                molecule_data=None,
+                tracing_stats=None,
+                grain_molstats=None,
+                molecules=None,
+                writhe=None,
+                pixel_to_nm_scaling=None,
+                images=None,
+                error=None,
+            )
+            # check if want to perform tracing based on node statistics
+            if (
+                grain_crop.nodes is not None
+                and len(grain_crop.nodes) > 0
+                and topostats_object.config["ordered_tracing"]["ordering_method"] == "nodestats"
+            ):
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} present in NodeStats. Tracing via Nodestats."
                 )
+                nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
+
                 if nodestats_tracing.check_node_errorless():
-                    ordered_traces_data, tracing_stats, grain_molstats, images = (
-                        nodestats_tracing.run_nodestats_tracing()
-                    )
-                    LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via NodeStats.")
+                    grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
+                    LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
                 else:
-                    LOGGER.debug(f"Nodestats dict has an error ({nodestats_direction_data['stats'][grain_no]['error']}")
+                    LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")
             # if not doing nodestats ordering, do original TS ordering
-            else:
-                LOGGER.debug(f"[{filename}] : {grain_no} not in NodeStats. Tracing normally.")
-                topostats_tracing = OrderedTraceTopostats(
-                    image=disordered_trace_data["original_image"],
-                    skeleton=disordered_trace_data["pruned_skeleton"],
+            elif grain_crop.disordered_trace is not None:
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} not in NodeStats. "
+                    "Attempting to trace normally."
                 )
-                ordered_traces_data, tracing_stats, grain_molstats, images = topostats_tracing.run_topostats_tracing()
-                LOGGER.debug(f"[{filename}] : Grain {grain_no} ordered via TopoStats.")
-
-            # compile traces
-            all_traces_data[grain_no] = ordered_traces_data
-            for mol_no, _ in ordered_traces_data.items():
-                all_traces_data[grain_no][mol_no].update({"bbox": disordered_trace_data["bbox"]})
-            # compile metrics
-            grainstats_additions[grain_no] = {
-                "image": filename,
-                "grain_number": int(grain_no.split("_")[-1]),
-            }
-            tracing_stats.pop("circular")
-            grainstats_additions[grain_no].update(tracing_stats)
-            # compile molecule metrics
-            for mol_no, molstat_values in grain_molstats.items():
-                molstats[f"{grain_no.split('_')[-1]}_{mol_no}"] = {
-                    "image": filename,
-                    "grain_number": int(grain_no.split("_")[-1]),
-                    "molecule_number": int(mol_no.split("_")[-1]),  # pylint: disable=use-maxsplit-arg
-                }
-                molstats[f"{grain_no.split('_')[-1]}_{mol_no}"].update(molstat_values)
-
+                topostats_tracing = OrderedTraceTopostats(grain_crop=grain_crop)
+                grain_crop.ordered_trace.images = topostats_tracing.run_topostats_tracing()
+                LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via TopoStats.")
+            else:
+                LOGGER.info(
+                    f"[{topostats_object.filename}] : Grain {grain_no + 1} does not have a disordered trace "
+                    "skipping orderering."
+                )
             # remap the cropped images back onto the original
             for image_name, full_image in ordered_trace_full_images.items():
-                crop = images[image_name]
-                bbox = disordered_trace_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
-
+                if grain_crop.ordered_trace.images is not None:
+                    crop = grain_crop.ordered_trace.images[image_name]
+                    full_image[grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]] += crop
+                # Add the ordered_trace_full_image to topostats_object.full_image_plots
+                if topostats_object.full_image_plots is None:
+                    topostats_object.full_image_plots = ordered_trace_full_images
+                elif isinstance(topostats_object.full_image_plots, dict):
+                    topostats_object.full_image_plots = {
+                        **topostats_object.full_image_plots,
+                        **ordered_trace_full_images,
+                    }
         except Exception as e:  # pylint: disable=broad-exception-caught
             LOGGER.error(
-                f"[{filename}] : Ordered tracing for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
+                f"[{topostats_object.filename}] : Ordered tracing for grain {grain_no + 1} failed. "
+                "Consider raising an issue on GitHub. Error: ",
                 exc_info=e,
             )
-            all_traces_data[grain_no] = {}
-
-    grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-    molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
-    molstats_df.reset_index(drop=True, inplace=True)
-
-    return all_traces_data, grainstats_additions_df, molstats_df, ordered_trace_full_images

@@ -518,7 +518,7 @@ def test_skeletonize_method(skeletonize_get_skeleton: getSkeleton) -> None:
         ),
     ],
 )
-def test_get_skeleton(  # pylint: disable=too-many-arguments
+def test_get_skeleton(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     skeletonize_get_skeleton: getSkeleton,
     image: npt.NDArray,
     mask: npt.NDArray,
@@ -608,9 +608,52 @@ def test_binary_thin_check_diag() -> None:
     """Test of  method."""
 
 
-@pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
-def test_get_local_pixels_binary() -> None:
+@pytest.mark.parametrize(
+    ("array", "x", "y", "expected"),
+    [pytest.param(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 1, 1, np.array([1, 2, 3, 4, 6, 7, 8, 9]), id="simple")],
+)
+def test_get_local_pixels_binary(
+    topostats_skeletonise: topostatsSkeletonize,
+    array: npt.NDArray,
+    x: int,
+    y: int,
+    expected: npt.NDArray,
+) -> None:
+    """Test of  method get_local_pixels_binary."""
+    local_pixels = topostats_skeletonise.get_local_pixels_binary(array, x, y)
+    np.testing.assert_array_equal(local_pixels, expected)
+
+
+@pytest.mark.parametrize(
+    ("array", "x", "y"),
+    [
+        pytest.param(
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            4,
+            1,
+            id="x beyond left edge",
+        ),
+        pytest.param(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 0, 1, id="x on left edge"),
+        pytest.param(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 3, 1, id="x on right edge"),
+        pytest.param(
+            np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+            1,
+            4,
+            id="y beyond left edge",
+        ),
+        pytest.param(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 1, 0, id="y on left edge"),
+        pytest.param(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), 1, 3, id="y on right edge"),
+    ],
+)
+def test_get_local_pixels_binary_index_error(
+    topostats_skeletonise: topostatsSkeletonize,
+    array: npt.NDArray,
+    x: int,
+    y: int,
+) -> None:
     """Test of  method."""
+    with pytest.raises(IndexError):
+        topostats_skeletonise.get_local_pixels_binary(array, x, y)
 
 
 @pytest.mark.skip(reason="Awaiting test to be written 2024-10-15")
@@ -637,7 +680,7 @@ def test_local_area_sum() -> None:
 @pytest.mark.parametrize(
     ("array", "seed", "target_array", "target_indicies"),
     [
-        (
+        pytest.param(
             np.array([1, 1, 1, 1, 3, 3, 2, 1]),
             2024,
             np.array([1, 1, 1, 1, 1, 2, 3, 3]),

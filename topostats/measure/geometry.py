@@ -286,17 +286,14 @@ def find_branches_for_nodes(
         num_branches = 0
         # makes lil box around node with 1 overflow
         bounding_box = bounding_box_cartesian_points_integer(np.argwhere(labelled_nodes == node_num))
-        crop_left = bounding_box[0] - 1
-        crop_right = bounding_box[2] + 2
-        crop_top = bounding_box[1] - 1
-        crop_bottom = bounding_box[3] + 2
-        cropped_matrix = network_array_representation[crop_left:crop_right, crop_top:crop_bottom]
+        cropped_matrix = network_array_representation[
+            (bounding_box[0] - 1) : (bounding_box[2] + 2),  # crop_left:crop_right
+            (bounding_box[1] - 1) : (bounding_box[3] + 2),  # crop_top:crop_bottom
+        ]
         # get coords of nodes and branches in box
-        node_coords = np.argwhere(cropped_matrix == 3)
-        branch_coords = np.argwhere(cropped_matrix == 1)
-        # iterate through node coords to see which are within 8 dirs
-        for node_coord in node_coords:
-            for branch_coord in branch_coords:
+        # iterate through node coords and branches in box to see which are within 8 dirs
+        for node_coord in np.argwhere(cropped_matrix == 3):
+            for branch_coord in np.argwhere(cropped_matrix == 1):
                 distance = math.dist(node_coord, branch_coord)
                 if distance <= math.sqrt(2):
                     num_branches = num_branches + 1

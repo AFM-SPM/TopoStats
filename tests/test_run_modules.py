@@ -6,8 +6,11 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from AFMReader import topostats
+from syrupy.matchers import path_type
 
+from topostats.classes import GrainCrop, TopoStats
 from topostats.entry_point import entry_point
+from topostats.io import dict_to_topostats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.run_modules import _set_logging
 
@@ -87,7 +90,7 @@ def test_run_topostats_process_debug(caplog) -> None:
 
 
 @pytest.mark.parametrize(
-    ("expected_keys"),
+    ("attributes"),
     [
         pytest.param(
             [
@@ -96,14 +99,15 @@ def test_run_topostats_process_debug(caplog) -> None:
                 "image_original",
                 "img_path",
                 "pixel_to_nm_scaling",
-                "topostats_file_version",
+                "config",
+                "grain_crops",
+                "topostats_version",
             ],
             id="file_version <= 2.3",
         ),
-        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
     ],
 )
-def test_filters(caplog, expected_keys: dict) -> None:
+def test_filters(attributes: dict, caplog) -> None:
     """Test running the filters module.
 
     We use the command line entry point to test that _just_ filters runs.
@@ -122,35 +126,40 @@ def test_filters(caplog, expected_keys: dict) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
-    # Load the output and check the keys
+    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
     data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == expected_keys
+    assert isinstance(data, dict)
+    topostats_object = dict_to_topostats(dictionary=data)
+    assert isinstance(topostats_object, TopoStats)
+    for attribute in attributes:
+        assert hasattr(topostats_object, attribute)
 
 
 @pytest.mark.parametrize(
-    ("expected_keys"),
+    ("attributes"),
     [
         pytest.param(
             [
+                "config",
                 "filename",
-                "grain_tensors",
+                "full_mask_tensor",
+                "grain_crops",
                 "image",
                 "image_original",
                 "img_path",
                 "pixel_to_nm_scaling",
-                "topostats_file_version",
+                "topostats_version",
             ],
-            id="file_version <= 2.3",
+            id="running grains",
         ),
-        pytest.param([], id="file_version 0.3", marks=pytest.mark.xfail(reason="In progress :-)")),
     ],
 )
-def test_grains(caplog, expected_keys: dict) -> None:
+def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     """Test running the grains module.
 
     We use the command line entry point to test that _just_ grains runs.
     """
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG)
     entry_point(
         manually_provided_args=[
             "--config",
@@ -159,18 +168,25 @@ def test_grains(caplog, expected_keys: dict) -> None:
             "./tests/resources/test_image/",
             "--file-ext",
             ".topostats",
+            "--output-dir",
+            f"{tmp_path}/output",
             "grains",  # This is the sub-command we wish to test, it will call run_modules.grains()
         ]
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output and check the keys
-    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
-    assert list(data.keys()) == expected_keys
+    # Load the output file with AFMReader check its a dictionary and convert to TopoStats
+    data = topostats.load_topostats(tmp_path / "output/processed/minicircle_small.topostats")
+    assert isinstance(data, dict)
+    topostats_object = dict_to_topostats(dictionary=data)
+    assert isinstance(topostats_object, TopoStats)
+    for attribute in attributes:
+        assert hasattr(topostats_object, attribute)
+    for _, grain_crop in topostats_object.grain_crops.items():
+        assert isinstance(grain_crop, GrainCrop)
 
 
-@pytest.mark.xfail(reason="Awaiting update of AFMReader to reconstruct `image_grain_crops` with correct classes")
-def test_grainstats(caplog) -> None:
+def test_grainstats(caplog, snapshot) -> None:
     """Test running the grainstats module.
 
     We use the command line entry point to test that _just_ grains runs.
@@ -189,39 +205,12 @@ def test_grainstats(caplog) -> None:
     )
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grainstats completed (NB - Filtering was *not* re-run)." in caplog.text
-    # Load the output and check the keys
+    # Load the output and check contents
     data = pd.read_csv("output/image_statistics.csv")
-    assert list(data.columns) == [
-        "Unnamed: 0",
-        "image",
-        "basename",
-        "grain_number",
-        "area",
-        "area_cartesian_bbox",
-        "aspect_ratio",
-        "bending_angle",
-        "centre_x",
-        "centre_y",
-        "circular",
-        "contour_length",
-        "end_to_end_distance",
-        "height_max",
-        "height_mean",
-        "height_median",
-        "height_min",
-        "max_feret",
-        "min_feret",
-        "radius_max",
-        "radius_mean",
-        "radius_median",
-        "radius_min",
-        "smallest_bounding_area",
-        "smallest_bounding_length",
-        "smallest_bounding_width",
-        "threshold",
-        "volume",
-    ]
-    assert data.shape == (3, 23)
+    data.drop(["basename"], axis=1, inplace=True)
+    assert data.to_string(float_format="{:.4e}".format) == snapshot(
+        matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 4))
+    )
 
 
 def test_bruker_rename(tmp_path: Path, caplog) -> None:

@@ -2,16 +2,15 @@
 
 import logging
 from itertools import combinations
-from typing import TypedDict
 
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from scipy.ndimage import binary_dilation
 from scipy.signal import argrelextrema
 from skimage.morphology import label
 
+from topostats.classes import GrainCrop, MatchedBranch, Node, TopoStats, UnMatchedBranch
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import (
     calculate_shortest_branch_distances,
@@ -36,64 +35,16 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-statements
 
 
-class MatchedBranch(TypedDict):
-    """
-    Dictionary containing the matched branches.
-
-    matched_branches: dict[int, dict[str, npt.NDArray[np.number]]]
-        Dictionary where the key is the index of the pair and the value is a dictionary containing the following
-        keys:
-        - "ordered_coords" : npt.NDArray[np.int32]. The ordered coordinates of the branch.
-        - "heights" : npt.NDArray[np.number]. Heights of the branch coordinates.
-        - "distances" : npt.NDArray[np.number]. Distances of the branch coordinates.
-        - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branch.
-        - "angles" : np.float64. The initial direction angle of the branch, added in later steps.
-    """
-
-    ordered_coords: npt.NDArray[np.int32]
-    heights: npt.NDArray[np.number]
-    distances: npt.NDArray[np.number]
-    fwhm: dict[str, np.float64 | tuple[np.float64]]
-    angles: np.float64 | None
-
-
-class NodeDict(TypedDict):
-    """Dictionary containing the node information."""
-
-    error: bool
-    pixel_to_nm_scaling: np.float64
-    branch_stats: dict[int, MatchedBranch] | None
-    node_coords: npt.NDArray[np.int32] | None
-    confidence: np.float64 | None
-
-
-class ImageDict(TypedDict):
-    """Dictionary containing the image information."""
-
-    nodes: dict[str, dict[str, npt.NDArray[np.int32]]]
-    grain: dict[str, npt.NDArray[np.int32] | dict[str, npt.NDArray[np.int32]]]
-
-
 class nodeStats:
     """
     Class containing methods to find and analyse the nodes/crossings within a grain.
 
     Parameters
     ----------
-    filename : str
-        The name of the file being processed. For logging purposes.
-    image : npt.npt.NDArray
-        The array of pixels.
-    mask : npt.npt.NDArray
-        The binary segmentation mask.
-    smoothed_mask : npt.NDArray
-        A smoothed version of the bianary segmentation mask.
-    skeleton : npt.NDArray
-        A binary single-pixel wide mask of objects in the 'image'.
-    pixel_to_nm_scaling : np.float32
-        The pixel to nm scaling factor.
+    grain_crop : GrainCrop
+        GrainCrop to be analysed.
     n_grain : int
-        The grain number.
+        Grain being processed.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
@@ -108,12 +59,7 @@ class nodeStats:
 
     def __init__(
         self,
-        filename: str,
-        image: npt.NDArray,
-        mask: npt.NDArray,
-        smoothed_mask: npt.NDArray,
-        skeleton: npt.NDArray,
-        pixel_to_nm_scaling: np.float64,
+        grain_crop: GrainCrop,
         n_grain: int,
         node_joining_length: float,
         node_extend_dist: float,
@@ -125,22 +71,10 @@ class nodeStats:
 
         Parameters
         ----------
-        filename : str
-            The name of the file being processed. For logging purposes.
-        image : npt.NDArray
-            The array of pixels.
-        mask : npt.NDArray
-            The binary segmentation mask.
-        smoothed_mask : npt.NDArray
-            A smoothed version of the bianary segmentation mask.
-        skeleton : npt.NDArray
-            A binary single-pixel wide mask of objects in the 'image'.
-        pixel_to_nm_scaling : float
-            The pixel to nm scaling factor.
+        grain_crop : GrainCrop
+            GrainCrop node statistics are to be calculated for.
         n_grain : int
-            The grain number.
-        node_joining_length : float
-            The length over which to join skeletal intersections to be counted as one crossing.
+            Grain being processed.
         node_joining_length : float
             The distance over which to join nearby odd-branched nodes.
         node_extend_dist : float
@@ -150,32 +84,40 @@ class nodeStats:
         pair_odd_branches : bool
             Whether to try and pair odd-branched nodes.
         """
-        self.filename = filename
-        self.image = image
-        self.mask = mask
-        self.smoothed_mask = smoothed_mask  # only used to average traces
-        self.skeleton = skeleton
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.grain_crop = grain_crop
+        self.grain_crop.nodes = {}
         self.n_grain = n_grain
+        self.filename = grain_crop.filename
+        self.image = grain_crop.image
+        self.mask = grain_crop.mask
+        try:
+            self.smoothed_mask = grain_crop.disordered_trace.images["smoothed_mask"]  # only used to average traces
+        except AttributeError as e:
+            if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
+                raise AttributeError(
+                    f"[{self.filename}] : 'grain_crop.disordered_trace.smoothed_mask' not found for grain {n_grain}."
+                ) from e
+            raise e
+        try:
+            self.skeleton = grain_crop.disordered_trace.images["pruned_skeleton"]
+        except AttributeError as e:
+            if "'NoneType' object has no attribute 'images'" in e:  # pylint: disable=unsupported-membership-test
+                raise AttributeError(
+                    f"[{self.filename}] : 'grain_crop.disordered_trace.skeleton' not found for grain {n_grain}."
+                ) from e
+            raise e
+        self.pixel_to_nm_scaling = grain_crop.pixel_to_nm_scaling
         self.node_joining_length = node_joining_length
         self.node_extend_dist = node_extend_dist / self.pixel_to_nm_scaling
         self.branch_pairing_length = branch_pairing_length
         self.pair_odd_branches = pair_odd_branches
-
-        self.conv_skelly = np.zeros_like(self.skeleton)
+        self.convolved_skeleton = np.zeros_like(self.skeleton)
         self.connected_nodes = np.zeros_like(self.skeleton)
         self.all_connected_nodes = np.zeros_like(self.skeleton)
         self.whole_skel_graph: nx.classes.graph.Graph | None = None
         self.node_centre_mask = np.zeros_like(self.skeleton)
-
-        self.metrics = {
-            "num_crossings": np.int64(0),
-            "avg_crossing_confidence": None,
-            "min_crossing_confidence": None,
-        }
-
-        self.node_dicts: dict[str, NodeDict] = {}
-        self.image_dict: ImageDict = {
+        self.node_dicts: dict[str, Node] = {}
+        self.image_dict: dict[str, dict[str, npt.NDArray]] = {
             "nodes": {},
             "grain": {
                 "grain_image": self.image,
@@ -189,53 +131,34 @@ class nodeStats:
         self.visuals = {}
         self.all_visuals_img = None
 
-    def get_node_stats(self) -> tuple[dict, dict]:
+    def get_node_stats(self) -> dict[int, npt.NDArray]:
         """
         Run the workflow to obtain the node statistics.
 
-        .. code-block:: RST
-
-            node_dict key structure:  <grain_number>
-                                        └-> <node_number>
-                                            |-> 'error'
-                                            └-> 'node_coords'
-                                            └-> 'branch_stats'
-                                                └-> <branch_number>
-                                                    |-> 'ordered_coords'
-                                                    |-> 'heights'
-                                                    |-> 'gaussian_fit'
-                                                    |-> 'fwhm'
-                                                    └-> 'angles'
-
-            image_dict key structure:  'nodes'
-                                            <node_number>
-                                                |-> 'node_area_skeleton'
-                                                |-> 'node_branch_mask'
-                                                └-> 'node_avg_mask
-                                        'grain'
-                                            |-> 'grain_image'
-                                            |-> 'grain_mask'
-                                            └-> 'grain_skeleton'
+        Statistics are added to the ``Node`` attribute of ``GrainCrop``.
 
         Returns
         -------
-        tuple[dict, dict]
-            Dictionaries of the node_information and images.
+        dict[int, npt.NDArray]
+            Dictionary of images.
         """
         LOGGER.debug(f"Node Stats - Processing Grain: {self.n_grain}")
-        self.conv_skelly = convolve_skeleton(self.skeleton)
-        if len(self.conv_skelly[self.conv_skelly == 3]) != 0:  # check if any nodes
+        self.grain_crop.convolved_skeleton = convolve_skeleton(self.skeleton)
+        if self.grain_crop.convolved_skeleton.max() == 3:  # check if any nodes are crossings
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} contains crossings.")
             # convolve to see crossing and end points
-            # self.conv_skelly = self.tidy_branches(self.conv_skelly, self.image)
+            # self.grain_crop.convolved_skeleton = self.tidy_branches(self.grain_crop.convolved_skeleton, self.image)
             # reset skeleton var as tidy branches may have modified it
-            self.skeleton = np.where(self.conv_skelly != 0, 1, 0)
-            self.image_dict["grain"]["grain_skeleton"] = self.skeleton
+            self.skeleton = np.where(self.grain_crop.convolved_skeleton != 0, 1, 0)
+            # self.image_dict["grain"]["grain_skeleton"] = self.skeleton
+            self.grain_crop.skeleton = self.skeleton
             # get graph of skeleton
             self.whole_skel_graph = self.skeleton_image_to_graph(self.skeleton)
             # connect the close nodes
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} connecting close nodes.")
-            self.connected_nodes = self.connect_close_nodes(self.conv_skelly, node_width=self.node_joining_length)
+            self.connected_nodes = self.connect_close_nodes(
+                self.grain_crop.convolved_skeleton, node_width=self.node_joining_length
+            )
             # connect the odd-branch nodes
             self.connected_nodes = self.connect_extended_nodes_nearest(
                 self.connected_nodes, node_extend_dist=self.node_extend_dist
@@ -248,8 +171,8 @@ class nodeStats:
             self.compile_metrics()
         else:
             LOGGER.debug(f"[{self.filename}] : Nodestats - {self.n_grain} has no crossings.")
-        return self.node_dicts, self.image_dict
-        # self.all_visuals_img = dnaTrace.concat_images_in_dict(self.image.shape, self.visuals)
+        # Add the node dictionary
+        return self.image_dict
 
     @staticmethod
     def skeleton_image_to_graph(skeleton: npt.NDArray) -> nx.classes.graph.Graph:
@@ -261,7 +184,7 @@ class nodeStats:
         Parameters
         ----------
         skeleton : npt.NDArray
-            A binary single-pixel wide mask, or result from conv_skelly().
+            A binary single-pixel wide mask, or result from conv_skeleton().
 
         Returns
         -------
@@ -306,11 +229,11 @@ class nodeStats:
         npt.NDArray
             Skeleton binary image from the graph representation.
         """
-        im = np.zeros(im_shape)
+        image = np.zeros(im_shape)
         for node in g:
-            im[node] = 1
+            image[node] = 1
 
-        return im
+        return image
 
     def tidy_branches(self, connect_node_mask: npt.NDArray, image: npt.NDArray) -> npt.NDArray:
         """
@@ -387,7 +310,7 @@ class nodeStats:
             LOGGER.debug(f"{e}: mask is empty.")
             return mask
 
-    def connect_close_nodes(self, conv_skelly: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
+    def connect_close_nodes(self, conv_skeleton: npt.NDArray, node_width: float = 2.85) -> npt.NDArray:
         """
         Connect nodes within the 'node_width' boundary distance.
 
@@ -395,7 +318,7 @@ class nodeStats:
 
         Parameters
         ----------
-        conv_skelly : npt.NDArray
+        conv_skeleton : npt.NDArray
             A labeled skeleton image with skeleton = 1, endpoints = 2, crossing points =3.
         node_width : float
             The width of the dna in the grain, used to connect close nodes.
@@ -405,8 +328,8 @@ class nodeStats:
         np.ndarray
             The skeleton (label=1) with close nodes connected (label=3).
         """
-        self.connected_nodes = conv_skelly.copy()
-        nodeless = conv_skelly.copy()
+        self.connected_nodes = conv_skeleton.copy()
+        nodeless = conv_skeleton.copy()
         nodeless[(nodeless == 3) | (nodeless == 2)] = 0  # remove node & termini points
         nodeless_labels = label(nodeless)
         for i in range(1, nodeless_labels.max() + 1):
@@ -538,25 +461,25 @@ class nodeStats:
         """
         # Get coordinates of nodes
         # This is a numpy array of coords, shape Nx2
+        # @ns-rse 2025-08-08 : This only captures some cases, if the array is empty it doesn't work I found there was an
+        # instance where there were no node_coords (i.e. self.node_centre_mask.copy() == 3) returned an empty list so
+        # there are no nodes.
         assert self.node_centre_mask is not None, "Node centre mask is not defined."
         node_coords: npt.NDArray[np.int32] = np.argwhere(self.node_centre_mask.copy() == 3)
-
         # Check whether average trace resides inside the grain mask
         # Checks if we dilate the skeleton once or twice, then all the pixels should fit in the grain mask
         dilate = binary_dilation(self.skeleton, iterations=2)
         # This flag determines whether to use average of 3 traces in calculation of FWHM
         average_trace_advised = dilate[self.smoothed_mask == 1].sum() == dilate.sum()
         LOGGER.debug(f"[{self.filename}] : Branch height traces will be averaged: {average_trace_advised}")
-
         # Iterate over the nodes and analyse the branches
         matched_branches = None
         branch_image = None
         avg_image = np.zeros_like(self.image)
-        real_node_count = 0
+        node_count = 0
         for node_no, (node_x, node_y) in enumerate(node_coords):
             unmatched_branches = {}
             error = False
-
             # Get branches relevant to the node
             max_length_px = max_branch_length / (self.pixel_to_nm_scaling * 1)
             reduced_node_area: npt.NDArray[np.int32] = nodeStats.only_centre_branches(
@@ -582,8 +505,7 @@ class nodeStats:
                 )
             else:
                 try:
-                    real_node_count += 1
-                    LOGGER.debug(f"Node: {real_node_count}")
+                    LOGGER.debug(f"Node: {node_count}")
 
                     # Analyse the node branches
                     (
@@ -625,24 +547,22 @@ class nodeStats:
                     angles_between_singlet_branch_vectors: npt.NDArray[np.float64] = (
                         nodestats_calc_singlet_angles_result[0]
                     )
-
                     for branch_index, angle in enumerate(angles_between_singlet_branch_vectors):
-                        unmatched_branches[branch_index] = {"angles": angle}
-
+                        unmatched_branches[branch_index] = UnMatchedBranch(angles=angle)
                     # Get the vector of each branch based on ordered_coords. Ordered_coords is only the first N nm
                     # of the branch so this is just a general vibe on what direction a branch is going.
                     if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
                         vectors: list[npt.NDArray[np.float64]] = []
                         for _, values in matched_branches.items():
-                            vectors.append(nodeStats.get_vector(values["ordered_coords"], np.array([node_x, node_y])))
+                            vectors.append(nodeStats.get_vector(values.ordered_coords, np.array([node_x, node_y])))
                         # Calculate angles between the vectors
                         nodestats_calc_angles_result = nodeStats.calc_angles(np.asarray(vectors))
                         angles_between_vectors_along_branch: npt.NDArray[np.float64] = nodestats_calc_angles_result[0]
                         for branch_index, angle in enumerate(angles_between_vectors_along_branch):
                             if len(branch_start_coords) % 2 == 0 or self.pair_odd_branches:
-                                matched_branches[branch_index]["angles"] = angle
+                                matched_branches[branch_index].angles = angle
                     else:
-                        self.image_dict["grain"]["grain_skeleton"][node_coords[:, 0], node_coords[:, 1]] = 0
+                        self.grain_crop.skeleton[node_coords[:, 0], node_coords[:, 1]] = 0
 
                     # Eg: length 2 array: [array([ nan, 79.00]), array([79.00, 0.0])]
                     # angles_between_vectors_along_branch
@@ -650,25 +570,21 @@ class nodeStats:
                 except ResolutionError:
                     LOGGER.debug(f"Node stats skipped as resolution too low: {self.pixel_to_nm_scaling}nm per pixel")
                     error = True
-
-                self.node_dicts[f"node_{real_node_count}"] = {
-                    "error": error,
-                    "pixel_to_nm_scaling": self.pixel_to_nm_scaling,
-                    "branch_stats": matched_branches,
-                    "unmatched_branch_stats": unmatched_branches,
-                    "node_coords": node_coords,
-                    "confidence": confidence,
-                }
-
                 assert reduced_node_area is not None, "Reduced node area is not defined."
                 assert branch_image is not None, "Branch image is not defined."
                 assert avg_image is not None, "Average image is not defined."
-                node_images_dict: dict[str, npt.NDArray[np.int32]] = {
-                    "node_area_skeleton": reduced_node_area,
-                    "node_branch_mask": branch_image,
-                    "node_avg_mask": avg_image,
-                }
-                self.image_dict["nodes"][f"node_{real_node_count}"] = node_images_dict
+                self.grain_crop.nodes[node_count] = Node(
+                    error=error,
+                    pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                    branch_stats=matched_branches,
+                    unmatched_branch_stats=unmatched_branches,
+                    node_coords=node_coords,
+                    confidence=confidence,
+                    node_area_skeleton=reduced_node_area,
+                    node_branch_mask=branch_image,
+                    node_avg_mask=avg_image,
+                )
+                node_count += 1
 
             self.all_connected_nodes[self.connected_nodes != 0] = self.connected_nodes[self.connected_nodes != 0]
 
@@ -691,13 +607,8 @@ class nodeStats:
         ----------
         branch_under_over_order : npt.NDArray[np.int32]
             The order of the branches.
-        matched_branches : dict[int, dict[str, MatchedBranch]]
-            Dictionary where the key is the index of the pair and the value is a dictionary containing the following
-            keys:
-            - "ordered_coords" : npt.NDArray[np.int32].
-            - "heights" : npt.NDArray[np.number]. Heights of the branches.
-            - "distances" :
-            - "fwhm" : npt.NDArray[np.number]. Full width half maximum of the branches.
+        matched_branches : dict[int, MatchedBranch]
+            Dictionary of ``MatchedBranch`` objects.
         masked_image : dict[int, dict[str, npt.NDArray[np.bool_]]]
             Dictionary where the key is the index of the pair and the value is a dictionary containing the following
             keys:
@@ -722,7 +633,7 @@ class nodeStats:
         avg_image: npt.NDArray[np.int32] = np.zeros(image_shape).astype(np.int32)
 
         for i, branch_index in enumerate(branch_under_over_order):
-            branch_coords = matched_branches[branch_index]["ordered_coords"]
+            branch_coords = matched_branches[branch_index].ordered_coords
 
             # Add the matched branch to the image, starting at index 1
             branch_image[branch_coords[:, 0], branch_coords[:, 1]] = i + 1
@@ -844,14 +755,16 @@ class nodeStats:
         # Redo the FWHMs after the processing for more accurate determination of under/overs.
         hms = []
         for _, values in matched_branches.items():
-            hms.append(values["fwhm"]["half_maxs"][2])
-        for _, values in matched_branches.items():
-            values["fwhm"] = nodeStats.calculate_fwhm(values["heights"], values["distances"], hm=max(hms))
+            hms.append(values.fwhm_half_maxs[2])
+        for _, matched_branch in matched_branches.items():
+            matched_branch.fwhm, matched_branch.fwhm_half_maxs, matched_branch.fwhm_peaks = nodeStats.calculate_fwhm(
+                matched_branch.heights, matched_branch.distances, half_max=max(hms)
+            )
 
         # Get the confidence of the crossing
         crossing_fwhms = []
-        for _, values in matched_branches.items():
-            crossing_fwhms.append(values["fwhm"]["fwhm"])
+        for _, matched_branch in matched_branches.items():
+            crossing_fwhms.append(matched_branch.fwhm)
         if len(crossing_fwhms) <= 1:
             confidence = None
         else:
@@ -916,17 +829,9 @@ class nodeStats:
             - "avg_mask" : npt.NDArray[np.bool_]. Average mask of the branches.
         """
         matched_branches: dict[int, MatchedBranch] = {}
-        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = (
-            {}
-        )  # Masked image is a dictionary of pairs of branches
+        masked_image: dict[int, dict[str, npt.NDArray[np.bool_]]] = {}
         for i, (branch_1, branch_2) in enumerate(pairs):
-            matched_branches[i] = MatchedBranch(
-                ordered_coords=np.array([], dtype=np.int32),
-                heights=np.array([], dtype=np.float64),
-                distances=np.array([], dtype=np.float64),
-                fwhm={},
-                angles=None,
-            )
+            matched_branches[i] = MatchedBranch()
             masked_image[i] = {}
             # find close ends by rearranging branch coords
             branch_1_coords, branch_2_coords = nodeStats.order_branches(
@@ -950,7 +855,7 @@ class nodeStats:
             single_branch_img[branch_coords[:, 0], branch_coords[:, 1]] = True
             single_branch_coords = order_branch(single_branch_img.astype(bool), [0, 0])
             # calc image-wide coords
-            matched_branches[i]["ordered_coords"] = single_branch_coords
+            matched_branches[i].ordered_coords = single_branch_coords
             # get heights and trace distance of branch
             try:
                 assert average_trace_advised
@@ -965,7 +870,6 @@ class nodeStats:
                 LOGGER.debug(f"[{filename}] : avg trace failed with {e}, single trace only.")
                 average_trace_advised = False
                 distances = nodeStats.coord_dist_rad(single_branch_coords, np.array([node_coords[0], node_coords[1]]))
-                # distances = self.coord_dist(single_branch_coords)
                 zero_dist = distances[
                     np.argmin(
                         np.sqrt(
@@ -976,13 +880,15 @@ class nodeStats:
                 ]
                 heights = image[single_branch_coords[:, 0], single_branch_coords[:, 1]]  # self.hess
                 distances = distances - zero_dist
-                distances, heights = nodeStats.average_uniques(
+                distances, heights = nodeStats.mean_uniques(
                     distances, heights
                 )  # needs to be paired with coord_dist_rad
-            matched_branches[i]["heights"] = heights
-            matched_branches[i]["distances"] = distances
+            matched_branches[i].heights = heights
+            matched_branches[i].distances = distances
             # identify over/under
-            matched_branches[i]["fwhm"] = nodeStats.calculate_fwhm(heights, distances)
+            matched_branches[i].fwhm, matched_branches[i].fwhm_half_maxs, matched_branches[i].fwhm_peaks = (
+                nodeStats.calculate_fwhm(heights, distances)
+            )
 
         return matched_branches, masked_image
 
@@ -1115,6 +1021,13 @@ class nodeStats:
         norm = np.diag(dot) ** 0.5
         cos_angles = dot / (norm.reshape(-1, 1) @ norm.reshape(1, -1))
         np.fill_diagonal(cos_angles, 1)  # ensures vector_x • vector_x angles are 0
+        LOGGER.debug(f"\n{vectors=}\n")
+        LOGGER.debug(f"\n{norm=}\n")
+        LOGGER.debug(f"\n{cos_angles=}\n")
+        # ns-rse 2025-09-24 : Sometimes this raise a warning
+        #   /home/neil/work/git/hub/AFM-SPM/TopoStats/topostats/tracing/nodestats.py:1129:
+        #       RuntimeWarning: invalid value encountered in arccos
+        #    return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
         return abs(np.arccos(cos_angles) / np.pi * 180)  # angles in degrees
 
     @staticmethod
@@ -1259,8 +1172,8 @@ class nodeStats:
 
     @staticmethod
     def calculate_fwhm(
-        heights: npt.NDArray, distances: npt.NDArray, hm: float | None = None
-    ) -> dict[str, np.float64 | list[np.float64 | float | None]]:
+        heights: npt.NDArray, distances: npt.NDArray, half_max: float | None = None
+    ) -> tuple[np.float64 | list[np.float64] | None]:
         """
         Calculate the FWHM value.
 
@@ -1273,7 +1186,7 @@ class nodeStats:
             Array of heights.
         distances : npt.NDArray
             Array of distances.
-        hm : Union[None, float], optional
+        half_max : Union[None, float], optional
             The halfmax value to match (if wanting the same HM between curves), by default None.
 
         Returns
@@ -1292,46 +1205,43 @@ class nodeStats:
         dist1 = distances[:high_idx][::-1]
         arr2 = heights[high_idx:]
         dist2 = distances[high_idx:]
-        if hm is None:
+        if half_max is None:
             # Get half max
-            hm = (heights.max() - heights.min()) / 2 + heights.min()
+            half_max = (heights.max() - heights.min()) / 2 + heights.min()
             # half max value -> try to make it the same as other crossing branch?
             # increase make hm = lowest of peak if it doesn’t hit one side
-            if np.min(arr1) > hm:
+            if np.min(arr1) > half_max:
                 arr1_local_min = argrelextrema(arr1, np.less)[-1]  # closest to end
                 try:
-                    hm = arr1[arr1_local_min][0]
+                    half_max = arr1[arr1_local_min][0]
                 except IndexError:  # index error when no local minima
-                    hm = np.min(arr1)
-            elif np.min(arr2) > hm:
+                    half_max = np.min(arr1)
+            elif np.min(arr2) > half_max:
                 arr2_local_min = argrelextrema(arr2, np.less)[0]  # closest to start
                 try:
-                    hm = arr2[arr2_local_min][0]
+                    half_max = arr2[arr2_local_min][0]
                 except IndexError:  # index error when no local minima
-                    hm = np.min(arr2)
-        arr1_hm = nodeStats.interpolate_between_yvalue(x=dist1, y=arr1, yvalue=hm)
-        arr2_hm = nodeStats.interpolate_between_yvalue(x=dist2, y=arr2, yvalue=hm)
-        fwhm = np.float64(abs(arr2_hm - arr1_hm))
-        return {
-            "fwhm": fwhm,
-            "half_maxs": [arr1_hm, arr2_hm, hm],
-            "peaks": [high_idx, distances[high_idx], heights[high_idx]],
-        }
+                    half_max = np.min(arr2)
+        half_max_1 = nodeStats.interpolate_between_yvalue(x=dist1, y=arr1, yvalue=half_max)
+        half_max_2 = nodeStats.interpolate_between_yvalue(x=dist2, y=arr2, yvalue=half_max)
+        fwhm = np.float64(abs(half_max_2 - half_max_1))
+        # Returns fwhm, fwhm_half_max, fwhm_peak
+        return (fwhm, [half_max_1, half_max_2, half_max], [high_idx, distances[high_idx], heights[high_idx]])
 
     @staticmethod
     def lin_interp(point_1: list, point_2: list, xvalue: float | None = None, yvalue: float | None = None) -> float:
         """
-        Linear interp 2 points by finding line equation and subbing.
+        Linear interpolation between two points by finding line equation and subbing.
 
         Parameters
         ----------
         point_1 : list
-            List of an x and y coordinate.
+            ``x`` and ``y`` coordinate of point 1.
         point_2 : list
-            List of an x and y coordinate.
-        xvalue : Union[float, None], optional
+            ``x`` and ``y`` coordinate of point 2.
+        xvalue : float, optional
             Value at which to interpolate to get a y coordinate, by default None.
-        yvalue : Union[float, None], optional
+        yvalue : float, optional
             Value at which to interpolate to get an x coordinate, by default None.
 
         Returns
@@ -1524,7 +1434,7 @@ class nodeStats:
         branch_dist = nodeStats.coord_dist_rad(branch_coords, centre)
         # branch_dist = self.coord_dist(branch_coords)
         branch_heights = img[branch_coords[:, 0], branch_coords[:, 1]]
-        branch_dist, branch_heights = nodeStats.average_uniques(
+        branch_dist, branch_heights = nodeStats.mean_uniques(
             branch_dist, branch_heights
         )  # needs to be paired with coord_dist_rad
         dist_zero_point = branch_dist[
@@ -1577,7 +1487,7 @@ class nodeStats:
             trace = order_branch(trace_img, branch_coords[0])
             height_trace = img[trace[:, 0], trace[:, 1]]
             dist = nodeStats.coord_dist_rad(trace, centre)  # self.coord_dist(trace)
-            dist, height_trace = nodeStats.average_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
+            dist, height_trace = nodeStats.mean_uniques(dist, height_trace)  # needs to be paired with coord_dist_rad
             heights.append(height_trace)
             distances.append(
                 dist - dist_zero_point  # - 0
@@ -1739,9 +1649,9 @@ class nodeStats:
         return node_image_cp
 
     @staticmethod
-    def average_uniques(arr1: npt.NDArray, arr2: npt.NDArray) -> tuple:
+    def mean_uniques(arr1: npt.NDArray, arr2: npt.NDArray) -> tuple:
         """
-        Obtain the unique values of both arrays, and the average of common values.
+        Obtain the unique values of both arrays, and the mean of common values.
 
         Parameters
         ----------
@@ -1753,7 +1663,7 @@ class nodeStats:
         Returns
         -------
         tuple
-            The unique values of both arrays, and the averaged common values.
+            The unique values of both arrays, and the mean of common values.
         """
         arr1_uniq, index = np.unique(arr1, return_index=True)
         arr2_new = np.zeros_like(arr1_uniq).astype(np.float64)
@@ -1763,90 +1673,55 @@ class nodeStats:
 
         return arr1[index], arr2_new
 
-    @staticmethod
-    def average_crossing_confs(node_dict) -> None | float:
+    def crossing_confidence_statistics(self) -> tuple[None | float]:
         """
-        Return the average crossing confidence of all crossings in the molecule.
-
-        Parameters
-        ----------
-        node_dict : dict
-            A dictionary containing node statistics and information.
+        Calculate crossing statistics (number, mean and minimum confidence).
 
         Returns
         -------
-        Union[None, float]
-            The value of minimum confidence or none if not possible.
+        tuple[float | None]
+            The arithmetic mean and minimum confidence across all crossings within a grain.
         """
         sum_conf = 0
         valid_confs = 0
-        for _, (_, values) in enumerate(node_dict.items()):
-            confidence = values["confidence"]
-            if confidence is not None:
-                sum_conf += confidence
-                valid_confs += 1
-        try:
-            return sum_conf / valid_confs
-        except ZeroDivisionError:
-            return None
-
-    @staticmethod
-    def minimum_crossing_confs(node_dict: dict) -> None | float:
-        """
-        Return the minimum crossing confidence of all crossings in the molecule.
-
-        Parameters
-        ----------
-        node_dict : dict
-            A dictionary containing node statistics and information.
-
-        Returns
-        -------
-        Union[None, float]
-            The value of minimum confidence or none if not possible.
-        """
         confidences = []
-        valid_confs = 0
-        for _, (_, values) in enumerate(node_dict.items()):
-            confidence = values["confidence"]
-            if confidence is not None:
-                confidences.append(confidence)
+        for _, node in self.grain_crop.nodes.items():
+            if node.confidence is not None:
+                confidences.append(node.confidence)
+                sum_conf += node.confidence
                 valid_confs += 1
         try:
-            return min(confidences)
-        except ValueError:
-            return None
+            # Return the mean and min if valid_confs > 0
+            return sum_conf / valid_confs, min(confidences)
+        except ZeroDivisionError:
+            return None, None
 
     def compile_metrics(self) -> None:
-        """Add the number of crossings, average and minimum crossing confidence to the metrics dictionary."""
-        self.metrics["num_crossings"] = np.int64((self.node_centre_mask == 3).sum())
-        self.metrics["avg_crossing_confidence"] = np.float64(nodeStats.average_crossing_confs(self.node_dicts))
-        self.metrics["min_crossing_confidence"] = np.float64(nodeStats.minimum_crossing_confs(self.node_dicts))
+        """Add number of crossings, mean and minimum crossing confidence to the ``grain_crops.stats`` dictionary."""
+        # Add Node Statistics to GrainCrop.stats for each class and subgrain
+        num_crossings = (self.node_centre_mask == 3).sum()
+        mean_conf, min_conf = self.crossing_confidence_statistics()
+        for class_number, stats in self.grain_crop.stats.items():
+            for subgrain_index, _ in stats.items():
+                self.grain_crop.stats[class_number][subgrain_index]["num_crossings"] = np.int64(num_crossings)
+                self.grain_crop.stats[class_number][subgrain_index]["mean_crossing_confidence"] = np.float64(mean_conf)
+                self.grain_crop.stats[class_number][subgrain_index]["min_crossing_confidence"] = np.float64(min_conf)
 
 
 def nodestats_image(
-    image: npt.NDArray,
-    disordered_tracing_direction_data: dict,
-    filename: str,
-    pixel_to_nm_scaling: float,
+    topostats_object: TopoStats,
     node_joining_length: float,
     node_extend_dist: float,
     branch_pairing_length: float,
     pair_odd_branches: float,
-) -> tuple:
+) -> None:
     """
-    Initialise the nodeStats class.
+    Calculate Node Statistics for a single crop.
 
     Parameters
     ----------
-    image : npt.NDArray
-        The array of pixels.
-    disordered_tracing_direction_data : dict
-        The images and bbox coordinates of the pruned skeletons.
-    filename : str
-        The name of the file being processed. For logging purposes.
-    pixel_to_nm_scaling : float
-        The pixel to nm scaling factor.
+    topostats_object : TopoStats
+        TopoStats object from which grains are extracted.
     node_joining_length : float
         The length over which to join skeletal intersections to be counted as one crossing.
     node_joining_length : float
@@ -1857,78 +1732,55 @@ def nodestats_image(
         The length from the crossing point to pair and trace, obtaining FWHM's.
     pair_odd_branches : bool
         Whether to try and pair odd-branched nodes.
-
-    Returns
-    -------
-    tuple[dict, pd.DataFrame, dict, dict]
-        The nodestats statistics for each crossing, crossing statistics to be added to the grain statistics,
-        an image dictionary of nodestats steps for the entire image, and single grain images.
     """
-    n_grains = len(disordered_tracing_direction_data)
-    img_base = np.zeros_like(image)
-    nodestats_data = {}
-
     # Images for diagnostics edited during processing
-    all_images = {
-        "convolved_skeletons": img_base.copy(),
-        "node_centres": img_base.copy(),
-        "connected_nodes": img_base.copy(),
+    nodestats_full_images = {
+        "convolved_skeletons": np.zeros_like(topostats_object.image),
+        "node_centres": np.zeros_like(topostats_object.image),
+        "connected_nodes": np.zeros_like(topostats_object.image),
     }
     nodestats_branch_images = {}
-    grainstats_additions = {}
 
-    LOGGER.info(f"[{filename}] : Calculating NodeStats statistics for {n_grains} grains...")
+    if topostats_object.grain_crops is not None:
+        LOGGER.info(f"[{topostats_object.filename}] : There are {len(topostats_object.grain_crops)} grains")
+        for n_grain, grain_crop in topostats_object.grain_crops.items():
+            nodestats = None  # reset the nodestats variable
+            if grain_crop.disordered_trace is not None:
+                try:
+                    nodestats = nodeStats(
+                        grain_crop=grain_crop,
+                        n_grain=n_grain,
+                        node_joining_length=node_joining_length,
+                        node_extend_dist=node_extend_dist,
+                        branch_pairing_length=branch_pairing_length,
+                        pair_odd_branches=pair_odd_branches,
+                    )
+                    _, node_image_dict = nodestats.get_node_stats()
+                    LOGGER.info(f"[{topostats_object.filename}] : Nodestats processed {n_grain + 1}")
 
-    for n_grain, disordered_tracing_grain_data in disordered_tracing_direction_data.items():
-        nodestats = None  # reset the nodestats variable
-        try:
-            nodestats = nodeStats(
-                image=disordered_tracing_grain_data["original_image"],
-                mask=disordered_tracing_grain_data["original_grain"],
-                smoothed_mask=disordered_tracing_grain_data["smoothed_grain"],
-                skeleton=disordered_tracing_grain_data["pruned_skeleton"],
-                pixel_to_nm_scaling=pixel_to_nm_scaling,
-                filename=filename,
-                n_grain=n_grain,
-                node_joining_length=node_joining_length,
-                node_extend_dist=node_extend_dist,
-                branch_pairing_length=branch_pairing_length,
-                pair_odd_branches=pair_odd_branches,
-            )
-            nodestats_dict, node_image_dict = nodestats.get_node_stats()
-            LOGGER.debug(f"[{filename}] : Nodestats processed {n_grain} of {n_grains}")
+                    # compile images
+                    nodestats_images = {
+                        # "convolved_skeletons": nodestats.convolved_skeleton,
+                        "convolved_skeletons": grain_crop.convolved_skeleton,
+                        "node_centres": nodestats.node_centre_mask,
+                        "connected_nodes": nodestats.connected_nodes,
+                    }
+                    nodestats_branch_images[n_grain] = node_image_dict
 
-            # compile images
-            nodestats_images = {
-                "convolved_skeletons": nodestats.conv_skelly,
-                "node_centres": nodestats.node_centre_mask,
-                "connected_nodes": nodestats.connected_nodes,
-            }
-            nodestats_branch_images[n_grain] = node_image_dict
-
-            # compile metrics
-            grainstats_additions[n_grain] = {
-                "image": filename,
-                "grain_number": int(n_grain.split("_")[-1]),
-            }
-            grainstats_additions[n_grain].update(nodestats.metrics)
-            if nodestats_dict:  # if the grain's nodestats dict is not empty
-                nodestats_data[n_grain] = nodestats_dict
-
-            # remap the cropped images back onto the original
-            for image_name, full_image in all_images.items():
-                crop = nodestats_images[image_name]
-                bbox = disordered_tracing_grain_data["bbox"]
-                full_image[bbox[0] : bbox[2], bbox[1] : bbox[3]] += crop
-
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            LOGGER.error(
-                f"[{filename}] : Nodestats for {n_grain} failed. Consider raising an issue on GitHub. Error: ",
-                exc_info=e,
-            )
-            nodestats_data[n_grain] = {}
-
-        # turn the grainstats additions into a dataframe, # might need to do something for when everything is empty
-        grainstats_additions_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-
-    return nodestats_data, grainstats_additions_df, all_images, nodestats_branch_images
+                    # remap the cropped images back onto the original
+                    for image_name, full_image in nodestats_full_images.items():
+                        crop = nodestats_images[image_name]
+                        full_image[
+                            grain_crop.bbox[0] : grain_crop.bbox[2], grain_crop.bbox[1] : grain_crop.bbox[3]
+                        ] += crop
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    LOGGER.error(
+                        f"[{topostats_object.filename}] : Nodestats for grain {n_grain} failed. "
+                        "Please consider raising an issue on GitHub. Error: ",
+                        exc_info=e,
+                    )
+        # Add full image plots to dictionary
+        if topostats_object.full_image_plots is None:
+            topostats_object.full_image_plots = nodestats_full_images
+        elif isinstance(topostats_object.full_image_plots, dict):
+            topostats_object.full_image_plots = {**topostats_object.full_image_plots, **nodestats_full_images}

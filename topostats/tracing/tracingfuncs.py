@@ -447,21 +447,21 @@ def order_branch(binary_image: npt.NDArray, anchor: list):
     npt.NDArray
         An array of ordered coordinates.
     """
-    skel = binary_image.copy()
+    skeleton = binary_image.copy()
 
-    if len(np.argwhere(skel == 1)) < 3:  # if < 3 coords just return them
-        return np.argwhere(skel == 1)
+    if len(np.argwhere(skeleton == 1)) < 3:  # if < 3 coords just return them
+        return np.argwhere(skeleton == 1)
 
     # get branch starts
-    endpoints_highlight = convolve_skeleton(skel)
+    endpoints_highlight = convolve_skeleton(skeleton)
     endpoints = np.argwhere(endpoints_highlight == 2)
     if len(endpoints) != 0:  # if any endpoints, start closest to anchor
         dist_vals = abs(endpoints - anchor).sum(axis=1)
         start = endpoints[np.argmin(dist_vals)]
     else:  # will be circular so pick the first coord (is this always the case?)
-        start = np.argwhere(skel == 1)[0]
+        start = np.argwhere(skeleton == 1)[0]
     # order the points according to what is nearby
-    ordered = order_branch_from_start(skel, start)
+    ordered = order_branch_from_start(skeleton, start)
 
     return np.array(ordered)
 

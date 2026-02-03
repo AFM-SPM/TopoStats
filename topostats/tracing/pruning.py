@@ -665,6 +665,11 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             height_values = self._get_branch_medians(segments)
         elif self.method_values == "mid":
             height_values = self._get_branch_middles(segments)
+        else:
+            raise ValueError(
+                "[pruning] Invalid value for disordered_tracing.pruning_params.method_values :"
+                f"{self.method_values}\n Valid values are 'min', 'median' or 'mid'."
+            )
         # threshold heights to obtain indexes of branches to be removed
         idxs = None
         if self.method_outlier == "abs":
@@ -673,6 +678,11 @@ class heightPruning:  # pylint: disable=too-many-instance-attributes
             idxs = self._get_mean_abs_thresh_idx(height_values, self.height_threshold, self.image, self.skeleton)
         elif self.method_outlier == "iqr":
             idxs = self._get_iqr_thresh_idx(self.image, segments)
+        else:
+            raise ValueError(
+                "[pruning] Invalid value for disordered_tracing.pruning_params.method_outlier :"
+                f"{self.method_values}\n Valid values are 'abs', 'mean_abs' or 'iqr'."
+            )
         # Only remove the bridge if the skeleton remains a single object.
         skeleton_rtn = self.skeleton.copy()
         for i in idxs:

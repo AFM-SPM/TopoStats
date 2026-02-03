@@ -10,6 +10,7 @@ from scipy.optimize import curve_fit
 from skimage.filters import gaussian
 
 from topostats import scars
+from topostats.classes import TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.utils import get_mask, get_thresholds
 
@@ -31,12 +32,10 @@ class Filters:
 
     Parameters
     ----------
-    image : npt.NDArray
-        The raw image from the Atomic Force Microscopy machine.
-    filename : str
-        The filename (used in logging only).
-    pixel_to_nm_scaling : float
-        Value for converting pixels to nanometers.
+    topostats_object : TopoStats
+        TopoStats object with a minimum of ''image_original'', ''filename'', ''pixel_to_nm_scaling'' and
+        ''img_path'' attributes defined. Typically these will be loaded from scanner output files or existing
+        ''.topostats'' files.
     row_alignment_quantile : float
         Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
         flattening of large features.
@@ -61,9 +60,7 @@ class Filters:
 
     def __init__(
         self,
-        image: npt.NDArray,
-        filename: str,
-        pixel_to_nm_scaling: float,
+        topostats_object: TopoStats,
         row_alignment_quantile: float = 0.5,
         threshold_method: str = "otsu",
         otsu_threshold_multiplier: float = 1.7,
@@ -78,12 +75,10 @@ class Filters:
 
         Parameters
         ----------
-        image : npt.NDArray
-            The raw image from the Atomic Force Microscopy machine.
-        filename : str
-            The filename (used in logging only).
-        pixel_to_nm_scaling : float
-            Value for converting pixels to nanometers.
+        topostats_object : TopoStats
+            TopoStats object with a minimum of ''image_original'', ''filename'', ''pixel_to_nm_scaling'' and
+            ''img_path'' attributes defined. Typically these will be loaded from scanner output files or existing
+            ''.topostats'' files.
         row_alignment_quantile : float
             Quantile (0.0 to 1.0) to be used to determine the average background for the image below values may improve
             flattening of large features.
@@ -105,8 +100,10 @@ class Filters:
         remove_scars : dict
             Dictionary containing configuration parameters for the scar removal function.
         """
-        self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.topostats_object = topostats_object
+        self.image = topostats_object.image_original
+        self.filename = topostats_object.filename
+        self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
         self.gaussian_size = gaussian_size
         self.gaussian_mode = gaussian_mode
         self.row_alignment_quantile = row_alignment_quantile
@@ -130,7 +127,7 @@ class Filters:
             }
         self.remove_scars_config = remove_scars
         self.images = {
-            "pixels": image,
+            "pixels": self.image,
             "initial_median_flatten": None,
             "initial_tilt_removal": None,
             "initial_quadratic_removal": None,
@@ -589,3 +586,5 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])
+        # Add images to TopoStats object
+        self.topostats_object.image = self.images["gaussian_filtered"]

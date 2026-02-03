@@ -136,7 +136,11 @@ def merge_mappings(map1: MutableMappingType, map2: MutableMappingType) -> Mutabl
     return map1
 
 
-def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
+def write_config_with_comments(  # noqa: C901 # pylint: disable=too-many-branches
+    args: Namespace = None,
+    valid_config: tuple[str] = ("default", "simple", "mplstyle", "var_to_label"),
+    valid_module: tuple[str] = ("topostats"),
+) -> None:
     """
     Write a sample configuration with in-line comments.
 
@@ -147,7 +151,13 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
     ----------
     args : Namespace
         A Namespace object parsed from argparse with values for 'filename'.
+    valid_config : tuple[str]
+        Tuple of valid configuration options.
+    valid_module : tuple[str]
+        Tuple of valid modules, currently 'topostats'.
     """
+    if args.config is not None and args.config not in valid_config:
+        raise ValueError(f"There is no configuration for {args.config}, valid options are f{valid_config}")
     output_dir = Path("./") if args.output_dir is None else Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     logger_msg = "A sample configuration has been written to"
@@ -157,7 +167,7 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
         try:
             config = get_data(package=args.module, resource="default_config.yaml")
             filename = "default_config.yaml" if args.filename is None else args.filename
-        except FileNotFoundError as exc:
+        except AttributeError as exc:
             raise (
                 FileNotFoundError(f"There is no configuration for module {args.module} called 'default_config.yaml'")
             ) from exc
@@ -186,22 +196,24 @@ def write_config_with_comments(args: Namespace = None) -> None:  # noqa: C901
                 FileNotFoundError(f"There is no configuration for module {args.module} called 'var_to_label.yaml'")
             ) from exc
     else:
-        valid_config = ["default", "simple", "mplstyle", "var_to_label"]
-        raise ValueError(f"Invalid configuration file option, valid options are\n{valid_config}")
-
+        raise ValueError(f"Invalid configuration file option ({args.config}), valid options are\n{valid_config}")
+    # Remove `default_` if that is the filename that has been loaded, all others remain as is
+    filename = filename.replace("default_", "") if "default_" in str(filename) else filename
     if ".yaml" not in str(filename) and ".yml" not in str(filename) and ".mplstyle" not in str(filename):
         config_path = output_dir / f"{filename}.yaml"
     else:
         config_path = output_dir / filename
-
-    try:
-        with config_path.open("w", encoding="utf-8") as f:
+    with config_path.open("w", encoding="utf-8") as f:
+        try:
             f.write(f"# Config file generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"{CONFIG_DOCUMENTATION_REFERENCE}")
             f.write(config.decode("utf-8"))
-    except AttributeError as e:
-        raise e
-
+        except AttributeError as exc:
+            raise (
+                AttributeError(
+                    f"There is no configuration for module {args.module}, valid options are f{valid_module}."
+                )
+            ) from exc
     LOGGER.info(f"{logger_msg} : {str(config_path)}")
 
 

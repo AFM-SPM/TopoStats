@@ -693,8 +693,8 @@ def test_entry_points(options: list, expected_function: Callable, expected_args:
 @pytest.mark.parametrize(
     ("config", "target_file"),
     [
-        pytest.param(None, "default_config.yaml", id="default config no --config option"),
-        pytest.param("default", "default_config.yaml", id="default config with --config option"),
+        pytest.param(None, "config.yaml", id="default config no --config option"),
+        pytest.param("default", "config.yaml", id="default config with --config option"),
         pytest.param("simple", "simple_config.yaml", id="simple config option"),
         pytest.param("mplstyle", "topostats.mplstyle", id="mplstyle config option"),
         pytest.param("var_to_label", "var_to_label.yaml", id="var_to_label config option"),

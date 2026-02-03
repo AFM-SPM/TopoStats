@@ -242,8 +242,10 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         npt.NDArray
             The single pixel thick, skeletonised array.
         """
+        counter = 0
         while not self.skeleton_converged:
             self._do_skeletonising_iteration()
+            counter += 1
         # When skeleton converged do an additional iteration of thinning to remove hanging points
         self.final_skeletonisation_iteration()
         self.mask = getSkeleton(
@@ -259,7 +261,7 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         This determines whether to delete a point according to the Zhang algorithm.
 
         Then removes ratio of lowest intensity (height) pixels to total pixels fitting the skeletonisation criteria. 1
-        is all pixels smiilar to Zhang.
+        is all pixels similar to Zhang.
         """
         skel_img = self.mask.copy()
         pixels_to_delete = []
@@ -542,6 +544,10 @@ class topostatsSkeletonize:  # pylint: disable=too-many-instance-attributes
         npt.NDArray
             Flattened 8-long array describing the values in the binary map around the x,y point.
         """
+        if x == 0 or x >= binary_map.shape[0] or y == 0 or y >= binary_map.shape[1]:
+            raise IndexError(
+                f"One of the pixel coordinates ({x=}, {y=}) are on the edge of the image ({binary_map.shape=})"
+            )
         local_pixels = binary_map[x - 1 : x + 2, y - 1 : y + 2].flatten()
         return np.delete(local_pixels, 4)
 

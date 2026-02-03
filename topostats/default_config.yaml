@@ -20,7 +20,7 @@ filter:
     above: 1.0 # Threshold for data above the image background
   gaussian_size: 1.0121397464510862 # Gaussian blur intensity in px
   gaussian_mode: nearest # Mode for Gaussian blurring. Options : nearest, reflect, constant, mirror, wrap
-  # Scar remvoal parameters. Be careful with editing these as making the algorithm too sensitive may
+  # Scar removal parameters. Be careful with editing these as making the algorithm too sensitive may
   # result in ruining legitimate data.
   remove_scars:
     run: false
@@ -41,7 +41,6 @@ grains:
   threshold_absolute:
     below: [-1.0] # Thresholds for grains below the image background. List[float].
     above: [1.0] # Thresholds for grains above the image background. List[float].
-  direction: above # Options: above, below, both (defines whether to look for grains above or below thresholds or both)
   area_thresholds:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
@@ -93,7 +92,7 @@ nodestats:
   pair_odd_branches: false # Whether to try and pair odd-branched nodes. Options: true and false.
 ordered_tracing:
   run: true
-  ordering_method: nodestats # The method of ordering the disordered traces.
+  ordering_method: nodestats # The method of ordering the disordered traces. Options : nodestats | original
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"
@@ -106,7 +105,6 @@ splining:
   spline_degree: 3 # The polynomial degree of the spline.
 curvature:
   run: true # Options : true, false
-  colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
@@ -124,6 +122,7 @@ plotting:
     # - nodestats
     # - ordered_tracing
     # - splining
+    # - curvature
   zrange: [null, null] # low and high height range for core images (can take [null, null]). low <= high
   colorbar: true # Options : true, false
   axes: true # Options : true, false (due to off being a bool when parsed)

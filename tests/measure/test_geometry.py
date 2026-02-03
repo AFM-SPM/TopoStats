@@ -5,7 +5,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 from topostats.measure.geometry import (
     bounding_box_cartesian_points_float,
     bounding_box_cartesian_points_integer,
@@ -211,3 +211,8 @@ def test_calculate_shortest_branch_distances(
     np.testing.assert_array_equal(shortest_distances_branch_indexes, expected_shortest_distances_branch_indexes)
     print(shortest_distances_branch_coordinates)
     np.testing.assert_array_equal(shortest_distances_branch_coordinates, expected_shortest_distances_branch_coordinates)
+
+
+# @pytest.mark.skip(reason="Awaiting test to be written")
+# def test_find_branches_for_nodes() -> None:
+#     """Test find_branches_for_nodes()."""

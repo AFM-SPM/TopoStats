@@ -64,7 +64,7 @@ initial_scar_removal:
   core_set: false
   module: "filters"
 initial_zero_average_background:
-  filename: "7-initial_zero_average_background"
+  filename: "07-initial_zero_average_background"
   title: "Initial Zero Averaged Background"
   image_type: "non-binary"
   savefig_dpi: 100
@@ -230,8 +230,8 @@ orig_grain:
   mask_cmap: "blue"
   core_set: false
   module: "disordered_tracing"
-smoothed_grain:
-  filename: "21-smoothed_grains"
+smoothed_mask:
+  filename: "21-smoothed_mask"
   title: "Image with Gaussian-Smoothed Threshold Mask"
   image_type: "non-binary"
   mask_cmap: "blue"
@@ -246,6 +246,7 @@ skeleton:
   savefig_dpi: 600
   module: "disordered_tracing"
 pruned_skeleton:
+  filename: "22-pruned_skeletons"
   title: "Pruned Skeletons"
   image_type: "non-binary"
   mask_cmap: "blue"
@@ -286,6 +287,7 @@ node_centres:
   savefig_dpi: 600
   module: "nodestats"
 connected_nodes:
+  filename: "27-connected_nodes"
   title: "Skeletons and Nodes"
   image_type: "non-binary"
   mask_cmap: "blue_purple_green"
@@ -320,6 +322,7 @@ node_line_trace:
   module: "nodestats"
 # Ordered tracing troubleshooting images
 ordered_traces:
+  filename: "##-ordered_traces"
   title: "Ordered Traces"
   image_type: "non-binary"
   mask_cmap: "viridis"
@@ -371,6 +374,7 @@ curvature:
   savefig_dpi: 600
   core_set: true
   module: "splining"
+  colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.
 curvature_individual_grains:
   filename: "32-individual_grain_curvature"
   title: "Curvature"
@@ -378,3 +382,4 @@ curvature_individual_grains:
   savefig_dpi: 600
   core_set: false
   module: "splining"
+  colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.

@@ -1,5 +1,13 @@
+# Correcting a bodged rebase
+35192c6dbbc6cbb87c66232a88f625f04b749fe6
+
 # ruff/pylint 2025-05-15 post removal of support for Python 3.9
-69ae81af3318d50cc89a610461a5e5ee997a6e7a
+7c063a96420b75861c5b2479b650166b8a09bbda
+
+# Linting by ns-rse/black/ruff
+ba767bc429b756537f6fc30d1910b1d78db55956
+d55d431672669ac26fa65a8f20089d8c3a3c3701
+a54d4eebd9d5ee976226d6d14f1d96cfbf69b200
 
 # nodestats codespell corrections
 f13f8d40d6768f14a46315d105b3d80beaa33aaf

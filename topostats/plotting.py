@@ -16,6 +16,7 @@ import seaborn as sns
 
 from topostats.io import read_yaml, write_yaml, convert_basename_to_relative_paths
 from topostats.logs.logs import LOGGER_NAME
+from topostats.classes import MatchedBranch
 from topostats.config import update_config
 from topostats.theme import Colormap
 
@@ -90,7 +91,7 @@ class TopoSum:
         palette: str = "deep",
         savefig_format: str = "png",
         output_dir: str | Path = ".",
-        var_to_label: dict = None,
+        var_to_label: dict | None = None,
         hue: str = "basename",
     ) -> None:
         """
@@ -471,15 +472,15 @@ def run_toposum(args=None) -> None:
 
 
 def plot_crossing_linetrace_halfmax(
-    branch_stats_dict: dict, mask_cmap: matplotlib.colors.Colormap, title: str
+    branch_stats: dict[int, MatchedBranch], mask_cmap: matplotlib.colors.Colormap, title: str
 ) -> tuple:
     """
     Plot the height-map line traces of the branches found in the 'branch_stats' dictionary, and their meetings.
 
     Parameters
     ----------
-    branch_stats_dict : dict
-        Dictionary containing branch height, distance and fwhm info.
+    branch_stats : dict[int, MatchedBranch]
+        Dictionary of ``MatchedBranch`` which hold the branch height, distance and fwhm data.
     mask_cmap : matplotlib.colors.Colormap
         Colormap for plotting.
     title : str
@@ -491,41 +492,40 @@ def plot_crossing_linetrace_halfmax(
        Matplotlib fig and ax objects.
     """
     fig, ax = plt.subplots(1, 1, figsize=(7, 4))
-    cmp = Colormap(mask_cmap).get_cmap()
-    total_branches = len(branch_stats_dict)
-    # plot the highest first
+    cmap = Colormap(mask_cmap).get_cmap()
+    # Determine highest peak so it is plotted first and colours are consistent across plots
+    # ns-rse 2025-12-05 I think there might be a way to get this without building a separate list too busy to solve
+    # right now though
     fwhms = []
-    for branch_idx, values in branch_stats_dict.items():
-        fwhms.append(values["fwhm"]["fwhm"])
-    branch_idx_order = np.array(list(branch_stats_dict.keys()))[np.argsort(np.array(fwhms))]
+    for _, matched_branch in branch_stats.items():
+        fwhms.append(matched_branch.fwhm)
+    branch_order = np.array(list(branch_stats.keys()))[np.argsort(np.array(fwhms))]
 
-    for i, branch_idx in enumerate(branch_idx_order):
-        fwhm_dict = branch_stats_dict[branch_idx]["fwhm"]
-        if total_branches == 1:
-            cmap_ratio = 0
-        else:
-            cmap_ratio = i / (total_branches - 1)
-        heights = branch_stats_dict[branch_idx]["heights"]
-        x = branch_stats_dict[branch_idx]["distances"]
-        ax.plot(x, heights, c=cmp(cmap_ratio))  # label=f"Branch: {branch_idx}"
-
-        # plot the high point lines
-        plt.plot(
-            [-15, fwhm_dict["peaks"][1]],
-            [fwhm_dict["peaks"][2], fwhm_dict["peaks"][2]],
-            c=cmp(cmap_ratio),
-            label=f"FWHM: {fwhm_dict['fwhm']:.4f}",
+    for i, branch_number in enumerate(branch_order):
+        cmap_ratio = 0 if len(branch_stats) == 1 else i / (len(branch_stats))
+        # Plot Distance v Height
+        ax.plot(
+            branch_stats[branch_number].distances,
+            branch_stats[branch_number].heights,
+            c=cmap(cmap_ratio),
         )
-        # plot the half max lines
+        # Plot horizontal line left from peak
         plt.plot(
-            [fwhm_dict["half_maxs"][0], fwhm_dict["half_maxs"][0]],
-            [fwhm_dict["half_maxs"][2], heights.min()],
-            c=cmp(cmap_ratio),
+            [-15, branch_stats[branch_number].fwhm_peaks[1]],
+            [branch_stats[branch_number].fwhm_peaks[2], branch_stats[branch_number].fwhm_peaks[2]],
+            c=cmap(cmap_ratio),
+            label=f"FWHM: {branch_stats[branch_number].fwhm:.4f}",
+        )
+        # Plot vertical lines showing the half max region for each branch
+        plt.plot(
+            [branch_stats[branch_number].fwhm_half_maxs[0], branch_stats[branch_number].fwhm_half_maxs[0]],
+            [branch_stats[branch_number].fwhm_half_maxs[2], branch_stats[branch_number].heights.min()],
+            c=cmap(cmap_ratio),
         )
         plt.plot(
-            [fwhm_dict["half_maxs"][1], fwhm_dict["half_maxs"][1]],
-            [fwhm_dict["half_maxs"][2], heights.min()],
-            c=cmp(cmap_ratio),
+            [branch_stats[branch_number].fwhm_half_maxs[1], branch_stats[branch_number].fwhm_half_maxs[1]],
+            [branch_stats[branch_number].fwhm_half_maxs[2], branch_stats[branch_number].heights.min()],
+            c=cmap(cmap_ratio),
         )
 
     ax.set_xlabel("Distance from Node (nm)")

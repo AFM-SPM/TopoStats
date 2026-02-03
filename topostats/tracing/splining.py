@@ -5,9 +5,9 @@ import math
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
 from scipy import interpolate as interp
 
+from topostats.classes import Molecule, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -26,12 +26,12 @@ class splineTrace:
 
     Parameters
     ----------
-    image : npt.NDArray
-        Whole image containing all molecules and grains.
-    mol_ordered_tracing_data : dict
-        Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
-    pixel_to_nm_scaling : float
-        The pixel to nm scaling factor, by default 1.
+    topostats_object : TopoStats
+        TopoStats object with ordered traces calculated for grains and molecules.
+    grain : int
+        Grain number to process.
+    molecule : int
+        Molecule number to process.
     spline_step_size : float
         Step length in meters to use a coordinate for splining.
     spline_linear_smoothing : float
@@ -46,13 +46,13 @@ class splineTrace:
     # pylint: disable=too-many-arguments
     def __init__(
         self,
-        image: npt.NDArray,
-        mol_ordered_tracing_data: dict,
-        pixel_to_nm_scaling: float,
-        spline_step_size: float,
-        spline_linear_smoothing: float,
-        spline_circular_smoothing: float,
-        spline_degree: int,
+        topostats_object: TopoStats,
+        grain: int,
+        molecule: int,
+        spline_step_size: float | None = None,
+        spline_linear_smoothing: float | None = None,
+        spline_circular_smoothing: float | None = None,
+        spline_degree: int | None = None,
     ) -> None:
         # pylint: disable=too-many-arguments
         """
@@ -60,12 +60,12 @@ class splineTrace:
 
         Parameters
         ----------
-        image : npt.NDArray
-            Whole image containing all molecules and grains.
-        mol_ordered_tracing_data : dict
-            Nx2 ordered trace coordinates.
-        pixel_to_nm_scaling : float
-            The pixel to nm scaling factor, by default 1.
+        topostats_object : TopoStats
+            TopoStats object with ordered traces calculated for grains and molecules.
+        grain : int
+            Grain number to process.
+        molecule : int
+            Molecule number to process.
         spline_step_size : float
             Step length in meters to use a coordinate for splining.
         spline_linear_smoothing : float
@@ -76,16 +76,16 @@ class splineTrace:
             Degree of the spline. Cubic splines are recommended. Even values of k should be avoided especially with a
             small s-value.
         """
-        self.image = image
-        self.number_of_rows, self.number_of_columns = image.shape
-        self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
-        self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        self.image = topostats_object.image
+        self.number_of_rows, self.number_of_columns = topostats_object.image.shape
+        # Extract ordered trace and boolean for circular from desired grain and molecules
+        self.mol_ordered_trace = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule]
+        self.mol_is_circular = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule].circular
+        self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
         self.spline_step_size = spline_step_size
         self.spline_linear_smoothing = spline_linear_smoothing
         self.spline_circular_smoothing = spline_circular_smoothing
         self.spline_degree = spline_degree
-
         self.tracing_stats = {
             "contour_length": None,
             "end_to_end_distance": None,
@@ -254,51 +254,54 @@ class windowTrace:
 
     Parameters
     ----------
-    mol_ordered_tracing_data : dict
-        Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
-    pixel_to_nm_scaling : float, optional
-        The pixel to nm scaling factor, by default 1.
+    topostats_object : TopoStats
+        TopoStats object with ordered traces calculated for grains and molecules.
+    grain : int
+        Grain number to process.
+    molecule : int
+        Molecule number to process.
     rolling_window_size : np.float64, optional
         The length of the rolling window too average over, by default 6.0.
     rolling_window_resampling : bool, optional
         Whether to resample the rolling window, by default False.
-    rolling_window_resample_regular_spatial_interval_nm : float, optional
+    rolling_window_resample_interval_nm : float, optional
         The regular spatial interval (nm) to resample the rolling window, by default 0.5.
     """
 
     def __init__(
         self,
-        mol_ordered_tracing_data: dict,
-        pixel_to_nm_scaling: float,
-        rolling_window_size: float,
+        topostats_object: TopoStats,
+        grain: int,
+        molecule: int,
+        rolling_window_size: float | None = None,
         rolling_window_resampling: bool = False,
-        rolling_window_resample_regular_spatial_interval_nm: float = 0.5,
+        rolling_window_resample_interval_nm: float = 0.5,
     ) -> None:
         """
         Initialise the windowTrace class.
 
         Parameters
         ----------
-        mol_ordered_tracing_data : dict
-            Molecule ordered trace dictionary containing Nx2 ordered coords and molecule statistics.
-        pixel_to_nm_scaling : float, optional
-            The pixel to nm scaling factor, by default 1.
+        topostats_object : TopoStats
+            TopoStats object with ordered traces calculated for grains and molecules.
+        grain : int
+            Grain number to process.
+        molecule : int
+            Molecule number to process.
         rolling_window_size : np.float64, optional
             The length of the rolling window too average over, by default 6.0.
         rolling_window_resampling : bool, optional
             Whether to resample the rolling window, by default False.
-        rolling_window_resample_regular_spatial_interval_nm : float, optional
+        rolling_window_resample_interval_nm : float, optional
             The regular spatial interval (nm) to resample the rolling window, by default 0.5.
         """
-        self.mol_ordered_trace = mol_ordered_tracing_data["ordered_coords"]
-        self.mol_is_circular = mol_ordered_tracing_data["mol_stats"]["circular"]
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
+        # Extract ordered trace and boolean for circular from desired grain and molecules
+        self.mol_ordered_trace = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule]
+        self.mol_is_circular = topostats_object.grain_crops[grain].ordered_trace.molecule_data[molecule].circular
+        self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
         self.rolling_window_size = rolling_window_size / 1e-9  # for nm scaling factor
         self.rolling_window_resampling = rolling_window_resampling
-        self.rolling_window_resample_regular_spatial_interval_nm = (
-            rolling_window_resample_regular_spatial_interval_nm / 1e-9
-        )  # for nm scaling factor
-
+        self.rolling_window_resample_interval_nm = rolling_window_resample_interval_nm / 1e-9  # for nm scaling factor
         self.tracing_stats = {
             "contour_length": None,
             "end_to_end_distance": None,
@@ -306,15 +309,17 @@ class windowTrace:
 
     @staticmethod
     def pool_trace_circular(
-        pixel_trace: npt.NDArray[np.int32], rolling_window_size: np.float64 = 6.0, pixel_to_nm_scaling: float = 1
+        molecule: Molecule,
+        rolling_window_size: np.float64 = 6.0,
+        pixel_to_nm_scaling: float = 1,
     ) -> npt.NDArray[np.float64]:
         """
         Smooth a pixelwise ordered trace of circular molecules via a sliding window.
 
         Parameters
         ----------
-        pixel_trace : npt.NDArray[np.int32]
-            Nx2 ordered trace coordinates.
+        molecule : Molecule
+            Molecule object with attribute ``.ordered_coords``, the ordered coordinates to be splined.
         rolling_window_size : np.float64, optional
             The length of the rolling window too average over, by default 6.0.
         pixel_to_nm_scaling : float, optional
@@ -326,9 +331,10 @@ class windowTrace:
             MxN Smoothed ordered trace coordinates.
         """
         # Pool the trace points
+        pixel_trace = molecule.ordered_coords
         pooled_trace = []
-
-        for i in range(len(pixel_trace)):
+        len_pixel_trace = len(pixel_trace)
+        for i in range(len_pixel_trace):
             binned_points = []
             current_length = 0
             j = 1
@@ -337,24 +343,22 @@ class windowTrace:
             while current_length < rolling_window_size:
                 current_index = i + j
                 previous_index = i + j - 1
-                while current_index >= len(pixel_trace):
-                    current_index -= len(pixel_trace)
-                while previous_index >= len(pixel_trace):
-                    previous_index -= len(pixel_trace)
+                while current_index >= len_pixel_trace:
+                    current_index -= len_pixel_trace
+                while previous_index >= len_pixel_trace:
+                    previous_index -= len_pixel_trace
                 current_length += (
                     np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
                 )
                 binned_points.append(pixel_trace[current_index])
                 j += 1
-
             # Get the mean of the binned points
             pooled_trace.append(np.mean(binned_points, axis=0))
-
         return np.array(pooled_trace)
 
     @staticmethod
     def pool_trace_linear(
-        pixel_trace: npt.NDArray[np.int32],
+        molecule: Molecule,
         rolling_window_size: np.float64 = 6.0,
         pixel_to_nm_scaling: float = 1,
     ) -> npt.NDArray[np.float64]:
@@ -363,8 +367,8 @@ class windowTrace:
 
         Parameters
         ----------
-        pixel_trace : npt.NDArray[np.int32]
-            Nx2 ordered trace coordinates.
+        molecule : Molecule
+            Molecule object with attribute ``.ordered_coords``, the ordered coordinates to be splined.
         rolling_window_size : np.float64, optional
             The length of the rolling window too average over, by default 6.0.
         pixel_to_nm_scaling : float, optional
@@ -375,10 +379,11 @@ class windowTrace:
         npt.NDArray[np.float64]
             MxN Smoothed ordered trace coordinates.
         """
+        pixel_trace = molecule.ordered_coords
         pooled_trace = [pixel_trace[0]]  # Add first coord as to not cut it off
-
+        len_pixel_trace = len(pixel_trace)
         # Get average point for trace in rolling window
-        for i in range(0, len(pixel_trace)):
+        for i in range(0, len_pixel_trace):
             binned_points = []
             current_length = 0
             j = 0
@@ -386,7 +391,7 @@ class windowTrace:
             while current_length < rolling_window_size:
                 current_index = i + j
                 previous_index = i + j - 1
-                if current_index >= len(pixel_trace):  # exit if exceeding the trace
+                if current_index >= len_pixel_trace:  # exit if exceeding the trace
                     break
                 current_length += (
                     np.linalg.norm(pixel_trace[current_index] - pixel_trace[previous_index]) * pixel_to_nm_scaling
@@ -398,7 +403,7 @@ class windowTrace:
                 pooled_trace.append(np.mean(binned_points, axis=0))
 
             # Exit if reached the end of the trace
-            if current_index + 1 >= len(pixel_trace):
+            if current_index + 1 >= len_pixel_trace:
                 break
 
         pooled_trace.append(pixel_trace[-1])  # Add last coord as to not cut it off
@@ -414,7 +419,6 @@ class windowTrace:
         # rolling window size.
         if np.array_equal(pooled_trace[-1], pooled_trace[-2]):
             pooled_trace.pop(-1)
-
         return np.array(pooled_trace)
 
     def run_window_trace(self) -> tuple[npt.NDArray, dict]:
@@ -436,7 +440,7 @@ class windowTrace:
             if self.rolling_window_resampling:
                 splined_trace = resample_points_regular_interval(
                     points=splined_trace,
-                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    interval=self.rolling_window_resample_interval_nm / self.pixel_to_nm_scaling,
                     circular=True,
                 )
         else:
@@ -446,10 +450,10 @@ class windowTrace:
             if self.rolling_window_resampling:
                 splined_trace = resample_points_regular_interval(
                     points=splined_trace,
-                    interval=self.rolling_window_resample_regular_spatial_interval_nm / self.pixel_to_nm_scaling,
+                    interval=self.rolling_window_resample_interval_nm / self.pixel_to_nm_scaling,
                     circular=False,
                 )
-        # compile CL & E2E distance
+        # compile contour length & end-to-end distance
         self.tracing_stats["contour_length"] = (
             measure_contour_length(splined_trace, self.mol_is_circular, self.pixel_to_nm_scaling) * 1e-9
         )
@@ -546,19 +550,16 @@ def measure_end_to_end_distance(splined_trace, mol_is_circular, pixel_to_nm_scal
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 def splining_image(
-    image: npt.NDArray,
-    ordered_tracing_direction_data: dict,
-    pixel_to_nm_scaling: float,
-    filename: str,
-    method: str,
-    rolling_window_size: float,
-    spline_step_size: float,
-    spline_linear_smoothing: float,
-    spline_circular_smoothing: float,
-    spline_degree: int,
-    rolling_window_resampling: bool = False,
-    rolling_window_resample_regular_spatial_interval: float = 0.5,
-) -> tuple[dict, pd.DataFrame, pd.DataFrame]:
+    topostats_object: TopoStats,
+    method: str | None = None,
+    rolling_window_size: float | None = None,
+    spline_step_size: float | None = None,
+    spline_linear_smoothing: float | None = None,
+    spline_circular_smoothing: float | None = None,
+    spline_degree: int | None = None,
+    rolling_window_resampling: bool | None = None,
+    rolling_window_resample_regular_spatial_interval: float | None = None,
+) -> None:
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-locals
     """
@@ -566,14 +567,8 @@ def splining_image(
 
     Parameters
     ----------
-    image : npt.NDArray
-        Whole image containing all molecules and grains.
-    ordered_tracing_direction_data : dict
-        Dictionary result from the ordered traces.
-    pixel_to_nm_scaling : float
-        Scaling factor from pixels to nanometres.
-    filename : str
-        Name of the image file.
+    topostats_object : TopoStats
+        TopoStats object with ordered traces of grain crops to be splined.
     method : str
         Method of trace smoothing, options are 'splining' and 'rolling_window'.
     rolling_window_size : float
@@ -591,95 +586,80 @@ def splining_image(
         Whether to resample the rolling window, by default False.
     rolling_window_resample_regular_spatial_interval : float, optional
         The regular spatial interval (nm) to resample the rolling window, by default 0.5.
-
-    Returns
-    -------
-    tuple[dict, pd.DataFrame, pd.DataFrame]
-        A spline data dictionary for all molecules, and a grainstats dataframe additions dataframe and molecule
-        statistics dataframe.
     """
-    grainstats_additions = {}
-    molstats = {}
-    all_splines_data = {}
+    config = topostats_object.config["splining"].copy()
+    splining_method = config["method"] if method is None else method
+    rolling_window_size = config["rolling_window_size"] if rolling_window_size is None else rolling_window_size
+    spline_step_size = config["spline_step_size"] if spline_step_size is None else spline_step_size
+    spline_linear_smoothing = (
+        config["spline_linear_smoothing"] if spline_linear_smoothing is None else spline_linear_smoothing
+    )
+    spline_circular_smoothing = (
+        config["spline_circular_smoothing"] if spline_circular_smoothing is None else spline_circular_smoothing
+    )
+    spline_degree = config["spline_degree"] if spline_degree is None else spline_degree
+    rolling_window_resampling = (
+        config["rolling_window_resampling"] if rolling_window_resampling is None else rolling_window_resampling
+    )
+    rolling_window_resample_regular_spatial_interval = (
+        config["rolling_window_resample_regular_spatial_interval"]
+        if rolling_window_resample_regular_spatial_interval is None
+        else rolling_window_resample_regular_spatial_interval
+    )
 
-    mol_count = 0
-    for mol_trace_data in ordered_tracing_direction_data.values():
-        mol_count += len(mol_trace_data)
-    LOGGER.info(f"[{filename}] : Calculating Splining statistics for {mol_count} molecules...")
+    # iterate through ordered_trace.molecule_data adding statistics as attributes to the Molecule objects
+    if topostats_object.grain_crops is not None:  # pylint: disable=too-many-nested-blocks
+        for grain_no, grain_crop in topostats_object.grain_crops.items():
+            mol_no = None
+            if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
+                for mol_no, molecule in grain_crop.ordered_trace.molecule_data.items():
+                    try:
+                        LOGGER.info(
+                            f"[{topostats_object.filename}] : Splining Grain {grain_no + 1} Molecule {mol_no + 1}"
+                        )
+                        # check if want to do nodestats tracing or not
+                        if splining_method == "rolling_window":
+                            splined_data, tracing_stats = windowTrace(
+                                topostats_object=topostats_object,
+                                grain=grain_no,
+                                molecule=mol_no,
+                                rolling_window_size=rolling_window_size,
+                                rolling_window_resampling=rolling_window_resampling,
+                                rolling_window_resample_interval_nm=rolling_window_resample_regular_spatial_interval,
+                            ).run_window_trace()
+                        # if not doing nodestats ordering, do original TopoStats ordering
+                        elif splining_method == "spline":
+                            splined_data, tracing_stats = splineTrace(
+                                topostats_object=topostats_object,
+                                grain=grain_no,
+                                molecule=mol_no,
+                                spline_step_size=spline_step_size,
+                                spline_linear_smoothing=spline_linear_smoothing,
+                                spline_circular_smoothing=spline_circular_smoothing,
+                                spline_degree=spline_degree,
+                            ).run_spline_trace()
+                        else:
+                            raise ValueError(
+                                f"Invalid parameter for splining.method : {splining_method}\n"
+                                "Please change your configuration, valid values are 'rolling_window' or 'splining'."
+                            )
+                        # Add statistics to Molecule object
+                        molecule.splined_coords = splined_data
+                        molecule.end_to_end_distance = tracing_stats["end_to_end_distance"]
+                        molecule.contour_length = tracing_stats["contour_length"]
+                        molecule.bbox = grain_crop.bbox
+                        LOGGER.debug(f"[{topostats_object.filename}] : Finished splining {grain_no} - {mol_no}")
 
-    # iterate through disordered_tracing_dict
-    for grain_no, ordered_grain_data in ordered_tracing_direction_data.items():
-        grain_trace_stats = {"total_contour_length": 0, "average_end_to_end_distance": 0}
-        all_splines_data[grain_no] = {}
-        mol_no = None
-        for mol_no, mol_trace_data in ordered_grain_data.items():
-            try:
-                LOGGER.debug(f"[{filename}] : Splining {grain_no} - {mol_no}")
-                # check if want to do nodestats tracing or not
-                if method == "rolling_window":
-                    splined_data, tracing_stats = windowTrace(
-                        mol_ordered_tracing_data=mol_trace_data,
-                        pixel_to_nm_scaling=pixel_to_nm_scaling,
-                        rolling_window_size=rolling_window_size,
-                        rolling_window_resampling=rolling_window_resampling,
-                        rolling_window_resample_regular_spatial_interval_nm=rolling_window_resample_regular_spatial_interval,
-                    ).run_window_trace()
-
-                # if not doing nodestats ordering, do original TS ordering
-                else:  # method == "spline":
-                    splined_data, tracing_stats = splineTrace(
-                        image=image,
-                        mol_ordered_tracing_data=mol_trace_data,
-                        pixel_to_nm_scaling=pixel_to_nm_scaling,
-                        spline_step_size=spline_step_size,
-                        spline_linear_smoothing=spline_linear_smoothing,
-                        spline_circular_smoothing=spline_circular_smoothing,
-                        spline_degree=spline_degree,
-                    ).run_spline_trace()
-
-                # get combined stats for the grains
-                grain_trace_stats["total_contour_length"] += tracing_stats["contour_length"]
-                grain_trace_stats["average_end_to_end_distance"] += tracing_stats["end_to_end_distance"]
-
-                # get individual mol stats
-                all_splines_data[grain_no][mol_no] = {
-                    "spline_coords": splined_data,
-                    "bbox": mol_trace_data["bbox"],
-                    "tracing_stats": tracing_stats,
-                }
-                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]] = {
-                    "image": filename,
-                    "grain_number": int(grain_no.split("_")[-1]),
-                    "molecule_number": int(mol_no.split("_")[-1]),
-                }
-                molstats[grain_no.split("_")[-1] + "_" + mol_no.split("_")[-1]].update(tracing_stats)
-                LOGGER.debug(f"[{filename}] : Finished splining {grain_no} - {mol_no}")
-
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                LOGGER.error(
-                    f"[{filename}] : Splining for {grain_no} failed. Consider raising an issue on GitHub. Error: ",
-                    exc_info=e,
-                )
-                all_splines_data[grain_no] = {}
-
-        if mol_no is None:
-            LOGGER.warning(f"[{filename}] : No molecules found for grain {grain_no}")
-        else:
-            # average the e2e dists -> mol_no should always be in the grain dict
-            grain_trace_stats["average_end_to_end_distance"] /= len(ordered_grain_data)
-
-        # compile metrics
-        grainstats_additions[grain_no] = {
-            "image": filename,
-            "grain_number": int(grain_no.split("_")[-1]),
-        }
-        grainstats_additions[grain_no].update(grain_trace_stats)
-
-    # convert grainstats metrics to dataframe
-    splining_stats_df = pd.DataFrame.from_dict(grainstats_additions, orient="index")
-    molstats_df = pd.DataFrame.from_dict(molstats, orient="index")
-    molstats_df.reset_index(drop=True, inplace=True)
-    return all_splines_data, splining_stats_df, molstats_df
+                    except Exception as e:  # pylint: disable=broad-exception-caught
+                        LOGGER.error(
+                            f"[{topostats_object.filename}] : Splining for {grain_no} failed. "
+                            "Consider raising an issue on GitHub. Error: ",
+                            exc_info=e,
+                        )
+            if mol_no is None:
+                LOGGER.warning(f"[{topostats_object.filename}] : No molecules found for grain {grain_no}")
+    else:
+        LOGGER.warning("f[{topostats_objec.filename}] : No grains to spline.")
 
 
 def interpolate_between_two_points_distance(

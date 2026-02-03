@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
-from topostats.io import dict_almost_equal
+from topostats.classes import GrainCrop, Molecule, OrderedTrace, TopoStats
 from topostats.measure.curvature import (
     angle_diff_signed,
     calculate_curvature_stats_image,
@@ -146,152 +146,191 @@ def test_discrete_angle_difference_per_nm_linear(
 
 def test_calculate_curvature_stats_image() -> None:
     """Test the calculation of curvature statistics for an image."""
-    all_grain_smoothed_data: dict = {
-        "grain_0": {
-            "mol_0": {
-                "spline_coords": np.array(
-                    [
-                        np.array([7.0, 12.0]),
-                        np.array([4.375, 14.75]),
-                        np.array([3.77777778, 16.11111111]),
-                        np.array([3.55555556, 17.0]),
-                        np.array([3.44444444, 18.0]),
-                        np.array([3.6, 19.5]),
-                        np.array([3.55555556, 20.0]),
-                        np.array([3.88888889, 21.0]),
-                        np.array([4.33333333, 21.88888889]),
-                        np.array([4.88888889, 22.66666667]),
-                        np.array([5.55555556, 23.22222222]),
-                        np.array([6.33333333, 23.55555556]),
-                        np.array([7.0, 23.66666667]),
-                        np.array([7.66666667, 23.55555556]),
-                        np.array([8.33333333, 23.22222222]),
-                        np.array([8.88888889, 22.66666667]),
-                        np.array([9.22222222, 21.88888889]),
-                        np.array([9.44444444, 21.0]),
-                        np.array([9.55555556, 20.0]),
-                        np.array([9.5, 18.5]),
-                        np.array([9.4, 17.5]),
-                        np.array([9.0, 13.0]),
-                    ]
+    # Construct test grains with 'ordered_trace' attribute (dictionary of 'Molecule', each with splined_coords
+    # attribute)
+    image = np.zeros((2, 2))
+    grain0 = GrainCrop(
+        pixel_to_nm_scaling=1.97601171875,
+        image=image,
+        mask=np.stack([np.zeros_like(image), np.zeros_like(image)], axis=2),
+        padding=1,
+        bbox=(0, 1, 0, 1),
+        filename="test",
+        thresholds=None,
+        ordered_trace=OrderedTrace(
+            molecule_data={
+                0: Molecule(
+                    splined_coords=np.array(
+                        [
+                            [7.0, 12.0],
+                            [4.375, 14.75],
+                            [3.77777778, 16.11111111],
+                            [3.55555556, 17.0],
+                            [3.44444444, 18.0],
+                            [3.6, 19.5],
+                            [3.55555556, 20.0],
+                            [3.88888889, 21.0],
+                            [4.33333333, 21.88888889],
+                            [4.88888889, 22.66666667],
+                            [5.55555556, 23.22222222],
+                            [6.33333333, 23.55555556],
+                            [7.0, 23.66666667],
+                            [7.66666667, 23.55555556],
+                            [8.33333333, 23.22222222],
+                            [8.88888889, 22.66666667],
+                            [9.22222222, 21.88888889],
+                            [9.44444444, 21.0],
+                            [9.55555556, 20.0],
+                            [9.5, 18.5],
+                            [9.4, 17.5],
+                            [9.0, 13.0],
+                        ]
+                    ),
+                    end_to_end_distance=4.418496527461196e-09,
                 ),
-                "tracing_stats": {"end_to_end_distance": 4.418496527461196e-09},
-            },
-            "mol_1": {
-                "spline_coords": np.array([np.array([12.0, 5.0]), np.array([11.0, 6.5]), np.array([9.0, 11.0])]),
-                "tracing_stats": {"end_to_end_distance": 1.3255489582383588e-08},
-            },
-        },
-        "grain_1": {
-            "mol_0": {
-                "spline_coords": np.array(
-                    [
-                        np.array([3.8, 10.5]),
-                        np.array([3.88888889, 11.0]),
-                        np.array([4.33333333, 11.88888889]),
-                        np.array([4.88888889, 12.77777778]),
-                        np.array([5.55555556, 13.55555556]),
-                        np.array([6.33333333, 14.22222222]),
-                        np.array([7.11111111, 14.88888889]),
-                        np.array([8.0, 15.33333333]),
-                        np.array([8.88888889, 15.55555556]),
-                        np.array([9.66666667, 15.55555556]),
-                        np.array([10.33333333, 15.33333333]),
-                        np.array([10.88888889, 15.0]),
-                        np.array([11.3, 14.0]),
-                        np.array([11.55555556, 13.77777778]),
-                        np.array([11.66666667, 13.0]),
-                        np.array([11.55555556, 12.0]),
-                        np.array([11.1, 10.5]),
-                        np.array([11.0, 10.0]),
-                        np.array([10.55555556, 9.0]),
-                        np.array([10.0, 8.0]),
-                        np.array([9.33333333, 7.11111111]),
-                        np.array([8.55555556, 6.33333333]),
-                        np.array([7.77777778, 5.66666667]),
-                        np.array([6.88888889, 5.22222222]),
-                        np.array([5.8, 5.0]),
-                        np.array([5.1, 5.0]),
-                        np.array([4.5, 5.2]),
-                        np.array([3.90909091, 6.0]),
-                        np.array([3.63636364, 6.63636364]),
-                        np.array([3.45454545, 7.36363636]),
-                        np.array([3.36363636, 8.18181818]),
-                        np.array([3.45454545, 9.09090909]),
-                        np.array([3.72727273, 10.0]),
-                    ]
+                1: Molecule(
+                    splined_coords=np.array(
+                        [
+                            [12.0, 5.0],
+                            [11.0, 6.5],
+                            [9.0, 11.0],
+                        ]
+                    ),
+                    end_to_end_distance=1.3255489582383588e-08,
                 ),
-                "tracing_stats": {"end_to_end_distance": 0.0},
             }
-        },
-        "grain_2": {
-            "mol_0": {
-                "spline_coords": np.array(
-                    [
-                        np.array([4.1, 14.2]),
-                        np.array([4.6, 14.9]),
-                        np.array([5.2, 15.4]),
-                        np.array([5.44444444, 15.77777778]),
-                        np.array([6.22222222, 16.0]),
-                        np.array([7.11111111, 16.11111111]),
-                        np.array([8.0, 16.0]),
-                        np.array([9.0, 15.77777778]),
-                        np.array([10.0, 15.44444444]),
-                        np.array([11.0, 15.11111111]),
-                        np.array([12.0, 14.77777778]),
-                        np.array([13.0, 14.33333333]),
-                        np.array([14.0, 14.0]),
-                        np.array([15.5, 13.6]),
-                        np.array([16.0, 13.44444444]),
-                        np.array([17.0, 13.11111111]),
-                        np.array([17.88888889, 12.66666667]),
-                        np.array([18.66666667, 12.11111111]),
-                        np.array([19.22222222, 11.44444444]),
-                        np.array([19.55555556, 10.77777778]),
-                        np.array([19.66666667, 10.22222222]),
-                        np.array([19.55555556, 9.66666667]),
-                        np.array([19.22222222, 9.0]),
-                        np.array([18.66666667, 8.44444444]),
-                        np.array([17.88888889, 7.88888889]),
-                        np.array([17.0, 7.44444444]),
-                        np.array([16.0, 7.0]),
-                        np.array([15.0, 6.55555556]),
-                        np.array([14.0, 6.0]),
-                        np.array([13.0, 5.44444444]),
-                        np.array([12.0, 4.88888889]),
-                        np.array([11.0, 4.55555556]),
-                        np.array([10.0, 4.33333333]),
-                        np.array([9.0, 4.33333333]),
-                        np.array([8.5, 4.125]),
-                        np.array([7.5, 4.375]),
-                        np.array([6.22222222, 5.33333333]),
-                        np.array([5.2, 6.4]),
-                        np.array([4.6, 7.2]),
-                        np.array([4.1, 8.1]),
-                        np.array([3.7, 9.0]),
-                        np.array([3.4, 9.9]),
-                        np.array([3.3, 10.8]),
-                        np.array([3.45454545, 12.18181818]),
-                        np.array([3.4, 12.6]),
-                        np.array([4.0, 13.72727273]),
-                    ]
+        ),
+    )
+    grain1 = GrainCrop(
+        pixel_to_nm_scaling=1.97601171875,
+        image=image,
+        mask=np.stack([np.zeros_like(image), np.zeros_like(image)], axis=2),
+        padding=1,
+        bbox=(0, 1, 0, 1),
+        filename="test",
+        thresholds=None,
+        ordered_trace=OrderedTrace(
+            molecule_data={
+                0: Molecule(
+                    splined_coords=np.array(
+                        [
+                            [3.8, 10.5],
+                            [3.88888889, 11.0],
+                            [4.33333333, 11.88888889],
+                            [4.88888889, 12.77777778],
+                            [5.55555556, 13.55555556],
+                            [6.33333333, 14.22222222],
+                            [7.11111111, 14.88888889],
+                            [8.0, 15.33333333],
+                            [8.88888889, 15.55555556],
+                            [9.66666667, 15.55555556],
+                            [10.33333333, 15.33333333],
+                            [10.88888889, 15.0],
+                            [11.3, 14.0],
+                            [11.55555556, 13.77777778],
+                            [11.66666667, 13.0],
+                            [11.55555556, 12.0],
+                            [11.1, 10.5],
+                            [11.0, 10.0],
+                            [10.55555556, 9.0],
+                            [10.0, 8.0],
+                            [9.33333333, 7.11111111],
+                            [8.55555556, 6.33333333],
+                            [7.77777778, 5.66666667],
+                            [6.88888889, 5.22222222],
+                            [5.8, 5.0],
+                            [5.1, 5.0],
+                            [4.5, 5.2],
+                            [3.90909091, 6.0],
+                            [3.63636364, 6.63636364],
+                            [3.45454545, 7.36363636],
+                            [3.36363636, 8.18181818],
+                            [3.45454545, 9.09090909],
+                            [3.72727273, 10.0],
+                        ]
+                    ),
+                    end_to_end_distance=0.0,
                 ),
-                "tracing_stats": {"end_to_end_distance": 0.0},
-            },
-        },
-    }
-
-    pixel_to_nm_scaling = 1.97601171875
-
-    # Calculate curvature statistics
-    curvature_stats = calculate_curvature_stats_image(
-        all_grain_smoothed_data=all_grain_smoothed_data,
-        pixel_to_nm_scaling=pixel_to_nm_scaling,
+            }
+        ),
+    )
+    grain2 = GrainCrop(
+        pixel_to_nm_scaling=1.97601171875,
+        image=image,
+        mask=np.stack([np.zeros_like(image), np.zeros_like(image)], axis=2),
+        padding=1,
+        bbox=(0, 1, 0, 1),
+        filename="test",
+        thresholds=None,
+        ordered_trace=OrderedTrace(
+            molecule_data={
+                0: Molecule(
+                    splined_coords=np.array(
+                        [
+                            np.array([4.1, 14.2]),
+                            np.array([4.6, 14.9]),
+                            np.array([5.2, 15.4]),
+                            np.array([5.44444444, 15.77777778]),
+                            np.array([6.22222222, 16.0]),
+                            np.array([7.11111111, 16.11111111]),
+                            np.array([8.0, 16.0]),
+                            np.array([9.0, 15.77777778]),
+                            np.array([10.0, 15.44444444]),
+                            np.array([11.0, 15.11111111]),
+                            np.array([12.0, 14.77777778]),
+                            np.array([13.0, 14.33333333]),
+                            np.array([14.0, 14.0]),
+                            np.array([15.5, 13.6]),
+                            np.array([16.0, 13.44444444]),
+                            np.array([17.0, 13.11111111]),
+                            np.array([17.88888889, 12.66666667]),
+                            np.array([18.66666667, 12.11111111]),
+                            np.array([19.22222222, 11.44444444]),
+                            np.array([19.55555556, 10.77777778]),
+                            np.array([19.66666667, 10.22222222]),
+                            np.array([19.55555556, 9.66666667]),
+                            np.array([19.22222222, 9.0]),
+                            np.array([18.66666667, 8.44444444]),
+                            np.array([17.88888889, 7.88888889]),
+                            np.array([17.0, 7.44444444]),
+                            np.array([16.0, 7.0]),
+                            np.array([15.0, 6.55555556]),
+                            np.array([14.0, 6.0]),
+                            np.array([13.0, 5.44444444]),
+                            np.array([12.0, 4.88888889]),
+                            np.array([11.0, 4.55555556]),
+                            np.array([10.0, 4.33333333]),
+                            np.array([9.0, 4.33333333]),
+                            np.array([8.5, 4.125]),
+                            np.array([7.5, 4.375]),
+                            np.array([6.22222222, 5.33333333]),
+                            np.array([5.2, 6.4]),
+                            np.array([4.6, 7.2]),
+                            np.array([4.1, 8.1]),
+                            np.array([3.7, 9.0]),
+                            np.array([3.4, 9.9]),
+                            np.array([3.3, 10.8]),
+                            np.array([3.45454545, 12.18181818]),
+                            np.array([3.4, 12.6]),
+                            np.array([4.0, 13.72727273]),
+                        ]
+                    ),
+                    end_to_end_distance=0.0,
+                ),
+            }
+        ),
+    )
+    # Instantiate a TopoStats object
+    topostats_object = TopoStats(
+        grain_crops={0: grain0, 1: grain1, 2: grain2}, filename="dummy", pixel_to_nm_scaling=1.97601171875
     )
 
+    # Calculate curvature statistics
+    calculate_curvature_stats_image(topostats_object=topostats_object)
+
     expected_curvature_stats = {
-        "grain_0": {
-            "mol_0": np.abs(
+        0: {
+            0: np.abs(
                 np.array(
                     [
                         0.0,
@@ -319,10 +358,10 @@ def test_calculate_curvature_stats_image() -> None:
                     ]
                 )
             ),
-            "mol_1": np.abs(np.array([0.0, -0.047659657577634705, 0.0])),
+            1: np.abs(np.array([0.0, -0.047659657577634705, 0.0])),
         },
-        "grain_1": {
-            "mol_0": np.abs(
+        1: {
+            0: np.abs(
                 np.array(
                     [
                         -0.031548436637750935,
@@ -362,8 +401,8 @@ def test_calculate_curvature_stats_image() -> None:
                 )
             )
         },
-        "grain_2": {
-            "mol_0": np.abs(
+        2: {
+            0: np.abs(
                 np.array(
                     [
                         -0.4312843442610738,
@@ -417,5 +456,8 @@ def test_calculate_curvature_stats_image() -> None:
             )
         },
     }
-
-    assert dict_almost_equal(curvature_stats, expected_curvature_stats, abs_tol=1e-5)
+    for grain_number, grain_crop in topostats_object.grain_crops.items():
+        for molecule_number, molecule in grain_crop.ordered_trace.molecule_data.items():
+            np.testing.assert_allclose(
+                molecule.curvature_stats, expected_curvature_stats[grain_number][molecule_number], atol=1e-5
+            )

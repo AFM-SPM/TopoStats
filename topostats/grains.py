@@ -3,10 +3,7 @@
 # pylint: disable=no-name-in-module
 
 import logging
-import re
 import sys
-from dataclasses import dataclass
-from typing import Any
 
 import keras
 import numpy as np
@@ -15,6 +12,7 @@ from skimage import morphology
 from skimage.measure import label, regionprops
 from skimage.morphology import dilation
 
+from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 from topostats.unet_masking import (
     iou_loss,
@@ -23,7 +21,7 @@ from topostats.unet_masking import (
     pad_bounding_box_cutting_off_at_image_bounds,
     predict_unet,
 )
-from topostats.utils import _get_mask, get_thresholds
+from topostats.utils import _get_mask, flatten_multi_class_tensor, get_thresholds, update_background_class
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -36,392 +34,6 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=too-many-public-methods
 # pylint: disable=bare-except
 # pylint: disable=dangerous-default-value
-
-
-class GrainCrop:
-    """
-    Class for storing the crops of grains.
-
-    Parameters
-    ----------
-    image : npt.NDArray[np.float32]
-        2-D Numpy array of the cropped image.
-    mask : npt.NDArray[np.bool_]
-        3-D Numpy tensor of the cropped mask.
-    padding : int
-        Padding added to the bounding box of the grain during cropping.
-    bbox : tuple[int, int, int, int]
-        Bounding box of the crop including padding.
-    pixel_to_nm_scaling : float
-        Pixel to nanometre scaling factor for the crop.
-    filename : str
-        Filename of the image from which the crop was taken.
-    height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
-        3-D Numpy tensor of the height profiles.
-    stats : dict[int, dict[int, Any]] | None
-        Dictionary of grain statistics.
-    """
-
-    def __init__(
-        self,
-        image: npt.NDArray[np.float32],
-        mask: npt.NDArray[np.bool_],
-        padding: int,
-        bbox: tuple[int, int, int, int],
-        pixel_to_nm_scaling: float,
-        filename: str,
-        height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
-        stats: dict[int, dict[int, Any]] | None = None,
-    ):
-        """
-        Initialise the class.
-
-        Parameters
-        ----------
-        image : npt.NDArray[np.float32]
-            2-D Numpy array of the cropped image.
-        mask : npt.NDArray[np.bool_]
-            3-D Numpy tensor of the cropped mask.
-        padding : int
-            Padding added to the bounding box of the grain during cropping.
-        bbox : tuple[int, int, int, int]
-            Bounding box of the crop including padding.
-        pixel_to_nm_scaling : float
-            Pixel to nanometre scaling factor for the crop.
-        filename : str
-            Filename of the image from which the crop was taken.
-        height_profiles : dict[int, [int, npt.NDArray[np.float32]]] | None
-            3-D Numpy tensor of the height profiles.
-        stats : dict[int, dict[int, Any]] | None
-            Dictionary of grain statistics.
-        """
-        self.padding = padding
-        self.image = image
-        # This part of the constructor must go after padding since the setter
-        # for mask requires the padding.
-        self.mask = mask
-        self.bbox = bbox
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.filename = filename
-        self.height_profiles = height_profiles
-        self.stats = stats
-
-    @property
-    def image(self) -> npt.NDArray[np.float32]:
-        """
-        Getter for the image.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of the image.
-        """
-        return self._image
-
-    @image.setter
-    def image(self, value: npt.NDArray[np.float32]):
-        """
-        Setter for the image.
-
-        Parameters
-        ----------
-        value : npt.NDArray
-            Numpy array of the image.
-
-        Raises
-        ------
-        ValueError
-            If the image is not square.
-        """
-        if value.shape[0] != value.shape[1]:
-            raise ValueError(f"Image is not square: {value.shape}")
-        self._image = value
-
-    @property
-    def mask(self) -> npt.NDArray[np.bool_]:
-        """
-        Getter for the mask.
-
-        Returns
-        -------
-        npt.NDArray[np.bool_]
-            Numpy array of the mask.
-        """
-        return self._mask
-
-    @mask.setter
-    def mask(self, value: npt.NDArray[np.bool_]) -> None:
-        """
-        Setter for the mask.
-
-        Parameters
-        ----------
-        value : npt.NDArray
-            Numpy array of the mask.
-
-        Raises
-        ------
-        ValueError
-            If the mask dimensions do not match the image.
-        """
-        if value.shape[0] != self.image.shape[0] or value.shape[1] != self.image.shape[1]:
-            raise ValueError(f"Mask dimensions do not match image: {value.shape} vs {self.image.shape}")
-        # Ensure that the padding region is blank, set it to be blank if not
-        for class_index in range(1, value.shape[2]):
-            class_mask = value[:, :, class_index]
-
-            padded_region_top = class_mask[: self.padding, :]
-            padded_region_bottom = class_mask[-self.padding :, :]
-            padded_region_left = class_mask[:, : self.padding]
-            padded_region_right = class_mask[:, -self.padding :]
-            if (
-                np.any(padded_region_top)
-                or np.any(padded_region_bottom)
-                or np.any(padded_region_left)
-                or np.any(padded_region_right)
-            ):
-                LOGGER.warning("Padding region is not blank, setting to blank")
-                value[: self.padding, :, class_index] = 0
-                value[-self.padding :, :, class_index] = 0
-                value[:, : self.padding, class_index] = 0
-                value[:, -self.padding :, class_index] = 0
-
-        # Update background class in case the mask has been edited
-        value = Grains.update_background_class(value)
-
-        self._mask: npt.NDArray[np.bool_] = value
-
-    @property
-    def padding(self) -> int:
-        """
-        Getter for the padding.
-
-        Returns
-        -------
-        int
-            The padding amount.
-        """
-        return self._padding
-
-    @padding.setter
-    def padding(self, value: int) -> None:
-        """
-        Setter for the padding.
-
-        Parameters
-        ----------
-        value : int
-            Padding amount.
-
-        Raises
-        ------
-        ValueError
-            If the padding is not an integer or is less than 1.
-        """
-        if not isinstance(value, int):
-            raise ValueError(f"Padding must be an integer, but is {value}")
-        if value < 1:
-            raise ValueError(f"Padding must be >= 1, but is {value}")
-        self._padding = value
-
-    @property
-    def bbox(self) -> tuple[int, int, int, int]:
-        """
-        Getter for the bounding box.
-
-        Returns
-        -------
-        tuple
-            Bounding box of the crop.
-
-        Raises
-        ------
-        ValueError
-            If the bounding box is not square.
-        """
-        return self._bbox
-
-    @bbox.setter
-    def bbox(self, value: tuple[int, int, int, int]) -> None:
-        """
-        Setter for the bounding box.
-
-        Parameters
-        ----------
-        value : tuple[int, int, int, int]
-            Bounding box of the crop.
-        """
-        if len(value) != 4:
-            raise ValueError(f"Bounding box must have 4 elements, but has {len(value)}")
-        if value[2] - value[0] != value[3] - value[1]:
-            raise ValueError(
-                f"Bounding box is not square: {value}, size: {value[2] - value[0]} x {value[3] - value[1]}"
-            )
-        self._bbox = value
-
-    @property
-    def pixel_to_nm_scaling(self) -> float:
-        """
-        Getter for the pixel to nanometre scaling factor.
-
-        Returns
-        -------
-        float
-            Pixel to nanometre scaling factor.
-        """
-        return self._pixel_to_nm_scaling
-
-    @pixel_to_nm_scaling.setter
-    def pixel_to_nm_scaling(self, value: float) -> None:
-        """
-        Setter for the pixel to nanometre scaling factor.
-
-        Parameters
-        ----------
-        value : float
-            Pixel to nanometre scaling factor.
-        """
-        self._pixel_to_nm_scaling = value
-
-    @property
-    def filename(self) -> str:
-        """
-        Getter for the filename.
-
-        Returns
-        -------
-        str
-            The image filename.
-        """
-        return self._filename
-
-    @filename.setter
-    def filename(self, value: str) -> None:
-        """
-        Setter for the filename.
-
-        Parameters
-        ----------
-        value : str
-            Image filename.
-        """
-        self._filename = value
-
-    @property
-    def height_profiles(self) -> npt.NDArray:
-        """
-        Getter for the height_profile.
-
-        Returns
-        -------
-        str
-            The image height_profile.
-        """
-        return self._height_profiles
-
-    @height_profiles.setter
-    def height_profiles(self, value: npt.NDArray) -> None:
-        """
-        Setter for the height_profile.
-
-        Parameters
-        ----------
-        value : str
-            Image height_profile.
-        """
-        self._height_profiles = value
-
-    @property
-    def stats(self) -> dict[str, Any]:
-        """
-        Getter for the stats.
-
-        Returns
-        -------
-        str
-            Dictionary of image statistics.
-        """
-        return self._stats
-
-    @stats.setter
-    def stats(self, value: dict[str, Any]) -> None:
-        """
-        Setter for the stats.
-
-        Parameters
-        ----------
-        value : dict[str, Any]
-            Image stats.
-        """
-        self._stats = value
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two GrainCrop objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, GrainCrop):
-            return False
-        return (
-            np.array_equal(self.image, other.image)
-            and np.array_equal(self.mask, other.mask)
-            and self.padding == other.padding
-            and self.bbox == other.bbox
-            and self.pixel_to_nm_scaling == other.pixel_to_nm_scaling
-            and self.filename == other.filename
-            and self.stats == other.stats
-            and self.height_profiles == other.height_profiles
-        )
-
-    def grain_crop_to_dict(self) -> dict[str, Any]:
-        """
-        Convert GrainCrop to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two GrainCrop objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal
-        """
-        if not isinstance(other, GrainCrop):
-            raise ValueError(f"Cannot compare GrainCrop with {type(other)}")
-        if not np.array_equal(self.image, other.image):
-            raise ValueError("Image is different")
-        if not np.array_equal(self.mask, other.mask):
-            raise ValueError("Mask is different")
-        if self.padding != other.padding:
-            raise ValueError("Padding is different")
-        if self.bbox != other.bbox:
-            raise ValueError("Bounding box is different")
-        if self.pixel_to_nm_scaling != other.pixel_to_nm_scaling:
-            raise ValueError("Pixel to nm scaling is different")
-        if self.filename != other.filename:
-            raise ValueError("Filename is different")
-        LOGGER.info("Cannot find difference between graincrops")
 
 
 def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray[np.bool_]:
@@ -443,210 +55,14 @@ def validate_full_mask_tensor_shape(array: npt.NDArray[np.bool_]) -> npt.NDArray
     return array
 
 
-@dataclass
-class GrainCropsDirection:
-    """
-    Dataclass for storing the crops of grains in a particular imaging direction.
-
-    Attributes
-    ----------
-    full_mask_tensor : npt.NDArray[np.bool_]
-        Boolean WxHxC array of the full mask tensor (W = width ; H = height; C = class >= 2).
-    crops : dict[int, GrainCrops]
-        Grain crops.
-    """
-
-    crops: dict[int, GrainCrop]
-    full_mask_tensor: npt.NDArray[np.bool_]
-
-    def __post_init__(self):
-        """
-        Validate the full mask tensor shape.
-
-        Raises
-        ------
-        ValueError
-            If the full mask tensor shape is invalid.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(self.full_mask_tensor)
-
-    @property
-    def full_mask_tensor(self) -> npt.NDArray[np.bool_]:
-        """
-        Getter for the full mask tensor.
-
-        Returns
-        -------
-        npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        return self._full_mask_tensor
-
-    @full_mask_tensor.setter
-    def full_mask_tensor(self, value: npt.NDArray[np.bool_]):
-        """
-        Setter for the full mask tensor.
-
-        Parameters
-        ----------
-        value : npt.NDArray
-            Numpy array of the full mask tensor.
-        """
-        self._full_mask_tensor = validate_full_mask_tensor_shape(value).astype(np.bool_)
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two GrainCropsDirection objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            return False
-        return self.crops == other.crops and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
-
-    def grain_crops_direction_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert GrainCropsDirection to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two GrainCropsDirection objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, GrainCropsDirection):
-            raise ValueError(f"Cannot compare GrainCropsDirection with {type(other)}")
-        for crop_index, crop in self.crops.items():
-            if crop != other.crops[crop_index]:
-                LOGGER.info(f"Grain crop {crop_index} is different:")
-                crop.debug_locate_difference(other.crops[crop_index])
-        if not np.array_equal(self.full_mask_tensor, other.full_mask_tensor):
-            raise ValueError("Full mask tensor is different")
-
-        LOGGER.info("Cannot find difference between graincrops")
-
-    def update_full_mask_tensor(self):
-        """Update the full mask tensor from the grain crops."""
-        self.full_mask_tensor = Grains.construct_full_mask_from_graincrops(
-            graincrops=self.crops,
-            image_shape=self.full_mask_tensor.shape[:2],
-        )
-
-
-@dataclass
-class ImageGrainCrops:
-    """
-    Dataclass for storing the crops of grains in an image.
-
-    Attributes
-    ----------
-    above : GrainCropDirection | None
-        Grains in the above direction.
-    below : GrainCropDirection | None
-        Grains in the below direction.
-    """
-
-    above: GrainCropsDirection | None
-    below: GrainCropsDirection | None
-
-    def __eq__(self, other: object) -> bool:
-        """
-        Check if two ImageGrainCrops objects are equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Returns
-        -------
-        bool
-            True if the objects are equal, False otherwise.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            return False
-        return self.above == other.above and self.below == other.below
-
-    def image_grain_crops_to_dict(self) -> dict[str, npt.NDArray[np.bool_] | dict[str:Any]]:
-        """
-        Convert ImageGrainCrops to dictionary indexed by attributes.
-
-        Returns
-        -------
-        dict[str, Any]
-            Dictionary indexed by attribute of the grain attributes.
-        """
-        return {re.sub(r"^_", "", key): value for key, value in self.__dict__.items()}
-
-    def debug_locate_difference(self, other: object) -> None:
-        """
-        Debug function to find the culprit when two ImageGrainCrops objects are not equal.
-
-        Parameters
-        ----------
-        other : object
-            Object to compare to.
-
-        Raises
-        ------
-        ValueError
-            If the objects are not equal.
-        """
-        if not isinstance(other, ImageGrainCrops):
-            raise ValueError(f"Cannot compare ImageGrainCrops with {type(other)}")
-        if self.above is not None:
-            if self.above != other.above:
-                LOGGER.info("Above grains are different")
-                self.above.debug_locate_difference(other.above)
-        else:
-            if other.above is not None:
-                raise ValueError("Above grains are different")
-        if self.below is not None:
-            if self.below != other.below:
-                LOGGER.info("Below grains are different")
-                self.below.debug_locate_difference(other.below)
-        else:
-            if other.below is not None:
-                raise ValueError("Below grains are different")
-
-        LOGGER.info("Cannot find difference between image grain crops")
-
-
 class Grains:
     """
     Find grains in an image.
 
     Parameters
     ----------
-    image : npt.NDArray
-        2-D Numpy array of image.
-    filename : str
-        File being processed (used in logging).
-    pixel_to_nm_scaling : float
-        Scaling of pixels to nanometres.
+    topostats_object : TopoStats
+        TopoStats object with a minimum of ``image``, ``filename`` and ``pixel_to_nm_scaling`` attributes defined.
     grain_crop_padding : int
         Padding to add to the bounding box of the grain during cropping.
     unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
@@ -668,8 +84,6 @@ class Grains:
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
     area_thresholds : dict[str, list[float | None]]
         Dictionary of above and below grain's area thresholds.
-    direction : str
-        Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
@@ -681,9 +95,7 @@ class Grains:
     # pylint: disable=too-many-locals
     def __init__(
         self,
-        image: npt.NDArray,
-        filename: str,
-        pixel_to_nm_scaling: float,
+        topostats_object: TopoStats,
         grain_crop_padding: int = 1,
         unet_config: dict[str, str | int | float | tuple[int | None, int, int, int] | None] | None = None,
         threshold_method: str | None = None,
@@ -691,7 +103,6 @@ class Grains:
         threshold_std_dev: dict[str, float | list] | None = None,
         threshold_absolute: dict[str, float | list] | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
-        direction: str | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -701,12 +112,8 @@ class Grains:
 
         Parameters
         ----------
-        image : npt.NDArray
-            2-D Numpy array of image.
-        filename : str
-            File being processed (used in logging).
-        pixel_to_nm_scaling : float
-            Scaling of pixels to nanometres.
+        topostats_object : TopoStats
+            TopoStats object.
         grain_crop_padding : int
             Padding to add to the bounding box of grains during cropping.
         unet_config : dict[str, str | int | float | tuple[int | None, int, int, int] | None]
@@ -728,8 +135,6 @@ class Grains:
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         area_thresholds : dict[str, list[float | None]]
             Dictionary of above and below grain's area thresholds.
-        direction : str
-            Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
@@ -737,6 +142,11 @@ class Grains:
         vetting : dict | None
             Dictionary of vetting parameters.
         """
+        assert topostats_object.config is not None, AttributeError(
+            f"[{topostats_object.filename}] : Missing 'config' "
+            "attribute. If loading '.topostats' objects you may need to run the whole processing pipeline anew."
+        )
+        config = topostats_object.config["grains"]
         if unet_config is None:
             unet_config = {
                 "model_path": None,
@@ -745,47 +155,61 @@ class Grains:
             }
         if area_thresholds is None:
             area_thresholds = {"above": [None, None], "below": [None, None]}
-        self.image = image
-        self.filename = filename
-        self.pixel_to_nm_scaling = pixel_to_nm_scaling
-        self.threshold_method = threshold_method
-        self.otsu_threshold_multiplier = otsu_threshold_multiplier
+        self.topostats_object = topostats_object
+        self.image = topostats_object.image
+        self.filename = topostats_object.filename
+        self.pixel_to_nm_scaling = topostats_object.pixel_to_nm_scaling
+        self.threshold_method = config["threshold_method"] if threshold_method is None else threshold_method
+        self.otsu_threshold_multiplier = (
+            config["otsu_threshold_multiplier"] if otsu_threshold_multiplier is None else otsu_threshold_multiplier
+        )
+
         # Ensure thresholds are lists (might not be from passing in CLI args)
-        if threshold_std_dev is None:
-            threshold_std_dev = {"above": [1.0], "below": [10.0]}
-        if not isinstance(threshold_std_dev["above"], list):
-            threshold_std_dev["above"] = [threshold_std_dev["above"]]
-        if not isinstance(threshold_std_dev["below"], list):
-            threshold_std_dev["below"] = [threshold_std_dev["below"]]
-        if threshold_absolute is None:
-            threshold_absolute = {"above": [None], "below": [None]}
-        if not isinstance(threshold_absolute["above"], list):
-            threshold_absolute["above"] = [threshold_absolute["above"]]
-        if not isinstance(threshold_absolute["below"], list):
-            threshold_absolute["below"] = [threshold_absolute["below"]]
-        self.threshold_std_dev = threshold_std_dev
-        self.threshold_absolute = threshold_absolute
-        self.area_thresholds = area_thresholds
-        # Only detect grains for the desired direction
-        assert direction in ["above", "below", "both"], f"Invalid direction: {direction}"
-        self.threshold_directions: list[str] = ["above", "below"] if direction == "both" else [direction]
-        self.remove_edge_intersecting_grains = remove_edge_intersecting_grains
+        def _make_list(x: int | float | list[int | float]) -> list[int | float]:
+            """
+            Ensure item(s) are stored in a list.
+
+            Parameters
+            ----------
+            x : int | float | list[int | float]
+                Item to be converted to a list.
+
+            Returns
+            -------
+            list[int | float]
+                Item as a list.
+            """
+            if not isinstance(x, list):
+                return [x]
+            return x
+
+        self.threshold_std_dev = config["threshold_std_dev"] if threshold_std_dev is None else threshold_std_dev
+        self.threshold_std_dev["above"] = _make_list(self.threshold_std_dev["above"])
+        self.threshold_std_dev["below"] = _make_list(self.threshold_std_dev["below"])
+        self.threshold_absolute = config["threshold_absolute"] if threshold_absolute is None else threshold_absolute
+        self.threshold_absolute["above"] = _make_list(self.threshold_absolute["above"])
+        self.threshold_absolute["below"] = _make_list(self.threshold_absolute["below"])
+        self.area_thresholds = config["area_thresholds"] if area_thresholds is None else area_thresholds
+        self.area_thresholds["above"] = _make_list(self.area_thresholds["above"])
+        self.area_thresholds["below"] = _make_list(self.area_thresholds["below"])
+        self.remove_edge_intersecting_grains = (
+            config["remove_edge_intersectin_grains"]
+            if remove_edge_intersecting_grains is None
+            else remove_edge_intersecting_grains
+        )
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
         self.grain_crop_padding = grain_crop_padding
-        self.unet_config = unet_config
-        self.vetting_config = vetting
-        self.classes_to_merge = classes_to_merge
+        self.unet_config = config["unet_config"] if unet_config is None else unet_config
+        self.vetting_config = config["vetting"] if vetting is None else vetting
+        self.classes_to_merge = config["classes_to_merge"] if classes_to_merge is None else classes_to_merge
 
         # Hardcoded minimum pixel size for grains. This should not be able to be changed by the user as this is
         # determined by what is processable by the rest of the pipeline.
         self.minimum_grain_size_px = 10
         self.minimum_bbox_size_px = 5
 
-        self.image_grain_crops = ImageGrainCrops(
-            above=None,
-            below=None,
-        )
+        self.grain_crops = {}
 
     @staticmethod
     def get_region_properties(image: npt.NDArray, **kwargs) -> list:
@@ -821,7 +245,8 @@ class Grains:
         npt.NDArray
             3-D Numpy array of the grain mask tensor with grains touching the border removed.
         """
-        flattened_grain_mask_tensor = Grains.flatten_multi_class_tensor(grain_mask_tensor)
+        # flattened_grain_mask_tensor = Grains.flatten_multi_class_tensor(grain_mask_tensor)
+        flattened_grain_mask_tensor = flatten_multi_class_tensor(grain_mask_tensor)
         # Find the grains that touch the border then remove them from the full mask tensor
         flattened_grain_mask_tensor_labelled = morphology.label(flattened_grain_mask_tensor)
         flattened_grain_mask_tensor_regionprops = regionprops(flattened_grain_mask_tensor_labelled)
@@ -836,7 +261,8 @@ class Grains:
                 for class_index in range(1, grain_mask_tensor.shape[2]):
                     grain_mask_tensor[:, :, class_index][flattened_grain_mask_tensor_labelled == region.label] = 0
 
-        return Grains.update_background_class(grain_mask_tensor)
+        # return Grains.update_background_class(grain_mask_tensor)
+        return update_background_class(grain_mask_tensor)
 
     @staticmethod
     def label_regions(image: npt.NDArray, background: int = 0) -> npt.NDArray:
@@ -990,14 +416,11 @@ class Grains:
             absolute=self.threshold_absolute,
         )
 
-        # Create an ImageGrainCrops object to store the grain crops
-        image_grain_crops = ImageGrainCrops(above=None, below=None)
-        for direction in self.threshold_directions:
-            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({self.thresholds[direction]})")
+        for direction, direction_thresholds in self.thresholds.items():
+            LOGGER.debug(f"[{self.filename}] : Finding {direction} grains, threshold: ({direction_thresholds})")
             self.mask_images[direction] = {}
 
             # iterate over the thresholds for the current direction
-            direction_thresholds = self.thresholds[direction]
             traditional_full_mask_tensor = Grains.multi_class_thresholding(
                 image=self.image,
                 thresholds=direction_thresholds,
@@ -1037,7 +460,7 @@ class Grains:
             self.mask_images[direction]["area_thresholded"] = traditional_full_mask_tensor.copy()
 
             # Extract GrainCrops from the full mask tensor
-            traditional_graincrops = Grains.extract_grains_from_full_image_tensor(
+            traditional_graincrops = self.extract_grains_from_full_image_tensor(
                 image=self.image,
                 full_mask_tensor=traditional_full_mask_tensor,
                 padding=self.grain_crop_padding,
@@ -1117,24 +540,14 @@ class Grains:
                     image_shape=self.image.shape,
                 )
                 self.mask_images[direction]["merged_classes"] = full_mask_tensor_merged_classes.copy()
-
-                # Store the grain crops
-                if direction == "above":
-                    image_grain_crops.above = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                elif direction == "below":
-                    image_grain_crops.below = GrainCropsDirection(
-                        crops=graincrops_merged_classes,
-                        full_mask_tensor=full_mask_tensor_merged_classes,
-                    )
-                else:
-                    raise ValueError(f"Invalid direction: {direction}. Allowed values are 'above' and 'below'")
-                self.image_grain_crops = image_grain_crops
+                self.grain_crops = graincrops_merged_classes
+                self.topostats_object.grain_crops = graincrops_merged_classes
+                self.topostats_object.full_mask_tensor = full_mask_tensor_merged_classes
             else:
                 # No grains found
-                self.image_grain_crops = ImageGrainCrops(above=None, below=None)
+                self.grain_crops = None
+                # self.topostats_object.grain_crops = self.grain_crops
+                self.topostats_object.full_mask_tensor = None
 
     @staticmethod
     def multi_class_thresholding(
@@ -1269,6 +682,10 @@ class Grains:
             if np.sum(predicted_mask[:, :, 1:]) == 0:
                 num_empty_removed_grains += 1
             else:
+                # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
+                #                      we have setter methods so could just update the .mask attribute in
+                #                      place (could maybe set it above?)
+                # graincrop.mask = predicted_mask
                 new_graincrops[grain_number] = GrainCrop(
                     image=graincrop.image,
                     mask=predicted_mask,
@@ -1276,8 +693,13 @@ class Grains:
                     bbox=graincrop.bbox,
                     pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                     filename=graincrop.filename,
-                    height_profiles=None,
-                    stats=None,
+                    height_profiles=graincrop.height_profiles,
+                    stats=graincrop.stats,
+                    disordered_trace=graincrop.disordered_trace,
+                    nodes=graincrop.nodes,
+                    ordered_trace=graincrop.ordered_trace,
+                    threshold_method=graincrop.threshold_method,
+                    thresholds=graincrop.thresholds,
                 )
 
         LOGGER.debug(f"Number of empty removed grains: {num_empty_removed_grains}")
@@ -2082,6 +1504,10 @@ class Grains:
             ):
                 continue
 
+            # @ns-rse 2025-10-14 - do we need to instantiate a new instance here? I don't think we do as
+            #                      we have setter methods so could just update the .mask attribute in
+            #                      place (could perhaps set directly above?)
+            # graincrop.mask = largest_only_single_grain_mask_tensor
             # If passed all vetting steps, add to the dictionary of passed grain crops
             passed_graincrops[grain_number] = GrainCrop(
                 image=graincrop.image,
@@ -2090,8 +1516,13 @@ class Grains:
                 bbox=graincrop.bbox,
                 pixel_to_nm_scaling=graincrop.pixel_to_nm_scaling,
                 filename=graincrop.filename,
-                height_profiles=None,
-                stats=None,
+                height_profiles=graincrop.height_profiles,
+                stats=graincrop.stats,
+                disordered_trace=graincrop.disordered_trace,
+                nodes=graincrop.nodes,
+                ordered_trace=graincrop.ordered_trace,
+                threshold_method=graincrop.threshold_method,
+                thresholds=graincrop.thresholds,
             )
 
         return passed_graincrops
@@ -2170,8 +1601,8 @@ class Grains:
         # Update background class and return
         return Grains.update_background_class(full_mask_tensor)
 
-    @staticmethod
     def extract_grains_from_full_image_tensor(
+        self,
         image: npt.NDArray[np.float32],
         full_mask_tensor: npt.NDArray[np.bool_],
         padding: int,
@@ -2283,6 +1714,11 @@ class Grains:
                 filename=filename,
                 height_profiles=None,
                 stats=None,
+                disordered_trace=None,
+                nodes=None,
+                ordered_trace=None,
+                threshold_method=self.threshold_method,
+                thresholds=self.thresholds,
             )
 
         return graincrops

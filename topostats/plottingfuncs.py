@@ -14,6 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.morphology import dilation
 
 import topostats
+from topostats.classes import GrainCrop
 from topostats.logs.logs import LOGGER_NAME
 from topostats.theme import Colormap
 
@@ -21,6 +22,7 @@ from topostats.theme import Colormap
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-nested-blocks
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=unused-argument
 
@@ -315,9 +317,7 @@ class Images:
     def plot_curvatures(
         self,
         image: npt.NDArray,
-        cropped_images: dict,
-        grains_curvature_stats_dict: dict,
-        all_grain_smoothed_data: dict,
+        grain_crops: dict[int, GrainCrop],
         colourmap_normalisation_bounds: tuple[float, float],
     ) -> tuple[plt.Figure | None, plt.Axes | None]:
         """
@@ -327,12 +327,9 @@ class Images:
         ----------
         image : npt.NDArray
             Image to plot.
-        cropped_images : dict
-            Dictionary containing cropped images of grains and the bounding boxes and padding.
-        grains_curvature_stats_dict : dict
-            Dictionary of grain curvature statistics.
-        all_grain_smoothed_data : dict
-            Dictionary containing smoothed grain traces.
+        grain_crops : dict[int, GrainCrop]
+            Dictionary of ``GrainCrops`` which (should) contain cropped images of grains, bounding boxes and padding
+            attributes.
         colourmap_normalisation_bounds : tuple[float, float]
             Tuple of the colour map normalisation bounds.
 
@@ -358,50 +355,39 @@ class Images:
                 vmax=self.zrange[1],
             )
 
-            # For each grain, plot the points with the colour determined by the curvature value
-            # Iterate over the grains
-            for (_, grain_data_curvature), (_, grain_data_smoothed_trace), (_, grain_image_container) in zip(
-                grains_curvature_stats_dict.items(), all_grain_smoothed_data.items(), cropped_images.items()
-            ):
+            # Iterate over the grains plotting splined traces using the curvature value
+            for _, grain_crop in grain_crops.items():
                 # Get the coordinate for the grain to accurately position the points
-                min_row = grain_image_container["bbox"][0]
-                min_col = grain_image_container["bbox"][1]
+                min_row = grain_crop.bbox[0]
+                min_col = grain_crop.bbox[1]
 
-                pad_width = grain_image_container["pad_width"]
+                # Iterate over molecules within a grain
+                if grain_crop.ordered_trace.molecule_data is not None:
+                    for _, molecule in grain_crop.ordered_trace.molecule_data.items():
+                        # Normalise the curvature values to the colourmap bounds
+                        normalised_curvature = (
+                            np.array(molecule.curvature_stats) - colourmap_normalisation_bounds[0]
+                        ) / (colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0])
 
-                # Iterate over molecules
-                for (_, molecule_data_curvature), (
-                    _,
-                    molecule_data_smoothed_trace,
-                ) in zip(grain_data_curvature.items(), grain_data_smoothed_trace.items()):
-                    # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = np.array(molecule_data_curvature)
-                    normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
-                    normalised_curvature = normalised_curvature / (
-                        colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
-                    )
-
-                    molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
-                    # pylint cannot see that mpl.cm.viridis is a valid attribute
-                    # pylint: disable=no-member
-                    cmap = mpl.cm.coolwarm
-                    for index, point in enumerate(molecule_trace_coords):
-                        color = cmap(normalised_curvature[index])
-                        if index > 0:
-                            previous_point = molecule_trace_coords[index - 1]
-                            ax.plot(
-                                [
-                                    (min_col - pad_width + previous_point[1]) * self.pixel_to_nm_scaling,
-                                    (min_col - pad_width + point[1]) * self.pixel_to_nm_scaling,
-                                ],
-                                [
-                                    (image.shape[0] - (min_row - pad_width + previous_point[0]))
-                                    * self.pixel_to_nm_scaling,
-                                    (image.shape[0] - (min_row - pad_width + point[0])) * self.pixel_to_nm_scaling,
-                                ],
-                                color=color,
-                                linewidth=1,
-                            )
+                        # pylint cannot see that mpl.cm.viridis is a valid attribute
+                        # pylint: disable=no-member
+                        cmap = mpl.cm.coolwarm
+                        for index, point in enumerate(molecule.splined_coords):
+                            color = cmap(normalised_curvature[index])
+                            if index > 0:
+                                previous_point = molecule.splined_coords[index - 1]
+                                ax.plot(
+                                    [
+                                        (min_col + previous_point[1]) * self.pixel_to_nm_scaling,
+                                        (min_col + point[1]) * self.pixel_to_nm_scaling,
+                                    ],
+                                    [
+                                        (image.shape[0] - (min_row + previous_point[0])) * self.pixel_to_nm_scaling,
+                                        (image.shape[0] - (min_row + point[0])) * self.pixel_to_nm_scaling,
+                                    ],
+                                    color=color,
+                                    linewidth=1,
+                                )
 
             # save the figure
             plt.title(self.title)
@@ -420,81 +406,74 @@ class Images:
 
         return fig, ax
 
-    def plot_curvatures_individual_grains(
+    def plot_curvatures_individual_grain(
         self,
-        cropped_images: dict,
-        grains_curvature_stats_dict: dict,
-        all_grains_smoothed_data: dict,
+        grain_crop: GrainCrop,
+        grain_number: int,
         colourmap_normalisation_bounds: tuple[float, float],
-    ) -> None:
+    ) -> tuple[plt.Figure | None, plt.Axes | None]:
         """
         Plot curvature intensity and defects of individual grains.
 
         Parameters
         ----------
-        cropped_images : dict
-            Dictionary of cropped images.
-        grains_curvature_stats_dict : dict
-            Dictionary of grain curvature statistics.
-        all_grains_smoothed_data : dict
-            Dictionary containing smoothed grain traces.
+        grain_crop : GrainCrop
+            Graincrop to be plotted.
+        grain_number : int
+            Grain number being plotted.
         colourmap_normalisation_bounds : tuple
             Tuple of the colour map normalisation bounds.
+
+        Returns
+        -------
+        tuple[plt.Figure | None, plt.Axes | None]
+            Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
         """
         fig, ax = None, None
         # Only plot if image_set is "all" (i.e. user wants all images) or an image is in the core_set
         if "all" in self.image_set or self.module in self.image_set or self.core_set:
-            # Iterate over grains
-            for (
-                (grain_index, grain_data_curvature),
-                (_, grain_data_smoothed_trace),
-                (_, grain_image_container),
-            ) in zip(grains_curvature_stats_dict.items(), all_grains_smoothed_data.items(), cropped_images.items()):
-                grain_image = grain_image_container["original_image"]
-                shape = grain_image.shape
-                fig, ax = plt.subplots(1, 1)
-                ax.imshow(
-                    grain_image,
-                    extent=(0, shape[1] * self.pixel_to_nm_scaling, 0, shape[0] * self.pixel_to_nm_scaling),
-                    interpolation=self.interpolation,
-                    cmap=self.cmap,
-                    vmin=self.zrange[0],
-                    vmax=self.zrange[1],
+            fig, ax = plt.subplots(1, 1)
+            ax.imshow(
+                # grain_image,
+                grain_crop.image,
+                extent=(
+                    0,
+                    grain_crop.image.shape[1] * self.pixel_to_nm_scaling,
+                    0,
+                    grain_crop.image.shape[0] * self.pixel_to_nm_scaling,
+                ),
+                interpolation=self.interpolation,
+                cmap=self.cmap,
+                vmin=self.zrange[0],
+                vmax=self.zrange[1],
+            )
+
+            # Iterate over molecules
+            for _, molecule in grain_crop.ordered_trace.molecule_data.items():
+                normalised_curvature = molecule.curvature_stats - colourmap_normalisation_bounds[0] / (
+                    colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
                 )
 
-                # Iterate over molecules
-                for (_, molecule_data_curvature), (_, molecule_data_smoothed_trace) in zip(
-                    grain_data_curvature.items(), grain_data_smoothed_trace.items()
-                ):
-                    molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
+                # pylint cannot see that mpl.cm.viridis is a valid attribute
+                # pylint: disable=no-member
+                cmap = mpl.cm.coolwarm
 
-                    # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = np.array(molecule_data_curvature)
-                    normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
-                    normalised_curvature = normalised_curvature / (
-                        colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
-                    )
-
-                    # pylint cannot see that mpl.cm.viridis is a valid attribute
-                    # pylint: disable=no-member
-                    cmap = mpl.cm.coolwarm
-
-                    for index, point in enumerate(molecule_trace_coords):
-                        colour = cmap(normalised_curvature[index])
-                        if index > 0:
-                            previous_point = molecule_trace_coords[index - 1]
-                            ax.plot(
-                                [
-                                    previous_point[1] * self.pixel_to_nm_scaling,
-                                    point[1] * self.pixel_to_nm_scaling,
-                                ],
-                                [
-                                    (shape[0] - previous_point[0]) * self.pixel_to_nm_scaling,
-                                    (shape[0] - point[0]) * self.pixel_to_nm_scaling,
-                                ],
-                                color=colour,
-                                linewidth=3,
-                            )
+                for index, point in enumerate(molecule.splined_coords):
+                    colour = cmap(normalised_curvature[index])
+                    if index > 0:
+                        previous_point = molecule.splined_coords[index - 1]
+                        ax.plot(
+                            [
+                                previous_point[1] * self.pixel_to_nm_scaling,
+                                point[1] * self.pixel_to_nm_scaling,
+                            ],
+                            [
+                                (grain_crop.image.shape[0] - previous_point[0]) * self.pixel_to_nm_scaling,
+                                (grain_crop.image.shape[0] - point[0]) * self.pixel_to_nm_scaling,
+                            ],
+                            color=colour,
+                            linewidth=3,
+                        )
 
                 plt.title(self.title)
                 plt.xlabel("Nanometres")
@@ -502,9 +481,9 @@ class Images:
                 set_n_ticks(ax, self.num_ticks)
                 plt.axis(self.axes)
                 fig.tight_layout()
-                # plt.savefig(f"./grain_{grain_index}_curvature.png")
+
                 fig.savefig(
-                    (self.output_dir / f"{grain_index}_curvature.{self.savefig_format}"),
+                    (self.output_dir / f"{grain_number}_curvature.{self.savefig_format}"),
                     bbox_inches="tight",
                     pad_inches=0,
                     dpi=self.savefig_dpi,
@@ -515,6 +494,7 @@ class Images:
                 f"[{self.filename}] : Image saved to : {str(self.output_dir / self.filename)}.{self.savefig_format}"
                 f" | DPI: {self.savefig_dpi}"
             )
+        return fig, ax
 
     def plot_and_save(self):
         """
@@ -574,8 +554,13 @@ class Images:
                 )
                 patch = [Patch(color=self.mask_cmap(1, 0.7), label="Mask")]
                 plt.legend(handles=patch, loc="upper right", bbox_to_anchor=(1.02, 1.09))
-            # if coordinates are provided (such as in splines, plot those)
+            # If coordinates are provided (such as in splines), plot those. These can be in two forms, a list of numpy
+            # arrays for each grain (if plotting whole image) or a single list if plotting grain/molecule
             elif self.plot_coords is not None:
+                # If self.plot_coords is a numpy array then we are plotting on a grain/molecule basis and have nothing
+                # to loop over so addit to a list so we can loop over it
+                if isinstance(self.plot_coords, np.ndarray):
+                    self.plot_coords = [self.plot_coords]
                 for grain_coords in self.plot_coords:
                     ax.plot(
                         grain_coords[:, 1] * self.pixel_to_nm_scaling,

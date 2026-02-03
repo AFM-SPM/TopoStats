@@ -10,3 +10,9 @@ You can read more detailed information about the methods implemented in TopoStat
 - [Nodestats](advanced/nodestats.md)
 - [Ordered Tracing](advanced/ordered_tracing.md)
 - [Splining](advanced/splining.md)
+
+There is also more detailed information on the classes that are used internally (and written to `.topostats` files) when
+saving.
+
+- [Classes](advanced/classes.md)
+- [Extending](advanced/extending.md)

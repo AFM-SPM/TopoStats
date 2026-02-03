@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from topostats.classes import TopoStats
 from topostats.grainstats import GrainStats
 from topostats.logs.logs import LOGGER_NAME
 
@@ -247,10 +248,11 @@ def test_calculate_squared_distance(dummy_grainstats: GrainStats) -> None:
 def test_no_grains(caplog, tmp_path: Path) -> None:
     """Test GrainStats raises error when passed zero grains."""
     caplog.set_level(logging.DEBUG, logger=LOGGER_NAME)
+    topostats_object = TopoStats(
+        grain_crops=None, filename="no_graincrops", pixel_to_nm_scaling=1.0, img_path=Path.cwd()
+    )
     grainstats = GrainStats(
-        grain_crops={},
-        image_name="random",
-        direction="above",
+        topostats_object=topostats_object,
         base_output_dir=tmp_path,
     )
     grainstats.calculate_stats()

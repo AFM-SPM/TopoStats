@@ -182,12 +182,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                     )
                 ],
             },
-            "direction": Or(
-                "both",
-                "below",
-                "above",
-                error="Invalid direction for grains.direction valid values are 'both', 'below' or 'above",
-            ),
             "remove_edge_intersecting_grains": Or(
                 True,
                 False,
@@ -383,14 +377,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
             ),
-            "colourmap_normalisation_bounds": [
-                Or(
-                    float,
-                    int,
-                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
-                    "are float or int",
-                )
-            ],
         },
         "plotting": {
             "run": Or(
@@ -1114,7 +1100,7 @@ PLOTTING_SCHEMA = Schema(
             "core_set": bool,
             "module": "disordered_tracing",
         },
-        "smoothed_grain": {
+        "smoothed_mask": {
             "filename": str,
             "title": str,
             "image_type": Or(
@@ -1144,6 +1130,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "disordered_tracing",
         },
         "pruned_skeleton": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1216,6 +1203,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "nodestats",
         },
         "connected_nodes": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1282,6 +1270,7 @@ PLOTTING_SCHEMA = Schema(
             "module": "nodestats",
         },
         "ordered_traces": {
+            "filename": str,
             "title": str,
             "image_type": Or(
                 "binary",
@@ -1399,6 +1388,14 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "module": "splining",
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
         "curvature_individual_grains": {
             "filename": str,
@@ -1418,6 +1415,14 @@ PLOTTING_SCHEMA = Schema(
                 error="Invalid value in config for 'dpi', valid values are 'figure' or > 0.",
             ),
             "module": "splining",
+            "colourmap_normalisation_bounds": [
+                Or(
+                    float,
+                    int,
+                    error="Invalid value in config for 'curvature.colourmap_normalisation_bounds', valid values"
+                    "are float or int",
+                )
+            ],
         },
     }
 )
@@ -1491,7 +1496,7 @@ SUMMARY_SCHEMA = Schema(
             Optional("aspect_ratio"),
             Optional("bending_angle"),
             Optional("total_contour_length"),
-            Optional("average_end_to_end_distance"),
+            Optional("mean_end_to_end_distance"),
             Optional("height_max"),
             Optional("height_mean"),
             Optional("height_median"),

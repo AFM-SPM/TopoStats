@@ -13,6 +13,7 @@ from collections import defaultdict
 from functools import partial
 from importlib import resources
 from multiprocessing import Pool
+from pathlib import Path
 from pprint import pformat
 
 import pandas as pd
@@ -22,10 +23,10 @@ from tqdm import tqdm
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
-    dict_to_json,
+    extract_height_profiles,
     find_files,
     read_yaml,
-    save_folder_grainstats,
+    write_csv,
     write_yaml,
 )
 from topostats.logs.logs import LOGGER_NAME
@@ -187,7 +188,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     output_full_stats = config["output_stats"] == "full"
 
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
     # Get a dictionary of all the image data dictionaries.
     # Keys are the image names
@@ -195,67 +196,174 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     scan_data_dict = all_scan_data.img_dict
 
     with Pool(processes=config["cores"]) as pool:
-        results = defaultdict()
+        grain_stats_all = defaultdict()
+        topostats_object_all = defaultdict()
         image_stats_all = defaultdict()
-        mols_results = defaultdict()
-        disordered_trace_results = defaultdict()
-        height_profile_all = defaultdict()
+        disordered_tracing_all = defaultdict()
+        branch_stats_all = defaultdict()
+        molecule_stats_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
             for (
-                img,
-                result,
-                height_profiles,
-                individual_image_stats_df,
-                disordered_trace_result,
-                mols_result,
+                filename,
+                grain_stats_df,
+                topostats_object,
+                image_stats_df,
+                disordered_tracing_df,
+                branch_stats_df,
+                molecule_stats_df,
             ) in pool.imap_unordered(
                 processing_function,
                 scan_data_dict.values(),
             ):
-                results[str(img)] = result.dropna(axis=1, how="all")
-                disordered_trace_results[str(img)] = disordered_trace_result.dropna(axis=1, how="all")
-                mols_results[str(img)] = mols_result.dropna(axis=1, how="all")
+                # Append each images returned dataframes to the dictionaries
+                if grain_stats_df is not None:
+                    grain_stats_all[str(filename)] = grain_stats_df.dropna(axis=1, how="all")
+                topostats_object_all[str(filename)] = topostats_object
+                if image_stats_df is not None:
+                    image_stats_all[str(filename)] = image_stats_df.dropna(axis=1, how="all")
+                if disordered_tracing_df is not None:
+                    disordered_tracing_all[str(filename)] = disordered_tracing_df.dropna(axis=1, how="all")
+                if branch_stats_df is not None:
+                    branch_stats_all[str(filename)] = branch_stats_df.dropna(axis=1, how="all")
+                if molecule_stats_df is not None:
+                    molecule_stats_all[str(filename)] = molecule_stats_df.dropna(axis=1, how="all")
+
                 pbar.update()
-
-                # Add the dataframe to the results dict
-                image_stats_all[str(img)] = individual_image_stats_df.dropna(axis=1, how="all")
-
-                # Combine all height profiles
-                height_profile_all[str(img)] = height_profiles
-
                 # Display completion message for the image
-                LOGGER.info(f"[{img.name}] Processing completed.")
-
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
+                LOGGER.info(f"[{filename}] Processing completed.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
     image_stats_all_df = pd.concat(image_stats_all.values())
     image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
 
+    # Molecule statistics - required as we need to average end-to-end and contour length across grains, even if not
+    # being explicitly written to CSV themselves
     try:
-        results = pd.concat(results.values())
+        molecule_stats_all = pd.concat(molecule_stats_all.values())
+        grain_stats_additions = pd.concat(
+            [
+                # Sum the contour length of molecules within each grain
+                molecule_stats_all[["image", "grain_number", "contour_length"]]
+                .groupby(["image", "grain_number"])
+                .sum(),
+                # Mean end to end distance across molecules within each grain
+                molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
+                .groupby(["image", "grain_number"])
+                .mean(),
+            ],
+            axis=1,
+        )
+        grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
     except ValueError as error:
-        LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+        LOGGER.error("No molecules found in any images, consider adjusting ordered tracing / splining parameters.")
         LOGGER.error(error)
 
-    try:
-        disordered_trace_results = pd.concat(disordered_trace_results.values())
-    except ValueError as error:
-        LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
-        LOGGER.error(error)
+    # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
+    if len(grain_stats_all) > 0:
+        try:
+            grain_stats_all = pd.concat(grain_stats_all.values())
+            grain_stats_all.reset_index(inplace=True)
+            grain_stats_all.set_index(["image", "grain_number"], inplace=True)
+        except ValueError as error:
+            LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
+            LOGGER.error(error)
+        if grain_stats_additions.shape[0] > 0:
+            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
+        else:
+            LOGGER.warning("No molecule statistics to merge with grain statistics.")
+        # Write statistics to CSV if there is data.
+        if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+            grain_stats_all = write_csv(
+                df=grain_stats_all,
+                dataset="grain_stats",
+                # Reset after above merge
+                names=["image", "grain_number"],
+                index=["image", "grain_number", "class", "subgrain"],
+                output_dir=config["output_dir"],
+                base_dir=config["base_dir"],
+            )
+            LOGGER.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
+    else:
+        images_processed = 0
+        LOGGER.warning("There are no grainstats statistics to write to CSV.")
 
-    try:
-        mols_results = pd.concat(mols_results.values())
-    except ValueError as error:
-        LOGGER.error("No mols found in any images, consider adjusting ordered tracing / splining parameters.")
-        LOGGER.error(error)
+    # Optional output files
+    if output_full_stats:
+        if branch_stats_all is not None:
+            # Matched branch statistics
+            try:
+                branch_stats_all = pd.concat(branch_stats_all.values())
+            except ValueError as error:
+                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
+                LOGGER.error(error)
+            if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
+                branch_stats_all = write_csv(
+                    df=branch_stats_all,
+                    dataset="matched_branch_stats",
+                    names=["grain_number", "node", "branch"],
+                    index=["image", "grain_number", "node", "branch"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
+        else:
+            LOGGER.warning("There are no matched branch statistics to write to CSV.")
+        # Disordered trace statistics
+        if disordered_tracing_all is not None:
+            try:
+                disordered_tracing_all = pd.concat(disordered_tracing_all.values())
+            except ValueError as error:
+                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
+                LOGGER.error(error)
+            if isinstance(disordered_tracing_all, pd.DataFrame) and not disordered_tracing_all.isna().values.all():
+                disordered_tracing_all = write_csv(
+                    df=disordered_tracing_all,
+                    dataset="branch_statistics",
+                    names=["grain_number", "index"],
+                    index=["image", "grain_number", "index"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
+        else:
+            LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
+
+        # Molecule statistics
+        if molecule_stats_all is not None:
+            if isinstance(molecule_stats_all, pd.DataFrame) and not molecule_stats_all.isna().values.all():
+                molecule_stats_all = write_csv(
+                    df=molecule_stats_all,
+                    dataset="mol_stats",
+                    names=None,
+                    index=["image", "grain_number"],
+                    output_dir=config["output_dir"],
+                    base_dir=config["base_dir"],
+                )
+                LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
+        else:
+            LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
+
+    else:
+        LOGGER.info(
+            "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and'matched_branch_statistics.csv' skipped"
+        )
+
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
-        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
-        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
+        extract_height_profiles(
+            topostats_object_all=topostats_object_all,
+            output_dir=config["output_dir"],
+            filename="height_profiles.json",
+        )
+
+    # Write config to file
+    config["plotting"].pop("plot_dict")
+    write_yaml(config, output_dir=config["output_dir"])
+    images_processed = len(grain_stats_all["image"].unique())
+    LOGGER.debug(f"Images processed : {images_processed}")
 
     # Summary Statistics and Plots
     if config["summary_stats"]["run"]:
@@ -282,16 +390,16 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         LOGGER.info("[plotting] Default variable to labels mapping loaded.")
 
         # If we don't have a dataframe or we do and it is all NaN there is nothing to plot
-        if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-            if results.shape[0] > 1:
+        if isinstance(grain_stats_all, pd.DataFrame) and not grain_stats_all.isna().values.all():
+            if grain_stats_all.shape[0] > 1:
                 # If summary_config["output_dir"] does not match or is not a sub-dir of config["output_dir"] it
                 # needs creating
-                summary_config["output_dir"] = config["output_dir"] / "summary_distributions"
+                summary_config["output_dir"] = Path(config["output_dir"]) / "summary_distributions"
                 summary_config["output_dir"].mkdir(parents=True, exist_ok=True)
                 LOGGER.info(f"Summary plots and statistics will be saved to : {summary_config['output_dir']}")
 
                 # Plot summaries
-                summary_config["df"] = results.reset_index()
+                summary_config["df"] = grain_stats_all.reset_index()
                 toposum(summary_config)
             else:
                 LOGGER.warning(
@@ -311,44 +419,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
     else:
         summary_config = None
 
-    # Write statistics to CSV if there is data.
-    if isinstance(results, pd.DataFrame) and not results.isna().values.all():
-        results.reset_index(drop=True, inplace=True)
-        results.set_index(["image", "threshold", "grain_number"], inplace=True)
-        results.to_csv(config["output_dir"] / "grain_statistics.csv", index=True)
-        save_folder_grainstats(config["output_dir"], config["base_dir"], results, "grain_stats")
-        results.reset_index(inplace=True)  # So we can access unique image names
-        images_processed = len(results["image"].unique())
-    else:
-        images_processed = 0
-        LOGGER.warning("There are no grainstats statistics to write to CSV.")
-
-    if output_full_stats:
-        if isinstance(disordered_trace_results, pd.DataFrame) and not disordered_trace_results.isna().values.all():
-            disordered_trace_results.reset_index(inplace=True)
-            disordered_trace_results.set_index(["image", "threshold", "grain_number"], inplace=True)
-            disordered_trace_results.to_csv(config["output_dir"] / "branch_statistics.csv", index=True)
-            save_folder_grainstats(
-                config["output_dir"], config["base_dir"], disordered_trace_results, "disordered_trace_stats"
-            )
-            disordered_trace_results.reset_index(inplace=True)  # So we can access unique image names
-        else:
-            LOGGER.warning("There are no disordered tracing statistics to write to CSV.")
-
-        if isinstance(mols_results, pd.DataFrame) and not mols_results.isna().values.all():
-            mols_results.reset_index(drop=True, inplace=True)
-            mols_results.set_index(["image", "threshold", "grain_number"], inplace=True)
-            mols_results.to_csv(config["output_dir"] / "molecule_statistics.csv", index=True)
-            save_folder_grainstats(config["output_dir"], config["base_dir"], mols_results, "mol_stats")
-            mols_results.reset_index(inplace=True)  # So we can access unique image names
-        else:
-            LOGGER.warning("There are no molecule tracing statistics to write to CSV.")
-    else:
-        LOGGER.info("molecule_statistics.csv and branch_statistics.csv skipped")
-    # Write config to file
-    config["plotting"].pop("plot_dict")
-    write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {images_processed}")
     # Update config with plotting defaults for printing
     completion_message(config, img_files, summary_config, images_processed)
 
@@ -371,7 +441,7 @@ def filters(args: argparse.Namespace | None = None) -> None:
     # If loading existing .topostats files the images need filtering again so we need to extract the raw image
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "raw"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
 
     processing_function = partial(
@@ -419,7 +489,7 @@ def grains(args: argparse.Namespace | None = None) -> None:
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "grains"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
 
     processing_function = partial(
@@ -466,7 +536,7 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     # Triggers extraction of filtered images from existing .topostats files
     if config["file_ext"] == ".topostats":
         config["loading"]["extract"] = "grainstats"
-    all_scan_data = LoadScans(img_files, **config["loading"])
+    all_scan_data = LoadScans(img_files, config=config)
     all_scan_data.get_data()
     processing_function = partial(
         process_grainstats,
@@ -476,44 +546,49 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
         output_dir=config["output_dir"],
     )
     with Pool(processes=config["cores"]) as pool:
-        results = defaultdict()
-        height_profile_all = defaultdict()
+        grain_stats_all = defaultdict()
+        topostats_object_all = defaultdict()
         with tqdm(
             total=len(img_files),
             desc=f"Processing images from {config['base_dir']}, results are under {config['output_dir']}",
         ) as pbar:
-            for img, result, height_profiles in pool.imap_unordered(
+            for (
+                filename,
+                topostats_object,
+                grain_stats_df,
+            ) in pool.imap_unordered(
                 processing_function,
                 all_scan_data.img_dict.values(),
             ):
-                results[str(img)] = result
-                height_profile_all[str(img)] = height_profiles
+                topostats_object_all[filename] = topostats_object
+                grain_stats_all[filename] = grain_stats_df
                 pbar.update()
 
                 # Display completion message for the image
-                LOGGER.info(f"[{img}] Grainstats completed (NB - Filtering was *not* re-run).")
+                LOGGER.info(f"[{filename}] Grainstats completed (NB - Filtering was *not* re-run).")
 
-    LOGGER.info(f"Saving image stats to : {config['output_dir']}/image_statistics.csv.")
     # Concatenate all the dictionary's values into a dataframe. Ignore the keys since
     # the dataframes have the file names in them already.
-
     try:
-        image_stats_all_df = pd.concat(results.values())
-        image_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
+        grain_stats_all_df = pd.concat(grain_stats_all.values())
+        grain_stats_all_df.to_csv(config["output_dir"] / "image_statistics.csv")
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
     # If requested save height profiles
     if config["grainstats"]["extract_height_profile"]:
-        LOGGER.info(f"Saving all height profiles to {config['output_dir']}/height_profiles.json")
-        dict_to_json(data=height_profile_all, output_dir=config["output_dir"], filename="height_profiles.json")
+        extract_height_profiles(
+            topostats_object_all=topostats_object_all,
+            output_dir=config["output_dir"],
+            filename="height_profiles.json",
+        )
 
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
-    LOGGER.debug(f"Images processed : {len(results)}")
+    LOGGER.debug(f"Images processed : {len(grain_stats_all)}")
     # Update config with plotting defaults for printing
-    completion_message(config, img_files, summary_config=None, images_processed=image_stats_all_df.shape[0])
+    completion_message(config, img_files, summary_config=None, images_processed=grain_stats_all_df.shape[0])
 
 
 def disordered_tracing(args: argparse.Namespace | None = None) -> None:
