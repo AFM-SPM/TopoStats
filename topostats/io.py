@@ -854,11 +854,9 @@ class LoadScans:
                     raise
                 self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
-                raise ValueError(
-                    f"File type {suffix} not yet supported. Please make an issue at \
+                raise ValueError(f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
-                this file type."
-                )
+                this file type.")
 
     def _check_image_size_and_add_to_dict(self, image: npt.NDArray, filename: str) -> None:
         """
@@ -1104,10 +1102,8 @@ def save_topostats_file(
                 dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=topostats_object.image_grain_crops_to_dict())
 
         else:
-            raise ValueError(
-                "TopoStats object dictionary does not contain an 'image'. \
-                 TopoStats objects must be saved with a flattened image."
-            )
+            raise ValueError("TopoStats object dictionary does not contain an 'image'. \
+                 TopoStats objects must be saved with a flattened image.")
 
 
 def save_pkl(outfile: Path, to_pkl: dict) -> None:
