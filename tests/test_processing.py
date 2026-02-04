@@ -39,7 +39,7 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     """Regression test for checking the process_scan functions correctly."""
     img_dic = load_scan_data.img_dict
     _, grain_stats, _, img_stats, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=img_dic["minicircle_small.topostats"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -58,11 +58,11 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     assert grain_stats.to_string(float_format="{:.4e}".format) == snapshot
 
     # Regtest for the topostats file
-    assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
+    assert Path.exists(tmp_path / "tests/resources/test_image/processed/topostats/minicircle_small.topostats")
     # Load the results, note that we use AFMReader.topostats.load_topostats() here which simply loads the data as
     # dictionaries and means it is easy to compare to syrupy snapshots
     saved_topostats = load_topostats(
-        file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats"
+        file_path=tmp_path / "tests/resources/test_image/processed/topostats/minicircle_small.topostats"
     )
     # Drop the config, img_path and topostats_version from top level of dictionary and and basename from
     # disorded_trace.stats_dict) as we don't want to compare configuration nor test absolute paths.
@@ -134,7 +134,7 @@ def test_save_cropped_grains(
     process_scan_config["plotting"]["savefig_dpi"] = 50
     img_dic = load_scan_data.img_dict
     _, _, _, _, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=img_dic["minicircle_small.topostats"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -350,7 +350,7 @@ def test_image_set(
     process_scan_config["plotting"]["savefig_dpi"] = 50
     img_dic = load_scan_data.img_dict
     process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=img_dic["minicircle_small.topostats"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -387,9 +387,8 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
     process_scan_config["plotting"]["image_set"] = "all"
     process_scan_config["plotting"]["savefig_format"] = extension
     process_scan_config["plotting"] = update_plotting_config(process_scan_config["plotting"])
-    img_dic = load_scan_data.img_dict
     _, _, _, _, _, _, _ = process_scan(
-        topostats_object=img_dic["minicircle_small"],
+        topostats_object=load_scan_data.img_dict["minicircle_small.topostats"],
         base_dir=BASE_DIR,
         filter_config=process_scan_config["filter"],
         grains_config=process_scan_config["grains"],
@@ -788,7 +787,7 @@ def test_process_stages(
     later stages can run and do not disable earlier stages.
     """
     caplog.set_level(logging.DEBUG, LOGGER_NAME)
-    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    topostats_object = load_scan_data.img_dict["minicircle_small.topostats"]
     # Remove existing data so its calculated anew
     topostats_object.grain_crops = None
     process_scan_config["filter"]["run"] = filter_run
@@ -819,7 +818,7 @@ def test_process_stages(
 
 def test_process_scan_no_grains(process_scan_config: dict, load_scan_data: LoadScans, tmp_path: Path, caplog) -> None:
     """Test handling no grains found during grains.find_grains()."""
-    topostats_object = load_scan_data.img_dict["minicircle_small"]
+    topostats_object = load_scan_data.img_dict["minicircle_small.topostats"]
     topostats_object.grain_crops = None
     process_scan_config["grains"]["threshold_std_dev"]["above"] = 1000
     process_scan_config["filter"]["remove_scars"]["run"] = False

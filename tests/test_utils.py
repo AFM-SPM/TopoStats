@@ -401,7 +401,6 @@ def test_bound_padded_coordinates_to_image(image: npt.NDArray, padding: int, exp
 def test_convolve_skeleton(skeleton: npt.NDArray, target: npt.NDArray) -> None:
     """Test convolve_skeleton() function."""
     skeleton_convolved = convolve_skeleton(skeleton)
-    print(f"{skeleton_convolved=}")
     np.testing.assert_array_equal(skeleton_convolved, target)
 
 
