@@ -56,6 +56,13 @@ grains:
     skeletonisation_height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
     endpoint_connection_distance_nm: 10.0 # Maximum distance in nm to connect endpoints.
     endpoint_connection_cost_map_height_maximum: 3.0 # Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly be the maximum height of your sample.
+    pruning_params:
+      method: topostats # Method to clean branches of the skeleton. Options : topostats
+      max_length: 10.0 # Maximum length in nm to remove a branch containing an endpoint.
+      height_threshold: # The height to remove branches below.
+      method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid.
+      method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
+      only_height_prune_endpoints: False # Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
   unet_config:
     model_path: null # Path to a trained U-Net model
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
