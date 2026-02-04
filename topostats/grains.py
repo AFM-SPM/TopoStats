@@ -1099,6 +1099,31 @@ class Grains:
                         unet_config=self.unet_config,
                         graincrops=traditional_graincrops,
                     )
+                    if self.endpoint_connection_config is not None:
+                        if self.endpoint_connection_config["run"]:
+                            LOGGER.info(f"[{self.filename}] : Connecting UNet grain mask endpoints.")
+                            endpoint_connection_config = self.endpoint_connection_config.copy()
+                            endpoint_connection_config.pop("run")
+                            # Reconstruct full mask tensor from the UNet-updated graincrops. (Messy but needed).
+                            unet_full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                                graincrops=graincrops,
+                                image_shape=self.image.shape,
+                            )
+                            unet_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                                filename=self.filename,
+                                image=self.image,
+                                tensor=unet_full_mask_tensor,
+                                p2nm=self.pixel_to_nm_scaling,
+                                **endpoint_connection_config,
+                            )
+                            # Re-extract graincrops from the updated full mask tensor
+                            graincrops = Grains.extract_grains_from_full_image_tensor(
+                                image=self.image,
+                                full_mask_tensor=unet_full_mask_tensor,
+                                padding=self.grain_crop_padding,
+                                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                                filename=self.filename,
+                            )
                 else:
                     # otherwise use the traditional graincrops
                     graincrops = traditional_graincrops
