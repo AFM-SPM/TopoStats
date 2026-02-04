@@ -40,20 +40,32 @@ def test_debug_process_file(tmp_path) -> None:
     import copy
 
     # config
-    config_path = Path("/Users/sylvi/topo_data/bug-grain-crop-size/config.yaml")
+    config_path = Path("/Users/sylvi/topo_data/connect-loose-ends/config_debug_picoz_20260106.yaml")
     assert config_path.exists()
     original_config = read_yaml(config_path)
-    plotting_dictionary = pkg_resources.open_text(topostats, "plotting_dictionary.yaml")
+    plotting_dictionary = pkg_resources.files(topostats).joinpath("plotting_dictionary.yaml").open("r")
     original_config["plotting"]["plot_dict"] = yaml.safe_load(plotting_dictionary.read())
-
     # data
-    datafiles = Path("/Users/sylvi/topo_data/bug-grain-crop-size/data").glob("*.spm")
-    scans = LoadScans(list(datafiles), channel="Height", extract="all")
+
+    datafiles = list(Path("/Users/sylvi/topo_data/connect-loose-ends/debug-data/").glob("*.spm"))
+    print(f"Found datafiles: {datafiles}")
+    scans = LoadScans(img_paths=list(datafiles), channel="Height Sensor", extract="all")
     scans.get_data()
     image_dict = scans.img_dict
+    print(f"Loaded images: {list(image_dict.keys())}")
     for filename, topo_image in image_dict.items():
 
-        if filename != "20250501_5nMTRF1_1ngtel12_picoz_EE_freezer_nicl.0_00041":
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+        print(filename)
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@")
+
+        if filename != "20251203_TAF_supercoiled_picoz.0_00035":
             continue
 
         print()
