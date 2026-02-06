@@ -313,20 +313,17 @@ def get_out_path(image_path: str | Path = None, base_dir: str | Path = None, out
     """
     # If image_path is relative and doesn't include base_dir then a ValueError is raised, in which
     # case we just want to append the image_path to the output_dir
+    image_path = Path(image_path)
     try:
         # Remove the filename if there is a suffix, not always the case as
         # get_out_path is called from save_folder_grainstats()
         if image_path.suffix:
-            return output_dir / image_path.relative_to(base_dir).parent / image_path.stem
+            return output_dir / image_path.relative_to(base_dir).parent / image_path.parts[-1]
         return output_dir / image_path.relative_to(base_dir)
     except ValueError:
         if image_path.suffix:
-            return output_dir / image_path.parent / image_path.stem
+            return output_dir / image_path.parent / image_path.parts[-1]
         return Path(str(output_dir) + "/" + str(image_path))
-    # AttributeError is raised if image_path is a string (since it isn't a Path() object with a .suffix)
-    except AttributeError:
-        LOGGER.error("A string form of a Path has been passed to 'get_out_path()' for image_path")
-        raise
 
 
 def find_files(base_dir: str | Path = None, file_ext: str = ".spm") -> list:
@@ -404,8 +401,9 @@ def save_image_grainstats(
     for _dir in dirs:
         LOGGER.debug(f"Statistics ({_dir}) :\n{all_stats_df}")
         try:
-            # Ensure "processed" directory exists at the stem of out_path, creating if needed
+            # Ensure "output/processed" directory exists at the stem of out_path, creating if needed
             out_path = get_out_path(Path(_dir), base_dir, output_dir_processed)
+            out_path.mkdir(parents=True, exist_ok=True)
             all_stats_df[all_stats_df["basename"] == _dir].to_csv(out_path / f"image_{stats_filename}.csv", index=True)
             LOGGER.info(f"Image-wise statistics saved to: {str(out_path)}/image_{stats_filename}.csv")
         except TypeError:
@@ -821,8 +819,10 @@ class LoadScans:
             ".top": self.load_top,
         }
         for img_path in self.img_paths:
+            if Path(img_path).is_dir():
+                continue
             self.img_path = Path(img_path)
-            self.filename = Path(img_path).stem
+            self.filename = str(Path(img_path).parts[-1])
             suffix = Path(img_path).suffix
             LOGGER.info(f"Extracting image from {self.img_path}")
             LOGGER.debug(f"File extension : {suffix}")
@@ -1036,9 +1036,7 @@ def hdf5_to_dict(open_hdf5_file: h5py.File, group_path: str) -> dict:
     return data_dict
 
 
-def save_topostats_file(
-    output_dir: Path, filename: str, topostats_object: TopoStats, topostats_version: str = __release__
-) -> None:
+def save_topostats_file(output_dir: Path, topostats_object: TopoStats, topostats_version: str = __release__) -> None:
     """
     Save ''TopoStats'' object to a ''.topostats'' (hdf5 format) file.
 
@@ -1046,21 +1044,19 @@ def save_topostats_file(
     ----------
     output_dir : Path
         Directory to save the .topostats file in.
-    filename : str
-        File name of the .topostats file.
     topostats_object : dict
         Dictionary of the topostats data to save. Must include a flattened image and pixel to nanometre scaling
         factor. May also include grain masks.
     topostats_version : str
         Version to save as, defaults to ''__release__''.
     """
-    LOGGER.info(f"[{filename}] : Saving image to .topostats file")
-
-    if ".topostats" not in filename:
+    LOGGER.info(f"[{topostats_object.filename}] : Saving image to .topostats file")
+    if ".topostats" not in topostats_object.filename:
+        # Remove everything after the last period in filename)
+        filename = topostats_object.filename.rsplit(".", 1)[0]
         save_file_path = Path(output_dir) / f"{filename}.topostats"
     else:
-        save_file_path = Path(output_dir) / filename
-
+        save_file_path = Path(output_dir) / topostats_object.filename
     with h5py.File(save_file_path, "w") as f:
         # It may be possible for topostats_object["image"] to be None.
         # Make sure that this is not the case.
@@ -1074,8 +1070,10 @@ def save_topostats_file(
             dict_to_hdf5(open_hdf5_file=f, group_path="/", dictionary=convert_to_dict(topostats_object))
 
         else:
-            raise ValueError("TopoStats object dictionary does not contain an 'image'. \
-                 TopoStats objects must be saved with a flattened image.")
+            raise ValueError(
+                "TopoStats object dictionary does not contain an 'image'. "
+                "TopoStats objects must be saved with a flattened image."
+            )
 
 
 def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-nested-blocks

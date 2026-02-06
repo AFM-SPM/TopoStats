@@ -313,7 +313,7 @@ def test_filters(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Filters class for testing."""
     load_scan.get_data()
     return Filters(
-        topostats_object=load_scan.img_dict["minicircle_small"],
+        topostats_object=load_scan.img_dict["minicircle_small.topostats"],
         **filter_config,
     )
 
@@ -760,7 +760,7 @@ def small_array_filters(small_array: np.ndarray, load_scan: LoadScans, filter_co
     """Filters object based on small_array."""
     load_scan.get_data()
     filter_obj = Filters(
-        topostats_object=load_scan.img_dict["minicircle_small"],
+        topostats_object=load_scan.img_dict["minicircle_small.topostats"],
         **filter_config,
     )
     filter_obj.pixel_to_nm_scaling = 0.5
@@ -862,7 +862,7 @@ def minicircle(load_scan: LoadScans, filter_config: dict) -> Filters:
     """Instantiate a Filters object, creates the output directory and loads the image."""
     load_scan.get_data()
     return Filters(
-        topostats_object=load_scan.img_dict["minicircle_small"],
+        topostats_object=load_scan.img_dict["minicircle_small.topostats"],
         **filter_config,
     )
 
@@ -1403,7 +1403,6 @@ def mock_model_5_by_5_single_class() -> MagicMock:
         assert input_array.dtype == np.float32, "Input data type is not as expected"
 
         input_array_without_batch_and_channel = input_array[0, :, :, 0]
-        print(input_array_without_batch_and_channel)
 
         # Different output for different input
         if np.array_equal(
@@ -1527,7 +1526,7 @@ def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
     default_config["file_ext"] = ".topostats"
     load_scan = LoadScans([RESOURCES / "test_image" / "minicircle_small.topostats"], config=default_config)
     load_scan.get_data()
-    return load_scan.img_dict["minicircle_small"]
+    return load_scan.img_dict["minicircle_small.topostats"]
 
 
 # In addition to `minicircles.spm` (and derivatives) we have three sets of pickled TopoStats objects (as file sizes blow
@@ -1566,8 +1565,8 @@ def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) 
     """
     load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_minicircle.topostats"], config=default_config)
     load_scans.get_data()
-    topostats_object = load_scans.img_dict["post_processing_minicircle"]
-    topostats_object.filename = "minicircle"
+    topostats_object = load_scans.img_dict["post_processing_minicircle.topostats"]
+    topostats_object.filename = "minicircle.topostats"
     return topostats_object
 
 
@@ -1582,8 +1581,8 @@ def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) 
 #     load_scans = LoadScans([RESOURCES / "post_process" / "post_processing_minicircle_small.topostats"],
 #                              config=default_config)
 #     load_scans.get_data()
-#     topostats_object = load_scans.img_dict["minicircle_small"]
-#     topostats_object.filename = "minicircle_small"
+#     topostats_object = load_scans.img_dict["minicircle_small.topostats"]
+#     topostats_object.filename = "minicircle_small.topostats"
 #     return topostats_object
 
 # @pytest.fixture()

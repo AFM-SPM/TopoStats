@@ -456,68 +456,68 @@ def test_convert_basename_to_relative_paths():
 @pytest.mark.parametrize(
     ("base_dir", "image_path", "output_dir", "expected"),
     [
-        # Absolute path, nested under base_dir, with file suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("/some/random/path/images/test.spm"),
             Path("output/here"),
-            Path("output/here/images/test/"),
+            Path("output/here/images/test.spm/"),
+            id="Absolute path, nested under base_dir, with file suffix",
         ),
-        # Absolute path, nested under base_dir, with file suffix and multiple periods
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("/some/random/path/images/to.at.spm"),
             Path("output/here"),
-            Path("output/here/images/to.at/"),
+            Path("output/here/images/to.at.spm/"),
+            id="Absolute path, nested under base_dir, with file suffix and multiple periods",
         ),
-        # Absolute path, nested under base_dir, with file suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("/some/random/path/images/today/test.spm"),
             Path("output/here"),
-            Path("output/here/images/today/test/"),
+            Path("output/here/images/today/test.spm/"),
+            id="Absolute path, nested under base_dir, with file suffix",
         ),
-        # Relative path, nested under base_dir, with file_suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("images/test.spm"),
             Path("output/here"),
-            Path("output/here/images/test"),
+            Path("output/here/images/test.spm"),
+            id="Relative path, nested under base_dir, with file_suffix",
         ),
-        # Relative path, nested (two deep) under base_dir, with file_suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("images/today/test.spm"),
             Path("output/here"),
-            Path("output/here/images/today/test"),
+            Path("output/here/images/today/test.spm"),
+            id="Relative path, nested (two deep) under base_dir, with file_suffix",
         ),
-        # Relative path, nested under base_dir, no file suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("images/"),
             Path("output/here"),
             Path("output/here/images/"),
+            id="Relative path, nested under base_dir, no file suffix",
         ),
-        # Absolute path, nested under base_dir, output not nested under base_dir, with file_suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("/some/random/path/images/test.spm"),
             Path("/different/absolute/path"),
-            Path("/different/absolute/path/images/test"),
+            Path("/different/absolute/path/images/test.spm"),
+            id="Absolute path, nested under base_dir, output not nested under base_dir, with file_suffix",
         ),
-        # Absolute path, nested under base_dir, output not nested under base_dir, no file file_suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("/some/random/path/images/"),
             Path("/different/absolute/path"),
             Path("/different/absolute/path/images/"),
+            id="Absolute path, nested under base_dir, output not nested under base_dir, no file file_suffix",
         ),
-        # Relative path, nested under base_dir, output not nested under base_dir, with file_suffix
-        (
+        pytest.param(
             Path("/some/random/path"),
             Path("images/test.spm"),
             Path("/an/absolute/path"),
-            Path("/an/absolute/path/images/test"),
+            Path("/an/absolute/path/images/test.spm"),
+            id="Relative path, nested under base_dir, output not nested under base_dir, with file_suffix",
         ),
     ],
 )
@@ -526,16 +526,6 @@ def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expect
     out_path = get_out_path(image_path, base_dir, output_dir)
     assert isinstance(out_path, Path)
     assert out_path == expected
-
-
-def test_get_out_path_attributeerror() -> None:
-    """Test get_out_path() raises AttribteError when passed a string instead of a Path() for image_path."""
-    with pytest.raises(AttributeError):
-        get_out_path(
-            image_path="images/test.spm",
-            base_dir=Path("/some/random/path"),
-            output_dir=Path("output/here"),
-        )
 
 
 def test_save_image_grainstats(tmp_path: Path) -> None:
@@ -671,26 +661,26 @@ def test_load_scan_asd(load_scan_asd: LoadScans) -> None:
 @pytest.mark.parametrize(
     ("load_scan_object", "length", "image_shape", "image_sum", "filename", "pixel_to_nm_scaling"),
     [
-        pytest.param("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle", 0.4940029296875, id="spm"),
-        pytest.param("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2", 1.5625, id="ibw"),
-        pytest.param("load_scan_jpk", 1, (256, 256), 219242202.8256843, "file", 1.2770176335964876, id="jpk"),
-        pytest.param("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file", 0.8468632812499975, id="gwy"),
+        pytest.param("load_scan_spm", 1, (1024, 1024), 30695369.188316286, "minicircle.spm", 0.4940029296875, id="spm"),
+        pytest.param("load_scan_ibw", 1, (512, 512), -218091520.0, "minicircle2.ibw", 1.5625, id="ibw"),
+        pytest.param("load_scan_jpk", 1, (256, 256), 219242202.8256843, "file.jpk", 1.2770176335964876, id="jpk"),
+        pytest.param("load_scan_gwy", 1, (512, 512), 33836850.232917726, "file.gwy", 0.8468632812499975, id="gwy"),
         pytest.param(
             "load_scan_topostats",
             1,
             (1024, 1024),
             30695369.188316286,
-            "file",
+            "file.topostats",
             0.4940029296875,
             id="topostats",
         ),
-        pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file_122", 2.0, id="asd"),
+        pytest.param("load_scan_asd", 197, (200, 200), -12843725.967220962, "file.asd_122", 2.0, id="asd"),
         pytest.param(
             "load_scan_topostats_240",
             1,
             (1024, 1024),
             30695369.188316286,
-            "minicircle_240",
+            "minicircle_240.topostats",
             0.4940029296875,
             id="topostats (version 2.4.0)",
         ),

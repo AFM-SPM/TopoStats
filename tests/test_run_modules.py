@@ -127,7 +127,7 @@ def test_filters(attributes: dict, caplog) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Filtering completed." in caplog.text
     # Load the output file with AFMReader check its a dictionary and convert to TopoStats
-    data = topostats.load_topostats("output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats("output/processed/topostats/minicircle_small.topostats")
     assert isinstance(data, dict)
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)
@@ -176,7 +176,7 @@ def test_grains(attributes: dict, caplog, tmp_path: Path) -> None:
     assert "Looking for images with extension   : .topostats" in caplog.text
     assert "[minicircle_small] Grain detection completed (NB - Filtering was *not* re-run)." in caplog.text
     # Load the output file with AFMReader check its a dictionary and convert to TopoStats
-    data = topostats.load_topostats(tmp_path / "output/processed/minicircle_small.topostats")
+    data = topostats.load_topostats(tmp_path / "output/processed/topostats/minicircle_small.topostats")
     assert isinstance(data, dict)
     topostats_object = dict_to_topostats(dictionary=data)
     assert isinstance(topostats_object, TopoStats)

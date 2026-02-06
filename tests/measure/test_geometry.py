@@ -209,7 +209,6 @@ def test_calculate_shortest_branch_distances(
 
     np.testing.assert_array_equal(shortest_node_distances, expected_shortest_node_distances)
     np.testing.assert_array_equal(shortest_distances_branch_indexes, expected_shortest_distances_branch_indexes)
-    print(shortest_distances_branch_coordinates)
     np.testing.assert_array_equal(shortest_distances_branch_coordinates, expected_shortest_distances_branch_coordinates)
 
 
