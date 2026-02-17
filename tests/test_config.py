@@ -3,8 +3,10 @@
 import argparse
 import logging
 from pathlib import Path
+from pkgutil import get_data
 
 import pytest
+import yaml
 
 from topostats.config import (
     merge_mappings,
@@ -18,6 +20,9 @@ from topostats.logs.logs import LOGGER_NAME
 from topostats.validation import DEFAULT_CONFIG_SCHEMA, validate_config
 
 BASE_DIR = Path.cwd()
+
+default_config = get_data(package="topostats", resource="default_config.yaml")
+DEFAULT_CONFIG = yaml.full_load(default_config)
 
 
 @pytest.mark.parametrize(
@@ -35,7 +40,7 @@ def test_reconcile_config_args_no_config(config: str) -> None:
         module="topostats",
         config=config,
     )
-    config = reconcile_config_args(args=args)
+    config = reconcile_config_args(args=args, default_config=DEFAULT_CONFIG)
 
     # Check that the config passes the schema
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
@@ -49,7 +54,7 @@ def test_reconcile_config_args_no_config_with_overrides() -> None:
         output_dir="./dummy_output_dir",
         module="topostats",
     )
-    config = reconcile_config_args(args=args)
+    config = reconcile_config_args(args=args, default_config=DEFAULT_CONFIG)
 
     # Check that the overrides have been applied
     assert config["output_dir"] == Path("./dummy_output_dir")
@@ -65,7 +70,7 @@ def test_reconcile_config_args_full_config() -> None:
         module="topostats",
     )
 
-    config = reconcile_config_args(args=args)
+    config = reconcile_config_args(args=args, default_config=DEFAULT_CONFIG)
 
     # Check that the config passes the schema
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
@@ -78,7 +83,7 @@ def test_reconcile_config_args_partial_config() -> None:
         config_file=f"{BASE_DIR / 'tests' / 'resources' / 'test_partial_config.yaml'}",
         module="topostats",
     )
-    config = reconcile_config_args(args=args)
+    config = reconcile_config_args(args=args, default_config=DEFAULT_CONFIG)
 
     # Check that the partial config has overridden the default config
     assert config["filter"]["threshold_method"] == "absolute"
@@ -94,7 +99,7 @@ def test_reconcile_config_args_partial_config_with_overrides() -> None:
         output_dir="./dummy_output_dir",
         module="topostats",
     )
-    config = reconcile_config_args(args=args)
+    config = reconcile_config_args(args=args, default_config=DEFAULT_CONFIG)
 
     # Check that the partial config has overridden the default config
     assert config["filter"]["threshold_method"] == "absolute"

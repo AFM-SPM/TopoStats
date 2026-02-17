@@ -14,12 +14,14 @@ from functools import partial
 from importlib import resources
 from multiprocessing import Pool
 from pathlib import Path
+from pkgutil import get_data
 from pprint import pformat
 
 import pandas as pd
 import yaml
 from tqdm import tqdm
 
+import topostats
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
@@ -122,7 +124,9 @@ def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, 
         Returns the dictionary of configuration options and a dictionary of image files found on the input path.
     """
     # Parse command line options, load config (or default) and update with command line options
-    config = reconcile_config_args(args=args)
+    default_config = get_data(package=topostats.__package__, resource="default_config.yaml")
+    default_config = yaml.full_load(default_config)
+    config = reconcile_config_args(args=args, default_config=default_config)
 
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
@@ -653,7 +657,9 @@ def bruker_rename(args: argparse.Namespace | None = None) -> None:
         Arguments.
     """
     # Parse command line options, load config (or default) and update with command line options
-    config = reconcile_config_args(args=args)
+    default_config = get_data(package=topostats.__package__, resource="default_config.yaml")
+    default_config = yaml.full_load(default_config)
+    config = reconcile_config_args(args=args, default_config=default_config)
 
     # Validate configuration
     validate_config(config, schema=DEFAULT_CONFIG_SCHEMA, config_type="YAML configuration file")
