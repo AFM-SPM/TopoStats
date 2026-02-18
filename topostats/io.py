@@ -7,6 +7,7 @@ import os
 import pickle as pkl
 import re
 import struct
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -916,7 +917,7 @@ class LoadScans:
             img_path=self.img_path.with_name(filename),
             image=None,
             image_original=image,
-            config=self.config,
+            config=deepcopy(self.config),
         )
 
 
