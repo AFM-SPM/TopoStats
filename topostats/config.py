@@ -7,9 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from pkgutil import get_data
 from pprint import pformat
-from typing import TypeVar
-
-import yaml
+from typing import Any, TypeVar
 
 from topostats import CONFIG_DOCUMENTATION_REFERENCE
 from topostats.io import read_yaml
@@ -21,7 +19,7 @@ MutableMappingType = TypeVar("MutableMappingType", bound="MutableMapping")
 LOGGER = logging.getLogger(LOGGER_NAME)
 
 
-def reconcile_config_args(args: Namespace | None) -> dict:
+def reconcile_config_args(args: Namespace | None, default_config: dict[str, Any]) -> dict:
     """
     Reconcile command line arguments with the default configuration.
 
@@ -36,6 +34,8 @@ def reconcile_config_args(args: Namespace | None) -> dict:
     ----------
     args : Namespace
         Command line arguments passed into TopoStats.
+    default_config : dict[str, Any]
+        Dictionary containing the default configuration for the package.
 
     Returns
     -------
@@ -43,8 +43,6 @@ def reconcile_config_args(args: Namespace | None) -> dict:
         The configuration dictionary.
     """
     update_module(args=args)
-    default_config = get_data(package=args.module, resource="default_config.yaml")
-    default_config = yaml.full_load(default_config)
     if args is not None:
         if args.config_file is not None:
             config = read_yaml(str(args.config_file))
