@@ -32,14 +32,14 @@ keywords = [
   "atomic force microscopy",
   "image processing",
 ]
-requires-python = ">=3.10, <3.12"
+requires-python = ">=3.10"
 dependencies = [
   "art",
   "AFMReader",
   "h5py",
   "keras",
   "matplotlib",
-  "numpy~=2.0.0",  # Until TensorFlow supports newer versions
+  "numpy~=2.0.0", # Until TensorFlow supports newer versions
   "numpyencoder",
   "pandas",
   "pillow<=11.1.0",
@@ -54,6 +54,8 @@ dependencies = [
   "tensorflow",
   "topoly",
   "tqdm",
+  "ty>=0.0.16",
+  "pydantic>=2.12.5",
 ]
 
 [project.optional-dependencies]
