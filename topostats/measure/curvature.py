@@ -42,7 +42,6 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
     return angle
 
 
-
 def total_turn_in_region_radians(
     angles_radians: npt.NDArray[np.float64],
     region_inclusive: tuple[int, int],
@@ -282,6 +281,28 @@ class MoleculeCurvatureStats(TopoStatsBaseModel):
     median_curvature: float
     curvature_iqr: float
 
+    # function to turn to a dictionary if needed
+    def to_dict(self) -> dict:
+        """
+        Convert the MoleculeCurvatureStats to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the MoleculeCurvatureStats.
+        """
+        return {
+            "curvatures": self.curvatures,
+            "is_circular": self.is_circular,
+            "mean_curvature": self.mean_curvature,
+            "max_curvature": self.max_curvature,
+            "min_curvature": self.min_curvature,
+            "std_curvature": self.std_curvature,
+            "total_curvature": self.total_curvature,
+            "median_curvature": self.median_curvature,
+            "curvature_iqr": self.curvature_iqr,
+        }
+
 
 class GrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single grain."""
@@ -295,12 +316,46 @@ class GrainCurvatureStats(TopoStatsBaseModel):
     median_curvature: float
     curvature_iqr: float
 
+    def to_dict(self) -> dict:
+        """
+        Convert the GrainCurvatureStats to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the GrainCurvatureStats.
+        """
+        return {
+            "molecules": {key: value.to_dict() for key, value in self.molecules.items()},
+            "mean_curvature": self.mean_curvature,
+            "max_curvature": self.max_curvature,
+            "min_curvature": self.min_curvature,
+            "std_curvature": self.std_curvature,
+            "total_curvature": self.total_curvature,
+            "median_curvature": self.median_curvature,
+            "curvature_iqr": self.curvature_iqr,
+        }
+
 
 class AllGrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for all grains."""
 
     grains: dict[str, GrainCurvatureStats]
     filename: str
+
+    def to_dict(self) -> dict:
+        """
+        Convert the AllGrainCurvatureStats to a dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the AllGrainCurvatureStats.
+        """
+        return {
+            "grains": {key: value.to_dict() for key, value in self.grains.items()},
+            "filename": self.filename,
+        }
 
     def create_grain_curvature_stats_dataframe(self) -> pd.DataFrame:
         """
@@ -311,7 +366,6 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
         pd.DataFrame
             Dataframe of grain curvature statistics.
         """
-
         # Format: grain_index | <metric>
         records = []
         for grain_index, grain_curvature_stats in self.grains.items():

@@ -601,14 +601,16 @@ def run_nodestats(  # noqa: C901
                     output_dir=core_out_path,
                     **plotting_config["plot_dict"]["connected_nodes"],
                 ).plot_and_save()
-                for plot_name, image_value in nodestats_full_images.items():
-                    Images(
-                        image,
-                        filename=f"{filename}_{direction}_{plot_name}",
-                        masked_array=image_value,
-                        output_dir=tracing_out_path / direction,
-                        **plotting_config["plot_dict"][plot_name],
-                    ).plot_and_save()
+                # Save debug full image plots
+                if "all" in plotting_config["image_set"] or "nodestats" in plotting_config["image_set"]:
+                    for plot_name, image_value in nodestats_full_images.items():
+                        plotting_config["plot_dict"][plot_name]["filename"] = f"{filename}_{direction}_{plot_name}"
+                        Images(
+                            image,
+                            masked_array=image_value,
+                            output_dir=tracing_out_path / direction,
+                            **plotting_config["plot_dict"][plot_name],
+                        ).plot_and_save()
                 # plot single node images
                 for mol_no, mol_stats in nodestats_data.items():
                     if mol_stats is not None:
@@ -1025,7 +1027,7 @@ def run_curvature_stats(
                     on=["image", "threshold", "grain_number"],
                 )
 
-                all_directions_grains_curvature_stats_dict[direction] = all_grain_curvature_stats
+                all_directions_grains_curvature_stats_dict[direction] = all_grain_curvature_stats.to_dict()
 
             return all_directions_grains_curvature_stats_dict, grainstats_df
         except Exception as e:
@@ -1266,6 +1268,8 @@ def process_scan(
         )
 
         topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
+
+        print(f"@@@@@@@@@@ grain curvature stats type: {type(topostats_object['grain_curvature_stats'])} @@@@@@@@@@")
 
     else:
         LOGGER.warning(f"[{topostats_object['filename']}] : No grains found, skipping grainstats and tracing stages.")
