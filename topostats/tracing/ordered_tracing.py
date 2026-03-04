@@ -668,8 +668,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         # each molecule this is stored along with the original
         topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
 
-        molecule_data = {} if ordered_traces is not None else None
+        molecule_data = None
         if ordered_traces is not None:
+            molecule_data = {}
             for i, mol_trace in enumerate(ordered_traces):
                 if len(mol_trace) > 3:  # if > 4 coords to trace
                     self.mol_tracing_stats["circular"] = linear_or_circular(mol_trace[:, :2])
