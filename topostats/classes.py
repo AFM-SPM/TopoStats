@@ -201,7 +201,7 @@ class GrainCrop:
         )
 
     @property
-    def image(self) -> npt.NDArray[float]:
+    def image(self) -> npt.NDArray[np.floating]:
         """
         Getter for the ``image`` attribute.
 
@@ -213,7 +213,7 @@ class GrainCrop:
         return self._image
 
     @image.setter
-    def image(self, value: npt.NDArray[float]):
+    def image(self, value: npt.NDArray[np.floating]):
         """
         Setter for the ``image`` attribute.
 
