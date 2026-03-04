@@ -856,21 +856,21 @@ class MatchedBranch:
 
     Attributes
     ----------
-    ordered_coords : npt.NDArray[np.int32]
+    ordered_coords : npt.NDArray[np.int32], optional
         Numpy array of ordered coordinates.
-    heights : npt.NDArray[np.number]
+    heights : npt.NDArray[np.number], optional
         Numpy array of heights.
-    distances : npt.NDArray[np.number]
+    distances : npt.NDArray[np.number], optional
         Numpy array of distances.
-    fwhm : float
+    fwhm : float, optional
         Full-width half maximum.
-    fwhm_half_maxs : list[float]
+    fwhm_half_maxs : list[float], optional
         Half-maximums from a matched branch.
-    fwhm_peaks : list[int | float]
+    fwhm_peaks : list[float], optional
         Peaks from a matched branch.
-    angles : float
+    angles : float | list[float], optional
         Angle between branches.
-    branch_statistics : dict[str, float | int | list[Any] | str]
+    branch_statistics : dict[str, float | int | list[Any] | str], optional
         Dictionary of branch statistics, ``fwhm``, ``fwhm_half_maxs`` and ``fwhm_peaks``.
     """
 
