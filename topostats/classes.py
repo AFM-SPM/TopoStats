@@ -1067,7 +1067,7 @@ class OrderedTrace:
         writhe = {"+": "positive", "-": "negative", "0": "no writhe"}.get(self.writhe)
         return (
             f"number of molecules : {self.molecules}\n"
-            f"number of images : {len(self.images)}\n"
+            f"number of images : {len(self.images) if self.images is not None else 'None'}\n"
             f"writhe : {writhe}\n"
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
