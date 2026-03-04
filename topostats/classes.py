@@ -1025,23 +1025,23 @@ class OrderedTrace:
     """
     Class for Ordered Trace data and attributes.
 
-    molecule_data : dict[int, Molecule]
+    molecule_data : dict[int, Molecule], optional
         Dictionary of ``Molecule`` objects indexed by molecule number.
-    tracing_stats : dict | None
+    tracing_stats : dict, optional
         Tracing statistics.
-    grain_molstats : Any | None
+    grain_molstats : Any, optional
         Grain molecule statistics.
-    molecules : int
+    molecules : int, optional
         Number of molecules within the grain.
-    writhe : str
+    writhe : str, optional
         The writhe sign, can be either `+`, `-` or `0` for positive, negative or no writhe.
-    pixel_to_nm_scaling: np.float64 | None
+    pixel_to_nm_scaling: np.float64, optional
         Pixel to nm scaling.
-    images: dict[str, npt.NDArray] | None
+    images: dict[str, npt.NDArray], optional
         Diagnostic images produced during processing.
-    error: bool | None
+    error: bool, optional
         Errors encountered?
-    molecule_statistics : dict[int, dict[str, bool | str | float | None]] | None
+    molecule_statistics : dict[int, dict[str, bool | str | float | None]], optional
         Dictionary of molecule statistics, with one entry for each molecule.
     """
 
