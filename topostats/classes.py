@@ -935,11 +935,11 @@ class UnMatchedBranch:
 
     Attributes
     ----------
-    angles : float
+    angles : float | list[float]
         Angle between branches.
     """
 
-    angles: float | list[float] | None = None
+    angles: float | list[float]
 
     def __str__(self) -> str:
         """
