@@ -1073,7 +1073,7 @@ class OrderedTrace:
             f"error : {self.error}"
         )
 
-    def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
+    def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | float | None]]:
         """
         Collate molecule statistics for all molecules to dictionary.
 
@@ -1084,6 +1084,9 @@ class OrderedTrace:
         dict[int, dict[str, bool | int | str | None]]
             Dictionary, indexed by molecule where the value is the molecules statistics for the given molecule.
         """
+        if self.molecule_data is None:
+            raise ValueError("No molecule data found")
+        
         self.molecule_statistics = {
             molecule_number: molecule.collate_molecule_statistics()
             for molecule_number, molecule in self.molecule_data.items()
