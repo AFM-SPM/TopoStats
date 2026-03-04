@@ -1139,7 +1139,7 @@ class Grains:
     def calculate_region_connection_regions(
         grain_mask_tensor: npt.NDArray,
         classes: tuple[int, int],
-    ) -> tuple[int, npt.NDArray, dict[int, npt.NDArray[int]]]:
+    ) -> tuple[int, npt.NDArray, dict[int, npt.NDArray[np.integer]]]:
         """
         Get a list of connection regions between two classes.
 
