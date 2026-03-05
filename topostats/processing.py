@@ -1428,7 +1428,7 @@ def process_grainstats(
 
     Returns
     -------
-    tuple[str, pd.DataFrame] - Deprecated, needs updating
+    tuple[str | None, TopoStats, pd.DataFrame | None]
         A tuple of the image and a boolean indicating if the image was successfully processed.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
