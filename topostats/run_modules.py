@@ -291,7 +291,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 names=["image", "grain_number"],
                 index=["image", "grain_number", "class", "subgrain"],
                 output_dir=config["output_dir"],
-                base_dir=config["base_dir"],
             )
             LOGGER.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
     else:
@@ -314,7 +313,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=["grain_number", "node", "branch"],
                     index=["image", "grain_number", "node", "branch"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
         else:
@@ -333,7 +331,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=["grain_number", "index"],
                     index=["image", "grain_number", "index"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
         else:
@@ -348,7 +345,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=None,
                     index=["image", "grain_number"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
