@@ -268,6 +268,9 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
         )
         LOGGER.error(error)
         grain_stats_additions = None
+    # Set additions to none if splining was not run
+    except KeyError:
+        grain_stats_additions = None
 
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
     if len(grain_stats_all) > 0:
@@ -279,7 +282,7 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
             LOGGER.error(error)
         if grain_stats_additions is not None:
-            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"])
+            grain_stats_all = grain_stats_all.merge(grain_stats_additions, on=["image", "grain_number"], how="left")
         else:
             LOGGER.warning("No molecule statistics to merge with grain statistics.")
         # Write statistics to CSV if there is data.
