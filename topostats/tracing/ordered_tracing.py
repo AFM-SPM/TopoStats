@@ -651,7 +651,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         Returns
         -------
         tuple[list, dict, dict]
-            A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
+        dict[str, npt.NDArray]
+            A dictionary of ordered trace images.
         """
         ordered_traces, topology, cross_add, crossing_coords, fwhms = self.compile_trace(
             reverse_min_conf_crossing=False
