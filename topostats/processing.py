@@ -1059,7 +1059,7 @@ def process_scan(
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     filter_config = config["filter"] if filter_config is None else filter_config
     grains_config = config["grains"] if grains_config is None else grains_config
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
@@ -1071,7 +1071,7 @@ def process_scan(
     splining_config = config["splining"] if splining_config is None else splining_config
     curvature_config = config["curvature"] if curvature_config is None else curvature_config
     plotting_config = config["plotting"].copy() if plotting_config is None else plotting_config
-    output_dir = config["output_dir"] if output_dir is None else output_dir
+    output_dir = Path(config["output_dir"] if output_dir is None else output_dir)
 
     # Get output paths
     core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path = get_out_paths(
