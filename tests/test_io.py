@@ -44,7 +44,6 @@ from topostats.io import (
     read_u32i,
     read_yaml,
     save_array,
-    save_image_grainstats,
     save_pkl,
     write_csv,
     write_yaml,
@@ -526,18 +525,6 @@ def test_get_out_path(image_path: Path, base_dir: Path, output_dir: Path, expect
     out_path = get_out_path(image_path, base_dir, output_dir)
     assert isinstance(out_path, Path)
     assert out_path == expected
-
-
-def test_save_image_grainstats(tmp_path: Path) -> None:
-    """Test a folder-wide grainstats file is made."""
-    test_df = pd.DataFrame({"dummy1": [1, 2, 3], "dummy2": ["a", "b", "c"]})
-    input_path = tmp_path / "minicircle"
-    test_df["basename"] = input_path
-    out_path = tmp_path / "output"
-    Path.mkdir(out_path, parents=True)
-    assert out_path.exists()
-    save_image_grainstats(out_path, input_path, test_df, "grainstats")
-    assert Path(out_path / "processed" / "image_grainstats.csv").exists()
 
 
 def test_load_scan_spm(load_scan_spm: LoadScans) -> None:
@@ -1416,7 +1403,7 @@ def test_write_csv(
     df: pd.DataFrame, dataset: str, names: list[str], index: list[str], filename: str, tmp_path: Path
 ) -> None:
     """Test of write_csv() function."""
-    _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path, base_dir="tests/")
+    _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path)
     assert Path(tmp_path / filename).is_file()
 
 

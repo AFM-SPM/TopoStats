@@ -372,45 +372,6 @@ def _find_old_bruker_files(base_dir: Path) -> list[Path]:
     return [p for p in base_dir.glob("**/*") if OLD_BRUKER_RE.match(p.suffix)]
 
 
-def save_image_grainstats(
-    output_dir: str | Path, base_dir: str | Path, all_stats_df: pd.DataFrame, stats_filename: str
-) -> None:
-    """
-    Save a data frame of grain and tracing statistics at the folder level.
-
-    Parameters
-    ----------
-    output_dir : Union[str, Path]
-        Path of the output directory head.
-    base_dir : Union[str, Path]
-        Path of the base directory where files were found.
-    all_stats_df : pd.DataFrame
-        The dataframe containing all sample statistics run.
-    stats_filename : str
-        The name of the type of statistics dataframe to be saved.
-
-    Returns
-    -------
-    None
-        This only saves the dataframes and does not retain them.
-    """
-    dirs = set(all_stats_df["basename"].values)
-    if output_dir.stem != "processed":
-        output_dir_processed = Path(str(output_dir)) / "processed"
-        output_dir_processed.mkdir(parents=True, exist_ok=True)
-    LOGGER.debug(f"Statistics :\n{all_stats_df}")
-    for _dir in dirs:
-        LOGGER.debug(f"Statistics ({_dir}) :\n{all_stats_df}")
-        try:
-            # Ensure "output/processed" directory exists at the stem of out_path, creating if needed
-            out_path = get_out_path(Path(_dir), base_dir, output_dir_processed)
-            out_path.mkdir(parents=True, exist_ok=True)
-            all_stats_df[all_stats_df["basename"] == _dir].to_csv(out_path / f"image_{stats_filename}.csv", index=True)
-            LOGGER.info(f"Image-wise statistics saved to: {str(out_path)}/image_{stats_filename}.csv")
-        except TypeError:
-            LOGGER.info(f"No image-wise statistics for image {_dir}, no grains detected.")
-
-
 def read_null_terminated_string(open_file: io.TextIOWrapper, encoding: str = "utf-8") -> str:
     """
     Read an open file from the current position in the open binary file, until the next null value.
@@ -1240,7 +1201,6 @@ def write_csv(
     names: list[str] | None,
     index: list[str],
     output_dir: str | Path,
-    base_dir: str | Path,
 ) -> pd.DataFrame:
     """
     Write summary statistics files to CSV.
@@ -1258,8 +1218,6 @@ def write_csv(
         List of columns to set index to.
     output_dir : str | Path
         Output directory.
-    base_dir : str | Path
-        Base directory.
 
     Returns
     -------
@@ -1288,8 +1246,6 @@ def write_csv(
     df.set_index(index, inplace=True)
     # Write to CSV
     df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
-    # Write statistics on per-folder basis
-    save_image_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
     # Return dataframe with index reset
     df.reset_index(inplace=True)
     return df
