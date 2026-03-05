@@ -1266,7 +1266,7 @@ def process_scan(
 
 
 def process_filters(
-    topostats_object: dict,
+    topostats_object: TopoStats,
     base_dir: str | Path,
     filter_config: dict,
     plotting_config: dict,
@@ -1280,9 +1280,8 @@ def process_filters(
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
-        path and it's pixel to namometre scaling value.
+    topostats_object : Topostats
+        TopoStats object - Needs further info
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -1300,7 +1299,7 @@ def process_filters(
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     filter_config = config["filter"] if filter_config is None else filter_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
