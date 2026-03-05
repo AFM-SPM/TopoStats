@@ -1086,7 +1086,7 @@ class OrderedTrace:
         """
         if self.molecule_data is None:
             raise ValueError("No molecule data found")
-        
+
         self.molecule_statistics = {
             molecule_number: molecule.collate_molecule_statistics()
             for molecule_number, molecule in self.molecule_data.items()
