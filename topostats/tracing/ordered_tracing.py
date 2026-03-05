@@ -442,7 +442,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         return ordered_segment_coords[coord_idx][::-1]  # end is endpoint
 
     @staticmethod
-    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> npt.NDArray:
+    def order_from_end(last_segment_coord: npt.NDArray, current_segment: npt.NDArray) -> tuple[npt.NDArray, bool]:
         """
         Order the current segment to follow from the end of the previous one.
 
