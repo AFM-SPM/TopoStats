@@ -587,14 +587,16 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 return False
         return True
 
-    def identify_writhes(self) -> str | dict:
+    def identify_writhes(self) -> tuple[str, dict]:
         """
         Identify the writhe topology at each crossing in the image.
 
         Returns
         -------
-        str | dict
-            A string of the whole grain writhe sign, and a dictionary linking each node to it's sign.
+            writhe_string: str
+                A string of the whole grain writhe sign
+            node_to_writhe: dict    
+                a dictionary linking each node to its sign.
         """
         # compile all vectors for each node and their z_idx
         #   - want for each node, ordered vectors according to z_idx
