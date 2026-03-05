@@ -1429,7 +1429,7 @@ def process_grainstats(
     Returns
     -------
     tuple[str | None, TopoStats, pd.DataFrame | None]
-        A tuple of the image and a boolean indicating if the image was successfully processed.
+        A tuple of the image name, the updated TopoStats object, and the grain statistics DataFrame or None.```
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
