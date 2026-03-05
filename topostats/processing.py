@@ -1405,7 +1405,7 @@ def process_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
-) -> tuple[str, bool]:
+) -> tuple[str | None, TopoStats, pd.DataFrame | None]:
     """
     Calculate grain statistics in an image where grains have already been detected.
 
@@ -1428,12 +1428,12 @@ def process_grainstats(
 
     Returns
     -------
-    tuple[str, pd.DataFrame]
+    tuple[str, pd.DataFrame] - Deprecated, needs updating
         A tuple of the image and a boolean indicating if the image was successfully processed.
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
@@ -1462,7 +1462,7 @@ def process_grainstats(
             )
         except:  # noqa: E722  # pylint: disable=bare-except
             LOGGER.info(f"Grain detection failed for image : {topostats_object.filename}")
-            return topostats_object
+            return None, topostats_object, None
         # Grain Statistics
         grain_stats = {
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
