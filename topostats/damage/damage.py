@@ -1,13 +1,13 @@
 """Functions for damage detection and quantification."""
 
-import re
 from collections.abc import Generator
 from dataclasses import dataclass
 
+import matplotlib.cm.coolwarm
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from topostats.measure.curvature import (
     calculate_discrete_angle_difference_circular,
@@ -848,3 +848,306 @@ def combine_unanalysed_grain_collections(collections: list[UnanalysedGrainCollec
         for grain in collection.values():
             combined_collection.add_grain(grain)
     return combined_collection
+
+
+# class Defect(BaseDamageAnalysis):
+#     start_index: int
+#     end_index: int
+#     length_nm: float
+#     position_along_trace_nm: float
+#     total_turn_radians: tuple[float, float]
+
+#     def __eq__(self, other: object) -> bool:
+#         if not isinstance(other, Defect):
+#             raise TypeError(f"Cannot compare Defect with {type(other)}")
+#         return (
+#             self.start_index == other.start_index
+#             and self.end_index == other.end_index
+#             and np.isclose(self.length_nm, other.length_nm, rtol=1e-9, atol=1e-12)
+#             and np.isclose(self.position_along_trace_nm, other.position_along_trace_nm, rtol=1e-9, atol=1e-12)
+#             and np.isclose(self.total_turn_radians[0], other.total_turn_radians[0], rtol=1e-9, atol=1e-12)
+#             and np.isclose(self.total_turn_radians[1], other.total_turn_radians[1], rtol=1e-9, atol=1e-12)
+#         )
+
+
+# class DefectGap(BaseDamageAnalysis):
+#     start_index: int
+#     end_index: int
+#     length_nm: float
+#     position_along_trace_nm: float
+
+
+# class OrderedDefectsGaps(BaseDamageAnalysis):
+#     defect_gap_list: list[Defect | DefectGap] = Field(default_factory=list)
+
+#     # post-init to sort the list by start index
+#     def model_post_init(self, __context: dict | None = None) -> None:
+#         self.sort_defect_gap_list()
+
+#     def sort_defect_gap_list(self) -> None:
+#         self.defect_gap_list.sort(key=lambda x: x.start_index)
+
+#     def add_item(self, item: Defect | DefectGap) -> None:
+#         self.defect_gap_list.append(item)
+#         self.sort_defect_gap_list()
+
+#     def __eq__(self, other: object) -> bool:
+#         if not isinstance(other, OrderedDefectsGaps):
+#             raise TypeError(f"Cannot compare OrderedDefectsGaps with {type(other)}")
+#         if len(self.defect_gap_list) != len(other.defect_gap_list):
+#             return False
+
+#         for item_self, item_other in zip(self.defect_gap_list, other.defect_gap_list):
+#             if item_self != item_other:
+#                 return False
+
+
+class MoleculeDefectData(BaseDamageAnalysis):
+    """Data object to hold the defect and gap data for a molecule."""
+
+    ordered_defects_and_gaps: OrderedDefectGapList
+
+    @computed_field
+    @property
+    def num_defects(self) -> int:
+        """Calculate the number of defects."""
+        return sum(isinstance(item, Defect) for item in self.ordered_defects_and_gaps.defect_gap_list)
+
+    @computed_field
+    @property
+    def num_gaps(self) -> int:
+        """Calculate the number of gaps."""
+        return sum(isinstance(item, DefectGap) for item in self.ordered_defects_and_gaps.defect_gap_list)
+
+
+class GrainDefectData(BaseDamageAnalysis):
+    """Data object to hold the defect and gap data for a grain."""
+
+    molecule_defect_data_dict: dict[int, MoleculeDefectData] = Field(default_factory=dict)
+
+    @computed_field
+    @property
+    def num_defects(self) -> int:
+        """Calculate the total number of defects across all molecules."""
+        return sum(molecule_defect_data.num_defects for molecule_defect_data in self.molecule_defect_data_dict.values())
+
+    @computed_field
+    @property
+    def num_gaps(self) -> int:
+        """Calculate the total number of gaps across all molecules."""
+        return sum(molecule_defect_data.num_gaps for molecule_defect_data in self.molecule_defect_data_dict.values())
+
+
+class MoleculeData(UnanalysedMoleculeData):
+    """Data object to hold the analysed molecule data."""
+
+    def from_unanalysed_molecule_data(unanalysed_data: UnanalysedMoleculeData) -> "MoleculeData":
+        """Create a MoleculeData object from an UnanalysedMoleculeData object."""
+        return MoleculeData(
+            molecule_id=unanalysed_data.molecule_id,
+            ordered_coords_heights=unanalysed_data.ordered_coords_heights,
+            spline_coords_heights=unanalysed_data.spline_coords_heights,
+            distances=unanalysed_data.distances,
+            circular=unanalysed_data.circular,
+            spline_coords=unanalysed_data.spline_coords,
+            ordered_coords=unanalysed_data.ordered_coords,
+            curvature_data=unanalysed_data.curvature_data,
+        )
+
+
+class MoleculeDataCollection(UnanalysedMoleculeDataCollection):
+    """Data object to hold a collection of analysed molecule data."""
+
+    def from_unanalysed_molecule_data_collection(
+        unanalysed_collection: UnanalysedMoleculeDataCollection,
+    ) -> "MoleculeDataCollection":
+        """Create a MoleculeDataCollection object from an UnanalysedMoleculeDataCollection object."""
+        molecule_data_dict = {}
+        for molecule_id, unanalysed_molecule_data in unanalysed_collection.molecules.items():
+            molecule_data = MoleculeData.from_unanalysed_molecule_data(unanalysed_molecule_data)
+            molecule_data_dict[molecule_id] = molecule_data
+        return MoleculeDataCollection(molecules=molecule_data_dict)
+
+
+class GrainModel(UnanalysedGrain):
+    """Data object to hold the analysed grain data."""
+
+    curvature_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
+    height_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
+
+    def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain) -> "GrainModel":
+        """Create a GrainModel object from an UnanalysedGrain object."""
+        # Create the new molecule data collection
+        molecule_data_collection = MoleculeDataCollection.from_unanalysed_molecule_data_collection(
+            unanalysed_grain.molecule_data_collection
+        )
+        return GrainModel(
+            global_grain_id=unanalysed_grain.global_grain_id,
+            file_grain_id=unanalysed_grain.file_grain_id,
+            filename=unanalysed_grain.filename,
+            pixel_to_nm_scaling=unanalysed_grain.pixel_to_nm_scaling,
+            folder=unanalysed_grain.folder,
+            percent_damage=unanalysed_grain.percent_damage,
+            bbox=unanalysed_grain.bbox,
+            image=unanalysed_grain.image,
+            aspect_ratio=unanalysed_grain.aspect_ratio,
+            smallest_bounding_area=unanalysed_grain.smallest_bounding_area,
+            total_contour_length=unanalysed_grain.total_contour_length,
+            num_crossings=unanalysed_grain.num_crossings,
+            molecule_data_collection=molecule_data_collection,
+            added_left=unanalysed_grain.added_left,
+            added_top=unanalysed_grain.added_top,
+            padding=unanalysed_grain.padding,
+            mask=unanalysed_grain.mask,
+            node_coords=unanalysed_grain.node_coords,
+            num_nodes=unanalysed_grain.num_nodes,
+        )
+
+    def __str__(self) -> str:
+        """Return a simplified string representation of the grain."""
+        return (
+            f"GrainModel(global_grain_id={self.global_grain_id}), {self.percent_damage}% damage, "
+            f"with {len(self.molecule_data_collection)} molecules, {self.num_crossings} crossings "
+            f"from file {self.filename}."
+        )
+
+    def plot(  # noqa: C901
+        self, mask_alpha: float = 0.3, linemode: str = "", curvature_defects: bool = False, height_defects: bool = False
+    ) -> None:
+        """Plot the grain image with the mask and molecule data overlaid."""
+        plt.imshow(self.image, **IMGPLOTARGS)
+        plt.imshow(self.mask[:, :, 1], alpha=mask_alpha, cmap="gray")
+        if linemode == "spline":
+            for _molecule_id, molecule_data in self.molecule_data_collection.items():
+                spline_coords = molecule_data.spline_coords
+                plt.plot(spline_coords[:, 1], spline_coords[:, 0])
+        elif linemode == "curvature":
+            for _molecule_id, molecule_data in self.molecule_data_collection.items():
+                spline_coords = molecule_data.spline_coords
+                curvature_data = molecule_data.curvature_data
+                if curvature_data is not None:
+                    curvature_values = curvature_data["smoothed_curvatures"]
+                    # plot the curvature values as a colormap along the spline coords
+                    assert len(curvature_values) == len(spline_coords), (
+                        f"length of curvature values {len(curvature_values)} does not match"
+                        f"length of spline coords {len(spline_coords)}"
+                    )
+                    curvature_norm_bounds_lower = -0.1
+                    curvature_norm_bounds_upper = 0.1
+                    curvature_values_clipped = np.clip(
+                        curvature_values, curvature_norm_bounds_lower, curvature_norm_bounds_upper
+                    )
+                    curvature_values_normalised = (curvature_values_clipped - curvature_norm_bounds_lower) / (
+                        curvature_norm_bounds_upper - curvature_norm_bounds_lower
+                    )
+                    curvature_cmap = matplotlib.cm.coolwarm
+                    for index, point in enumerate(spline_coords):
+                        color = curvature_cmap(curvature_values_normalised[index])
+                        if index > 0:
+                            previous_point = spline_coords[index - 1]
+                            plt.plot(
+                                [previous_point[1], point[1]],
+                                [previous_point[0], point[0]],
+                                color=color,
+                                linewidth=1,
+                            )
+        if curvature_defects:
+            # plot all the curvature defects as pink dots
+            for molecule_id, molecule_defect_data in self.curvature_defect_data.molecule_defect_data_dict.items():
+                for item in molecule_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                    if isinstance(item, Defect):
+                        defect_start_index = item.start_index
+                        defect_end_index = item.end_index
+                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                        defect_coords = spline_coords[defect_start_index:defect_end_index]
+                        plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="magenta", s=10)
+        if height_defects:
+            # plot all the height defects as cyan dots
+            for molecule_id, molecule_defect_data in self.height_defect_data.molecule_defect_data_dict.items():
+                for item in molecule_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                    if isinstance(item, Defect):
+                        defect_start_index = item.start_index
+                        defect_end_index = item.end_index
+                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                        defect_coords = spline_coords[defect_start_index:defect_end_index]
+                        plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
+        plt.show()
+
+
+class GrainCollection(BaseDamageAnalysis):
+    """Data object to hold a collection of analysed grains."""
+
+    grains: dict[int, GrainModel]
+    current_global_grain_id: int = 0
+
+    def __str__(self) -> str:
+        """Return a simplified string representation of the grain collection."""
+        grain_indexes = range(self.current_global_grain_id)
+        missing_grain_indexes = [index for index in grain_indexes if index not in self.grains]
+        return (
+            f"GrainModelCollection with {len(self.grains)} grains, with {len(missing_grain_indexes)} "
+            f"omitted grains: {missing_grain_indexes}"
+        )
+
+    def __getitem__(self, key: int) -> GrainModel:
+        """Get a grain from the collection by its global id."""
+        return self.grains[key]
+
+    def __len__(self) -> int:
+        """Get the number of grains in the collection."""
+        return len(self.grains)
+
+    def __contains__(self, key: int) -> bool:
+        """Check if a grain with a given global id is in the collection."""
+        return key in self.grains
+
+    def items(self) -> Generator[tuple[int, GrainModel], None, None]:
+        """Get the items of the grain collection, yielding tuples of global grain id and grain."""
+        return (item for item in self.grains.items())
+
+    def keys(self) -> Generator[int, None, None]:
+        """Get the keys of the grain collection."""
+        return (key for key in self.grains.keys())
+
+    def values(self) -> Generator[GrainModel, None, None]:
+        """Get the values of the grain collection."""
+        return (value for value in self.grains.values())
+
+    def get(self, key: int, default: GrainModel | None = None) -> GrainModel | None:
+        """Get a grain from the collection by its global id, returning a default value if not present."""
+        return self.grains.get(key, default)
+
+    def add_grain(self, grain_model: GrainModel) -> None:
+        """Add a grain to the collection, assigning it a global grain id."""
+        # note: a grain might already have a global grain id if it came from another collection, but we can
+        # just overwrite it.
+        grain_model.global_grain_id = self.current_global_grain_id
+        self.grains[self.current_global_grain_id] = grain_model
+        self.current_global_grain_id += 1
+
+    def remove_grain(self, global_grain_id: int) -> None:
+        """Remove a grain from the collection by its global id."""
+        if global_grain_id not in self.grains:
+            raise KeyError(f"grain with global id {global_grain_id} not found in collection, cannot remove")
+        del self.grains[global_grain_id]
+
+    def remove_grains(self, global_grain_ids: list[int] | set[int]) -> None:
+        """Remove multiple grains from the collection by their global ids."""
+        global_grain_ids_set = set(global_grain_ids)
+        for grain_id in global_grain_ids_set:
+            self.remove_grain(grain_id)
+
+    def combine_with_other_collection(self, other_collection: "GrainCollection") -> None:
+        """Combine another GrainCollection into this GrainCollection."""
+        for grain_model in other_collection.values():
+            self.add_grain(grain_model)
+
+    def from_unanalysed_grain_collection(
+        unanalysed_collection: UnanalysedGrainCollection,
+    ) -> "GrainCollection":
+        """Create a GrainCollection object from an UnanalysedGrainCollection object."""
+        grain_dict = {}
+        for global_grain_id, unanalysed_grain in unanalysed_collection.unanalysed_grains.items():
+            grain_model = GrainModel.from_unanalysed_grain(unanalysed_grain)
+            grain_dict[global_grain_id] = grain_model
+        return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
