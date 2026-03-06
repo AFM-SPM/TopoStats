@@ -1,13 +1,15 @@
 """Functions for damage detection and quantification."""
 
 from dataclasses import dataclass
-from topostats.measure.curvature import (
-    total_turn_in_region_radians,
-    calculate_discrete_angle_difference_circular,
-    calculate_discrete_angle_difference_linear,
-)
+
 import numpy as np
 import numpy.typing as npt
+
+from topostats.measure.curvature import (
+    calculate_discrete_angle_difference_circular,
+    calculate_discrete_angle_difference_linear,
+    total_turn_in_region_radians,
+)
 
 
 @dataclass
@@ -56,7 +58,8 @@ class OrderedDefectGapList:
     """A class to store defects and gaps in a list ordered by the start index of the defect or gap."""
 
     def __init__(self, defect_gap_list: list[Defect | DefectGap] | None = None) -> None:
-        """Initialise the class
+        """
+        Initialise the class.
 
         Parameters
         ----------
@@ -94,7 +97,7 @@ class OrderedDefectGapList:
         # Compare each item with floating-point tolerance
         for self_item, other_item in zip(self.defect_gap_list, other.defect_gap_list):
             # Check if items are the same type
-            if type(self_item) != type(other_item):
+            if not isinstance(self_item, type(other_item)):
                 return False
 
             # Check if start and end indices are equal (these should be exact)
@@ -187,6 +190,7 @@ def get_defects_and_gaps_circular(
     ----------
     defects_bool : npt.NDArray[np.bool_]
         A boolean array where True indicates a defect and False indicates no defect.
+
     Returns
     -------
     tuple[list[tuple[int, int]], list[tuple[int, int]]]
@@ -238,7 +242,8 @@ def calculate_distance_of_region(
     distance_to_previous_points_nm: npt.NDArray[np.float64],
     circular: bool,
 ) -> float:
-    """Calculate the distance of a region in the trace.
+    """
+    Calculate the distance of a region in the trace.
 
     Note: This function cannot take a circular region that is the whole array, since that would imply the start and
     end be the same point, but this is assumed to be a unit region, not an array-wide region.
@@ -280,7 +285,6 @@ def calculate_distance_of_region(
         If the start index is greater than the end index in a linear array, since this necessitates wrapping around the
         end of the array to meet the end index.
     """
-
     # Get the distance from the start index to the end index
     if start_index <= end_index:
         # Normal case, no wrapping around the end of the array, just sum the distances
@@ -308,40 +312,41 @@ def calculate_distance_of_region(
         else:
             end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
         return distance_without_halves + start_half_distance + end_half_distance
-    else:
-        if not circular:
-            # This cannot happen, since if the start index is greater than the end index, then we must wrap around to
-            # the start of the array to meet the end index, but cannot in a linear array.
-            raise ValueError(
-                f"Cannot calculate distance of region {start_index} to {end_index} in a linear array. "
-                "Start index cannot be greater than end index in a linear array."
-            )
-        # The region wraps around the end of the array
-        # Calculate the distance from the start index to the end of the array
-        distance_to_end = np.sum(distance_to_previous_points_nm[start_index + 1 :])
-        # Calculate the distance from the start of the array to the end index
-        distance_to_start = np.sum(distance_to_previous_points_nm[: end_index + 1])
-        # Here we don't need to worry about the indexes of the start and end points since the ends of the array are
-        # inside the region.
-        # Add the half distances to the start and end points
-        start_half_distance = distance_to_previous_points_nm[start_index] / 2
-        end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
-        return distance_to_end + distance_to_start + start_half_distance + end_half_distance
+
+    if not circular:
+        # This cannot happen, since if the start index is greater than the end index, then we must wrap around to
+        # the start of the array to meet the end index, but cannot in a linear array.
+        raise ValueError(
+            f"Cannot calculate distance of region {start_index} to {end_index} in a linear array. "
+            "Start index cannot be greater than end index in a linear array."
+        )
+    # The region wraps around the end of the array
+    # Calculate the distance from the start index to the end of the array
+    distance_to_end = np.sum(distance_to_previous_points_nm[start_index + 1 :])
+    # Calculate the distance from the start of the array to the end index
+    distance_to_start = np.sum(distance_to_previous_points_nm[: end_index + 1])
+    # Here we don't need to worry about the indexes of the start and end points since the ends of the array are
+    # inside the region.
+    # Add the half distances to the start and end points
+    start_half_distance = distance_to_previous_points_nm[start_index] / 2
+    end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
+    return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
 
 def get_defects_and_gaps_from_bool_array(
     defects_bool: npt.NDArray[np.bool_],
-    trace_points_nm: npt.NDArray[np.number],
+    trace_points_nm: npt.NDArray[np.float64],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
 ) -> OrderedDefectGapList:
-    """Get the Defects and DefectGaps from a boolean array of defects and gaps.
+    """
+    Get the Defects and DefectGaps from a boolean array of defects and gaps.
 
     Parameters
     ----------
     defects_bool : npt.NDArray[np.bool_]
         A boolean array where True indicates a defect and False indicates no defect.
-    trace_points : npt.NDArray[np.number]
+    trace_points : npt.NDArray[np.float64]
         The coordinate trace points in nanometre units.
     circular : bool
         If True, the trace is treated as circular, meaning that the end of the trace wraps around to the start.
@@ -355,7 +360,6 @@ def get_defects_and_gaps_from_bool_array(
     OrderedDefectGapList
         An ordered list of Defect and DefectGap objects, sorted by the start index of the defect or gap.
     """
-
     if circular:
         defects, gaps = get_defects_and_gaps_circular(defects_bool=defects_bool)
     else:
@@ -431,7 +435,6 @@ def get_midpoint_index_of_region(
         The midpoint index of the region. If the region has an even number of points, the midpoint is rounded down.
         If the region is circular, the midpoint is calculated as if the array wraps around.
     """
-
     if start_index <= end_index:
         # Normal case, no wrapping needed.
         midpoint_index = (start_index + end_index) // 2
@@ -475,7 +478,7 @@ def calculate_defect_and_gap_lengths(
         )
         # Calculate the position along the trace in nanometers by summing the distances to previous points up to the
         # midpoint index.
-        # Note that if ciruclar, then the distance to the previous point at the starting index, is non zero, so we need
+        # Note that if circular, then the distance to the previous point at the starting index, is non zero, so we need
         # to ignore this initial value. If linear, then the initial value is zero, and we can ignore it.
         # sum indexes from 1 to midpoint_index (inclusive)
         position_along_trace_nm = np.sum(distance_to_previous_points_nm[1 : midpoint_index + 1])
@@ -580,12 +583,11 @@ def calculate_defect_and_gap_turns(
     return defects_and_gaps_with_turns
 
 
-def calculate_indirect_defect_gaps(
+def calculate_indirect_defect_gaps(  # noqa: C901
     ordered_defect_gap_list: OrderedDefectGapList,
     circular: bool,
 ) -> list[float]:
     """Calculate all indirect defect gaps."""
-
     # If there is only one gap, return an empty list
     if len(ordered_defect_gap_list.defect_gap_list) == 0:
         return []
