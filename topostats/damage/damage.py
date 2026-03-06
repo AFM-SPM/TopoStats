@@ -848,13 +848,3 @@ def combine_unanalysed_grain_collections(collections: list[UnanalysedGrainCollec
         for grain in collection.values():
             combined_collection.add_grain(grain)
     return combined_collection
-
-
-def get_dose_from_sample_type(sample_type: str) -> float:
-    """Get the dose for a sample from the sample type string."""
-    if "control" in sample_type.lower():
-        return 0.0
-    match = re.search(r"(\d+)_percent_damage", sample_type)
-    if match:
-        return float(match.group(1))
-    raise ValueError(f"Could not extract dose from sample type: {sample_type}")
