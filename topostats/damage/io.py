@@ -8,9 +8,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from damage import UnanalysedGrain, UnanalysedGrainCollection, UnanalysedMoleculeData, UnanalysedMoleculeDataCollection
 
-from topostats.damage.damage import combine_unanalysed_grain_collections
+from topostats.damage.damage import (
+    UnanalysedGrain,
+    UnanalysedGrainCollection,
+    UnanalysedMoleculeData,
+    UnanalysedMoleculeDataCollection,
+    combine_unanalysed_grain_collections,
+)
 from topostats.io import LoadScans
 from topostats.unet_masking import make_bounding_box_square, pad_bounding_box_cutting_off_at_image_bounds
 

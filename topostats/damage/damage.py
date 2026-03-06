@@ -3,7 +3,6 @@
 from collections.abc import Generator
 from dataclasses import dataclass
 
-import matplotlib.cm.coolwarm
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
@@ -1040,7 +1039,7 @@ class GrainModel(UnanalysedGrain):
                     curvature_values_normalised = (curvature_values_clipped - curvature_norm_bounds_lower) / (
                         curvature_norm_bounds_upper - curvature_norm_bounds_lower
                     )
-                    curvature_cmap = matplotlib.cm.coolwarm
+                    curvature_cmap = plt.get_cmap("coolwarm")
                     for index, point in enumerate(spline_coords):
                         color = curvature_cmap(curvature_values_normalised[index])
                         if index > 0:
