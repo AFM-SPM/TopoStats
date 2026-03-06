@@ -1,15 +1,26 @@
 """Functions for damage detection and quantification."""
 
+import re
+from collections.abc import Generator
 from dataclasses import dataclass
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
+from pydantic import BaseModel, ConfigDict, Field
 
 from topostats.measure.curvature import (
     calculate_discrete_angle_difference_circular,
     calculate_discrete_angle_difference_linear,
     total_turn_in_region_radians,
 )
+from topostats.plottingfuncs import Colormap
+
+colormap = Colormap()
+CMAP: plt.Colormap = colormap.get_cmap()
+VMIN = -3
+VMAX = 4
+IMGPLOTARGS: dict = {"cmap": CMAP, "vmin": VMIN, "vmax": VMAX}
 
 
 @dataclass
@@ -661,3 +672,189 @@ def calculate_indirect_defect_gaps(  # noqa: C901
                 # We have reached a Defect, so we can stop
                 break
     return indirect_gaps
+
+
+class BaseDamageAnalysis(BaseModel):
+    """Data object to hold settings for Models used in the project."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class UnanalysedMoleculeData(BaseDamageAnalysis):
+    """Data object to hold unanalysed molecule data."""
+
+    molecule_id: int
+    ordered_coords_heights: npt.NDArray[np.float64]
+    spline_coords_heights: npt.NDArray[np.float64]
+    distances: npt.NDArray[np.float64]
+    circular: bool
+    spline_coords: npt.NDArray[np.float64]
+    ordered_coords: npt.NDArray[np.float64]
+    curvature_data: dict | None
+
+
+class UnanalysedMoleculeDataCollection(BaseDamageAnalysis):
+    """Data object to hold a collection of unanalysed molecule data."""
+
+    molecules: dict[int, UnanalysedMoleculeData]
+
+    def __getitem__(self, key: int) -> UnanalysedMoleculeData:
+        """Get the molecule data for a given molecule id."""
+        return self.molecules[key]
+
+    def __len__(self) -> int:
+        """Get the number of molecules in the collection."""
+        return len(self.molecules)
+
+    def __contains__(self, key: int) -> bool:
+        """Check if a molecule id is in the collection."""
+        return key in self.molecules
+
+    def items(self) -> Generator[tuple[int, UnanalysedMoleculeData], None, None]:
+        """Get the items of the molecule data collection, yielding tuples of molecule id and molecule data."""
+        return (item for item in self.molecules.items())
+
+    def keys(self) -> Generator[int, None, None]:
+        """Get the keys of the molecule data collection."""
+        return (key for key in self.molecules.keys())
+
+    def values(self) -> Generator[UnanalysedMoleculeData, None, None]:
+        """Get the values of the molecule data collection."""
+        return (value for value in self.molecules.values())
+
+    def get(self, key: int, default: UnanalysedMoleculeData | None = None) -> UnanalysedMoleculeData | None:
+        """Get the molecule data for a given molecule id, or return a default value if the molecule id is not in the collection."""
+        return self.molecules.get(key, default)
+
+    def add_molecule(self, molecule: UnanalysedMoleculeData) -> None:
+        """Add a molecule to the collection."""
+        self.molecules[molecule.molecule_id] = molecule
+
+    def remove_molecule(self, molecule_id: int) -> None:
+        """Remove a molecule from the collection by its molecule id."""
+        if molecule_id not in self.molecules:
+            raise KeyError(f"molecule with id {molecule_id} not found in collection, cannot remove")
+        del self.molecules[molecule_id]
+
+
+class UnanalysedGrain(BaseDamageAnalysis):
+    """Data object to hold unanalysed grain data."""
+
+    global_grain_id: int | None = None
+    file_grain_id: int
+    filename: str
+    pixel_to_nm_scaling: float
+    folder: str
+    percent_damage: float
+    bbox: tuple[int, int, int, int]
+    image: npt.NDArray[np.float64]
+    aspect_ratio: float
+    smallest_bounding_area: float
+    total_contour_length: float
+    num_crossings: int
+    molecule_data_collection: UnanalysedMoleculeDataCollection
+    added_left: int
+    added_top: int
+    padding: int
+    mask: npt.NDArray[np.bool_]
+    node_coords: npt.NDArray[np.float64]
+    num_nodes: int
+
+    def __str__(self) -> str:
+        """Return a simplified string representation of the grain."""
+        return (
+            f"GrainModel(global_grain_id={self.global_grain_id}), {self.percent_damage}% "
+            f"damage, from file {self.filename}."
+        )
+
+    def plot(self, mask_alpha: float = 0.3) -> None:
+        """Plot the grain image with the mask overlaid."""
+        plt.imshow(self.image, **IMGPLOTARGS)
+        plt.imshow(self.mask[:, :, 1], alpha=mask_alpha, cmap="gray")
+        plt.title(f"grain {self.global_grain_id}, {self.percent_damage}% damage")
+        plt.show()
+
+
+class UnanalysedGrainCollection(BaseDamageAnalysis):
+    """Data object to hold a collection of unanalysed grains."""
+
+    unanalysed_grains: dict[int, UnanalysedGrain] = Field(default_factory=dict)
+    current_global_grain_id: int = 0
+
+    # pretty print
+    def __str__(self) -> str:
+        """Return a simplified string representation of the grain collection."""
+        grain_indexes = range(self.current_global_grain_id)
+        missing_grain_indexes = [index for index in grain_indexes if index not in self.unanalysed_grains]
+        return (
+            f"GrainModelCollection with {len(self.unanalysed_grains)} grains, with {len(missing_grain_indexes)} "
+            f"omitted grains: {missing_grain_indexes}"
+        )
+
+    def __getitem__(self, key: int) -> UnanalysedGrain:
+        """Get a grain from the collection by its global id."""
+        return self.unanalysed_grains[key]
+
+    def __len__(self) -> int:
+        """Get the number of grains in the collection."""
+        return len(self.unanalysed_grains)
+
+    def __contains__(self, key: int) -> bool:
+        """Check if a grain with a given global id is in the collection."""
+        return key in self.unanalysed_grains
+
+    def items(self) -> Generator[tuple[int, UnanalysedGrain], None, None]:
+        """Get the items of the grain collection, yielding tuples of global grain id and grain."""
+        for item in self.unanalysed_grains.items():
+            yield from item
+
+    def keys(self) -> Generator[int, None, None]:
+        """Get the keys of the grain collection."""
+        return (key for key in self.unanalysed_grains.keys())
+
+    def values(self) -> Generator[UnanalysedGrain, None, None]:
+        """Get the values of the grain collection."""
+        return (value for value in self.unanalysed_grains.values())
+
+    def get(self, key: int, default: UnanalysedGrain | None = None) -> UnanalysedGrain | None:
+        """Get a grain from the collection by its global id, returning a default value if not present."""
+        return self.unanalysed_grains.get(key, default)
+
+    def add_grain(self, unanalysed_grain: UnanalysedGrain) -> None:
+        """Add a grain to the collection, assigning it a global grain id."""
+        # note: a grain might already have a global grain id if it came from another collection, but we can
+        # just overwrite it.
+        unanalysed_grain.global_grain_id = self.current_global_grain_id
+        self.unanalysed_grains[self.current_global_grain_id] = unanalysed_grain
+        self.current_global_grain_id += 1
+
+    def remove_grain(self, global_grain_id: int) -> None:
+        """Remove a grain from the collection by its global id."""
+        if global_grain_id not in self.unanalysed_grains:
+            raise KeyError(f"grain with global id {global_grain_id} not found in collection, cannot remove")
+        del self.unanalysed_grains[global_grain_id]
+
+    def remove_grains(self, global_grain_ids: list[int] | set[int]) -> None:
+        """Remove multiple grains from the collection by their global ids."""
+        global_grain_ids_set = set(global_grain_ids)
+        for grain_id in global_grain_ids_set:
+            self.remove_grain(grain_id)
+
+
+def combine_unanalysed_grain_collections(collections: list[UnanalysedGrainCollection]) -> UnanalysedGrainCollection:
+    """Combine multiple UnanalysedGrainCollections into a single UnanalysedGrainCollection."""
+    combined_collection = UnanalysedGrainCollection(unanalysed_grains={})
+    for collection in collections:
+        for grain in collection.values():
+            combined_collection.add_grain(grain)
+    return combined_collection
+
+
+def get_dose_from_sample_type(sample_type: str) -> float:
+    """Get the dose for a sample from the sample type string."""
+    if "control" in sample_type.lower():
+        return 0.0
+    match = re.search(r"(\d+)_percent_damage", sample_type)
+    if match:
+        return float(match.group(1))
+    raise ValueError(f"Could not extract dose from sample type: {sample_type}")
