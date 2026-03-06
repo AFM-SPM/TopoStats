@@ -30,7 +30,8 @@ Your parser should include the common options to TopoStats (see the arguments ad
 
 TopoStats uses [YAML][yaml] configuration files to specify the options. In the module you develop you should include a
 `default_config.yaml` and copy the base configuration parameters and `filters:` section from
-`topostats/default_config.yaml`.
+`topostats/default_config.yaml` as a starting point as all images require flattening. You may wish to remove the
+configuration for thresholding though as this is not always required.
 
 You should, for user convenience add a sub-parser to `create-config` using the example in
 `topostats/entry_point.py`. This will allow users to run `<your_package> create-config --config <your_package>` and it
@@ -38,6 +39,70 @@ will, by default, write a copy of `default_config.yaml` to the `config.yaml` fil
 modify the output filename with the `<your_package> create-config --filename my_cutsom_config.yaml` should they wish
 to). You shouldn't have to do anything else, TopoStats will look for the `default_config.yaml` in your package and write
 that to disk.
+
+#### Writing Configuration Files
+
+TopoStats includes the `io.write_yaml()` function to write the YAML configuration alongside all output in the output
+directory so that users know what parameters were used in processing their images. Packages using and extending
+TopoStats can leverage this function to write _their_ configuration files too. In order to customise the header of this
+file users should define `CONFIG_DOCUMENTATION_REFERENCE` in the `__init__.py`, import it where required and define a
+custom `HEADER_MESSAGE`.
+
+**Example `__init__.py`**
+
+```python
+from importlib.metadata import version
+
+import snoop
+from packaging.version import Version
+
+# Disable TensorFlow warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+__version__ = version("afmslicer")
+__release__ = ".".join(__version__.split(".")[:-2])
+
+AFMSLICER_VERSION = Version(__version__)
+if AFMSLICER_VERSION.is_prerelease and AFMSLICER_VERSION.is_devrelease:
+    AFMSLICER_BASE_VERSION = str(AFMSLICER_VERSION.base_version)
+    AFMSLICER_COMMIT = str(AFMSLICER_VERSION).split("+g")[1]
+else:
+    AFMSLICER_BASE_VERSION = str(AFMSLICER_VERSION)
+    AFMSLICER_COMMIT = ""
+CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
+# https://afm-spm.github.io/AFMslicer/main/configuration.html\n"""
+CONFIG_DOCUMENTATION_REFERENCE += f"# AFMSlicer version : {AFMSLICER_BASE_VERSION}\n"
+CONFIG_DOCUMENTATION_REFERENCE += f"# Commit: {AFMSLICER_COMMIT}\n"
+
+```
+
+**Example custom `HEADER_MESSAGE`**
+
+```python
+from topostats.io import get_date_time, write_yaml
+from afmslicer import CONFIG_DOCUMENTATION_REFERENCE
+
+HEADER_MESSAGE = = f"# Configuration from AFMSlicer run complete : {get_date_time()}\n{CONFIG_DOCUMENTATION_REFERENCE}"
+
+def some_function() -> None:
+    config_data = get_data(
+        package=afmslicer.__package__, resource="default_config.yaml"
+    )
+    config = yaml.full_load(config_data)
+    write.yaml(config, output_dir=config["output_dir"], header_message=HEADER_MESSAGE)
+```
+
+This example results in the following header when running `some_function()`
+
+```yaml
+# Configuration from AFMSlicer run complete : 2026-03-06 12:40:32
+# For more information on configuration and how to use it:
+# https://afm-spm.github.io/AFMslicer/main/configuration.html
+# AFMSlicer version : 0.1
+# Commit: cd24434e2.d20251114
+# TopoStats version: 2.4.1
+# Commit: 53b1eb591.d20260306
+```
 
 ## Tests
 
