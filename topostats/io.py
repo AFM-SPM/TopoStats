@@ -189,7 +189,7 @@ def write_yaml(
     config: dict,
     output_dir: str | Path,
     config_file: str = "config.yaml",
-    header_message: str = None,
+    header_message: str | None = None,
 ) -> None:
     """
     Write a configuration (stored as a dictionary) to a YAML file.
@@ -203,17 +203,18 @@ def write_yaml(
     config_file : str
         Filename to write to.
     header_message : str
-        String to write to the header message of the YAML file.
+        String to write to the header message of the YAML file.Use when calling in other packages which use
+        TopoStats. The version and commit of TopoStats will be appended.
     """
     # Save the configuration to output directory
     output_config = Path(output_dir) / config_file
     # Revert PosixPath items to string
     config = path_to_str(config)
 
-    if header_message:
-        header = f"# {header_message} : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
-    else:
+    if header_message is None:
         header = f"# Configuration from TopoStats run completed : {get_date_time()}\n" + CONFIG_DOCUMENTATION_REFERENCE
+    else:
+        header = header_message
 
     # Add comment to config with topostats version + commit
     header += f"# TopoStats version: {TOPOSTATS_BASE_VERSION}\n"
