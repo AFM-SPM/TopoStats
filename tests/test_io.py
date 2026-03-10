@@ -1416,7 +1416,7 @@ def test_write_csv(
     df: pd.DataFrame, dataset: str, names: list[str], index: list[str], filename: str, tmp_path: Path
 ) -> None:
     """Test of write_csv() function."""
-    _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path, base_dir="tests/")
+    _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path)
     assert Path(tmp_path / filename).is_file()
 
 

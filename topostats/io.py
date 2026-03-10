@@ -1240,7 +1240,6 @@ def write_csv(
     names: list[str] | None,
     index: list[str],
     output_dir: str | Path,
-    base_dir: str | Path,
 ) -> pd.DataFrame:
     """
     Write summary statistics files to CSV.
@@ -1258,8 +1257,6 @@ def write_csv(
         List of columns to set index to.
     output_dir : str | Path
         Output directory.
-    base_dir : str | Path
-        Base directory.
 
     Returns
     -------
@@ -1288,8 +1285,6 @@ def write_csv(
     df.set_index(index, inplace=True)
     # Write to CSV
     df.to_csv(Path(output_dir) / dataset_to_csv[dataset], index=True)
-    # Write statistics on per-folder basis
-    save_image_grainstats(output_dir=output_dir, base_dir=base_dir, all_stats_df=df, stats_filename=dataset)
     # Return dataframe with index reset
     df.reset_index(inplace=True)
     return df
@@ -1315,7 +1310,8 @@ def extract_height_profiles(
     height_profile_all = {}
     for image, topostats_object in topostats_object_all.items():
         height_profile_all[image] = {}
-        for grain_number, grain_crop in topostats_object.grain_crops.items():
-            height_profile_all[image][grain_number] = grain_crop.height_profiles
+        if topostats_object.grain_crops is not None:
+            for grain_number, grain_crop in topostats_object.grain_crops.items():
+                height_profile_all[image][grain_number] = grain_crop.height_profiles
     dict_to_json(data=height_profile_all, output_dir=output_dir, filename=filename)
     LOGGER.info(f"Saved all height profiles to {output_dir}/{filename}.")

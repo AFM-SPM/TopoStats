@@ -245,31 +245,33 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     # Molecule statistics - required as we need to average end-to-end and contour length across grains, even if not
     # being explicitly written to CSV themselves
-    try:
-        molecule_stats_all = pd.concat(molecule_stats_all.values())
-        grain_stats_additions = pd.concat(
-            [
-                # Sum the contour length of molecules within each grain
-                molecule_stats_all[["image", "grain_number", "contour_length"]]
-                .groupby(["image", "grain_number"])
-                .sum(),
-                # Mean end to end distance across molecules within each grain
-                molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
-                .groupby(["image", "grain_number"])
-                .mean(),
-            ],
-            axis=1,
-        )
-        grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
-    except ValueError as error:
-        LOGGER.error(
-            "No molecules found in any images."
-            "Either enable tracing or consider adjusting ordered tracing / splining parameters."
-        )
-        LOGGER.error(error)
-        grain_stats_additions = None
-    # Set additions to none if splining was not run
-    except KeyError:
+    if config["splining"]["run"]:
+        try:
+            molecule_stats_all = pd.concat(molecule_stats_all.values())
+            grain_stats_additions = pd.concat(
+                [
+                    # Sum the contour length of molecules within each grain
+                    molecule_stats_all[["image", "grain_number", "contour_length"]]
+                    .groupby(["image", "grain_number"])
+                    .sum(),
+                    # Mean end to end distance across molecules within each grain
+                    molecule_stats_all[["image", "grain_number", "end_to_end_distance"]]
+                    .groupby(["image", "grain_number"])
+                    .mean(),
+                ],
+                axis=1,
+            )
+            grain_stats_additions.columns = ["total_contour_length", "mean_end_to_end_distance"]
+        except ValueError as error:
+            LOGGER.error(
+                "No molecules found in any images."
+                "Either enable tracing or consider adjusting ordered tracing / splining parameters."
+            )
+            LOGGER.error(error)
+            grain_stats_additions = None
+    else:
+        # Skip additional stats merger if splining was not run
+        LOGGER.warning("Splining has been disabled, skipping grain stats additions.")
         grain_stats_additions = None
 
     # ns-rse 2025-12-23 - there is a common pattern here, could we abstract this to a factory method?
@@ -294,7 +296,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                 names=["image", "grain_number"],
                 index=["image", "grain_number", "class", "subgrain"],
                 output_dir=config["output_dir"],
-                base_dir=config["base_dir"],
             )
             LOGGER.info(f"Saved grain stats to : {config['output_dir']}/grain_statistics.csv.")
     else:
@@ -303,12 +304,11 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
 
     # Optional output files
     if output_full_stats:
-        if branch_stats_all is not None:
+        if branch_stats_all:
             # Matched branch statistics
             try:
                 branch_stats_all = pd.concat(branch_stats_all.values())
             except ValueError as error:
-                LOGGER.error("No skeletons found in any images, consider adjusting disordered tracing parameters.")
                 LOGGER.error(error)
             if isinstance(branch_stats_all, pd.DataFrame) and not branch_stats_all.isna().values.all():
                 branch_stats_all = write_csv(
@@ -317,7 +317,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=["grain_number", "node", "branch"],
                     index=["image", "grain_number", "node", "branch"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved matched branch stats to : {config['output_dir']}/matched_branch_statistics.csv.")
         else:
@@ -336,7 +335,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=["grain_number", "index"],
                     index=["image", "grain_number", "index"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved disordered tracing stats to : {config['output_dir']}/branch_statistics.csv.")
         else:
@@ -351,7 +349,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
                     names=None,
                     index=["image", "grain_number"],
                     output_dir=config["output_dir"],
-                    base_dir=config["base_dir"],
                 )
                 LOGGER.info(f"Saved molecule stats to : {config['output_dir']}/molecule_statistics.csv.")
         else:
