@@ -918,6 +918,16 @@ class MoleculeDefectData(BaseDamageAnalysis):
         """Calculate the number of gaps."""
         return sum(isinstance(item, DefectGap) for item in self.ordered_defects_and_gaps.defect_gap_list)
 
+    @computed_field
+    @property
+    def defect_lengths_nm(self) -> list[float]:
+        """Get a list of the lengths of the defects in nanometres."""
+        return [
+            defect_or_gap.length_nm
+            for defect_or_gap in self.ordered_defects_and_gaps.defect_gap_list
+            if isinstance(defect_or_gap, Defect)
+        ]
+
 
 class GrainDefectData(BaseDamageAnalysis):
     """Data object to hold the defect and gap data for a grain."""
@@ -935,6 +945,15 @@ class GrainDefectData(BaseDamageAnalysis):
     def num_gaps(self) -> int:
         """Calculate the total number of gaps across all molecules."""
         return sum(molecule_defect_data.num_gaps for molecule_defect_data in self.molecule_defect_data_dict.values())
+
+    @computed_field
+    @property
+    def defect_lengths_nm(self) -> list[float]:
+        """Get a list of the lengths of all defects across all molecules in nanometres."""
+        defect_lengths = []
+        for molecule_defect_data in self.molecule_defect_data_dict.values():
+            defect_lengths.extend(molecule_defect_data.defect_lengths_nm)
+        return defect_lengths
 
 
 class MoleculeData(UnanalysedMoleculeData):
