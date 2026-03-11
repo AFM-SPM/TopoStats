@@ -14,6 +14,7 @@ from topostats.damage.damage import (
     get_defects_and_gaps_from_bool_array,
     get_defects_and_gaps_linear,
     calculate_defect_and_gap_lengths,
+    connect_close_defects,
 )
 
 TEST_10_COORDS = np.array(
@@ -108,6 +109,50 @@ def test_get_defects_and_gaps_circular(
     """Test the get_defects_and_gaps_circular function."""
     defect_and_gap_list = get_defects_and_gaps_circular(defects_bool=defects_bool)
     assert defect_and_gap_list == expected_defect_and_gap_list
+
+
+@pytest.mark.parametrize(
+    (
+        "defects",
+        "gaps",
+        "distance_to_previous_points_nm",
+        "circular",
+        "connect_close_defect_threshold_nm",
+        "expected_defects",
+        "expected_gaps",
+    ),
+    [
+        pytest.param(
+            [(0, 1), (4, 5)],
+            [(2, 3), (6, 9)],
+            np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            False,
+            4.0,
+            [(0, 1), (4, 5)],
+            [(2, 3), (6, 9)],
+            id="two defects, starts with defect, end with gap, no gaps small enough to connect",
+        )
+    ],
+)
+def test_connect_close_defects(
+    defects: list[tuple[int, int]],
+    gaps: list[tuple[int, int]],
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    circular: bool,
+    connect_close_defect_threshold_nm: float,
+    expected_defects: list[tuple[int, int]],
+    expected_gaps: list[tuple[int, int]],
+) -> None:
+    """Test the connect_close_defects function."""
+    connected_defects, connected_gaps = connect_close_defects(
+        defects=defects,
+        gaps=gaps,
+        distance_to_previous_points_nm=distance_to_previous_points_nm,
+        circular=circular,
+        connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+    )
+    assert connected_defects == expected_defects
+    assert connected_gaps == expected_gaps
 
 
 @pytest.mark.parametrize(
@@ -231,6 +276,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
         "trace_points_nm",
         "circular",
         "distance_to_previous_points_nm",
+        "connect_close_defect_threshold_nm",
         "expected_ordered_defect_gap_list",
     ),
     [
@@ -239,6 +285,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     DefectGap(
@@ -258,6 +305,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     DefectGap(
@@ -276,6 +324,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 13.5, 5.0, (7.844374577835551, 2.376881193972189))]),
             id="all defects, no gap, linear",
         ),
@@ -284,6 +333,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(defect_gap_list=[Defect(0, 9, 14.5, 5.0, (8.660066501151775, 2.376881193972189))]),
             id="all defects, no gap, circular",
         ),
@@ -292,6 +342,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     DefectGap(0, 3, 4.3, 1.1, (5.518473847561982, 0.0)),
@@ -306,6 +357,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     Defect(4, 4, 1.45, 5.0, (0.0, 0.7933196031506369)),
@@ -319,6 +371,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             False,
             np.array([0.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     Defect(0, 0, 0.55, 0.0, (0.0, 0.0)),
@@ -333,6 +386,7 @@ def test_calculate_distance_of_region_linear_array_region_spanning_end() -> None
             TEST_10_COORDS,
             True,
             np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]),
+            None,
             OrderedDefectGapList(
                 defect_gap_list=[
                     DefectGap(1, 8, 12, 5.0, (7.844374577835551, 2.376881193972189)),
@@ -348,6 +402,7 @@ def test_get_defects_and_gaps_from_bool_array(
     trace_points_nm: npt.NDArray[np.float64],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
+    connect_close_defect_threshold_nm: float | None,
     expected_ordered_defect_gap_list: OrderedDefectGapList,
 ) -> None:
     """Test the get_defects_and_gaps_from_bool_array function."""
@@ -356,6 +411,7 @@ def test_get_defects_and_gaps_from_bool_array(
         trace_points_nm=trace_points_nm,
         circular=circular,
         distance_to_previous_points_nm=distance_to_previous_points_nm,
+        connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
     )
     assert ordered_defect_gap_list == expected_ordered_defect_gap_list
 

@@ -1,5 +1,7 @@
 """Functions for damage detection and quantification."""
 
+from sklearn.cluster.tests.test_hdbscan import test_hdbscan_sparse_distances_too_few_nonzero
+
 from collections.abc import Generator
 from dataclasses import dataclass
 
@@ -343,11 +345,119 @@ def calculate_distance_of_region(
     return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
 
+def connect_close_defects(  # noqa: C901
+    defects: list[tuple[int, int]],
+    gaps: list[tuple[int, int]],
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    circular: bool,
+    connect_close_defect_threshold_nm: float,
+) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    """
+    Connect any defects that are within a given threshold distance of each other.
+
+    Parameters
+    ----------
+    defects : list[tuple[int, int]]
+        A list of tuples of start and end indexes of defects.
+    gaps : list[tuple[int, int]]
+        A list of tuples of start and end indexes of gaps.
+    distance_to_previous_points_nm : npt.NDArray[np.float64]
+        An array of distances to the previous points in nanometres.
+    circular : bool
+        If the trace is circular.
+    connect_close_defect_threshold_nm : float
+        The threshold distance in nanometres for connecting close defects.
+
+    Returns
+    -------
+    tuple[list[tuple[int, int]], list[tuple[int, int]]]
+        A tuple containing the updated lists of defects and gaps after connecting close defects.
+    """
+    connected_defects: list[tuple[int, int]] = []
+    connected_gaps: list[tuple[int, int]] = []
+
+    first_defect = defects[0]
+    first_gap = gaps[0]
+    gap_index = 0
+    if first_gap[0] < first_defect[0]:
+        # first gap comes before the first defect, add the gap
+        connected_gaps.append(first_gap)
+        gap_index = 1
+
+    for defect in defects:
+        if len(connected_defects) == 0:
+            # add the first defect to the list of connected defects
+            connected_defects.append(defect)
+        else:
+            previous_defect = connected_defects[-1]
+            gap = gaps[gap_index]
+            distance_between_defects = calculate_distance_of_region(
+                previous_defect[1],
+                defect[0],
+                distance_to_previous_points_nm,
+                circular,
+            )
+            if distance_between_defects <= connect_close_defect_threshold_nm:
+                # Connect the defects by merging the previous defect and the current defect into a single defect
+                connected_defects[-1] = (previous_defect[0], defect[1])
+                # Don't add the current gap since it's now part of the defect
+            else:
+                # Add the current defect to the list of connected defects
+                connected_defects.append(defect)
+                # Add the current gap to the list of connected gaps
+                connected_gaps.append(gap)
+            gap_index += 1
+    # Add the last gap if it hasn't been added yet
+    if gap_index < len(gaps):
+        connected_gaps.append(gaps[gap_index])
+
+    # If circular and the trace ends or starts in a gap, then check if we need to connect the first and last defects
+    if circular:
+        if connected_gaps[0][0] < connected_defects[0][0]:
+            # The trace starts with a gap
+            first_defect = connected_defects[0]
+            last_defect = connected_defects[-1]
+            distance_between_defects = calculate_distance_of_region(
+                last_defect[1],
+                first_defect[0],
+                distance_to_previous_points_nm,
+                circular,
+            )
+            if distance_between_defects <= connect_close_defect_threshold_nm:
+                # Connect the defects by merging the last defect and first defect into a single defect
+                # Update the first defect to include the last defect
+                connected_defects[0] = (last_defect[0], first_defect[1])
+                # Remove the last defect since it's now part of the first defect
+                connected_defects.pop()
+                # Remove the first gap since it's now part of the defect
+                connected_gaps.pop(0)
+        elif connected_gaps[-1][1] > connected_defects[-1][1]:
+            # The trace ends with a gap
+            first_defect = connected_defects[0]
+            last_defect = connected_defects[-1]
+            distance_between_defects = calculate_distance_of_region(
+                last_defect[1],
+                first_defect[0],
+                distance_to_previous_points_nm,
+                circular,
+            )
+            if distance_between_defects <= connect_close_defect_threshold_nm:
+                # Connect the defects by merging the last defect and first defect into a single defect
+                # Update the first defect to include the last defect
+                connected_defects[0] = (last_defect[0], first_defect[1])
+                # Remove the last defect since it's now part of the first defect
+                connected_defects.pop()
+                # Remove the last gap since it's now part of the defect
+                connected_gaps.pop()
+    return connected_defects, connected_gaps
+
+
 def get_defects_and_gaps_from_bool_array(
     defects_bool: npt.NDArray[np.bool_],
     trace_points_nm: npt.NDArray[np.float64],
     circular: bool,
     distance_to_previous_points_nm: npt.NDArray[np.float64],
+    connect_close_defect_threshold_nm: float | None,
 ) -> OrderedDefectGapList:
     """
     Get the Defects and DefectGaps from a boolean array of defects and gaps.
@@ -364,6 +474,8 @@ def get_defects_and_gaps_from_bool_array(
     distance_to_previous_points_nm : npt.NDArray[np.float64]
         An array of distances to the previous points in nanometers. This is used to calculate the lengths of the
         defects and gaps.
+    connect_close_defect_threshold_nm : float
+        The threshold in nanometers for considering two defects as close.
 
     Returns
     -------
@@ -371,9 +483,22 @@ def get_defects_and_gaps_from_bool_array(
         An ordered list of Defect and DefectGap objects, sorted by the start index of the defect or gap.
     """
     if circular:
-        defects, gaps = get_defects_and_gaps_circular(defects_bool=defects_bool)
+        defects, gaps = get_defects_and_gaps_circular(
+            defects_bool=defects_bool,
+        )
     else:
-        defects, gaps = get_defects_and_gaps_linear(defects_bool=defects_bool)
+        defects, gaps = get_defects_and_gaps_linear(
+            defects_bool=defects_bool,
+        )
+
+    if connect_close_defect_threshold_nm is not None:
+        defects, gaps = connect_close_defects(
+            defects=defects,
+            gaps=gaps,
+            distance_to_previous_points_nm=distance_to_previous_points_nm,
+            circular=circular,
+            connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+        )
 
     # Calculate the lengths of the defects and gaps
     defect_gap_list = calculate_defect_and_gap_lengths(
