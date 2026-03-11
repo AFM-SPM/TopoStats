@@ -79,7 +79,7 @@ def find_curvature_defects(
                 assert isinstance(
                     curvatures, np.ndarray
                 ), f"expected curvatures to be a numpy array, but got {type(curvatures)}"
-                curvature_threshold_absolute = curvature_threshold_absolute_pernm / molecule_data.pixel_to_nm_scaling
+                curvature_threshold_absolute = curvature_threshold_absolute_pernm / grain_model.pixel_to_nm_scaling
                 curvature_defects_bool = np.abs(curvatures) > curvature_threshold_absolute
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(

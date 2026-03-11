@@ -976,6 +976,8 @@ class MoleculeData(UnanalysedMoleculeData):
 class MoleculeDataCollection(UnanalysedMoleculeDataCollection):
     """Data object to hold a collection of analysed molecule data."""
 
+    molecules: dict[int, MoleculeData]
+
     def from_unanalysed_molecule_data_collection(
         unanalysed_collection: UnanalysedMoleculeDataCollection,
     ) -> "MoleculeDataCollection":
@@ -986,12 +988,51 @@ class MoleculeDataCollection(UnanalysedMoleculeDataCollection):
             molecule_data_dict[molecule_id] = molecule_data
         return MoleculeDataCollection(molecules=molecule_data_dict)
 
+    def __getitem__(self, key: int) -> MoleculeData:
+        """Get the molecule data for a given molecule id."""
+        return self.molecules[key]
+
+    def __len__(self) -> int:
+        """Get the number of molecules in the collection."""
+        return len(self.molecules)
+
+    def __contains__(self, key: int) -> bool:
+        """Check if a molecule id is in the collection."""
+        return key in self.molecules
+
+    def items(self) -> Generator[tuple[int, MoleculeData], None, None]:
+        """Get the items of the molecule data collection, yielding tuples of molecule id and molecule data."""
+        return (item for item in self.molecules.items())
+
+    def keys(self) -> Generator[int, None, None]:
+        """Get the keys of the molecule data collection."""
+        return (key for key in self.molecules.keys())
+
+    def values(self) -> Generator[MoleculeData, None, None]:
+        """Get the values of the molecule data collection."""
+        return (value for value in self.molecules.values())
+
+    def get(self, key: int, default: MoleculeData | None = None) -> MoleculeData | None:
+        """Get the molecule data for a given molecule id, or return a default value if the molecule id is not in the collection."""
+        return self.molecules.get(key, default)
+
+    def add_molecule(self, molecule: MoleculeData) -> None:
+        """Add a molecule to the collection."""
+        self.molecules[molecule.molecule_id] = molecule
+
+    def remove_molecule(self, molecule_id: int) -> None:
+        """Remove a molecule from the collection by its molecule id."""
+        if molecule_id not in self.molecules:
+            raise KeyError(f"molecule with id {molecule_id} not found in collection, cannot remove")
+        del self.molecules[molecule_id]
+
 
 class GrainModel(UnanalysedGrain):
     """Data object to hold the analysed grain data."""
 
     curvature_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
     height_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
+    molecule_data_collection: MoleculeDataCollection
 
     def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain) -> "GrainModel":
         """Create a GrainModel object from an UnanalysedGrain object."""
