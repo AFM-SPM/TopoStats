@@ -1,4 +1,4 @@
-"""Test damage functions"""
+"""Test damage functions."""
 
 import numpy as np
 import numpy.typing as npt
@@ -8,13 +8,13 @@ from topostats.damage.damage import (
     Defect,
     DefectGap,
     OrderedDefectGapList,
+    calculate_defect_and_gap_lengths,
     calculate_distance_of_region,
     calculate_indirect_defect_gaps,
+    connect_close_defects,
     get_defects_and_gaps_circular,
     get_defects_and_gaps_from_bool_array,
     get_defects_and_gaps_linear,
-    calculate_defect_and_gap_lengths,
-    connect_close_defects,
 )
 
 TEST_10_COORDS = np.array(
@@ -127,11 +127,21 @@ def test_get_defects_and_gaps_circular(
             [(2, 3), (6, 9)],
             np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
             False,
-            4.0,
+            2.0,
             [(0, 1), (4, 5)],
             [(2, 3), (6, 9)],
             id="two defects, starts with defect, end with gap, no gaps small enough to connect",
-        )
+        ),
+        pytest.param(
+            [(0, 1), (3, 4)],
+            [(2, 2), (5, 9)],
+            np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            False,
+            4.0,
+            [(0, 4)],
+            [(5, 9)],
+            id="two defects, starts with defect, end with gap, gap between small enough to connect",
+        ),
     ],
 )
 def test_connect_close_defects(
