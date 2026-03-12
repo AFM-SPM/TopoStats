@@ -123,6 +123,16 @@ def test_get_defects_and_gaps_circular(
     ),
     [
         pytest.param(
+            [],
+            [(0, 9)],
+            np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+            False,
+            2.0,
+            [],
+            [(0, 9)],
+            id="no defects",
+        ),
+        pytest.param(
             [(0, 1), (4, 5)],
             [(2, 3), (6, 9)],
             np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),

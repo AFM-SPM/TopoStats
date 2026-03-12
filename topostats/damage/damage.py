@@ -374,6 +374,10 @@ def connect_close_defects(  # noqa: C901
     connected_defects: list[tuple[int, int]] = []
     connected_gaps: list[tuple[int, int]] = []
 
+    # If there are no defects, then do nothing.
+    if len(defects) == 0:
+        return defects, gaps
+
     first_defect = defects[0]
     first_gap = gaps[0]
     gap_index = 0
