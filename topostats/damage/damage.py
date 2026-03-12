@@ -1,7 +1,5 @@
 """Functions for damage detection and quantification."""
 
-from sklearn.cluster.tests.test_hdbscan import test_hdbscan_sparse_distances_too_few_nonzero
-
 from collections.abc import Generator
 from dataclasses import dataclass
 

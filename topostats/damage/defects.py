@@ -13,6 +13,7 @@ def find_curvature_defects(
     curvature_defect_method: Literal["iqr", "absolute"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
+    connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
     Find curvature defects for all molecules in all grains in the grain collection.
@@ -29,6 +30,13 @@ def find_curvature_defects(
     curvature_threshold_absolute_pernm : float
         The absolute threshold in inverse nanometres for curvature defect detection when using the "absolute"
         method.
+    connect_close_defect_threshold_nm : float | None
+        The distance in nanometres between defects below which two defects will be connected into one defect.
+
+    Returns
+    -------
+    set[int]
+        A set of global grain IDs for which curvature defect detection failed.
     """
     # find curvature defects
     bad_grains = set()
@@ -60,6 +68,7 @@ def find_curvature_defects(
                         molecule_data.spline_coords, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
                 grain_model.curvature_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
@@ -89,6 +98,7 @@ def find_curvature_defects(
                         molecule_data.spline_coords, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
                 grain_model.curvature_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
@@ -105,6 +115,7 @@ def find_height_defects(
     height_defect_method: Literal["iqr", "absolute"],
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
+    connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
     Find height defects for all molecules in all grains in the grain collection.
@@ -120,6 +131,8 @@ def find_height_defects(
         The multiplier for the interquartile range when using the "iqr" method for height defect detection.
     height_threshold_absolute_nm : float
         The absolute threshold in nanometres for height defect detection when using the "absolute" method.
+    connect_close_defect_threshold_nm : float | None
+        The distance in nanometres between defects below which two defects will be connected into one defect.
 
     Returns
     -------
@@ -148,6 +161,7 @@ def find_height_defects(
                         coords_nm=molecule_data.spline_coords, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
                 grain_model.height_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
@@ -167,6 +181,7 @@ def find_height_defects(
                         coords_nm=molecule_data.spline_coords, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
                 grain_model.height_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
@@ -186,6 +201,7 @@ def find_defects_in_height_and_curvature(
     curvature_defect_method: Literal["iqr", "absolute"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
+    connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
     Find defects in height and curvature for all molecules in all grains in the grain collection.
@@ -208,6 +224,8 @@ def find_defects_in_height_and_curvature(
         The multiplier for the interquartile range when using the "iqr" method for curvature defect detection.
     curvature_threshold_absolute_pernm : float
         The absolute threshold in inverse nanometres for curvature defect detection when using the "absolute" method.
+    connect_close_defect_threshold_nm : float | None
+        The distance in nanometres between defects below which two defects will be connected into one defect
 
     Returns
     -------
@@ -222,6 +240,7 @@ def find_defects_in_height_and_curvature(
         curvature_defect_method=curvature_defect_method,
         curvature_threshold_iqr_multiplier=curvature_threshold_iqr_multiplier,
         curvature_threshold_absolute_pernm=curvature_threshold_absolute_pernm,
+        connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
     )
     bad_grains.update(additional_bad_grains)
 
@@ -230,6 +249,7 @@ def find_defects_in_height_and_curvature(
         height_defect_method=height_defect_method,
         height_threshold_iqr_multiplier=height_threshold_iqr_multiplier,
         height_threshold_absolute_nm=height_threshold_absolute_nm,
+        connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
     )
     bad_grains.update(additional_bad_grains)
 
