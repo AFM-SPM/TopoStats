@@ -413,42 +413,44 @@ def connect_close_defects(  # noqa: C901
 
     # If circular and the trace ends or starts in a gap, then check if we need to connect the first and last defects
     if circular:
-        if connected_gaps[0][0] < connected_defects[0][0]:
-            # The trace starts with a gap
-            first_defect = connected_defects[0]
-            last_defect = connected_defects[-1]
-            distance_between_defects = calculate_distance_of_region(
-                last_defect[1],
-                first_defect[0],
-                distance_to_previous_points_nm,
-                circular,
-            )
-            if distance_between_defects <= connect_close_defect_threshold_nm:
-                # Connect the defects by merging the last defect and first defect into a single defect
-                # Update the first defect to include the last defect
-                connected_defects[0] = (last_defect[0], first_defect[1])
-                # Remove the last defect since it's now part of the first defect
-                connected_defects.pop()
-                # Remove the first gap since it's now part of the defect
-                connected_gaps.pop(0)
-        elif connected_gaps[-1][1] > connected_defects[-1][1]:
-            # The trace ends with a gap
-            first_defect = connected_defects[0]
-            last_defect = connected_defects[-1]
-            distance_between_defects = calculate_distance_of_region(
-                last_defect[1],
-                first_defect[0],
-                distance_to_previous_points_nm,
-                circular,
-            )
-            if distance_between_defects <= connect_close_defect_threshold_nm:
-                # Connect the defects by merging the last defect and first defect into a single defect
-                # Update the first defect to include the last defect
-                connected_defects[0] = (last_defect[0], first_defect[1])
-                # Remove the last defect since it's now part of the first defect
-                connected_defects.pop()
-                # Remove the last gap since it's now part of the defect
-                connected_gaps.pop()
+        # Only check for connection if there is more than one defect.
+        if len(connected_defects) > 1:
+            if connected_gaps[0][0] < connected_defects[0][0]:
+                # The trace starts with a gap
+                first_defect = connected_defects[0]
+                last_defect = connected_defects[-1]
+                distance_between_defects = calculate_distance_of_region(
+                    last_defect[1],
+                    first_defect[0],
+                    distance_to_previous_points_nm,
+                    circular,
+                )
+                if distance_between_defects <= connect_close_defect_threshold_nm:
+                    # Connect the defects by merging the last defect and first defect into a single defect
+                    # Update the first defect to include the last defect
+                    connected_defects[0] = (last_defect[0], first_defect[1])
+                    # Remove the last defect since it's now part of the first defect
+                    connected_defects.pop()
+                    # Remove the first gap since it's now part of the defect
+                    connected_gaps.pop(0)
+            elif connected_gaps[-1][1] > connected_defects[-1][1]:
+                # The trace ends with a gap
+                first_defect = connected_defects[0]
+                last_defect = connected_defects[-1]
+                distance_between_defects = calculate_distance_of_region(
+                    last_defect[1],
+                    first_defect[0],
+                    distance_to_previous_points_nm,
+                    circular,
+                )
+                if distance_between_defects <= connect_close_defect_threshold_nm:
+                    # Connect the defects by merging the last defect and first defect into a single defect
+                    # Update the first defect to include the last defect
+                    connected_defects[0] = (last_defect[0], first_defect[1])
+                    # Remove the last defect since it's now part of the first defect
+                    connected_defects.pop()
+                    # Remove the last gap since it's now part of the defect
+                    connected_gaps.pop()
     return connected_defects, connected_gaps
 
 
