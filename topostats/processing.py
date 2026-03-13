@@ -772,6 +772,7 @@ def run_splining(  # noqa: C901
     core_out_path: Path,
     splining_config: dict | None = None,
     plotting_config: dict | None = None,
+    curvature_config: dict | None = None,
     tracing_out_path: str | Path | None = None,
 ) -> None:
     """
@@ -787,6 +788,8 @@ def run_splining(  # noqa: C901
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
+    curvature_config : dict
+        Dictionary configuration for curvature statistics.
     tracing_out_path : str | Path
         Directory to save images from splining to. The ``splining`` directory will be created within and images saved
         there.
@@ -856,6 +859,11 @@ def run_splining(  # noqa: C901
                     )
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
+    if curvature_config["run"]:
+        LOGGER.warning(
+            f"[{topostats_object.filename}] : Automatically disabled curvature due to splining being disabled."
+        )
+        curvature_config["run"] = False
     return
 
 
@@ -896,7 +904,7 @@ def run_curvature_stats(
     )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
+            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping curvature.")
             return
         try:
             curvature_config.pop("run")
@@ -1142,6 +1150,7 @@ def process_scan(
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             splining_config=splining_config,
+            curvature_config=curvature_config,
         )
 
         # Curvature Stats
