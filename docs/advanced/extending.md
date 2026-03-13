@@ -73,7 +73,6 @@ CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and 
 # https://afm-spm.github.io/AFMslicer/main/configuration.html\n"""
 CONFIG_DOCUMENTATION_REFERENCE += f"# AFMSlicer version : {AFMSLICER_BASE_VERSION}\n"
 CONFIG_DOCUMENTATION_REFERENCE += f"# Commit: {AFMSLICER_COMMIT}\n"
-
 ```
 
 **Example custom `HEADER_MESSAGE`**
@@ -82,7 +81,8 @@ CONFIG_DOCUMENTATION_REFERENCE += f"# Commit: {AFMSLICER_COMMIT}\n"
 from topostats.io import get_date_time, write_yaml
 from afmslicer import CONFIG_DOCUMENTATION_REFERENCE
 
-HEADER_MESSAGE = = f"# Configuration from AFMSlicer run complete : {get_date_time()}\n{CONFIG_DOCUMENTATION_REFERENCE}"
+HEADER_MESSAGE == f"# Configuration from AFMSlicer run complete : {get_date_time()}\n{CONFIG_DOCUMENTATION_REFERENCE}"
+
 
 def some_function() -> None:
     config_data = get_data(
