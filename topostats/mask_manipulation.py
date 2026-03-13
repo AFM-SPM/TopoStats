@@ -1,34 +1,32 @@
 """Code for manipulating binary masks."""
 
 import logging
+from pathlib import Path
 from typing import Any
 
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import numpy.typing as npt
-from pathlib import Path
+from pydantic import BaseModel, Field
 from scipy import ndimage
 from skimage import filters
-from skimage.morphology import label
-from pydantic import BaseModel, Field
-import networkx as nx
 
 # pylint: disable=no-name-in-module
 from skimage.graph import route_through_array
+from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
-from topostats.utils import convolve_skeleton
-from topostats.tracing.skeletonize import getSkeleton
-from topostats.tracing.pruning import prune_skeleton
 from topostats.measure.geometry import calculate_mask_width_with_skeleton, calculate_pixel_path_distance
+from topostats.plottingfuncs import Colormap
+from topostats.tracing.pruning import prune_skeleton
+from topostats.tracing.skeletonize import getSkeleton
+from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
-
-# TODO: DEBUG IMPORTS, REMOVE FOR PR
-import matplotlib.pyplot as plt
-from topostats.plottingfuncs import Colormap
-
 DEBUG_PLOT_DIR = Path("/Users/sylvi/Documents/TopoStats/debug-plots")
+DEBUG_PLOTTING = False
 
 colormap = Colormap()
 cmap = colormap.get_cmap()
@@ -192,14 +190,13 @@ def keep_only_nonrepeated_endpoints(
     list[tuple[tuple[int, int], tuple[int, int], float]]
         List of endpoint pairs with no repeated endpoints.
     """
-
     used_endpoints: list[tuple[int, int]] = []
     for potential_pair in potential_pairs:
         endpoint_1, endpoint_2, _distance_nm = potential_pair
         used_endpoints.append((endpoint_1[0], endpoint_1[1]))
         used_endpoints.append((endpoint_2[0], endpoint_2[1]))
 
-    repeated_endpoints = set([ep for ep in used_endpoints if used_endpoints.count(ep) > 1])
+    repeated_endpoints = {ep for ep in used_endpoints if used_endpoints.count(ep) > 1}
 
     pairs_no_repeated_ends: list[tuple[tuple[int, int], tuple[int, int], float]] = []
     for potential_pair in potential_pairs:
@@ -263,9 +260,7 @@ def group_connectionpoints(
     close_pairs: list[tuple[int, int, float]],
     draw_graph: bool = False,
 ) -> dict[int, ConnectionGroup]:
-    """
-    Group connectionpoints into connection groups based on interconnections.
-    """
+    """Group connectionpoints into connection groups based on interconnections."""
     # Split the graph into connected groups
 
     # Create a graph
@@ -328,9 +323,7 @@ def connect_endpoints_with_best_path(
     endpoint_2_coords: tuple[int, int],
     endpoint_connection_cost_map_height_maximum: float,
 ) -> tuple[npt.NDArray[np.uint8], float, float]:
-    """
-    Connect two endpoints with a path found by pathfinding through a cost map derived from the image heights.
-    """
+    """Connect two endpoints with a path found by pathfinding through a cost map derived from the image heights."""
     # create a weight cost map from the image, where 0 is the maximum cost, and the lowest cost is configurable.
     # first create a crop around the two endpoints to speed up pathfinding
     cost_map_bbox_padding_px = 10
@@ -339,8 +332,6 @@ def connect_endpoints_with_best_path(
     min_x = max(0, min(endpoint_1_coords[1], endpoint_2_coords[1]) - cost_map_bbox_padding_px)
     max_x = min(image.shape[1], max(endpoint_1_coords[1], endpoint_2_coords[1]) + cost_map_bbox_padding_px)
     cost_map = image[min_y:max_y, min_x:max_x]
-    _mask_crop = mask[min_y:max_y, min_x:max_x]
-    _image_crop = image[min_y:max_y, min_x:max_x]
     local_endpoint_1 = (endpoint_1_coords[0] - min_y, endpoint_1_coords[1] - min_x)
     local_endpoint_2 = (endpoint_2_coords[0] - min_y, endpoint_2_coords[1] - min_x)
     # clip it to the height bounds
@@ -380,10 +371,7 @@ def fill_mask_gap_using_path(
     path: npt.NDArray[np.uint8],
     mean_mask_pixel_width: float,
 ) -> npt.NDArray[np.bool_]:
-    """
-    Fill a gap in a binary mask using a given path, dilating the path to match the mean mask width.
-    """
-
+    """Fill a gap in a binary mask using a given path, dilating the path to match the mean mask width."""
     path_mask = np.zeros_like(mask, dtype=bool)
     # Set the path to True
     for y, x in path:
@@ -396,12 +384,10 @@ def fill_mask_gap_using_path(
     )
 
     # Add the dilated path to the whole mask
-    filled_mask = mask | dilated_path_array
-
-    return filled_mask
+    return mask | dilated_path_array
 
 
-def find_hard_connected_endpoints(
+def find_hard_connected_endpoints(  # noqa: C901
     skeleton: npt.NDArray[np.bool_],
     endpoints: dict[int, Endpoint],
     max_connection_distance_nm: float,
@@ -460,7 +446,7 @@ def find_hard_connected_endpoints(
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-positional-arguments
-def skeletonise_and_join_close_ends(
+def skeletonise_and_join_close_ends(  # noqa: C901
     filename: str,
     p2nm: float,
     image: npt.NDArray,
@@ -512,7 +498,6 @@ def skeletonise_and_join_close_ends(
     npt.NDArray
         2-D Numpy array of the updated grain mask with gaps filled in.
     """
-
     # skeletonisation_holearea_min_max = (0, None)
     # skeletonisation_mask_smoothing_dilation_iterations = 2
     # skeletonisation_mask_smoothing_gaussian_sigma = 2
@@ -603,7 +588,7 @@ def skeletonise_and_join_close_ends(
     junctionpoint_colour = "teal"
     endpoint_colour = "magenta"
     # plot each connectiongroup
-    for group_id, connection_group in connection_groups.items():
+    for _group_id, connection_group in connection_groups.items():
         # plot endpoints
         for endpoint_id, endpoint in connection_group.endpoints.items():
             ax.plot(endpoint.position[1], endpoint.position[0], "o", color=endpoint_colour, markersize=2)
@@ -646,13 +631,14 @@ def skeletonise_and_join_close_ends(
             ax.add_artist(circle)
     ax.set_title(f"Connection Groups for {filename}")
     # save it, don't show.
-    plt.savefig(DEBUG_PLOT_DIR / f"{filename}_connection_groups.png", dpi=300)
+    if DEBUG_PLOTTING:
+        plt.savefig(DEBUG_PLOT_DIR / f"{filename}_connection_groups.png", dpi=300)
     plt.close(fig)
 
     # Now consider each group and decide how to connect them
     for group_id, connection_group in connection_groups.items():
         LOGGER.info(
-            f"[{filename}] : processing connection group {group_id} with " f"endpoints : {connection_group.endpoints}"
+            f"[{filename}] : processing connection group {group_id} with endpoints : {connection_group.endpoints}"
         )
 
         # If there is one junctionpoint and one endpoint, connect them directly
@@ -686,7 +672,6 @@ def skeletonise_and_join_close_ends(
 
         # If there are only 2 endpoints in the group remove the junctionpoints and connect the endpoints.
         if len(connection_group.endpoints) == 2:
-
             # remove the junctionpoints from the group
             connection_group.remove_all_junctionpoints()
 
@@ -729,7 +714,6 @@ def skeletonise_and_join_close_ends(
 
         # If there are 4 endpoints and no junctionpoints, we can try to connect them.
         if len(connection_group.endpoints) == 4 and len(connection_group.junctionpoints) == 0:
-
             # Find the hard-connected endpoints - endpoints that are connected by paths in the skeleton already.
             hard_connected_endpoints: list[tuple[int, int, float]] = find_hard_connected_endpoints(
                 skeleton=skeleton,
@@ -758,8 +742,6 @@ def skeletonise_and_join_close_ends(
 
             # So now we have the start and end nodes identified.
             start_node_id, end_node_id = non_hard_connected_endpoint_ids
-            _start_node = connection_group.endpoints[start_node_id]
-            _end_node = connection_group.endpoints[end_node_id]
 
             # Find the best path between the start and end node, traversing all nodes, using the shortest distance
             # as the best-path criteria.
@@ -838,7 +820,7 @@ def skeletonise_and_join_close_ends(
                         }
                     )
                 # Select the best path option based on the metrics
-                best_path_option = min(path_metrics, key=lambda x: (x["total_distance_nm"]))
+                best_path_option = min(path_metrics, key=lambda x: x["total_distance_nm"])
 
                 # With the best path option, update the skeleton and mask
                 for segment in best_path_option["path_segments"]:
