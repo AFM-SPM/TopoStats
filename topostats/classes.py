@@ -201,7 +201,7 @@ class GrainCrop:
         )
 
     @property
-    def image(self) -> npt.NDArray[float]:
+    def image(self) -> npt.NDArray[np.floating]:
         """
         Getter for the ``image`` attribute.
 
@@ -213,7 +213,7 @@ class GrainCrop:
         return self._image
 
     @image.setter
-    def image(self, value: npt.NDArray[float]):
+    def image(self, value: npt.NDArray[np.floating]):
         """
         Setter for the ``image`` attribute.
 
@@ -856,21 +856,21 @@ class MatchedBranch:
 
     Attributes
     ----------
-    ordered_coords : npt.NDArray[np.int32]
+    ordered_coords : npt.NDArray[np.int32], optional
         Numpy array of ordered coordinates.
-    heights : npt.NDArray[np.number]
+    heights : npt.NDArray[np.number], optional
         Numpy array of heights.
-    distances : npt.NDArray[np.number]
+    distances : npt.NDArray[np.number], optional
         Numpy array of distances.
-    fwhm : float
+    fwhm : float, optional
         Full-width half maximum.
-    fwhm_half_maxs : list[float]
+    fwhm_half_maxs : list[float], optional
         Half-maximums from a matched branch.
-    fwhm_peaks : list[int | float]
+    fwhm_peaks : list[float], optional
         Peaks from a matched branch.
-    angles : float
+    angles : float | list[float], optional
         Angle between branches.
-    branch_statistics : dict[str, float | int | list[Any] | str]
+    branch_statistics : dict[str, float | int | list[Any] | str], optional
         Dictionary of branch statistics, ``fwhm``, ``fwhm_half_maxs`` and ``fwhm_peaks``.
     """
 
@@ -935,11 +935,11 @@ class UnMatchedBranch:
 
     Attributes
     ----------
-    angles : float
+    angles : float | list[float]
         Angle between branches.
     """
 
-    angles: float | list[float] | None = None
+    angles: float | list[float]
 
     def __str__(self) -> str:
         """
@@ -1025,23 +1025,23 @@ class OrderedTrace:
     """
     Class for Ordered Trace data and attributes.
 
-    molecule_data : dict[int, Molecule]
+    molecule_data : dict[int, Molecule], optional
         Dictionary of ``Molecule`` objects indexed by molecule number.
-    tracing_stats : dict | None
+    tracing_stats : dict, optional
         Tracing statistics.
-    grain_molstats : Any | None
+    grain_molstats : Any, optional
         Grain molecule statistics.
-    molecules : int
+    molecules : int, optional
         Number of molecules within the grain.
-    writhe : str
+    writhe : str, optional
         The writhe sign, can be either `+`, `-` or `0` for positive, negative or no writhe.
-    pixel_to_nm_scaling: np.float64 | None
+    pixel_to_nm_scaling: np.float64, optional
         Pixel to nm scaling.
-    images: dict[str, npt.NDArray] | None
+    images: dict[str, npt.NDArray], optional
         Diagnostic images produced during processing.
-    error: bool | None
+    error: bool, optional
         Errors encountered?
-    molecule_statistics : dict[int, dict[str, bool | str | float | None]] | None
+    molecule_statistics : dict[int, dict[str, bool | str | float | None]], optional
         Dictionary of molecule statistics, with one entry for each molecule.
     """
 
@@ -1067,13 +1067,13 @@ class OrderedTrace:
         writhe = {"+": "positive", "-": "negative", "0": "no writhe"}.get(self.writhe)
         return (
             f"number of molecules : {self.molecules}\n"
-            f"number of images : {len(self.images)}\n"
+            f"number of images : {len(self.images) if self.images is not None else 'None'}\n"
             f"writhe : {writhe}\n"
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
         )
 
-    def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
+    def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | float | None]]:
         """
         Collate molecule statistics for all molecules to dictionary.
 
@@ -1084,6 +1084,9 @@ class OrderedTrace:
         dict[int, dict[str, bool | int | str | None]]
             Dictionary, indexed by molecule where the value is the molecules statistics for the given molecule.
         """
+        if self.molecule_data is None:
+            raise ValueError("No molecule data found")
+
         self.molecule_statistics = {
             molecule_number: molecule.collate_molecule_statistics()
             for molecule_number, molecule in self.molecule_data.items()

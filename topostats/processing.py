@@ -1059,7 +1059,7 @@ def process_scan(
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     filter_config = config["filter"] if filter_config is None else filter_config
     grains_config = config["grains"] if grains_config is None else grains_config
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
@@ -1071,7 +1071,7 @@ def process_scan(
     splining_config = config["splining"] if splining_config is None else splining_config
     curvature_config = config["curvature"] if curvature_config is None else curvature_config
     plotting_config = config["plotting"].copy() if plotting_config is None else plotting_config
-    output_dir = config["output_dir"] if output_dir is None else output_dir
+    output_dir = Path(config["output_dir"] if output_dir is None else output_dir)
 
     # Get output paths
     core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path = get_out_paths(
@@ -1266,7 +1266,7 @@ def process_scan(
 
 
 def process_filters(
-    topostats_object: dict,
+    topostats_object: TopoStats,
     base_dir: str | Path,
     filter_config: dict,
     plotting_config: dict,
@@ -1280,9 +1280,8 @@ def process_filters(
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
-        path and it's pixel to namometre scaling value.
+    topostats_object : Topostats
+        TopoStats object - Needs further info
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -1300,7 +1299,7 @@ def process_filters(
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     filter_config = config["filter"] if filter_config is None else filter_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
@@ -1334,7 +1333,7 @@ def process_filters(
 
 
 def process_grains(
-    topostats_object: dict,
+    topostats_object: TopoStats,
     base_dir: str | Path,
     grains_config: dict,
     plotting_config: dict,
@@ -1348,9 +1347,9 @@ def process_grains(
 
     Parameters
     ----------
-    topostats_object : dict[str, Union[npt.NDArray, Path, float]]
-        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
-        path and it's pixel to namometre scaling value.
+    topostats_object : TopoStats
+        TopoStats object - Needs further info
+
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     grains_config : dict
@@ -1368,7 +1367,7 @@ def process_grains(
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     grains_config = config["grains"] if grains_config is None else grains_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
@@ -1406,7 +1405,7 @@ def process_grainstats(
     grainstats_config: dict,
     plotting_config: dict,
     output_dir: str | Path = "output",
-) -> tuple[str, bool]:
+) -> tuple[str | None, TopoStats, pd.DataFrame | None]:
     """
     Calculate grain statistics in an image where grains have already been detected.
 
@@ -1429,12 +1428,12 @@ def process_grainstats(
 
     Returns
     -------
-    tuple[str, pd.DataFrame]
-        A tuple of the image and a boolean indicating if the image was successfully processed.
+    tuple[str | None, TopoStats, pd.DataFrame | None]
+        A tuple of the image name, the updated TopoStats object, and the grain statistics DataFrame or None.```
     """
     # Setup configuration, we use that from the topostats_object.config if not explicitly given an option
     config = topostats_object.config.copy()
-    base_dir = config["base_dir"] if base_dir is None else base_dir
+    base_dir = Path(config["base_dir"] if base_dir is None else base_dir)
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
@@ -1463,7 +1462,7 @@ def process_grainstats(
             )
         except:  # noqa: E722  # pylint: disable=bare-except
             LOGGER.info(f"Grain detection failed for image : {topostats_object.filename}")
-            return topostats_object
+            return None, topostats_object, None
         # Grain Statistics
         grain_stats = {
             grain_number: grain_crop.stats for grain_number, grain_crop in topostats_object.grain_crops.items()
