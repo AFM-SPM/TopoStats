@@ -2,12 +2,12 @@
 
 import logging
 
-import pandas as pd
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
-from topostats.logs.logs import LOGGER_NAME
 from topostats.classes import TopoStatsBaseModel
+from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -42,7 +42,7 @@ def angle_diff_signed(v1: npt.NDArray[np.number], v2: npt.NDArray[np.number]):
     return angle
 
 
-def total_turn_in_region_radians(
+def total_turn_in_region_radians(  # noqa: C901
     angles_radians: npt.NDArray[np.float64],
     region_inclusive: tuple[int, int],
     circular: bool = False,
@@ -271,14 +271,15 @@ def discrete_angle_difference_per_nm_linear(
 class MoleculeCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single molecule."""
 
-    curvatures: npt.NDArray[np.number]
+    curvatures: npt.NDArray[np.float64]
     is_circular: bool
-    mean_curvature: float
-    max_curvature: float
-    min_curvature: float
-    std_curvature: float
-    total_curvature: float
-    median_curvature: float
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
     curvature_iqr: float
 
     # function to turn to a dictionary if needed
@@ -294,12 +295,13 @@ class MoleculeCurvatureStats(TopoStatsBaseModel):
         return {
             "curvatures": self.curvatures,
             "is_circular": self.is_circular,
-            "mean_curvature": self.mean_curvature,
-            "max_curvature": self.max_curvature,
-            "min_curvature": self.min_curvature,
-            "std_curvature": self.std_curvature,
-            "total_curvature": self.total_curvature,
-            "median_curvature": self.median_curvature,
+            "curvature_mean": self.curvature_mean,
+            "curvature_max": self.curvature_max,
+            "curvature_min": self.curvature_min,
+            "curvature_std": self.curvature_std,
+            "curvature_var": self.curvature_var,
+            "curvature_total": self.curvature_total,
+            "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
         }
 
@@ -308,12 +310,13 @@ class GrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single grain."""
 
     molecules: dict[str, MoleculeCurvatureStats]
-    mean_curvature: float
-    max_curvature: float
-    min_curvature: float
-    std_curvature: float
-    total_curvature: float
-    median_curvature: float
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
     curvature_iqr: float
 
     def to_dict(self) -> dict:
@@ -327,12 +330,13 @@ class GrainCurvatureStats(TopoStatsBaseModel):
         """
         return {
             "molecules": {key: value.to_dict() for key, value in self.molecules.items()},
-            "mean_curvature": self.mean_curvature,
-            "max_curvature": self.max_curvature,
-            "min_curvature": self.min_curvature,
-            "std_curvature": self.std_curvature,
-            "total_curvature": self.total_curvature,
-            "median_curvature": self.median_curvature,
+            "curvature_mean": self.curvature_mean,
+            "curvature_max": self.curvature_max,
+            "curvature_min": self.curvature_min,
+            "curvature_std": self.curvature_std,
+            "curvature_var": self.curvature_var,
+            "curvature_total": self.curvature_total,
+            "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
         }
 
@@ -372,12 +376,13 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
             entry = {
                 "image": self.filename,
                 "grain_number": int(grain_index.split("_")[-1]),
-                "mean_curvature": grain_curvature_stats.mean_curvature,
-                "max_curvature": grain_curvature_stats.max_curvature,
-                "min_curvature": grain_curvature_stats.min_curvature,
-                "std_curvature": grain_curvature_stats.std_curvature,
-                "total_curvature": grain_curvature_stats.total_curvature,
-                "median_curvature": grain_curvature_stats.median_curvature,
+                "curvature_mean": grain_curvature_stats.curvature_mean,
+                "curvature_max": grain_curvature_stats.curvature_max,
+                "curvature_min": grain_curvature_stats.curvature_min,
+                "curvature_std": grain_curvature_stats.curvature_std,
+                "curvature_var": grain_curvature_stats.curvature_var,
+                "curvature_total": grain_curvature_stats.curvature_total,
+                "curvature_median": grain_curvature_stats.curvature_median,
                 "curvature_iqr": grain_curvature_stats.curvature_iqr,
             }
             records.append(entry)
@@ -399,12 +404,13 @@ def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[st
         Dictionary of curvature metrics.
     """
     return {
-        "mean_curvature": float(np.mean(curvatures)),
-        "max_curvature": float(np.max(curvatures)),
-        "min_curvature": float(np.min(curvatures)),
-        "std_curvature": float(np.std(curvatures)),
-        "total_curvature": float(np.sum(curvatures)),
-        "median_curvature": float(np.median(curvatures)),
+        "curvature_mean": float(np.mean(curvatures)),
+        "curvature_max": float(np.max(curvatures)),
+        "curvature_min": float(np.min(curvatures)),
+        "curvature_std": float(np.std(curvatures)),
+        "curvature_var": float(np.var(curvatures)),
+        "curvature_total": float(np.sum(curvatures)),
+        "curvature_median": float(np.median(curvatures)),
         "curvature_iqr": float(np.percentile(curvatures, 75) - np.percentile(curvatures, 25)),
     }
 
