@@ -15,8 +15,8 @@ from skimage.morphology import binary_dilation
 
 import topostats
 from topostats.logs.logs import LOGGER_NAME
+from topostats.measure.curvature import AllGrainCurvatureStats, MoleculeCurvatureStats
 from topostats.theme import Colormap
-from topostats.measure.curvature import AllGrainCurvatureStats
 
 # pylint: disable=dangerous-default-value
 # pylint: disable=too-many-arguments
@@ -469,10 +469,11 @@ class Images:
                 for (_, molecule_curvature_stats), (_, molecule_data_smoothed_trace) in zip(
                     grain_curvature_stats.molecules.items(), grain_data_smoothed_trace.items()
                 ):
+                    molecule_curvatures = molecule_curvature_stats.curvatures
                     molecule_trace_coords = molecule_data_smoothed_trace["spline_coords"]
 
                     # Normalise the curvature values to the colourmap bounds
-                    normalised_curvature = np.array(molecule_curvature_stats)
+                    normalised_curvature = np.array(molecule_curvatures)
                     normalised_curvature = normalised_curvature - colourmap_normalisation_bounds[0]
                     normalised_curvature = normalised_curvature / (
                         colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]

@@ -253,9 +253,9 @@ def run_grains(  # noqa: C901
                             plotting_config["plot_dict"]["grain_mask"]["output_dir"] = grain_out_path_direction
                             # Tensor, iterate over channels
                             for tensor_class in range(1, crop_mask.shape[2]):
-                                plotting_config["plot_dict"]["grain_mask"][
-                                    "filename"
-                                ] = f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                plotting_config["plot_dict"]["grain_mask"]["filename"] = (
+                                    f"{filename}_grain_mask_{grain_number}_class_{tensor_class}"
+                                )
                                 Images(
                                     data=crop_image,
                                     masked_array=crop_mask[:, :, tensor_class],
@@ -276,9 +276,9 @@ def run_grains(  # noqa: C901
                         # Tensor, iterate over each channel
                         for tensor_class in range(1, full_mask_tensor.shape[2]):
                             # Set filename for this class
-                            plotting_config["plot_dict"][plot_name][
-                                "filename"
-                            ] = f"{filename}_{direction}_masked_overlay_class_{tensor_class}"
+                            plotting_config["plot_dict"][plot_name]["filename"] = (
+                                f"{filename}_{direction}_masked_overlay_class_{tensor_class}"
+                            )
                             full_mask_tensor_class = full_mask_tensor[:, :, tensor_class]
                             full_mask_tensor_class_labelled = Grains.label_regions(full_mask_tensor_class)
                             full_mask_tensor_class_regionprops = Grains.get_region_properties(
@@ -1268,8 +1268,6 @@ def process_scan(
         )
 
         topostats_object["grain_curvature_stats"] = grain_curvature_stats_dict
-
-        print(f"@@@@@@@@@@ grain curvature stats type: {type(topostats_object['grain_curvature_stats'])} @@@@@@@@@@")
 
     else:
         LOGGER.warning(f"[{topostats_object['filename']}] : No grains found, skipping grainstats and tracing stages.")
