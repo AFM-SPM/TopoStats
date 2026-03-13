@@ -28,26 +28,24 @@ def _(Path):
     return (dir_base,)
 
 
-@app.cell
-def _(dir_base, pd):
-    curvature_data = pd.read_csv(dir_base / "grain_statistics.csv")
-    assert curvature_data is not None
-    return (curvature_data,)
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ### sanitise dataframe values
+    ### load and sanitise dataframe values
     """)
     return
 
 
 @app.cell
-def _(curvature_data):
+def _(dir_base, pd):
+    # load csv
+    curvature_data = pd.read_csv(dir_base / "grain_statistics.csv")
+    assert curvature_data is not None
+
     # define picoz versions
     picoz_species = ["SCpicoz", "nicked", "3ATpicoz", "tel80picoz", "TEL12"]
     picoz_colors = ["#D81B60", "#1E88E5", "#FFC107", "#004D40", "#D35FB7"]
+    picoz_excluded_species = ["tel80picoz"]
 
 
     def find_species(image_name: str, picoz_species: list[str]):
@@ -60,6 +58,8 @@ def _(curvature_data):
     curvature_data["species"] = curvature_data["image"].apply(
         find_species, picoz_species=picoz_species
     )
+    # drop any excluded species
+    curvature_data = curvature_data[~curvature_data["species"].isin(picoz_excluded_species)]
 
     print(curvature_data["species"].value_counts())
 
@@ -67,7 +67,7 @@ def _(curvature_data):
     curvature_data["total_contour_length_nm"] = (
         curvature_data["total_contour_length"] * 1e9
     )
-    return (picoz_colors,)
+    return curvature_data, picoz_colors
 
 
 @app.cell
