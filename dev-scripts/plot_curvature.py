@@ -6,17 +6,18 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    from itertools import combinations
     from pathlib import Path
 
     import h5py
+    import marimo as mo
+    import matplotlib.pyplot as plt
     import numpy as np
     import pandas as pd
-    import matplotlib.pyplot as plt
     import seaborn as sns
+    from scipy import stats
 
-    import marimo as mo
-
-    return Path, mo, pd, plt, sns
+    return Path, mo, np, pd, plt, sns, stats
 
 
 @app.cell
@@ -58,8 +59,12 @@ def _(dir_base, pd):
     curvature_data["species"] = curvature_data["image"].apply(
         find_species, picoz_species=picoz_species
     )
+    # drop any grains with nan values for curvature
+    curvature_data = curvature_data.dropna()
     # drop any excluded species
-    curvature_data = curvature_data[~curvature_data["species"].isin(picoz_excluded_species)]
+    curvature_data = curvature_data[
+        ~curvature_data["species"].isin(picoz_excluded_species)
+    ]
 
     print(curvature_data["species"].value_counts())
 
@@ -68,6 +73,73 @@ def _(dir_base, pd):
         curvature_data["total_contour_length"] * 1e9
     )
     return curvature_data, picoz_colors
+
+
+@app.cell
+def _(np, pd, stats):
+    def normality_test(data: pd.Series) -> bool:
+        """Return true if Shapiro-Wilk test indicates normality with 0.05 CI."""
+        return stats.shapiro(data)[1] > 0.05
+
+
+    def perform_t_test(
+        df: pd.DataFrame, sample_type_1: str, sample_type_2: str, value_column: str
+    ) -> tuple[str, float]:
+        """Return test name and p-value for a t-test between two sample types."""
+        data_per_sample = {
+            sample_type_1: df[value_column][df["species"] == sample_type_1],
+            sample_type_2: df[value_column][df["species"] == sample_type_2],
+        }
+        # Check for nans
+        if any(np.isnan(data_per_sample[sample_type_1])) or any(
+            np.isnan(data_per_sample[sample_type_2])
+        ):
+            raise ValueError("There are nans in the dataset.")
+        # If either are not normal, use a non-parametric test, eg Mann-Whitney
+        # Else, use a t-test
+        if not normality_test(
+            data_per_sample[sample_type_1]
+        ) or not normality_test(data_per_sample[sample_type_2]):
+            test_name = "Mann-Whitney"
+            stat, p = stats.mannwhitneyu(
+                data_per_sample[sample_type_1], data_per_sample[sample_type_2]
+            )
+        else:
+            test_name = "t-test"
+            stat, p = stats.ttest_ind(
+                data_per_sample[sample_type_1], data_per_sample[sample_type_2]
+            )
+        return test_name, p
+
+
+    def perform_group_test(
+        df: pd.DataFrame, sample_types: list[str], value_column: str
+    ) -> tuple[str, float]:
+        """Return test name and p-value for multi-sample-type (>3) comparison."""
+        assert len(sample_types) >= 3, (
+            f"Can only perform group tests against groups with 3 or more sample types, provided: {sample_types}."
+        )
+        data_per_sample = {
+            sample_type: df[value_column][df["species"] == sample_type]
+            for sample_type in sample_types
+        }
+        # If any are not normal, use a non-parametric test, eg Kruskal-Wallis
+        if not all(
+            normality_test(data_per_sample[sample_type])
+            for sample_type in sample_types
+        ):
+            test_name = "Kruskal-Wallis"
+            stat, p = stats.kruskal(
+                *[data_per_sample[sample_type] for sample_type in sample_types]
+            )
+        else:
+            test_name = "ANOVA"
+            stat, p = stats.f_oneway(
+                *[data_per_sample[sample_type] for sample_type in sample_types]
+            )
+        return test_name, p
+
+    return perform_group_test, perform_t_test
 
 
 @app.cell
@@ -127,6 +199,36 @@ def _(curvature_data, picoz_colors, plt, sns):
         plt.title("Grain curvature by species")
         sns.despine()
         plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Stats tests
+    """)
+    return
+
+
+@app.cell
+def _(curvature_data, perform_group_test, perform_t_test):
+    # Do test between SC and nicked
+
+    test, p = perform_t_test(
+        df=curvature_data,
+        sample_type_1="SCpicoz",
+        sample_type_2="nicked",
+        value_column="curvature_var",
+    )
+    print(f"t test for SCpicoz: {test}, {p:.5f}")
+
+
+    test, p = perform_group_test(
+        df=curvature_data,
+        sample_types=["SCpicoz", "3ATpicoz", "TEL12"],
+        value_column="curvature_var",
+    )
+    print(f"group test for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.5f}")
     return
 
 
