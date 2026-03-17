@@ -52,6 +52,7 @@ def _(dir_base, pd, plt, sns):
     length_cutoff_percentage = 0.90
     length_cutoff_nm = expected_length_nm * length_cutoff_percentage
 
+
     def find_species(image_name: str, picoz_species: list[str]):
         for species in picoz_species:
             if species in str(image_name):
@@ -63,7 +64,9 @@ def _(dir_base, pd, plt, sns):
         find_species, picoz_species=picoz_species
     )
     # drop any grains with nan values for curvature
-    curvature_data = curvature_data.dropna()
+    curvature_data = curvature_data.dropna(
+        subset=["total_contour_length", "curvature_mean"]
+    )
     # drop any excluded species
     curvature_data = curvature_data[
         ~curvature_data["species"].isin(picoz_excluded_species)
@@ -80,7 +83,9 @@ def _(dir_base, pd, plt, sns):
     fig_max_x = curvature_data["total_contour_length"].max() * 1.1
     ns_before = curvature_data["species"].value_counts()
     sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[0])
-    curvature_data = curvature_data[curvature_data["total_contour_length"] >= length_cutoff_nm]
+    curvature_data = curvature_data[
+        curvature_data["total_contour_length"] >= length_cutoff_nm
+    ]
     sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[1])
     ax[0].set_xlim(fig_min_x, fig_max_x)
     ax[1].set_xlim(fig_min_x, fig_max_x)
@@ -89,8 +94,12 @@ def _(dir_base, pd, plt, sns):
 
     ns_after = curvature_data["species"].value_counts()
 
-    print(f"ns before contour length filtering ({length_cutoff_nm/1e-9:.2f} nm):\n{ns_before}")
-    print(f"ns after contour length filtering ({length_cutoff_nm/1e-9:.2f} nm):\n{ns_after}")
+    print(
+        f"ns before contour length filtering ({length_cutoff_nm / 1e-9:.2f} nm):\n{ns_before}"
+    )
+    print(
+        f"ns after contour length filtering ({length_cutoff_nm / 1e-9:.2f} nm):\n{ns_after}"
+    )
     return curvature_data, picoz_colors
 
 
@@ -182,7 +191,7 @@ def _(curvature_data, picoz_colors, plt, sns):
 
 
 @app.cell
-def _(curvature_data, picoz_colors, plt, sns):
+def _(curvature_data, dir_base, pd, picoz_colors, plt, sns):
     curvature_metrics = [
         ("curvature_mean", "Mean curvature"),
         ("curvature_std", "Standard deviation of curvature"),
@@ -192,32 +201,69 @@ def _(curvature_data, picoz_colors, plt, sns):
         ("curvature_total", "Total curvature"),
         ("curvature_max", "Maximum curvature"),
         ("curvature_min", "minimum_curvature"),
+        ("curvature_90th", "90th percentile of curvature"),
     ]
 
-    for parameter_name, plot_title in curvature_metrics:
-        print(f"plotting {parameter_name}, titled: {plot_title}")
-        sns.boxplot(
-            x="species",
-            y=parameter_name,
-            data=curvature_data,
-            palette=picoz_colors,
-            hue="species",
-        )
-        sns.stripplot(
-            x="species",
-            y=parameter_name,
-            data=curvature_data,
-            color="black",
-            alpha=0.4,
-            jitter=True,
-            palette=picoz_colors,
-            hue="species",
-        )
-        plt.xlabel("pICOz variant")
-        plt.ylabel(plot_title)
-        plt.title("Grain curvature by species")
-        sns.despine()
-        plt.show()
+    groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
+
+
+    def plot_group_curvature_distributions(
+        curvature_data_df: pd.DataFrame,
+        curvature_metrics: list[tuple[str, str]],
+        groups: list[list[str]],
+        palette,
+        save_dir: str = None,
+    ) -> None:
+        for group in groups:
+            curvature_data_group = curvature_data_df[
+                curvature_data_df["species"].isin(group)
+            ]
+            fig, axs = plt.subplots(
+                len(curvature_metrics) // 2 + len(curvature_metrics) % 2,
+                2,
+                figsize=(20, 30),
+            )
+            for index, (parameter_name, plot_title) in enumerate(
+                curvature_metrics
+            ):
+                ax = axs[index // 2, index % 2]
+                print(f"plotting {parameter_name}, titled: {plot_title}")
+                sns.boxplot(
+                    x="species",
+                    y=parameter_name,
+                    data=curvature_data_group,
+                    palette=palette,
+                    hue="species",
+                    ax=ax,
+                )
+                sns.stripplot(
+                    x="species",
+                    y=parameter_name,
+                    data=curvature_data_group,
+                    color="black",
+                    alpha=0.4,
+                    jitter=True,
+                    palette=palette,
+                    hue="species",
+                    ax=ax,
+                )
+                ax.set_xlabel("pICOz variant")
+                ax.set_ylabel(plot_title)
+                ax.set_title(f"Grain curvature by species for {group}")
+                sns.despine(ax=ax)
+            fig.tight_layout()
+            if save_dir is not None:
+                plt.savefig(save_dir / f"curvature_stats_plots_{group}.png")
+            plt.show()
+
+
+    plot_group_curvature_distributions(
+        curvature_data_df=curvature_data,
+        curvature_metrics=curvature_metrics,
+        groups=groups,
+        palette=picoz_colors,
+        save_dir=dir_base,
+    )
     return
 
 
@@ -240,7 +286,7 @@ def _(curvature_data, perform_group_test, perform_t_test):
         sample_type_2="nicked",
         value_column=stat,
     )
-    print(f"t test for {stat} for SCpicoz: {test}, {p:.5f}")
+    print(f"t test for {stat} for SCpicoz & nicked: {test}, {p:.3e}")
 
 
     test, p = perform_group_test(
@@ -248,7 +294,7 @@ def _(curvature_data, perform_group_test, perform_t_test):
         sample_types=["SCpicoz", "3ATpicoz", "TEL12"],
         value_column=stat,
     )
-    print(f"group test for {stat} for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.5f}")
+    print(f"group test for {stat} for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.3e}")
     return
 
 
