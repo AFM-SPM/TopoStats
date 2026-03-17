@@ -281,6 +281,7 @@ class MoleculeCurvatureStats(TopoStatsBaseModel):
     curvature_total: float
     curvature_median: float
     curvature_iqr: float
+    curvature_90th: float
 
     # function to turn to a dictionary if needed
     def to_dict(self) -> dict:
@@ -303,6 +304,7 @@ class MoleculeCurvatureStats(TopoStatsBaseModel):
             "curvature_total": self.curvature_total,
             "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
+            "curvature_90th": self.curvature_90th,
         }
 
 
@@ -318,6 +320,7 @@ class GrainCurvatureStats(TopoStatsBaseModel):
     curvature_total: float
     curvature_median: float
     curvature_iqr: float
+    curvature_90th: float
 
     def to_dict(self) -> dict:
         """
@@ -338,6 +341,7 @@ class GrainCurvatureStats(TopoStatsBaseModel):
             "curvature_total": self.curvature_total,
             "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
+            "curvature_90th": self.curvature_90th,
         }
 
 
@@ -384,6 +388,7 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
                 "curvature_total": grain_curvature_stats.curvature_total,
                 "curvature_median": grain_curvature_stats.curvature_median,
                 "curvature_iqr": grain_curvature_stats.curvature_iqr,
+                "curvature_90th": grain_curvature_stats.curvature_90th,
             }
             records.append(entry)
         return pd.DataFrame.from_records(records)
@@ -412,6 +417,7 @@ def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[st
         "curvature_total": float(np.sum(curvatures)),
         "curvature_median": float(np.median(curvatures)),
         "curvature_iqr": float(np.percentile(curvatures, 75) - np.percentile(curvatures, 25)),
+        "curvature_90th": float(np.percentile(curvatures, 90)),
     }
 
 
