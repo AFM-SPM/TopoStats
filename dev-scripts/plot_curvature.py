@@ -38,7 +38,7 @@ def _(mo):
 
 
 @app.cell
-def _(dir_base, pd):
+def _(dir_base, pd, plt, sns):
     # load csv
     curvature_data = pd.read_csv(dir_base / "grain_statistics.csv")
     assert curvature_data is not None
@@ -48,6 +48,9 @@ def _(dir_base, pd):
     picoz_colors = ["#D81B60", "#1E88E5", "#FFC107", "#004D40", "#D35FB7"]
     picoz_excluded_species = ["tel80picoz"]
 
+    expected_length_nm = 408e-9
+    length_cutoff_percentage = 0.90
+    length_cutoff_nm = expected_length_nm * length_cutoff_percentage
 
     def find_species(image_name: str, picoz_species: list[str]):
         for species in picoz_species:
@@ -66,12 +69,28 @@ def _(dir_base, pd):
         ~curvature_data["species"].isin(picoz_excluded_species)
     ]
 
-    print(curvature_data["species"].value_counts())
-
     # Update the contour length to be in nanometres
     curvature_data["total_contour_length_nm"] = (
         curvature_data["total_contour_length"] * 1e9
     )
+
+    # Drop rows that have contour length lower than the minimum
+    fig, ax = plt.subplots(2, 1)
+    fig_min_x = curvature_data["total_contour_length"].min() * 0.9
+    fig_max_x = curvature_data["total_contour_length"].max() * 1.1
+    ns_before = curvature_data["species"].value_counts()
+    sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[0])
+    curvature_data = curvature_data[curvature_data["total_contour_length"] >= length_cutoff_nm]
+    sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[1])
+    ax[0].set_xlim(fig_min_x, fig_max_x)
+    ax[1].set_xlim(fig_min_x, fig_max_x)
+    fig.tight_layout()
+    plt.show()
+
+    ns_after = curvature_data["species"].value_counts()
+
+    print(f"ns before contour length filtering ({length_cutoff_nm/1e-9:.2f} nm):\n{ns_before}")
+    print(f"ns after contour length filtering ({length_cutoff_nm/1e-9:.2f} nm):\n{ns_after}")
     return curvature_data, picoz_colors
 
 
@@ -213,22 +232,23 @@ def _(mo):
 @app.cell
 def _(curvature_data, perform_group_test, perform_t_test):
     # Do test between SC and nicked
+    stat = "curvature_var"
 
     test, p = perform_t_test(
         df=curvature_data,
         sample_type_1="SCpicoz",
         sample_type_2="nicked",
-        value_column="curvature_var",
+        value_column=stat,
     )
-    print(f"t test for SCpicoz: {test}, {p:.5f}")
+    print(f"t test for {stat} for SCpicoz: {test}, {p:.5f}")
 
 
     test, p = perform_group_test(
         df=curvature_data,
         sample_types=["SCpicoz", "3ATpicoz", "TEL12"],
-        value_column="curvature_var",
+        value_column=stat,
     )
-    print(f"group test for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.5f}")
+    print(f"group test for {stat} for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.5f}")
     return
 
 
