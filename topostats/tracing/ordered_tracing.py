@@ -595,7 +595,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         -------
             writhe_string: str
                 A string of the whole grain writhe sign
-            node_to_writhe: dict    
+            node_to_writhe: dict
                 a dictionary linking each node to its sign.
         """
         # compile all vectors for each node and their z_idx
