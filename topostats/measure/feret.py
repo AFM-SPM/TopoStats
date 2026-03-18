@@ -233,7 +233,7 @@ def triangle_height(base1: npt.NDArray | list, base2: npt.NDArray | list, apex: 
     base1_base2 = np.asarray(base1) - np.asarray(base2)
     base1_apex = np.asarray(base1) - np.asarray(apex)
     # Ensure arrays are 3-D see note in https://numpy.org/doc/2.0/reference/generated/numpy.cross.html
-    return np.linalg.norm(cross2d(base1_base2, base1_apex)) / np.linalg.norm(base1_base2)
+    return np.linalg.norm(cross2d(base1_base2, base1_apex)) / np.linalg.norm(base1_base2).astype(float)
 
 
 def cross2d(x: npt.NDArray, y: npt.NDArray) -> npt.NDArray:
