@@ -41,8 +41,8 @@ def _(mo):
 @app.cell
 def _(dir_base, pd, plt, sns):
     # load csv
-    curvature_data = pd.read_csv(dir_base / "grain_statistics.csv")
-    assert curvature_data is not None
+    df_data = pd.read_csv(dir_base / "grain_statistics.csv")
+    assert df_data is not None
 
     # define picoz versions
     picoz_species = ["SCpicoz", "nicked", "3ATpicoz", "tel80picoz", "TEL12"]
@@ -61,39 +61,34 @@ def _(dir_base, pd, plt, sns):
         return "other"
 
 
-    curvature_data["species"] = curvature_data["image"].apply(
+    df_data["species"] = df_data["image"].apply(
         find_species, picoz_species=picoz_species
     )
+
+    print(f"columns:\n{df_data.columns}")
+
     # drop any grains with nan values for curvature
-    curvature_data = curvature_data.dropna(
-        subset=["total_contour_length", "curvature_mean"]
-    )
+    df_data = df_data.dropna(subset=["total_contour_length", "curvature_mean"])
     # drop any excluded species
-    curvature_data = curvature_data[
-        ~curvature_data["species"].isin(picoz_excluded_species)
-    ]
+    df_data = df_data[~df_data["species"].isin(picoz_excluded_species)]
 
     # Update the contour length to be in nanometres
-    curvature_data["total_contour_length_nm"] = (
-        curvature_data["total_contour_length"] * 1e9
-    )
+    df_data["total_contour_length_nm"] = df_data["total_contour_length"] * 1e9
 
     # Drop rows that have contour length lower than the minimum
     fig, ax = plt.subplots(2, 1)
-    fig_min_x = curvature_data["total_contour_length"].min() * 0.9
-    fig_max_x = curvature_data["total_contour_length"].max() * 1.1
-    ns_before = curvature_data["species"].value_counts()
-    sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[0])
-    curvature_data = curvature_data[
-        curvature_data["total_contour_length"] >= length_cutoff_nm
-    ]
-    sns.kdeplot(data=curvature_data, x="total_contour_length", ax=ax[1])
+    fig_min_x = df_data["total_contour_length"].min() * 0.9
+    fig_max_x = df_data["total_contour_length"].max() * 1.1
+    ns_before = df_data["species"].value_counts()
+    sns.kdeplot(data=df_data, x="total_contour_length", ax=ax[0])
+    df_data = df_data[df_data["total_contour_length"] >= length_cutoff_nm]
+    sns.kdeplot(data=df_data, x="total_contour_length", ax=ax[1])
     ax[0].set_xlim(fig_min_x, fig_max_x)
     ax[1].set_xlim(fig_min_x, fig_max_x)
     fig.tight_layout()
     plt.show()
 
-    ns_after = curvature_data["species"].value_counts()
+    ns_after = df_data["species"].value_counts()
 
     print(
         f"ns before contour length filtering ({length_cutoff_nm / 1e-9:.2f} nm):\n{ns_before}"
@@ -101,7 +96,7 @@ def _(dir_base, pd, plt, sns):
     print(
         f"ns after contour length filtering ({length_cutoff_nm / 1e-9:.2f} nm):\n{ns_after}"
     )
-    return curvature_data, picoz_colors
+    return df_data, picoz_colors
 
 
 @app.cell
@@ -196,6 +191,7 @@ def _(combinations, mpl, np, pd, stats):
         value_column: str,
         # per_sample_y_offset_increment: float = 0.05,
         global_y_offset_modifier: float = 0.0,
+        fontsize: float = 12,
     ) -> None:
         test_results = perform_group_pairwise_test(
             df=df,
@@ -239,18 +235,18 @@ def _(combinations, mpl, np, pd, stats):
                 text,
                 ha="center",
                 va="bottom",
-                fontsize=12,
+                fontsize=fontsize,
             )
 
     return add_significance_to_current_plot, perform_group_test, perform_t_test
 
 
 @app.cell
-def _(curvature_data, picoz_colors, plt, sns):
+def _(df_data, picoz_colors, plt, sns):
     sns.boxplot(
         x="species",
         y="total_contour_length_nm",
-        data=curvature_data,
+        data=df_data,
         palette=picoz_colors,
         hue="species",
     )
@@ -268,7 +264,7 @@ def _(curvature_data, picoz_colors, plt, sns):
 @app.cell
 def _(
     add_significance_to_current_plot,
-    curvature_data,
+    df_data,
     dir_base,
     pd,
     picoz_colors,
@@ -277,47 +273,35 @@ def _(
 ):
     from matplotlib.pylab import ylim
 
-    curvature_metrics = [
-        ("curvature_mean", "Mean curvature"),
-        ("curvature_std", "Standard deviation of curvature"),
-        ("curvature_var", "Variance of curvature"),
-        ("curvature_median", "Median curvature"),
-        ("curvature_iqr", "Interquartile range of curvature"),
-        ("curvature_total", "Total curvature"),
-        ("curvature_max", "Maximum curvature"),
-        ("curvature_min", "minimum_curvature"),
-        ("curvature_90th", "90th percentile of curvature"),
-    ]
 
-    groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
-
-
-    def plot_group_curvature_distributions(
-        curvature_data_df: pd.DataFrame,
-        curvature_metrics: list[tuple[str, str]],
+    def plot_group_distributions(
+        df: pd.DataFrame,
+        metrics: list[tuple[str, str]],
         groups: list[list[str]],
         palette,
         save_dir: str = None,
         significance_global_y_offset_modifier: float = 0.0,
+        figsize: tuple[int, int] = (20, 10),
+        fontsize_significance: float = 12,
+        fontsize_title: float = 12,
     ) -> None:
         for group in groups:
-            curvature_data_group = curvature_data_df[
-                curvature_data_df["species"].isin(group)
-            ]
+            data_group = df[df["species"].isin(group)]
             fig, axs = plt.subplots(
-                len(curvature_metrics) // 2 + len(curvature_metrics) % 2,
+                len(metrics) // 2 + len(metrics) % 2,
                 2,
-                figsize=(20, 10 * len(curvature_metrics) // 2),
+                figsize=(figsize[0], figsize[1] * len(metrics) // 2),
             )
-            for index, (parameter_name, plot_title) in enumerate(
-                curvature_metrics
-            ):
-                ax = axs[index // 2, index % 2]
+            for index, (parameter_name, plot_title) in enumerate(metrics):
+                if len(axs.shape) > 1:
+                    ax = axs[index // 2, index % 2]
+                else:
+                    ax = axs[index % 2]
                 print(f"plotting {parameter_name}, titled: {plot_title}")
                 sns.boxplot(
                     x="species",
                     y=parameter_name,
-                    data=curvature_data_group,
+                    data=data_group,
                     palette=palette,
                     hue="species",
                     ax=ax,
@@ -325,7 +309,7 @@ def _(
                 sns.stripplot(
                     x="species",
                     y=parameter_name,
-                    data=curvature_data_group,
+                    data=data_group,
                     color="black",
                     alpha=0.4,
                     jitter=True,
@@ -336,26 +320,48 @@ def _(
                 fig.tight_layout()
                 add_significance_to_current_plot(
                     ax=ax,
-                    df=curvature_data_df,
+                    df=df,
                     sample_types=group,
                     value_column=parameter_name,
                     global_y_offset_modifier=significance_global_y_offset_modifier,
+                    fontsize=fontsize_significance,
                 )
                 ax.set_xlabel("pICOz variant")
                 ax.set_ylabel(plot_title)
-                ax.set_title(f"Grain curvature by species for {group}")
+                ax.set_title(
+                    f"Grain {plot_title} by species for {group}",
+                    fontsize=fontsize_title,
+                )
                 sns.despine(ax=ax)
             if save_dir is not None:
-                plt.savefig(save_dir / f"curvature_stats_plots_{group}.png")
+                plt.savefig(save_dir / f"stats_plots_{group}.png")
             plt.show()
 
 
-    plot_group_curvature_distributions(
-        curvature_data_df=curvature_data,
-        curvature_metrics=curvature_metrics,
+    metrics = [
+        # ("curvature_mean", "Mean curvature"),
+        # ("curvature_std", "Standard deviation of curvature"),
+        ("curvature_var", "Variance of curvature"),
+        ("curvature_median", "Median curvature"),
+        ("num_crossings", "Number of crossings"),
+        # ("curvature_iqr", "Interquartile range of curvature"),
+        # ("curvature_total", "Total curvature"),
+        # ("curvature_max", "Maximum curvature"),
+        # ("curvature_min", "minimum_curvature"),
+        # ("curvature_90th", "90th percentile of curvature"),
+    ]
+
+    groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
+
+    plot_group_distributions(
+        df=df_data,
+        metrics=metrics,
         groups=groups,
         palette=picoz_colors,
         save_dir=dir_base,
+        figsize=(10, 5),
+        fontsize_significance=8,
+        fontsize_title=10,
     )
     return
 
@@ -369,7 +375,7 @@ def _(mo):
 
 
 @app.cell
-def _(curvature_data, pd, perform_group_test, perform_t_test):
+def _(df_data, pd, perform_group_test, perform_t_test):
     def perform_stats_tests_on_groups(
         sample_groups: list[list[str]],
         df: pd.DataFrame,
@@ -402,7 +408,7 @@ def _(curvature_data, pd, perform_group_test, perform_t_test):
 
     perform_stats_tests_on_groups(
         sample_groups=[["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]],
-        df=curvature_data,
+        df=df_data,
         value_columns=["curvature_var", "curvature_median"],
     )
     return
