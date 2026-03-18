@@ -246,7 +246,7 @@ def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     return pd.DataFrame(columns=COLUMN_SETS[column_set])
 
 
-def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple) -> tuple:
+def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple[int, int]) -> tuple[int, int]:
     """
     Ensure the padding of coordinates points does not fall outside of the image shape.
 
@@ -262,15 +262,15 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     Parameters
     ----------
     coordinates : npt.NDArray
-        Coordinates of a point on the mask based skeleton.
+        Coordinates of a point on the mask based skeleton (length = 2).
     padding : int
         Number of pixels/cells to pad around the point.
-    image_shape : tuple
+    image_shape : tuple[int, int]
         The shape of the original image from which the pixel is obtained.
 
     Returns
     -------
-    tuple
+    tuple[int, int]
         Returns a tuple of coordinates that ensure that when the point is padded by the noted padding width in
         subsequent calculations it will not be outside of the image shape.
     """
@@ -279,14 +279,14 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
     max_col = image_shape[1] - 1
     row_coord, col_coord = coordinates
 
-    def check(coord: npt.NDArray, max_val: int, padding: int) -> npt.NDArray:
+    def check(coord: int, max_val: int, padding: int) -> int:
         """
         Check coordinates are within the bounds of the padding.
 
         Parameters
         ----------
-        coord : npt.NDArray
-            Coordinates (length = 2).
+        coord : int
+            Coordinate (row_coord or col coord).
         max_val : int
             Maximum width in the dimension being checked (max_row or max_col).
         padding : int
@@ -294,8 +294,8 @@ def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, im
 
         Returns
         -------
-        npt.NDArray
-            Coordinates adjusted for padding.
+        int
+            Coordinate adjusted for padding.
         """
         if coord - padding < 0:
             coord = padding
