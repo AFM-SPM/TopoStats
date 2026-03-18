@@ -369,25 +369,42 @@ def _(mo):
 
 
 @app.cell
-def _(curvature_data, perform_group_test, perform_t_test):
-    # Do test between SC and nicked
-    stat = "curvature_var"
+def _(curvature_data, pd, perform_group_test, perform_t_test):
+    def perform_stats_tests_on_groups(
+        sample_groups: list[list[str]],
+        df: pd.DataFrame,
+        value_columns: str,
+    ) -> None:
 
-    test, p = perform_t_test(
+        for value_column in value_columns:
+            for sample_group in sample_groups:
+                if len(sample_group) == 2:
+                    test, p = perform_t_test(
+                        df=df,
+                        sample_type_1=sample_group[0],
+                        sample_type_2=sample_group[1],
+                        value_column=value_column,
+                    )
+                    print(
+                        f"t test for [{value_column}] for {sample_group}: {test}, {p:.3e}"
+                    )
+                else:
+                    test, p = perform_group_test(
+                        df=df,
+                        sample_types=sample_group,
+                        value_column=value_column,
+                    )
+                    print(
+                        f"group test for [{value_column}] for {sample_group}: {test}, {p:.3e}"
+                    )
+                    print()
+
+
+    perform_stats_tests_on_groups(
+        sample_groups=[["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]],
         df=curvature_data,
-        sample_type_1="SCpicoz",
-        sample_type_2="nicked",
-        value_column=stat,
+        value_columns=["curvature_var", "curvature_median"],
     )
-    print(f"t test for {stat} for SCpicoz & nicked: {test}, {p:.3e}")
-
-
-    test, p = perform_group_test(
-        df=curvature_data,
-        sample_types=["SCpicoz", "3ATpicoz", "TEL12"],
-        value_column=stat,
-    )
-    print(f"group test for {stat} for SCpicoz, 3ATpicoz, TEL12: {test}, {p:.3e}")
     return
 
 
