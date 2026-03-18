@@ -12,12 +12,13 @@ def _():
     import h5py
     import marimo as mo
     import matplotlib.pyplot as plt
+    import matplotlib as mpl
     import numpy as np
     import pandas as pd
     import seaborn as sns
     from scipy import stats
 
-    return Path, mo, np, pd, plt, sns, stats
+    return Path, combinations, mo, mpl, np, pd, plt, sns, stats
 
 
 @app.cell
@@ -104,7 +105,7 @@ def _(dir_base, pd, plt, sns):
 
 
 @app.cell
-def _(np, pd, stats):
+def _(combinations, mpl, np, pd, stats):
     def normality_test(data: pd.Series) -> bool:
         """Return true if Shapiro-Wilk test indicates normality with 0.05 CI."""
         return stats.shapiro(data)[1] > 0.05
@@ -167,7 +168,81 @@ def _(np, pd, stats):
             )
         return test_name, p
 
-    return perform_group_test, perform_t_test
+
+    def perform_group_pairwise_test(
+        df: pd.DataFrame,
+        sample_types: list[str],
+        value_column: str,
+    ) -> list[tuple[str, str, str, float]]:
+        pairs = list(combinations(sample_types, r=2))
+        results: list[tuple[str, str, str, float]] = []
+        for sample_a, sample_b in pairs:
+            data_a = df[df["species"] == sample_a][value_column]
+            data_b = df[df["species"] == sample_b][value_column]
+            if normality_test(data_a) and normality_test(data_b):
+                test_name = "t-test"
+                stat, p = stats.ttest_ind(data_a, data_b)
+            else:
+                test_name = "Mann-Whitney"
+                stat, p = stats.mannwhitneyu(data_a, data_b)
+            results.append((sample_a, sample_b, test_name, p))
+        return results
+
+
+    def add_significance_to_current_plot(
+        ax: mpl.axes.Axes,
+        df: pd.DataFrame,
+        sample_types: list[str],
+        value_column: str,
+        # per_sample_y_offset_increment: float = 0.05,
+        global_y_offset_modifier: float = 0.0,
+    ) -> None:
+        test_results = perform_group_pairwise_test(
+            df=df,
+            sample_types=sample_types,
+            value_column=value_column,
+        )
+        ylim = ax.get_ylim()
+        y_max = ylim[1]
+        y_range = ylim[1] - ylim[0]
+        per_sample_y_offset_increment: float = y_range / 7
+        for i, (sample_a, sample_b, test_name, p) in enumerate(test_results):
+            xpos_sample_a = sample_types.index(sample_a)
+            xpos_sample_b = sample_types.index(sample_b)
+            ypos = (
+                y_max
+                + per_sample_y_offset_increment * (i + 1)
+                - global_y_offset_modifier
+            )
+            ax.plot(
+                [xpos_sample_a, xpos_sample_a, xpos_sample_b, xpos_sample_b],
+                [
+                    ypos,
+                    ypos + per_sample_y_offset_increment / 2,
+                    ypos + per_sample_y_offset_increment / 2,
+                    ypos,
+                ],
+                lw=1.5,
+                c="k",
+            )
+            if p < 0.001:
+                text = "***"
+            elif p < 0.01:
+                text = "**"
+            elif p < 0.05:
+                text = "*"
+            else:
+                text = "ns"
+            ax.text(
+                (xpos_sample_a + xpos_sample_b) / 2,
+                ypos + per_sample_y_offset_increment / 2,
+                text,
+                ha="center",
+                va="bottom",
+                fontsize=12,
+            )
+
+    return add_significance_to_current_plot, perform_group_test, perform_t_test
 
 
 @app.cell
@@ -191,7 +266,17 @@ def _(curvature_data, picoz_colors, plt, sns):
 
 
 @app.cell
-def _(curvature_data, dir_base, pd, picoz_colors, plt, sns):
+def _(
+    add_significance_to_current_plot,
+    curvature_data,
+    dir_base,
+    pd,
+    picoz_colors,
+    plt,
+    sns,
+):
+    from matplotlib.pylab import ylim
+
     curvature_metrics = [
         ("curvature_mean", "Mean curvature"),
         ("curvature_std", "Standard deviation of curvature"),
@@ -213,6 +298,7 @@ def _(curvature_data, dir_base, pd, picoz_colors, plt, sns):
         groups: list[list[str]],
         palette,
         save_dir: str = None,
+        significance_global_y_offset_modifier: float = 0.0,
     ) -> None:
         for group in groups:
             curvature_data_group = curvature_data_df[
@@ -221,7 +307,7 @@ def _(curvature_data, dir_base, pd, picoz_colors, plt, sns):
             fig, axs = plt.subplots(
                 len(curvature_metrics) // 2 + len(curvature_metrics) % 2,
                 2,
-                figsize=(20, 30),
+                figsize=(20, 10 * len(curvature_metrics) // 2),
             )
             for index, (parameter_name, plot_title) in enumerate(
                 curvature_metrics
@@ -247,11 +333,18 @@ def _(curvature_data, dir_base, pd, picoz_colors, plt, sns):
                     hue="species",
                     ax=ax,
                 )
+                fig.tight_layout()
+                add_significance_to_current_plot(
+                    ax=ax,
+                    df=curvature_data_df,
+                    sample_types=group,
+                    value_column=parameter_name,
+                    global_y_offset_modifier=significance_global_y_offset_modifier,
+                )
                 ax.set_xlabel("pICOz variant")
                 ax.set_ylabel(plot_title)
                 ax.set_title(f"Grain curvature by species for {group}")
                 sns.despine(ax=ax)
-            fig.tight_layout()
             if save_dir is not None:
                 plt.savefig(save_dir / f"curvature_stats_plots_{group}.png")
             plt.show()
