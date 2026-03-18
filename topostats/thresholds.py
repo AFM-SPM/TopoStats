@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(LOGGER_NAME)
 # pylint: disable=unused-argument
 
 
-def threshold(image: npt.NDArray, method: str = None, otsu_threshold_multiplier: float = None, **kwargs: dict) -> float:
+def threshold(image: npt.NDArray, method: str, otsu_threshold_multiplier: float | None = None, **kwargs: dict) -> float:
     """
     Thresholding for producing masks.
 
@@ -25,7 +25,7 @@ def threshold(image: npt.NDArray, method: str = None, otsu_threshold_multiplier:
         2-D Numpy array of image for thresholding.
     method : str
         Method to use for thresholding, currently supported methods are otsu (default), mean and minimum.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Factor for scaling the Otsu threshold.
     **kwargs : dict
         Additional keyword arguments to pass to skimage methods.
@@ -71,7 +71,7 @@ def _get_threshold(method: str = "otsu") -> Callable:
     raise ValueError(method)
 
 
-def _threshold_otsu(image: npt.NDArray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_otsu(image: npt.NDArray, otsu_threshold_multiplier: float, **kwargs) -> float:
     """
     Calculate the Otsu threshold.
 
@@ -95,7 +95,7 @@ def _threshold_otsu(image: npt.NDArray, otsu_threshold_multiplier: float = None,
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float| None = None, **kwargs) -> float:
     """
     Calculate the Mean threshold.
 
@@ -106,7 +106,7 @@ def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float = None,
     ----------
     image : npt.NDArray
         2-D Numpy array of image for thresholding.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Factor for scaling (not used).
     **kwargs : dict
         Dictionary of keyword arguments to pass to 'skimage.filters.threshold_mean(**kwargs)'.
@@ -119,7 +119,7 @@ def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float = None,
     return threshold_mean(image, **kwargs)
 
 
-def _threshold_minimum(image: npt.NDArray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_minimum(image: npt.NDArray, otsu_threshold_multiplier: float | None = None, **kwargs) -> float:
     """
     Calculate the Minimum threshold.
 
@@ -130,7 +130,7 @@ def _threshold_minimum(image: npt.NDArray, otsu_threshold_multiplier: float = No
     ----------
     image : npt.NDArray
         2-D Numpy array of image for thresholding.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Factor for scaling (not used).
     **kwargs : dict
         Dictionary of keyword arguments to pass to 'skimage.filters.threshold_minimum(**kwargs)'.
@@ -143,7 +143,7 @@ def _threshold_minimum(image: npt.NDArray, otsu_threshold_multiplier: float = No
     return threshold_minimum(image, **kwargs)
 
 
-def _threshold_yen(image: npt.NDArray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_yen(image: npt.NDArray, otsu_threshold_multiplier: float | None = None, **kwargs) -> float:
     """
     Calculate the Yen threshold.
 
@@ -154,7 +154,7 @@ def _threshold_yen(image: npt.NDArray, otsu_threshold_multiplier: float = None, 
     ----------
     image : npt.NDArray
         2-D Numpy array of image for thresholding.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Factor for scaling (not used).
     **kwargs : dict
         Dictionary of keyword arguments to pass to 'skimage.filters.threshold_yen(**kwargs)'.
@@ -167,7 +167,7 @@ def _threshold_yen(image: npt.NDArray, otsu_threshold_multiplier: float = None, 
     return threshold_yen(image, **kwargs)
 
 
-def _threshold_triangle(image: npt.NDArray, otsu_threshold_multiplier: float = None, **kwargs) -> float:
+def _threshold_triangle(image: npt.NDArray, otsu_threshold_multiplier: float | None = None, **kwargs) -> float:
     """
     Calculate the triangle threshold.
 
@@ -178,7 +178,7 @@ def _threshold_triangle(image: npt.NDArray, otsu_threshold_multiplier: float = N
     ----------
     image : npt.NDArray
         2-D Numpy array of image for thresholding.
-    otsu_threshold_multiplier : float
+    otsu_threshold_multiplier : float, optional
         Factor for scaling (not used).
     **kwargs : dict
         Dictionary of keyword arguments to pass to 'skimage.filters.threshold_triangle(**kwargs)'.
