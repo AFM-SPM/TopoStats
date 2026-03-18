@@ -515,17 +515,18 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         ...             threshold_method='otsu')
         filter.filter_image()
         """
-        self.images["initial_median_flatten"] = self.median_flatten(
+        self.images["initial_median_flatten"]: npt.NDArray = self.median_flatten(
             self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
         )
-        self.images["initial_tilt_removal"] = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
-        self.images["initial_quadratic_removal"] = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
-        self.images["initial_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+        self.images["initial_tilt_removal"]: npt.NDArray = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
+        self.images["initial_quadratic_removal"]: npt.NDArray = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_nonlinear_polynomial_removal"]: npt.NDArray = self.remove_nonlinear_polynomial(
             self.images["initial_quadratic_removal"], mask=None
         )
 
         # Remove scars
         run_scar_removal = self.remove_scars_config.pop("run")
+        self.images["initial_scar_removal"]: npt.NDArray
         if run_scar_removal:
             LOGGER.debug(f"[{self.filename}] : Initial scar removal")
             self.images["initial_scar_removal"], _ = scars.remove_scars(
@@ -538,7 +539,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["initial_scar_removal"] = self.images["initial_nonlinear_polynomial_removal"]
 
         # Zero the data before thresholding, helps with absolute thresholding
-        self.images["initial_zero_average_background"] = self.average_background(
+        self.images["initial_zero_average_background"]: npt.NDArray = self.average_background(
             self.images["initial_scar_removal"], mask=None
         )
 
@@ -558,19 +559,20 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             thresholds=self.thresholds,
             img_name=self.filename,
         )
-        self.images["masked_median_flatten"] = self.median_flatten(
+        self.images["masked_median_flatten"]: npt.NDArray = self.median_flatten(
             self.images["initial_tilt_removal"],
             self.images["mask"],
             row_alignment_quantile=self.row_alignment_quantile,
         )
-        self.images["masked_tilt_removal"] = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
-        self.images["masked_quadratic_removal"] = self.remove_quadratic(
+        self.images["masked_tilt_removal"]: npt.NDArray = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
+        self.images["masked_quadratic_removal"]: npt.NDArray = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )
-        self.images["masked_nonlinear_polynomial_removal"] = self.remove_nonlinear_polynomial(
+        self.images["masked_nonlinear_polynomial_removal"]: npt.NDArray = self.remove_nonlinear_polynomial(
             self.images["masked_quadratic_removal"], self.images["mask"]
         )
         # Remove scars
+        self.images["secondary_scar_removal"]: npt.NDArray
         if run_scar_removal:
             LOGGER.debug(f"[{self.filename}] : Secondary scar removal")
             self.images["secondary_scar_removal"], scar_mask = scars.remove_scars(
@@ -582,7 +584,7 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         else:
             LOGGER.debug(f"[{self.filename}] : Skipping scar removal as requested from config")
             self.images["secondary_scar_removal"] = self.images["masked_nonlinear_polynomial_removal"]
-        self.images["final_zero_average_background"] = self.average_background(
+        self.images["final_zero_average_background"]: npt.NDArray = self.average_background(
             self.images["secondary_scar_removal"], self.images["mask"]
         )
         self.images["gaussian_filtered"] = self.gaussian_filter(self.images["final_zero_average_background"])
