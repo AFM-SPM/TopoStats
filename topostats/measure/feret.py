@@ -14,6 +14,7 @@ import warnings
 from collections.abc import Generator
 from math import sqrt
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -351,7 +352,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
 
 def min_max_feret(
     points: npt.NDArray, axis: int = 0, precision: int = 13
-) -> dict[float, tuple[int, int], float, tuple[int, int]]:
+) -> dict[str, Any]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 
@@ -368,8 +369,8 @@ def min_max_feret(
 
     Returns
     -------
-    dictionary
-        Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
+    dict
+        Needs updating: Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
@@ -394,7 +395,7 @@ def min_max_feret(
     }
 
 
-def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tuple[int, int], float, tuple[int, int]]:
+def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> dict[str, Any]:
     """
     Calculate the minimum and maximum feret diameter of the foreground object of a binary mask.
 
@@ -409,8 +410,8 @@ def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> tuple[float, tup
 
     Returns
     -------
-    Tuple[float, Tuple[int, int], float, Tuple[int, int]]
-        Returns a tuple of the minimum feret and its coordinates and the maximum feret and its coordinates.
+    dict
+        Needs updating: Returns a tuple of the minimum feret and its coordinates and the maximum feret and its coordinates.
     """
     eroded = skimage.morphology.erosion(mask_im)
     outline = mask_im ^ eroded
