@@ -435,6 +435,14 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
             ),
+            "smoothing_method": Or(
+                "gaussian",
+                "savitzky_golay",
+                error="Invalid value in config for 'curvature.smoothing_method', valid values are 'gaussian' or 'savitzky_golay'",
+            ),
+            "smoothing_gaussian_sigma_nm": lambda n: n > 0.0,
+            "smoothing_savgol_window_length_nm": lambda n: n > 0.0,
+            "smoothing_savgol_polyorder": int,
             "colourmap_normalisation_bounds": [
                 Or(
                     float,

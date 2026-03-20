@@ -1,12 +1,16 @@
 """Calculate various curvature metrics for traces."""
 
 import logging
+from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from scipy.ndimage import gaussian_filter1d
+from scipy.signal import savgol_filter
 
 from topostats.classes import TopoStatsBaseModel
+from topostats.damage.array_manipulation import distances_nm
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -409,15 +413,15 @@ def _calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[st
         Dictionary of curvature metrics.
     """
     return {
-        "curvature_mean": float(np.mean(curvatures)),
-        "curvature_max": float(np.max(curvatures)),
-        "curvature_min": float(np.min(curvatures)),
-        "curvature_std": float(np.std(curvatures)),
-        "curvature_var": float(np.var(curvatures)),
-        "curvature_total": float(np.sum(curvatures)),
-        "curvature_median": float(np.median(curvatures)),
-        "curvature_iqr": float(np.percentile(curvatures, 75) - np.percentile(curvatures, 25)),
-        "curvature_90th": float(np.percentile(curvatures, 90)),
+        "curvature_mean": float(np.mean(np.abs(curvatures))),
+        "curvature_max": float(np.max(np.abs(curvatures))),
+        "curvature_min": float(np.min(np.abs(curvatures))),
+        "curvature_std": float(np.std(np.abs(curvatures))),
+        "curvature_var": float(np.var(np.abs(curvatures))),
+        "curvature_total": float(np.sum(np.abs(curvatures))),
+        "curvature_median": float(np.median(np.abs(curvatures))),
+        "curvature_iqr": float(np.percentile(np.abs(curvatures), 75) - np.percentile(curvatures, 25)),
+        "curvature_90th": float(np.percentile(np.abs(curvatures), 90)),
     }
 
 
@@ -425,6 +429,10 @@ def calculate_curvature_stats_image(
     filename: str,
     all_grain_smoothed_data: dict,
     pixel_to_nm_scaling: float,
+    smoothing_method: Literal["gaussian", "savitzky_golay"],
+    smoothing_gaussian_sigma_nm: float,
+    smoothing_savgol_window_length_nm: int,
+    smoothing_savgol_polyorder: int,
 ) -> tuple[AllGrainCurvatureStats, pd.DataFrame]:
     """
     Perform curvature analysis for a whole image of grains.
@@ -457,13 +465,23 @@ def calculate_curvature_stats_image(
                 discrete_angle_difference_per_nm_circular(trace_nm)
                 if is_circular
                 else discrete_angle_difference_per_nm_linear(trace_nm)
+            ).astype(np.float64)
+
+            # Smooth the curvatures
+            trace_distances_nm = distances_nm(coords_nm=trace_nm, circular=is_circular)
+            avg_trace_distance_nm = np.mean(trace_distances_nm)
+            curvatures_smoothed = smooth_curvature(
+                curvatures=curvatures,
+                point_spacing_nm=avg_trace_distance_nm,
+                method=smoothing_method,
+                gaussian_sigma_nm=smoothing_gaussian_sigma_nm,
+                savgol_window_length_nm=smoothing_savgol_window_length_nm,
+                savgol_polyorder=smoothing_savgol_polyorder,
             )
 
-            curvatures_absolute = np.abs(curvatures)
-
-            metrics = _calculate_curvature_metrics(curvatures_absolute)
+            metrics = _calculate_curvature_metrics(curvatures_smoothed)
             molecules[molecule_key] = MoleculeCurvatureStats(
-                curvatures=curvatures_absolute,
+                curvatures=curvatures_smoothed,
                 is_circular=is_circular,
                 **metrics,
             )
@@ -480,3 +498,54 @@ def calculate_curvature_stats_image(
         all_grain_curvature_stats_df = all_grain_curvature_stats.create_grain_curvature_stats_dataframe()
 
     return all_grain_curvature_stats, all_grain_curvature_stats_df
+
+
+def smooth_curvature(
+    curvatures: npt.NDArray[np.float64],
+    point_spacing_nm: np.float64,
+    method: Literal["gaussian", "savitzky_golay"],
+    gaussian_sigma_nm: float,
+    savgol_window_length_nm: int,
+    savgol_polyorder: int,
+) -> npt.NDArray[np.float64]:
+    """
+    Smooth the curvature values of a trace.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        An array of shape (N,) containing the curvature values at each point along the trace.
+    point_spacing_nm : float
+        The spacing between points along the trace in nanometres - this needs to be pretty consistent.
+    method : Literal["gaussian", "savitzky_golay"]
+        The method to use for smoothing the curvature values. Options are "gaussian" for a Gaussian filter or
+        "savitzky_golay" for a Savitzky-Golay filter.
+    gaussian_sigma_nm : float
+        The standard deviation of the Gaussian kernel in nanometres.
+    savgol_window_length_nm : int
+        The length of the filter window in nanometres.
+    savgol_polyorder : int
+        The order of the polynomial used to fit the samples in the savgol filter.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        An array of shape (N,) containing the smoothed curvature values at each point along the trace.
+    """
+    if method == "gaussian":
+        # adjust the sigma for the gaussian filter
+        gaussian_sigma_adjusted = gaussian_sigma_nm / point_spacing_nm
+        print(f"gaussian sigma adjusted: {gaussian_sigma_adjusted}")
+        smoothed_curvatures = gaussian_filter1d(curvatures.copy(), sigma=gaussian_sigma_adjusted)
+    elif method == "savitzky_golay":
+        # adjust the window length for the savgol filter based on the point spacing
+        savgol_window_length_points = int(savgol_window_length_nm / point_spacing_nm)
+        assert savgol_window_length_points < len(curvatures), (
+            "savgol_window_length must be less than the length of the curvature array"
+        )
+        smoothed_curvatures = savgol_filter(
+            curvatures.copy(), window_length=savgol_window_length_points, polyorder=savgol_polyorder
+        )
+    else:
+        raise ValueError(f"Invalid smoothing method: {method}")
+    return smoothed_curvatures

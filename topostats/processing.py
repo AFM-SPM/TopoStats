@@ -992,6 +992,10 @@ def run_curvature_stats(
                     filename=filename,
                     all_grain_smoothed_data=grain_trace_data[direction],
                     pixel_to_nm_scaling=pixel_to_nm_scaling,
+                    smoothing_method=curvature_config["smoothing_method"],
+                    smoothing_gaussian_sigma_nm=curvature_config["smoothing_gaussian_sigma_nm"],
+                    smoothing_savgol_window_length_nm=curvature_config["smoothing_savgol_window_length_nm"],
+                    smoothing_savgol_polyorder=curvature_config["smoothing_savgol_polyorder"],
                 )
 
                 Images(

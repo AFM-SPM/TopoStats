@@ -160,7 +160,6 @@ def get_defects_and_gaps_linear(
     current_defect_gap_start_index = 0
 
     for index, point in enumerate(defects_bool):
-
         if point:
             if in_gap:
                 # End of the gap

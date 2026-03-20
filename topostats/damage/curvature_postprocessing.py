@@ -4,62 +4,9 @@ from typing import Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
-from scipy.ndimage import gaussian_filter1d
-from scipy.signal import savgol_filter
 
 from topostats.damage.array_manipulation import cumulative_distances_nm, distances_nm
 from topostats.damage.damage import GrainCollection
-
-
-def smooth_curvature(
-    curvatures: npt.NDArray[np.float64],
-    point_spacing_nm: float,
-    method: Literal["gaussian", "savitzky_golay"],
-    gaussian_sigma_nm: float,
-    savgol_window_length_nm: int,
-    savgol_polyorder: int,
-) -> npt.NDArray[np.float64]:
-    """
-    Smooth the curvature values of a trace.
-
-    Parameters
-    ----------
-    curvatures : npt.NDArray[np.float64]
-        An array of shape (N,) containing the curvature values at each point along the trace.
-    point_spacing_nm : float
-        The spacing between points along the trace in nanometres - this needs to be pretty consistent.
-    method : Literal["gaussian", "savitzky_golay"]
-        The method to use for smoothing the curvature values. Options are "gaussian" for a Gaussian filter or
-        "savitzky_golay" for a Savitzky-Golay filter.
-    gaussian_sigma_nm : float
-        The standard deviation of the Gaussian kernel in nanometres.
-    savgol_window_length_nm : int
-        The length of the filter window in nanometres.
-    savgol_polyorder : int
-        The order of the polynomial used to fit the samples in the savgol filter.
-
-    Returns
-    -------
-    npt.NDArray[np.float64]
-        An array of shape (N,) containing the smoothed curvature values at each point along the trace.
-    """
-    if method == "gaussian":
-        # adjust the sigma for the gaussian filter
-        gaussian_sigma_adjusted = gaussian_sigma_nm / point_spacing_nm
-        smoothed_curvatures = gaussian_filter1d(curvatures.copy(), sigma=gaussian_sigma_adjusted)
-    elif method == "savitzky_golay":
-        # adjust the window length for the savgol filter based on the point spacing
-        savgol_window_length_points = int(savgol_window_length_nm / point_spacing_nm)
-        assert savgol_window_length_points < len(
-            curvatures
-        ), "savgol_window_length must be less than the length of the curvature array"
-        smoothed_curvatures = savgol_filter(
-            curvatures.copy(), window_length=savgol_window_length_points, polyorder=savgol_polyorder
-        )
-    else:
-        raise ValueError(f"Invalid smoothing method: {method}")
-    return smoothed_curvatures
 
 
 def smooth_grain_curvatures(
@@ -106,13 +53,13 @@ def smooth_grain_curvatures(
                 continue
             used_p2nm_values.add(np.round(pixel_to_nm_scaling, 1))
         for molecule_id, molecule_data in grain.molecule_data_collection.items():
-            curvature_data = molecule_data.curvature_data
-            if curvature_data is not None:
+            if molecule_data.curvature_data is not None:
+                curvature_data = molecule_data.curvature_data
                 curvatures = curvature_data["curvatures"]
                 circular = molecule_data.circular
                 spline_coords_nm = molecule_data.spline_coords
                 spline_distances = distances_nm(spline_coords_nm, circular=circular)
-                mean_spline_distance = np.mean(spline_distances)
+                mean_spline_distance = np.float64(np.mean(spline_distances))
                 spline_cumulative_distances = cumulative_distances_nm(spline_coords_nm, circular=circular)
                 assert len(curvatures) == len(spline_coords_nm)
                 assert len(spline_cumulative_distances) == len(curvatures)

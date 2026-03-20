@@ -123,6 +123,10 @@ splining:
   spline_degree: 3 # The polynomial degree of the spline.
 curvature:
   run: true # Options : true, false
+  smoothing_method: "gaussian" # Options : "gaussian", "savitzky_golay"
+  smoothing_gaussian_sigma_nm: 1.0 # The sigma of the Gaussian smoothing kernel in nm.
+  smoothing_savgol_window_length_nm: 10.0 # The window length of the Savitzky-Golay smoothing kernel in nm.
+  smoothing_savgol_polyorder: 2 # The polynomial order of the Savitzky-Golay smoothing kernel.
   colourmap_normalisation_bounds: [-0.5, 0.5] # Radians per nm to normalise the colourmap to.
 plotting:
   run: true # Options : true, false
