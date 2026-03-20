@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.20.4"
+__generated_with = "0.21.1"
 app = marimo.App(width="medium")
 
 
@@ -242,23 +242,42 @@ def _(combinations, mpl, np, pd, stats):
 
 
 @app.cell
-def _(df_data, picoz_colors, plt, sns):
+def _(df_data, plt, sns):
+    _fig, _ax = plt.subplots(figsize=(6, 6))
     sns.boxplot(
         x="species",
         y="total_contour_length_nm",
         data=df_data,
-        palette=picoz_colors,
-        hue="species",
+        showfliers=False,
+        linewidth=1.5,
+        # palette=picoz_colors,
+        # hue="species",
+    )
+    sns.stripplot(
+        data=df_data,
+        x="species",
+        y="total_contour_length_nm",
+        color="black",
+        jitter=True,
+        size=2,
+        alpha=0.7,
     )
 
-    plt.xlabel("pICOz variant")
-    plt.ylabel("Total Contour Length (nm)")
-    plt.ylim(0, 800)  # Adjust y-axis limits as needed
-    plt.title("Total Contour Length by pICOz Variant")
+    # plt.xlabel("pICOz variant")
+    plt.xlabel("")
+    plt.ylabel("Plasmid length (nm)", fontsize=16)
+    plt.ylim(0, 600)  # Adjust y-axis limits as needed
+    # plt.title("Total Contour Length by pICOz Variant")
+    axes_linewidth = 2
+    _ax.spines["top"].set_linewidth(axes_linewidth)
+    _ax.spines["right"].set_linewidth(axes_linewidth)
+    _ax.spines["left"].set_linewidth(axes_linewidth)
+    _ax.spines["bottom"].set_linewidth(axes_linewidth)
+    _ax.tick_params(axis="both", which="major", labelsize=16)
 
     sns.despine()
     plt.show()
-    return
+    return (axes_linewidth,)
 
 
 @app.cell
@@ -412,6 +431,59 @@ def _(df_data, pd, perform_group_test, perform_t_test):
         df=df_data,
         value_columns=["curvature_iqr", "curvature_median"],
     )
+    return
+
+
+@app.cell
+def _(axes_linewidth, df_data, np, plt):
+    # Stacked bar chart of number of crossings
+    # stacked bar chart of % num_crossings rather than counts
+    _fig, _ax = plt.subplots(figsize=(6, 6))
+    # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
+    # multiple indices, where the first index is the groupby column and the second index is the value column
+    # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
+    # values with 0 since the series doesn't require each group to have all possible values
+    # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
+    # each group?
+    df_num_crossings = df_data.groupby(["species", "num_crossings"]).size()
+    print(" --- Grouped counts --- ")
+    print(df_num_crossings)
+    print("--- Unstacked with fill_value=0 ---")
+    df_counts_crossings = df_num_crossings.unstack(fill_value=0)
+    print(df_counts_crossings)
+    # divide by the row sums to get percentages
+    df_percents = df_counts_crossings.div(df_counts_crossings.sum(axis=1), axis=0)
+
+    # order = ["data/supercoiled", "data/nicked"]
+    # df_counts_crossings = df_counts_crossings.reindex(order)
+    # df_percents = df_percents.reindex(order) * 100
+    df_percents = df_percents * 100
+
+    print(f"\npercentages:\n {df_percents}")
+
+    df_percents.plot.bar(stacked=True, ax=_ax, width=0.7, colormap="Blues_r")
+    _ax.set_xticks(ticks=[0, 1, 2, 3, 4, 5, 6])
+    _ax.set_ylabel("Percentage", fontsize=12)
+    _ax.set_xlabel("", fontname="Arial")
+    # line thickness for axes thicker
+    _axes_linewidth = 2
+    _ax.spines["top"].set_linewidth(axes_linewidth)
+    _ax.spines["right"].set_linewidth(axes_linewidth)
+    _ax.spines["left"].set_linewidth(axes_linewidth)
+    _ax.spines["bottom"].set_linewidth(axes_linewidth)
+    # make y ticks be integers only
+    _ax.set_yticks(ticks=np.arange(0, 110, 10))
+    # text size
+    _ax.tick_params(axis="both", which="major", labelsize=12)
+    # legend
+    _ax.legend(
+        title="No. crossings",
+        title_fontsize=14,
+        fontsize=12,
+        loc="upper right",
+        frameon=False,
+    )
+    plt.show()
     return
 
 
