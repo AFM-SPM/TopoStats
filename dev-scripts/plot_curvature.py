@@ -438,52 +438,53 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 def _(axes_linewidth, df_data, np, plt):
     # Stacked bar chart of number of crossings
     # stacked bar chart of % num_crossings rather than counts
-    _fig, _ax = plt.subplots(figsize=(6, 6))
-    # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
-    # multiple indices, where the first index is the groupby column and the second index is the value column
-    # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
-    # values with 0 since the series doesn't require each group to have all possible values
-    # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
-    # each group?
-    df_num_crossings = df_data.groupby(["species", "num_crossings"]).size()
-    print(" --- Grouped counts --- ")
-    print(df_num_crossings)
-    print("--- Unstacked with fill_value=0 ---")
-    df_counts_crossings = df_num_crossings.unstack(fill_value=0)
-    print(df_counts_crossings)
-    # divide by the row sums to get percentages
-    df_percents = df_counts_crossings.div(df_counts_crossings.sum(axis=1), axis=0)
+    _groups = [["SCpicoz", "nicked"],["SCpicoz", "3ATpicoz", "TEL12"]]
 
-    # order = ["data/supercoiled", "data/nicked"]
-    # df_counts_crossings = df_counts_crossings.reindex(order)
-    # df_percents = df_percents.reindex(order) * 100
-    df_percents = df_percents * 100
+    for group in _groups:
+        df_data_filtered = df_data[df_data["species"].isin(group)]
+        _fig, _ax = plt.subplots(figsize=(6, 6))
+        # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
+        # multiple indices, where the first index is the groupby column and the second index is the value column
+        # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
+        # values with 0 since the series doesn't require each group to have all possible values
+        # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
+        # each group?
+        df_num_crossings = df_data_filtered.groupby(["species", "num_crossings"]).size()
+        # print(" --- Grouped counts --- ")
+        # print(df_num_crossings)
+        # print("--- Unstacked with fill_value=0 ---")
+        df_counts_crossings = df_num_crossings.unstack(fill_value=0)
+        # print(df_counts_crossings)
+        # divide by the row sums to get percentages
+        df_percents = df_counts_crossings.div(df_counts_crossings.sum(axis=1), axis=0)
+        df_percents = df_percents.reindex(group)
+        # df_percents = df_percents.reindex(order) * 100
+        df_percents = df_percents * 100
+        # print(f"\npercentages:\n {df_percents}")
 
-    print(f"\npercentages:\n {df_percents}")
-
-    df_percents.plot.bar(stacked=True, ax=_ax, width=0.7, colormap="Blues_r")
-    _ax.set_xticks(ticks=[0, 1, 2, 3, 4, 5, 6])
-    _ax.set_ylabel("Percentage", fontsize=12)
-    _ax.set_xlabel("", fontname="Arial")
-    # line thickness for axes thicker
-    _axes_linewidth = 2
-    _ax.spines["top"].set_linewidth(axes_linewidth)
-    _ax.spines["right"].set_linewidth(axes_linewidth)
-    _ax.spines["left"].set_linewidth(axes_linewidth)
-    _ax.spines["bottom"].set_linewidth(axes_linewidth)
-    # make y ticks be integers only
-    _ax.set_yticks(ticks=np.arange(0, 110, 10))
-    # text size
-    _ax.tick_params(axis="both", which="major", labelsize=12)
-    # legend
-    _ax.legend(
-        title="No. crossings",
-        title_fontsize=14,
-        fontsize=12,
-        loc="upper right",
-        frameon=False,
-    )
-    plt.show()
+        df_percents.plot.bar(stacked=True, ax=_ax, width=0.7, colormap="Blues")
+        _ax.set_xticks(ticks=list(range(len(group) + 2)))
+        _ax.set_ylabel("Percentage", fontsize=12)
+        _ax.set_xlabel("", fontname="Arial")
+        # line thickness for axes thicker
+        _axes_linewidth = 2
+        _ax.spines["top"].set_linewidth(axes_linewidth)
+        _ax.spines["right"].set_linewidth(axes_linewidth)
+        _ax.spines["left"].set_linewidth(axes_linewidth)
+        _ax.spines["bottom"].set_linewidth(axes_linewidth)
+        # make y ticks be integers only
+        _ax.set_yticks(ticks=np.arange(0, 110, 10))
+        # text size
+        _ax.tick_params(axis="both", which="major", labelsize=12)
+        # legend
+        _ax.legend(
+            title="No. crossings",
+            title_fontsize=14,
+            fontsize=12,
+            loc="upper right",
+            frameon=False,
+        )
+        plt.show()
     return
 
 
