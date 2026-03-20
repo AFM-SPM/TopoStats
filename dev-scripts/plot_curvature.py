@@ -341,14 +341,14 @@ def _(
     metrics = [
         # ("curvature_mean", "Mean curvature"),
         # ("curvature_std", "Standard deviation of curvature"),
-        ("curvature_var", "Variance of curvature"),
+        # ("curvature_var", "Variance of curvature"),
         ("curvature_median", "Median curvature"),
         ("num_crossings", "Number of crossings"),
-        # ("curvature_iqr", "Interquartile range of curvature"),
+        ("curvature_iqr", "Interquartile range of curvature"),
         # ("curvature_total", "Total curvature"),
         # ("curvature_max", "Maximum curvature"),
         # ("curvature_min", "minimum_curvature"),
-        # ("curvature_90th", "90th percentile of curvature"),
+        ("curvature_90th", "90th percentile of curvature"),
     ]
 
     groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
@@ -409,7 +409,7 @@ def _(df_data, pd, perform_group_test, perform_t_test):
     perform_stats_tests_on_groups(
         sample_groups=[["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]],
         df=df_data,
-        value_columns=["curvature_var", "curvature_median"],
+        value_columns=["curvature_iqr", "curvature_median"],
     )
     return
 
