@@ -350,9 +350,7 @@ def sort_clockwise(coordinates: npt.NDArray) -> npt.NDArray:
     return coordinates[order]
 
 
-def min_max_feret(
-    points: npt.NDArray, axis: int = 0, precision: int = 13
-) -> dict[str, Any]:
+def min_max_feret(points: npt.NDArray, axis: int = 0, precision: int = 13) -> dict[str, Any]:
     """
     Given a list of 2-D points, returns the minimum and maximum feret diameters.
 

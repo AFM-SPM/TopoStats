@@ -518,8 +518,12 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
         self.images["initial_median_flatten"]: npt.NDArray = self.median_flatten(
             self.images["pixels"], mask=None, row_alignment_quantile=self.row_alignment_quantile
         )
-        self.images["initial_tilt_removal"]: npt.NDArray = self.remove_tilt(self.images["initial_median_flatten"], mask=None)
-        self.images["initial_quadratic_removal"]: npt.NDArray = self.remove_quadratic(self.images["initial_tilt_removal"], mask=None)
+        self.images["initial_tilt_removal"]: npt.NDArray = self.remove_tilt(
+            self.images["initial_median_flatten"], mask=None
+        )
+        self.images["initial_quadratic_removal"]: npt.NDArray = self.remove_quadratic(
+            self.images["initial_tilt_removal"], mask=None
+        )
         self.images["initial_nonlinear_polynomial_removal"]: npt.NDArray = self.remove_nonlinear_polynomial(
             self.images["initial_quadratic_removal"], mask=None
         )
@@ -564,7 +568,9 @@ processed, please refer to https://github.com/AFM-SPM/TopoStats/discussions for 
             self.images["mask"],
             row_alignment_quantile=self.row_alignment_quantile,
         )
-        self.images["masked_tilt_removal"]: npt.NDArray = self.remove_tilt(self.images["masked_median_flatten"], self.images["mask"])
+        self.images["masked_tilt_removal"]: npt.NDArray = self.remove_tilt(
+            self.images["masked_median_flatten"], self.images["mask"]
+        )
         self.images["masked_quadratic_removal"]: npt.NDArray = self.remove_quadratic(
             self.images["masked_tilt_removal"], self.images["mask"]
         )

@@ -1,12 +1,12 @@
 """Custom Bruker Nanoscope colorscale."""
 
 import logging
+from collections.abc import Sequence
+from typing import Literal
 
 import matplotlib as mpl
 import matplotlib.cm
 import numpy as np
-
-from typing import Literal, Sequence
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
 from topostats.logs.logs import LOGGER_NAME

@@ -246,7 +246,9 @@ def create_empty_dataframe(column_set: str = "grainstats") -> pd.DataFrame:
     return pd.DataFrame(columns=COLUMN_SETS[column_set])
 
 
-def bound_padded_coordinates_to_image(coordinates: npt.NDArray, padding: int, image_shape: tuple[int, int]) -> tuple[int, int]:
+def bound_padded_coordinates_to_image(
+    coordinates: npt.NDArray, padding: int, image_shape: tuple[int, int]
+) -> tuple[int, int]:
     """
     Ensure the padding of coordinates points does not fall outside of the image shape.
 

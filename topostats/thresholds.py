@@ -95,7 +95,7 @@ def _threshold_otsu(image: npt.NDArray, otsu_threshold_multiplier: float, **kwar
     return threshold_otsu(image, **kwargs) * otsu_threshold_multiplier
 
 
-def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float| None = None, **kwargs) -> float:
+def _threshold_mean(image: npt.NDArray, otsu_threshold_multiplier: float | None = None, **kwargs) -> float:
     """
     Calculate the Mean threshold.
 
