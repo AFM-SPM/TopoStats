@@ -272,11 +272,76 @@ def discrete_angle_difference_per_nm_linear(
     return angles_per_nm
 
 
+def quantify_turns(
+    curvatures: npt.NDArray[np.float64],
+    trace_distances_nm: npt.NDArray[np.float64],
+    curvature_turn_threshold_iqr_multiplier: float,
+    curvature_turn_minimum_delay_nm: float,
+) -> int:
+    """
+    Calculate the number of turns in trace from its curvatures.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        Array of curvatures for each point in the trace.
+
+    Returns
+    -------
+    int
+        Number of turns in the trace.
+    """
+    # Calculate the threshold for a turn based on the nth percentile
+    curvature_iqr = np.float64(np.percentile(curvatures, 75) - np.percentile(curvatures, 25))
+    curvature_pos_turn_threshold_pernm = np.median(curvatures) + curvature_turn_threshold_iqr_multiplier * curvature_iqr
+    curvature_neg_turn_threshold_pernm = np.median(curvatures) - curvature_turn_threshold_iqr_multiplier * curvature_iqr
+
+    # Calculate the number of turns
+    turns = 0
+    in_pos_turn = False
+    in_neg_turn = False
+    current_segment_distance = np.inf
+    for curvature, distance_to_last_point in zip(curvatures, trace_distances_nm):
+        current_segment_distance += distance_to_last_point
+        if current_segment_distance > curvature_turn_minimum_delay_nm:
+            if curvature >= 0:
+                if curvature >= curvature_pos_turn_threshold_pernm:
+                    # In positive turn
+                    if not in_pos_turn:
+                        turns += 1
+                        in_pos_turn = True
+                        in_neg_turn = False
+                        # Start a new segment
+                        current_segment_distance = 0
+                else:
+                    # Not in a turn, reset
+                    in_pos_turn = False
+                    in_neg_turn = False
+                    current_segment_distance = 0
+            elif curvature < 0:
+                if curvature <= curvature_neg_turn_threshold_pernm:
+                    # In negative turn
+                    if not in_neg_turn:
+                        turns += 1
+                        in_neg_turn = True
+                        in_pos_turn = False
+                        # Start a new segment
+                        current_segment_distance = 0
+                else:
+                    # Not in a turn, reset
+                    in_pos_turn = False
+                    in_neg_turn = False
+                    current_segment_distance = 0
+
+    return turns
+
+
 class MoleculeCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single molecule."""
 
     curvatures: npt.NDArray[np.float64]
     is_circular: bool
+    num_turns: int
     curvature_mean: float
     curvature_max: float
     curvature_min: float
@@ -309,6 +374,7 @@ class MoleculeCurvatureStats(TopoStatsBaseModel):
             "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
             "curvature_90th": self.curvature_90th,
+            "num_turns": self.num_turns,
         }
 
 
@@ -316,6 +382,7 @@ class GrainCurvatureStats(TopoStatsBaseModel):
     """Data model for storing curvature statistics for a single grain."""
 
     molecules: dict[str, MoleculeCurvatureStats]
+    num_turns: int
     curvature_mean: float
     curvature_max: float
     curvature_min: float
@@ -346,6 +413,7 @@ class GrainCurvatureStats(TopoStatsBaseModel):
             "curvature_median": self.curvature_median,
             "curvature_iqr": self.curvature_iqr,
             "curvature_90th": self.curvature_90th,
+            "num_turns": self.num_turns,
         }
 
 
@@ -393,6 +461,7 @@ class AllGrainCurvatureStats(TopoStatsBaseModel):
                 "curvature_median": grain_curvature_stats.curvature_median,
                 "curvature_iqr": grain_curvature_stats.curvature_iqr,
                 "curvature_90th": grain_curvature_stats.curvature_90th,
+                "num_turns": grain_curvature_stats.num_turns,
             }
             records.append(entry)
         return pd.DataFrame.from_records(records)
@@ -433,6 +502,8 @@ def calculate_curvature_stats_image(
     smoothing_gaussian_sigma_nm: float,
     smoothing_savgol_window_length_nm: int,
     smoothing_savgol_polyorder: int,
+    curvature_turn_minimum_delay_nm: float,
+    curvature_turn_threshold_iqr_multiplier: float,
 ) -> tuple[AllGrainCurvatureStats, pd.DataFrame]:
     """
     Perform curvature analysis for a whole image of grains.
@@ -480,17 +551,26 @@ def calculate_curvature_stats_image(
             )
 
             metrics = _calculate_curvature_metrics(curvatures_smoothed)
+            num_turns = quantify_turns(
+                curvatures=curvatures_smoothed,
+                trace_distances_nm=trace_distances_nm,
+                curvature_turn_minimum_delay_nm=curvature_turn_minimum_delay_nm,
+                curvature_turn_threshold_iqr_multiplier=curvature_turn_threshold_iqr_multiplier,
+            )
             molecules[molecule_key] = MoleculeCurvatureStats(
                 curvatures=curvatures_smoothed,
                 is_circular=is_circular,
+                num_turns=num_turns,
                 **metrics,
             )
 
         # Collate stats
         all_curvatures = np.concatenate([molecule.curvatures for molecule in molecules.values()])
         grain_metrics = _calculate_curvature_metrics(all_curvatures)
+        grain_num_turns = sum(molecule.num_turns for molecule in molecules.values())
         grains[grain_key] = GrainCurvatureStats(
             molecules=molecules,
+            num_turns=grain_num_turns,
             **grain_metrics,
         )
 
@@ -535,7 +615,6 @@ def smooth_curvature(
     if method == "gaussian":
         # adjust the sigma for the gaussian filter
         gaussian_sigma_adjusted = gaussian_sigma_nm / point_spacing_nm
-        print(f"gaussian sigma adjusted: {gaussian_sigma_adjusted}")
         smoothed_curvatures = gaussian_filter1d(curvatures.copy(), sigma=gaussian_sigma_adjusted)
     elif method == "savitzky_golay":
         # adjust the window length for the savgol filter based on the point spacing

@@ -443,6 +443,8 @@ DEFAULT_CONFIG_SCHEMA = Schema(
             "smoothing_gaussian_sigma_nm": lambda n: n > 0.0,
             "smoothing_savgol_window_length_nm": lambda n: n > 0.0,
             "smoothing_savgol_polyorder": int,
+            "curvature_turn_minimum_delay_nm": lambda n: n > 0.0,
+            "curvature_turn_threshold_iqr_multiplier": lambda n: n > 0.0,
             "colourmap_normalisation_bounds": [
                 Or(
                     float,

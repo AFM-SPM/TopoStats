@@ -996,6 +996,8 @@ def run_curvature_stats(
                     smoothing_gaussian_sigma_nm=curvature_config["smoothing_gaussian_sigma_nm"],
                     smoothing_savgol_window_length_nm=curvature_config["smoothing_savgol_window_length_nm"],
                     smoothing_savgol_polyorder=curvature_config["smoothing_savgol_polyorder"],
+                    curvature_turn_minimum_delay_nm=curvature_config["curvature_turn_minimum_delay_nm"],
+                    curvature_turn_threshold_iqr_multiplier=curvature_config["curvature_turn_threshold_iqr_multiplier"],
                 )
 
                 Images(

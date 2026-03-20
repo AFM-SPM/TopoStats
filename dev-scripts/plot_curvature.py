@@ -349,6 +349,7 @@ def _(
         # ("curvature_max", "Maximum curvature"),
         # ("curvature_min", "minimum_curvature"),
         ("curvature_90th", "90th percentile of curvature"),
+        ("num_turns", "Number of turns"),
     ]
 
     groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
