@@ -7,6 +7,7 @@ import numpy as np
 
 from topostats.damage.array_manipulation import cumulative_distances_nm, distances_nm
 from topostats.damage.damage import GrainCollection
+from topostats.measure.curvature import smooth_curvature
 
 
 def smooth_grain_curvatures(
