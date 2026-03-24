@@ -1505,6 +1505,7 @@ def check_run_steps(  # noqa: C901
     nodestats_run: bool,
     ordered_tracing_run: bool,
     splining_run: bool,
+    curvature_run: bool,
 ) -> None:
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
@@ -1514,19 +1515,21 @@ def check_run_steps(  # noqa: C901
     Parameters
     ----------
     filter_run : bool
-        Flag for running Filtering.
+        Flag for running filtering.
     grains_run : bool
-        Flag for running Grains.
+        Flag for running grains.
     grainstats_run : bool
-        Flag for running GrainStats.
+        Flag for running grainstats.
     disordered_tracing_run : bool
-        Flag for running Disordered Tracing.
+        Flag for running disordered tracing.
     nodestats_run : bool
-        Flag for running NodeStats.
+        Flag for running nodestats.
     ordered_tracing_run : bool
-        Flag for running Ordered Tracing.
+        Flag for running ordered tracing.
     splining_run : bool
-        Flag for running DNA Tracing.
+        Flag for running splining of DNA traces.
+    curvature_run : bool
+        Flag for running curvature calculations of splined DNA traces.
     """
     LOGGER.debug(f"{filter_run=}")
     LOGGER.debug(f"{grains_run=}")
@@ -1535,7 +1538,25 @@ def check_run_steps(  # noqa: C901
     LOGGER.debug(f"{nodestats_run=}")
     LOGGER.debug(f"{ordered_tracing_run=}")
     LOGGER.debug(f"{splining_run=}")
-    if splining_run:
+    LOGGER.debug(f"{curvature_run=}")
+    if curvature_run:
+        if splining_run is False:
+            LOGGER.error("Curvature enabled but Splining disabled. Please check your configuration file.")
+        if ordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Ordered Tracing disabled. Please check your configuration file.")
+        if nodestats_run is False:
+            LOGGER.error("Curvature enabled but NodeStats disabled. Tracing will use the 'old' method.")
+        if disordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("Curvature enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Curvature enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Curvature enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif splining_run:
         if ordered_tracing_run is False:
             LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:
