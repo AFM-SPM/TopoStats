@@ -154,6 +154,7 @@ def _parse_configuration(args: argparse.Namespace | None = None) -> tuple[dict, 
         nodestats_run=config["nodestats"]["run"],
         ordered_tracing_run=config["ordered_tracing"]["run"],
         splining_run=config["splining"]["run"],
+        curvature_run=config["curvature"]["run"],
     )
     # Ensures each image has all plotting options which are passed as **kwargs
     config["plotting"] = update_plotting_config(config["plotting"])
