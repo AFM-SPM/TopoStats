@@ -1,0 +1,3118 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://AFM-SPM.github.io/TopoStats/latest/usage/">
+      
+      
+        <link rel="prev" href="installation/">
+      
+      
+        <link rel="next" href="configuration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Getting Started - TopoStats</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#getting-started" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="TopoStats" class="md-header__button md-logo" aria-label="TopoStats" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            TopoStats
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting Started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AFM-SPM/TopoStats/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="TopoStats" class="md-nav__button md-logo" aria-label="TopoStats" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    TopoStats
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AFM-SPM/TopoStats/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#organising-scans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organising Scans
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-topostats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running TopoStats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#help-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Help Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reducing-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reducing Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-topostats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring TopoStats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring TopoStats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Configuration File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-configyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing config.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-topostats-with-my_configyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running TopoStats with my_config.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary Plots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary Plots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuring-summary-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring Summary Plots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pickles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pickles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notebooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="matplotlib-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Matplotlib Style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="data_dictionary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../related_software/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Related Software
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/adding_modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Documentation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Documentation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extending
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/flattening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flattening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/grain_finding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grain finding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/thresholding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thresholding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/grainstats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grainstats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/disordered_tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Disordered Tracing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/nodestats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NodeStats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/ordered_tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ordered Tracing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/splining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splining
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TopoStats API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/array_manipulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Array Manipulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/entry_point/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entry Point
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/grains/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grains
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/grainstats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grainstats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_10" id="__nav_9_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Logs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/logs/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_11" id="__nav_9_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Measure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/measure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Measure API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/measure/curvature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Curvature
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/measure/feret/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feret
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/measure/geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/measure/height_profiles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Height Profiles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/plotting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/plottingfuncs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlottingFuncs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/run_modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/scars/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scars
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/statistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/theme/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theme
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/thresholds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thresholds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9_20" >
+        
+          
+          <label class="md-nav__link" for="__nav_9_20" id="__nav_9_20_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_9_20_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9_20">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tracing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracing API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/disordered_tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Disorderd Tracing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/nodestats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NodeStats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/ordered_tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ordered Tracing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/pruning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pruning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/skeletonize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Skeletonize
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/splining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Splining
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tracing/tracingfuncs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracing Funcs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#organising-scans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organising Scans
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line Navigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-topostats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running TopoStats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#help-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help Options
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Help Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reducing-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reducing Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-topostats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring TopoStats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuring TopoStats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating Configuration File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-configyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing config.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-topostats-with-my_configyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running TopoStats with my_config.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary Plots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary Plots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuring-summary-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring Summary Plots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pickles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pickles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="getting-started">Getting Started</h1>
+<p>After having <a href="installation/">installed</a> TopoStats you are ready to run it. For convenience TopoStats provides a command
+line interface <code>topostats</code> that will load a default configuration file and process all images with reasonable
+default configuration options.</p>
+<p>However, because the location of your image files can not be known in advance you must make a copy of the default
+configuration and modify it to work with your files. This guide will hopefully take you through the process of running
+TopoStats and customising the configuration file with which it is run. If you encounter any problems please ask
+questions in the <a href="https://github.com/AFM-SPM/TopoStats/discussions">Discussions</a>. If you think you have encountered a
+bug or have a feature suggestion please create an <a href="https://github.com/AFM-SPM/TopoStats/issues">Issue</a>.</p>
+<h2 id="organising-scans">Organising Scans</h2>
+<p>You should place all files you wish to batch process in a single directory. They can be nested in separate folders as
+TopoStats will scan for all images within this directory but currently it will only process one scan type at a time
+(i.e. <code>.spm</code> <em>or</em> <code>.jpk</code> <em>or</em> <code>.asd</code>). This may change in the future.</p>
+<h2 id="command-line-navigation">Command Line Navigation</h2>
+<p>TopoStats currently runs as a command-line programme. To use it you will have to use a "prompt" or "terminal" (they're
+essentially the same thing). What you use will depend on your operating system, but the following are some simple
+commands on navigation. If you use Windows then for consistency it is recommended to install and use
+<a href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell">PowerShell</a>.</p>
+<p>At the command line you use <code>cd</code> to <code>c</code>hange <code>d</code>irectory to the location of your files. For example if your scans are on
+the C-drive in <code>C:\User\me\work\spm\2022-12-08\scans</code> then you would</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>c:/User/me/work/spm/2022-12-08/scans
+</span></code></pre></div>
+<p>If you are on a Linux or OSX system then paths are not prefixed with letters and your files may be saved to
+<code>/home/me/work/spm/2022-12-08/scans</code>. To change directory there you would...</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>/home/me/work/spm/2022-12-08/scans
+</span></code></pre></div>
+<p><strong>NB</strong> - Always use a forward-slash (<code>/</code>) when typing directory paths. Windows will display back-slash (<code>\</code>) but
+understands forward-slash. Under Linux and OSX they mean different things and so you should always use forward-slash
+(<code>/</code>).</p>
+<p>You can always find out what location you are at in the command line using the <code>pwd</code> command (<code>p</code>rint <code>w</code>orking
+<code>d</code>irectory) and it will print out the directory you are currently at.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">pwd</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/home/me/work/spm/2022-12-08/scans
+</span></code></pre></div>
+<p>To navigate up one directory level use <code>cd ..</code>. These can be chained together and directories separated with <code>/</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Move up a single directory level</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>..
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">pwd</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>/home/me/work/spm/2022-12-08
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Move up another two directory levels</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nb">cd</span><span class="w"> </span>../../
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nb">pwd</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>/home/me/
+</span></code></pre></div>
+<p>You can list the files in a directory using the <code>ls</code> command.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ls
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sample_image_scan_2022-12-08-1204.spm
+</span></code></pre></div>
+<p>To learn more about the command line see the <a href="https://datacarpentry.org/shell-genomics/">Introduction to the Command Line for
+Genomics</a>.</p>
+<h2 id="running-topostats">Running TopoStats</h2>
+<p>The default location that TopoStats looks for scans is the directory from which it is invoked. Once you start your
+shell/terminal you will therefore need to do two things.</p>
+<ol>
+<li>Navigate to the location of the scans you wish to process using <code>cd /path/to/where/scans/are/located</code>.</li>
+<li>Activate the virtual environment under which you installed TopoStats (refer to <a href="installation/">installed</a> if unsure).</li>
+</ol>
+<p>You can now run topostats by invoking <code>topostats process</code> and you should start to see some output similar to that below.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>/path/to/where/scans/are/located
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>topostats<span class="w"> </span>process
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>is<span class="w"> </span>valid.
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Plotting<span class="w"> </span>configuration<span class="w"> </span>is<span class="w"> </span>valid.
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>file<span class="w"> </span>loaded<span class="w"> </span>from<span class="w">      </span>:<span class="w"> </span>None
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span><span class="k">in</span><span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Output<span class="w"> </span>directory<span class="w">                    </span>:<span class="w"> </span>output
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Looking<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>extension<span class="w">   </span>:<span class="w"> </span>.spm
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Images<span class="w"> </span>with<span class="w"> </span>extension<span class="w"> </span>.spm<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/neil/work/projects/topostats/TopoStats<span class="w"> </span>:<span class="w"> </span><span class="m">32</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Filtering<span class="o">)</span><span class="w">     </span>:<span class="w"> </span>std_dev
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Grains<span class="o">)</span><span class="w">        </span>:<span class="w"> </span>std_dev
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>...
+</span></code></pre></div>
+<p>On a successful completion you should see a message similar to the following which indicates various aspects of the run
+along with information about how to give feedback, report bugs and cite the software.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>_______<span class="w">      </span>_____<span class="w">      </span>__<span class="w"> </span>__<span class="w">       </span>_____<span class="w">     </span>______<span class="w">    </span>_______<span class="w">      </span>_____<span class="w">      </span>_______<span class="w">    </span>______
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span><span class="w">  </span><span class="o">)</span><span class="w"> </span>___<span class="w"> </span><span class="o">(</span><span class="w">    </span>/_/<span class="se">\_</span>_/<span class="se">\ </span><span class="w">   </span><span class="o">)</span><span class="w"> </span>___<span class="w"> </span><span class="o">(</span><span class="w">   </span>/<span class="w"> </span>____/<span class="se">\ </span>/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span><span class="w">  </span>/<span class="se">\_</span>__/<span class="se">\ </span><span class="w">  </span>/<span class="se">\_</span>______<span class="o">)</span><span class="se">\ </span>/<span class="w"> </span>____/<span class="se">\</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w">  </span>/<span class="w"> </span>/<span class="se">\_</span>/<span class="se">\ \ </span><span class="w">  </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">  </span>/<span class="w"> </span>/<span class="se">\_</span>/<span class="se">\ \ </span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span>__<span class="se">\/</span><span class="w"> </span><span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>_<span class="w"> </span><span class="se">\ \ </span><span class="w"> </span><span class="se">\(</span>___<span class="w">  </span>__<span class="se">\/</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w"> </span>__<span class="se">\/</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">     </span>/<span class="w"> </span>/_/<span class="w"> </span><span class="o">(</span>_<span class="se">\ \ </span>/_/<span class="w"> </span>/_/<span class="w"> </span>/<span class="w">  </span>/<span class="w"> </span>/_/<span class="w"> </span><span class="o">(</span>_<span class="se">\ \ </span><span class="w"> </span><span class="se">\ \ \ </span><span class="w">    </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">      </span><span class="se">\ \(</span>_<span class="o">)</span>/<span class="w"> </span>/<span class="w">    </span>/<span class="w"> </span>/<span class="w"> </span>/<span class="w">      </span><span class="se">\ \ \</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">      </span><span class="se">\ \ </span><span class="o">)</span>_/<span class="w"> </span>/<span class="w"> </span>/<span class="w"> </span><span class="se">\ \ \_\/</span><span class="w">   </span><span class="se">\ \ </span><span class="o">)</span>_/<span class="w"> </span>/<span class="w"> </span>/<span class="w">  </span>_<span class="se">\ \ \ </span><span class="w">  </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">       </span>/<span class="w"> </span>/<span class="w"> </span>_<span class="w"> </span><span class="se">\ \ </span><span class="w">  </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w"> </span><span class="o">(</span><span class="w">       </span>_<span class="se">\ \ \</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="se">\ \ \ </span><span class="w">     </span><span class="se">\ \/</span>_<span class="se">\/</span><span class="w"> </span>/<span class="w">   </span><span class="o">)</span>_<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">      </span><span class="se">\ \/</span>_<span class="se">\/</span><span class="w"> </span>/<span class="w">  </span><span class="o">)</span>____<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">   </span><span class="se">\ \ \ </span><span class="w">    </span><span class="o">(</span><span class="w"> </span><span class="o">(</span>_<span class="o">(</span><span class="w"> </span><span class="o">)</span>_<span class="o">)</span><span class="w"> </span><span class="o">)</span><span class="w">   </span><span class="se">\ \ \ </span><span class="w">    </span><span class="o">)</span>____<span class="o">)</span><span class="w"> </span><span class="o">)</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span>/_/_/<span class="w">       </span><span class="o">)</span>_____<span class="o">(</span><span class="w">    </span><span class="se">\_\/</span><span class="w">        </span><span class="o">)</span>_____<span class="o">(</span><span class="w">   </span><span class="se">\_</span>___<span class="se">\/</span><span class="w">    </span>/_/_/<span class="w">      </span><span class="se">\/</span>_/<span class="w"> </span><span class="se">\_\/</span><span class="w">    </span>/_/_/<span class="w">     </span><span class="se">\_</span>___<span class="se">\/</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="o">[</span>Thu,<span class="w"> </span><span class="m">14</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2024</span><span class="w"> </span><span class="m">09</span>:40:56<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<span class="w"> </span>COMPLETE<span class="w"> </span>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span>Base<span class="w"> </span>Directory<span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">  </span>File<span class="w"> </span>Extension<span class="w">              </span>:<span class="w"> </span>.spm
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">  </span>Files<span class="w"> </span>Found<span class="w">                 </span>:<span class="w"> </span><span class="m">1</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span>Successfully<span class="w"> </span>Processed<span class="w">      </span>:<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">(</span><span class="m">100</span>.0%<span class="o">)</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">  </span>Configuration<span class="w">               </span>:<span class="w"> </span>output/config.yaml
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">  </span>All<span class="w"> </span>statistics<span class="w">              </span>:<span class="w"> </span>output/all_statistics.csv
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="w">  </span>Distribution<span class="w"> </span>Plots<span class="w">          </span>:<span class="w"> </span>output/summary_distributions
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">  </span>Email<span class="w">                       </span>:<span class="w"> </span>topostats@sheffield.ac.uk
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span>Documentation<span class="w">               </span>:<span class="w"> </span>https://afm-spm.github.io/topostats/
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">  </span>Source<span class="w"> </span>Code<span class="w">                 </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a><span class="w">  </span>Bug<span class="w"> </span>Reports/Feature<span class="w"> </span>Request<span class="w"> </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/issues/new/choose
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">  </span>Citation<span class="w"> </span>File<span class="w"> </span>Format<span class="w">        </span>:<span class="w"> </span>https://github.com/AFM-SPM/TopoStats/blob/main/CITATION.cff
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">  </span>If<span class="w"> </span>you<span class="w"> </span>encounter<span class="w"> </span>bugs/issues<span class="w"> </span>or<span class="w"> </span>have<span class="w"> </span>feature<span class="w"> </span>requests<span class="w"> </span>please<span class="w"> </span>report<span class="w"> </span>them<span class="w"> </span>at<span class="w"> </span>the<span class="w"> </span>above<span class="w"> </span>URL
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">  </span>or<span class="w"> </span>email<span class="w"> </span>us.
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">  </span>If<span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span>found<span class="w"> </span>TopoStats<span class="w"> </span>useful<span class="w"> </span>please<span class="w"> </span>consider<span class="w"> </span>citing<span class="w"> </span>it.<span class="w"> </span>A<span class="w"> </span>Citation<span class="w"> </span>File<span class="w"> </span>Format<span class="w"> </span>is
+</span><span id="__span-6-35"><a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="w">  </span>linked<span class="w"> </span>above<span class="w"> </span>and<span class="w"> </span>available<span class="w"> </span>from<span class="w"> </span>the<span class="w"> </span>Source<span class="w"> </span>Code<span class="w"> </span>page.
+</span><span id="__span-6-36"><a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</span></code></pre></div>
+<h2 id="help-options">Help Options</h2>
+<p>The main <code>topostats</code> programme has a number of flags which can be specified to change the behaviour of how the programme
+runs. You can view the possible options by supplying the <code>-h</code> or <code>--help</code> flag.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>❱<span class="w"> </span>topostats<span class="w"> </span>--help
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>usage:<span class="w"> </span>topostats<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-v<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>CONFIG_FILE<span class="o">]</span><span class="w"> </span><span class="o">[</span>-s<span class="w"> </span>SUMMARY_CONFIG<span class="o">]</span><span class="w"> </span><span class="o">[</span>--matplotlibrc<span class="w"> </span>MATPLOTLIBRC<span class="o">]</span><span class="w"> </span><span class="o">[</span>-b<span class="w"> </span>BASE_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>OUTPUT_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-l<span class="w"> </span>LOG_LEVEL<span class="o">]</span><span class="w"> </span><span class="o">[</span>-j<span class="w"> </span>CORES<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>FILE_EXT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--channel<span class="w"> </span>CHANNEL<span class="o">]</span><span class="w"> </span><span class="o">{</span>process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc<span class="o">}</span><span class="w"> </span>...
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Run<span class="w"> </span>various<span class="w"> </span>programs<span class="w"> </span>relating<span class="w"> </span>to<span class="w"> </span>AFM<span class="w"> </span>data.<span class="w"> </span>Add<span class="w"> </span>the<span class="w"> </span>name<span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>program<span class="w"> </span>you<span class="w"> </span>wish<span class="w"> </span>to<span class="w"> </span>run.
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>options:
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span>-v,<span class="w"> </span>--version<span class="w">         </span>Report<span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>version<span class="w"> </span>of<span class="w"> </span>TopoStats<span class="w"> </span>that<span class="w"> </span>is<span class="w"> </span>installed
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span>-c<span class="w"> </span>CONFIG_FILE,<span class="w"> </span>--config-file<span class="w"> </span>CONFIG_FILE
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>YAML<span class="w"> </span>configuration<span class="w"> </span>file.
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span>-s<span class="w"> </span>SUMMARY_CONFIG,<span class="w"> </span>--summary-config<span class="w"> </span>SUMMARY_CONFIG
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>YAML<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span><span class="k">for</span><span class="w"> </span>summary<span class="w"> </span>plots<span class="w"> </span>and<span class="w"> </span>statistics.
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span>--matplotlibrc<span class="w"> </span>MATPLOTLIBRC
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>matplotlibrc<span class="w"> </span>file.
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span>-b<span class="w"> </span>BASE_DIR,<span class="w"> </span>--base-dir<span class="w"> </span>BASE_DIR
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">                        </span>Base<span class="w"> </span>directory<span class="w"> </span>to<span class="w"> </span>scan<span class="w"> </span><span class="k">for</span><span class="w"> </span>images.
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span>-o<span class="w"> </span>OUTPUT_DIR,<span class="w"> </span>--output-dir<span class="w"> </span>OUTPUT_DIR
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">                        </span>Output<span class="w"> </span>directory<span class="w"> </span>to<span class="w"> </span>write<span class="w"> </span>results<span class="w"> </span>to.
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">  </span>-l<span class="w"> </span>LOG_LEVEL,<span class="w"> </span>--log-level<span class="w"> </span>LOG_LEVEL
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">                        </span>Logging<span class="w"> </span>level<span class="w"> </span>to<span class="w"> </span>use,<span class="w"> </span>default<span class="w"> </span>is<span class="w"> </span><span class="s1">&#39;info&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>verbose<span class="w"> </span>output<span class="w"> </span>use<span class="w"> </span><span class="s1">&#39;debug&#39;</span>.
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">  </span>-j<span class="w"> </span>CORES,<span class="w"> </span>--cores<span class="w"> </span>CORES
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">                        </span>Number<span class="w"> </span>of<span class="w"> </span>CPU<span class="w"> </span>cores<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span>when<span class="w"> </span>processing.
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">  </span>-f<span class="w"> </span>FILE_EXT,<span class="w"> </span>--file-ext<span class="w"> </span>FILE_EXT
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">                        </span>File<span class="w"> </span>extension<span class="w"> </span>to<span class="w"> </span>scan<span class="w"> </span><span class="k">for</span>.
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">  </span>--channel<span class="w"> </span>CHANNEL<span class="w">     </span>Channel<span class="w"> </span>to<span class="w"> </span>extract.
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>program:
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">  </span>Available<span class="w"> </span>programs,<span class="w"> </span>listed<span class="w"> </span>below:
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">  </span><span class="o">{</span>process,load,filter,grains,grainstats,disordered-tracing,nodestats,ordered-tracing,splining,summary,create-config,create-matplotlibrc<span class="o">}</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">    </span>process<span class="w">             </span>Process<span class="w"> </span>AFM<span class="w"> </span>images.<span class="w"> </span>Additional<span class="w"> </span>arguments<span class="w"> </span>over-ride<span class="w"> </span>defaults<span class="w"> </span>or<span class="w"> </span>those<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>configuration<span class="w"> </span>file.
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">    </span>load<span class="w">                </span>Load<span class="w"> </span>and<span class="w"> </span>save<span class="w"> </span>all<span class="w"> </span>images<span class="w"> </span>as<span class="w"> </span>.topostats<span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span>subsequent<span class="w"> </span>processing.
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">    </span>filter<span class="w">              </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Load<span class="w"> </span>and<span class="w"> </span>filter<span class="w"> </span>images,<span class="w"> </span>saving<span class="w"> </span>as<span class="w"> </span>.topostats<span class="w"> </span>files<span class="w"> </span><span class="k">for</span><span class="w"> </span>subsequent<span class="w"> </span>processing.
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">    </span>grains<span class="w">              </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Load<span class="w"> </span>filtered<span class="w"> </span>images<span class="w"> </span>from<span class="w"> </span><span class="s1">&#39;.topostats&#39;</span><span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>detect<span class="w"> </span>grains.
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">    </span>grainstats<span class="w">          </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Load<span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>grains<span class="w"> </span>from<span class="w"> </span><span class="s1">&#39;.topostats&#39;</span><span class="w"> </span>files<span class="w"> </span>and<span class="w"> </span>calculate<span class="w"> </span>statistics.
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">    </span>disordered-tracing<span class="w">  </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Skeletonise<span class="w"> </span>and<span class="w"> </span>prune<span class="w"> </span>objects<span class="w"> </span>to<span class="w"> </span>disordered<span class="w"> </span>traces.
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">    </span>nodestats<span class="w">           </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Calculate<span class="w"> </span>node<span class="w"> </span>statistics<span class="w"> </span>and<span class="w"> </span>disentangle<span class="w"> </span>molecules.
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="w">    </span>ordered-tracing<span class="w">     </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Ordered<span class="w"> </span>traces<span class="w"> </span>of<span class="w"> </span>pruned<span class="w"> </span>skeletons.
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a><span class="w">    </span>splining<span class="w">            </span>WIP<span class="w"> </span>DO<span class="w"> </span>NOT<span class="w"> </span>USE<span class="w"> </span>-<span class="w"> </span>Splining<span class="w"> </span>of<span class="w"> </span>traced<span class="w"> </span>molecules<span class="w"> </span>to<span class="w"> </span>produce<span class="w"> </span>smooth<span class="w"> </span>curves.
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a><span class="w">    </span>summary<span class="w">             </span>Plotting<span class="w"> </span>and<span class="w"> </span>summary<span class="w"> </span>of<span class="w"> </span>TopoStats<span class="w"> </span>output<span class="w"> </span>statistics.
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a><span class="w">    </span>create-config<span class="w">       </span>Create<span class="w"> </span>a<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="w">    </span>create-matplotlibrc
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="w">                        </span>Create<span class="w"> </span>a<span class="w"> </span>Matplotlibrc<span class="w"> </span>parameters<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+</span></code></pre></div>
+<p>The global flags/options for modifying behaviour are listed. You then need to provide the name of the programme you wish
+to run which are listed at the bottom of the output along with a description.</p>
+<p>Each sub-programme has its own specific set of options too which can be specified to override the settings in the
+configuration file that is loaded (either the default or the user specified configuration). To view these again use the
+<code>-h</code> or <code>--help</code> flag. For a more detailed description of the options see the <a href="configuration/">configuration</a> page.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="w"> </span>❱<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span>--help
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>usage:<span class="w"> </span>topostats<span class="w"> </span>create-config<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-f<span class="w"> </span>FILENAME<span class="o">]</span><span class="w"> </span><span class="o">[</span>-o<span class="w"> </span>OUTPUT_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>-c<span class="w"> </span>CONFIG<span class="o">]</span><span class="w"> </span><span class="o">[</span>-s<span class="o">]</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>Create<span class="w"> </span>a<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>using<span class="w"> </span>the<span class="w"> </span>defaults.
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>options:
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span>-f<span class="w"> </span>FILENAME,<span class="w"> </span>--filename<span class="w"> </span>FILENAME
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">                        </span>Name<span class="w"> </span>of<span class="w"> </span>YAML<span class="w"> </span>file<span class="w"> </span>to<span class="w"> </span>save<span class="w"> </span>configuration<span class="w"> </span>to<span class="w"> </span><span class="o">(</span>default<span class="w"> </span><span class="s1">&#39;config.yaml&#39;</span><span class="o">)</span>.
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span>-o<span class="w"> </span>OUTPUT_DIR,<span class="w"> </span>--output-dir<span class="w"> </span>OUTPUT_DIR
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>where<span class="w"> </span>the<span class="w"> </span>YAML<span class="w"> </span>file<span class="w"> </span>should<span class="w"> </span>be<span class="w"> </span>saved<span class="w"> </span><span class="o">(</span>default<span class="w"> </span><span class="s1">&#39;./&#39;</span><span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>directory<span class="o">)</span>.
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span>-c<span class="w"> </span>CONFIG,<span class="w"> </span>--config<span class="w"> </span>CONFIG
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">                        </span>Configuration<span class="w"> </span>to<span class="w"> </span>use,<span class="w"> </span>currently<span class="w"> </span>only<span class="w"> </span>one<span class="w"> </span>is<span class="w"> </span>supported,<span class="w"> </span>the<span class="w"> </span><span class="s1">&#39;default&#39;</span>.
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">  </span>-s,<span class="w"> </span>--simple<span class="w">          </span>Create<span class="w"> </span>a<span class="w"> </span>simple<span class="w"> </span>configuration<span class="w"> </span>file<span class="w"> </span>with<span class="w"> </span>only<span class="w"> </span>the<span class="w"> </span>most<span class="w"> </span>common<span class="w"> </span>options.
+</span></code></pre></div>
+<p><strong>NB</strong> The <code>process</code> programme has a <em>lot</em> of options as it runs the processing pipeline in full.</p>
+<h3 id="reducing-output">Reducing Output</h3>
+<p>If you find the output too verbose or of no use you can reduce it by setting the <code>log_level</code> to either <code>error</code> or
+<code>warning</code>. This can be done either in the configuration file (see <a href="configuration/">Configuration</a> below)
+or using the <code>-l</code>/<code>--log-level</code> flag for example <code>topostats process --log_level warning</code>.</p>
+<h2 id="configuring-topostats">Configuring TopoStats</h2>
+<p>Configuration of TopoStats is done through a <a href="https://yaml.org/">YAML</a> file and a full description of the fields used
+can be found under the <a href="configuration/">configuration</a> section.</p>
+<p>Here we will go through generating a configuration file to edit and some of the common changes that you are likely to
+want to make to the default configuration and how to make them.</p>
+<h3 id="generating-configuration-file">Generating Configuration File</h3>
+<p>TopoStats will use some reasonable default parameters by default, but typically you will want to customise the
+parameters that are used. This is achieved using a <a href="configuration/">configuration</a> file. This is a
+<a href="https://yaml.org">YAML</a> file that contains parameters for different settings. For convenience you can generate
+a sample configuration file in your current working directory using the <code>topostats create-config</code> sub-command. It
+takes a single argument, the name of the file to save the configuration to (e.g. <code>config.yaml</code> or <code>settings.yaml</code>), and
+it will write the current default configuration to that file.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>topostats<span class="w"> </span>create-config<span class="w"> </span>--filename<span class="w"> </span>my_config.yaml
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>ls<span class="w"> </span>-l
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>my_config.yaml
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>sample_image_scan_2022-12-08-1204.spm
+</span></code></pre></div>
+<p>You can now edit and/or rename the <code>my_config.yaml</code>. It can be called anything you want,
+e.g. <code>todays_first_run_configuration.yaml</code> is a valid name.</p>
+<h3 id="editing-configyaml">Editing <code>config.yaml</code></h3>
+<p><strong>IMPORTANT</strong> This file is an ASCII text file and you should use NotePad (Windows), TextEdit (OSX) or Nano/Emacs/Vim
+(GNU/Linux) or any other text editor. Do <em>not</em> use Microsoft Word or any other Word Processor to edit this file.</p>
+<p>You can now start customising the configuration you are going to run TopoStats with. All fields have defaults but the
+ones you may want to change are....</p>
+<ul>
+<li><code>base_dir</code> (default: <code>./</code>) the directory in which to search for scans. By default this is <code>./</code> which represents the
+  directory from which <code>topostats process</code> is called and it is good practice to have one configuration file per batch of
+  scans that are being processed.</li>
+<li><code>output_dir</code> (default: <code>output</code>) the location where the output is saved, by default this is the directory <code>output</code>
+  which will be created if it doesn't exist. If you wish for the output to be somewhere else specify it here. If you
+  want <code>Processed</code> directories to sit within the directories that images are found then simply set the <code>output_dir</code> to
+  the same value as <code>base_dir</code>.</li>
+<li><code>log_level</code> (default: <code>info</code>) the verbosity of output to the console and log file, the options in order of verbosity
+  are <code>debug</code> &gt; <code>info</code> &gt; <code>warning</code> &gt; <code>error</code>. If you want less output set to <code>warning</code> or <code>error</code>. If you encounter
+  errors please set to <code>debug</code> and run again and include the log in your <a href="https://github.com/AFM-SPM/TopoStats/issues/new?assignees=&amp;labels=bug&amp;template=bug_report.md&amp;title=">bug
+  report</a>.</li>
+<li><code>cores</code> (default: <code>2</code>) the number of parallel processes to run processing of all found images. Set this to a maximum
+  of one less than the number of cores on your computers CPU. If unsure leave as is, but chances are you can increase
+  this to at least <code>4</code> quite safely.</li>
+<li><code>file_ext</code> (default: <code>.spm</code>) the file extension of scans to search for within the current directory. The default is
+  <code>.spm</code> but other file format support is in the pipeline.</li>
+<li><code>plotting</code> : <code>image_set</code> (default <code>core</code>) specifies which steps of the processing to plot images of. The value <code>all</code>
+  gets images for all stages, <code>core</code> saves only a subset of images.</li>
+</ul>
+<p>Most of the other configuration options can be left on their default values for now. Once you have made any changes save
+the file and return to your terminal.</p>
+<h3 id="running-topostats-with-my_configyaml">Running TopoStats with <code>my_config.yaml</code></h3>
+<p>To use your new configuration file you need to inform <code>topostats process</code> to use that file rather than the defaults,
+this is done using the <code>--config config.yaml</code> file.</p>
+<p><strong>NB</strong> this assumes that you are in the same directory as your scans where you have saved the <code>my_config.yaml</code> file that
+you edited. That doesn't <em>have</em> to be the case but it makes life easier for if you are not familiar with absolute
+and relative paths.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>topostats<span class="w"> </span>--config<span class="w"> </span>my_config.yaml<span class="w"> </span>process
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>is<span class="w"> </span>valid.
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Plotting<span class="w"> </span>configuration<span class="w"> </span>is<span class="w"> </span>valid.
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Configuration<span class="w"> </span>file<span class="w"> </span>loaded<span class="w"> </span>from<span class="w">      </span>:<span class="w"> </span>None
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Scanning<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span><span class="k">in</span><span class="w">              </span>:<span class="w"> </span>/home/neil/work/projects/topostats/TopoStats
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Output<span class="w"> </span>directory<span class="w">                    </span>:<span class="w"> </span>output
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Looking<span class="w"> </span><span class="k">for</span><span class="w"> </span>images<span class="w"> </span>with<span class="w"> </span>extension<span class="w">   </span>:<span class="w"> </span>.spm
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Images<span class="w"> </span>with<span class="w"> </span>extension<span class="w"> </span>.spm<span class="w"> </span><span class="k">in</span><span class="w"> </span>/home/neil/work/projects/topostats/TopoStats<span class="w"> </span>:<span class="w"> </span><span class="m">1</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Filtering<span class="o">)</span><span class="w">     </span>:<span class="w"> </span>std_dev
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="o">[</span>Tue,<span class="w"> </span><span class="m">15</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">2022</span><span class="w"> </span><span class="m">12</span>:39:48<span class="o">]</span><span class="w"> </span><span class="o">[</span>INFO<span class="w">    </span><span class="o">]</span><span class="w"> </span><span class="o">[</span>topostats<span class="o">]</span><span class="w"> </span>Thresholding<span class="w"> </span>method<span class="w"> </span><span class="o">(</span>Grains<span class="o">)</span><span class="w">        </span>:<span class="w"> </span>std_dev
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>...
+</span></code></pre></div>
+<p>On successful completion you should see the same message noted above.</p>
+<h2 id="output">Output</h2>
+<p>The output from running TopoStats is saved in the location defined in the configuration file by <code>output_dir</code>. The
+default is the directory <code>output</code> within the directory from which <code>topostats process</code>. This may differ if you have
+used your own customised configuration file (specifically if you have modified the <code>output_dir:</code> option).</p>
+<p>At the top level of the output directory are a few files produced:</p>
+<ul>
+<li><code>config.yaml</code> : a copy of the configuration used to process the images.</li>
+<li><code>all_statistics.csv</code> : a Comma Separated Variable ASCII plain-text file of the grain statistics.</li>
+<li><code>all_disordered_segment_statistics.csv</code> : a Comma Separated Variable ASCII plain-text file of the branched skeleton
+  statistics.</li>
+<li><code>all_mol_statistics.csv</code> : a Comma Separated Variable ASCII plain-text file of the molecule statistics.</li>
+</ul>
+<p><strong>Note:</strong> - If all grains / branch segments of a column have a <code>None</code> or <code>NaN</code> value, the column will not be present in
+the output <code>.csv</code> file.</p>
+<p>The remaining directories of results is contingent on the structure of files within the <code>base_dir</code> that is specified in
+the configuration. If all files are in the top-level directory (i.e. no nesting) then you will have just a <code>Processed</code>
+directory. If there is a nested structure then there will be a <code>Processed</code> directory in each folder that an image with
+the specified <code>file_ext</code> has been found. This is perhaps best illustrated by way of example.</p>
+<p>If you have the following three <code>.spm</code> files within your current directory, one at the top level, one under <code>level1</code> and
+one under <code>level1/a</code>...</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:55<span class="o">]</span><span class="w">  </span>.
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/a
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/a/minicircle.spm
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./level1/minicircle.spm
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span>32M<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">13</span>:54<span class="o">]</span><span class="w">  </span>./minicircle.spm
+</span></code></pre></div>
+<p>...then under <code>output</code> (the default for<code>output_dir</code>) you will see the following directory structure.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">381</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/all_statistics.csv
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">733</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/all_disordered_tracing_statistics.csv
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">254</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/all_mol_statistics.csv
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">7</span>.4K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/config.yaml
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="m">222</span><span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/image_stats.csv
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/a
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/a/Processed
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="p">|</span><span class="w">   </span><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/level1/Processed
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="p">|</span>--<span class="w"> </span><span class="o">[</span><span class="m">4</span>.0K<span class="w"> </span>Nov<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">14</span>:06<span class="o">]</span><span class="w">  </span>output/Processed
+</span></code></pre></div>
+<p>...where there is one <code>Processed</code> directory at the sub-directory level that each image was found.</p>
+<p><strong>NB</strong> If you want <code>Processed</code> directories to sit within the directories that images are found then simply set the <code>output_dir</code>
+to the same value as <code>base_dir</code>.</p>
+<p>Within each <code>Processed</code> directory is a directory for each file found with the specified <code>file_ext</code> and within these are
+the resulting images from processing scans. If the <code>plotting</code> : <code>image_set</code> is <code>core</code> then there is a single image for
+each. If this option is <code>all</code> then there is also a sub-directory for each image found within which there are the
+directories <code>filters</code>, <code>grains/below</code> and <code>grains/above</code> which contain additional images from the processing stages and
+an accompanying histogram for each image showing the distribution of pixel heights for that image.</p>
+<h2 id="summary-plots">Summary Plots</h2>
+<p>By default TopoStats will take the data that has been summarised across all files and generate a series of plots,
+<a href="https://en.wikipedia.org/wiki/Histogram">histograms</a> with <a href="https://en.wikipedia.org/wiki/Kernel_density_estimation">Kernel Density Estimates
+(KDE)</a> overlaid and <a href="https://en.wikipedia.org/wiki/Violin_plot">Violin
+plots</a>. The default location of these if no custom configuration file is used
+is <code>output/summary_distributions</code>. If you have used a custom configuration file it will be the sub-directory
+<code>summary_distributions</code> nested under the directory specified for the <code>output</code>, e.g. if you used the current directory as
+output you will have a <code>summary_distributions</code> directory present.</p>
+<p>Sometimes you may have a <code>all_statistics.csv</code> from a run and wish to plot distributions of additional statistics that
+were not already plotted. This can be achieved using the command line programme <code>toposum</code> which is included.</p>
+<p><strong>NB</strong> Because of the inherent complexity of plots this script is, by design, limited in the scope to which plots can be
+configured. It uses the plotting library <a href="https://seaborn.pydata.org/">Seaborn</a> (which is built on top of
+<a href="https://matplotlib.org/">Matplotlib</a>) to produce basic plots, which are not intended for publication. If you want to
+tweak or customise plots it is recommended to load <code>all_statistics.csv</code> into a <a href="https://jupyter.org">Jupyter Notebook</a>
+and generate the plots you want there. A sample notebook is included to show how to do this.</p>
+<h3 id="configuring-summary-plots">Configuring Summary Plots</h3>
+<p>Configuration of summary plots is also via a YAML configuration file a description of the fields can be found under
+<a href="configuration/#summary-configuration">configuration</a> page. You can generate a sample configuration by invoking the
+<code>--create-config-file</code> option to <code>toposum</code></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>toposum<span class="w"> </span>--create-config-file<span class="w"> </span>custom_summary_config.yaml
+</span></code></pre></div>
+<p>The file <code>custom_summary_config.yaml</code> can then be edited to change what plots are generated, where they are saved to and
+so forth. Typically you will only want to adjust a few settings such as toggling the types of plots (<code>hist</code>, <code>kde</code> and
+<code>violin</code>), the number of <code>bins</code> in a histogram or the statistic to plot in histograms (<code>count</code>, <code>frequency</code> etc.). You
+can change the <code>palette</code> that is used by Seaborn and crucially toggle which statistics are summarised by commenting
+and uncommenting the statistic names under <code>stats_to_sum</code>.</p>
+<h3 id="labels">Labels</h3>
+<p>Labels for the plots are generated from the file <code>topostats/var_to_label.yaml</code> which provides a dictionary that maps the
+variable name as the dictionary <code>key</code> to its description stored in the dictionary <code>value</code>. If you wish to customise
+these you can do so and pass it to <code>toposum</code> using the <code>--plotting_dictionary</code> which takes as an argument the path to
+the file you have created.</p>
+<h3 id="pickles">Pickles</h3>
+<p>The option <code>pickle_plots: True</code> will save to the specified <code>output_dir</code> the file <code>distribution_plots.pkl</code> which is a
+binary format that saves the plots that have been generated and saved in nested dictionaries so that they can be loaded
+again. The Notebook <code>notebooks/02-Summary-statistics-and-plots.ipynb</code> shows how to load these and make simple
+modifications to the the plots.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
