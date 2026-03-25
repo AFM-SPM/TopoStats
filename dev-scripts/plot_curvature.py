@@ -22,12 +22,29 @@ def _():
 
 
 @app.cell
-def _(Path):
+def _(Path, plt):
     dir_base = Path(
         "/Volumes/shared/pyne_group/Shared/AFM_Data/Plasmids/pICoZ/20260105_20251031_20251107_combined_picoz_dataset/output"
     )
     assert dir_base.exists()
-    return (dir_base,)
+    dir_output_plots = Path(
+        "/Volumes/shared/pyne_group/Shared/Papers/TopoStats v2/topostats_2/figures/fig-dataset-separation"
+    )
+    assert dir_output_plots.exists()
+
+    plt.rcParams["font.family"] = "Arial"
+    fig_axes_label_font_size = 18
+    fig_axes_tick_font_size = 18
+    fig_axes_legend_text_font_size = 14
+    fig_axes_legend_title_font_size = 16
+    return (
+        dir_base,
+        dir_output_plots,
+        fig_axes_label_font_size,
+        fig_axes_legend_text_font_size,
+        fig_axes_legend_title_font_size,
+        fig_axes_tick_font_size,
+    )
 
 
 @app.cell(hide_code=True)
@@ -248,7 +265,14 @@ def _(combinations, mpl, np, pd, stats):
 
 
 @app.cell
-def _(df_data, plt, sns):
+def _(
+    df_data,
+    dir_output_plots,
+    fig_axes_label_font_size,
+    fig_axes_tick_font_size,
+    plt,
+    sns,
+):
     _fig, _ax = plt.subplots(figsize=(6, 6))
     sns.boxplot(
         x="species",
@@ -271,7 +295,7 @@ def _(df_data, plt, sns):
 
     # plt.xlabel("pICOz variant")
     plt.xlabel("")
-    plt.ylabel("Plasmid length (nm)", fontsize=16)
+    plt.ylabel("Plasmid length (nm)", fontsize=fig_axes_label_font_size)
     plt.ylim(0, 600)  # Adjust y-axis limits as needed
     # plt.title("Total Contour Length by pICOz Variant")
     axes_linewidth = 2
@@ -279,8 +303,12 @@ def _(df_data, plt, sns):
     _ax.spines["right"].set_linewidth(axes_linewidth)
     _ax.spines["left"].set_linewidth(axes_linewidth)
     _ax.spines["bottom"].set_linewidth(axes_linewidth)
-    _ax.tick_params(axis="both", which="major", labelsize=16)
+    _ax.tick_params(
+        axis="both", which="major", labelsize=fig_axes_tick_font_size, rotation=90
+    )
     sns.despine()
+    _fig.tight_layout()
+    plt.savefig(dir_output_plots / "contour-length.png")
     plt.show()
     return (axes_linewidth,)
 
@@ -391,6 +419,9 @@ def _(
         fontsize_significance=8,
         fontsize_title=10,
     )
+
+  
+
     return
 
 
@@ -446,7 +477,17 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 
 
 @app.cell
-def _(axes_linewidth, df_data, np, plt):
+def _(
+    axes_linewidth,
+    df_data,
+    dir_output_plots,
+    fig_axes_label_font_size,
+    fig_axes_legend_text_font_size,
+    fig_axes_legend_title_font_size,
+    fig_axes_tick_font_size,
+    np,
+    plt,
+):
     # Stacked bar chart of number of crossings
     # stacked bar chart of % num_crossings rather than counts
     _groups = [
@@ -456,7 +497,7 @@ def _(axes_linewidth, df_data, np, plt):
 
     for group in _groups:
         df_data_filtered = df_data[df_data["species"].isin(group)]
-        _fig, _ax = plt.subplots(figsize=(6, 6))
+        _fig, _ax = plt.subplots(figsize=(6, 8))
         # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
         # multiple indices, where the first index is the groupby column and the second index is the value column
         # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
@@ -481,8 +522,8 @@ def _(axes_linewidth, df_data, np, plt):
         # print(f"\npercentages:\n {df_percents}")
 
         df_percents.plot.bar(stacked=True, ax=_ax, width=0.7, colormap="Blues")
-        _ax.set_xticks(ticks=list(range(len(group) + 2)))
-        _ax.set_ylabel("Percentage", fontsize=12)
+        # _ax.set_xticks(ticks=list(range(len(group) + 2)))
+        _ax.set_ylabel("Percentage", fontsize=fig_axes_label_font_size)
         _ax.set_xlabel("", fontname="Arial")
         # line thickness for axes thicker
         _axes_linewidth = 2
@@ -493,15 +534,20 @@ def _(axes_linewidth, df_data, np, plt):
         # make y ticks be integers only
         _ax.set_yticks(ticks=np.arange(0, 110, 10))
         # text size
-        _ax.tick_params(axis="both", which="major", labelsize=12)
+        _ax.tick_params(
+            axis="both", which="major", labelsize=fig_axes_tick_font_size
+        )
         # legend
         _ax.legend(
             title="No. crossings",
-            title_fontsize=14,
-            fontsize=12,
-            loc="upper right",
+            title_fontsize=fig_axes_legend_title_font_size,
+            fontsize=fig_axes_legend_text_font_size,
+            loc="upper left",
             frameon=False,
+            bbox_to_anchor=(1, 1),
         )
+        _fig.tight_layout()
+        plt.savefig(dir_output_plots / f"percentage_crossings_{str(group)}.png")
         plt.show()
     return
 
