@@ -45,24 +45,30 @@ def _(dir_base, pd, plt, sns):
     assert df_data is not None
 
     # define picoz versions
-    picoz_species = ["SCpicoz", "nicked", "3ATpicoz", "tel80picoz", "TEL12"]
+    picoz_species_to_name = {
+        "SCpicoz": "Supercoiled",
+        "nicked": "Relaxed",
+        "3ATpicoz": "AT rich insert",
+        "tel80picoz": "TEL80 insert",
+        "TEL12": "Telomeric insert",
+    }
     picoz_colors = ["#D81B60", "#1E88E5", "#FFC107", "#004D40", "#D35FB7"]
-    picoz_excluded_species = ["tel80picoz"]
+    picoz_excluded_species = ["TEL80 insert"]
 
     expected_length_nm = 408e-9
     length_cutoff_percentage = 0.90
     length_cutoff_nm = expected_length_nm * length_cutoff_percentage
 
 
-    def find_species(image_name: str, picoz_species: list[str]):
-        for species in picoz_species:
-            if species in str(image_name):
-                return species
+    def find_species(image_name: str, picoz_species_to_name: dict[str, str]):
+        for species_raw_name in list(picoz_species_to_name.keys()):
+            if species_raw_name in str(image_name):
+                return picoz_species_to_name[species_raw_name]
         return "other"
 
 
     df_data["species"] = df_data["image"].apply(
-        find_species, picoz_species=picoz_species
+        find_species, picoz_species_to_name=picoz_species_to_name
     )
 
     print(f"columns:\n{df_data.columns}")
@@ -76,16 +82,16 @@ def _(dir_base, pd, plt, sns):
     df_data["total_contour_length_nm"] = df_data["total_contour_length"] * 1e9
 
     # Drop rows that have contour length lower than the minimum
-    fig, ax = plt.subplots(2, 1)
+    _fig, _ax = plt.subplots(2, 1)
     fig_min_x = df_data["total_contour_length"].min() * 0.9
     fig_max_x = df_data["total_contour_length"].max() * 1.1
     ns_before = df_data["species"].value_counts()
-    sns.kdeplot(data=df_data, x="total_contour_length", ax=ax[0])
+    sns.kdeplot(data=df_data, x="total_contour_length", ax=_ax[0])
     df_data = df_data[df_data["total_contour_length"] >= length_cutoff_nm]
-    sns.kdeplot(data=df_data, x="total_contour_length", ax=ax[1])
-    ax[0].set_xlim(fig_min_x, fig_max_x)
-    ax[1].set_xlim(fig_min_x, fig_max_x)
-    fig.tight_layout()
+    sns.kdeplot(data=df_data, x="total_contour_length", ax=_ax[1])
+    _ax[0].set_xlim(fig_min_x, fig_max_x)
+    _ax[1].set_xlim(fig_min_x, fig_max_x)
+    _fig.tight_layout()
     plt.show()
 
     ns_after = df_data["species"].value_counts()
@@ -274,7 +280,6 @@ def _(df_data, plt, sns):
     _ax.spines["left"].set_linewidth(axes_linewidth)
     _ax.spines["bottom"].set_linewidth(axes_linewidth)
     _ax.tick_params(axis="both", which="major", labelsize=16)
-
     sns.despine()
     plt.show()
     return (axes_linewidth,)
@@ -321,8 +326,8 @@ def _(
                     x="species",
                     y=parameter_name,
                     data=data_group,
-                    palette=palette,
-                    hue="species",
+                    # palette=palette,
+                    # hue="species",
                     ax=ax,
                 )
                 sns.stripplot(
@@ -332,8 +337,8 @@ def _(
                     color="black",
                     alpha=0.4,
                     jitter=True,
-                    palette=palette,
-                    hue="species",
+                    # palette=palette,
+                    # hue="species",
                     ax=ax,
                 )
                 fig.tight_layout()
@@ -371,7 +376,10 @@ def _(
         ("num_turns", "Number of turns"),
     ]
 
-    groups = [["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]]
+    groups = [
+        ["Supercoiled", "Relaxed"],
+        ["Supercoiled", "AT rich insert", "Telomeric insert"],
+    ]
 
     plot_group_distributions(
         df=df_data,
@@ -427,7 +435,10 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 
 
     perform_stats_tests_on_groups(
-        sample_groups=[["SCpicoz", "nicked"], ["SCpicoz", "3ATpicoz", "TEL12"]],
+        sample_groups=[
+            ["Supercoiled", "Relaxed"],
+            ["Supercoiled", "AT rich insert", "Telomeric insert"],
+        ],
         df=df_data,
         value_columns=["curvature_iqr", "curvature_median"],
     )
@@ -438,7 +449,10 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 def _(axes_linewidth, df_data, np, plt):
     # Stacked bar chart of number of crossings
     # stacked bar chart of % num_crossings rather than counts
-    _groups = [["SCpicoz", "nicked"],["SCpicoz", "3ATpicoz", "TEL12"]]
+    _groups = [
+        ["Supercoiled", "Relaxed"],
+        ["Supercoiled", "AT rich insert", "Telomeric insert"],
+    ]
 
     for group in _groups:
         df_data_filtered = df_data[df_data["species"].isin(group)]
@@ -449,14 +463,18 @@ def _(axes_linewidth, df_data, np, plt):
         # values with 0 since the series doesn't require each group to have all possible values
         # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
         # each group?
-        df_num_crossings = df_data_filtered.groupby(["species", "num_crossings"]).size()
+        df_num_crossings = df_data_filtered.groupby(
+            ["species", "num_crossings"]
+        ).size()
         # print(" --- Grouped counts --- ")
         # print(df_num_crossings)
         # print("--- Unstacked with fill_value=0 ---")
         df_counts_crossings = df_num_crossings.unstack(fill_value=0)
         # print(df_counts_crossings)
         # divide by the row sums to get percentages
-        df_percents = df_counts_crossings.div(df_counts_crossings.sum(axis=1), axis=0)
+        df_percents = df_counts_crossings.div(
+            df_counts_crossings.sum(axis=1), axis=0
+        )
         df_percents = df_percents.reindex(group)
         # df_percents = df_percents.reindex(order) * 100
         df_percents = df_percents * 100
