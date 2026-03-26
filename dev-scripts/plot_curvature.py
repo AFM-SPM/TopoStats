@@ -52,10 +52,10 @@ def _(Path, plt):
     assert dir_output_plots.exists()
 
     plt.rcParams["font.family"] = "Arial"
-    fig_axes_label_font_size = 18
-    fig_axes_tick_font_size = 18
-    fig_axes_legend_text_font_size = 14
-    fig_axes_legend_title_font_size = 16
+    fig_axes_label_font_size = 20
+    fig_axes_tick_font_size = 20
+    fig_axes_legend_text_font_size = 16
+    fig_axes_legend_title_font_size = 18
 
     sample_groups = [
         ["Supercoiled", "Relaxed"],
@@ -340,7 +340,7 @@ def _(
                 axis="both",
                 which="major",
                 labelsize=fig_axes_tick_font_size,
-                rotation=90,
+                rotation=45,
             )
             sns.despine()
             fig.tight_layout()
@@ -358,6 +358,8 @@ def _(
     df_data,
     dir_base,
     dir_output_plots,
+    fig_axes_label_font_size,
+    fig_axes_tick_font_size,
     pd,
     picoz_colors,
     plt,
@@ -462,12 +464,16 @@ def _(
         df: pd.DataFrame,
         groups: list[list[str]],
         metrics: list[tuple[str, str]],
+        box_line_width: float = 1,
+        fontsize_multiplier: float = 2,
+        axes_linewidth: float = 1,
+        significance_font_size: float = 16,
     ) -> None:
         _fig, _ax = plt.subplots()
         for group in groups:
             data_group = df_data[df_data["species"].isin(group)]
             for parameter_name, plot_title in metrics:
-                fig, ax = plt.subplots(figsize=(6, 6))
+                fig, ax = plt.subplots(figsize=(5, 8))
                 sns.boxplot(
                     x="species",
                     y=parameter_name,
@@ -475,6 +481,7 @@ def _(
                     # palette=palette,
                     # hue="species",
                     ax=ax,
+                    linewidth=box_line_width,
                 )
                 sns.stripplot(
                     x="species",
@@ -487,6 +494,13 @@ def _(
                     # hue="species",
                     ax=ax,
                 )
+                ax.tick_params("x", rotation=45, labelsize=fig_axes_tick_font_size * fontsize_multiplier)
+                ax.tick_params("y", labelsize=fig_axes_tick_font_size * fontsize_multiplier)
+                ax.set_ylabel(plot_title, fontsize=fig_axes_label_font_size * fontsize_multiplier)
+                ax.set_xlabel("")
+                ax.spines["left"].set_linewidth(axes_linewidth)
+                ax.spines["bottom"].set_linewidth(axes_linewidth)
+                sns.despine(ax=ax)
                 fig.tight_layout()
                 add_significance_to_current_plot(
                     ax=ax,
@@ -494,11 +508,8 @@ def _(
                     sample_types=group,
                     value_column=parameter_name,
                     global_y_offset_modifier=0,
-                    fontsize=8,
+                    fontsize=significance_font_size,
                 )
-                ax.set_xlabel("")
-                ax.set_ylabel(plot_title)
-                sns.despine(ax=ax)
                 fig.savefig(dir_output_plots / f"{parameter_name}_{group}.png")
                 plt.show()
 
@@ -511,6 +522,10 @@ def _(
             ("curvature_iqr", "Interquartile range of curvature"),
             ("curvature_90th", "90th percentile of curvature"),
         ],
+        box_line_width=2,
+        fontsize_multiplier=1.5,
+        axes_linewidth=2,
+        significance_font_size=30,
     )
     return
 
@@ -575,6 +590,7 @@ def _(
     pd,
     plt,
     sample_groups,
+    sns,
 ):
     # Stacked bar chart of number of crossings
     # stacked bar chart of % num_crossings rather than counts
@@ -586,7 +602,7 @@ def _(
     ):
         for group in sample_groups:
             df_data_filtered = df[df["species"].isin(group)]
-            fig, ax = plt.subplots(figsize=(6, 8))
+            fig, ax = plt.subplots(figsize=(6, 6))
             # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
             # multiple indices, where the first index is the groupby column and the second index is the value column
             # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
@@ -626,6 +642,7 @@ def _(
             ax.tick_params(
                 axis="both", which="major", labelsize=fig_axes_tick_font_size
             )
+            ax.tick_params("x", rotation=45)
             # legend
             ax.legend(
                 title="No. crossings",
@@ -635,6 +652,7 @@ def _(
                 frameon=False,
                 bbox_to_anchor=(1, 1),
             )
+            sns.despine()
             fig.tight_layout()
             plt.savefig(
                 dir_output_plots / f"percentage_crossings_{str(group)}.png"
@@ -668,6 +686,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         return all_matching_files[file_index]
 
     sc_file = sample_files(dir_base / "sc" / "processed", file_index=0)
+    nicked_file = sample_files(dir_base / "nicked" / "processed", file_index = 2)
 
     def plot_curvature(
         filepath: Path,
@@ -699,6 +718,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
 
         fig, ax = plt.subplots(figsize=(figsize))
         image = np.flipud(image)
+        print(f"crop is {image.shape[0] * pixel_to_nm_scaling} nm")
         plt.imshow(image, extent=(
                             0,
                             image.shape[1] * pixel_to_nm_scaling,
@@ -708,7 +728,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         # plt.plot(splined_points_mol_0[:, 1], splined_points_mol_0[:, 0])
         # plot the splined points with curvature
 
-        cmap = mpl.cm.bwr_r
+        cmap = mpl.cm.viridis
         for index, point in enumerate(splined_points_mol_0):
             colour = cmap(curvatures_mol_0_normalised[index])
             if index > 0:
@@ -729,7 +749,9 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         fig.savefig(savepath)
         plt.show()
 
-    plot_curvature(filepath=sc_file, linewidth=3, savepath=dir_output_plots / "curvatures_sc.png", colourmap_normalisation_bounds=(-0.3, 0.3))
+    CURVATURE_NORM_BOUNDS = (0,0.3)
+    plot_curvature(filepath=sc_file, linewidth=3, savepath=dir_output_plots / "curvatures_sc.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
+    plot_curvature(filepath=nicked_file, linewidth=3, savepath=dir_output_plots / "curvatures_nicked.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
     return
 
 
