@@ -18,7 +18,26 @@ def _():
     import seaborn as sns
     from scipy import stats
 
-    return Path, combinations, mo, mpl, np, pd, plt, sns, stats
+    from topostats.io import LoadScans
+    from topostats.plottingfuncs import Colormap
+
+    CMAP = Colormap().get_cmap()
+    VMIN = -3
+    VMAX = 4
+    PLOTTINGARGS = {"cmap": CMAP, "vmin": VMIN, "vmax": VMAX}
+    return (
+        LoadScans,
+        PLOTTINGARGS,
+        Path,
+        combinations,
+        mo,
+        mpl,
+        np,
+        pd,
+        plt,
+        sns,
+        stats,
+    )
 
 
 @app.cell
@@ -627,6 +646,90 @@ def _(
         df=df_data,
         groups=sample_groups,
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # plot curvature zoom-ins
+    """)
+    return
+
+
+@app.cell
+def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
+    # find the files
+    def sample_files(
+        directory: Path,
+        file_index: int,
+    ) -> Path:
+        all_matching_files = sorted(list(directory.glob("*.topostats")))
+        return all_matching_files[file_index]
+
+    sc_file = sample_files(dir_base / "sc" / "processed", file_index=0)
+
+    def plot_curvature(
+        filepath: Path,
+        linewidth: float,
+        savepath: Path,
+        colourmap_normalisation_bounds: tuple[float, float] | None,
+        figsize: tuple[float, float] = (6, 6),
+    ) -> None:
+        loadscans = LoadScans(
+            img_paths=[filepath],
+            channel="dummy",
+            extract="all"
+        )
+        loadscans.get_data()
+        data_image = loadscans.img_dict[list(loadscans.img_dict.keys())[0]]
+        print(data_image.keys())
+        pixel_to_nm_scaling = data_image["pixel_to_nm_scaling"]
+        curvatures_mol_0 = np.abs(data_image["grain_curvature_stats"]["above"]["grains"]["grain_0"]["molecules"]["mol_0"]["curvatures"])
+        mol_0_bbox = data_image["splining"]["above"]["grain_0"]["mol_0"]["bbox"]
+        splined_points_mol_0 = data_image["splining"]["above"]["grain_0"]["mol_0"]["spline_coords"]
+        splined_points_mol_0 += [mol_0_bbox[0], mol_0_bbox[1]]
+        image = data_image["image"]
+        curvatures_mol_0_normalised = np.array(curvatures_mol_0)
+        if colourmap_normalisation_bounds is not None:
+            curvatures_mol_0_normalised = curvatures_mol_0_normalised - colourmap_normalisation_bounds[0]
+            curvatures_mol_0_normalised = curvatures_mol_0_normalised / (
+                colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
+            )
+
+        fig, ax = plt.subplots(figsize=(figsize))
+        image = np.flipud(image)
+        plt.imshow(image, extent=(
+                            0,
+                            image.shape[1] * pixel_to_nm_scaling,
+                            0,
+                            image.shape[0] * pixel_to_nm_scaling,
+                        ), **PLOTTINGARGS)
+        # plt.plot(splined_points_mol_0[:, 1], splined_points_mol_0[:, 0])
+        # plot the splined points with curvature
+
+        cmap = mpl.cm.bwr_r
+        for index, point in enumerate(splined_points_mol_0):
+            colour = cmap(curvatures_mol_0_normalised[index])
+            if index > 0:
+                previous_point = splined_points_mol_0[index - 1]
+                ax.plot(
+                    [
+                        previous_point[1] * pixel_to_nm_scaling,
+                        point[1] * pixel_to_nm_scaling,
+                    ],
+                    [
+                        previous_point[0] * pixel_to_nm_scaling,
+                        point[0] * pixel_to_nm_scaling,
+                    ],
+                    color=colour,
+                    linewidth=linewidth,
+                )
+        
+        fig.savefig(savepath)
+        plt.show()
+
+    plot_curvature(filepath=sc_file, linewidth=3, savepath=dir_output_plots / "curvatures_sc.png", colourmap_normalisation_bounds=(-0.3, 0.3))
     return
 
 
