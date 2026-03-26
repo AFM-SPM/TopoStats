@@ -37,6 +37,11 @@ def _(Path, plt):
     fig_axes_tick_font_size = 18
     fig_axes_legend_text_font_size = 14
     fig_axes_legend_title_font_size = 16
+
+    sample_groups = [
+        ["Supercoiled", "Relaxed"],
+        ["Supercoiled", "AT rich insert", "Telomeric insert"],
+    ]
     return (
         dir_base,
         dir_output_plots,
@@ -44,6 +49,7 @@ def _(Path, plt):
         fig_axes_legend_text_font_size,
         fig_axes_legend_title_font_size,
         fig_axes_tick_font_size,
+        sample_groups,
     )
 
 
@@ -270,47 +276,61 @@ def _(
     dir_output_plots,
     fig_axes_label_font_size,
     fig_axes_tick_font_size,
+    pd,
     plt,
+    sample_groups,
     sns,
 ):
-    _fig, _ax = plt.subplots(figsize=(6, 6))
-    sns.boxplot(
-        x="species",
-        y="total_contour_length_nm",
-        data=df_data,
-        showfliers=False,
-        linewidth=1.5,
-        # palette=picoz_colors,
-        # hue="species",
-    )
-    sns.stripplot(
-        data=df_data,
-        x="species",
-        y="total_contour_length_nm",
-        color="black",
-        jitter=True,
-        size=2,
-        alpha=0.7,
-    )
+    def contour_lengths(
+        df: pd.DataFrame,
+        groups: list[list[str]],
+    ) -> None:
+        for group in groups:
+            df_group = df[df["species"].isin(group)]
+            fig, ax = plt.subplots(figsize=(6, 6))
+            sns.boxplot(
+                x="species",
+                y="total_contour_length_nm",
+                data=df_group,
+                showfliers=False,
+                linewidth=1.5,
+                # palette=picoz_colors,
+                # hue="species",
+            )
+            sns.stripplot(
+                data=df_group,
+                x="species",
+                y="total_contour_length_nm",
+                color="black",
+                jitter=True,
+                size=2,
+                alpha=0.7,
+            )
 
-    # plt.xlabel("pICOz variant")
-    plt.xlabel("")
-    plt.ylabel("Plasmid length (nm)", fontsize=fig_axes_label_font_size)
-    plt.ylim(0, 600)  # Adjust y-axis limits as needed
-    # plt.title("Total Contour Length by pICOz Variant")
-    axes_linewidth = 2
-    _ax.spines["top"].set_linewidth(axes_linewidth)
-    _ax.spines["right"].set_linewidth(axes_linewidth)
-    _ax.spines["left"].set_linewidth(axes_linewidth)
-    _ax.spines["bottom"].set_linewidth(axes_linewidth)
-    _ax.tick_params(
-        axis="both", which="major", labelsize=fig_axes_tick_font_size, rotation=90
-    )
-    sns.despine()
-    _fig.tight_layout()
-    plt.savefig(dir_output_plots / "contour-length.png")
-    plt.show()
-    return (axes_linewidth,)
+            # plt.xlabel("pICOz variant")
+            plt.xlabel("")
+            plt.ylabel("Plasmid length (nm)", fontsize=fig_axes_label_font_size)
+            plt.ylim(0, 600)  # Adjust y-axis limits as needed
+            # plt.title("Total Contour Length by pICOz Variant")
+            axes_linewidth = 2
+            ax.spines["top"].set_linewidth(axes_linewidth)
+            ax.spines["right"].set_linewidth(axes_linewidth)
+            ax.spines["left"].set_linewidth(axes_linewidth)
+            ax.spines["bottom"].set_linewidth(axes_linewidth)
+            ax.tick_params(
+                axis="both",
+                which="major",
+                labelsize=fig_axes_tick_font_size,
+                rotation=90,
+            )
+            sns.despine()
+            fig.tight_layout()
+            plt.savefig(dir_output_plots / f"contour-length_{group}.png")
+            plt.show()
+
+
+    contour_lengths(df=df_data, groups=sample_groups)
+    return
 
 
 @app.cell
@@ -318,9 +338,11 @@ def _(
     add_significance_to_current_plot,
     df_data,
     dir_base,
+    dir_output_plots,
     pd,
     picoz_colors,
     plt,
+    sample_groups,
     sns,
 ):
     from matplotlib.pylab import ylim
@@ -404,15 +426,10 @@ def _(
         ("num_turns", "Number of turns"),
     ]
 
-    groups = [
-        ["Supercoiled", "Relaxed"],
-        ["Supercoiled", "AT rich insert", "Telomeric insert"],
-    ]
-
     plot_group_distributions(
         df=df_data,
         metrics=metrics,
-        groups=groups,
+        groups=sample_groups,
         palette=picoz_colors,
         save_dir=dir_base,
         figsize=(10, 5),
@@ -420,8 +437,62 @@ def _(
         fontsize_title=10,
     )
 
-  
 
+    # Plot individual figures
+    def plot_individual_parameter_stripboxes(
+        df: pd.DataFrame,
+        groups: list[list[str]],
+        metrics: list[tuple[str, str]],
+    ) -> None:
+        _fig, _ax = plt.subplots()
+        for group in groups:
+            data_group = df_data[df_data["species"].isin(group)]
+            for parameter_name, plot_title in metrics:
+                fig, ax = plt.subplots(figsize=(6, 6))
+                sns.boxplot(
+                    x="species",
+                    y=parameter_name,
+                    data=data_group,
+                    # palette=palette,
+                    # hue="species",
+                    ax=ax,
+                )
+                sns.stripplot(
+                    x="species",
+                    y=parameter_name,
+                    data=data_group,
+                    color="black",
+                    alpha=0.4,
+                    jitter=True,
+                    # palette=palette,
+                    # hue="species",
+                    ax=ax,
+                )
+                fig.tight_layout()
+                add_significance_to_current_plot(
+                    ax=ax,
+                    df=df_data,
+                    sample_types=group,
+                    value_column=parameter_name,
+                    global_y_offset_modifier=0,
+                    fontsize=8,
+                )
+                ax.set_xlabel("")
+                ax.set_ylabel(plot_title)
+                sns.despine(ax=ax)
+                fig.savefig(dir_output_plots / f"{parameter_name}_{group}.png")
+                plt.show()
+
+
+    plot_individual_parameter_stripboxes(
+        df=df_data,
+        groups=sample_groups,
+        metrics=[
+            ("curvature_median", "Median curvature"),
+            ("curvature_iqr", "Interquartile range of curvature"),
+            ("curvature_90th", "90th percentile of curvature"),
+        ],
+    )
     return
 
 
@@ -434,7 +505,7 @@ def _(mo):
 
 
 @app.cell
-def _(df_data, pd, perform_group_test, perform_t_test):
+def _(df_data, pd, perform_group_test, perform_t_test, sample_groups):
     def perform_stats_tests_on_groups(
         sample_groups: list[list[str]],
         df: pd.DataFrame,
@@ -466,10 +537,7 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 
 
     perform_stats_tests_on_groups(
-        sample_groups=[
-            ["Supercoiled", "Relaxed"],
-            ["Supercoiled", "AT rich insert", "Telomeric insert"],
-        ],
+        sample_groups=sample_groups,
         df=df_data,
         value_columns=["curvature_iqr", "curvature_median"],
     )
@@ -478,7 +546,6 @@ def _(df_data, pd, perform_group_test, perform_t_test):
 
 @app.cell
 def _(
-    axes_linewidth,
     df_data,
     dir_output_plots,
     fig_axes_label_font_size,
@@ -486,69 +553,80 @@ def _(
     fig_axes_legend_title_font_size,
     fig_axes_tick_font_size,
     np,
+    pd,
     plt,
+    sample_groups,
 ):
     # Stacked bar chart of number of crossings
     # stacked bar chart of % num_crossings rather than counts
-    _groups = [
-        ["Supercoiled", "Relaxed"],
-        ["Supercoiled", "AT rich insert", "Telomeric insert"],
-    ]
 
-    for group in _groups:
-        df_data_filtered = df_data[df_data["species"].isin(group)]
-        _fig, _ax = plt.subplots(figsize=(6, 8))
-        # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
-        # multiple indices, where the first index is the groupby column and the second index is the value column
-        # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
-        # values with 0 since the series doesn't require each group to have all possible values
-        # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
-        # each group?
-        df_num_crossings = df_data_filtered.groupby(
-            ["species", "num_crossings"]
-        ).size()
-        # print(" --- Grouped counts --- ")
-        # print(df_num_crossings)
-        # print("--- Unstacked with fill_value=0 ---")
-        df_counts_crossings = df_num_crossings.unstack(fill_value=0)
-        # print(df_counts_crossings)
-        # divide by the row sums to get percentages
-        df_percents = df_counts_crossings.div(
-            df_counts_crossings.sum(axis=1), axis=0
-        )
-        df_percents = df_percents.reindex(group)
-        # df_percents = df_percents.reindex(order) * 100
-        df_percents = df_percents * 100
-        # print(f"\npercentages:\n {df_percents}")
 
-        df_percents.plot.bar(stacked=True, ax=_ax, width=0.7, colormap="Blues")
-        # _ax.set_xticks(ticks=list(range(len(group) + 2)))
-        _ax.set_ylabel("Percentage", fontsize=fig_axes_label_font_size)
-        _ax.set_xlabel("", fontname="Arial")
-        # line thickness for axes thicker
-        _axes_linewidth = 2
-        _ax.spines["top"].set_linewidth(axes_linewidth)
-        _ax.spines["right"].set_linewidth(axes_linewidth)
-        _ax.spines["left"].set_linewidth(axes_linewidth)
-        _ax.spines["bottom"].set_linewidth(axes_linewidth)
-        # make y ticks be integers only
-        _ax.set_yticks(ticks=np.arange(0, 110, 10))
-        # text size
-        _ax.tick_params(
-            axis="both", which="major", labelsize=fig_axes_tick_font_size
-        )
-        # legend
-        _ax.legend(
-            title="No. crossings",
-            title_fontsize=fig_axes_legend_title_font_size,
-            fontsize=fig_axes_legend_text_font_size,
-            loc="upper left",
-            frameon=False,
-            bbox_to_anchor=(1, 1),
-        )
-        _fig.tight_layout()
-        plt.savefig(dir_output_plots / f"percentage_crossings_{str(group)}.png")
-        plt.show()
+    def stacked_bar_chart(
+        df: pd.DataFrame,
+        groups: list[list[str]],
+    ):
+        for group in sample_groups:
+            df_data_filtered = df[df["species"].isin(group)]
+            fig, ax = plt.subplots(figsize=(6, 8))
+            # convert the dataframe to just be number of counts using groupby. groupby(x).size() returns a series with
+            # multiple indices, where the first index is the groupby column and the second index is the value column
+            # We then need to use unstack to convert the second index to columns, and fill_value=0 to fill in any missing
+            # values with 0 since the series doesn't require each group to have all possible values
+            # might want to consider using multiindex series elsewhere, since we often have data that doesn't have all values for
+            # each group?
+            df_num_crossings = df_data_filtered.groupby(
+                ["species", "num_crossings"]
+            ).size()
+            # print(" --- Grouped counts --- ")
+            # print(df_num_crossings)
+            # print("--- Unstacked with fill_value=0 ---")
+            df_counts_crossings = df_num_crossings.unstack(fill_value=0)
+            # print(df_counts_crossings)
+            # divide by the row sums to get percentages
+            df_percents = df_counts_crossings.div(
+                df_counts_crossings.sum(axis=1), axis=0
+            )
+            df_percents = df_percents.reindex(group)
+            # df_percents = df_percents.reindex(order) * 100
+            df_percents = df_percents * 100
+            # print(f"\npercentages:\n {df_percents}")
+
+            df_percents.plot.bar(stacked=True, ax=ax, width=0.7, colormap="Blues")
+            # _ax.set_xticks(ticks=list(range(len(group) + 2)))
+            ax.set_ylabel("Percentage", fontsize=fig_axes_label_font_size)
+            ax.set_xlabel("", fontname="Arial")
+            # line thickness for axes thicker
+            axes_linewidth = 2
+            ax.spines["top"].set_linewidth(axes_linewidth)
+            ax.spines["right"].set_linewidth(axes_linewidth)
+            ax.spines["left"].set_linewidth(axes_linewidth)
+            ax.spines["bottom"].set_linewidth(axes_linewidth)
+            # make y ticks be integers only
+            ax.set_yticks(ticks=np.arange(0, 110, 10))
+            # text size
+            ax.tick_params(
+                axis="both", which="major", labelsize=fig_axes_tick_font_size
+            )
+            # legend
+            ax.legend(
+                title="No. crossings",
+                title_fontsize=fig_axes_legend_title_font_size,
+                fontsize=fig_axes_legend_text_font_size,
+                loc="upper left",
+                frameon=False,
+                bbox_to_anchor=(1, 1),
+            )
+            fig.tight_layout()
+            plt.savefig(
+                dir_output_plots / f"percentage_crossings_{str(group)}.png"
+            )
+            plt.show()
+
+
+    stacked_bar_chart(
+        df=df_data,
+        groups=sample_groups,
+    )
     return
 
 
