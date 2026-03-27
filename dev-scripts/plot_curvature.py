@@ -364,6 +364,7 @@ def _(
     dir_output_plots,
     fig_axes_label_font_size,
     fig_axes_tick_font_size,
+    np,
     pd,
     picoz_colors,
     plt,
@@ -477,6 +478,10 @@ def _(
         for group in groups:
             data_group = df_data[df_data["species"].isin(group)]
             for parameter_name, plot_title in metrics:
+                for species in group:
+                    data_species = data_group[data_group["species"] == species]
+                    data_species_parameter = data_species[parameter_name]
+                    print(f"median {parameter_name} for {species}: {np.median(data_species_parameter)}")
                 fig, ax = plt.subplots(figsize=(5, 8))
                 sns.boxplot(
                     x="species",
