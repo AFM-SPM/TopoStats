@@ -59,7 +59,7 @@ def _(Path, plt):
 
     sample_groups = [
         ["Supercoiled", "Relaxed"],
-        ["Supercoiled", "AT rich insert", "Telomeric insert"],
+        ["AT rich insert", "Telomeric insert"],
     ]
     return (
         dir_base,
@@ -328,8 +328,8 @@ def _(
 
             # plt.xlabel("pICOz variant")
             plt.xlabel("")
-            plt.ylabel("Plasmid length (nm)", fontsize=fig_axes_label_font_size)
-            plt.ylim(0, 600)  # Adjust y-axis limits as needed
+            plt.ylabel("Measured length (nm)", fontsize=fig_axes_label_font_size)
+            plt.ylim(320, 500)  # Adjust y-axis limits as needed
             # plt.title("Total Contour Length by pICOz Variant")
             axes_linewidth = 2
             ax.spines["top"].set_linewidth(axes_linewidth)
@@ -340,8 +340,12 @@ def _(
                 axis="both",
                 which="major",
                 labelsize=fig_axes_tick_font_size,
+            )
+            ax.tick_params(
+                axis="x",
                 rotation=45,
             )
+        
             sns.despine()
             fig.tight_layout()
             plt.savefig(dir_output_plots / f"contour-length_{group}.png")
@@ -745,7 +749,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
                     color=colour,
                     linewidth=linewidth,
                 )
-        
+
         fig.savefig(savepath)
         plt.show()
 
