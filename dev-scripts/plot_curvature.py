@@ -345,7 +345,7 @@ def _(
                 axis="x",
                 rotation=45,
             )
-        
+
             sns.despine()
             fig.tight_layout()
             plt.savefig(dir_output_plots / f"contour-length_{group}.png")
@@ -676,6 +676,91 @@ def _(
     return
 
 
+@app.function
+def pad_bounding_box_dynamically_at_limits(
+    bbox: tuple[int, int, int, int],
+    limits: tuple[int, int, int, int],
+    padding: int,
+) -> tuple[tuple[int, int, int, int], tuple[int, int, int, int]]:
+    """
+    Pad a bounding box within limits. If the padding would exceed the limits bounds, pad in the other direction.
+
+    Parameters
+    ----------
+    bbox : tuple[int, int, int, int]
+        The bounding box to pad.
+    limits : tuple[int, int, int, int]
+        The region to limit the bounding box to in the form (min_row, min_col, max_row, max_col).
+    padding : int
+        The padding to apply to the bounding box.
+
+    Returns
+    -------
+    tuple[[tuple[int, int, int, int], tuple[int, int, int, int]]
+        The new bounding box indices and the amount they have been padded by.
+    """
+    # check that the padded size is smaller than the limits
+    bbox_height = bbox[2] - bbox[0]
+    bbox_width = bbox[3] - bbox[1]
+    proposed_height = bbox_height + 2 * padding
+    proposed_width = bbox_width + 2 * padding
+    limits_height = limits[2] - limits[0]
+    limits_width = limits[3] - limits[1]
+    if proposed_height > limits_height or proposed_width > limits_width:
+        raise ValueError(
+            f"Proposed size {proposed_height}x{proposed_width} px = ({bbox_width}x{bbox_height}) + "
+            f"({2 * padding}x{2 * padding}) px is larger than limits size "
+            f"({limits_height}x{limits_width}) px. Cannot pad bounding box beyond limits."
+        )
+    pad_up_amount = padding
+    pad_down_amount = padding
+    pad_left_amount = padding
+    pad_right_amount = padding
+    # try padding up, check if hit the top of the limits
+    if bbox[0] - padding < limits[0]:
+        # if so, restrict up padding to the limits and add the remaining padding to the down padding
+        pad_up_amount = bbox[0] - limits[0]
+        # Can safely assume can increase down padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_down_amount += padding - pad_up_amount
+    # try padding down, check if hit the bottom of the limits
+    elif bbox[2] + padding > limits[2]:
+        # if so, restrict down padding to the limits and add the remaining padding to the up padding
+        pad_down_amount = limits[2] - bbox[2]
+        # Can safely assume can increase up padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_up_amount += padding - pad_down_amount
+    # try padding left, check if hit the left of the limits
+    if bbox[1] - padding < limits[1]:
+        # if so, restrict left padding to the limits and add the remaining padding to the right padding
+        pad_left_amount = bbox[1] - limits[1]
+        # Can safely assume can increase right padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_right_amount += padding - pad_left_amount
+    # try padding right, check if hit the right of the limits
+    elif bbox[3] + padding > limits[3]:
+        # if so, restrict right padding to the limits and add the remaining padding to the left padding
+        pad_right_amount = limits[3] - bbox[3]
+        # Can safely assume can increase left padding since we checked earlier that the proposed size is smaller than
+        # limits
+        pad_left_amount += padding - pad_right_amount
+    # Return the new bounding box indices
+    return (
+        (
+            bbox[0] - pad_up_amount,
+            bbox[1] - pad_left_amount,
+            bbox[2] + pad_down_amount,
+            bbox[3] + pad_right_amount,
+        ),
+        (
+            pad_up_amount,
+            pad_left_amount,
+            pad_down_amount,
+            pad_right_amount,
+        )
+   )
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -696,6 +781,8 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
 
     sc_file = sample_files(dir_base / "sc" / "processed", file_index=0)
     nicked_file = sample_files(dir_base / "nicked" / "processed", file_index = 2)
+    at_file = sample_files(dir_base / "3at" / "processed", file_index = 8)
+    tel12_file = sample_files(dir_base / "20260310_TC_picoztel12" / "processed", file_index = 10)
 
     def plot_curvature(
         filepath: Path,
@@ -703,6 +790,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         savepath: Path,
         colourmap_normalisation_bounds: tuple[float, float] | None,
         figsize: tuple[float, float] = (6, 6),
+        crop_size_nm: int = 165
     ) -> None:
         loadscans = LoadScans(
             img_paths=[filepath],
@@ -714,10 +802,22 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         print(data_image.keys())
         pixel_to_nm_scaling = data_image["pixel_to_nm_scaling"]
         curvatures_mol_0 = np.abs(data_image["grain_curvature_stats"]["above"]["grains"]["grain_0"]["molecules"]["mol_0"]["curvatures"])
-        mol_0_bbox = data_image["splining"]["above"]["grain_0"]["mol_0"]["bbox"]
-        splined_points_mol_0 = data_image["splining"]["above"]["grain_0"]["mol_0"]["spline_coords"]
-        splined_points_mol_0 += [mol_0_bbox[0], mol_0_bbox[1]]
         image = data_image["image"]
+        mol_0_bbox = data_image["splining"]["above"]["grain_0"]["mol_0"]["bbox"]
+        # pad the bbox
+        mol_0_bbox_width = mol_0_bbox[2] - mol_0_bbox[0]
+        to_pad = int((crop_size_nm / pixel_to_nm_scaling) - mol_0_bbox_width)
+        print(f"to pad: {to_pad}")
+        if to_pad < 0:
+            raise ValueError(f"need to pad a negative amount: {to_pad} px. mol_0_bbox: {mol_0_bbox}, crop size nm: {crop_size_nm}")
+        bbox_resized, pad_amounts = pad_bounding_box_dynamically_at_limits(
+            mol_0_bbox,
+            limits=[0, 0, image.shape[0], image.shape[1]],
+            padding=to_pad//2,
+        )
+        splined_points_mol_0 = data_image["splining"]["above"]["grain_0"]["mol_0"]["spline_coords"]
+        splined_points_mol_0 += (pad_amounts[0], pad_amounts[1])
+        image_crop = image[bbox_resized[0]: bbox_resized[2], bbox_resized[1]: bbox_resized[3]]
         curvatures_mol_0_normalised = np.array(curvatures_mol_0)
         if colourmap_normalisation_bounds is not None:
             curvatures_mol_0_normalised = curvatures_mol_0_normalised - colourmap_normalisation_bounds[0]
@@ -726,13 +826,13 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
             )
 
         fig, ax = plt.subplots(figsize=(figsize))
-        image = np.flipud(image)
-        print(f"crop is {image.shape[0] * pixel_to_nm_scaling} nm")
-        plt.imshow(image, extent=(
+        image_crop = np.flipud(image_crop)
+        print(f"crop is {image_crop.shape[0] * pixel_to_nm_scaling} nm")
+        plt.imshow(image_crop, extent=(
                             0,
-                            image.shape[1] * pixel_to_nm_scaling,
+                            image_crop.shape[1] * pixel_to_nm_scaling,
                             0,
-                            image.shape[0] * pixel_to_nm_scaling,
+                            image_crop.shape[0] * pixel_to_nm_scaling,
                         ), **PLOTTINGARGS)
         # plt.plot(splined_points_mol_0[:, 1], splined_points_mol_0[:, 0])
         # plot the splined points with curvature
@@ -761,6 +861,8 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
     CURVATURE_NORM_BOUNDS = (0,0.3)
     plot_curvature(filepath=sc_file, linewidth=3, savepath=dir_output_plots / "curvatures_sc.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
     plot_curvature(filepath=nicked_file, linewidth=3, savepath=dir_output_plots / "curvatures_nicked.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
+    plot_curvature(filepath=at_file, linewidth=3, savepath=dir_output_plots / "curvatures_at.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
+    plot_curvature(filepath=tel12_file, linewidth=3, savepath=dir_output_plots / "curvatures_tel12.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
     return
 
 
