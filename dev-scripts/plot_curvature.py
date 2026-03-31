@@ -59,7 +59,7 @@ def _(Path, plt):
 
     sample_groups = [
         ["Supercoiled", "Relaxed"],
-        ["AT rich insert", "Telomeric insert"],
+        ["Telomeric insert", "AT rich insert"],
     ]
     return (
         dir_base,
@@ -315,6 +315,7 @@ def _(
                 linewidth=1.5,
                 # palette=picoz_colors,
                 # hue="species",
+                order = group,
             )
             sns.stripplot(
                 data=df_group,
@@ -324,6 +325,7 @@ def _(
                 jitter=True,
                 size=2,
                 alpha=0.7,
+                order = group,
             )
 
             # plt.xlabel("pICOz variant")
@@ -491,6 +493,7 @@ def _(
                     # hue="species",
                     ax=ax,
                     linewidth=box_line_width,
+                    order=group,
                 )
                 sns.stripplot(
                     x="species",
@@ -502,6 +505,7 @@ def _(
                     # palette=palette,
                     # hue="species",
                     ax=ax,
+                    order=group,
                 )
                 ax.tick_params("x", rotation=45, labelsize=fig_axes_tick_font_size * fontsize_multiplier)
                 ax.tick_params("y", labelsize=fig_axes_tick_font_size * fontsize_multiplier)
@@ -781,8 +785,9 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
 
     sc_file = sample_files(dir_base / "sc" / "processed", file_index=0)
     nicked_file = sample_files(dir_base / "nicked" / "processed", file_index = 2)
-    at_file = sample_files(dir_base / "3at" / "processed", file_index = 8)
-    tel12_file = sample_files(dir_base / "20260310_TC_picoztel12" / "processed", file_index = 10)
+    # at_file = sample_files(dir_base / "3at" / "processed", file_index = 8)
+    at_file = dir_base / "3at" / "processed" / "20251107_8ng_3ATpicoz_nicl.0_00039.topostats"
+    tel12_file = dir_base / "20260310_TC_picoztel12" / "processed" / "20260310_TC_8ngpicoz_TEL12_nicl.0_00026.topostats"
 
     def plot_curvature(
         filepath: Path,
@@ -790,7 +795,8 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         savepath: Path,
         colourmap_normalisation_bounds: tuple[float, float] | None,
         figsize: tuple[float, float] = (6, 6),
-        crop_size_nm: int = 165
+        crop_size_nm: int = 165,
+        grain_number: int = 0,
     ) -> None:
         loadscans = LoadScans(
             img_paths=[filepath],
@@ -801,9 +807,9 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
         data_image = loadscans.img_dict[list(loadscans.img_dict.keys())[0]]
         print(data_image.keys())
         pixel_to_nm_scaling = data_image["pixel_to_nm_scaling"]
-        curvatures_mol_0 = np.abs(data_image["grain_curvature_stats"]["above"]["grains"]["grain_0"]["molecules"]["mol_0"]["curvatures"])
+        curvatures_mol_0 = np.abs(data_image["grain_curvature_stats"]["above"]["grains"][f"grain_{grain_number}"]["molecules"]["mol_0"]["curvatures"])
         image = data_image["image"]
-        mol_0_bbox = data_image["splining"]["above"]["grain_0"]["mol_0"]["bbox"]
+        mol_0_bbox = data_image["splining"]["above"][f"grain_{grain_number}"]["mol_0"]["bbox"]
         # pad the bbox
         mol_0_bbox_width = mol_0_bbox[2] - mol_0_bbox[0]
         to_pad = int((crop_size_nm / pixel_to_nm_scaling) - mol_0_bbox_width)
@@ -815,7 +821,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
             limits=[0, 0, image.shape[0], image.shape[1]],
             padding=to_pad//2,
         )
-        splined_points_mol_0 = data_image["splining"]["above"]["grain_0"]["mol_0"]["spline_coords"]
+        splined_points_mol_0 = data_image["splining"]["above"][f"grain_{grain_number}"]["mol_0"]["spline_coords"]
         splined_points_mol_0 += (pad_amounts[0], pad_amounts[1])
         image_crop = image[bbox_resized[0]: bbox_resized[2], bbox_resized[1]: bbox_resized[3]]
         curvatures_mol_0_normalised = np.array(curvatures_mol_0)
@@ -862,7 +868,7 @@ def _(LoadScans, PLOTTINGARGS, Path, dir_base, dir_output_plots, mpl, np, plt):
     plot_curvature(filepath=sc_file, linewidth=3, savepath=dir_output_plots / "curvatures_sc.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
     plot_curvature(filepath=nicked_file, linewidth=3, savepath=dir_output_plots / "curvatures_nicked.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
     plot_curvature(filepath=at_file, linewidth=3, savepath=dir_output_plots / "curvatures_at.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
-    plot_curvature(filepath=tel12_file, linewidth=3, savepath=dir_output_plots / "curvatures_tel12.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS)
+    plot_curvature(filepath=tel12_file, linewidth=3, savepath=dir_output_plots / "curvatures_tel12.png", colourmap_normalisation_bounds=CURVATURE_NORM_BOUNDS, grain_number=0)
     return
 
 
