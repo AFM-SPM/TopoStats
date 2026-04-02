@@ -151,7 +151,13 @@ def _(dir_base, pd, plt, sns):
 def _(combinations, mpl, np, pd, stats):
     def normality_test(data: pd.Series) -> bool:
         """Return true if Shapiro-Wilk test indicates normality with 0.05 CI."""
-        return stats.shapiro(data)[1] > 0.05
+        normality_metric = stats.shapiro(data)[1]
+        return normality_metric > 0.05
+
+    def normality_test_with_result(data: pd.Series) -> tuple[bool, float]:
+        """Return true if Shapiro-Wilk test indicates normality with 0.05 CI."""
+        normality_metric = stats.shapiro(data)[1]
+        return normality_metric > 0.05, normality_metric
 
 
     def perform_t_test(
@@ -169,9 +175,13 @@ def _(combinations, mpl, np, pd, stats):
             raise ValueError("There are nans in the dataset.")
         # If either are not normal, use a non-parametric test, eg Mann-Whitney
         # Else, use a t-test
-        if not normality_test(
-            data_per_sample[sample_type_1]
-        ) or not normality_test(data_per_sample[sample_type_2]):
+        sample_1_normal, sample_1_normality_metric = normality_test_with_result(data_per_sample[sample_type_1])
+        sample_2_normal, sample_2_normality_metric = normality_test_with_result(data_per_sample[sample_type_2])
+        if (not sample_1_normal) or (not sample_2_normal):
+            if not sample_1_normal:
+                print(f"{value_column} {sample_type_1} not normal: {sample_1_normality_metric:.4f}")
+            if not sample_2_normal:
+                print(f"{value_column} {sample_type_2} not normal: {sample_2_normality_metric:.4f}")
             test_name = "Mann-Whitney"
             stat, p = stats.mannwhitneyu(
                 data_per_sample[sample_type_1], data_per_sample[sample_type_2]
@@ -220,14 +230,12 @@ def _(combinations, mpl, np, pd, stats):
         pairs = list(combinations(sample_types, r=2))
         results: list[tuple[str, str, str, float]] = []
         for sample_a, sample_b in pairs:
-            data_a = df[df["species"] == sample_a][value_column]
-            data_b = df[df["species"] == sample_b][value_column]
-            if normality_test(data_a) and normality_test(data_b):
-                test_name = "t-test"
-                stat, p = stats.ttest_ind(data_a, data_b)
-            else:
-                test_name = "Mann-Whitney"
-                stat, p = stats.mannwhitneyu(data_a, data_b)
+            test_name, p = perform_t_test(
+                df=df,
+                sample_type_1=sample_a,
+                sample_type_2=sample_b,
+                value_column=value_column,
+            )
             results.append((sample_a, sample_b, test_name, p))
         return results
 
@@ -251,6 +259,7 @@ def _(combinations, mpl, np, pd, stats):
         y_range = ylim[1] - ylim[0]
         per_sample_y_offset_increment: float = y_range / 7
         for i, (sample_a, sample_b, test_name, p) in enumerate(test_results):
+            print(f"pairwise test: {value_column} : [{sample_a:>15}, {sample_b:>15}]: {test_name:>20} : {p:.3e}")
             xpos_sample_a = sample_types.index(sample_a)
             xpos_sample_b = sample_types.index(sample_b)
             ypos = (
@@ -532,8 +541,8 @@ def _(
         groups=sample_groups,
         metrics=[
             ("curvature_median", "Median curvature"),
-            ("curvature_iqr", "Interquartile range of curvature"),
             ("curvature_90th", "90th percentile of curvature"),
+            ("aspect_ratio", "Aspect ratio"),
         ],
         box_line_width=2,
         fontsize_multiplier=1.5,
@@ -586,7 +595,7 @@ def _(df_data, pd, perform_group_test, perform_t_test, sample_groups):
     perform_stats_tests_on_groups(
         sample_groups=sample_groups,
         df=df_data,
-        value_columns=["curvature_iqr", "curvature_median"],
+        value_columns=["curvature_90th", "curvature_median"],
     )
     return
 
