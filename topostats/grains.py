@@ -4,6 +4,7 @@
 
 import logging
 import sys
+from typing import Any
 
 import keras
 import numpy as np
@@ -22,6 +23,7 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_mask, flatten_multi_class_tensor, get_thresholds, update_background_class
+from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -103,6 +105,7 @@ class Grains:
         threshold_std_dev: dict[str, float | list] | None = None,
         threshold_absolute: dict[str, float | list] | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
+        endpoint_connection_config: dict[str, Any] | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -199,6 +202,7 @@ class Grains:
         )
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        self.endpoint_connection_config: dict[str, Any] = endpoint_connection_config
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = config["unet_config"] if unet_config is None else unet_config
         self.vetting_config = config["vetting"] if vetting is None else vetting
@@ -450,6 +454,20 @@ class Grains:
             )
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
+            # Connect loose ends in the grain mask
+            if self.endpoint_connection_config is not None:
+                if self.endpoint_connection_config["run"]:
+                    LOGGER.info(f"{self.filename} : Connecting grain mask endpoints")
+                    endpoint_connection_config = self.endpoint_connection_config.copy()
+                    endpoint_connection_config.pop("run")
+                    traditional_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                        filename=self.filename,
+                        image=self.image,
+                        tensor=traditional_full_mask_tensor,
+                        p2nm=self.pixel_to_nm_scaling,
+                        **endpoint_connection_config,
+                    )
+
             # Area threshold using user specified thresholds
             traditional_full_mask_tensor = Grains.area_thresholding_tensor(
                 grain_mask_tensor=traditional_full_mask_tensor,
@@ -487,6 +505,31 @@ class Grains:
                         unet_config=self.unet_config,
                         graincrops=traditional_graincrops,
                     )
+                    if self.endpoint_connection_config is not None:
+                        if self.endpoint_connection_config["run"]:
+                            LOGGER.info(f"[{self.filename}] : Connecting DL grain mask endpoints.")
+                            endpoint_connection_config = self.endpoint_connection_config.copy()
+                            endpoint_connection_config.pop("run")
+                            # Reconstruct full mask tensor from the UNet-updated graincrops. (Messy but needed).
+                            unet_full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                                graincrops=graincrops,
+                                image_shape=self.image.shape,
+                            )
+                            unet_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                                filename=self.filename,
+                                image=self.image,
+                                tensor=unet_full_mask_tensor,
+                                p2nm=self.pixel_to_nm_scaling,
+                                **endpoint_connection_config,
+                            )
+                            # Re-extract graincrops from the updated full mask tensor
+                            graincrops = self.extract_grains_from_full_image_tensor(
+                                image=self.image,
+                                full_mask_tensor=unet_full_mask_tensor,
+                                padding=self.grain_crop_padding,
+                                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                                filename=self.filename,
+                            )
                 else:
                     # otherwise use the traditional graincrops
                     graincrops = traditional_graincrops
