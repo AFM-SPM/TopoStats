@@ -1048,6 +1048,7 @@ class OrderedTrace:
     molecule_data: dict[int, Molecule] | None = None
     tracing_stats: dict | None = None
     grain_molstats: Any | None = None
+    grain_curvature_stats: GrainCurvatureStats | None = None
     molecules: int | None = None
     writhe: str | None = None
     pixel_to_nm_scaling: float | None = None
@@ -1140,7 +1141,7 @@ class Molecule:
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None
     distances: npt.NDArray | None = None
-    curvature_stats: npt.NDArray | None = None
+    curvature_stats: MoleculeCurvatureStats | None = None
     bbox: tuple[int, int, int, int] | None = None
     molecule_statistics: dict[str, bool | str | float | None] | None = None
 
@@ -1181,6 +1182,96 @@ class Molecule:
             "end_to_end_distance": self.end_to_end_distance,
         }
         return self.molecule_statistics
+
+
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
+class MoleculeCurvatureStats:
+    """
+    Class for curvature statistics.
+
+    curvatures : npt.NDArray[np.float64]
+        The curvatures for each point along the trace. (1/nm).
+    is_circular : bool
+        Whether the molecule is circular or not.
+    num_turns : int
+        The number of times the molecule significantly changes direction of turn.
+    curvature_mean : float
+        The mean curvature.
+    curvature_max : float
+        The maximum curvature.
+    curvature_min : float
+        The minimum curvature.
+    curvature_std : float
+        The standard deviation of curvature.
+    curvature_var : float
+        The variance of curvature.
+    curvature_total : float
+        The sum of all the curvature values.
+    curvature_median : float
+        The median curvature.
+    curvature_iqr : float
+        The interquartile range of the curvature.
+    curvature_90th : float
+        The 90th percentile of the curvatures.
+    """
+
+    curvatures: npt.NDArray[np.float64]
+    is_circular: bool
+    num_turns: int
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
+    curvature_iqr: float
+    curvature_90th: float
+
+
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
+class GrainCurvatureStats:
+    """
+    Class for curvature statistics.
+
+    is_circular : bool
+        Whether the molecule is circular or not.
+    num_turns : int
+        The number of times the molecule significantly changes direction of turn.
+    curvature_mean : float
+        The mean curvature.
+    curvature_max : float
+        The maximum curvature.
+    curvature_min : float
+        The minimum curvature.
+    curvature_std : float
+        The standard deviation of curvature.
+    curvature_var : float
+        The variance of curvature.
+    curvature_total : float
+        The sum of all the curvature values.
+    curvature_median : float
+        The median curvature.
+    curvature_iqr : float
+        The interquartile range of the curvature.
+    curvature_90th : float
+        The 90th percentile of the curvatures.
+    """
+
+    num_turns: int
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
+    curvature_iqr: float
+    curvature_90th: float
 
 
 def convert_to_dict(to_convert: Any) -> dict[str, Any]:
