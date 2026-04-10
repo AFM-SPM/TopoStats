@@ -828,6 +828,42 @@ class TopoStats:
             and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
         )
 
+    def require_grain_crops(self) -> dict[int, GrainCrop]:
+        """
+        Return a non-None grain_crops mapping or raise and exception.
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            The grain crops for the molecule.
+
+        Raises
+        ------
+        RuntimeError
+            If grain_crops is None.
+        """
+        if self.grain_crops is None:
+            raise RuntimeError("grain_crops is None")
+        return self.grain_crops
+
+    def require_pixel_to_nm_scaling(self) -> float:
+        """
+        Return a non-None pixel_to_nm_scaling value or raise and exception.
+
+        Returns
+        -------
+        float
+            The pixel to nanometre scaling factor.
+
+        Raises
+        ------
+        RuntimeError
+            If pixel_to_nm_scaling is None.
+        """
+        if self.pixel_to_nm_scaling is None:
+            raise RuntimeError("pixel_to_nm_scaling is None")
+        return self.pixel_to_nm_scaling
+
     def calculate_image_statistics(self) -> dict[str, int | float]:
         """
         Calculate the image statistics via ``statistics.image_statistics()``.
@@ -1074,6 +1110,24 @@ class OrderedTrace:
             f"error : {self.error}"
         )
 
+    def require_molecule_data(self) -> dict[int, Molecule]:
+        """
+        Return a non-None molecule_data mapping or raise and exception.
+
+        Returns
+        -------
+        dict[int, Molecule]
+            The molecule data for the trace.
+
+        Raises
+        ------
+        RuntimeError
+            If molecule_data is None.
+        """
+        if self.molecule_data is None:
+            raise RuntimeError("molecule_data is None")
+        return self.molecule_data
+
     def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
         """
         Collate molecule statistics for all molecules to dictionary.
@@ -1182,6 +1236,43 @@ class Molecule:
             "end_to_end_distance": self.end_to_end_distance,
         }
         return self.molecule_statistics
+
+    def require_splined_coords(self) -> npt.NDArray[np.float64]:
+        """
+        Return a non-None splined_coords array or raise and exception.
+
+        Returns
+        -------
+        np.ndarray
+            The splined coordinates of the molecule.
+
+        Raises
+        ------
+        RuntimeError
+            If splined_coords is None.
+        """
+        if self.splined_coords is None:
+            raise RuntimeError("splined_coords is None")
+        return self.splined_coords
+
+    def require_curvature_stats(self) -> MoleculeCurvatureStats:
+        """
+        Require the curvature statistics for the molecule.
+
+        Returns
+        -------
+        MoleculeCurvatureStats
+            The curvature statistics for the molecule.
+
+        Raises
+        ------
+        ValueError
+            If the curvature statistics are not available.
+        """
+        curvature_stats = self.curvature_stats
+        if curvature_stats is None:
+            raise RuntimeError(f"curvature_stats not set for molecule {self.molecule_number}")
+        return curvature_stats
 
 
 @dataclass(
