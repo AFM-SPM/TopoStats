@@ -175,9 +175,9 @@ def smooth_curvature(
     elif method == "savitzky_golay":
         # adjust the window length for the savgol filter based on the point spacing
         savgol_window_length_points = int(savgol_window_length_nm / point_spacing_nm)
-        assert savgol_window_length_points < len(
-            curvatures
-        ), "savgol_window_length must be less than the length of the curvature array"
+        assert savgol_window_length_points < len(curvatures), (
+            "savgol_window_length must be less than the length of the curvature array"
+        )
         smoothed_curvatures = savgol_filter(
             curvatures.copy(), window_length=savgol_window_length_points, polyorder=savgol_polyorder
         )
@@ -316,12 +316,12 @@ def calculate_curvature_stats_image(
         The multiplier to apply to the interquartile range for creating a threshold for identifying turns.
     """
     # Iterate over grains
-    for _, grain_crop in topostats_object.grain_crops.items():
+    for _, grain_crop in topostats_object.require_grain_crops().items():
         # Iterate over molecules
         if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
             for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
                 # Calculate curvature stats per molecule
-                trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
+                trace_nm = molecule_data.require_splined_coords() * topostats_object.require_pixel_to_nm_scaling()
                 is_circular = molecule_data.circular
                 assert isinstance(is_circular, bool)
 
@@ -362,14 +362,14 @@ def calculate_curvature_stats_image(
             # Calculate curvature stats for the whole grain and update
             curvatures_all_grain = np.concatenate(
                 [
-                    molecule_data.curvature_stats.curvatures
-                    for molecule_data in grain_crop.ordered_trace.molecule_data.items()
+                    molecule_data.require_curvature_stats().curvatures
+                    for molecule_data in grain_crop.ordered_trace.molecule_data.values()
                 ]
             )
             curvature_metrics_grain = calculate_curvature_metrics(curvatures_all_grain)
             num_turns_total_grain = sum(
-                molecule_data.curvature_stats.num_turns
-                for molecule_data in grain_crop.ordered_trace.molecule_data.items()
+                molecule_data.require_curvature_stats().num_turns
+                for molecule_data in grain_crop.ordered_trace.molecule_data.values()
             )
             grain_crop.ordered_trace.grain_curvature_stats = GrainCurvatureStats(
                 num_turns=num_turns_total_grain,

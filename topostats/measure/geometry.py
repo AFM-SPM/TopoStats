@@ -5,6 +5,7 @@ import math
 import networkx
 import numpy as np
 import numpy.typing as npt
+from scipy import ndimage
 
 
 def bounding_box_cartesian_points_float(
@@ -303,9 +304,9 @@ def find_branches_for_nodes(
 
         # find the branch start point of odd branched nodes
         if num_branches % 2 == 1:
-            emanating_branches: list[npt.NDArray[np.int32]] = (
-                []
-            )  # List to store emanating branches for the current label
+            emanating_branches: list[
+                npt.NDArray[np.int32]
+            ] = []  # List to store emanating branches for the current label
             for branch in range(1, labelled_branches.max() + 1):
                 # technically using labelled_branches when there's an end loop will only cause one
                 #   of the end loop coords to be captured. This shopuldn't matter as the other
@@ -328,3 +329,56 @@ def find_branches_for_nodes(
             )
 
     return emanating_branch_starts_by_node
+
+
+def calculate_mask_width_with_skeleton(mask: npt.NDArray, skeleton: npt.NDArray, pixel_to_nm_scaling: float) -> float:
+    """
+    Calculate the mean width in metres of the DNA using the trace and mask.
+
+    Parameters
+    ----------
+    mask : npt.NDArray
+        Smoothed mask to be measured.
+    skeleton : npt.NDArray
+        Pruned skeleton.
+    pixel_to_nm_scaling : float
+        Scaling of pixels to nanometres.
+
+    Returns
+    -------
+    float
+        Width of grain in metres.
+    """
+    print(f"mask.shape: {mask.shape}")
+    print(f"skeleton.shape: {skeleton.shape}")
+    print(f"mask unique: {np.unique(mask)}")
+    distance_transform = ndimage.distance_transform_edt(mask)
+    distances_per_skeleton_pixel = np.where(skeleton == 1, distance_transform, 0)
+
+    # Calculate the width as the mean nonzero value distances multiplied by 2 and scaled to nanometres.
+    return distances_per_skeleton_pixel[distances_per_skeleton_pixel != 0].mean() * 2 * pixel_to_nm_scaling
+
+
+def calculate_pixel_path_distance(pixel_path: npt.NDArray[np.number]) -> float:
+    """
+    Calculate the distance of a pixel path in pixels.
+
+    Parameters
+    ----------
+    pixel_path : npt.NDArray[np.int32 | np.float]
+        Nx2 numpy array of pixel coordinates representing the path.
+
+    Returns
+    -------
+    float
+        Distance of the path in pixels.
+    """
+    # Check is right shape
+    if pixel_path.ndim != 2 or pixel_path.shape[1] != 2:
+        raise ValueError("Input pixel_path must be an Nx2 array.")
+    distance = 0.0
+    for i in range(1, pixel_path.shape[0]):
+        point_a = pixel_path[i - 1]
+        point_b = pixel_path[i]
+        distance += float(np.linalg.norm(point_b - point_a))
+    return distance
