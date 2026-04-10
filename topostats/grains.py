@@ -15,6 +15,7 @@ from skimage.morphology import dilation
 
 from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
+from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
@@ -23,7 +24,6 @@ from topostats.unet_masking import (
     predict_unet,
 )
 from topostats.utils import _get_mask, flatten_multi_class_tensor, get_thresholds, update_background_class
-from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
