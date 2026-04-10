@@ -187,6 +187,58 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'grains.remove_edge_intersecting_grains', valid values are 'True' or 'False'",
             ),
+            "endpoint_connection_config": {
+                "run": Or(
+                    True,
+                    False,
+                    error="Invalid value in config for 'grains.endpoint_connection_config.run', valid values are 'True' or 'False'",
+                ),
+                "class_indices": [int],
+                "skeletonisation_holearea_min_max": [
+                    Or(
+                        int,
+                        None,
+                        error=(
+                            "Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_holearea_min_max', valid values are int or null"
+                        ),
+                    )
+                ],
+                "skeletonisation_mask_smoothing_dilation_iterations": int,
+                "skeletonisation_mask_smoothing_gaussian_sigma": Or(
+                    float,
+                    int,
+                    None,
+                    error=(
+                        "Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_mask_smoothing_gaussian_sigma', valid values are float, int or null"
+                    ),
+                ),
+                "skeletonisation_method": Or(
+                    "zhang",
+                    "lee",
+                    "thin",
+                    "medial_axis",
+                    "topostats",
+                    error="Invalid value in config for 'grains.endpoint_connection_config.skeletonisation_method', valid values are 'zhang', 'lee', 'thin', 'medial_axis' or 'topostats'",
+                ),
+                "skeletonisation_height_bias": lambda n: 0 < n <= 1,
+                "endpoint_connection_distance_nm": lambda n: n > 0.0,
+                "endpoint_connection_cost_map_height_maximum": lambda n: n > 0.0,
+                "pruning_params": {
+                    "method": Or(
+                        "topostats",
+                        error="Invalid value in config for 'disordered_tracing.pruning_method', valid values are 'topostats'",
+                    ),
+                    "max_length": lambda n: n >= 0,
+                    "method_values": Or("min", "median", "mid"),
+                    "method_outlier": Or("abs", "mean_abs", "iqr"),
+                    "height_threshold": Or(int, float, None),
+                    "only_height_prune_endpoints": Or(
+                        True,
+                        False,
+                        error="Invalid value in config for 'disordered_tracing.pruning_params.run', valid values are 'True' or 'False'",
+                    ),
+                },
+            },
             "unet_config": {
                 "model_path": Or(None, str),
                 "upper_norm_bound": float,
@@ -377,6 +429,16 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 False,
                 error="Invalid value in config for 'curvature.run', valid values are 'True' or 'False'",
             ),
+            "smoothing_method": Or(
+                "gaussian",
+                "savitzky_golay",
+                error="Invalid value in config for 'curvature.smoothing_method', valid values are 'gaussian' or 'savitzky_golay'",
+            ),
+            "smoothing_gaussian_sigma_nm": lambda n: n > 0.0,
+            "smoothing_savgol_window_length_nm": lambda n: n > 0.0,
+            "smoothing_savgol_polyorder": int,
+            "curvature_turn_minimum_delay_nm": lambda n: n > 0.0,
+            "curvature_turn_threshold_iqr_multiplier": lambda n: n > 0.0,
         },
         "plotting": {
             "run": Or(
