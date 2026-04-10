@@ -366,16 +366,17 @@ class Images:
                     for _, molecule in grain_crop.ordered_trace.molecule_data.items():
                         # Normalise the curvature values to the colourmap bounds
                         normalised_curvature = (
-                            np.array(molecule.curvature_stats) - colourmap_normalisation_bounds[0]
+                            np.array(molecule.require_curvature_stats().curvatures) - colourmap_normalisation_bounds[0]
                         ) / (colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0])
 
                         # pylint cannot see that mpl.cm.viridis is a valid attribute
                         # pylint: disable=no-member
                         cmap = mpl.cm.coolwarm
-                        for index, point in enumerate(molecule.splined_coords):
+                        splined_coords = molecule.require_splined_coords()
+                        for index, point in enumerate(splined_coords):
                             color = cmap(normalised_curvature[index])
                             if index > 0:
-                                previous_point = molecule.splined_coords[index - 1]
+                                previous_point = splined_coords[index - 1]
                                 ax.plot(
                                     [
                                         (min_col + previous_point[1]) * self.pixel_to_nm_scaling,
@@ -449,19 +450,20 @@ class Images:
             )
 
             # Iterate over molecules
-            for _, molecule in grain_crop.ordered_trace.molecule_data.items():
-                normalised_curvature = molecule.curvature_stats - colourmap_normalisation_bounds[0] / (
-                    colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0]
-                )
+            for _, molecule in grain_crop.ordered_trace.require_molecule_data().items():
+                normalised_curvature = molecule.require_curvature_stats().curvatures - colourmap_normalisation_bounds[
+                    0
+                ] / (colourmap_normalisation_bounds[1] - colourmap_normalisation_bounds[0])
 
                 # pylint cannot see that mpl.cm.viridis is a valid attribute
                 # pylint: disable=no-member
                 cmap = mpl.cm.coolwarm
 
-                for index, point in enumerate(molecule.splined_coords):
+                splined_coords = molecule.require_splined_coords()
+                for index, point in enumerate(splined_coords):
                     colour = cmap(normalised_curvature[index])
                     if index > 0:
-                        previous_point = molecule.splined_coords[index - 1]
+                        previous_point = splined_coords[index - 1]
                         ax.plot(
                             [
                                 previous_point[1] * self.pixel_to_nm_scaling,
