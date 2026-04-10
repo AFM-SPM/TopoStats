@@ -45,6 +45,23 @@ grains:
     above: [300, 3000] # above surface [Low, High] in nm^2 (also takes null)
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
+  endpoint_connection_config:
+    run: true # Whether to run the endpoint connection process
+    class_indices: [1] # List of class indices to process
+    skeletonisation_holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refill in the smoothed masks.
+    skeletonisation_mask_smoothing_dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
+    skeletonisation_mask_smoothing_gaussian_sigma: 2 # Gaussian smoothing parameter 'sigma' in pixels.
+    skeletonisation_method: topostats # Options : zhang | lee | thin | topostats
+    skeletonisation_height_bias: 0.6 # Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+    endpoint_connection_distance_nm: 10.0 # Maximum distance in nm to connect endpoints.
+    endpoint_connection_cost_map_height_maximum: 3.0 # Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly be the maximum height of your sample.
+    pruning_params:
+      method: topostats # Method to clean branches of the skeleton. Options : topostats
+      max_length: 10.0 # Maximum length in nm to remove a branch containing an endpoint.
+      height_threshold: # The height to remove branches below.
+      method_values: mid # The method to obtain a branch's height for pruning. Options : min | median | mid.
+      method_outlier: mean_abs # The method to prune branches based on height. Options : abs | mean_abs | iqr.
+      only_height_prune_endpoints: False # Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
   unet_config:
     model_path: null # Path to a trained U-Net model
     upper_norm_bound: 5.0 # Upper bound for normalisation of input data. This should be slightly higher than the maximum desired / expected height of grains.
@@ -105,6 +122,12 @@ splining:
   spline_degree: 3 # The polynomial degree of the spline.
 curvature:
   run: true # Options : true, false
+  smoothing_method: "gaussian" # Options : "gaussian", "savitzky_golay"
+  smoothing_gaussian_sigma_nm: 1.0 # The sigma of the Gaussian smoothing kernel in nm.
+  smoothing_savgol_window_length_nm: 10.0 # The window length of the Savitzky-Golay smoothing kernel in nm.
+  smoothing_savgol_polyorder: 2 # The polynomial order of the Savitzky-Golay smoothing kernel.
+  curvature_turn_minimum_delay_nm: 20.0 # The minimum distance in nm before re-assessing if in a turn or not.
+  curvature_turn_threshold_iqr_multiplier: 1.5 # The multiplier for the IQR for determining if in a turn or not.
 plotting:
   run: true # Options : true, false
   style: topostats.mplstyle # Options : topostats.mplstyle or path to a matplotlibrc params file
