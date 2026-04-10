@@ -904,6 +904,9 @@ def multi_class_skeletonise_and_join_close_ends(
     result_tensor = tensor.copy()
     for class_index in class_indices:
         mask = tensor[:, :, class_index]
+        # if mask is empty, skip
+        if np.sum(mask) == 0:
+            continue
         updated_mask = skeletonise_and_join_close_ends(
             filename=filename,
             p2nm=p2nm,
