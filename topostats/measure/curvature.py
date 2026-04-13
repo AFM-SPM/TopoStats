@@ -375,3 +375,10 @@ def calculate_curvature_stats_image(
                 num_turns=num_turns_total_grain,
                 **curvature_metrics_grain,
             )
+            # Add the stats raw to the grain crop stats dictionary to be saved to csv
+            for class_number, stats in grain_crop.stats.items():
+                for subgrain_index, _ in stats.items():
+                    grain_crop.stats[class_number][subgrain_index]["curvature_grain_num_turns"] = np.int64(
+                        num_turns_total_grain
+                    )
+                    grain_crop.stats[class_number][subgrain_index].update(curvature_metrics_grain)

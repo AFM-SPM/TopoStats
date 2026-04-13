@@ -1234,7 +1234,18 @@ class Molecule:
             "topology_flip": self.topology_flip,
             "contour_length": self.contour_length,
             "end_to_end_distance": self.end_to_end_distance,
+            "curvature_num_turns": self.curvature_stats.num_turns if self.curvature_stats is not None else None,
+            "curvature_mean": self.curvature_stats.curvature_mean if self.curvature_stats is not None else None,
+            "curvature_max": self.curvature_stats.curvature_max if self.curvature_stats is not None else None,
+            "curvature_min": self.curvature_stats.curvature_min if self.curvature_stats is not None else None,
+            "curvature_std": self.curvature_stats.curvature_std if self.curvature_stats is not None else None,
+            "curvature_var": self.curvature_stats.curvature_var if self.curvature_stats is not None else None,
+            "curvature_total": self.curvature_stats.curvature_total if self.curvature_stats is not None else None,
+            "curvature_median": self.curvature_stats.curvature_median if self.curvature_stats is not None else None,
+            "curvature_iqr": self.curvature_stats.curvature_iqr if self.curvature_stats is not None else None,
+            "curvature_90th": self.curvature_stats.curvature_90th if self.curvature_stats is not None else None,
         }
+
         return self.molecule_statistics
 
     def require_splined_coords(self) -> npt.NDArray[np.float64]:

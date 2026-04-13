@@ -833,9 +833,11 @@ class LoadScans:
                     raise
                 self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
-                raise ValueError(f"File type {suffix} not yet supported. Please make an issue at \
+                raise ValueError(
+                    f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
-                this file type.")
+                this file type."
+                )
 
     def _check_image_size_and_add_to_dict(self, image: npt.NDArray, filename: str) -> None:
         """
@@ -1272,7 +1274,7 @@ def extract_height_profiles(
     height_profile_all = {}
     for image, topostats_object in topostats_object_all.items():
         height_profile_all[image] = {}
-        for grain_number, grain_crop in topostats_object.grain_crops.items():
+        for grain_number, grain_crop in topostats_object.require_grain_crops().items():
             height_profile_all[image][grain_number] = grain_crop.height_profiles
     dict_to_json(data=height_profile_all, output_dir=output_dir, filename=filename)
     LOGGER.info(f"Saved all height profiles to {output_dir}/{filename}.")
