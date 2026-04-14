@@ -46,7 +46,7 @@ grains:
     below: [null, null] # below surface [Low, High] in nm^2 (also takes null)
   remove_edge_intersecting_grains: true # Whether or not to remove grains that touch the image border
   endpoint_connection_config:
-    run: true # Whether to run the endpoint connection process
+    run: false # Whether to run the endpoint connection process
     class_indices: [1] # List of class indices to process
     skeletonisation_holearea_min_max: [0, null] # Range (min, max) of a hole area in nm to refill in the smoothed masks.
     skeletonisation_mask_smoothing_dilation_iterations: 2 # Number of dilation iterations to use for grain smoothing.
