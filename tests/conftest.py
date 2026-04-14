@@ -30,6 +30,7 @@ from topostats.classes import (
     OrderedTrace,
     TopoStats,
     UnMatchedBranch,
+    MoleculeCurvatureStats,
 )
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -508,7 +509,26 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
 
 
 @pytest.fixture()
-def dummy_molecule() -> Molecule:
+def dummy_molecule_curvature_stats() -> MoleculeCurvatureStats:
+    """Dummy MoleculeCurvatureStats for testing."""
+    return MoleculeCurvatureStats(
+        curvatures=np.array([1, 2, 3, 4, 5, 6]),
+        is_circular=False,
+        num_turns=1,
+        curvature_mean=3.5,
+        curvature_max=6,
+        curvature_min=1,
+        curvature_std=1.7,
+        curvature_var=2.9,
+        curvature_total=21,
+        curvature_median=3.5,
+        curvature_iqr=3,
+        curvature_90th=5,
+    )
+
+
+@pytest.fixture()
+def dummy_molecule(dummy_molecule_curvature_stats: MoleculeCurvatureStats) -> Molecule:
     """Dummy Molecule for testing."""
     return Molecule(
         threshold="above",
@@ -523,7 +543,7 @@ def dummy_molecule() -> Molecule:
         end_to_end_distance=0.3456e-7,
         heights=np.array([4]),
         distances=np.array([4]),
-        curvature_stats=np.array([4]),
+        curvature_stats=dummy_molecule_curvature_stats,
         bbox=(1, 2, 3, 4),
         molecule_statistics=None,
     )
