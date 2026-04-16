@@ -1332,6 +1332,48 @@ class MoleculeCurvatureStats:
     curvature_iqr: float
     curvature_90th: float
 
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two ``MoleculeCurvatureStats`` objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Other ``MoleculeCurvatureStats`` object to compare to.
+
+        Returns
+        -------
+        bool
+            ``True`` if the objects are equal, ``False`` otherwise.
+        """
+        if not isinstance(other, MoleculeCurvatureStats):
+            return False
+
+        if not np.allclose(self.curvatures, other.curvatures, atol=1e-7, equal_nan=True):
+            return False
+
+        if self.is_circular != other.is_circular or self.num_turns != other.num_turns:
+            return False
+
+        float_fields = (
+            "curvature_mean",
+            "curvature_max",
+            "curvature_min",
+            "curvature_std",
+            "curvature_var",
+            "curvature_total",
+            "curvature_median",
+            "curvature_iqr",
+            "curvature_90th",
+        )
+        for floating_value_field in float_fields:
+            a = getattr(self, floating_value_field)
+            b = getattr(other, floating_value_field)
+            if not np.isclose(a, b, rtol=1e-7, atol=1e-12, equal_nan=True):
+                return False
+
+        return True
+
 
 @dataclass(
     repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
@@ -1340,8 +1382,6 @@ class GrainCurvatureStats:
     """
     Class for curvature statistics.
 
-    is_circular : bool
-        Whether the molecule is circular or not.
     num_turns : int
         The number of times the molecule significantly changes direction of turn.
     curvature_mean : float
