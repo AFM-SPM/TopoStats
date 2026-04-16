@@ -1682,7 +1682,7 @@ def minicircle_small_post_nodestats() -> TopoStats:
 
 
 @pytest.fixture()
-def minicircle_small_post_ordered_tracing() -> GrainCrop:
+def minicircle_small_post_ordered_tracing() -> TopoStats:
     """TopoStats of Minicircle Small post ordered tracing."""
     minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_ordered_tracing.pkl"
     with minicircle_small_file.open("rb") as f:
