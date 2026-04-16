@@ -833,11 +833,9 @@ class LoadScans:
                     raise
                 self._check_image_size_and_add_to_dict(image=self.image, filename=self.filename)
             else:
-                raise ValueError(
-                    f"File type {suffix} not yet supported. Please make an issue at \
+                raise ValueError(f"File type {suffix} not yet supported. Please make an issue at \
                 https://github.com/AFM-SPM/TopoStats/issues, or email topostats@sheffield.ac.uk to request support for \
-                this file type."
-                )
+                this file type.")
 
     def _check_image_size_and_add_to_dict(self, image: npt.NDArray, filename: str) -> None:
         """

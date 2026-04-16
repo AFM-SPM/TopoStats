@@ -3,15 +3,11 @@
 from typing import Literal
 
 import numpy as np
-import numpy.typing as npt
 import pytest
 
-from topostats.classes import GrainCrop, Molecule, OrderedTrace, TopoStats, GrainCurvatureStats, MoleculeCurvatureStats
+from topostats.classes import GrainCurvatureStats, MoleculeCurvatureStats, TopoStats
 from topostats.measure.curvature import (
-    angle_diff_signed,
     calculate_curvature_stats_image,
-    discrete_angle_difference_per_nm_circular,
-    discrete_angle_difference_per_nm_linear,
 )
 
 

@@ -304,9 +304,9 @@ def find_branches_for_nodes(
 
         # find the branch start point of odd branched nodes
         if num_branches % 2 == 1:
-            emanating_branches: list[
-                npt.NDArray[np.int32]
-            ] = []  # List to store emanating branches for the current label
+            emanating_branches: list[npt.NDArray[np.int32]] = (
+                []
+            )  # List to store emanating branches for the current label
             for branch in range(1, labelled_branches.max() + 1):
                 # technically using labelled_branches when there's an end loop will only cause one
                 #   of the end loop coords to be captured. This shopuldn't matter as the other

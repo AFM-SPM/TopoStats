@@ -24,14 +24,14 @@ import topostats
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
+    GrainCurvatureStats,
     MatchedBranch,
     Molecule,
+    MoleculeCurvatureStats,
     Node,
     OrderedTrace,
     TopoStats,
     UnMatchedBranch,
-    MoleculeCurvatureStats,
-    GrainCurvatureStats,
 )
 from topostats.filters import Filters
 from topostats.grains import Grains

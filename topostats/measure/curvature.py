@@ -175,9 +175,9 @@ def smooth_curvature(
     elif method == "savitzky_golay":
         # adjust the window length for the savgol filter based on the point spacing
         savgol_window_length_points = int(savgol_window_length_nm / point_spacing_nm)
-        assert savgol_window_length_points < len(curvatures), (
-            "savgol_window_length must be less than the length of the curvature array"
-        )
+        assert savgol_window_length_points < len(
+            curvatures
+        ), "savgol_window_length must be less than the length of the curvature array"
         smoothed_curvatures = savgol_filter(
             curvatures.copy(), window_length=savgol_window_length_points, polyorder=savgol_polyorder
         )
