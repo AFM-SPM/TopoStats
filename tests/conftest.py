@@ -31,6 +31,7 @@ from topostats.classes import (
     TopoStats,
     UnMatchedBranch,
     MoleculeCurvatureStats,
+    GrainCurvatureStats,
 )
 from topostats.filters import Filters
 from topostats.grains import Grains
@@ -486,7 +487,7 @@ def dummy_unmatched_branch() -> MatchedBranch:
 
 
 @pytest.fixture()
-def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
+def dummy_ordered_trace(dummy_molecule: Molecule, dummy_grain_curvature_stats: GrainCurvatureStats) -> OrderedTrace:
     """Dummy OrderedTrace for testing."""
     return OrderedTrace(
         tracing_stats={"a": "b"},
@@ -494,6 +495,7 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
             0: {"circular": False, "topology": "a", "toplogy_flip": False, "processing": "nodestats"},
             1: {"circular": False, "topology": "b", "toplogy_flip": True, "processing": "nodestats"},
         },
+        grain_curvature_stats=dummy_grain_curvature_stats,
         molecule_data={0: dummy_molecule, 1: dummy_molecule},
         molecules=2,
         writhe="-",
@@ -515,6 +517,24 @@ def dummy_molecule_curvature_stats() -> MoleculeCurvatureStats:
         curvatures=np.array([1, 2, 3, 4, 5, 6]),
         is_circular=False,
         num_turns=1,
+        curvature_mean=3.5,
+        curvature_max=6,
+        curvature_min=1,
+        curvature_std=1.7,
+        curvature_var=2.9,
+        curvature_total=21,
+        curvature_median=3.5,
+        curvature_iqr=3,
+        curvature_90th=5,
+    )
+
+
+@pytest.fixture()
+def dummy_grain_curvature_stats() -> GrainCurvatureStats:
+    """Dummy GrainCurvatureStats for testing."""
+    return GrainCurvatureStats(
+        is_circular=False,
+        num_turns=2,
         curvature_mean=3.5,
         curvature_max=6,
         curvature_min=1,
