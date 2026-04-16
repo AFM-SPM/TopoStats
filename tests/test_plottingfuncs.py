@@ -115,6 +115,7 @@ def test_plot_curvatures_individual_grain(grain: int, minicircle_small_topostats
         image_type="non-binary",
         savefig_dpi=200,
         core_set=True,
+        trace_linewidth=3.0,
     ).plot_curvatures_individual_grain(
         grain_crop=minicircle_small_topostats.grain_crops[grain],
         grain_number=grain,
