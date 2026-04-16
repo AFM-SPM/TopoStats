@@ -1598,7 +1598,11 @@ def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
 @pytest.fixture()
 def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) -> TopoStats:
     """
-    Full minicircle_Small image after processing.
+    Full minicircle.spm image after processing.
+
+    Note that this is produced using a default config on minicircle.spm - if in the future it needs updating,
+    reprocess minicircle.spm with a freshly generated defacult config and it **should** not change too much of the
+    other values in the file in addition to the ones you add with the new feature result.
 
     Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
     as the comparator to which the results of using those tests can be compared.

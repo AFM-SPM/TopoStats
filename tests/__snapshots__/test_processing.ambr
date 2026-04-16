@@ -5127,17 +5127,17 @@
       1: dict({
         0: dict({
           'centre_x': np.float64(2.97566e-07),
-          'centre_y': np.float64(2.15445e-07),
+          'centre_y': np.float64(2.15436e-07),
           'height_max': np.float64(3.01e-09),
-          'height_mean': np.float64(1.867e-09),
+          'height_mean': np.float64(1.866e-09),
           'height_median': np.float64(1.924e-09),
-          'height_min': np.float64(7.85e-10),
+          'height_min': np.float64(7.62e-10),
           'max_feret': np.float64(4.4185e-08),
           'min_feret': np.float64(3.332e-08),
-          'radius_max': np.float64(2.5281e-08),
-          'radius_mean': np.float64(1.7873e-08),
-          'radius_median': np.float64(1.8433e-08),
-          'radius_min': np.float64(9.559e-09),
+          'radius_max': np.float64(2.5288e-08),
+          'radius_mean': np.float64(1.7874e-08),
+          'radius_median': np.float64(1.8428e-08),
+          'radius_min': np.float64(9.556e-09),
           'smallest_bounding_length': np.float64(4.395e-08),
           'smallest_bounding_width': np.float64(3.332e-08),
         }),
@@ -5488,7 +5488,7 @@
       'smallest_bounding_area': np.float64(9.00735235e-16),
     }),
     4: dict({
-      'area': np.float64(7.2186705e-16),
+      'area': np.float64(7.22355128e-16),
       'area_cartesian_bbox': np.float64(1.73950924e-15),
       'smallest_bounding_area': np.float64(1.464442305e-15),
     }),
@@ -5576,11 +5576,11 @@
 # ---
 # name: test_run_grainstats.2
   dict({
-    0: np.float64(1.2805879200000001e-24),
-    1: np.float64(1.2857227300000002e-24),
-    2: np.float64(1.1899258500000001e-24),
+    0: np.float64(1.28058791e-24),
+    1: np.float64(1.2857227400000002e-24),
+    2: np.float64(1.18992584e-24),
     3: np.float64(1.2424744700000002e-24),
-    4: np.float64(1.3475718800000002e-24),
+    4: np.float64(1.3479442300000002e-24),
     5: np.float64(1.2631145200000002e-24),
     6: np.float64(1.3403356400000002e-24),
     7: np.float64(1.4439294300000001e-24),
@@ -5595,8 +5595,8 @@
     16: np.float64(1.4107597600000001e-24),
     17: np.float64(1.2781436300000001e-24),
     18: np.float64(1.3785748600000002e-24),
-    19: np.float64(1.3685605300000001e-24),
-    20: np.float64(1.2898079100000001e-24),
+    19: np.float64(1.3685605400000002e-24),
+    20: np.float64(1.2898079200000002e-24),
   })
 # ---
 # name: test_run_grainstats.3
