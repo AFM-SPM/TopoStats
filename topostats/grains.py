@@ -86,6 +86,41 @@ class Grains:
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
     area_thresholds : dict[str, list[float | None]]
         Dictionary of above and below grain's area thresholds.
+    endpoint_connection_config : dict[str, Any] | None
+        Configuration for connecting loose ends in the grain mask.
+            run : bool
+                Whether to run the endpoint connection step.
+            class_indices : list[int]
+                List of class indices for which to run endpoint connection.
+            skeletonisation_holearea_min_max : tuple[int, int]
+                Range (min, max) of a hole area in nm to refill in the smoothed masks.
+            skeletonisation_mask_smoothing_dilation_iterations : int
+                Number of dilation iterations to use for grain smoothing.
+            skeletonisation_mask_smoothing_gaussian_sigma : float
+                Gaussian smoothing parameter 'sigma' in pixels.
+            skeletonisation_method : str
+                Options : zhang | lee | thin | topostats.
+            skeletonisation_height_bias : float
+                Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+            endpoint_connection_distance_nm : float
+                Maximum distance in nm to connect endpoints.
+            endpoint_connection_cost_map_height_maximum : float
+                Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly
+                be the maximum height of your sample.
+            pruning_params : dict[str, float | str | bool]
+                Pruning parameters for the skeleton during endpoint connection.
+                method : str
+                    Method to clean branches of the skeleton.
+                max_length : float
+                    Maximum length in nm to remove a branch containing an endpoint.
+                height_threshold : float | None
+                    The height to remove branches below.
+                method_values : str
+                    The method to obtain a branch's height for pruning. Options : min | median | mid.
+                method_outlier : str
+                    The method to prune branches based on height. Options : abs | mean_abs | iqr.
+                only_height_prune_endpoints : bool
+                    Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
@@ -138,6 +173,41 @@ class Grains:
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         area_thresholds : dict[str, list[float | None]]
             Dictionary of above and below grain's area thresholds.
+        endpoint_connection_config : dict[str, Any] | None
+            Configuration for connecting loose ends in the grain mask.
+                run : bool
+                    Whether to run the endpoint connection step.
+                class_indices : list[int]
+                    List of class indices for which to run endpoint connection.
+                skeletonisation_holearea_min_max : tuple[int, int]
+                    Range (min, max) of a hole area in nm to refill in the smoothed masks.
+                skeletonisation_mask_smoothing_dilation_iterations : int
+                    Number of dilation iterations to use for grain smoothing.
+                skeletonisation_mask_smoothing_gaussian_sigma : float
+                    Gaussian smoothing parameter 'sigma' in pixels.
+                skeletonisation_method : str
+                    Options : zhang | lee | thin | topostats.
+                skeletonisation_height_bias : float
+                    Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+                endpoint_connection_distance_nm : float
+                    Maximum distance in nm to connect endpoints.
+                endpoint_connection_cost_map_height_maximum : float
+                    Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly
+                    be the maximum height of your sample.
+                pruning_params : dict[str, float | str | bool]
+                    Pruning parameters for the skeleton during endpoint connection.
+                    method : str
+                        Method to clean branches of the skeleton.
+                    max_length : float
+                        Maximum length in nm to remove a branch containing an endpoint.
+                    height_threshold : float | None
+                        The height to remove branches below.
+                    method_values : str
+                        The method to obtain a branch's height for pruning. Options : min | median | mid.
+                    method_outlier : str
+                        The method to prune branches based on height. Options : abs | mean_abs | iqr.
+                    only_height_prune_endpoints : bool
+                        Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
