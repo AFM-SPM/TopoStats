@@ -236,7 +236,14 @@ class ConnectionGroup(BaseModel):
     close_connectionpoint_pairs: list[tuple[int, int]] = Field(default_factory=list)
 
     def remove_connectionpoint(self, connectionpoint_id: int) -> None:
-        """Remove a connectionpoint from the group by its ID."""
+        """
+        Remove a connectionpoint from the group by its ID.
+
+        Parameters
+        ----------
+        connectionpoint_id : int
+            ID of the connectionpoint to remove.
+        """
         if connectionpoint_id in self.endpoints:
             del self.endpoints[connectionpoint_id]
         elif connectionpoint_id in self.junctionpoints:
@@ -260,7 +267,24 @@ def group_connectionpoints(
     close_pairs: list[tuple[int, int, float]],
     draw_graph: bool = False,
 ) -> dict[int, ConnectionGroup]:
-    """Group connectionpoints into connection groups based on interconnections."""
+    """
+    Group connectionpoints into connection groups based on interconnections.
+
+    Parameters
+    ----------
+    connectionpoints : dict[int, Endpoint | Junctionpoint]
+        Dictionary of connectionpoints (endpoints and junctionpoints) with their IDs as keys.
+    close_pairs : list[tuple[int, int, float]]
+        List of pairs of connectionpoint IDs that are close enough to consider connecting, with their distance in
+        nanometers.
+    draw_graph : bool
+        Whether to draw the graph of connectionpoints and their close pairs for debugging purposes.
+
+    Returns
+    -------
+    dict[int, ConnectionGroup]
+        Dictionary of connection groups with their IDs as keys.
+    """
     # Split the graph into connected groups
 
     # Create a graph
@@ -323,7 +347,31 @@ def connect_endpoints_with_best_path(
     endpoint_2_coords: tuple[int, int],
     endpoint_connection_cost_map_height_maximum: float,
 ) -> tuple[npt.NDArray[np.uint8], float, float]:
-    """Connect two endpoints with a path found by pathfinding through a cost map derived from the image heights."""
+    """
+    Connect two endpoints with a path found by pathfinding through a cost map derived from the image heights.
+
+    Parameters
+    ----------
+    image : npt.NDArray[np.float32]
+        The AFM image.
+    mask : npt.NDArray[np.bool_]
+        The binary mask of the grain, used to determine the area for pathfinding.
+    p2nm : float
+        Pixel to nanometer scaling factor.
+    endpoint_1_coords : tuple[int, int]
+        Coordinates of the first endpoint (y, x).
+    endpoint_2_coords : tuple[int, int]
+        Coordinates of the second endpoint (y, x).
+    endpoint_connection_cost_map_height_maximum : float
+        Maximum height to use for the cost map when connecting endpoints. (Should roughly be the maximum height of the
+        data in nm).
+
+    Returns
+    -------
+    tuple[npt.NDArray[np.uint8], float, float]
+        Tuple of (path coordinates as a numpy array of shape (N, 2) with dtype uint8, total cost of the path,
+        path distance in nanometers).
+    """
     # create a weight cost map from the image, where 0 is the maximum cost, and the lowest cost is configurable.
     # first create a crop around the two endpoints to speed up pathfinding
     cost_map_bbox_padding_px = 10
@@ -371,7 +419,23 @@ def fill_mask_gap_using_path(
     path: npt.NDArray[np.uint8],
     mean_mask_pixel_width: float,
 ) -> npt.NDArray[np.bool_]:
-    """Fill a gap in a binary mask using a given path, dilating the path to match the mean mask width."""
+    """
+    Fill a gap in a binary mask using a given path, dilating the path to match the mean mask width.
+
+    Parameters
+    ----------
+    mask : npt.NDArray[np.bool_]
+        The binary mask of the grain.
+    path : npt.NDArray[np.uint8]
+        The path coordinates as a numpy array of shape (N, 2).
+    mean_mask_pixel_width : float
+        The mean width of the mask in pixels.
+
+    Returns
+    -------
+    npt.NDArray[np.bool_]
+        The binary mask with the gap in the mask filled.
+    """
     path_mask = np.zeros_like(mask, dtype=bool)
     # Set the path to True
     for y, x in path:
@@ -398,6 +462,22 @@ def find_hard_connected_endpoints(  # noqa: C901
 
     Specifically, finds the pairs of endpoints, and the distances between them in nanometres, that are connected
     via the skeleton within the given maximum connection distance.
+
+    Parameters
+    ----------
+    skeleton : npt.NDArray[np.bool_]
+        The skeletonised binary mask of the grain.
+    endpoints : dict[int, Endpoint]
+        Dictionary of endpoints with their IDs as keys.
+    max_connection_distance_nm : float
+        Maximum distance between endpoints to consider them hard-connected (in nanometres).
+    p2nm : float
+        Pixel to nanometre scaling factor.
+
+    Returns
+    -------
+    list[tuple[int, int, float]]
+        List of tuples of (endpoint_1_id, endpoint_2_id, distance_nm) for hard-connected endpoints.
     """
     hard_connected_endpoints: list[tuple[int, int, float]] = []
 
@@ -409,7 +489,7 @@ def find_hard_connected_endpoints(  # noqa: C901
         while queue:
             current_position = queue.pop(0)
             current_coords, current_distance_nm = current_position
-            # If alrady visited this position, skip it.
+            # If already visited this position, skip it.
             if current_coords in visited:
                 continue
             # Else add it to the visited set
@@ -490,22 +570,12 @@ def skeletonise_and_join_close_ends(  # noqa: C901
     endpoint_connection_cost_map_height_maximum : float
         Maximum height to use for the cost map when connecting endpoints. (Should roughly be the maximum height of the
         data in nm).
-    plot : bool, optional
-        Whether to plot intermediate steps for debugging, by default False.
 
     Returns
     -------
     npt.NDArray
         2-D Numpy array of the updated grain mask with gaps filled in.
     """
-    # skeletonisation_holearea_min_max = (0, None)
-    # skeletonisation_mask_smoothing_dilation_iterations = 2
-    # skeletonisation_mask_smoothing_gaussian_sigma = 2
-    # skeletonisation_method = "topostats"
-    # skeletonisation_height_bias = 0.6
-    # endpoint_connection_distance_nm = 10
-    # endpoint_connection_cost_map_height_maximum = 3.0
-
     smoothed_mask = smooth_mask(
         filename=filename,
         pixel_to_nm_scaling=p2nm,
@@ -890,6 +960,8 @@ def multi_class_skeletonise_and_join_close_ends(
         Method to use for skeletonisation.
     skeletonisation_height_bias : float
         Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+    pruning_params : dict[str, Any]
+        Pruning configuration parameters.
     endpoint_connection_distance_nm : float
         Maximum distance between skeleton endpoints to connect (nm).
     endpoint_connection_cost_map_height_maximum : float
