@@ -273,7 +273,7 @@ def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str
     return {
         "curvature_mean": float(np.mean(np.abs(curvatures))),
         "curvature_max": float(np.max(np.abs(curvatures))),
-        "curvature_min": float(np.min(np.abs(curvatures))),
+        "curvature_min": float(np.round(np.min(np.abs(curvatures)), decimals=6)),
         "curvature_std": float(np.std(np.abs(curvatures))),
         "curvature_var": float(np.var(np.abs(curvatures))),
         "curvature_total": float(np.sum(np.abs(curvatures))),

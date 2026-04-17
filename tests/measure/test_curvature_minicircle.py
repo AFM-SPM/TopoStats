@@ -1,4 +1,4 @@
-"""Integration tests for curvature.py"""
+"""Integration tests for curvature.py."""
 
 from typing import Literal
 
@@ -41,7 +41,7 @@ def test_calculate_curvature_stats_image(
         num_turns=1,
         curvature_mean=0.12756918044336923,
         curvature_max=0.45572923604033255,
-        curvature_min=0.0013433300213903424,
+        curvature_min=0.001343,
         curvature_std=0.09017593221364711,
         curvature_var=0.00813169875060028,
         curvature_total=13.267194766110402,
@@ -163,7 +163,7 @@ def test_calculate_curvature_stats_image(
         num_turns=1,
         curvature_mean=0.12756918044336923,
         curvature_max=0.45572923604033255,
-        curvature_min=0.0013433300213903424,
+        curvature_min=0.001343,
         curvature_std=0.09017593221364711,
         curvature_var=0.00813169875060028,
         curvature_total=13.267194766110402,
