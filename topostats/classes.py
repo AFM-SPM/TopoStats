@@ -1415,6 +1415,45 @@ class GrainCurvatureStats:
     curvature_iqr: float
     curvature_90th: float
 
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two ``GrainCurvatureStats`` objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Other ``GrainCurvatureStats`` object to compare to.
+
+        Returns
+        -------
+        bool
+            ``True`` if the objects are equal, ``False`` otherwise.
+        """
+        if not isinstance(other, GrainCurvatureStats):
+            return False
+
+        if self.num_turns != other.num_turns:
+            return False
+
+        float_fields = (
+            "curvature_mean",
+            "curvature_max",
+            "curvature_min",
+            "curvature_std",
+            "curvature_var",
+            "curvature_total",
+            "curvature_median",
+            "curvature_iqr",
+            "curvature_90th",
+        )
+        for floating_value_field in float_fields:
+            a = getattr(self, floating_value_field)
+            b = getattr(other, floating_value_field)
+            if not np.isclose(a, b, rtol=1e-7, atol=1e-12, equal_nan=True):
+                return False
+
+        return True
+
 
 def convert_to_dict(to_convert: Any) -> dict[str, Any]:
     """
