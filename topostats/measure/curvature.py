@@ -256,7 +256,7 @@ def quantify_turns(
     return turns
 
 
-def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str, float]:
+def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64], decimals: int = 6) -> dict[str, float]:
     """
     Calculate curvature metrics from an array of curvatures.
 
@@ -264,6 +264,8 @@ def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str
     ----------
     curvatures : npt.NDArray[np.float64]
         Array of curvature values.
+    decimals : int
+        The number of decimal places to round the metrics to.
 
     Returns
     -------
@@ -271,15 +273,17 @@ def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64]) -> dict[str
         Dictionary of curvature metrics.
     """
     return {
-        "curvature_mean": float(np.mean(np.abs(curvatures))),
-        "curvature_max": float(np.max(np.abs(curvatures))),
-        "curvature_min": float(np.round(np.min(np.abs(curvatures)), decimals=6)),
-        "curvature_std": float(np.std(np.abs(curvatures))),
-        "curvature_var": float(np.var(np.abs(curvatures))),
-        "curvature_total": float(np.sum(np.abs(curvatures))),
-        "curvature_median": float(np.median(np.abs(curvatures))),
-        "curvature_iqr": float(np.percentile(np.abs(curvatures), 75) - np.percentile(curvatures, 25)),
-        "curvature_90th": float(np.percentile(np.abs(curvatures), 90)),
+        "curvature_mean": float(np.round(np.mean(np.abs(curvatures)), decimals=decimals)),
+        "curvature_max": float(np.round(np.max(np.abs(curvatures)), decimals=decimals)),
+        "curvature_min": float(np.round(np.min(np.abs(curvatures)), decimals=decimals)),
+        "curvature_std": float(np.round(np.std(np.abs(curvatures)), decimals=decimals)),
+        "curvature_var": float(np.round(np.var(np.abs(curvatures)), decimals=decimals)),
+        "curvature_total": float(np.round(np.sum(np.abs(curvatures)), decimals=decimals)),
+        "curvature_median": float(np.round(np.median(np.abs(curvatures)), decimals=decimals)),
+        "curvature_iqr": float(
+            np.round(np.percentile(np.abs(curvatures), 75) - np.percentile(curvatures, 25), decimals=decimals)
+        ),
+        "curvature_90th": float(np.round(np.percentile(np.abs(curvatures), 90), decimals=decimals)),
     }
 
 

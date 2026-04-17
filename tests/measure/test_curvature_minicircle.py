@@ -39,15 +39,15 @@ def test_calculate_curvature_stats_image(
 
     expected_grain_curvature_stats_0 = GrainCurvatureStats(
         num_turns=1,
-        curvature_mean=0.12756918044336923,
-        curvature_max=0.45572923604033255,
+        curvature_mean=0.127569,
+        curvature_max=0.455729,
         curvature_min=0.001343,
-        curvature_std=0.09017593221364711,
-        curvature_var=0.00813169875060028,
-        curvature_total=13.267194766110402,
-        curvature_median=0.10437066624558784,
-        curvature_iqr=0.3440756208288933,
-        curvature_90th=0.23608788200711453,
+        curvature_std=0.090176,
+        curvature_var=0.008132,
+        curvature_total=13.267195,
+        curvature_median=0.104371,
+        curvature_iqr=0.344076,
+        curvature_90th=0.236088,
     )
 
     expected_molecule_curvature_stats_0_0 = MoleculeCurvatureStats(
@@ -161,15 +161,15 @@ def test_calculate_curvature_stats_image(
         ),
         is_circular=True,
         num_turns=1,
-        curvature_mean=0.12756918044336923,
-        curvature_max=0.45572923604033255,
+        curvature_mean=0.127569,
+        curvature_max=0.455729,
         curvature_min=0.001343,
-        curvature_std=0.09017593221364711,
-        curvature_var=0.00813169875060028,
-        curvature_total=13.267194766110402,
-        curvature_median=0.10437066624558784,
-        curvature_iqr=0.3440756208288933,
-        curvature_90th=0.23608788200711453,
+        curvature_std=0.090176,
+        curvature_var=0.008132,
+        curvature_total=13.267195,
+        curvature_median=0.104371,
+        curvature_iqr=0.344076,
+        curvature_90th=0.236088,
     )
 
     calculate_curvature_stats_image(
