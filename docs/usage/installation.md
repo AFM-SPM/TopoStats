@@ -10,8 +10,8 @@ Windows you should use
 You may have Python installed on your system but should use a [Python Virtual
 Environment](https://realpython.com/python-virtual-environments-a-primer/) such as
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and install and use TopoStats under the Virtual
-Environment. The versions of Python supported are Python >=3.8 and so when creating your virtual environment you should
-specify this `3.8` as the minimum.
+Environment. The versions of Python supported are Python >=3.10 and so when creating your virtual environment you should
+specify this `3.10` as the minimum.
 
 ## Setting up Conda
 
