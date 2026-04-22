@@ -8,7 +8,7 @@ on:
       - closed
   release:
     types:
-      - published     
+      - published
   workflow_dispatch:
 
 permissions:
@@ -21,18 +21,17 @@ jobs:
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
       (github.event_name == 'release' && github.event.release.prerelease == false)
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
           ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
 
       - name: Set up Python from pyproject.toml
         uses: actions/setup-python@v6
         with:
-          python-version-file: 'pyproject.toml'
+          python-version-file: "pyproject.toml"
 
       - name: Install package and docs dependencies
         run: |
