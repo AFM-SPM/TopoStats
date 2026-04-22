@@ -7,7 +7,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from skimage.morphology import dilation, label
-from topoly import jones, translate_code
 
 from topostats.classes import GrainCrop, Molecule, Node, OrderedTrace, TopoStats
 from topostats.logs.logs import LOGGER_NAME
@@ -70,7 +69,9 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-branches
-    def compile_trace(self, reverse_min_conf_crossing: bool = False) -> tuple[list, npt.NDArray]:  # noqa: C901
+    def compile_trace(
+        self, calculate_topology: bool, reverse_min_conf_crossing: bool = False
+    ) -> tuple[list, npt.NDArray]:  # noqa: C901
         """
         Obtain the trace and diagnostic crossing trace and molecule trace images.
 
@@ -165,7 +166,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
                 cross_add[single_cross_img != 0] = i + 1
             coord_trace, simple_trace = self.trace(ordered, cross_add, z, n=100)
             # obtain topology from the simple trace
-            topology = self.get_topology(simple_trace)
+            if calculate_topology:
+                topology = self.get_topology(simple_trace, calculate_topology=calculate_topology)
             if reverse_min_conf_crossing and low_conf_idx is None:  # when there's nothing to reverse
                 topology = [None for _ in enumerate(topology)]
         # If there are no connected regions we set parameters to None
@@ -244,7 +246,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
         return np.asarray(filtered_arr1)
 
-    def get_topology(self, nxyz: npt.NDArray) -> list:
+    def get_topology(self, nxyz: npt.NDArray, calculate_topology: bool) -> list:
         """
         Obtain a topological classification from ordered XYZ coordinates.
 
@@ -252,6 +254,8 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         ----------
         nxyz : npt.NDArray
             A 4xN array of the order index (n), x, y and pseudo z coordinates.
+        calculate_topology : bool
+            Whether to calculate the topology of the traces. This is time consuming so can be turned off.
 
         Returns
         -------
@@ -273,15 +277,21 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             del nxyz_cp[i]
         # classify topology for non-reidmeister moves
         if len(nxyz_cp) != 0:
-            try:
-                pd_code = translate_code(
-                    nxyz_cp, output_type="pdcode"
-                )  # pd code helps prevents freezing and spawning multiple processes
-                LOGGER.debug(f"{self.filename} : PD Code is: {pd_code}")
-                top_class = jones(pd_code)
-            except (IndexError, KeyError):
-                LOGGER.debug(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
-                top_class = "N/A"
+            if calculate_topology:
+                # Import is here to avoid having to load topoly when not needed as it's slow in tests.
+                from topoly import jones, translate_code
+
+                try:
+                    pd_code = translate_code(
+                        nxyz_cp, output_type="pdcode"
+                    )  # pd code helps prevents freezing and spawning multiple processes
+                    LOGGER.debug(f"{self.filename} : PD Code is: {pd_code}")
+                    top_class = jones(pd_code)
+                except (IndexError, KeyError):
+                    LOGGER.debug(f"{self.filename} : PD Code could not be obtained from trace coordinates.")
+                    top_class = "N/A"
+            else:
+                top_class = "calculation disabled"
 
             # don't separate catenanes / overlaps - used for distribution comparison
             for _ in range(len(nxyz_cp)):
@@ -644,7 +654,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
             return "+"
         return "0"
 
-    def run_nodestats_tracing(self) -> dict[str, npt.NDArray]:
+    def run_nodestats_tracing(self, calculate_topology: bool) -> dict[str, npt.NDArray]:
         """
         Run the nodestats tracing pipeline.
 
@@ -652,9 +662,11 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         -------
         tuple[list, dict, dict]
             A list of each molecules ordered trace coordinates, the ordered_tracing stats, and the images.
+        calculate_topology : bool
+            Whether to calculate the topology of the traces. This is time consuming so can be turned off.
         """
         ordered_traces, topology, cross_add, crossing_coords, fwhms = self.compile_trace(
-            reverse_min_conf_crossing=False
+            calculate_topology=calculate_topology, reverse_min_conf_crossing=False
         )
         self.compile_images(ordered_traces, cross_add, crossing_coords, fwhms)
         self.grain_tracing_stats["num_mols"] = len(ordered_traces) if ordered_traces is not None else None
@@ -666,7 +678,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         # ns-rse 2026-01-06 - This appears to be used to determine the "topology flip" as it is the second call to
         # compile_trace() but this time has reverse_min_conf_crossing=True and _only_ uses the returned topology. For
         # each molecule this is stored along with the original
-        topology_flip = self.compile_trace(reverse_min_conf_crossing=True)[1]
+        topology_flip = self.compile_trace(reverse_min_conf_crossing=True, calculate_topology=calculate_topology)[1]
 
         molecule_data = {} if ordered_traces is not None else None
         if ordered_traces is not None:
@@ -861,6 +873,7 @@ def ordered_trace_mask(ordered_coordinates: npt.NDArray, shape: tuple) -> npt.ND
 def ordered_tracing_image(
     topostats_object: TopoStats,
     ordering_method: str,
+    calculate_topology: bool,
 ) -> None:
     # pylint: disable=too-many-locals
     """
@@ -872,6 +885,8 @@ def ordered_tracing_image(
         TopoStats object to have ordered tracing performed on.
     ordering_method : str
         The method to order the trace coordinates - "topostats" or "nodestats".
+    calculate_topology : bool
+        Whether to calculate the topology of the traces. This is time consuming so can be turned off.
     """
     config = topostats_object.config.copy()
     ordering_method = config["ordered_tracing"]["ordering_method"] if ordering_method is None else ordering_method
@@ -909,7 +924,9 @@ def ordered_tracing_image(
                 nodestats_tracing = OrderedTraceNodestats(grain_crop=grain_crop)
 
                 if nodestats_tracing.check_node_errorless():
-                    grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing()
+                    grain_crop.ordered_trace.images = nodestats_tracing.run_nodestats_tracing(
+                        calculate_topology=calculate_topology
+                    )
                     LOGGER.debug(f"[{topostats_object.filename}] : Grain {grain_no + 1} ordered via NodeStats.")
                 else:
                     LOGGER.debug(f"Nodestats dict has an error for grain : ({grain_no + 1}")

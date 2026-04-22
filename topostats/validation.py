@@ -350,6 +350,11 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "original",
                 error="Invalid value in config for 'ordered_tracing.ordering_method', valid values are 'nodestats' or 'original'",
             ),
+            "calculate_topology": Or(
+                True,
+                False,
+                error="Invalid value in config for 'ordered_tracing.calculate_topology', valid values are 'True' or 'False'",
+            ),
         },
         "splining": {
             "run": Or(

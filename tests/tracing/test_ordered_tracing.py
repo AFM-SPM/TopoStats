@@ -257,6 +257,7 @@ def test_ordered_tracing_image(topostats_object_fixture: str, request, snapshot)
     ordered_tracing_image(
         topostats_object=topostats_object,
         ordering_method="nodestats",
+        calculate_topology=False,  # This must be kept false since importing topoly takes ages in 3.12.
     )
     assert topostats_object.grain_crops[0].ordered_trace == snapshot(
         matcher=path_type(types=(float,), replacer=lambda data, _: round(data, 12))

@@ -93,6 +93,7 @@ nodestats:
 ordered_tracing:
   run: true
   ordering_method: nodestats # The method of ordering the disordered traces. Options : nodestats | original
+  calculate_topology: true # Whether to calculate the topology of the traces.
 splining:
   run: true # Options : true, false
   method: "rolling_window" # Options : "spline", "rolling_window"

@@ -76,6 +76,9 @@ def default_config() -> dict[str, Any]:
     config["grains"]["threshold_absolute"]["above"] = [1.0]
     config["grains"]["threshold_absolute"]["below"] = [-1.0]
     config["grains"]["area_thresholds"]["above"] = [10, 60000000]
+
+    # Topology calculation takes ages so disable it for CI.
+    config["ordered_tracing"]["calculate_topology"] = False
     return config
 
 
