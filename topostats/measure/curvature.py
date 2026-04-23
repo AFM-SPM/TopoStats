@@ -136,6 +136,67 @@ def discrete_angle_difference_per_nm_linear(
     return angles_per_nm
 
 
+def total_turn_in_region_radians(  # noqa: C901
+    angles_radians: npt.NDArray[np.float64],
+    region_inclusive: tuple[int, int],
+    circular: bool = False,
+) -> tuple[float, float]:
+    """
+    Calculate the total turn in radians for a linear trace in a specified region.
+
+    Parameters
+    ----------
+    angles_radians : npt.NDArray[np.float64]
+        The discrete angle differences per point in radians.
+    region_inclusive : tuple[int, int]
+        The region of the trace to calculate the total turn for, specified as a tuple of two integers (start, end),
+        where both indices are inclusive.
+    circular : bool, optional
+        If True, the trace is considered circular, meaning the first and last points are connected.
+
+    Returns
+    -------
+    tuple[float, float]
+        The total turn in radians for the specified region.
+
+    Raises
+    ------
+    ValueError
+        If the region is not a tuple of two integers or if the indices are out of bounds for the trace.
+    """
+    if len(region_inclusive) != 2:
+        raise ValueError("Region must be a tuple of two integers (start, end).")
+    if region_inclusive[0] < 0 or region_inclusive[1] >= angles_radians.shape[0]:
+        raise ValueError("Region indices must be within the bounds of the trace.")
+
+    total_left_turn = 0.0
+    total_right_turn = 0.0
+    if region_inclusive[0] > region_inclusive[1]:
+        # The start of the region is after the end, so if the trace is circular, then we wrap around.
+        if circular:
+            # Grab the angles from the points to the end of the region and then to the start of the region
+            for _, angle in enumerate(angles_radians[region_inclusive[0] :]):
+                if angle < 0:
+                    total_left_turn += abs(angle)
+                else:
+                    total_right_turn += abs(angle)
+            for angle in angles_radians[: region_inclusive[1] + 1]:
+                if angle < 0:
+                    total_left_turn += abs(angle)
+                else:
+                    total_right_turn += abs(angle)
+        else:
+            raise ValueError("Region start must be less than region end for non-circular traces.")
+    else:
+        # The start of the region is before or the same as the end, so we can just sum the angles in the region
+        for angle in angles_radians[region_inclusive[0] : region_inclusive[1] + 1]:
+            if angle < 0:
+                total_left_turn += abs(angle)
+            else:
+                total_right_turn += abs(angle)
+    return float(total_left_turn), float(total_right_turn)
+
+
 def smooth_curvature(
     curvatures: npt.NDArray[np.float64],
     point_spacing_nm: np.float64,

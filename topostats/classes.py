@@ -1157,7 +1157,7 @@ class Molecule:
         Direction from threshold of molecule (above / below)
     molecule_number : int
         Index of the molecule (per grain)
-    circular : str, bool, optional
+    circular : bool, optional
         Whether the molecule is circular or linear.
     processing : str
         Which processing type was used, topostats or nodestats.
@@ -1185,7 +1185,7 @@ class Molecule:
 
     threshold: str | None = None
     molecule_number: int | None = None
-    circular: str | bool | None = None
+    circular: bool | None = None
     processing: str | None = None
     topology: str | None = None
     topology_flip: Any | None = None
