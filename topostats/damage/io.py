@@ -58,7 +58,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
     print(f"unique directory and file combinations: {unique_dir_file_combinations}")
 
     for basename, filename in unique_dir_file_combinations:
-        print(f"extracting data for file {filename} in folder {basename}")
+        filename_with_ext = f"{filename}.topostats"
         # locate the corresponding row in the dataframe
         df_grain_stats_image = df_grain_stats[
             (df_grain_stats["image"] == filename) & (df_grain_stats["basename"] == basename)
@@ -72,7 +72,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
 
         # load the corresponding image file
         try:
-            topostats_obj = loadscans_img_dict[filename]
+            topostats_obj = loadscans_img_dict[filename_with_ext]
         except KeyError as e:
             print(f"keys: {list(loadscans_img_dict.keys())}")
             raise KeyError(f"could not find file data for image {filename} in loaded scans. debug this!") from e
@@ -150,7 +150,6 @@ def load_grain_models_from_topo_files(  # noqa: C901
             grain_molecule_data = grain_crop.ordered_trace.require_molecule_data()
             molecule_data_collection = UnanalysedMoleculeDataCollection(molecules={})
             for molecule_id, molecule_ordered_trace_data in grain_molecule_data.items():
-                print(f"-- processing molecule {molecule_id}")
                 molecule_data_ordered_coords = molecule_ordered_trace_data.ordered_coords
                 assert molecule_data_ordered_coords is not None
                 # adjust the ordered coords to account for padding
@@ -190,6 +189,9 @@ def load_grain_models_from_topo_files(  # noqa: C901
             # get nodestats data for the grain. messy but I don't want to refactor how topostats stores this atm.
             all_node_coords = []
             grain_nodes = grain_crop.nodes
+            if grain_nodes is None:
+                print(f"WARN: no node data found for grain {grain_index} in file{filename}, skipping this grain.")
+                continue
             num_nodes = len(grain_nodes)
             for _node_index, node_data in grain_nodes.items():
                 node_coords = node_data.node_coords
@@ -273,7 +275,7 @@ def construct_grains_collection_from_topostats_files(
         file_paths_and_hashes_topostats: dict[Path, str] = {}
         # construct the file paths for each unique combination of image and folder and check if it exists.
         for _, row in group.iterrows():
-            filename = str(Path(str(row["image"])).stem)
+            filename = str(row["image"])
             basename = str(row["basename"])
             # reconstruct the path to the file using the basename, image name and structure of directories.
             if "all_data" in str(basename):
