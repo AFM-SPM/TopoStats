@@ -127,7 +127,10 @@ class OrderedDefectGapList(BaseDamageAnalysis):
                 return False
 
             # total turn radians
-            if not np.isclose(self_item.total_turn_radians, other_item.total_turn_radians, atol=1e-6):
+            if not (
+                np.isclose(self_item.total_turn_radians[0], other_item.total_turn_radians[0], atol=1e-6)
+                and np.isclose(self_item.total_turn_radians[1], other_item.total_turn_radians[1], atol=1e-6)
+            ):
                 return False
 
         return True
@@ -306,14 +309,25 @@ class UnanalysedGrainCollection(BaseDamageAnalysis):
     unanalysed_grains: dict[int, UnanalysedGrain] = Field(default_factory=dict)
     current_global_grain_id: int = 0
 
+    @computed_field
+    @property
+    def folder_counts(self) -> dict[str, int]:
+        """Get a count of the number of grains from each folder."""
+        counts: dict[str, int] = {}
+        for grain in self.unanalysed_grains.values():
+            folder = grain.folder
+            counts[folder] = counts.get(folder, 0) + 1
+        return counts
+
     # pretty print
     def __str__(self) -> str:
         """Return a simplified string representation of the grain collection."""
         grain_indexes = range(self.current_global_grain_id)
         missing_grain_indexes = [index for index in grain_indexes if index not in self.unanalysed_grains]
+        folder_counts_str = "".join([f"- {folder}: {count}\n" for folder, count in self.folder_counts.items()])
         return (
             f"GrainModelCollection with {len(self.unanalysed_grains)} grains, with {len(missing_grain_indexes)} "
-            f"omitted grains: {missing_grain_indexes}"
+            f"omitted grains: {missing_grain_indexes}.\nFolder counts:\n{folder_counts_str}"
         )
 
     def add_grain(self, unanalysed_grain: UnanalysedGrain) -> None:
@@ -344,34 +358,6 @@ def combine_unanalysed_grain_collections(collections: list[UnanalysedGrainCollec
         for grain in collection.unanalysed_grains.values():
             combined_collection.add_grain(grain)
     return combined_collection
-
-
-class MoleculeDefectData(BaseDamageAnalysis):
-    """Data object to hold the defect and gap data for a molecule."""
-
-    ordered_defects_and_gaps: OrderedDefectGapList
-
-    @computed_field
-    @property
-    def num_defects(self) -> int:
-        """Calculate the number of defects."""
-        return sum(isinstance(item, Defect) for item in self.ordered_defects_and_gaps.defect_gap_list)
-
-    @computed_field
-    @property
-    def num_gaps(self) -> int:
-        """Calculate the number of gaps."""
-        return sum(isinstance(item, Gap) for item in self.ordered_defects_and_gaps.defect_gap_list)
-
-    @computed_field
-    @property
-    def defect_lengths_nm(self) -> list[float]:
-        """Get a list of the lengths of the defects in nanometres."""
-        return [
-            defect_or_gap.length_nm
-            for defect_or_gap in self.ordered_defects_and_gaps.defect_gap_list
-            if isinstance(defect_or_gap, Defect)
-        ]
 
 
 class MoleculeDataCollection(BaseDamageAnalysis):
@@ -540,13 +526,24 @@ class GrainCollection(BaseDamageAnalysis):
     grains: dict[int, GrainModel]
     current_global_grain_id: int = 0
 
+    @computed_field
+    @property
+    def folder_counts(self) -> dict[str, int]:
+        """Get a count of the number of grains from each folder."""
+        counts: dict[str, int] = {}
+        for grain in self.grains.values():
+            folder = grain.folder
+            counts[folder] = counts.get(folder, 0) + 1
+        return counts
+
     def __str__(self) -> str:
         """Return a simplified string representation of the grain collection."""
         grain_indexes = range(self.current_global_grain_id)
         missing_grain_indexes = [index for index in grain_indexes if index not in self.grains]
+        folder_counts_str = "".join([f"- {folder}: {count}\n" for folder, count in self.folder_counts.items()])
         return (
             f"GrainModelCollection with {len(self.grains)} grains, with {len(missing_grain_indexes)} "
-            f"omitted grains: {missing_grain_indexes}"
+            f"omitted grains: {missing_grain_indexes}.\nFolder counts:\n{folder_counts_str}"
         )
 
     def __getitem__(self, key: int) -> GrainModel:

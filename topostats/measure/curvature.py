@@ -45,6 +45,80 @@ def angle_diff_signed(v1: npt.NDArray[np.float64], v2: npt.NDArray[np.float64]):
     return angle
 
 
+def calculate_discrete_angle_difference_linear(trace: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    """
+    Calculate the discrete angle difference per point along a linear trace.
+
+    Parameters
+    ----------
+    trace : npt.NDArray[np.float64]
+        The coordinate trace, in any units.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The discrete angle difference per point in radians.
+    """
+    angles = np.zeros(trace.shape[0])
+    for index, point in enumerate(trace):
+        if index == 0:
+            # No previous point so cannot calculate angle
+            angle = 0.0
+        elif index == trace.shape[0] - 1:
+            # No next point so cannot calculate angle, end of trace
+            v1 = point - trace[index - 1]
+            angle = 0.0
+        else:
+            v1 = point - trace[index - 1]
+            v2 = trace[index + 1] - point
+
+            # Normalise vectors to unit length
+            norm_v1 = v1 / np.linalg.norm(v1)
+            norm_v2 = v2 / np.linalg.norm(v2)
+
+            # Calculate the signed angle difference between the previous direction and the current direction
+            angle = angle_diff_signed(norm_v1, norm_v2)
+        angles[index] = angle
+    return angles
+
+
+def calculate_discrete_angle_difference_circular(trace: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    """
+    Calculate the discrete angle difference per point along a circular trace.
+
+    Parameters
+    ----------
+    trace : npt.NDArray[np.float64]
+        The coordinate trace, in any units.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        The discrete angle difference per point in radians.
+    """
+    angles = np.zeros(trace.shape[0])
+    for index, point in enumerate(trace):
+        if index == 0:
+            v1 = point - trace[-1]
+            v2 = trace[index + 1] - point
+        elif index == trace.shape[0] - 1:
+            v1 = point - trace[index - 1]
+            v2 = trace[0] - point
+        else:
+            v1 = point - trace[index - 1]
+            v2 = trace[index + 1] - point
+
+        # Normalise vectors to unit length
+        norm_v1 = v1 / np.linalg.norm(v1)
+        norm_v2 = v2 / np.linalg.norm(v2)
+
+        # Calculate the signed angle difference between the previous direction and the current direction
+        angle = angle_diff_signed(norm_v1, norm_v2)
+        angles[index] = angle
+
+    return angles
+
+
 def discrete_angle_difference_per_nm_circular(
     trace_nm: npt.NDArray[np.float64],
 ) -> npt.NDArray[np.float64]:
