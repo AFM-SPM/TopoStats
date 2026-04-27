@@ -462,7 +462,7 @@ class GrainModel(UnanalysedGrain):
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
         plt.imshow(self.image, **IMGPLOTARGS)
-        plt.imshow(self.mask[:, :, 1], alpha=mask_alpha, cmap="gray")
+        plt.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         if linemode == "spline":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
                 spline_coords = molecule_data.spline_coords
