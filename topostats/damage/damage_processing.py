@@ -256,6 +256,10 @@ def connect_close_defects(  # noqa: C901
     if len(defects) == 0:
         return defects, gaps
 
+    # If there are no gaps (if it's all defect), then do nothing.
+    if len(gaps) == 0:
+        return defects, gaps
+
     first_defect = defects[0]
     first_gap = gaps[0]
     gap_index = 0
@@ -723,15 +727,15 @@ def find_curvature_defects(
                     bad_grains.add(global_grain_id)
                     continue
                 curvatures = molecule_data_curvature_data.curvatures
+                curvatures_abs = np.abs(curvatures)
                 assert isinstance(
                     curvatures, np.ndarray
                 ), f"expected curvatures to be a numpy array, but got {type(curvatures)}"
                 # calculate the curvature thresholds
-                iqr = np.percentile(curvatures, 75) - np.percentile(curvatures, 25)
+                iqr = np.percentile(curvatures_abs, 75) - np.percentile(curvatures_abs, 25)
                 # the threshold is the median + factor * iqr
-                curvature_threshold_iqr = curvature_threshold_iqr_multiplier * iqr + np.percentile(curvatures, 50)
-                curvature_defects_bool = np.abs(curvatures) > curvature_threshold_iqr
-
+                curvature_threshold_iqr = curvature_threshold_iqr_multiplier * iqr + np.percentile(curvatures_abs, 50)
+                curvature_defects_bool = curvatures_abs > curvature_threshold_iqr
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords,
@@ -756,11 +760,12 @@ def find_curvature_defects(
                     bad_grains.add(global_grain_id)
                     continue
                 curvatures = molecule_data_curvature_data.curvatures
+                curvatures_abs = np.abs(curvatures)
                 assert isinstance(
                     curvatures, np.ndarray
                 ), f"expected curvatures to be a numpy array, but got {type(curvatures)}"
                 curvature_threshold_absolute = curvature_threshold_absolute_pernm / grain_model.pixel_to_nm_scaling
-                curvature_defects_bool = np.abs(curvatures) > curvature_threshold_absolute
+                curvature_defects_bool = curvatures_abs > curvature_threshold_absolute
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
