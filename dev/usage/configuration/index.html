@@ -2796,6 +2796,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">File extensions to search for.</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>output_stats</code></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">string</td>
+<td style="text-align: left;"><code>full</code></td>
+<td style="text-align: left;">The amount of statistics to write to <code>.csv</code> files, options are <code>full</code> (all information on grains as well as branch and molecule statistics) or <code>basic</code> (just grain level statistics)</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>loading</code></td>
 <td style="text-align: left;"><code>channel</code></td>
 <td style="text-align: left;">string</td>
@@ -2815,6 +2822,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">boolean</td>
 <td style="text-align: left;"><code>true</code></td>
 <td style="text-align: left;">Whether to run the filtering stage, without this other stages won't run so leave as <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>row_alignment_quantile</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">Quantile (0.0 to 1.0) to be used to determine the average background for the image. below values may improve flattening of large features.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
@@ -2909,10 +2923,10 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
-<td style="text-align: left;"><code>row_alignment_quantile</code></td>
-<td style="text-align: left;">float</td>
-<td style="text-align: left;"><code>0.5</code></td>
-<td style="text-align: left;">Quantile (0.0 to 1.0) to be used to determine the average background for the image. below values may improve flattening of large features.</td>
+<td style="text-align: left;"><code>grain_crop_padding</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">The padding to apply to grains during cropping. Must be &gt;= 1.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
@@ -3006,6 +3020,20 @@ separate lines as shown below</p>
 <td style="text-align: left;">The lower normalisation bound for normalising grain crops before sending to the segmentation model. The model will have been trained with particular normalisation bounds, use those. If in doubt, talk to the person who trained the model or use a sensible range, eg if DNA is expected between 0 and 2nm, try using -1 to 3 as normalisation bounds.</td>
 </tr>
 <tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>remove_disconnected_grains</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>False</code></td>
+<td style="text-align: left;">Whether to remove subgrains that are not connected to the original grain mask.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>confidence</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">Confidence threshold for the UNet model. Smaller is more generous, large is stricter.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>grains</code> <br> ∟ <code>vetting</code></td>
 <td style="text-align: left;"><code>class_region_number_thresholds</code></td>
 <td style="text-align: left;">list[tuple[int, int, int]]</td>
@@ -3063,17 +3091,17 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
-<td style="text-align: left;"><code>cropped_size</code></td>
-<td style="text-align: left;">float</td>
-<td style="text-align: left;"><code>40.0</code></td>
-<td style="text-align: left;">Force cropping of grains to this length (in nm) of square cropped images (can take <code>-1</code> for grain-sized box)</td>
-</tr>
-<tr>
-<td style="text-align: left;"></td>
 <td style="text-align: left;"><code>edge_detection_method</code></td>
 <td style="text-align: left;">str</td>
 <td style="text-align: left;"><code>binary_erosion</code></td>
 <td style="text-align: left;">Type of edge detection method to use when determining the edges of grain masks before calculating statistics on them. Options : <code>binary_erosion</code>, <code>canny</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_names</code></td>
+<td style="text-align: left;">list(str)</td>
+<td style="text-align: left;"><code>["DNA", "Protein"]</code></td>
+<td style="text-align: left;">Names of the objects found by the segmentation methods (objects are linked to the <code>class_number</code> output in the grainstats csv).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>disordered_tracing</code></td>
@@ -3084,17 +3112,17 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_index</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">The class index to run tracing on. 1 is typically the DNA class.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
 <td style="text-align: left;"><code>min_skeleton_size</code></td>
 <td style="text-align: left;">int</td>
 <td style="text-align: left;"><code>10</code></td>
 <td style="text-align: left;">The minimum number of pixels a skeleton should be for statistics to be calculated on it. Anything smaller than this is dropped but grain statistics are retained.</td>
-</tr>
-<tr>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"><code>pad_width</code></td>
-<td style="text-align: left;">str</td>
-<td style="text-align: left;"><code>1</code></td>
-<td style="text-align: left;">Padding for individual grains when tracing. This is sometimes required if the bounding box around grains is too tight and they touch the edge of the image.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>disordered_tracing</code> <br> ∟ <code>mask_smoothing_params</code></td>
@@ -3105,7 +3133,7 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
-<td style="text-align: left;"><code>dialtion_iterations</code></td>
+<td style="text-align: left;"><code>dilation_iterations</code></td>
 <td style="text-align: left;">int</td>
 <td style="text-align: left;"><code>2</code></td>
 <td style="text-align: left;">The the number of dilations to perform to smooth. This will compete with <code>gaussian_sigma</code> to see which changes the grain mask least, ensuring quality over different scan sizes.</td>
@@ -3160,6 +3188,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">How to compare the threshold and branch heights to remove low branches. Options are; the inter-quartile range <code>iqr</code>, the height_threshold as an absolute value <code>abs</code>, or the mean of all branches minus the height_threshold value <code>mean_abs</code>.</td>
 </tr>
 <tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>only_height_prune_endpoints</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>True</code></td>
+<td style="text-align: left;">Whether to restrict height-based pruning to skeleton segments containing an endpoint or not. Options are; <code>True</code> which will only attempt to prune branches with an endpoint, or <code>False</code> where height pruning will attempt to prune all branches according to the height-based pruning criteria - this is useful for removing false bridging points in the skeleton.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>nodestats</code></td>
 <td style="text-align: left;"><code>run</code></td>
 <td style="text-align: left;">boolean</td>
@@ -3195,13 +3230,6 @@ separate lines as shown below</p>
 <td style="text-align: left;">Whether to try and pair branches at odd-branch crossing regions and leave one hanging branch, or to leave all branches hanging here. Options: <code>true</code> or <code>false</code>.</td>
 </tr>
 <tr>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"><code>pad_width</code></td>
-<td style="text-align: left;">str</td>
-<td style="text-align: left;"><code>1</code></td>
-<td style="text-align: left;">Padding for individual grains when tracing. This is sometimes required if the bounding box around grains is too tight and they touch the edge of the image.</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code>ordered_tracing</code></td>
 <td style="text-align: left;"><code>run</code></td>
 <td style="text-align: left;">boolean</td>
@@ -3214,13 +3242,6 @@ separate lines as shown below</p>
 <td style="text-align: left;">str</td>
 <td style="text-align: left;"><code>nodestats</code></td>
 <td style="text-align: left;">The method of ordering the disordered traces either using the nodestats output or solely the disordered traces. Options: <code>nodestats</code> or <code>topostats</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"></td>
-<td style="text-align: left;"><code>pad_width</code></td>
-<td style="text-align: left;">int</td>
-<td style="text-align: left;">10</td>
-<td style="text-align: left;">Padding for individual grains when tracing. This is sometimes required if the bounding box around grains is too tight and they touch the edge of the image.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>splining</code></td>
@@ -3245,10 +3266,24 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
+<td style="text-align: left;"><code>rolling_window_resampling</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to resample the trace or not.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>rolling_window_resample_regular_spatial_interval</code></td>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;"><code>0.5e-9</code></td>
+<td style="text-align: left;">The spatial interval to resample the trace to in nm.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
 <td style="text-align: left;"><code>spline_step_size</code></td>
 <td style="text-align: left;">int</td>
 <td style="text-align: left;"><code>7.0e-9</code></td>
-<td style="text-align: left;">The The sampling length of the spline (in meters) to obtain an average of splines.</td>
+<td style="text-align: left;">The sampling length of the spline (in meters) to obtain an average of splines.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
@@ -3308,10 +3343,17 @@ separate lines as shown below</p>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
+<td style="text-align: left;"><code>grain_crop_plot_size_nm</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>-1</code></td>
+<td style="text-align: left;">Size in nm of the square cropped grain images if using the grains image set. If -1, will use the grain's default bounding box size.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
 <td style="text-align: left;"><code>image_set</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: left;"><code>all</code></td>
-<td style="text-align: left;">Which images to plot. Options : <code>all</code>, <code>core</code> (flattened image, grain mask overlay and trace overlay only).</td>
+<td style="text-align: left;">list(strings)</td>
+<td style="text-align: left;"><code>[core]</code></td>
+<td style="text-align: left;">A list of which images to plot. Single options : <code>[all]</code>, <code>[core]</code>, multiples of: <code>filters</code>, <code>grains</code>, <code>grain_crops</code>, <code>disordered_tracing</code>, <code>nodestats</code>, <code>ordered_tracing</code>, and <code>splining</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
@@ -3326,6 +3368,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">boolean</td>
 <td style="text-align: left;"><code>true</code></td>
 <td style="text-align: left;">Whether to include the colorbar scale in plots. Options <code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>trace_line_width</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">Linewidth for spline and cuvature traces.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
@@ -3361,6 +3410,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">boolean</td>
 <td style="text-align: left;"><code>false</code></td>
 <td style="text-align: left;">Whether to plot hisograms using a logarithmic scale or not. Options: <code>true</code>, <code>false</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>number_grains</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Whether to number the grain masks plotted in masked_overlay images. Options: <code>true</code>, <code>false</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>summary_stats</code></td>
