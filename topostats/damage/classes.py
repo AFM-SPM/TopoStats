@@ -273,6 +273,7 @@ class UnanalysedGrain(BaseDamageAnalysis):
     filename: str
     pixel_to_nm_scaling: float
     folder: str
+    sample_type: str
     percent_damage: float
     bbox: tuple[int, int, int, int]
     image: npt.NDArray[np.float64]
@@ -433,6 +434,7 @@ class GrainModel(UnanalysedGrain):
             filename=unanalysed_grain.filename,
             pixel_to_nm_scaling=unanalysed_grain.pixel_to_nm_scaling,
             folder=unanalysed_grain.folder,
+            sample_type=unanalysed_grain.sample_type,
             percent_damage=unanalysed_grain.percent_damage,
             bbox=unanalysed_grain.bbox,
             image=unanalysed_grain.image,
@@ -458,7 +460,12 @@ class GrainModel(UnanalysedGrain):
         )
 
     def plot(  # noqa: C901
-        self, mask_alpha: float = 0.3, linemode: str = "", curvature_defects: bool = False, height_defects: bool = False
+        self,
+        mask_alpha: float = 0.3,
+        linemode: str = "",
+        curvature_defects: bool = False,
+        height_defects: bool = False,
+        title_mode: str = "basic",
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
         plt.imshow(self.image, **IMGPLOTARGS)
@@ -517,6 +524,14 @@ class GrainModel(UnanalysedGrain):
                         spline_coords = self.molecule_data_collection[molecule_id].spline_coords
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
                         plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
+        if title_mode == "basic":
+            num_curvature_defects = self.curvature_defect_data.num_defects
+            num_height_defects = self.height_defect_data.num_defects
+            plt.title(
+                f"grain {self.global_grain_id} | {self.sample_type} {self.percent_damage}% dam | "
+                f"defects: {num_curvature_defects} C, {num_height_defects} H"
+                f"\n{self.filename}"
+            )
         plt.show()
 
 
@@ -608,3 +623,24 @@ class GrainCollection(BaseDamageAnalysis):
             grain_model = GrainModel.from_unanalysed_grain(unanalysed_grain)
             grain_dict[global_grain_id] = grain_model
         return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
+
+    def sample(self, n: int, seed: int = 0) -> "GrainCollection":
+        """Return a sample of n grains from each of the sample type combinations in the collection."""
+        rng = np.random.default_rng(seed)
+        sample_dict: dict[int, GrainModel] = {}
+        # group grains by sample type combination - sample type and damage
+        sample_type_groups: dict[tuple[str, float], list[GrainModel]] = {}
+        for grain in self.grains.values():
+            sample_type_combination = (grain.sample_type, grain.percent_damage)
+            if sample_type_combination not in sample_type_groups:
+                sample_type_groups[sample_type_combination] = []
+            sample_type_groups[sample_type_combination].append(grain)
+        # sample n grains from each sample type combination group
+        for _, grains in sample_type_groups.items():
+            if len(grains) <= n:
+                sampled_grains = grains
+            else:
+                sampled_grains = rng.choice(grains, size=n, replace=False)
+            for grain in sampled_grains:
+                sample_dict[grain.global_grain_id] = grain
+        return GrainCollection(grains=sample_dict)

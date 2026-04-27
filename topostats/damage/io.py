@@ -20,14 +20,20 @@ from topostats.io import LoadScans
 from topostats.unet_masking import make_bounding_box_square, pad_bounding_box_cutting_off_at_image_bounds
 
 
-def get_dose_from_sample_type(sample_type: str) -> float:
-    """Get the dose for a sample from the sample type string."""
-    if "control" in sample_type.lower():
+def get_dose_from_folder_name(folder_name: str) -> float:
+    """Get the dose for a sample from the folder name string."""
+    if "control" in folder_name.lower():
         return 0.0
-    match = re.search(r"(\d+)_percent_damage", sample_type)
+    match = re.search(r"(\d+)_percent_damage", folder_name)
     if match:
         return float(match.group(1))
-    raise ValueError(f"Could not extract dose from sample type: {sample_type}")
+    raise ValueError(f"Could not extract dose from folder name: {folder_name}")
+
+
+def get_sample_type_from_folder_name(folder_name: str) -> str:
+    """Get the sample type from the folder name string."""
+    # Take as the first string before a /, or the whole string if there is no /.
+    return folder_name.split("/")[0]
 
 
 def get_modified_file_time_hash(file_path: Path) -> str:
@@ -42,7 +48,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
     topo_files: list[str | Path],
     df_grain_stats: pd.DataFrame,
     bbox_padding: int,
-    sample_type: str,
+    folder_name: str,
 ) -> UnanalysedGrainCollection:
     """Load grain models from the given TopoStats files and grain statistics dataframe."""
     grain_model_collection = UnanalysedGrainCollection(unanalysed_grains={})
@@ -104,7 +110,8 @@ def load_grain_models_from_topo_files(  # noqa: C901
             ), f"expected exactly one row in the grain stats dataframe for grain {grain_index} in"
             f"image {filename}, but found {len(df_grain_stats_grain)}. DEBUG THIS!"
 
-            dose_percentage = get_dose_from_sample_type(sample_type)
+            dose_percentage = get_dose_from_folder_name(folder_name)
+            sample_type = get_sample_type_from_folder_name(folder_name)
             aspect_ratio = df_grain_stats_grain["aspect_ratio"].values[0]
             total_contour_length = df_grain_stats_grain["total_contour_length"].values[0]
             num_crossings = df_grain_stats_grain["num_crossings"].values[0]
@@ -207,8 +214,9 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 file_grain_id=grain_index,
                 filename=filename,
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
-                folder=str(sample_type),
+                folder=str(folder_name),
                 percent_damage=dose_percentage,
+                sample_type=sample_type,
                 bbox=bbox_padded,
                 image=image,
                 mask=mask,
@@ -339,7 +347,7 @@ def construct_grains_collection_from_topostats_files(
                 topo_files=list(file_paths_and_hashes_topostats.keys()),
                 df_grain_stats=df_grain_stats_folder,
                 bbox_padding=bbox_padding,
-                sample_type=sample_type,
+                folder_name=sample_type,
             )
 
             print(
