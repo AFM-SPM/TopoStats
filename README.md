@@ -45,7 +45,7 @@ pip install topostats
 ```
 
 For more on installation and how to upgrade please see the [installation
-instructions](https://afm-spm.github.io/TopoStats/main/installation.html).
+instructions](https://afm-spm.github.io/TopoStats/latest/usage/installation/).
 
 **NB** The minimum supported version of Python is >=3.10 and because of a constraint in a dependency the maximum
 supported version is <= 3.11 (for now, we hope to support newer versions in the near future).
@@ -54,7 +54,7 @@ supported version is <= 3.11 (for now, we hope to support newer versions in the 
 
 ### Tutorials and Examples
 
-For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/main/usage.html) documentation.
+For a full description of usage please refer to the [usage](https://afm-spm.github.io/TopoStats/latest/usage/) documentation.
 
 A default configuration is loaded automatically that works with `.spm` files. The simplest method of processing images
 is to run `topostats process` in the same directory as your scans _after_ having activated the virtual environment in
@@ -71,7 +71,7 @@ with TopoStats.
 `.002` etc.) will also be processed.
 
 If you have your own YAML configuration file (see [Usage : Configuring
-TopoStats](https://afm-spm.github.io/TopoStats/main/usage.html#configuring_topostats)) then invoke `topostats`
+TopoStats](https://afm-spm.github.io/TopoStats/latest/usage/configuration/)) then invoke `topostats`
 and use the argument for `--config <config_file>.yaml` that points to your file with an associated module of
 TopoStats e.g. `process`.
 
@@ -92,11 +92,11 @@ Example Jupyter Notebooks have been developed that show how to use TopoStats pac
 you are unsure of what parameters are most suited to your scans. Other notebooks exist which show how to produce plots
 of the summary grain and tracing statistics or how to generate plots of scans from processed images which saves having
 to run the processing again. See the documentation on
-[Notebooks](https://afm-spm.github.io/TopoStats/main/notebooks.html) for further details.
+[Notebooks](https://afm-spm.github.io/TopoStats/latest/usage/notebooks/) for further details.
 
 ## Contributing
 
-Please refer to our [contributing guidelines](https://afm-spm.github.io/TopoStats/main/contributing.html) documentation.
+Please refer to our [contributing guidelines](https://afm-spm.github.io/TopoStats/latest/contributing/) documentation.
 
 ## Licence
 
