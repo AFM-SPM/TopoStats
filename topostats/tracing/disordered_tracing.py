@@ -2,6 +2,7 @@
 
 import logging
 import warnings
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -472,7 +473,7 @@ def trace_image_disordered(  # pylint: disable=too-many-arguments,too-many-local
                         ]
                     )
                     topostats_object.grain_crops[grain_number].disordered_trace.stats[index]["basename"] = str(
-                        topostats_object.img_path
+                        Path(topostats_object.img_path).parent
                     )
                 # remap the cropped images back onto the original, there are many image crops that we want to
                 #  remap back onto the original image so we iterate over them, as passed by the function

@@ -58,11 +58,11 @@ def test_process_scan(tmp_path, process_scan_config: dict, load_scan_data: LoadS
     assert grain_stats.to_string(float_format="{:.4e}".format) == snapshot
 
     # Regtest for the topostats file
-    assert Path.exists(tmp_path / "tests/resources/test_image/processed/topostats/minicircle_small.topostats")
+    assert Path.exists(tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats")
     # Load the results, note that we use AFMReader.topostats.load_topostats() here which simply loads the data as
     # dictionaries and means it is easy to compare to syrupy snapshots
     saved_topostats = load_topostats(
-        file_path=tmp_path / "tests/resources/test_image/processed/topostats/minicircle_small.topostats"
+        file_path=tmp_path / "tests/resources/test_image/processed/minicircle_small.topostats"
     )
     # Drop the config, img_path and topostats_version from top level of dictionary and and basename from
     # disorded_trace.stats_dict) as we don't want to compare configuration nor test absolute paths.

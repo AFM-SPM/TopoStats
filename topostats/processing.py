@@ -998,8 +998,6 @@ def get_out_paths(
     LOGGER.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
-    topostats_out_path = core_out_path / "topostats"
-    topostats_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
     tracing_out_path = core_out_path / filename / "dnatracing"
@@ -1010,7 +1008,7 @@ def get_out_paths(
         Path.mkdir(tracing_out_path / "curvature", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "splining", parents=True, exist_ok=True)
 
-    return core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path
+    return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
 def process_scan(
@@ -1082,7 +1080,7 @@ def process_scan(
     output_dir = config["output_dir"] if output_dir is None else output_dir
 
     # Get output paths
-    core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path = get_out_paths(
+    core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1197,7 +1195,7 @@ def process_scan(
             molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
             molecule_stats_df.reset_index(inplace=True)
             molecule_stats_df["image"] = topostats_object.filename
-            molecule_stats_df["basename"] = topostats_object.img_path
+            molecule_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
         else:
             molecule_stats_df = None
         # Disordered Tracing Statistics - convert nested dictionary to dataframe
@@ -1217,7 +1215,7 @@ def process_scan(
             data={
                 (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
                     image=topostats_object.filename,
-                    basename=topostats_object.img_path,
+                    basename=str(Path(topostats_object.img_path).parent),
                 )
                 for grain_number, grain_crop in topostats_object.grain_crops.items()
                 if grain_crop.nodes is not None and len(grain_crop.nodes) > 0
@@ -1245,7 +1243,7 @@ def process_scan(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
@@ -1259,7 +1257,7 @@ def process_scan(
 
     # Save the topostats object to .topostats file.
     save_topostats_file(
-        output_dir=topostats_out_path,
+        output_dir=core_out_path,
         topostats_object=topostats_object,
     )
     # Return filename and dataframes
@@ -1313,7 +1311,7 @@ def process_filters(
     filter_config = config["filter"] if filter_config is None else filter_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, filter_out_path, _, _, topostats_out_path = get_out_paths(
+    core_out_path, filter_out_path, _, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1333,7 +1331,7 @@ def process_filters(
         )
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=topostats_out_path,
+            output_dir=core_out_path,
             topostats_object=topostats_object,
         )
         return (topostats_object.filename, True)
@@ -1381,7 +1379,7 @@ def process_grains(
     grains_config = config["grains"] if grains_config is None else grains_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, _, grain_out_path, _, topostats_out_path = get_out_paths(
+    core_out_path, _, grain_out_path, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1400,7 +1398,7 @@ def process_grains(
         )
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=topostats_out_path,
+            output_dir=core_out_path,
             topostats_object=topostats_object,
         )
         return (topostats_object.filename, True)
@@ -1447,7 +1445,7 @@ def process_grainstats(
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, _, grain_out_path, _, topostats_out_path = get_out_paths(
+    core_out_path, _, grain_out_path, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1467,7 +1465,7 @@ def process_grainstats(
             )
             # Save the topostats dictionary object to .topostats file.
             save_topostats_file(
-                output_dir=topostats_out_path,
+                output_dir=core_out_path,
                 topostats_object=topostats_object,
             )
         except:  # noqa: E722  # pylint: disable=bare-except
@@ -1488,7 +1486,7 @@ def process_grainstats(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
