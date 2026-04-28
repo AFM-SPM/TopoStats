@@ -772,6 +772,7 @@ def run_splining(  # noqa: C901
     core_out_path: Path,
     splining_config: dict | None = None,
     plotting_config: dict | None = None,
+    curvature_config: dict | None = None,
     tracing_out_path: str | Path | None = None,
 ) -> None:
     """
@@ -787,6 +788,8 @@ def run_splining(  # noqa: C901
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
+    curvature_config : dict
+        Dictionary configuration for curvature statistics.
     tracing_out_path : str | Path
         Directory to save images from splining to. The ``splining`` directory will be created within and images saved
         there.
@@ -856,6 +859,11 @@ def run_splining(  # noqa: C901
                     )
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
+    if curvature_config["run"]:
+        LOGGER.warning(
+            f"[{topostats_object.filename}] : Automatically disabled curvature due to splining being disabled."
+        )
+        curvature_config["run"] = False
     return
 
 
@@ -896,7 +904,7 @@ def run_curvature_stats(
     )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
+            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping curvature.")
             return
         try:
             curvature_config.pop("run")
@@ -1142,6 +1150,7 @@ def process_scan(
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             splining_config=splining_config,
+            curvature_config=curvature_config,
         )
 
         # Curvature Stats
@@ -1496,6 +1505,7 @@ def check_run_steps(  # noqa: C901
     nodestats_run: bool,
     ordered_tracing_run: bool,
     splining_run: bool,
+    curvature_run: bool,
 ) -> None:
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
@@ -1505,19 +1515,21 @@ def check_run_steps(  # noqa: C901
     Parameters
     ----------
     filter_run : bool
-        Flag for running Filtering.
+        Flag for running filtering.
     grains_run : bool
-        Flag for running Grains.
+        Flag for running grains.
     grainstats_run : bool
-        Flag for running GrainStats.
+        Flag for running grainstats.
     disordered_tracing_run : bool
-        Flag for running Disordered Tracing.
+        Flag for running disordered tracing.
     nodestats_run : bool
-        Flag for running NodeStats.
+        Flag for running nodestats.
     ordered_tracing_run : bool
-        Flag for running Ordered Tracing.
+        Flag for running ordered tracing.
     splining_run : bool
-        Flag for running DNA Tracing.
+        Flag for running splining of DNA traces.
+    curvature_run : bool
+        Flag for running curvature calculations of splined DNA traces.
     """
     LOGGER.debug(f"{filter_run=}")
     LOGGER.debug(f"{grains_run=}")
@@ -1526,7 +1538,25 @@ def check_run_steps(  # noqa: C901
     LOGGER.debug(f"{nodestats_run=}")
     LOGGER.debug(f"{ordered_tracing_run=}")
     LOGGER.debug(f"{splining_run=}")
-    if splining_run:
+    LOGGER.debug(f"{curvature_run=}")
+    if curvature_run:
+        if splining_run is False:
+            LOGGER.error("Curvature enabled but Splining disabled. Please check your configuration file.")
+        if ordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Ordered Tracing disabled. Please check your configuration file.")
+        if nodestats_run is False:
+            LOGGER.error("Curvature enabled but NodeStats disabled. Tracing will use the 'old' method.")
+        if disordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("Curvature enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Curvature enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Curvature enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif splining_run:
         if ordered_tracing_run is False:
             LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:

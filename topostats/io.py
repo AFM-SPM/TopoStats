@@ -1272,7 +1272,9 @@ def extract_height_profiles(
     height_profile_all = {}
     for image, topostats_object in topostats_object_all.items():
         height_profile_all[image] = {}
-        for grain_number, grain_crop in topostats_object.grain_crops.items():
-            height_profile_all[image][grain_number] = grain_crop.height_profiles
+        if topostats_object.grain_crops is not None:
+            for grain_number, grain_crop in topostats_object.grain_crops.items():
+                if grain_crop.height_profiles is not None:
+                    height_profile_all[image][grain_number] = grain_crop.height_profiles
     dict_to_json(data=height_profile_all, output_dir=output_dir, filename=filename)
     LOGGER.info(f"Saved all height profiles to {output_dir}/{filename}.")

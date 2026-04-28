@@ -421,6 +421,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
         "nodestats_run",
         "ordered_tracing_run",
         "splining_run",
+        "curvature_run",
         "log_msg",
     ),
     [
@@ -432,6 +433,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            False,
             "Splining enabled but NodeStats disabled. Tracing will use the 'old' method.",
             id="Splining, Ordered Tracing, Disordered Tracing, Grainstats, Grains and Filters no Nodestats",
         ),
@@ -443,6 +445,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            False,
             "Splining enabled but Grainstats disabled. Please check your configuration file.",
             id="Splining, Ordered Tracing, Disordered Tracing, Grains and Filters enabled but no Grainstats or "
             + "NodeStats",
@@ -455,6 +458,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            False,
             "Splining enabled but Disordered Tracing disabled. Please check your configuration file.",
             id="Splining, Ordered Tracing and Filters enabled but no NodeStats, Disordered Tracing or Grainstats",
         ),
@@ -466,6 +470,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             True,
             True,
+            False,
             "Splining enabled but Grains disabled. Please check your configuration file.",
             id="Splining, Ordered Tracing, Disordered Tracing, and Grainstats enabled but no NodeStats, Grains or "
             + "Filters",
@@ -476,6 +481,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             False,
             "NodeStats enabled but Disordered Tracing disabled. Please check your configuration file.",
@@ -489,6 +495,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            False,
             "NodeStats enabled but Grainstats disabled. Please check your configuration file.",
             id="Nodestats, Disordered Tracing enabled but no Grainstats, Grains or Filters",
         ),
@@ -498,6 +505,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            False,
             False,
             False,
             "NodeStats enabled but Grains disabled. Please check your configuration file.",
@@ -511,6 +519,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             False,
             False,
+            False,
             "NodeStats enabled but Filters disabled. Please check your configuration file.",
             id="Nodestats, Disordered Tracing, Grainstats Grains enabled but no Filters",
         ),
@@ -519,6 +528,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             False,
             False,
@@ -533,6 +543,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Disordered Tracing enabled but Grains disabled. Please check your configuration file.",
             id="Disordered tracing and Grainstats enabled but no Grains or Filters",
         ),
@@ -544,6 +555,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Disordered Tracing enabled but Filters disabled. Please check your configuration file.",
             id="Disordered tracing, Grains and Grainstats enabled but no Filters",
         ),
@@ -551,6 +563,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             True,
+            False,
             False,
             False,
             False,
@@ -566,6 +579,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Grainstats enabled but Filters disabled. Please check your configuration file.",
             id="Grains enabled and Grainstats but no Filters",
         ),
@@ -577,11 +591,13 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Grains enabled but Filters disabled. Please check your configuration file.",
             id="Grains enabled but not Filters",
         ),
         pytest.param(
             True,
+            False,
             False,
             False,
             False,
@@ -599,6 +615,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto Grains",
         ),
@@ -606,6 +623,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            False,
             False,
             False,
             False,
@@ -621,6 +639,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             False,
             False,
             False,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto DNA tracing",
         ),
@@ -630,6 +649,7 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            False,
             False,
             False,
             "Configuration run options are consistent, processing can proceed.",
@@ -643,8 +663,33 @@ def test_save_format(process_scan_config: dict, load_scan_data: LoadScans, tmp_p
             True,
             True,
             True,
+            False,
             "Configuration run options are consistent, processing can proceed.",
             id="Consistent configuration upto Splining",
+        ),
+        pytest.param(
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            "Configuration run options are consistent, processing can proceed.",
+            id="Consistent configuration upto Curvature",
+        ),
+        pytest.param(
+            True,
+            True,
+            True,
+            True,
+            True,
+            False,
+            True,
+            True,
+            "Curvature enabled but Ordered Tracing disabled. Please check your configuration file.",
+            id="Curvature enabled but ordered tracing disabled",
         ),
     ],
 )
@@ -656,6 +701,7 @@ def test_check_run_steps(
     nodestats_run: bool,
     ordered_tracing_run: bool,
     splining_run: bool,
+    curvature_run: bool,
     log_msg: str,
     caplog,
 ) -> None:
@@ -668,6 +714,7 @@ def test_check_run_steps(
         nodestats_run,
         ordered_tracing_run,
         splining_run,
+        curvature_run,
     )
     assert log_msg in caplog.text
 
@@ -751,6 +798,19 @@ def test_check_run_steps(
             "Processing grain",
             "Calculation of curvature statistics disabled.",
             id="All but curvature enabled",
+        ),
+        pytest.param(
+            True,  # Filter
+            True,  # Grains
+            True,  # Grainstats
+            True,  # Disordered Tracing
+            True,  # Nodestats
+            True,  # Ordered tracing
+            False,  # Splining
+            True,  # Curvature
+            "Processing grain",
+            "Calculation of curvature statistics disabled.",
+            id="Curvature enabled, no splining",
         ),
         # @ns-rse 2024-09-13 : Parameters need updating so test is performed.
         # pytest.param(
