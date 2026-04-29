@@ -349,9 +349,6 @@ def calculate_mask_width_with_skeleton(mask: npt.NDArray, skeleton: npt.NDArray,
     float
         Width of grain in metres.
     """
-    print(f"mask.shape: {mask.shape}")
-    print(f"skeleton.shape: {skeleton.shape}")
-    print(f"mask unique: {np.unique(mask)}")
     distance_transform = ndimage.distance_transform_edt(mask)
     distances_per_skeleton_pixel = np.where(skeleton == 1, distance_transform, 0)
 

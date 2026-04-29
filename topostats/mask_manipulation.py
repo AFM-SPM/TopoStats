@@ -207,7 +207,7 @@ def keep_only_nonrepeated_endpoints(
         ) not in repeated_endpoints:
             pairs_no_repeated_ends.append(potential_pair)
         else:
-            print(f"excluding pair {endpoint_1}, {endpoint_2} due to repeated endpoints")
+            LOGGER.info(f"excluding pair {endpoint_1}, {endpoint_2} due to repeated endpoints")
 
     return pairs_no_repeated_ends
 
