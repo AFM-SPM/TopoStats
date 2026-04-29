@@ -18,20 +18,11 @@ from skimage.morphology import label
 
 from topostats.logs.logs import LOGGER_NAME
 from topostats.measure.geometry import calculate_mask_width_with_skeleton, calculate_pixel_path_distance
-from topostats.plottingfuncs import Colormap
 from topostats.tracing.pruning import prune_skeleton
 from topostats.tracing.skeletonize import getSkeleton
 from topostats.utils import convolve_skeleton
 
 LOGGER = logging.getLogger(LOGGER_NAME)
-
-DEBUG_PLOT_DIR = Path("/Users/sylvi/Documents/TopoStats/debug-plots")
-DEBUG_PLOTTING = False
-
-colormap = Colormap()
-cmap = colormap.get_cmap()
-vmin = -3.0
-vmax = 4.0
 
 
 def re_add_holes(
@@ -295,11 +286,6 @@ def group_connectionpoints(
     # Add edges for each close pair (as endpoint IDs)
     for connectionpoint_1_index, connectionpoint_2_index, _distance_nm in close_pairs:
         G.add_edge(connectionpoint_1_index, connectionpoint_2_index)
-
-    # draw it
-    if draw_graph:
-        nx.draw(G, with_labels=True)
-        plt.show()
 
     # Get networkx to find connected components
     connected_components: list[set[int]] = list(nx.connected_components(G))
@@ -649,61 +635,6 @@ def skeletonise_and_join_close_ends(  # noqa: C901
     connection_groups = group_connectionpoints(
         connectionpoints=connectionpoints, close_pairs=nearby_connectionpoint_pairs
     )
-
-    # make a debug plot of the connection groups
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
-    ax.imshow(mask, cmap="gray", alpha=0.3)
-    ax.imshow(pruned_skeleton, cmap="Reds", alpha=0.7)
-    junctionpoint_colour = "teal"
-    endpoint_colour = "magenta"
-    # plot each connectiongroup
-    for _group_id, connection_group in connection_groups.items():
-        # plot endpoints
-        for endpoint_id, endpoint in connection_group.endpoints.items():
-            ax.plot(endpoint.position[1], endpoint.position[0], "o", color=endpoint_colour, markersize=2)
-            ax.text(
-                endpoint.position[1] + 2,
-                endpoint.position[0] + 2,
-                f"E{endpoint_id}",
-                color=endpoint_colour,
-                fontsize=5,
-            )
-            # also plot the range circle
-            circle = plt.Circle(
-                (endpoint.position[1], endpoint.position[0]),
-                endpoint_connection_distance_nm / p2nm,
-                color=endpoint_colour,
-                fill=False,
-                linestyle="--",
-                linewidth=1,
-            )
-            ax.add_artist(circle)
-        # plot junctionpoints
-        for junctionpoint_id, junctionpoint in connection_group.junctionpoints.items():
-            ax.plot(junctionpoint.position[1], junctionpoint.position[0], "o", color=junctionpoint_colour, markersize=2)
-            ax.text(
-                junctionpoint.position[1] + 2,
-                junctionpoint.position[0] + 2,
-                f"J{junctionpoint_id}",
-                color=junctionpoint_colour,
-                fontsize=5,
-            )
-            # also plot the range circle
-            circle = plt.Circle(
-                (junctionpoint.position[1], junctionpoint.position[0]),
-                endpoint_connection_distance_nm / p2nm,
-                color=junctionpoint_colour,
-                fill=False,
-                linestyle="--",
-                linewidth=1,
-            )
-            ax.add_artist(circle)
-    ax.set_title(f"Connection Groups for {filename}")
-    # save it, don't show.
-    if DEBUG_PLOTTING:
-        plt.savefig(DEBUG_PLOT_DIR / f"{filename}_connection_groups.png", dpi=300)
-    plt.close(fig)
 
     # Now consider each group and decide how to connect them
     for group_id, connection_group in connection_groups.items():
