@@ -2992,6 +2992,111 @@ separate lines as shown below</p>
 <td style="text-align: left;">Whether to remove grains that intersect the image border. <em>Do not change this unless you know what you are doing</em>. This will ruin any statistics relating to grain size, shape and DNA traces.</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code>endpoint_connection_config</code></td>
+<td style="text-align: left;"><code>run</code></td>
+<td style="text-align: left;">boolean</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Whether to run the endpoint connection process.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>class_indices</code></td>
+<td style="text-align: left;">list[int]</td>
+<td style="text-align: left;"><code>[1]</code></td>
+<td style="text-align: left;">List of class indices to process.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>skeletonisation_holearea_min_max</code></td>
+<td style="text-align: left;">tuple[int, int]</td>
+<td style="text-align: left;"><code>[0, null]</code></td>
+<td style="text-align: left;">Range (min, max) of a hole area in nm to refill in the smoothed masks.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>skeletonisation_mask_smoothing_dilation_iterations</code></td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">Number of dilation iterations to use for grain smoothing.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>skeletonisation_mask_smoothing_gaussian_sigma</code>.</td>
+<td style="text-align: left;">int</td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">Gaussian smoothing parameter 'sigma' in pixels.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>skeletonisation_method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>topostats</code></td>
+<td style="text-align: left;">Options : zhang, lee, thin, topostats</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>skeletonisation_height_bias</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>0.6</code></td>
+<td style="text-align: left;">Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>endpoint_connection_distance_nm</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>10.0</code></td>
+<td style="text-align: left;">Maximum distance in nm to connect endpoints.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>endpoint_connection_cost_map_height_maximum</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>3.0</code></td>
+<td style="text-align: left;">Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly be the maximum height of your sample.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>endpoint_connection_config</code> <br> ∟ <code>pruning_params</code></td>
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>topostats</code></td>
+<td style="text-align: left;">Method to clean branches of the skeleton. Options: topostats.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>max_length</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>10.0</code></td>
+<td style="text-align: left;">Maximum length in nm to remove a branch containing an endpoint.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>height_threshold</code></td>
+<td style="text-align: left;">float</td>
+<td style="text-align: left;"><code>null</code></td>
+<td style="text-align: left;">The height threshold to remove branches below</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method_values</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>mid</code></td>
+<td style="text-align: left;">The method to obtain a branch's height for pruning. Options : min, median, mid.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method_outlier</code></td>
+<td style="text-align: left;">str.</td>
+<td style="text-align: left;"><code>mean_abs</code></td>
+<td style="text-align: left;">The method to prune branches based on height. Options : abs, mean_abs, iqr.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>only_prune_endpoints</code></td>
+<td style="text-align: left;">bool</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code>grains</code> <br> ∟ <code>unet_config</code></td>
 <td style="text-align: left;"><code>path_to_model</code></td>
 <td style="text-align: left;">str</td>
@@ -3165,6 +3270,13 @@ separate lines as shown below</p>
 <td style="text-align: left;">float</td>
 <td style="text-align: left;"><code>-1</code></td>
 <td style="text-align: left;">The length in nanometres below which to prune branches. Default is <code>-1</code>, meaning 15% of the total length.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">str</td>
+<td style="text-align: left;"><code>topostats</code></td>
+<td style="text-align: left;">Method to clean branches of the skeleton. Options: topostats.</td>
 </tr>
 <tr>
 <td style="text-align: left;"></td>
