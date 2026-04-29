@@ -1,10 +1,8 @@
 """Code for manipulating binary masks."""
 
 import logging
-from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
