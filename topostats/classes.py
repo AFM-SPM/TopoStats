@@ -828,6 +828,42 @@ class TopoStats:
             and np.array_equal(self.full_mask_tensor, other.full_mask_tensor)
         )
 
+    def require_grain_crops(self) -> dict[int, GrainCrop]:
+        """
+        Return a non-None grain_crops mapping or raise and exception.
+
+        Returns
+        -------
+        dict[int, GrainCrop]
+            The grain crops for the molecule.
+
+        Raises
+        ------
+        RuntimeError
+            If grain_crops is None.
+        """
+        if self.grain_crops is None:
+            raise RuntimeError("grain_crops is None")
+        return self.grain_crops
+
+    def require_pixel_to_nm_scaling(self) -> float:
+        """
+        Return a non-None pixel_to_nm_scaling value or raise and exception.
+
+        Returns
+        -------
+        float
+            The pixel to nanometre scaling factor.
+
+        Raises
+        ------
+        RuntimeError
+            If pixel_to_nm_scaling is None.
+        """
+        if self.pixel_to_nm_scaling is None:
+            raise RuntimeError("pixel_to_nm_scaling is None")
+        return self.pixel_to_nm_scaling
+
     def calculate_image_statistics(self) -> dict[str, int | float]:
         """
         Calculate the image statistics via ``statistics.image_statistics()``.
@@ -1048,6 +1084,7 @@ class OrderedTrace:
     molecule_data: dict[int, Molecule] | None = None
     tracing_stats: dict | None = None
     grain_molstats: Any | None = None
+    grain_curvature_stats: GrainCurvatureStats | None = None
     molecules: int | None = None
     writhe: str | None = None
     pixel_to_nm_scaling: float | None = None
@@ -1072,6 +1109,24 @@ class OrderedTrace:
             f"pixel to nm scaling : {self.pixel_to_nm_scaling}\n"
             f"error : {self.error}"
         )
+
+    def require_molecule_data(self) -> dict[int, Molecule]:
+        """
+        Return a non-None molecule_data mapping or raise and exception.
+
+        Returns
+        -------
+        dict[int, Molecule]
+            The molecule data for the trace.
+
+        Raises
+        ------
+        RuntimeError
+            If molecule_data is None.
+        """
+        if self.molecule_data is None:
+            raise RuntimeError("molecule_data is None")
+        return self.molecule_data
 
     def collate_molecule_statistics(self) -> dict[int, dict[str, bool | int | str | None]]:
         """
@@ -1140,7 +1195,7 @@ class Molecule:
     end_to_end_distance: float | None = None
     heights: npt.NDArray | None = None
     distances: npt.NDArray | None = None
-    curvature_stats: npt.NDArray | None = None
+    curvature_stats: MoleculeCurvatureStats | None = None
     bbox: tuple[int, int, int, int] | None = None
     molecule_statistics: dict[str, bool | str | float | None] | None = None
 
@@ -1179,8 +1234,225 @@ class Molecule:
             "topology_flip": self.topology_flip,
             "contour_length": self.contour_length,
             "end_to_end_distance": self.end_to_end_distance,
+            "curvature_num_turns": self.curvature_stats.num_turns if self.curvature_stats is not None else None,
+            "curvature_mean": self.curvature_stats.curvature_mean if self.curvature_stats is not None else None,
+            "curvature_max": self.curvature_stats.curvature_max if self.curvature_stats is not None else None,
+            "curvature_min": self.curvature_stats.curvature_min if self.curvature_stats is not None else None,
+            "curvature_std": self.curvature_stats.curvature_std if self.curvature_stats is not None else None,
+            "curvature_var": self.curvature_stats.curvature_var if self.curvature_stats is not None else None,
+            "curvature_total": self.curvature_stats.curvature_total if self.curvature_stats is not None else None,
+            "curvature_median": self.curvature_stats.curvature_median if self.curvature_stats is not None else None,
+            "curvature_iqr": self.curvature_stats.curvature_iqr if self.curvature_stats is not None else None,
+            "curvature_90th": self.curvature_stats.curvature_90th if self.curvature_stats is not None else None,
         }
+
         return self.molecule_statistics
+
+    def require_splined_coords(self) -> npt.NDArray[np.float64]:
+        """
+        Return a non-None splined_coords array or raise and exception.
+
+        Returns
+        -------
+        np.ndarray
+            The splined coordinates of the molecule.
+
+        Raises
+        ------
+        RuntimeError
+            If splined_coords is None.
+        """
+        if self.splined_coords is None:
+            raise RuntimeError("splined_coords is None")
+        return self.splined_coords
+
+    def require_curvature_stats(self) -> MoleculeCurvatureStats:
+        """
+        Require the curvature statistics for the molecule.
+
+        Returns
+        -------
+        MoleculeCurvatureStats
+            The curvature statistics for the molecule.
+
+        Raises
+        ------
+        ValueError
+            If the curvature statistics are not available.
+        """
+        curvature_stats = self.curvature_stats
+        if curvature_stats is None:
+            raise RuntimeError(f"curvature_stats not set for molecule {self.molecule_number}")
+        return curvature_stats
+
+
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
+class MoleculeCurvatureStats:
+    """
+    Class for curvature statistics.
+
+    curvatures : npt.NDArray[np.float64]
+        The curvatures for each point along the trace. (1/nm).
+    is_circular : bool
+        Whether the molecule is circular or not.
+    num_turns : int
+        The number of times the molecule significantly changes direction of turn.
+    curvature_mean : float
+        The mean curvature.
+    curvature_max : float
+        The maximum curvature.
+    curvature_min : float
+        The minimum curvature.
+    curvature_std : float
+        The standard deviation of curvature.
+    curvature_var : float
+        The variance of curvature.
+    curvature_total : float
+        The sum of all the curvature values.
+    curvature_median : float
+        The median curvature.
+    curvature_iqr : float
+        The interquartile range of the curvature.
+    curvature_90th : float
+        The 90th percentile of the curvatures.
+    """
+
+    curvatures: npt.NDArray[np.float64]
+    is_circular: bool
+    num_turns: int
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
+    curvature_iqr: float
+    curvature_90th: float
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two ``MoleculeCurvatureStats`` objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Other ``MoleculeCurvatureStats`` object to compare to.
+
+        Returns
+        -------
+        bool
+            ``True`` if the objects are equal, ``False`` otherwise.
+        """
+        if not isinstance(other, MoleculeCurvatureStats):
+            return False
+
+        if not np.allclose(self.curvatures, other.curvatures, atol=1e-7, equal_nan=True):
+            return False
+
+        if self.is_circular != other.is_circular or self.num_turns != other.num_turns:
+            return False
+
+        float_fields = (
+            "curvature_mean",
+            "curvature_max",
+            "curvature_min",
+            "curvature_std",
+            "curvature_var",
+            "curvature_total",
+            "curvature_median",
+            "curvature_iqr",
+            "curvature_90th",
+        )
+        for floating_value_field in float_fields:
+            a = getattr(self, floating_value_field)
+            b = getattr(other, floating_value_field)
+            if not np.isclose(a, b, rtol=1e-7, atol=1e-12, equal_nan=True):
+                return False
+
+        return True
+
+
+@dataclass(
+    repr=True, eq=True, config=ConfigDict(arbitrary_types_allowed=True, validate_assignment=True), validate_on_init=True
+)
+class GrainCurvatureStats:
+    """
+    Class for curvature statistics.
+
+    num_turns : int
+        The number of times the molecule significantly changes direction of turn.
+    curvature_mean : float
+        The mean curvature.
+    curvature_max : float
+        The maximum curvature.
+    curvature_min : float
+        The minimum curvature.
+    curvature_std : float
+        The standard deviation of curvature.
+    curvature_var : float
+        The variance of curvature.
+    curvature_total : float
+        The sum of all the curvature values.
+    curvature_median : float
+        The median curvature.
+    curvature_iqr : float
+        The interquartile range of the curvature.
+    curvature_90th : float
+        The 90th percentile of the curvatures.
+    """
+
+    num_turns: int
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
+    curvature_iqr: float
+    curvature_90th: float
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two ``GrainCurvatureStats`` objects are equal.
+
+        Parameters
+        ----------
+        other : object
+            Other ``GrainCurvatureStats`` object to compare to.
+
+        Returns
+        -------
+        bool
+            ``True`` if the objects are equal, ``False`` otherwise.
+        """
+        if not isinstance(other, GrainCurvatureStats):
+            return False
+
+        if self.num_turns != other.num_turns:
+            return False
+
+        float_fields = (
+            "curvature_mean",
+            "curvature_max",
+            "curvature_min",
+            "curvature_std",
+            "curvature_var",
+            "curvature_total",
+            "curvature_median",
+            "curvature_iqr",
+            "curvature_90th",
+        )
+        for floating_value_field in float_fields:
+            a = getattr(self, floating_value_field)
+            b = getattr(other, floating_value_field)
+            if not np.isclose(a, b, rtol=1e-7, atol=1e-12, equal_nan=True):
+                return False
+
+        return True
 
 
 def convert_to_dict(to_convert: Any) -> dict[str, Any]:

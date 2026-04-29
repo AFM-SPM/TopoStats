@@ -81,7 +81,7 @@ rng = np.random.default_rng()
 
 
 @pytest.mark.mpl_image_compare(baseline_dir="resources/img/")
-def test_plot_curvatures(plot_curvatures_topostats_object: TopoStats, tmp_path: Path) -> None:
+def test_plot_curvatures(minicircle_small_topostats: TopoStats, tmp_path: Path) -> None:
     """Test ``plottingfuncs.Images.plot_curvatures()``."""
     fig, _ = Images(
         np.array([[0, 0], [0, 0]]),
@@ -91,8 +91,8 @@ def test_plot_curvatures(plot_curvatures_topostats_object: TopoStats, tmp_path: 
         savefig_dpi=200,
         core_set=True,
     ).plot_curvatures(
-        image=plot_curvatures_topostats_object.image,
-        grain_crops=plot_curvatures_topostats_object.grain_crops,
+        image=minicircle_small_topostats.image,
+        grain_crops=minicircle_small_topostats.grain_crops,
         colourmap_normalisation_bounds=[-0.2, 0.2],
     )
     return fig
@@ -106,9 +106,7 @@ def test_plot_curvatures(plot_curvatures_topostats_object: TopoStats, tmp_path: 
         pytest.param(1, id="grain 1"),
     ],
 )
-def test_plot_curvatures_individual_grain(
-    grain: int, plot_curvatures_topostats_object: TopoStats, tmp_path: Path
-) -> None:
+def test_plot_curvatures_individual_grain(grain: int, minicircle_small_topostats: TopoStats, tmp_path: Path) -> None:
     """Test ``plottingfuncs.Images.plot_curvatures()``."""
     fig, _ = Images(
         np.array([[0, 0], [0, 0]]),
@@ -117,8 +115,9 @@ def test_plot_curvatures_individual_grain(
         image_type="non-binary",
         savefig_dpi=200,
         core_set=True,
+        trace_linewidth=3.0,
     ).plot_curvatures_individual_grain(
-        grain_crop=plot_curvatures_topostats_object.grain_crops[grain],
+        grain_crop=minicircle_small_topostats.grain_crops[grain],
         grain_number=grain,
         colourmap_normalisation_bounds=[-0.2, 0.2],
     )

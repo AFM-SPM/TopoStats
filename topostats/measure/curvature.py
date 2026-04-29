@@ -1,11 +1,15 @@
 """Calculate various curvature metrics for traces."""
 
 import logging
+from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
+from scipy.ndimage import gaussian_filter1d
+from scipy.signal import savgol_filter
 
-from topostats.classes import TopoStats
+from topostats.array_manipulation import distances_nm
+from topostats.classes import GrainCurvatureStats, MoleculeCurvatureStats, TopoStats
 from topostats.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -132,8 +136,166 @@ def discrete_angle_difference_per_nm_linear(
     return angles_per_nm
 
 
+def smooth_curvature(
+    curvatures: npt.NDArray[np.float64],
+    point_spacing_nm: np.float64,
+    method: Literal["gaussian", "savitzky_golay"],
+    gaussian_sigma_nm: float,
+    savgol_window_length_nm: int,
+    savgol_polyorder: int,
+) -> npt.NDArray[np.float64]:
+    """
+    Smooth the curvature values of a trace.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        An array of shape (N,) containing the curvature values at each point along the trace.
+    point_spacing_nm : float
+        The spacing between points along the trace in nanometres - this needs to be pretty consistent.
+    method : Literal["gaussian", "savitzky_golay"]
+        The method to use for smoothing the curvature values. Options are "gaussian" for a Gaussian filter or
+        "savitzky_golay" for a Savitzky-Golay filter.
+    gaussian_sigma_nm : float
+        The standard deviation of the Gaussian kernel in nanometres.
+    savgol_window_length_nm : int
+        The length of the filter window in nanometres.
+    savgol_polyorder : int
+        The order of the polynomial used to fit the samples in the savgol filter.
+
+    Returns
+    -------
+    npt.NDArray[np.float64]
+        An array of shape (N,) containing the smoothed curvature values at each point along the trace.
+    """
+    if method == "gaussian":
+        # adjust the sigma for the gaussian filter
+        gaussian_sigma_adjusted = gaussian_sigma_nm / point_spacing_nm
+        smoothed_curvatures = gaussian_filter1d(curvatures.copy(), sigma=gaussian_sigma_adjusted)
+    elif method == "savitzky_golay":
+        # adjust the window length for the savgol filter based on the point spacing
+        savgol_window_length_points = int(savgol_window_length_nm / point_spacing_nm)
+        assert savgol_window_length_points < len(
+            curvatures
+        ), "savgol_window_length must be less than the length of the curvature array"
+        smoothed_curvatures = savgol_filter(
+            curvatures.copy(), window_length=savgol_window_length_points, polyorder=savgol_polyorder
+        )
+    else:
+        raise ValueError(f"Invalid smoothing method: {method}")
+    return smoothed_curvatures
+
+
+def quantify_turns(
+    curvatures: npt.NDArray[np.float64],
+    trace_distances_nm: npt.NDArray[np.float64],
+    curvature_turn_threshold_iqr_multiplier: float,
+    curvature_turn_minimum_delay_nm: float,
+) -> int:
+    """
+    Calculate the number of turns in trace from its curvatures.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        Array of curvatures for each point in the trace.
+    trace_distances_nm : npt.NDArray[np.float64]
+        The distances from each point to the last point in nanometres.
+    curvature_turn_threshold_iqr_multiplier : float
+        The multiplier to apply to the interquartile range for creating a threshold for identifying turns.
+    curvature_turn_minimum_delay_nm : float
+        The minimum distance in nanometres before considering if a turn has ended or a new turn has began.
+
+    Returns
+    -------
+    int
+        Number of turns in the trace.
+    """
+    # Calculate the threshold for a turn based on the nth percentile
+    curvature_iqr = np.float64(np.percentile(curvatures, 75) - np.percentile(curvatures, 25))
+    curvature_pos_turn_threshold_pernm = np.median(curvatures) + curvature_turn_threshold_iqr_multiplier * curvature_iqr
+    curvature_neg_turn_threshold_pernm = np.median(curvatures) - curvature_turn_threshold_iqr_multiplier * curvature_iqr
+
+    # Calculate the number of turns
+    turns = 0
+    in_pos_turn = False
+    in_neg_turn = False
+    current_segment_distance = np.inf
+    for curvature, distance_to_last_point in zip(curvatures, trace_distances_nm):
+        current_segment_distance += distance_to_last_point
+        if current_segment_distance > curvature_turn_minimum_delay_nm:
+            if curvature >= 0:
+                if curvature >= curvature_pos_turn_threshold_pernm:
+                    # In positive turn
+                    if not in_pos_turn:
+                        turns += 1
+                        in_pos_turn = True
+                        in_neg_turn = False
+                        # Start a new segment
+                        current_segment_distance = 0
+                else:
+                    # Not in a turn, reset
+                    in_pos_turn = False
+                    in_neg_turn = False
+                    current_segment_distance = 0
+            elif curvature < 0:
+                if curvature <= curvature_neg_turn_threshold_pernm:
+                    # In negative turn
+                    if not in_neg_turn:
+                        turns += 1
+                        in_neg_turn = True
+                        in_pos_turn = False
+                        # Start a new segment
+                        current_segment_distance = 0
+                else:
+                    # Not in a turn, reset
+                    in_pos_turn = False
+                    in_neg_turn = False
+                    current_segment_distance = 0
+
+    return turns
+
+
+def calculate_curvature_metrics(curvatures: npt.NDArray[np.float64], decimals: int = 6) -> dict[str, float]:
+    """
+    Calculate curvature metrics from an array of curvatures.
+
+    Parameters
+    ----------
+    curvatures : npt.NDArray[np.float64]
+        Array of curvature values.
+    decimals : int
+        The number of decimal places to round the metrics to.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary of curvature metrics.
+    """
+    return {
+        "curvature_mean": float(np.round(np.mean(np.abs(curvatures)), decimals=decimals)),
+        "curvature_max": float(np.round(np.max(np.abs(curvatures)), decimals=decimals)),
+        "curvature_min": float(np.round(np.min(np.abs(curvatures)), decimals=decimals)),
+        "curvature_std": float(np.round(np.std(np.abs(curvatures)), decimals=decimals)),
+        "curvature_var": float(np.round(np.var(np.abs(curvatures)), decimals=decimals)),
+        "curvature_total": float(np.round(np.sum(np.abs(curvatures)), decimals=decimals)),
+        "curvature_median": float(np.round(np.median(np.abs(curvatures)), decimals=decimals)),
+        "curvature_iqr": float(
+            np.round(np.percentile(np.abs(curvatures), 75) - np.percentile(curvatures, 25), decimals=decimals)
+        ),
+        "curvature_90th": float(np.round(np.percentile(np.abs(curvatures), 90), decimals=decimals)),
+    }
+
+
+# pylint: disable=too-many-locals
 def calculate_curvature_stats_image(
     topostats_object: TopoStats,
+    smoothing_method: Literal["gaussian", "savitzky_golay"],
+    smoothing_gaussian_sigma_nm: float,
+    smoothing_savgol_window_length_nm: int,
+    smoothing_savgol_polyorder: int,
+    curvature_turn_minimum_delay_nm: float,
+    curvature_turn_threshold_iqr_multiplier: float,
 ) -> None:
     """
     Perform curvature analysis for a whole image of grains.
@@ -144,17 +306,83 @@ def calculate_curvature_stats_image(
     ----------
     topostats_object : TopoStats
         ``TopoStats`` object with attribute ``grain_crop``. Should be post-splining.
+    smoothing_method : Literal["gaussian", "savitzky_golay"],
+        The method to use for smoothing.
+    smoothing_gaussian_sigma_nm : float
+        The gaussian sigma to use for smoothing.
+    smoothing_savgol_window_length_nm : int
+        The window length to use for the savgol window (nanometres).
+    smoothing_savgol_polyorder : int
+        The polynomial order to use for the savgol filter.
+    curvature_turn_minimum_delay_nm : float
+        The minimum distance in nanometres before considering if a turn has ended or a new turn has began.
+    curvature_turn_threshold_iqr_multiplier : float
+        The multiplier to apply to the interquartile range for creating a threshold for identifying turns.
     """
     # Iterate over grains
-    for _, grain_crop in topostats_object.grain_crops.items():
+    for _, grain_crop in topostats_object.require_grain_crops().items():
         # Iterate over molecules
         if grain_crop.ordered_trace is not None and grain_crop.ordered_trace.molecule_data is not None:
             for _, molecule_data in grain_crop.ordered_trace.molecule_data.items():
-                trace_nm = molecule_data.splined_coords * topostats_object.pixel_to_nm_scaling
-                # Check if the molecule is circular or linear
-                if molecule_data.end_to_end_distance == 0.0:
-                    # Molecule is circular
-                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_circular(trace_nm))
-                else:
-                    # Molecule is linear
-                    molecule_data.curvature_stats = np.abs(discrete_angle_difference_per_nm_linear(trace_nm))
+                # Calculate curvature stats per molecule
+                trace_nm = molecule_data.require_splined_coords() * topostats_object.require_pixel_to_nm_scaling()
+                is_circular = molecule_data.circular
+                assert isinstance(is_circular, bool)
+
+                curvatures = (
+                    discrete_angle_difference_per_nm_circular(trace_nm)
+                    if is_circular
+                    else discrete_angle_difference_per_nm_linear(trace_nm)
+                ).astype(np.float64)
+
+                # Smooth the curvatures
+                trace_distances_nm = distances_nm(coords_nm=trace_nm, circular=is_circular)
+                avg_trace_distance_nm = np.mean(trace_distances_nm)
+                curvatures_smoothed = smooth_curvature(
+                    curvatures=curvatures,
+                    point_spacing_nm=avg_trace_distance_nm,
+                    method=smoothing_method,
+                    gaussian_sigma_nm=smoothing_gaussian_sigma_nm,
+                    savgol_window_length_nm=smoothing_savgol_window_length_nm,
+                    savgol_polyorder=smoothing_savgol_polyorder,
+                )
+
+                curvature_metrics = calculate_curvature_metrics(curvatures_smoothed)
+
+                num_turns = quantify_turns(
+                    curvatures=curvatures_smoothed,
+                    trace_distances_nm=trace_distances_nm,
+                    curvature_turn_minimum_delay_nm=curvature_turn_minimum_delay_nm,
+                    curvature_turn_threshold_iqr_multiplier=curvature_turn_threshold_iqr_multiplier,
+                )
+
+                molecule_data.curvature_stats = MoleculeCurvatureStats(
+                    curvatures=curvatures_smoothed,
+                    is_circular=is_circular,
+                    num_turns=num_turns,
+                    **curvature_metrics,
+                )
+
+            # Calculate curvature stats for the whole grain and update
+            curvatures_all_grain = np.concatenate(
+                [
+                    molecule_data.require_curvature_stats().curvatures
+                    for molecule_data in grain_crop.ordered_trace.molecule_data.values()
+                ]
+            )
+            curvature_metrics_grain = calculate_curvature_metrics(curvatures_all_grain)
+            num_turns_total_grain = sum(
+                molecule_data.require_curvature_stats().num_turns
+                for molecule_data in grain_crop.ordered_trace.molecule_data.values()
+            )
+            grain_crop.ordered_trace.grain_curvature_stats = GrainCurvatureStats(
+                num_turns=num_turns_total_grain,
+                **curvature_metrics_grain,
+            )
+            # Add the stats raw to the grain crop stats dictionary to be saved to csv
+            for class_number, stats in grain_crop.stats.items():
+                for subgrain_index, _ in stats.items():
+                    grain_crop.stats[class_number][subgrain_index]["curvature_grain_num_turns"] = np.int64(
+                        num_turns_total_grain
+                    )
+                    grain_crop.stats[class_number][subgrain_index].update(curvature_metrics_grain)

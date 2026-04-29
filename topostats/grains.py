@@ -4,6 +4,7 @@
 
 import logging
 import sys
+from typing import Any
 
 import keras
 import numpy as np
@@ -14,6 +15,7 @@ from skimage.morphology import dilation
 
 from topostats.classes import GrainCrop, TopoStats
 from topostats.logs.logs import LOGGER_NAME
+from topostats.mask_manipulation import multi_class_skeletonise_and_join_close_ends
 from topostats.unet_masking import (
     iou_loss,
     make_bounding_box_square,
@@ -84,6 +86,41 @@ class Grains:
         Dictionary of absolute 'below' and 'above' thresholds for grain finding.
     area_thresholds : dict[str, list[float | None]]
         Dictionary of above and below grain's area thresholds.
+    endpoint_connection_config : dict[str, Any] | None
+        Configuration for connecting loose ends in the grain mask.
+            run : bool
+                Whether to run the endpoint connection step.
+            class_indices : list[int]
+                List of class indices for which to run endpoint connection.
+            skeletonisation_holearea_min_max : tuple[int, int]
+                Range (min, max) of a hole area in nm to refill in the smoothed masks.
+            skeletonisation_mask_smoothing_dilation_iterations : int
+                Number of dilation iterations to use for grain smoothing.
+            skeletonisation_mask_smoothing_gaussian_sigma : float
+                Gaussian smoothing parameter 'sigma' in pixels.
+            skeletonisation_method : str
+                Options : zhang | lee | thin | topostats.
+            skeletonisation_height_bias : float
+                Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+            endpoint_connection_distance_nm : float
+                Maximum distance in nm to connect endpoints.
+            endpoint_connection_cost_map_height_maximum : float
+                Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly
+                be the maximum height of your sample.
+            pruning_params : dict[str, float | str | bool]
+                Pruning parameters for the skeleton during endpoint connection.
+                method : str
+                    Method to clean branches of the skeleton.
+                max_length : float
+                    Maximum length in nm to remove a branch containing an endpoint.
+                height_threshold : float | None
+                    The height to remove branches below.
+                method_values : str
+                    The method to obtain a branch's height for pruning. Options : min | median | mid.
+                method_outlier : str
+                    The method to prune branches based on height. Options : abs | mean_abs | iqr.
+                only_height_prune_endpoints : bool
+                    Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
     remove_edge_intersecting_grains : bool
         Whether or not to remove grains that intersect the edge of the image.
     classes_to_merge : list[tuple[int, int]] | None
@@ -103,6 +140,7 @@ class Grains:
         threshold_std_dev: dict[str, float | list] | None = None,
         threshold_absolute: dict[str, float | list] | None = None,
         area_thresholds: dict[str, list[float | None]] | None = None,
+        endpoint_connection_config: dict[str, Any] | None = None,
         remove_edge_intersecting_grains: bool = True,
         classes_to_merge: list[list[int]] | None = None,
         vetting: dict | None = None,
@@ -135,6 +173,41 @@ class Grains:
             Dictionary of absolute 'below' and 'above' thresholds for grain finding.
         area_thresholds : dict[str, list[float | None]]
             Dictionary of above and below grain's area thresholds.
+        endpoint_connection_config : dict[str, Any] | None
+            Configuration for connecting loose ends in the grain mask.
+                run : bool
+                    Whether to run the endpoint connection step.
+                class_indices : list[int]
+                    List of class indices for which to run endpoint connection.
+                skeletonisation_holearea_min_max : tuple[int, int]
+                    Range (min, max) of a hole area in nm to refill in the smoothed masks.
+                skeletonisation_mask_smoothing_dilation_iterations : int
+                    Number of dilation iterations to use for grain smoothing.
+                skeletonisation_mask_smoothing_gaussian_sigma : float
+                    Gaussian smoothing parameter 'sigma' in pixels.
+                skeletonisation_method : str
+                    Options : zhang | lee | thin | topostats.
+                skeletonisation_height_bias : float
+                    Percentage of lowest pixels to remove each skeletonisation iteration. 1 equates to zhang.
+                endpoint_connection_distance_nm : float
+                    Maximum distance in nm to connect endpoints.
+                endpoint_connection_cost_map_height_maximum : float
+                    Maximum height in nm to consider when building the cost map for endpoint connection. Should roughly
+                    be the maximum height of your sample.
+                pruning_params : dict[str, float | str | bool]
+                    Pruning parameters for the skeleton during endpoint connection.
+                    method : str
+                        Method to clean branches of the skeleton.
+                    max_length : float
+                        Maximum length in nm to remove a branch containing an endpoint.
+                    height_threshold : float | None
+                        The height to remove branches below.
+                    method_values : str
+                        The method to obtain a branch's height for pruning. Options : min | median | mid.
+                    method_outlier : str
+                        The method to prune branches based on height. Options : abs | mean_abs | iqr.
+                    only_height_prune_endpoints : bool
+                        Whether to restrict height-based pruning to skeleton segments containing an endpoint or not.
         remove_edge_intersecting_grains : bool
             Direction for which grains are to be detected, valid values are 'above', 'below' and 'both'.
         classes_to_merge : list[tuple[int, int]] | None
@@ -199,6 +272,7 @@ class Grains:
         )
         self.thresholds: dict[str, list[float]] | None = None
         self.mask_images: dict[str, dict[str, npt.NDArray]] = {}
+        self.endpoint_connection_config: dict[str, Any] = endpoint_connection_config
         self.grain_crop_padding = grain_crop_padding
         self.unet_config = config["unet_config"] if unet_config is None else unet_config
         self.vetting_config = config["vetting"] if vetting is None else vetting
@@ -450,6 +524,20 @@ class Grains:
             )
             self.mask_images[direction]["removed_objects_too_small_to_process"] = traditional_full_mask_tensor.copy()
 
+            # Connect loose ends in the grain mask
+            if self.endpoint_connection_config is not None:
+                if self.endpoint_connection_config["run"]:
+                    LOGGER.info(f"{self.filename} : Connecting grain mask endpoints")
+                    endpoint_connection_config = self.endpoint_connection_config.copy()
+                    endpoint_connection_config.pop("run")
+                    traditional_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                        filename=self.filename,
+                        image=self.image,
+                        tensor=traditional_full_mask_tensor,
+                        p2nm=self.pixel_to_nm_scaling,
+                        **endpoint_connection_config,
+                    )
+
             # Area threshold using user specified thresholds
             traditional_full_mask_tensor = Grains.area_thresholding_tensor(
                 grain_mask_tensor=traditional_full_mask_tensor,
@@ -487,6 +575,31 @@ class Grains:
                         unet_config=self.unet_config,
                         graincrops=traditional_graincrops,
                     )
+                    if self.endpoint_connection_config is not None:
+                        if self.endpoint_connection_config["run"]:
+                            LOGGER.info(f"[{self.filename}] : Connecting DL grain mask endpoints.")
+                            endpoint_connection_config = self.endpoint_connection_config.copy()
+                            endpoint_connection_config.pop("run")
+                            # Reconstruct full mask tensor from the UNet-updated graincrops. (Messy but needed).
+                            unet_full_mask_tensor = Grains.construct_full_mask_from_graincrops(
+                                graincrops=graincrops,
+                                image_shape=self.image.shape,
+                            )
+                            unet_full_mask_tensor = multi_class_skeletonise_and_join_close_ends(
+                                filename=self.filename,
+                                image=self.image,
+                                tensor=unet_full_mask_tensor,
+                                p2nm=self.pixel_to_nm_scaling,
+                                **endpoint_connection_config,
+                            )
+                            # Re-extract graincrops from the updated full mask tensor
+                            graincrops = self.extract_grains_from_full_image_tensor(
+                                image=self.image,
+                                full_mask_tensor=unet_full_mask_tensor,
+                                padding=self.grain_crop_padding,
+                                pixel_to_nm_scaling=self.pixel_to_nm_scaling,
+                                filename=self.filename,
+                            )
                 else:
                     # otherwise use the traditional graincrops
                     graincrops = traditional_graincrops
