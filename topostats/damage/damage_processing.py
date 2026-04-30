@@ -683,6 +683,78 @@ def calculate_indirect_defect_gaps(  # noqa: C901
     return indirect_gaps
 
 
+def find_coinciding_defects_between_lists(
+    defect_gap_list_1: OrderedDefectGapList,
+    defect_gap_list_2: OrderedDefectGapList,
+    distance_to_previous_points_nm: npt.NDArray[np.float64],
+    coinciding_defect_threshold_nm: float,
+    circular: bool,
+) -> list[tuple[Defect, Defect]]:
+    """Find coinciding defects between two sets."""
+    coinciding_defects = []
+    for _defect_1_index, defect_or_gap_1 in enumerate(defect_gap_list_1.defect_gap_list):
+        if isinstance(defect_or_gap_1, Defect):
+            defect_1 = defect_or_gap_1
+            for _defect_2_index, defect_or_gap_2 in enumerate(defect_gap_list_2.defect_gap_list):
+                if isinstance(defect_or_gap_2, Defect):
+                    defect_2 = defect_or_gap_2
+                    # Esure they are not the same defect
+                    if not (defect_1.start_index == defect_2.start_index and defect_1.end_index == defect_2.end_index):
+                        # Check if they coincide, by checking if the distance between either start or end points are within
+                        # the threshold.
+
+                        # Check if wrapping around the end of the array is needed, and if the trace is not circular,
+                        # then disallow this.
+                        if defect_1.end_index > defect_2.start_index:
+                            # wrapping needed
+                            if not circular:
+                                continue
+                        end_1_to_start_2_distance_nm = calculate_distance_of_region(
+                            defect_1.end_index,
+                            defect_2.start_index,
+                            distance_to_previous_points_nm,
+                            circular,
+                        )
+
+                        # Note we don't need to check the other way around since it'll be checked when the other defect
+                        # is compared to this one.
+                        if end_1_to_start_2_distance_nm <= coinciding_defect_threshold_nm:
+                            # We have found a coinciding defect
+                            coinciding_defects.append((defect_1, defect_2))
+    return coinciding_defects
+
+
+def find_coinciding_defects(
+    grain_collection: GrainCollection, coinciding_defect_threshold_nm: float
+) -> list[tuple[Defect, Defect]]:
+    """Find pairs of curvature and height defects that coincide within a given threshold."""
+    coinciding_defects: list[tuple[Defect, Defect]] = []
+    for grain in grain_collection.grains.values():
+        for molecule_id in grain.molecule_data_collection.keys():
+            molecule_data = grain.molecule_data_collection[molecule_id]
+            molecule_distances_to_previous_points_nm = distances_nm(
+                molecule_data.spline_coords, circular=molecule_data.circular
+            )
+            curvature_molecule_defect_data = grain.curvature_defect_data.molecule_defect_data_dict.get(molecule_id)
+            height_molecule_curvature_data = grain.height_defect_data.molecule_defect_data_dict.get(molecule_id)
+            if curvature_molecule_defect_data is None or height_molecule_curvature_data is None:
+                # No curvature or no height defects for this molecule, so no coinciding, skip.
+                continue
+            curvature_defect_gap_list = curvature_molecule_defect_data.ordered_defects_and_gaps
+            height_defect_gap_list = height_molecule_curvature_data.ordered_defects_and_gaps
+
+            coinciding_defects.extend(
+                find_coinciding_defects_between_lists(
+                    defect_gap_list_1=curvature_defect_gap_list,
+                    defect_gap_list_2=height_defect_gap_list,
+                    distance_to_previous_points_nm=molecule_distances_to_previous_points_nm,
+                    coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+                    circular=grain.molecule_data_collection[molecule_id].circular,
+                )
+            )
+    return coinciding_defects
+
+
 def find_curvature_defects(
     grain_collection: GrainCollection,
     curvature_defect_method: Literal["iqr", "absolute"],

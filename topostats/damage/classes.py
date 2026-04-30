@@ -640,7 +640,7 @@ class GrainCollection(BaseDamageAnalysis):
             if len(grains) <= n:
                 sampled_grains = grains
             else:
-                sampled_grains = rng.choice(grains, size=n, replace=False)
+                sampled_grains: list[GrainModel] = rng.choice(a=grains, size=n, replace=False)
             for grain in sampled_grains:
                 sample_dict[grain.global_grain_id] = grain
         return GrainCollection(grains=sample_dict)
