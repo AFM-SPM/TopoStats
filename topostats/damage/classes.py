@@ -177,35 +177,11 @@ class MoleculeDefectData(BaseDamageAnalysis):
         ]
 
 
-class GrainDefectData(BaseDamageAnalysis):
-    """Data object to hold the defect and gap data for a grain."""
-
-    molecule_defect_data_dict: dict[int, MoleculeDefectData] = Field(default_factory=dict)
-
-    @computed_field
-    @property
-    def num_defects(self) -> int:
-        """Calculate the total number of defects across all molecules."""
-        return sum(molecule_defect_data.num_defects for molecule_defect_data in self.molecule_defect_data_dict.values())
-
-    @computed_field
-    @property
-    def num_gaps(self) -> int:
-        """Calculate the total number of gaps across all molecules."""
-        return sum(molecule_defect_data.num_gaps for molecule_defect_data in self.molecule_defect_data_dict.values())
-
-    @computed_field
-    @property
-    def defect_lengths_nm(self) -> list[float]:
-        """Get a list of the lengths of all defects across all molecules in nanometres."""
-        defect_lengths = []
-        for molecule_defect_data in self.molecule_defect_data_dict.values():
-            defect_lengths.extend(molecule_defect_data.defect_lengths_nm)
-        return defect_lengths
-
-
 class MoleculeData(UnanalysedMoleculeData):
     """Data object to hold the analysed molecule data."""
+
+    curvature_defect_data: MoleculeDefectData | None = None
+    height_defect_data: MoleculeDefectData | None = None
 
     def from_unanalysed_molecule_data(unanalysed_data: UnanalysedMoleculeData) -> "MoleculeData":
         """Create a MoleculeData object from an UnanalysedMoleculeData object."""
@@ -418,8 +394,6 @@ class MoleculeDataCollection(BaseDamageAnalysis):
 class GrainModel(UnanalysedGrain):
     """Data object to hold the analysed grain data."""
 
-    curvature_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
-    height_defect_data: GrainDefectData = Field(default_factory=GrainDefectData)
     molecule_data_collection: MoleculeDataCollection
 
     def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain) -> "GrainModel":
@@ -458,6 +432,28 @@ class GrainModel(UnanalysedGrain):
             f"with {len(self.molecule_data_collection)} molecules, {self.num_crossings} crossings "
             f"from file {self.filename}."
         )
+
+    @computed_field
+    @property
+    def num_height_defects(self) -> int:
+        """Calculate the total number of height defects across all molecules in the grain."""
+        num_height_defects = 0
+        for molecule_data in self.molecule_data_collection.values():
+            if molecule_data.height_defect_data is None:
+                raise ValueError(f"molecule with id {molecule_data.molecule_id} has no height defect data")
+            num_height_defects += molecule_data.height_defect_data.num_defects
+        return num_height_defects
+
+    @computed_field
+    @property
+    def num_curvature_defects(self) -> int:
+        """Calculate the total number of curvature defects across all molecules in the grain."""
+        num_curvature_defects = 0
+        for molecule_data in self.molecule_data_collection.values():
+            if molecule_data.curvature_defect_data is None:
+                raise ValueError(f"molecule with id {molecule_data.molecule_id} has no curvature defect data")
+            num_curvature_defects += molecule_data.curvature_defect_data.num_defects
+        return num_curvature_defects
 
     def plot(  # noqa: C901
         self,
@@ -506,8 +502,11 @@ class GrainModel(UnanalysedGrain):
                             )
         if curvature_defects:
             # plot all the curvature defects as pink dots
-            for molecule_id, molecule_defect_data in self.curvature_defect_data.molecule_defect_data_dict.items():
-                for item in molecule_defect_data.ordered_defects_and_gaps.defect_gap_list:
+            for molecule_id, molecule_data in self.molecule_data_collection.items():
+                molecule_curvature_defect_data = molecule_data.curvature_defect_data
+                if molecule_curvature_defect_data is None:
+                    raise ValueError(f"molecule with id {molecule_data.molecule_id} has no curvature defect data")
+                for item in molecule_curvature_defect_data.ordered_defects_and_gaps.defect_gap_list:
                     if isinstance(item, Defect):
                         defect_start_index = item.start_index
                         defect_end_index = item.end_index
@@ -516,8 +515,11 @@ class GrainModel(UnanalysedGrain):
                         plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="magenta", s=10)
         if height_defects:
             # plot all the height defects as cyan dots
-            for molecule_id, molecule_defect_data in self.height_defect_data.molecule_defect_data_dict.items():
-                for item in molecule_defect_data.ordered_defects_and_gaps.defect_gap_list:
+            for molecule_id, molecule_data in self.molecule_data_collection.items():
+                molecule_height_defect_data = molecule_data.height_defect_data
+                if molecule_height_defect_data is None:
+                    raise ValueError(f"molecule with id {molecule_data.molecule_id} has no height defect data")
+                for item in molecule_height_defect_data.ordered_defects_and_gaps.defect_gap_list:
                     if isinstance(item, Defect):
                         defect_start_index = item.start_index
                         defect_end_index = item.end_index
@@ -525,8 +527,8 @@ class GrainModel(UnanalysedGrain):
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
                         plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
         if title_mode == "basic":
-            num_curvature_defects = self.curvature_defect_data.num_defects
-            num_height_defects = self.height_defect_data.num_defects
+            num_curvature_defects = self.num_curvature_defects
+            num_height_defects = self.num_height_defects
             plt.title(
                 f"grain {self.global_grain_id} | {self.sample_type} {self.percent_damage}% dam | "
                 f"defects: {num_curvature_defects} C, {num_height_defects} H"

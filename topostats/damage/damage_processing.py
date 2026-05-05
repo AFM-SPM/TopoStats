@@ -735,13 +735,17 @@ def find_coinciding_defects(
             molecule_distances_to_previous_points_nm = distances_nm(
                 molecule_data.spline_coords, circular=molecule_data.circular
             )
-            curvature_molecule_defect_data = grain.curvature_defect_data.molecule_defect_data_dict.get(molecule_id)
-            height_molecule_curvature_data = grain.height_defect_data.molecule_defect_data_dict.get(molecule_id)
-            if curvature_molecule_defect_data is None or height_molecule_curvature_data is None:
-                # No curvature or no height defects for this molecule, so no coinciding, skip.
+            # curvature_molecule_defect_data = grain.curvature_defect_data.molecule_defect_data_dict.get(molecule_id)
+            molecule_curvature_defect_data = molecule_data.curvature_defect_data
+            molecule_height_defect_data = molecule_data.height_defect_data
+            # height_molecule_curvature_data = grain.height_defect_data.molecule_defect_data_dict.get(molecule_id)
+            if molecule_curvature_defect_data is None or molecule_height_defect_data is None:
+                print(
+                    f"missing curvature or height defect data for grain {grain.global_grain_id} molecule {molecule_id}, skipping coinciding defect detection for this molecule"
+                )
                 continue
-            curvature_defect_gap_list = curvature_molecule_defect_data.ordered_defects_and_gaps
-            height_defect_gap_list = height_molecule_curvature_data.ordered_defects_and_gaps
+            curvature_defect_gap_list = molecule_curvature_defect_data.ordered_defects_and_gaps
+            height_defect_gap_list = molecule_height_defect_data.ordered_defects_and_gaps
 
             coinciding_defects.extend(
                 find_coinciding_defects_between_lists(
@@ -818,7 +822,7 @@ def find_curvature_defects(
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
-                grain_model.curvature_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
+                molecule_data.curvature_defect_data = MoleculeDefectData(
                     ordered_defects_and_gaps=ordered_defect_gap_list
                 )
     elif curvature_defect_method == "absolute":
@@ -849,7 +853,7 @@ def find_curvature_defects(
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
-                grain_model.curvature_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
+                molecule_data.curvature_defect_data = MoleculeDefectData(
                     ordered_defects_and_gaps=ordered_defect_gap_list
                 )
     else:
@@ -912,14 +916,11 @@ def find_height_defects(
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
-                grain_model.height_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
-                    ordered_defects_and_gaps=ordered_defect_gap_list
-                )
+                molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
     elif height_defect_method == "absolute":
         for _global_grain_id, grain_model in grain_collection.items():
-            for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+            for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.spline_coords_heights
-                spline_coords = molecule_data.spline_coords
                 height_defects_bool = heights_nm > height_threshold_absolute_nm
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
@@ -932,9 +933,7 @@ def find_height_defects(
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
                 )
 
-                grain_model.height_defect_data.molecule_defect_data_dict[molecule_id] = MoleculeDefectData(
-                    ordered_defects_and_gaps=ordered_defect_gap_list
-                )
+                molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
     else:
         raise ValueError(f"Invalid height defect method: {height_defect_method}")
 
