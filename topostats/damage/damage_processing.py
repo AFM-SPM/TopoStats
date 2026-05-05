@@ -5,7 +5,7 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
-from topostats.array_manipulation import distances_nm
+from topostats.array_manipulation import calculate_distance_of_region, distances_nm
 from topostats.damage.classes import Defect, Gap, GrainCollection, MoleculeDefectData, OrderedDefectGapList
 from topostats.measure.curvature import (
     calculate_discrete_angle_difference_circular,
@@ -122,103 +122,6 @@ def get_defects_and_gaps_circular(
         defects,
         gaps,
     )
-
-
-def calculate_distance_of_region(
-    start_index: int,
-    end_index: int,
-    distance_to_previous_points_nm: npt.NDArray[np.float64],
-    circular: bool,
-) -> float:
-    """
-    Calculate the distance of a region in the trace.
-
-    Note: This function cannot take a circular region that is the whole array, since that would imply the start and
-    end be the same point, but this is assumed to be a unit region, not an array-wide region.
-
-    Note to devs: remember that the array is the distance to the previous point. So the distance between
-    points i and j does not include the distance of index i, since that's the distance to the previous point.
-    We do however include half the distance to the previous point for i, since we want to support an approximation
-    for unitary regions
-    ie the distance for the following array with regions marked with X,
-    o--o--X--o--o--X--o--o
-    would be calculated as this distance, marked by |:
-    o--o-|-X--o--o--X-|-o--o
-    since, if you imagine an entire array filled with regions, then this would mean the total distance is equal to
-    the total length of the array (makes sense), else there would be gaps in between the regions
-    A unitary region looks like this:
-    o--o-|-X-|-o--o
-    so it does have length, however if we didn't do this, it would have 0 length!
-
-    Parameters
-    ----------
-    start_index : int
-        The index of the first point in the region.
-    end_index : int
-        The index of the last point in the region.
-    distance_to_previous_points_nm : npt.NDArray[np.float64]
-        An array of distances to the previous points in nanometers.
-    circular : bool
-        If True, the array is treated as circular, meaning that the end of the array wraps around to the start.
-        If False, the array is treated as linear, meaning that the end of the array does not wrap around to the start.
-
-    Returns
-    -------
-    float
-        The total distance of the region in nanometers.
-
-    Raises
-    ------
-    ValueError
-        If the start index is greater than the end index in a linear array, since this necessitates wrapping around the
-        end of the array to meet the end index.
-    """
-    # Get the distance from the start index to the end index
-    if start_index <= end_index:
-        # Normal case, no wrapping around the end of the array, just sum the distances
-        distance_without_halves = np.sum(distance_to_previous_points_nm[start_index + 1 : end_index + 1])
-        # Add half the distance to the start previous point and half the distance to the end next point
-        # Check if at the start or end of array
-        if start_index == 0:
-            # At the start
-            if circular:
-                # If circular, then can take half the distance to the end point of the array since it wraps around
-                start_half_distance = distance_to_previous_points_nm[start_index] / 2
-            else:
-                # If not circular, then we can't add this half distance
-                start_half_distance = 0.0
-        else:
-            start_half_distance = distance_to_previous_points_nm[start_index] / 2
-        if end_index == len(distance_to_previous_points_nm) - 1:
-            # End point is at the end of the array
-            if circular:
-                # If circular, then can take half the distance to the start point of the array since it wraps around
-                end_half_distance = distance_to_previous_points_nm[0] / 2
-            else:
-                # If not circular, then we can't add this half distance
-                end_half_distance = 0.0
-        else:
-            end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
-        return float(distance_without_halves + start_half_distance + end_half_distance)
-
-    if not circular:
-        # This cannot happen, since if the start index is greater than the end index, then we must wrap around to
-        # the start of the array to meet the end index, but cannot in a linear array.
-        raise ValueError(
-            f"Cannot calculate distance of region {start_index} to {end_index} in a linear array. "
-            "Start index cannot be greater than end index in a linear array."
-        )
-    # The region wraps around the end of the array
-    # Calculate the distance from the start index to the end of the array
-    distance_to_end = np.sum(distance_to_previous_points_nm[start_index + 1 :])
-    # Calculate the distance from the start of the array to the end index
-    distance_to_start = np.sum(distance_to_previous_points_nm[: end_index + 1])
-    # Here we don't need to worry about the indexes of the start and end points since the ends of the array are
-    # inside the region.
-    # Add the half distances to the start and end points
-    start_half_distance = distance_to_previous_points_nm[start_index] / 2
-    end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
-    return distance_to_end + distance_to_start + start_half_distance + end_half_distance
 
 
 def connect_close_defects(  # noqa: C901
@@ -681,82 +584,6 @@ def calculate_indirect_defect_gaps(  # noqa: C901
                 # We have reached a Defect, so we can stop
                 break
     return indirect_gaps
-
-
-def find_coinciding_defects_between_lists(
-    defect_gap_list_1: OrderedDefectGapList,
-    defect_gap_list_2: OrderedDefectGapList,
-    distance_to_previous_points_nm: npt.NDArray[np.float64],
-    coinciding_defect_threshold_nm: float,
-    circular: bool,
-) -> list[tuple[Defect, Defect]]:
-    """Find coinciding defects between two sets."""
-    coinciding_defects = []
-    for _defect_1_index, defect_or_gap_1 in enumerate(defect_gap_list_1.defect_gap_list):
-        if isinstance(defect_or_gap_1, Defect):
-            defect_1 = defect_or_gap_1
-            for _defect_2_index, defect_or_gap_2 in enumerate(defect_gap_list_2.defect_gap_list):
-                if isinstance(defect_or_gap_2, Defect):
-                    defect_2 = defect_or_gap_2
-                    # Esure they are not the same defect
-                    if not (defect_1.start_index == defect_2.start_index and defect_1.end_index == defect_2.end_index):
-                        # Check if they coincide, by checking if the distance between either start or end points are within
-                        # the threshold.
-
-                        # Check if wrapping around the end of the array is needed, and if the trace is not circular,
-                        # then disallow this.
-                        if defect_1.end_index > defect_2.start_index:
-                            # wrapping needed
-                            if not circular:
-                                continue
-                        end_1_to_start_2_distance_nm = calculate_distance_of_region(
-                            defect_1.end_index,
-                            defect_2.start_index,
-                            distance_to_previous_points_nm,
-                            circular,
-                        )
-
-                        # Note we don't need to check the other way around since it'll be checked when the other defect
-                        # is compared to this one.
-                        if end_1_to_start_2_distance_nm <= coinciding_defect_threshold_nm:
-                            # We have found a coinciding defect
-                            coinciding_defects.append((defect_1, defect_2))
-    return coinciding_defects
-
-
-def find_coinciding_defects(
-    grain_collection: GrainCollection, coinciding_defect_threshold_nm: float
-) -> list[tuple[Defect, Defect]]:
-    """Find pairs of curvature and height defects that coincide within a given threshold."""
-    coinciding_defects: list[tuple[Defect, Defect]] = []
-    for grain in grain_collection.grains.values():
-        for molecule_id in grain.molecule_data_collection.keys():
-            molecule_data = grain.molecule_data_collection[molecule_id]
-            molecule_distances_to_previous_points_nm = distances_nm(
-                molecule_data.spline_coords, circular=molecule_data.circular
-            )
-            # curvature_molecule_defect_data = grain.curvature_defect_data.molecule_defect_data_dict.get(molecule_id)
-            molecule_curvature_defect_data = molecule_data.curvature_defect_data
-            molecule_height_defect_data = molecule_data.height_defect_data
-            # height_molecule_curvature_data = grain.height_defect_data.molecule_defect_data_dict.get(molecule_id)
-            if molecule_curvature_defect_data is None or molecule_height_defect_data is None:
-                print(
-                    f"missing curvature or height defect data for grain {grain.global_grain_id} molecule {molecule_id}, skipping coinciding defect detection for this molecule"
-                )
-                continue
-            curvature_defect_gap_list = molecule_curvature_defect_data.ordered_defects_and_gaps
-            height_defect_gap_list = molecule_height_defect_data.ordered_defects_and_gaps
-
-            coinciding_defects.extend(
-                find_coinciding_defects_between_lists(
-                    defect_gap_list_1=curvature_defect_gap_list,
-                    defect_gap_list_2=height_defect_gap_list,
-                    distance_to_previous_points_nm=molecule_distances_to_previous_points_nm,
-                    coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
-                    circular=grain.molecule_data_collection[molecule_id].circular,
-                )
-            )
-    return coinciding_defects
 
 
 def find_curvature_defects(

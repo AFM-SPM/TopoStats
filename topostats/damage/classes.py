@@ -9,6 +9,7 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
+from topostats.array_manipulation import calculate_distance_of_region, distances_nm
 from topostats.classes import MoleculeCurvatureStats
 from topostats.plottingfuncs import Colormap
 
@@ -182,8 +183,11 @@ class MoleculeData(UnanalysedMoleculeData):
 
     curvature_defect_data: MoleculeDefectData | None = None
     height_defect_data: MoleculeDefectData | None = None
+    coinciding_defect_threshold_nm: float
 
-    def from_unanalysed_molecule_data(unanalysed_data: UnanalysedMoleculeData) -> "MoleculeData":
+    def from_unanalysed_molecule_data(
+        unanalysed_data: UnanalysedMoleculeData, coinciding_defect_threshold_nm: float
+    ) -> "MoleculeData":
         """Create a MoleculeData object from an UnanalysedMoleculeData object."""
         return MoleculeData(
             molecule_id=unanalysed_data.molecule_id,
@@ -194,7 +198,69 @@ class MoleculeData(UnanalysedMoleculeData):
             spline_coords=unanalysed_data.spline_coords,
             ordered_coords=unanalysed_data.ordered_coords,
             curvature_data=unanalysed_data.curvature_data,
+            coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
         )
+
+    @computed_field
+    @property
+    def distance_to_previous_points_nm(self) -> npt.NDArray[np.float64]:
+        """Return an array of the distances from each point to the preceding point."""
+        return distances_nm(self.spline_coords, self.circular)
+
+    @computed_field
+    @property
+    def coinciding_defects(  # noqa: C901
+        self,
+    ) -> list[tuple[Defect, Defect]]:
+        """Get a list of coinciding curvature and height defects."""
+        coinciding_defects = []
+        curvature_defect_data = self.curvature_defect_data
+        height_defect_data = self.height_defect_data
+        if curvature_defect_data is None or height_defect_data is None:
+            raise ValueError(
+                f"molecule with id {self.molecule_id} has missing defect data, cannot calculate coinciding defects"
+            )
+        for curvature_defect_or_gap in curvature_defect_data.ordered_defects_and_gaps.defect_gap_list:
+            if isinstance(curvature_defect_or_gap, Defect):
+                curvature_defect = curvature_defect_or_gap
+                for height_defect_or_gap in height_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                    if isinstance(height_defect_or_gap, Defect):
+                        height_defect = height_defect_or_gap
+                        # Check if they coincide, by checking if the distance between either start or end points are within
+                        # the threshold.
+
+                        # Check if wrapping around the end of the array is needed, and if the trace is not circular,
+                        # then disallow this.
+                        if curvature_defect.end_index > height_defect.start_index:
+                            # wrapping needed
+                            if not self.circular:
+                                continue
+                        curvature_end_to_height_start_distance_nm = calculate_distance_of_region(
+                            start_index=curvature_defect.end_index,
+                            end_index=height_defect.start_index,
+                            distance_to_previous_points_nm=self.distance_to_previous_points_nm,
+                            circular=self.circular,
+                        )
+
+                        # Check the other way around as well
+                        if height_defect.end_index > curvature_defect.start_index:
+                            # wrapping needed
+                            if not self.circular:
+                                continue
+                        height_end_to_curvature_start_distance_nm = calculate_distance_of_region(
+                            start_index=height_defect.end_index,
+                            end_index=curvature_defect.start_index,
+                            distance_to_previous_points_nm=self.distance_to_previous_points_nm,
+                            circular=self.circular,
+                        )
+
+                        if curvature_end_to_height_start_distance_nm <= self.coinciding_defect_threshold_nm:
+                            # We have found a coinciding defect
+                            coinciding_defects.append((curvature_defect, height_defect))
+                        elif height_end_to_curvature_start_distance_nm <= self.coinciding_defect_threshold_nm:
+                            # We have found a coinciding defect
+                            coinciding_defects.append((curvature_defect, height_defect))
+        return coinciding_defects
 
 
 class UnanalysedMoleculeDataCollection(BaseDamageAnalysis):
@@ -344,11 +410,14 @@ class MoleculeDataCollection(BaseDamageAnalysis):
 
     def from_unanalysed_molecule_data_collection(
         unanalysed_collection: UnanalysedMoleculeDataCollection,
+        coinciding_defect_threshold_nm: float,
     ) -> "MoleculeDataCollection":
         """Create a MoleculeDataCollection object from an UnanalysedMoleculeDataCollection object."""
         molecule_data_dict = {}
         for molecule_id, unanalysed_molecule_data in unanalysed_collection.molecules.items():
-            molecule_data = MoleculeData.from_unanalysed_molecule_data(unanalysed_molecule_data)
+            molecule_data = MoleculeData.from_unanalysed_molecule_data(
+                unanalysed_molecule_data, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
+            )
             molecule_data_dict[molecule_id] = molecule_data
         return MoleculeDataCollection(molecules=molecule_data_dict)
 
@@ -396,11 +465,11 @@ class GrainModel(UnanalysedGrain):
 
     molecule_data_collection: MoleculeDataCollection
 
-    def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain) -> "GrainModel":
+    def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain, coinciding_defect_threshold_nm: float) -> "GrainModel":
         """Create a GrainModel object from an UnanalysedGrain object."""
         # Create the new molecule data collection
         molecule_data_collection = MoleculeDataCollection.from_unanalysed_molecule_data_collection(
-            unanalysed_grain.molecule_data_collection
+            unanalysed_grain.molecule_data_collection, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
         )
         return GrainModel(
             global_grain_id=unanalysed_grain.global_grain_id,
@@ -454,6 +523,15 @@ class GrainModel(UnanalysedGrain):
                 raise ValueError(f"molecule with id {molecule_data.molecule_id} has no curvature defect data")
             num_curvature_defects += molecule_data.curvature_defect_data.num_defects
         return num_curvature_defects
+
+    @computed_field
+    @property
+    def num_coinciding_defects(self) -> int:
+        """Calculate the total number of coinciding defects across all molecules in the grain."""
+        num_coinciding_defects = 0
+        for molecule_data in self.molecule_data_collection.values():
+            num_coinciding_defects += len(molecule_data.coinciding_defects)
+        return num_coinciding_defects
 
     def plot(  # noqa: C901
         self,
@@ -618,11 +696,14 @@ class GrainCollection(BaseDamageAnalysis):
 
     def from_unanalysed_grain_collection(
         unanalysed_collection: UnanalysedGrainCollection,
+        coinciding_defect_threshold_nm: float,
     ) -> "GrainCollection":
         """Create a GrainCollection object from an UnanalysedGrainCollection object."""
         grain_dict = {}
         for global_grain_id, unanalysed_grain in unanalysed_collection.unanalysed_grains.items():
-            grain_model = GrainModel.from_unanalysed_grain(unanalysed_grain)
+            grain_model = GrainModel.from_unanalysed_grain(
+                unanalysed_grain, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
+            )
             grain_dict[global_grain_id] = grain_model
         return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
 
