@@ -1,5 +1,9 @@
 """Classes for damage analysis."""
 
+from IPython.testing.decorators import f
+
+from scipy.datasets import face
+
 from collections.abc import Generator
 from copy import deepcopy
 from typing import Any
@@ -539,6 +543,7 @@ class GrainModel(UnanalysedGrain):
         linemode: str = "",
         curvature_defects: bool = False,
         height_defects: bool = False,
+        coinciding_defects: bool = False,
         title_mode: str = "basic",
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
@@ -604,6 +609,32 @@ class GrainModel(UnanalysedGrain):
                         spline_coords = self.molecule_data_collection[molecule_id].spline_coords
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
                         plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
+        if coinciding_defects:
+            # plot all correlated defects as yellow dots
+            for molecule_id, molecule_data in self.molecule_data_collection.items():
+                for curvature_defect, height_defect in molecule_data.coinciding_defects:
+                    curvature_defect_start_index = curvature_defect.start_index
+                    curvature_defect_end_index = curvature_defect.end_index
+                    height_defect_start_index = height_defect.start_index
+                    height_defect_end_index = height_defect.end_index
+                    spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                    curvature_defect_coords = spline_coords[
+                        curvature_defect_start_index : curvature_defect_end_index + 1
+                    ]
+                    height_defect_coords = spline_coords[height_defect_start_index : height_defect_end_index + 1]
+                    # calculate the mean of the coords of the two defects to get a single point to plot
+                    mean_curvature_defect_coords = np.mean(curvature_defect_coords, axis=0)
+                    mean_height_defect_coords = np.mean(height_defect_coords, axis=0)
+                    mean_defect_coords = (mean_curvature_defect_coords + mean_height_defect_coords) / 2
+                    plt.scatter(
+                        mean_defect_coords[1],
+                        mean_defect_coords[0],
+                        color="yellow",
+                        s=300,
+                        facecolors="none",
+                        edgecolors="yellow",
+                        linewidths=1,
+                    )
         if title_mode == "basic":
             num_curvature_defects = self.num_curvature_defects
             num_height_defects = self.num_height_defects
