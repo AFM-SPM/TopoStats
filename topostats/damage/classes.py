@@ -406,8 +406,13 @@ class UnanalysedGrain(BaseDamageAnalysis):
     def plot(self, mask_alpha: float = 0.3) -> None:
         """Plot the grain image with the mask overlaid."""
         plt.imshow(self.image, **IMGPLOTARGS)
-        plt.imshow(self.mask[:, :, 1], alpha=mask_alpha, cmap="gray")
+        plt.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         plt.title(f"grain {self.global_grain_id}, {self.percent_damage}% damage")
+
+        for molecule_data in self.molecule_data_collection.values():
+            spline_coords = molecule_data.spline_coords
+            plt.plot(spline_coords[:, 1], spline_coords[:, 0])
+
         plt.show()
 
 
@@ -808,12 +813,20 @@ class GrainCollection(BaseDamageAnalysis):
         """Create a GrainCollection object from an UnanalysedGrainCollection object."""
         grain_dict = {}
         for global_grain_id, unanalysed_grain in unanalysed_collection.unanalysed_grains.items():
-            grain_model = GrainModel.from_unanalysed_grain(
-                unanalysed_grain,
-                coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
-                turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
-                turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
-            )
+            try:
+                grain_model = GrainModel.from_unanalysed_grain(
+                    unanalysed_grain,
+                    coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+                    turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+                    turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
+                )
+            except ValueError as e:
+                if "window length exceeds total length of the trace, cannot construct window" in str(e):
+                    # if we cannot construct the window to calculate the turn in distance, then we cannot calculate
+                    # the curvature defects, so we will skip this grain.
+                    continue
+                # else raise the error as it is unexpected.
+                raise e
             grain_dict[global_grain_id] = grain_model
         return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
 
@@ -862,7 +875,9 @@ def calculate_turn_in_distance_for_trace_deg(
         # check for the error where the edge of the window meets the end of the trace in linear traces
         # if this happens, set the value to nan and continue
         except ValueError as e:
-            if "exceeds the length of the linear trace" in str(e):
+            if "required right window bound exceeds the end of the linear trace" in str(
+                e
+            ) or "required left window bound exceeds the start of the linear trace" in str(e):
                 turn_in_distances_deg[index] = np.nan
                 continue
             raise e
@@ -870,14 +885,39 @@ def calculate_turn_in_distance_for_trace_deg(
         # To calculate vectors, we will need to grab another point on either side. Grab the inner points
         # so, for the left, get the next point, and for the right, get the previous point.
         # will need to check for windows with points that have too few points to calculate the vectors
-        if right_index - left_index < turn_in_distance_window_end_sampling_points * 2:
+        window_num_points = (
+            right_index - left_index + 1
+            if right_index >= left_index
+            else left_index + (len(trace_coords_nm) - right_index) + 1
+        )
+        if window_num_points < turn_in_distance_window_end_sampling_points * 2:
             raise ValueError(
-                f"Window contains too few points to calculate the turn in distance: len window:"
-                f"{right_index - left_index}, required: {turn_in_distance_window_end_sampling_points * 2}"
+                f"window of {window_num_points} points contains too few points to sample the required number of points"
+                f" {turn_in_distance_window_end_sampling_points} from each side to calculate the turn in distance"
             )
 
-        window_left_points_indices = range(left_index, left_index + turn_in_distance_window_end_sampling_points)
-        window_right_points_indices = range(right_index - turn_in_distance_window_end_sampling_points, right_index)
+        # get the indices of the points to sample, wrapping where needed
+        window_left_points_indices = []
+        window_right_points_indices = []
+        for sample_index in range(turn_in_distance_window_end_sampling_points):
+            left_sample_index = left_index + sample_index
+            if left_sample_index >= len(trace_coords_nm):
+                if circular:
+                    left_sample_index = left_sample_index % len(trace_coords_nm)
+                else:
+                    raise ValueError(
+                        "required left sample point index exceeds the end of the linear trace, cannot calculate turn in distance"
+                    )
+            window_left_points_indices.append(left_sample_index)
+            right_sample_index = right_index - sample_index
+            if right_sample_index < 0:
+                if circular:
+                    right_sample_index = right_sample_index % len(trace_coords_nm)
+                else:
+                    raise ValueError(
+                        "required right sample point index exceeds the start of the linear trace, cannot calculate turn in distance"
+                    )
+            window_right_points_indices.append(right_sample_index)
 
         # calculate the vectors by taking the differences between each sequential point pair and then averaging them
         left_vectors = np.diff(trace_coords_nm[window_left_points_indices], axis=0)
@@ -920,7 +960,7 @@ def construct_symmetric_window_of_length(
             if circular:
                 prospective_right_index = prospective_right_index % len(distances_to_previous_points)
             else:
-                raise ValueError("required right window bound exceeds the length of the linear trace")
+                raise ValueError("required right window bound exceeds the end of the linear trace")
         cumulative_distance_right += distances_to_previous_points[prospective_right_index]
         if cumulative_distance_right > half_window_length:
             right_index = prospective_right_index
