@@ -1,9 +1,5 @@
 """Classes for damage analysis."""
 
-from IPython.testing.decorators import f
-
-from scipy.datasets import face
-
 from collections.abc import Generator
 from copy import deepcopy
 from typing import Any
@@ -139,6 +135,52 @@ class OrderedDefectGapList(BaseDamageAnalysis):
                 return False
 
         return True
+
+
+class NewMoleculeCurvatureStats(BaseDamageAnalysis):
+    """Data object to hold new curvature stats for a molecule."""
+
+    curvatures: npt.NDArray[np.float64]
+    is_circular: bool
+    num_turns: int
+    curvature_mean: float
+    curvature_max: float
+    curvature_min: float
+    curvature_std: float
+    curvature_var: float
+    curvature_total: float
+    curvature_median: float
+    curvature_iqr: float
+    curvature_90th: float
+    turn_in_distance_window_length_nm: float
+    turn_in_distances_deg: npt.NDArray[np.float64]
+
+    def from_molecule_curvature_stats(
+        molecule_curvature_stats: MoleculeCurvatureStats,
+        turn_in_distance_window_length_nm: float,
+        trace_nm: npt.NDArray[np.float64],
+    ) -> "NewMoleculeCurvatureStats":
+        """Create a NewMoleculeCurvatureStats object from a MoleculeCurvatureStats object."""
+        turn_in_distances_deg = calculate_turn_in_distances(
+            trace_nm=trace_nm,
+            turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+        )
+        return NewMoleculeCurvatureStats(
+            curvatures=molecule_curvature_stats.curvatures,
+            is_circular=molecule_curvature_stats.is_circular,
+            num_turns=molecule_curvature_stats.num_turns,
+            curvature_mean=molecule_curvature_stats.curvature_mean,
+            curvature_max=molecule_curvature_stats.curvature_max,
+            curvature_min=molecule_curvature_stats.curvature_min,
+            curvature_std=molecule_curvature_stats.curvature_std,
+            curvature_var=molecule_curvature_stats.curvature_var,
+            curvature_total=molecule_curvature_stats.curvature_total,
+            curvature_median=molecule_curvature_stats.curvature_median,
+            curvature_iqr=molecule_curvature_stats.curvature_iqr,
+            curvature_90th=molecule_curvature_stats.curvature_90th,
+            turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+            turn_in_distances_deg=turn_in_distances_deg,
+        )
 
 
 class UnanalysedMoleculeData(BaseDamageAnalysis):
