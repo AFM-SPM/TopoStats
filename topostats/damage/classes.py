@@ -1,5 +1,7 @@
 """Classes for damage analysis."""
 
+from cfgv import Not
+
 from collections.abc import Generator
 from copy import deepcopy
 from typing import Any
@@ -9,9 +11,10 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
-from topostats.array_manipulation import calculate_distance_of_region, distances_nm
+from topostats.array_manipulation import calculate_distance_of_region, distances_nm, cumulative_distances_nm
 from topostats.classes import MoleculeCurvatureStats
 from topostats.plottingfuncs import Colormap
+from topostats.measure.curvature import angle_diff_signed
 
 colormap = Colormap()
 CMAP: plt.Colormap = colormap.get_cmap()
@@ -153,17 +156,21 @@ class NewMoleculeCurvatureStats(BaseDamageAnalysis):
     curvature_iqr: float
     curvature_90th: float
     turn_in_distance_window_length_nm: float
+    turn_in_distance_window_end_sampling_points: int
     turn_in_distances_deg: npt.NDArray[np.float64]
 
     def from_molecule_curvature_stats(
         molecule_curvature_stats: MoleculeCurvatureStats,
         turn_in_distance_window_length_nm: float,
+        turn_in_distance_window_end_sampling_points: int,
         trace_nm: npt.NDArray[np.float64],
     ) -> "NewMoleculeCurvatureStats":
         """Create a NewMoleculeCurvatureStats object from a MoleculeCurvatureStats object."""
-        turn_in_distances_deg = calculate_turn_in_distances(
-            trace_nm=trace_nm,
+        turn_in_distances_deg = calculate_turn_in_distance_for_trace_deg(
+            trace_coords_nm=trace_nm,
             turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+            circular=molecule_curvature_stats.is_circular,
+            turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
         )
         return NewMoleculeCurvatureStats(
             curvatures=molecule_curvature_stats.curvatures,
@@ -180,6 +187,7 @@ class NewMoleculeCurvatureStats(BaseDamageAnalysis):
             curvature_90th=molecule_curvature_stats.curvature_90th,
             turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
             turn_in_distances_deg=turn_in_distances_deg,
+            turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
         )
 
 
@@ -193,7 +201,7 @@ class UnanalysedMoleculeData(BaseDamageAnalysis):
     circular: bool
     spline_coords: npt.NDArray[np.float64]
     ordered_coords: npt.NDArray[np.float64]
-    curvature_data: MoleculeCurvatureStats | None
+    curvature_data: MoleculeCurvatureStats
 
 
 class MoleculeDefectData(BaseDamageAnalysis):
@@ -227,14 +235,25 @@ class MoleculeDefectData(BaseDamageAnalysis):
 class MoleculeData(UnanalysedMoleculeData):
     """Data object to hold the analysed molecule data."""
 
+    curvature_data: NewMoleculeCurvatureStats
     curvature_defect_data: MoleculeDefectData | None = None
     height_defect_data: MoleculeDefectData | None = None
     coinciding_defect_threshold_nm: float
 
     def from_unanalysed_molecule_data(
-        unanalysed_data: UnanalysedMoleculeData, coinciding_defect_threshold_nm: float
+        unanalysed_data: UnanalysedMoleculeData,
+        coinciding_defect_threshold_nm: float,
+        turn_in_distance_window_length_nm: float,
+        turn_in_distance_window_end_sampling_points: int,
     ) -> "MoleculeData":
         """Create a MoleculeData object from an UnanalysedMoleculeData object."""
+        new_molecule_curvature_stats = NewMoleculeCurvatureStats.from_molecule_curvature_stats(
+            molecule_curvature_stats=unanalysed_data.curvature_data,
+            turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+            turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
+            trace_nm=unanalysed_data.spline_coords,
+        )
+
         return MoleculeData(
             molecule_id=unanalysed_data.molecule_id,
             ordered_coords_heights=unanalysed_data.ordered_coords_heights,
@@ -243,7 +262,7 @@ class MoleculeData(UnanalysedMoleculeData):
             circular=unanalysed_data.circular,
             spline_coords=unanalysed_data.spline_coords,
             ordered_coords=unanalysed_data.ordered_coords,
-            curvature_data=unanalysed_data.curvature_data,
+            curvature_data=new_molecule_curvature_stats,
             coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
         )
 
@@ -457,12 +476,17 @@ class MoleculeDataCollection(BaseDamageAnalysis):
     def from_unanalysed_molecule_data_collection(
         unanalysed_collection: UnanalysedMoleculeDataCollection,
         coinciding_defect_threshold_nm: float,
+        turn_in_distance_window_length_nm: float,
+        turn_in_distance_window_end_sampling_points: int,
     ) -> "MoleculeDataCollection":
         """Create a MoleculeDataCollection object from an UnanalysedMoleculeDataCollection object."""
         molecule_data_dict = {}
         for molecule_id, unanalysed_molecule_data in unanalysed_collection.molecules.items():
             molecule_data = MoleculeData.from_unanalysed_molecule_data(
-                unanalysed_molecule_data, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
+                unanalysed_molecule_data,
+                coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+                turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+                turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
             )
             molecule_data_dict[molecule_id] = molecule_data
         return MoleculeDataCollection(molecules=molecule_data_dict)
@@ -511,11 +535,19 @@ class GrainModel(UnanalysedGrain):
 
     molecule_data_collection: MoleculeDataCollection
 
-    def from_unanalysed_grain(unanalysed_grain: UnanalysedGrain, coinciding_defect_threshold_nm: float) -> "GrainModel":
+    def from_unanalysed_grain(
+        unanalysed_grain: UnanalysedGrain,
+        coinciding_defect_threshold_nm: float,
+        turn_in_distance_window_length_nm: float,
+        turn_in_distance_window_end_sampling_points: int,
+    ) -> "GrainModel":
         """Create a GrainModel object from an UnanalysedGrain object."""
         # Create the new molecule data collection
         molecule_data_collection = MoleculeDataCollection.from_unanalysed_molecule_data_collection(
-            unanalysed_grain.molecule_data_collection, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
+            unanalysed_grain.molecule_data_collection,
+            coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+            turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+            turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
         )
         return GrainModel(
             global_grain_id=unanalysed_grain.global_grain_id,
@@ -770,12 +802,17 @@ class GrainCollection(BaseDamageAnalysis):
     def from_unanalysed_grain_collection(
         unanalysed_collection: UnanalysedGrainCollection,
         coinciding_defect_threshold_nm: float,
+        turn_in_distance_window_length_nm: float,
+        turn_in_distance_window_end_sampling_points: int,
     ) -> "GrainCollection":
         """Create a GrainCollection object from an UnanalysedGrainCollection object."""
         grain_dict = {}
         for global_grain_id, unanalysed_grain in unanalysed_collection.unanalysed_grains.items():
             grain_model = GrainModel.from_unanalysed_grain(
-                unanalysed_grain, coinciding_defect_threshold_nm=coinciding_defect_threshold_nm
+                unanalysed_grain,
+                coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+                turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
+                turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
             )
             grain_dict[global_grain_id] = grain_model
         return GrainCollection(grains=grain_dict, current_global_grain_id=unanalysed_collection.current_global_grain_id)
@@ -800,3 +837,105 @@ class GrainCollection(BaseDamageAnalysis):
             for grain in sampled_grains:
                 sample_dict[grain.global_grain_id] = grain
         return GrainCollection(grains=sample_dict)
+
+
+def calculate_turn_in_distance_for_trace_deg(
+    trace_coords_nm: npt.NDArray[np.float64],
+    turn_in_distance_window_length_nm: float,
+    circular: bool,
+    turn_in_distance_window_end_sampling_points: int,
+) -> npt.NDArray[np.float64]:
+    """Calculate the degrees turned over a given window length for each point in a trace."""
+    assert turn_in_distance_window_end_sampling_points >= 2, "need at least 2 points to calculate a vector"
+    turn_in_distances_deg = np.zeros(len(trace_coords_nm))
+    distances_to_previous_points_nm = distances_nm(trace_coords_nm, circular)
+
+    # for each point, construct a symmetric window around it with the given window length
+    for index in range(len(trace_coords_nm)):
+        try:
+            left_index, right_index = construct_symmetric_window_of_length(
+                distances_to_previous_points=distances_to_previous_points_nm,
+                midpoint_index=index,
+                window_length=turn_in_distance_window_length_nm,
+                circular=circular,
+            )
+        # check for the error where the edge of the window meets the end of the trace in linear traces
+        # if this happens, set the value to nan and continue
+        except ValueError as e:
+            if "exceeds the length of the linear trace" in str(e):
+                turn_in_distances_deg[index] = np.nan
+                continue
+            raise e
+
+        # To calculate vectors, we will need to grab another point on either side. Grab the inner points
+        # so, for the left, get the next point, and for the right, get the previous point.
+        # will need to check for windows with points that have too few points to calculate the vectors
+        if right_index - left_index < turn_in_distance_window_end_sampling_points * 2:
+            raise ValueError(
+                f"Window contains too few points to calculate the turn in distance: len window:"
+                f"{right_index - left_index}, required: {turn_in_distance_window_end_sampling_points * 2}"
+            )
+
+        window_left_points_indices = range(left_index, left_index + turn_in_distance_window_end_sampling_points)
+        window_right_points_indices = range(right_index - turn_in_distance_window_end_sampling_points, right_index)
+
+        # calculate the vectors by taking the differences between each sequential point pair and then averaging them
+        left_vectors = np.diff(trace_coords_nm[window_left_points_indices], axis=0)
+        right_vectors = np.diff(trace_coords_nm[window_right_points_indices], axis=0)
+        left_vector = np.mean(left_vectors, axis=0)
+        right_vector = np.mean(right_vectors, axis=0)
+        # calculate angle difference between the two vectors
+        turn_rad = angle_diff_signed(v1=left_vector, v2=right_vector)
+        turn_deg = np.degrees(turn_rad)
+        turn_in_distances_deg[index] = turn_deg
+
+    return turn_in_distances_deg
+
+
+def construct_symmetric_window_of_length(
+    distances_to_previous_points: npt.NDArray[np.float64],
+    midpoint_index: int,
+    window_length: float,
+    circular: bool,
+) -> tuple[int, int]:
+    """Construct a symmetric window around a midpoint index where the len of the window is defined by a given length."""
+    left_index = 0
+    right_index = 0
+    cumulative_distance_left = 0.0
+    cumulative_distance_right = 0.0
+    half_window_length = window_length / 2
+    # can get the reversed direction distances to previous points by just rolling the array by 1 in the negative
+    # direction
+    reversed_distances_to_previous_points = np.roll(distances_to_previous_points, -1)
+
+    # guard for the length of the window being longer than the total length of the trace
+    if window_length >= np.sum(distances_to_previous_points):
+        raise ValueError("window length exceeds total length of the trace, cannot construct window")
+
+    # Find the right index by moving forwards until the cumulative distance exceeds the window length, wrapping around
+    # if necessary and circular
+    for index in range(1, len(distances_to_previous_points) + 1):
+        prospective_right_index = midpoint_index + index
+        if prospective_right_index >= len(distances_to_previous_points):
+            if circular:
+                prospective_right_index = prospective_right_index % len(distances_to_previous_points)
+            else:
+                raise ValueError("required right window bound exceeds the length of the linear trace")
+        cumulative_distance_right += distances_to_previous_points[prospective_right_index]
+        if cumulative_distance_right > half_window_length:
+            right_index = prospective_right_index
+            break
+    # Find the left index by moving backwards until the cumulative distance exceeds the window length, wrapping around
+    # if necessary and circular
+    for index in range(1, len(distances_to_previous_points) + 1):
+        prospective_left_index = midpoint_index - index
+        if prospective_left_index < 0:
+            if circular:
+                prospective_left_index = prospective_left_index % len(distances_to_previous_points)
+            else:
+                raise ValueError("required left window bound exceeds the start of the linear trace")
+        cumulative_distance_left += reversed_distances_to_previous_points[prospective_left_index]
+        if cumulative_distance_left > half_window_length:
+            left_index = prospective_left_index
+            break
+    return left_index, right_index
