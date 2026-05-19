@@ -845,6 +845,12 @@ def calculate_turn_in_distance_for_trace_deg(
     turn_in_distances_deg = np.zeros(len(trace_coords_nm))
     distances_to_previous_points_nm = distances_nm(trace_coords_nm, circular)
 
+    from pathlib import Path
+    import matplotlib.pyplot as plt
+
+    debug_plot_dir = Path("/Users/sylvi/topo_data/temp")
+    plot_interval = 20
+
     # for each point, construct a symmetric window around it with the given window length
     for index in range(len(trace_coords_nm)):
         try:
@@ -903,13 +909,95 @@ def calculate_turn_in_distance_for_trace_deg(
 
         # calculate the vectors by taking the differences between each sequential point pair and then averaging them
         left_vectors = np.diff(trace_coords_nm[window_left_points_indices], axis=0)
-        right_vectors = np.diff(trace_coords_nm[window_right_points_indices], axis=0)
+        # flip the right vectors since we are going in the opposite direction and we want the vectors to point
+        # in the same direction for angle calculation
+        window_right_points_indices_flipped = list(reversed(window_right_points_indices))
+        right_vectors = np.diff(trace_coords_nm[window_right_points_indices_flipped], axis=0)
         left_vector = np.mean(left_vectors, axis=0)
         right_vector = np.mean(right_vectors, axis=0)
         # calculate angle difference between the two vectors
         turn_rad = angle_diff_signed(v1=left_vector, v2=right_vector)
         turn_deg = np.degrees(turn_rad)
         turn_in_distances_deg[index] = turn_deg
+
+        plot = index % plot_interval == 0
+        if plot:
+            unique_id = np.sum(trace_coords_nm)
+            debug_fig, debug_ax = plt.subplots(figsize=(10, 10))
+            max_x_coord = np.max(trace_coords_nm[:, 0])
+            max_y_coord = np.max(trace_coords_nm[:, 1])
+            max_coord = max(max_x_coord, max_y_coord)
+            debug_ax.set_xlim(0, float(max_coord) * 1.1)
+            debug_ax.set_ylim(0, float(max_coord) * 1.1)
+            debug_ax.plot(trace_coords_nm[:, 0], trace_coords_nm[:, 1], label="trace")
+
+            # plot the window
+            debug_ax.scatter(
+                trace_coords_nm[left_index, 0],
+                trace_coords_nm[left_index, 1],
+                color="orange",
+                s=20,
+            )
+            debug_ax.scatter(
+                trace_coords_nm[right_index, 0],
+                trace_coords_nm[right_index, 1],
+                color="blue",
+                s=20,
+            )
+
+            for left_vector in left_vectors:
+                debug_ax.arrow(
+                    trace_coords_nm[left_index, 0],
+                    trace_coords_nm[left_index, 1],
+                    left_vector[0],
+                    left_vector[1],
+                    color="orange",
+                    head_width=2,
+                    head_length=5,
+                )
+            for right_vector in right_vectors:
+                debug_ax.arrow(
+                    trace_coords_nm[right_index, 0],
+                    trace_coords_nm[right_index, 1],
+                    right_vector[0],
+                    right_vector[1],
+                    color="blue",
+                    head_width=2,
+                    head_length=5,
+                )
+            debug_ax.arrow(
+                trace_coords_nm[left_index, 0],
+                trace_coords_nm[left_index, 1],
+                left_vector[0] * 4,
+                left_vector[1] * 4,
+                color="red",
+                head_width=5,
+                head_length=10,
+            )
+
+            debug_ax.arrow(
+                trace_coords_nm[right_index, 0],
+                trace_coords_nm[right_index, 1],
+                right_vector[0] * 4,
+                right_vector[1] * 4,
+                color="purple",
+                head_width=5,
+                head_length=10,
+            )
+            debug_ax.text(
+                trace_coords_nm[index, 0],
+                trace_coords_nm[index, 1],
+                f"{turn_rad:.2f} rad",
+                color="green",
+            )
+            debug_ax.text(
+                trace_coords_nm[index, 0],
+                trace_coords_nm[index, 1] - 5,
+                f"{turn_deg:.2f} deg",
+                color="green",
+            )
+            plt.savefig(debug_plot_dir / f"{unique_id}_{index}_turn_in_distance_debug_plot.png")
+            plt.close(debug_fig)
 
     return turn_in_distances_deg
 
