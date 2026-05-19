@@ -592,10 +592,13 @@ class GrainModel(UnanalysedGrain):
         self,
         mask_alpha: float = 0.3,
         linemode: str = "",
+        linewidth: float = 1.0,
         curvature_defects: bool = False,
         height_defects: bool = False,
         coinciding_defects: bool = False,
         title_mode: str = "basic",
+        curvature_absolute: bool = False,
+        curvature_norm_bounds: tuple[float, float] = (-0.1, 0.1),
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
         plt.imshow(self.image, **IMGPLOTARGS)
@@ -615,15 +618,21 @@ class GrainModel(UnanalysedGrain):
                         f"length of curvature values {len(curvature_values)} does not match"
                         f"length of spline coords {len(spline_coords)}"
                     )
-                    curvature_norm_bounds_lower = -0.1
-                    curvature_norm_bounds_upper = 0.1
+                    if curvature_absolute:
+                        curvature_values = np.abs(curvature_values)
+                        curvature_norm_lower_bound = 0
+                        curvature_cmap = plt.get_cmap("Blues")
+                    else:
+                        curvature_norm_lower_bound = curvature_norm_bounds[0]
+                        curvature_cmap = plt.get_cmap("coolwarm")
+                    curvature_norm_upper_bound = curvature_norm_bounds[1]
                     curvature_values_clipped = np.clip(
-                        curvature_values, curvature_norm_bounds_lower, curvature_norm_bounds_upper
+                        curvature_values, curvature_norm_lower_bound, curvature_norm_upper_bound
                     )
-                    curvature_values_normalised = (curvature_values_clipped - curvature_norm_bounds_lower) / (
-                        curvature_norm_bounds_upper - curvature_norm_bounds_lower
+                    curvature_values_normalised = (curvature_values_clipped - curvature_norm_lower_bound) / (
+                        curvature_norm_upper_bound - curvature_norm_lower_bound
                     )
-                    curvature_cmap = plt.get_cmap("coolwarm")
+
                     for index, point in enumerate(spline_coords):
                         color = curvature_cmap(curvature_values_normalised[index])
                         if index > 0:
@@ -632,7 +641,7 @@ class GrainModel(UnanalysedGrain):
                                 [previous_point[1], point[1]],
                                 [previous_point[0], point[0]],
                                 color=color,
-                                linewidth=1,
+                                linewidth=linewidth,
                             )
         if curvature_defects:
             # plot all the curvature defects as pink dots
@@ -814,8 +823,10 @@ class GrainCollection(BaseDamageAnalysis):
             if len(grains) <= n:
                 sampled_grains = grains
             else:
-                sampled_grains: list[GrainModel] = rng.choice(a=grains, size=n, replace=False)
+                sampled_grain_indexes = rng.choice(len(grains), size=n, replace=False)
+                sampled_grains: list[GrainModel] = [grains[i] for i in sampled_grain_indexes]
             for grain in sampled_grains:
-                sample_dict[grain.global_grain_id] = grain
+                global_grain_id = grain.global_grain_id
+                assert global_grain_id is not None
+                sample_dict[global_grain_id] = grain
         return GrainCollection(grains=sample_dict)
-
