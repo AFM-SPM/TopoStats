@@ -600,13 +600,14 @@ class GrainModel(UnanalysedGrain):
         curvature_absolute: bool = False,
         curvature_norm_bounds: tuple[float, float] = (-0.1, 0.1),
         turn_in_distance_absolute: bool = False,
-        turn_in_distance_deg_norm_bounds: tuple[float, float] = (-360, 360),
+        turn_in_distance_deg_norm_bounds: tuple[float, float] = (-180, 180),
         turn_in_distance_display_value_interval: int = -1,
         figsize: tuple[float, float] = (5, 5),
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
         fig, ax = plt.subplots(figsize=figsize)
         ax.imshow(self.image, **IMGPLOTARGS)
+        print(self.image.shape)
         ax.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         if linemode == "spline":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
@@ -655,6 +656,35 @@ class GrainModel(UnanalysedGrain):
                 if curvature_data is not None:
                     if curvature_data.turn_in_distances_deg is not None:
                         turn_in_distances_deg = np.copy(curvature_data.turn_in_distances_deg)
+                        turn_in_distance_window_length_nm = curvature_data.turn_in_distance_window_length_nm
+                        # display the window length in the bottom left of the plot
+                        if turn_in_distance_window_length_nm is not None:
+                            turn_in_distance_window_length_px = (
+                                turn_in_distance_window_length_nm / self.pixel_to_nm_scaling
+                            )
+                            window_visual_thickness_px = self.image.shape[1] * 0.01
+                            border_offset_px = self.image.shape[1] * 0.01
+                            window_visual_top_left_x = border_offset_px
+                            window_visual_top_left_y = (
+                                self.image.shape[0] - border_offset_px - window_visual_thickness_px
+                            )
+                            ax.add_patch(
+                                plt.Rectangle(
+                                    (window_visual_top_left_x, window_visual_top_left_y),
+                                    turn_in_distance_window_length_px,
+                                    window_visual_thickness_px,
+                                    edgecolor="white",
+                                    facecolor="white",
+                                )
+                            )
+                            ax.text(
+                                window_visual_top_left_x,
+                                window_visual_top_left_y - 5,
+                                f"turn in distance window length: {turn_in_distance_window_length_nm:.0f} nm",
+                                fontsize=10,
+                                color="white",
+                            )
+
                         assert len(turn_in_distances_deg) == len(spline_coords), (
                             f"length of turn in distances {len(turn_in_distances_deg)} does not match"
                             f"length of spline coords {len(spline_coords)}"
