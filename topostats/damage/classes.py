@@ -780,6 +780,16 @@ class GrainModel(UnanalysedGrain):
                         edgecolors="yellow",
                         linewidths=1,
                     )
+        # set x ticks to be in nm
+        x_ticks = ax.get_xticks()
+        x_ticks_nm = x_ticks * self.pixel_to_nm_scaling
+        ax.set_xticklabels([f"{x_tick_nm:.0f}" for x_tick_nm in x_ticks_nm])
+        ax.set_xlabel("nm")
+        # set y ticks to be in nm
+        y_ticks = ax.get_yticks()
+        y_ticks_nm = y_ticks * self.pixel_to_nm_scaling
+        ax.set_yticklabels([f"{y_tick_nm:.0f}" for y_tick_nm in y_ticks_nm])
+        ax.set_ylabel("nm")
         if title_mode == "basic":
             num_curvature_defects = self.num_curvature_defects
             num_height_defects = self.num_height_defects
