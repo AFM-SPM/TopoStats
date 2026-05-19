@@ -184,9 +184,16 @@ class UnanalysedMoleculeData(BaseDamageAnalysis):
     spline_coords_heights: npt.NDArray[np.float64]
     distances: npt.NDArray[np.float64]
     circular: bool
-    spline_coords: npt.NDArray[np.float64]
+    spline_coords_px: npt.NDArray[np.float64]
     ordered_coords: npt.NDArray[np.float64]
     curvature_data: MoleculeCurvatureStats
+    pixel_to_nm_scaling: float
+
+    @computed_field
+    @property
+    def spline_coords_nm(self) -> npt.NDArray[np.float64]:
+        """Get the spline coordinates in nanometres."""
+        return self.spline_coords_px * self.pixel_to_nm_scaling
 
 
 class MoleculeDefectData(BaseDamageAnalysis):
@@ -240,9 +247,10 @@ class MoleculeData(UnanalysedMoleculeData):
             spline_coords_heights=unanalysed_data.spline_coords_heights,
             distances=unanalysed_data.distances,
             circular=unanalysed_data.circular,
-            spline_coords=unanalysed_data.spline_coords,
+            spline_coords_px=unanalysed_data.spline_coords_px,
             ordered_coords=unanalysed_data.ordered_coords,
             curvature_data=new_molecule_curvature_stats,
+            pixel_to_nm_scaling=unanalysed_data.pixel_to_nm_scaling,
             coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
         )
 
@@ -250,7 +258,7 @@ class MoleculeData(UnanalysedMoleculeData):
     @property
     def distance_to_previous_points_nm(self) -> npt.NDArray[np.float64]:
         """Return an array of the distances from each point to the preceding point."""
-        return distances_nm(self.spline_coords, self.circular)
+        return distances_nm(self.spline_coords_px, self.circular)
 
     @computed_field
     @property
@@ -390,7 +398,7 @@ class UnanalysedGrain(BaseDamageAnalysis):
         plt.title(f"grain {self.global_grain_id}, {self.percent_damage}% damage")
 
         for molecule_data in self.molecule_data_collection.values():
-            spline_coords = molecule_data.spline_coords
+            spline_coords = molecule_data.spline_coords_px
             plt.plot(spline_coords[:, 1], spline_coords[:, 0])
 
         plt.show()
@@ -611,11 +619,11 @@ class GrainModel(UnanalysedGrain):
         ax.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         if linemode == "spline":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
-                spline_coords = molecule_data.spline_coords
+                spline_coords = molecule_data.spline_coords_px
                 ax.plot(spline_coords[:, 1], spline_coords[:, 0])
         elif linemode == "curvature":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
-                spline_coords = molecule_data.spline_coords
+                spline_coords = molecule_data.spline_coords_px
                 curvature_data = molecule_data.curvature_data
                 if curvature_data is not None:
                     curvature_values = curvature_data.curvatures
@@ -651,7 +659,7 @@ class GrainModel(UnanalysedGrain):
                             )
         elif linemode == "turn_in_distance":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
-                spline_coords = molecule_data.spline_coords
+                spline_coords = molecule_data.spline_coords_px
                 curvature_data = molecule_data.curvature_data
                 if curvature_data is not None:
                     if curvature_data.turn_in_distances_deg is not None:
@@ -738,7 +746,7 @@ class GrainModel(UnanalysedGrain):
                     if isinstance(item, Defect):
                         defect_start_index = item.start_index
                         defect_end_index = item.end_index
-                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
                         ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="magenta", s=10)
         if height_defects:
@@ -751,7 +759,7 @@ class GrainModel(UnanalysedGrain):
                     if isinstance(item, Defect):
                         defect_start_index = item.start_index
                         defect_end_index = item.end_index
-                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
                         ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
         if coinciding_defects:
@@ -762,7 +770,7 @@ class GrainModel(UnanalysedGrain):
                     curvature_defect_end_index = curvature_defect.end_index
                     height_defect_start_index = height_defect.start_index
                     height_defect_end_index = height_defect.end_index
-                    spline_coords = self.molecule_data_collection[molecule_id].spline_coords
+                    spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
                     curvature_defect_coords = spline_coords[
                         curvature_defect_start_index : curvature_defect_end_index + 1
                     ]

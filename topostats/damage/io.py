@@ -172,7 +172,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 # adjust the splining coords to account for padding
                 splining_coords[:, 0] -= bbox_added_top
                 splining_coords[:, 1] -= bbox_added_left
-                molecule_data_spline_coords = splining_coords
+                molecule_data_spline_coords_px = splining_coords
                 # get the splining heights
                 molecule_data_spline_coords_heights = np.zeros(splining_coords.shape[0], dtype=np.float64)
                 for point_index in range(splining_coords.shape[0]):
@@ -188,8 +188,9 @@ def load_grain_models_from_topo_files(  # noqa: C901
                     distances=molecule_data_distances,
                     circular=molecule_data_circular,
                     curvature_data=molecule_curvature_stats,
-                    spline_coords=molecule_data_spline_coords,
+                    spline_coords_px=molecule_data_spline_coords_px,
                     ordered_coords=molecule_data_ordered_coords,
+                    pixel_to_nm_scaling=pixel_to_nm_scaling,
                 )
                 molecule_data_collection.add_molecule(molecule_data)
 

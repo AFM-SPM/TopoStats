@@ -642,9 +642,9 @@ def find_curvature_defects(
                 curvature_defects_bool = curvatures_abs > curvature_threshold_iqr
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
-                    trace_points_nm=molecule_data.spline_coords,
+                    trace_points_nm=molecule_data.spline_coords_nm,
                     distance_to_previous_points_nm=distances_nm(
-                        molecule_data.spline_coords, circular=molecule_data.circular
+                        molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
@@ -673,9 +673,9 @@ def find_curvature_defects(
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
-                    trace_points_nm=molecule_data.spline_coords,
+                    trace_points_nm=molecule_data.spline_coords_nm,
                     distance_to_previous_points_nm=distances_nm(
-                        molecule_data.spline_coords, circular=molecule_data.circular
+                        molecule_data.spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
@@ -724,11 +724,11 @@ def find_height_defects(
         for global_grain_id, grain_model in grain_collection.items():
             for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.spline_coords_heights
-                spline_coords = molecule_data.spline_coords
-                assert len(heights_nm) == len(spline_coords), (
+                spline_coords_nm = molecule_data.spline_coords_nm
+                assert len(heights_nm) == len(spline_coords_nm), (
                     f"length of heights does not match length of spline coords "
                     f"for grain {global_grain_id} molecule {molecule_id}, got {len(heights_nm)} heights and "
-                    f"{len(spline_coords)} spline coords"
+                    f"{len(spline_coords_nm)} spline coords"
                 )
                 iqr = np.percentile(heights_nm, 75) - np.percentile(heights_nm, 25)
                 height_threshold_iqr = np.percentile(heights_nm, 50) - height_threshold_iqr_multiplier * iqr
@@ -736,9 +736,9 @@ def find_height_defects(
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
-                    trace_points_nm=molecule_data.spline_coords,
+                    trace_points_nm=spline_coords_nm,
                     distance_to_previous_points_nm=distances_nm(
-                        coords_nm=molecule_data.spline_coords, circular=molecule_data.circular
+                        coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
@@ -749,13 +749,14 @@ def find_height_defects(
         for _global_grain_id, grain_model in grain_collection.items():
             for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
                 heights_nm = molecule_data.spline_coords_heights
+                spline_coords_nm = molecule_data.spline_coords_nm
                 height_defects_bool = heights_nm > height_threshold_absolute_nm
 
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=height_defects_bool,
-                    trace_points_nm=molecule_data.spline_coords,
+                    trace_points_nm=spline_coords_nm,
                     distance_to_previous_points_nm=distances_nm(
-                        coords_nm=molecule_data.spline_coords, circular=molecule_data.circular
+                        coords_nm=spline_coords_nm, circular=molecule_data.circular
                     ),
                     circular=molecule_data.circular,
                     connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
@@ -977,7 +978,7 @@ def calculate_turn_in_distance(
         for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
             try:
                 turn_in_distances = calculate_turn_in_distance_for_trace_deg(
-                    trace_coords_nm=molecule_data.spline_coords,
+                    trace_coords_nm=molecule_data.spline_coords_nm,
                     turn_in_distance_window_length_nm=turn_in_distance_window_length_nm,
                     circular=molecule_data.circular,
                     turn_in_distance_window_end_sampling_points=turn_in_distance_window_end_sampling_points,
