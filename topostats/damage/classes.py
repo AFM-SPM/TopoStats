@@ -599,14 +599,19 @@ class GrainModel(UnanalysedGrain):
         title_mode: str = "basic",
         curvature_absolute: bool = False,
         curvature_norm_bounds: tuple[float, float] = (-0.1, 0.1),
+        turn_in_distance_absolute: bool = False,
+        turn_in_distance_deg_norm_bounds: tuple[float, float] = (-360, 360),
+        turn_in_distance_display_value_interval: int = -1,
+        figsize: tuple[float, float] = (5, 5),
     ) -> None:
         """Plot the grain image with the mask and molecule data overlaid."""
-        plt.imshow(self.image, **IMGPLOTARGS)
-        plt.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.imshow(self.image, **IMGPLOTARGS)
+        ax.imshow(self.mask[:, :], alpha=mask_alpha, cmap="gray")
         if linemode == "spline":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
                 spline_coords = molecule_data.spline_coords
-                plt.plot(spline_coords[:, 1], spline_coords[:, 0])
+                ax.plot(spline_coords[:, 1], spline_coords[:, 0])
         elif linemode == "curvature":
             for _molecule_id, molecule_data in self.molecule_data_collection.items():
                 spline_coords = molecule_data.spline_coords
@@ -637,12 +642,62 @@ class GrainModel(UnanalysedGrain):
                         color = curvature_cmap(curvature_values_normalised[index])
                         if index > 0:
                             previous_point = spline_coords[index - 1]
-                            plt.plot(
+                            ax.plot(
                                 [previous_point[1], point[1]],
                                 [previous_point[0], point[0]],
                                 color=color,
                                 linewidth=linewidth,
                             )
+        elif linemode == "turn_in_distance":
+            for _molecule_id, molecule_data in self.molecule_data_collection.items():
+                spline_coords = molecule_data.spline_coords
+                curvature_data = molecule_data.curvature_data
+                if curvature_data is not None:
+                    if curvature_data.turn_in_distances_deg is not None:
+                        turn_in_distances_deg = np.copy(curvature_data.turn_in_distances_deg)
+                        assert len(turn_in_distances_deg) == len(spline_coords), (
+                            f"length of turn in distances {len(turn_in_distances_deg)} does not match"
+                            f"length of spline coords {len(spline_coords)}"
+                        )
+                        if turn_in_distance_absolute:
+                            turn_in_distance_deg_norm_bounds = (0, turn_in_distance_deg_norm_bounds[1])
+                            turn_in_distances_deg = np.abs(turn_in_distances_deg)
+                            turn_in_distance_cmap = plt.get_cmap("viridis")
+                        else:
+                            turn_in_distance_cmap = plt.get_cmap("coolwarm")
+                        # normalise the values
+                        turn_in_distances_deg_clipped = np.clip(
+                            turn_in_distances_deg,
+                            turn_in_distance_deg_norm_bounds[0],
+                            turn_in_distance_deg_norm_bounds[1],
+                        )
+                        turn_in_distances_deg_normalised = (
+                            turn_in_distances_deg_clipped - turn_in_distance_deg_norm_bounds[0]
+                        ) / (turn_in_distance_deg_norm_bounds[1] - turn_in_distance_deg_norm_bounds[0])
+                        nan_colour = (0.5, 0.5, 0.5, 1)
+                        for index, point in enumerate(spline_coords):
+                            turn_in_distance_deg = turn_in_distances_deg[index]
+                            if np.isnan(turn_in_distance_deg):
+                                colour = nan_colour
+                            else:
+                                colour = turn_in_distance_cmap(turn_in_distances_deg_normalised[index])
+                            if index > 0:
+                                previous_point = spline_coords[index - 1]
+                                ax.plot(
+                                    [previous_point[1], point[1]],
+                                    [previous_point[0], point[0]],
+                                    color=colour,
+                                    linewidth=linewidth,
+                                )
+                                if turn_in_distance_display_value_interval > 0:
+                                    if index % turn_in_distance_display_value_interval == 0:
+                                        ax.text(
+                                            point[1],
+                                            point[0],
+                                            f"{turn_in_distance_deg:.1f}°",
+                                            fontsize=6,
+                                            color="w",
+                                        )
         if curvature_defects:
             # plot all the curvature defects as pink dots
             for molecule_id, molecule_data in self.molecule_data_collection.items():
@@ -655,7 +710,7 @@ class GrainModel(UnanalysedGrain):
                         defect_end_index = item.end_index
                         spline_coords = self.molecule_data_collection[molecule_id].spline_coords
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
-                        plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="magenta", s=10)
+                        ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="magenta", s=10)
         if height_defects:
             # plot all the height defects as cyan dots
             for molecule_id, molecule_data in self.molecule_data_collection.items():
@@ -668,7 +723,7 @@ class GrainModel(UnanalysedGrain):
                         defect_end_index = item.end_index
                         spline_coords = self.molecule_data_collection[molecule_id].spline_coords
                         defect_coords = spline_coords[defect_start_index:defect_end_index]
-                        plt.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
+                        ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="cyan", s=10)
         if coinciding_defects:
             # plot all correlated defects as yellow dots
             for molecule_id, molecule_data in self.molecule_data_collection.items():
@@ -686,7 +741,7 @@ class GrainModel(UnanalysedGrain):
                     mean_curvature_defect_coords = np.mean(curvature_defect_coords, axis=0)
                     mean_height_defect_coords = np.mean(height_defect_coords, axis=0)
                     mean_defect_coords = (mean_curvature_defect_coords + mean_height_defect_coords) / 2
-                    plt.scatter(
+                    ax.scatter(
                         mean_defect_coords[1],
                         mean_defect_coords[0],
                         color="yellow",
@@ -698,7 +753,7 @@ class GrainModel(UnanalysedGrain):
         if title_mode == "basic":
             num_curvature_defects = self.num_curvature_defects
             num_height_defects = self.num_height_defects
-            plt.title(
+            ax.set_title(
                 f"grain {self.global_grain_id} | {self.sample_type} {self.percent_damage}% dam | "
                 f"defects: {num_curvature_defects} C, {num_height_defects} H"
                 f"\n{self.filename}"
