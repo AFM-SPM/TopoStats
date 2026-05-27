@@ -1025,8 +1025,8 @@ def process_scan(
     Parameters
     ----------
     topostats_object : TopoStats
-        A dictionary with keys 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, it's
-        path and it's pixel to namometre scaling value.
+        A Topostats object with attributes 'image', 'img_path' and 'pixel_to_nm_scaling' containing a file or frames' image, its
+        path and its pixel to namometre scaling value.
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -1281,7 +1281,7 @@ def process_filters(
     Parameters
     ----------
     topostats_object : Topostats
-        TopoStats object - Needs further info
+        An object of type ``TopoStats`` class with a minimum of ``image_original``, ``filename`` and ``pixel_to_nm_scaling`` attributes which allow filtering to be run.
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
     filter_config : dict
@@ -1348,7 +1348,7 @@ def process_grains(
     Parameters
     ----------
     topostats_object : TopoStats
-        TopoStats object - Needs further info
+        An object of type ``TopoStats`` class.
 
     base_dir : str | Path
         Directory to recursively search for files, if not specified the current directory is scanned.
