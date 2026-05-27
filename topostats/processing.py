@@ -772,6 +772,7 @@ def run_splining(  # noqa: C901
     core_out_path: Path,
     splining_config: dict | None = None,
     plotting_config: dict | None = None,
+    curvature_config: dict | None = None,
     tracing_out_path: str | Path | None = None,
 ) -> None:
     """
@@ -787,6 +788,8 @@ def run_splining(  # noqa: C901
         Dictionary configuration for obtaining an ordered trace representation of the skeletons.
     plotting_config : dict
         Dictionary configuration for plotting images.
+    curvature_config : dict
+        Dictionary configuration for curvature statistics.
     tracing_out_path : str | Path
         Directory to save images from splining to. The ``splining`` directory will be created within and images saved
         there.
@@ -856,6 +859,11 @@ def run_splining(  # noqa: C901
                     )
         return
     LOGGER.info(f"[{topostats_object.filename}] : Calculation of splining disabled.")
+    if curvature_config["run"]:
+        LOGGER.warning(
+            f"[{topostats_object.filename}] : Automatically disabled curvature due to splining being disabled."
+        )
+        curvature_config["run"] = False
     return
 
 
@@ -896,7 +904,7 @@ def run_curvature_stats(
     )
     if curvature_config["run"]:
         if topostats_object.grain_crops is None:
-            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping splining.")
+            LOGGER.warning(f"[{topostats_object.filename}] : No grains exist. Skipping curvature.")
             return
         try:
             curvature_config.pop("run")
@@ -990,8 +998,6 @@ def get_out_paths(
     LOGGER.info(f"Processing : {filename}")
     core_out_path = get_out_path(image_path, base_dir, output_dir).parent / "processed"
     core_out_path.mkdir(parents=True, exist_ok=True)
-    topostats_out_path = core_out_path / "topostats"
-    topostats_out_path.mkdir(parents=True, exist_ok=True)
     filter_out_path = core_out_path / filename / "filters"
     grain_out_path = core_out_path / filename / "grains"
     tracing_out_path = core_out_path / filename / "dnatracing"
@@ -1002,7 +1008,7 @@ def get_out_paths(
         Path.mkdir(tracing_out_path / "curvature", parents=True, exist_ok=True)
         Path.mkdir(tracing_out_path / "splining", parents=True, exist_ok=True)
 
-    return core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path
+    return core_out_path, filter_out_path, grain_out_path, tracing_out_path
 
 
 def process_scan(
@@ -1074,7 +1080,7 @@ def process_scan(
     output_dir = Path(config["output_dir"] if output_dir is None else output_dir)
 
     # Get output paths
-    core_out_path, filter_out_path, grain_out_path, tracing_out_path, topostats_out_path = get_out_paths(
+    core_out_path, filter_out_path, grain_out_path, tracing_out_path = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1142,6 +1148,7 @@ def process_scan(
             core_out_path=core_out_path,
             plotting_config=plotting_config,
             splining_config=splining_config,
+            curvature_config=curvature_config,
         )
 
         # Curvature Stats
@@ -1188,7 +1195,7 @@ def process_scan(
             molecule_stats_df.index.set_names(["grain_number", "molecule_number"], inplace=True)
             molecule_stats_df.reset_index(inplace=True)
             molecule_stats_df["image"] = topostats_object.filename
-            molecule_stats_df["basename"] = topostats_object.img_path
+            molecule_stats_df["basename"] = str(Path(topostats_object.img_path).parent)
         else:
             molecule_stats_df = None
         # Disordered Tracing Statistics - convert nested dictionary to dataframe
@@ -1208,7 +1215,7 @@ def process_scan(
             data={
                 (grain_number, node_number, branch_number): matched_branch.collate_branch_statistics(
                     image=topostats_object.filename,
-                    basename=topostats_object.img_path,
+                    basename=str(Path(topostats_object.img_path).parent),
                 )
                 for grain_number, grain_crop in topostats_object.grain_crops.items()
                 if grain_crop.nodes is not None and len(grain_crop.nodes) > 0
@@ -1236,7 +1243,7 @@ def process_scan(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
@@ -1250,7 +1257,7 @@ def process_scan(
 
     # Save the topostats object to .topostats file.
     save_topostats_file(
-        output_dir=topostats_out_path,
+        output_dir=core_out_path,
         topostats_object=topostats_object,
     )
     # Return filename and dataframes
@@ -1303,7 +1310,7 @@ def process_filters(
     filter_config = config["filter"] if filter_config is None else filter_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, filter_out_path, _, _, topostats_out_path = get_out_paths(
+    core_out_path, filter_out_path, _, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1323,7 +1330,7 @@ def process_filters(
         )
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=topostats_out_path,
+            output_dir=core_out_path,
             topostats_object=topostats_object,
         )
         return (topostats_object.filename, True)
@@ -1371,7 +1378,7 @@ def process_grains(
     grains_config = config["grains"] if grains_config is None else grains_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, _, grain_out_path, _, topostats_out_path = get_out_paths(
+    core_out_path, _, grain_out_path, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1390,7 +1397,7 @@ def process_grains(
         )
         # Save the topostats dictionary object to .topostats file.
         save_topostats_file(
-            output_dir=topostats_out_path,
+            output_dir=core_out_path,
             topostats_object=topostats_object,
         )
         return (topostats_object.filename, True)
@@ -1437,7 +1444,7 @@ def process_grainstats(
     grainstats_config = config["grainstats"] if grainstats_config is None else grainstats_config
     plotting_config = config["plotting"] if plotting_config is None else plotting_config
     output_dir = config["output_dir"]
-    core_out_path, _, grain_out_path, _, topostats_out_path = get_out_paths(
+    core_out_path, _, grain_out_path, _ = get_out_paths(
         image_path=topostats_object.img_path,
         base_dir=base_dir,
         output_dir=output_dir,
@@ -1457,7 +1464,7 @@ def process_grainstats(
             )
             # Save the topostats dictionary object to .topostats file.
             save_topostats_file(
-                output_dir=topostats_out_path,
+                output_dir=core_out_path,
                 topostats_object=topostats_object,
             )
         except:  # noqa: E722  # pylint: disable=bare-except
@@ -1478,7 +1485,7 @@ def process_grainstats(
         )
         if grain_stats_df.shape != (0, 0):
             grain_stats_df["image"] = topostats_object.filename
-            grain_stats_df["basename"] = topostats_object.img_path
+            grain_stats_df["basename"] = str(Path(topostats_object.img_path.name).parent)
             grain_stats_df.index.set_names(["grain_number", "class", "subgrain"], inplace=True)
         else:
             grain_stats_df = None
@@ -1495,6 +1502,7 @@ def check_run_steps(  # noqa: C901
     nodestats_run: bool,
     ordered_tracing_run: bool,
     splining_run: bool,
+    curvature_run: bool,
 ) -> None:
     """
     Check options for running steps (Filter, Grain, Grainstats and DNA tracing) are logically consistent.
@@ -1504,19 +1512,21 @@ def check_run_steps(  # noqa: C901
     Parameters
     ----------
     filter_run : bool
-        Flag for running Filtering.
+        Flag for running filtering.
     grains_run : bool
-        Flag for running Grains.
+        Flag for running grains.
     grainstats_run : bool
-        Flag for running GrainStats.
+        Flag for running grainstats.
     disordered_tracing_run : bool
-        Flag for running Disordered Tracing.
+        Flag for running disordered tracing.
     nodestats_run : bool
-        Flag for running NodeStats.
+        Flag for running nodestats.
     ordered_tracing_run : bool
-        Flag for running Ordered Tracing.
+        Flag for running ordered tracing.
     splining_run : bool
-        Flag for running DNA Tracing.
+        Flag for running splining of DNA traces.
+    curvature_run : bool
+        Flag for running curvature calculations of splined DNA traces.
     """
     LOGGER.debug(f"{filter_run=}")
     LOGGER.debug(f"{grains_run=}")
@@ -1525,7 +1535,25 @@ def check_run_steps(  # noqa: C901
     LOGGER.debug(f"{nodestats_run=}")
     LOGGER.debug(f"{ordered_tracing_run=}")
     LOGGER.debug(f"{splining_run=}")
-    if splining_run:
+    LOGGER.debug(f"{curvature_run=}")
+    if curvature_run:
+        if splining_run is False:
+            LOGGER.error("Curvature enabled but Splining disabled. Please check your configuration file.")
+        if ordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Ordered Tracing disabled. Please check your configuration file.")
+        if nodestats_run is False:
+            LOGGER.error("Curvature enabled but NodeStats disabled. Tracing will use the 'old' method.")
+        if disordered_tracing_run is False:
+            LOGGER.error("Curvature enabled but Disordered Tracing disabled. Please check your configuration file.")
+        elif grainstats_run is False:
+            LOGGER.error("Curvature enabled but Grainstats disabled. Please check your configuration file.")
+        elif grains_run is False:
+            LOGGER.error("Curvature enabled but Grains disabled. Please check your configuration file.")
+        elif filter_run is False:
+            LOGGER.error("Curvature enabled but Filters disabled. Please check your configuration file.")
+        else:
+            LOGGER.info("Configuration run options are consistent, processing can proceed.")
+    elif splining_run:
         if ordered_tracing_run is False:
             LOGGER.error("Splining enabled but Ordered Tracing disabled. Please check your configuration file.")
         if nodestats_run is False:

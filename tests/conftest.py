@@ -24,8 +24,10 @@ import topostats
 from topostats.classes import (
     DisorderedTrace,
     GrainCrop,
+    GrainCurvatureStats,
     MatchedBranch,
     Molecule,
+    MoleculeCurvatureStats,
     Node,
     OrderedTrace,
     TopoStats,
@@ -485,7 +487,7 @@ def dummy_unmatched_branch() -> MatchedBranch:
 
 
 @pytest.fixture()
-def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
+def dummy_ordered_trace(dummy_molecule: Molecule, dummy_grain_curvature_stats: GrainCurvatureStats) -> OrderedTrace:
     """Dummy OrderedTrace for testing."""
     return OrderedTrace(
         tracing_stats={"a": "b"},
@@ -493,6 +495,7 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
             0: {"circular": False, "topology": "a", "toplogy_flip": False, "processing": "nodestats"},
             1: {"circular": False, "topology": "b", "toplogy_flip": True, "processing": "nodestats"},
         },
+        grain_curvature_stats=dummy_grain_curvature_stats,
         molecule_data={0: dummy_molecule, 1: dummy_molecule},
         molecules=2,
         writhe="-",
@@ -508,7 +511,44 @@ def dummy_ordered_trace(dummy_molecule: Molecule) -> OrderedTrace:
 
 
 @pytest.fixture()
-def dummy_molecule() -> Molecule:
+def dummy_molecule_curvature_stats() -> MoleculeCurvatureStats:
+    """Dummy MoleculeCurvatureStats for testing."""
+    return MoleculeCurvatureStats(
+        curvatures=np.array([1, 2, 3, 4, 5, 6]),
+        is_circular=False,
+        num_turns=1,
+        curvature_mean=3.5,
+        curvature_max=6,
+        curvature_min=1,
+        curvature_std=1.7,
+        curvature_var=2.9,
+        curvature_total=21,
+        curvature_median=3.5,
+        curvature_iqr=3,
+        curvature_90th=5,
+    )
+
+
+@pytest.fixture()
+def dummy_grain_curvature_stats() -> GrainCurvatureStats:
+    """Dummy GrainCurvatureStats for testing."""
+    return GrainCurvatureStats(
+        is_circular=False,
+        num_turns=2,
+        curvature_mean=3.5,
+        curvature_max=6,
+        curvature_min=1,
+        curvature_std=1.7,
+        curvature_var=2.9,
+        curvature_total=21,
+        curvature_median=3.5,
+        curvature_iqr=3,
+        curvature_90th=5,
+    )
+
+
+@pytest.fixture()
+def dummy_molecule(dummy_molecule_curvature_stats: MoleculeCurvatureStats) -> Molecule:
     """Dummy Molecule for testing."""
     return Molecule(
         threshold="above",
@@ -523,7 +563,7 @@ def dummy_molecule() -> Molecule:
         end_to_end_distance=0.3456e-7,
         heights=np.array([4]),
         distances=np.array([4]),
-        curvature_stats=np.array([4]),
+        curvature_stats=dummy_molecule_curvature_stats,
         bbox=(1, 2, 3, 4),
         molecule_statistics=None,
     )
@@ -1558,7 +1598,11 @@ def minicircle_small_topostats(default_config: dict[str, Any]) -> TopoStats:
 @pytest.fixture()
 def post_processing_minicircle_topostats_object(default_config: dict[str, Any]) -> TopoStats:
     """
-    Full minicircle_Small image after processing.
+    Full minicircle.spm image after processing.
+
+    Note that this is produced using a default config on minicircle.spm - if in the future it needs updating,
+    reprocess minicircle.spm with a freshly generated defacult config and it **should** not change too much of the
+    other values in the file in addition to the ones you add with the new feature result.
 
     Various elements are removed from this to provide targets for other tests, whilst this fixture itself can be used
     as the comparator to which the results of using those tests can be compared.
@@ -1642,7 +1686,7 @@ def minicircle_small_post_nodestats() -> TopoStats:
 
 
 @pytest.fixture()
-def minicircle_small_post_ordered_tracing() -> GrainCrop:
+def minicircle_small_post_ordered_tracing() -> TopoStats:
     """TopoStats of Minicircle Small post ordered tracing."""
     minicircle_small_file = TRACING_RESOURCES / "minicircle_small_post_ordered_tracing.pkl"
     with minicircle_small_file.open("rb") as f:
@@ -1731,157 +1775,6 @@ def rep_int_post_ordered_tracing() -> TopoStats:
 def graincrop_rep_int(rep_int_post_disordered_tracing: TopoStats) -> TopoStats:
     """GrainCrop of Rep Int post disordered tracing."""
     return rep_int_post_disordered_tracing.grain_crops.above.crops[0]
-
-
-@pytest.fixture()
-def plot_curvatures_topostats_object() -> TopoStats:
-    """A dummy ``TopoStats`` object for testing ``plottingfuncs.Images.plot_curvatures()."""
-    grain0 = np.array(
-        [
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.2, 0.1, 0.2, 0.1, 0.2, 0.0],
-            [0.0, 0.2, 1.1, 1.1, 1.1, 0.2, 0.0],
-            [0.0, 0.2, 1.1, 0.2, 1.1, 0.2, 0.0],
-            [0.0, 0.2, 1.1, 1.1, 1.1, 0.2, 0.0],
-            [0.0, 0.2, 0.1, 0.2, 0.1, 0.2, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ]
-    )
-    grain1 = np.array(
-        [
-            [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-            [0.2, 1.2, 1.1, 1.1, 1.1, 1.1, 0.2, 0.1],
-            [0.1, 1.1, 1.1, 0.2, 0.1, 1.2, 1.1, 0.2],
-            [0.2, 1.1, 0.2, 0.1, 0.2, 0.1, 1.1, 0.1],
-            [0.1, 1.1, 0.1, 0.2, 0.1, 0.2, 1.1, 0.2],
-            [0.2, 0.1, 1.1, 0.1, 0.2, 0.1, 1.1, 0.1],
-            [0.1, 0.2, 1.1, 1.1, 1.1, 1.1, 0.1, 0.2],
-            [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
-        ]
-    )
-    return TopoStats(
-        image=np.array(
-            [
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 1.1, 1.1, 1.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 1.1, 0.2, 1.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 1.1, 1.1, 1.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 1.2, 1.1, 1.1, 1.1, 1.1, 0.2, 0.1],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 1.1, 1.1, 0.2, 0.1, 1.2, 1.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 1.1, 0.2, 0.1, 0.2, 0.1, 1.1, 0.1],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 1.1, 0.1, 0.2, 0.1, 0.2, 1.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 1.1, 0.1, 0.2, 0.1, 1.1, 0.1],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 1.1, 1.1, 1.1, 1.1, 0.1, 0.2],
-                [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1],
-            ]
-        ),
-        grain_crops={
-            0: GrainCrop(
-                image=grain0,
-                mask=np.stack(
-                    (
-                        grain0,
-                        grain0,
-                    ),
-                    axis=2,
-                ),
-                pixel_to_nm_scaling=1,
-                thresholds=[1],
-                filename="Curvature",
-                bbox=[0, 0, 4, 4],
-                padding=1,
-                ordered_trace=OrderedTrace(
-                    molecule_data={
-                        0: Molecule(
-                            splined_coords=np.array(
-                                [
-                                    [2.5, 2.5],
-                                    [2.5, 3.5],
-                                    [2.5, 4.5],
-                                    [3.5, 4.5],
-                                    [4.5, 4.5],
-                                    [4.5, 3.5],
-                                    [4.5, 2.5],
-                                    [3.5, 2.5],
-                                ]
-                            ),
-                            curvature_stats=np.array([0.2, 0.0, 0.2, 0.0, 0.2, 0.0, 0.2, 0.0]),
-                        )
-                    },
-                ),
-            ),
-            1: GrainCrop(
-                image=grain1,
-                mask=np.stack(
-                    (
-                        grain1,
-                        grain1,
-                    ),
-                    axis=2,
-                ),
-                pixel_to_nm_scaling=1,
-                thresholds=[1],
-                filename="Curvature",
-                bbox=[8, 8, 15, 15],
-                padding=1,
-                ordered_trace=OrderedTrace(
-                    molecule_data={
-                        0: Molecule(
-                            splined_coords=np.array(
-                                [
-                                    [1.5, 1.5],
-                                    [1.5, 2.5],
-                                    [1.5, 3.5],
-                                    [1.5, 4.5],
-                                    [1.5, 5.5],
-                                    [2.5, 5.5],
-                                    [2.5, 6.5],
-                                    [3.5, 6.5],
-                                    [4.5, 6.5],
-                                    [5.5, 6.5],
-                                    [6.5, 5.5],
-                                    [6.5, 4.5],
-                                    [6.5, 3.5],
-                                    [6.5, 2.5],
-                                    [5.5, 2.5],
-                                    [4.5, 1.5],
-                                    [3.5, 1.5],
-                                    [2.5, 1.5],
-                                ],
-                            ),
-                            curvature_stats=np.array(
-                                [
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                    0.1,
-                                    0.2,
-                                ]
-                            ),
-                        )
-                    },
-                ),
-            ),
-        },
-    )
 
 
 @pytest.fixture()
