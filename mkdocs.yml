@@ -66,7 +66,6 @@ nav:
           - Curvature: api/measure/curvature.md
           - Feret: api/measure/feret.md
           - Geometry: api/measure/geometry.md
-          - Height Profiles: api/measure/height_profiles.md
       - Plotting: api/plotting.md
       - PlottingFuncs: api/plottingfuncs.md
       - Processing: api/processing.md

@@ -57,7 +57,6 @@ constructed, for example when first creating a `TopoStats` object after reading 
 | `thresholds`          | `float`                                     | Thresholds used to find the grain.                              |
 | `filename`            | `str`                                       | Filename of the image from which the crop was taken.            |
 | `skeleton`            | `npt.NDArray[np.bool_]`                     | 3-D Numpy tensor of the skeletonised mask.                      |
-| `height_profiles`     | `dict[int, [int, npt.NDArray[np.float32]]]` | 3-D Numpy tensor of the height profiles.                        |
 | `stats`               | `dict[int, dict[int, Any]]`                 | Dictionary of grain statistics.                                 |
 | `disordered_trace`    | `DisorderedTrace`                           | A disordered trace for the grain.                               |
 | `nodes`               | `dict[str, Nodes]`                          | Dictionary of grain nodes.                                      |
@@ -219,9 +218,6 @@ output/processed/minicircle.topostats
 │ │ │ │   └stdev_pixel_value
 │ │ │ └total_branch_length
 │ │ ├filename
-│ │ ├height_profiles
-│ │ │ └1
-│ │ │   └0
 │ │ ├image
 │ │ ├mask
 │ │ ├nodes
