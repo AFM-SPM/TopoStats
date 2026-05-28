@@ -96,7 +96,6 @@ graph TB
     click VL "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/validation.py"
     click GM "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/measure/geometry.py"
     click CM2 "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/measure/curvature.py"
-    click HP "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/measure/height_profiles.py"
     click FA "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/measure/feret.py"
     click PS "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/plotting.py"
     click TM "https://github.com/AFM-SPM/TopoStats/blob/main/topostats/theme.py"

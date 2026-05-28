@@ -47,22 +47,21 @@ constructed, for example when first creating a `TopoStats` object after reading 
 
 ## `GrainCrop`
 
-| Attribute             | Type                                        | Description                                                     |
-| --------------------- | ------------------------------------------- | --------------------------------------------------------------- |
-| `image`               | `npt.NDArray[np.float32]`                   | 2-D Numpy array of the cropped image.                           |
-| `mask`                | `npt.NDArray[np.bool_]`                     | 3-D Numpy tensor of the cropped mask.                           |
-| `padding`             | `int`                                       | Padding added to the bounding box of the grain during cropping. |
-| `bbox`                | `tuple[int, int, int, int]`                 | Bounding box of the crop including padding.                     |
-| `pixel_to_nm_scaling` | `float`                                     | Pixel to nanometre scaling factor for the crop.                 |
-| `thresholds`          | `float`                                     | Thresholds used to find the grain.                              |
-| `filename`            | `str`                                       | Filename of the image from which the crop was taken.            |
-| `skeleton`            | `npt.NDArray[np.bool_]`                     | 3-D Numpy tensor of the skeletonised mask.                      |
-| `height_profiles`     | `dict[int, [int, npt.NDArray[np.float32]]]` | 3-D Numpy tensor of the height profiles.                        |
-| `stats`               | `dict[int, dict[int, Any]]`                 | Dictionary of grain statistics.                                 |
-| `disordered_trace`    | `DisorderedTrace`                           | A disordered trace for the grain.                               |
-| `nodes`               | `dict[str, Nodes]`                          | Dictionary of grain nodes.                                      |
-| `ordered_trace`       | `OrderedTrace`                              | An ordered trace for the grain.                                 |
-| `threshold_method`    | `str`                                       | Threshold method used to find grains.`                          |
+| Attribute             | Type                        | Description                                                     |
+| --------------------- | --------------------------- | --------------------------------------------------------------- |
+| `image`               | `npt.NDArray[np.float32]`   | 2-D Numpy array of the cropped image.                           |
+| `mask`                | `npt.NDArray[np.bool_]`     | 3-D Numpy tensor of the cropped mask.                           |
+| `padding`             | `int`                       | Padding added to the bounding box of the grain during cropping. |
+| `bbox`                | `tuple[int, int, int, int]` | Bounding box of the crop including padding.                     |
+| `pixel_to_nm_scaling` | `float`                     | Pixel to nanometre scaling factor for the crop.                 |
+| `thresholds`          | `float`                     | Thresholds used to find the grain.                              |
+| `filename`            | `str`                       | Filename of the image from which the crop was taken.            |
+| `skeleton`            | `npt.NDArray[np.bool_]`     | 3-D Numpy tensor of the skeletonised mask.                      |
+| `stats`               | `dict[int, dict[int, Any]]` | Dictionary of grain statistics.                                 |
+| `disordered_trace`    | `DisorderedTrace`           | A disordered trace for the grain.                               |
+| `nodes`               | `dict[str, Nodes]`          | Dictionary of grain nodes.                                      |
+| `ordered_trace`       | `OrderedTrace`              | An ordered trace for the grain.                                 |
+| `threshold_method`    | `str`                       | Threshold method used to find grains.`                          |
 
 ## `DisorderedTrace`
 
@@ -219,9 +218,6 @@ output/processed/minicircle.topostats
 │ │ │ │   └stdev_pixel_value
 │ │ │ └total_branch_length
 │ │ ├filename
-│ │ ├height_profiles
-│ │ │ └1
-│ │ │   └0
 │ │ ├image
 │ │ ├mask
 │ │ ├nodes
