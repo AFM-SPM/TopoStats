@@ -1066,7 +1066,6 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
             pixel_to_nm_scaling = crop["pixel_to_nm_scaling"] if "pixel_to_nm_scaling" in crop.keys() else None
             filename = crop["filename"] if "filename" in crop.keys() else None
             skeleton = crop["skeleton"] if "skeleton" in crop.keys() else None
-            height_profiles = crop["height_profiles"] if "height_profiles" in crop.keys() else None
             stats = crop["stats"] if "stats" in crop.keys() else None
             disordered_trace = (
                 DisorderedTrace(**crop["disordered_trace"]) if "disordered_trace" in crop.keys() else None
@@ -1088,7 +1087,6 @@ def dict_to_topostats(  # noqa: C901 # pylint: disable=too-many-locals,too-many-
                 pixel_to_nm_scaling=pixel_to_nm_scaling,
                 filename=filename,
                 skeleton=skeleton,
-                height_profiles=height_profiles,
                 stats=stats,
                 disordered_trace=disordered_trace,
                 nodes=nodes,
@@ -1250,29 +1248,3 @@ def write_csv(
     # Return dataframe with index reset
     df.reset_index(inplace=True)
     return df
-
-
-def extract_height_profiles(
-    topostats_object_all: dict[str, TopoStats],
-    output_dir: str | Path,
-    filename: str = "height_profiles.json",
-) -> None:
-    """
-    Write height profiles from all grains across all processed images to JSON.
-
-    Parameters
-    ----------
-    topostats_object_all : dict[str, TopoStats]
-        Dictionary of processed TopoStats objects.
-    output_dir : str | Path
-        Path to save JSON to.
-    filename : str
-        Name of output file, default is ``height_profile.json``.
-    """
-    height_profile_all = {}
-    for image, topostats_object in topostats_object_all.items():
-        height_profile_all[image] = {}
-        for grain_number, grain_crop in topostats_object.require_grain_crops().items():
-            height_profile_all[image][grain_number] = grain_crop.height_profiles
-    dict_to_json(data=height_profile_all, output_dir=output_dir, filename=filename)
-    LOGGER.info(f"Saved all height profiles to {output_dir}/{filename}.")

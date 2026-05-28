@@ -25,7 +25,6 @@ import topostats
 from topostats.config import reconcile_config_args, update_config, update_plotting_config
 from topostats.io import (
     LoadScans,
-    extract_height_profiles,
     find_files,
     read_yaml,
     write_csv,
@@ -360,14 +359,6 @@ def process(args: argparse.Namespace | None = None) -> None:  # noqa: C901
             "Writing 'molecule_statistics.csv', 'branch_statistics.csv' and'matched_branch_statistics.csv' skipped"
         )
 
-    # If requested save height profiles
-    if config["grainstats"]["extract_height_profile"]:
-        extract_height_profiles(
-            topostats_object_all=topostats_object_all,
-            output_dir=config["output_dir"],
-            filename="height_profiles.json",
-        )
-
     # Write config to file
     config["plotting"].pop("plot_dict")
     write_yaml(config, output_dir=config["output_dir"])
@@ -584,13 +575,6 @@ def grainstats(args: argparse.Namespace | None = None) -> None:
     except ValueError as error:
         LOGGER.error("No grains found in any images, consider adjusting your thresholds.")
         LOGGER.error(error)
-    # If requested save height profiles
-    if config["grainstats"]["extract_height_profile"]:
-        extract_height_profiles(
-            topostats_object_all=topostats_object_all,
-            output_dir=config["output_dir"],
-            filename="height_profiles.json",
-        )
 
     # Write config to file
     config["plotting"].pop("plot_dict")

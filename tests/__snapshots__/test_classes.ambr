@@ -107,11 +107,6 @@
       'total_branch_length': 12.3456789,
     }),
     'filename': 'dummy',
-    'height_profiles': dict({
-      1: dict({
-        0: array([1, 2, 3, 4, 5]),
-      }),
-    }),
     'image': array([[0.5213857 , 0.60384184, 0.4709418 , 0.20324795, 0.528759  ,
           0.19103628, 0.2815456 , 0.75368154, 0.5516718 , 0.8637221 ],
          [0.80537224, 0.24837266, 0.18985741, 0.98399556, 0.66999716,
@@ -929,7 +924,6 @@
           'Protein',
         ]),
         'edge_detection_method': 'binary_erosion',
-        'extract_height_profile': True,
         'run': True,
       }),
       'loading': dict({
@@ -1586,11 +1580,6 @@
           'total_branch_length': 12.3456789,
         }),
         'filename': 'example_catenanes',
-        'height_profiles': dict({
-          1: dict({
-            0: array([1, 2, 3, 4, 5]),
-          }),
-        }),
         'image': array([[-0.08690765, -0.08389194, -0.06598138, ...,  0.0110641 ,
           -0.00549059, -0.01650386],
          [-0.12658192, -0.08494661, -0.04653462, ...,  0.04816124,
@@ -1991,11 +1980,6 @@
           'total_branch_length': 12.3456789,
         }),
         'filename': 'example_catenanes',
-        'height_profiles': dict({
-          1: dict({
-            0: array([1, 2, 3, 4, 5]),
-          }),
-        }),
         'image': array([[-0.0217186 ,  0.02818649,  0.04690913, ...,  0.        ,
            0.        ,  0.        ],
          [-0.00605352,  0.01296311,  0.00851397, ...,  0.        ,
@@ -2526,7 +2510,6 @@
           'Protein',
         ]),
         'edge_detection_method': 'binary_erosion',
-        'extract_height_profile': True,
         'run': True,
       }),
       'loading': dict({
@@ -3183,11 +3166,6 @@
           'total_branch_length': 12.3456789,
         }),
         'filename': 'example_rep',
-        'height_profiles': dict({
-          1: dict({
-            0: array([1, 2, 3, 4, 5]),
-          }),
-        }),
         'image': array([[-0.02291669, -0.01486279,  0.0156244 , ...,  0.10213933,
            0.19618212,  0.32910987],
          [ 0.01603361,  0.01538401,  0.03241716, ...,  0.022104  ,

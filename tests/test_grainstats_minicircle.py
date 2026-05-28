@@ -103,27 +103,3 @@ TARGET_HEIGHTS = [
         ]
     ),
 ]
-
-
-def test_trace_extract_height_profile(minicircle_grainstats: GrainStats) -> None:
-    """Test extraction of height profiles of minicircle.spm."""
-    minicircle_grainstats.extract_height_profile = True
-    minicircle_grainstats.calculate_stats()
-    height_profiles = {
-        grain_number: grain_crop.height_profiles
-        for grain_number, grain_crop in minicircle_grainstats.grain_crops.items()
-    }
-    assert isinstance(height_profiles, dict)
-    assert len(height_profiles) == 3
-    for grain_index, grain_height_data in height_profiles.items():
-        # class index is 1, subgrain index is 1 since this is a simple test image with 1 non background
-        # class and no subgrains
-        class_index = 1
-        subgrain_index = 0
-        heights = grain_height_data[class_index][subgrain_index]
-        np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[grain_index])
-    for grain_index, grain_crop in minicircle_grainstats.grain_crops.items():
-        class_index = 1
-        subgrain_index = 0
-        heights = grain_crop.height_profiles[class_index][subgrain_index]
-        np.testing.assert_array_almost_equal(heights, TARGET_HEIGHTS[grain_index])

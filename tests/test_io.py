@@ -27,7 +27,6 @@ from topostats.io import (
     dict_to_hdf5,
     dict_to_json,
     dict_to_topostats,
-    extract_height_profiles,
     find_files,
     get_date_time,
     get_out_path,
@@ -936,7 +935,6 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
             "pixel_to_nm_scaling": dummy_graincrops_dict[0].pixel_to_nm_scaling,
             "filename": dummy_graincrops_dict[0].filename,
             "stats": dummy_graincrops_dict[0].stats,
-            "height_profiles": dummy_graincrops_dict[0].height_profiles,
         }
     }
     with h5py.File(tmp_path / "hdf5_grain_crop.hdf5", "w") as f:
@@ -952,7 +950,6 @@ def test_dict_to_hdf5_graincrop(dummy_graincrops_dict: grains.GrainCrop, tmp_pat
         assert f["0"]["filename"][()].decode("utf-8") == expected["0"]["filename"]  # pylint: disable=no-member
         for key, value in f["0"]["stats"]["1"]["0"].items():
             assert value[()] == expected["0"]["stats"][1][0][key]
-        np.testing.assert_array_equal(f["0"]["height_profiles"]["1"]["0"][()], expected["0"]["height_profiles"][1][0])
 
 
 def test_hdf5_to_dict_all_together_group_path_default(tmp_path: Path) -> None:
@@ -1194,7 +1191,6 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         "pixel_to_nm_scaling": 0.5,
                         "filename": "basic_graincrop",
                         "skeleton": np.array([[0, 1], [1, 0]]),
-                        # "height_profiles": np.array([2, 3]),
                         "stats": None,
                     }
                 },
@@ -1222,7 +1218,6 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         pixel_to_nm_scaling=0.5,
                         filename="basic_graincrop",
                         skeleton=np.array([[0, 1], [1, 0]]),
-                        # height_profiles=np.array([2, 3]),
                         thresholds=[0, 2],
                         stats=None,
                     )
@@ -1255,7 +1250,6 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         "pixel_to_nm_scaling": 0.5,
                         "filename": "basic_graincrop",
                         "skeleton": np.array([[0, 1], [1, 0]]),
-                        # "height_profiles": np.array([2, 3]),
                         "stats": None,
                         "disordered_trace": {
                             "images": {"pruned_skeleton": np.array([[0, 1], [1, 0]])},
@@ -1295,7 +1289,6 @@ def test_dict_to_json(dictionary: dict, target: dict, tmp_path: Path) -> None:
                         pixel_to_nm_scaling=0.5,
                         filename="basic_graincrop",
                         skeleton=np.array([[0, 1], [1, 0]]),
-                        # height_profiles=np.array([2, 3]),
                         stats=None,
                         thresholds=[0, 2],
                         disordered_trace=DisorderedTrace(
@@ -1405,26 +1398,3 @@ def test_write_csv(
     """Test of write_csv() function."""
     _ = write_csv(df=df, dataset=dataset, names=names, index=index, output_dir=tmp_path)
     assert Path(tmp_path / filename).is_file()
-
-
-@pytest.mark.parametrize(
-    ("dummy_graincrop_fixture", "expected"),
-    [
-        pytest.param(
-            "dummy_graincrop",
-            {"file1": {"0": {"1": {"0": [1, 2, 3, 4, 5]}}, "1": {"1": {"0": [1, 2, 3, 4, 5]}}}},
-            id="sample dictionary of TopoStats with height profiles.",
-        ),
-    ],
-)
-def test_extract_height_profiles(
-    dummy_graincrop_fixture: str, tmp_path: Path, expected: dict[str, dict[int, list, int | float]], request
-) -> None:
-    """Test extract_height_profiles."""
-    dummy_graincrop = request.getfixturevalue(dummy_graincrop_fixture)
-    topostats_object_all = {"file1": TopoStats(grain_crops={0: dummy_graincrop, 1: dummy_graincrop})}
-    extract_height_profiles(topostats_object_all=topostats_object_all, output_dir=tmp_path, filename="heights.json")
-    assert Path(tmp_path / "heights.json").is_file()
-    with Path(tmp_path / "heights.json").open(mode="r", encoding="utf-8") as json_file:
-        height_data = json.load(json_file)
-        assert height_data == expected

@@ -949,7 +949,6 @@ def test_run_grainstats(post_processing_minicircle_topostats_object: TopoStats, 
     for _, grain_crop in post_processing_minicircle_topostats_object.grain_crops.items():
         grain_crop.convolved_skeleton = None
         grain_crop.disordered_trace = None
-        grain_crop.height_profiles = None
         grain_crop.nodes = None
         grain_crop.ordered_trace = None
         # Importantly for this test reset the `stats` attribute

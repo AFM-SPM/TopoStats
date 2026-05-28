@@ -370,13 +370,6 @@ def create_parser() -> arg.ArgumentParser:
         "'binary_erosion (default)",
     )
     process_parser.add_argument(
-        "--grainstats-extract-height-profile",
-        dest="grainstats_extract_height_profile",
-        type=bool,
-        required=False,
-        help="Extract height profiles along maximum feret of molecules",
-    )
-    process_parser.add_argument(
         "--grainstats-class-names",
         dest="grainstats_class_names",
         type=list,
@@ -889,13 +882,6 @@ def create_parser() -> arg.ArgumentParser:
         required=False,
         help="Method of edge detection, do NOT change this unless you are sure of what it will do. Options 'canny' and"
         "'binary_erosion (default)",
-    )
-    grainstats_parser.add_argument(
-        "--extract-height-profile",
-        dest="extract_height_profile",
-        type=bool,
-        required=False,
-        help="Extract height profiles along maximum feret of molecules",
     )
     grainstats_parser.add_argument(
         "--class-names",
