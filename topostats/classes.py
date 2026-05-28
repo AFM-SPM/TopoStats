@@ -53,8 +53,6 @@ class GrainCrop:
         3-D Numpy tensor of the skeletonised mask.
     convolved_skeleton : npt.NDArray[np.int32] | None = None
         2-D Numpy array of the convolved skeleton.
-    height_profiles : dict[int, dict[int, npt.NDArray[np.float32]]] | None
-        Nested dictionary  height profiles.
     stats : dict[int, dict[int, Any]] | None
         Dictionary of grain statistics.
     disordered_trace : DisorderedTrace
@@ -79,7 +77,6 @@ class GrainCrop:
         threshold: str | None = None,
         skeleton: npt.NDArray[np.bool_] | None = None,
         convolved_skeleton: npt.NDArray[np.int32] | None = None,
-        height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = None,
         stats: dict[int, dict[int, Any]] | None = None,
         disordered_trace: DisorderedTrace | None = None,
         nodes: dict[str, Node] | None = None,
@@ -111,8 +108,6 @@ class GrainCrop:
             3-D Numpy tensor of the skeletonised mask.
         convolved_skeleton : npt.NDArray[np.int32] | None = None
             2-D Numpy array of the convolved skeleton.
-        height_profiles : dict[int, dict[int, npt.NDArray[np.float32]]] | None
-            3-D Numpy tensor of the height profiles.
         stats : dict[str, int | float] | None
             Dictionary of grain statistics.
         disordered_trace : DisorderedTrace
@@ -134,7 +129,6 @@ class GrainCrop:
         self.thresholds = thresholds
         self.filename = filename
         self.threshold: str | None = threshold
-        self.height_profiles: dict[int, dict[int, npt.NDArray[np.float32]]] | None = height_profiles
         self.stats: dict[str, Any] | None = {} if stats is None else stats
         self.skeleton: npt.NDArray[np.bool_] | None = skeleton
         self.convolved_skeleton: npt.NDArray[np.int32] | None = convolved_skeleton
@@ -168,7 +162,6 @@ class GrainCrop:
             and self.thresholds == other.thresholds
             and self.filename == other.filename
             and self.threshold == other.threshold
-            and self.height_profiles == other.height_profiles
             and self.stats == other.stats
             and np.array_equal(self.skeleton, other.skeleton)
             and self.convolved_skeleton == other.convolved_skeleton
@@ -452,30 +445,6 @@ class GrainCrop:
         self._skeleton = value
 
     @property
-    def height_profiles(self) -> npt.NDArray:
-        """
-        Getter for the ``height_profile`` attribute.
-
-        Returns
-        -------
-        str
-            The image height_profile.
-        """
-        return self._height_profiles
-
-    @height_profiles.setter
-    def height_profiles(self, value: npt.NDArray) -> None:
-        """
-        Setter for the ``height_profile`` attribute.
-
-        Parameters
-        ----------
-        value : str
-            Image ``height_profile``.
-        """
-        self._height_profiles = value
-
-    @property
     def stats(self) -> dict[str, Any]:
         """
         Getter for the stats.
@@ -632,12 +601,6 @@ class GrainCrop:
         if self.filename != other.filename:
             raise ValueError(
                 f"Filename is different\n self.filename  : {self.filename}\n other.filename : {other.filename}"
-            )
-        if self.height_profiles != other.height_profiles:
-            raise ValueError(
-                "Height profiles are different\n"
-                f" self.height_profiles  : {self.height_profiles}\n"
-                f" other.height_profiles : {other.height_profiles}"
             )
         if self.skeleton != other.skeleton:
             raise ValueError(

@@ -535,39 +535,6 @@ def plot_crossing_linetrace_halfmax(
     return fig, ax
 
 
-def plot_height_profiles(height_profiles: list | npt.NDArray) -> tuple:
-    """
-    Plot height profiles.
-
-    Parameters
-    ----------
-    height_profiles : npt.NDArray
-        Single height profile (1-D numpy array of heights) or array of height profiles. If the later the profiles plot
-        will be overlaid.
-
-    Returns
-    -------
-    tuple
-        Matplotlib.pyplot figure object and Matplotlib.pyplot axes object.
-    """
-    # If we have only one profile put it in a list so we can process
-    if not isinstance(height_profiles, list):
-        height_profiles = [height_profiles]
-    # We have 1-D arrays of different sizes, we need to know the maximum length and then pad shorter ones so that the
-    # profiles will roughly align in the middle
-    max_array_length = max(map(len, height_profiles))
-
-    # Pad shorter height profiles to the length of the longest
-    padded_height_profiles = [_pad_array(profile, max_array_length) for profile in height_profiles]
-    fig, ax = plt.subplots(1, 1)
-    max_y = 0
-    for height_profile in padded_height_profiles:
-        ax.plot(np.arange(max_array_length), height_profile)
-        max_y = max_y if max(height_profile) < max_y else max(height_profile) + 1
-    ax.margins(0.01, 0.1)
-    return fig, ax
-
-
 def _pad_array(profile: npt.NDArray, max_array_length: int) -> npt.NDArray:
     """
     Pad array so that it matches the largest profile and plots are somewhat aligned.

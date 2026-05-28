@@ -182,7 +182,6 @@ def _(mo):
     grainstats:
       run: true # Options : true, false
       edge_detection_method: binary_erosion # Options: canny, binary erosion. Do not change this unless you are sure of what this will do.
-      extract_height_profile: true # Extract height profiles along maximum feret of molecules
       class_names: ["DNA", "Protein"] # The names corresponding to each class of a object identified, please specify merged classes after.
     plotting:
       run: true # Options : true, false

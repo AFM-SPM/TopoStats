@@ -15,7 +15,7 @@ import skimage.morphology as skimage_morphology
 from topostats.classes import TopoStats
 from topostats.grains import get_thresholds
 from topostats.logs.logs import LOGGER_NAME
-from topostats.measure import feret, height_profiles
+from topostats.measure import feret
 
 # pylint: disable=too-many-lines
 # pylint: disable=too-many-instance-attributes
@@ -70,8 +70,6 @@ class GrainStats:
     edge_detection_method : str
         Method used for detecting the edges of grain masks before calculating statistics on them.
         Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
-    extract_height_profile : bool
-        Extract the height profile.
     plot_opts : dict
         Plotting options dictionary for the cropped grains.
     metre_scaling_factor : float
@@ -84,7 +82,6 @@ class GrainStats:
         topostats_object: TopoStats,
         base_output_dir: Path,
         edge_detection_method: str = "binary_erosion",
-        extract_height_profile: bool = False,
         plot_opts: dict = None,
         metre_scaling_factor: float = 1e-9,
     ):
@@ -101,8 +98,6 @@ class GrainStats:
         edge_detection_method : str
             Method used for detecting the edges of grain masks before calculating statistics on them.
             Do not change unless you know exactly what this is doing. Options: "binary_erosion", "canny".
-        extract_height_profile : bool
-            Extract the height profile.
         plot_opts : dict
             Plotting options dictionary for the cropped grains.
         metre_scaling_factor : float
@@ -115,7 +110,6 @@ class GrainStats:
         self.start_point = None
         self.filename = topostats_object.filename
         self.edge_detection_method = edge_detection_method
-        self.extract_height_profile = extract_height_profile
         self.plot_opts = plot_opts
         self.metre_scaling_factor = metre_scaling_factor
 
@@ -170,7 +164,6 @@ class GrainStats:
         Statistics are added to the ``GrainCrop.stats`` attribute. This is a nested dictionary, with the top-level of
         nesting being the class-type and the nesting within the subgrain type which has values for all statistics.
         """
-        all_height_profiles: dict[int, npt.NDArray] = {}
         if self.grain_crops is None or len(self.grain_crops) == 0:
             LOGGER.warning(
                 f"[{self.filename}] : No grain crops for this image, grain statistics can not be calculated."
@@ -188,9 +181,7 @@ class GrainStats:
                         absolute=self.topostats_object.config["grains"]["threshold_absolute"],
                     )
                 LOGGER.debug(f"Processing grain {grain_index}")
-                all_height_profiles[grain_index] = {}
                 grain_crop.stats = {}
-                grain_crop.height_profiles = {}
                 image = grain_crop.image
                 mask = grain_crop.mask
                 grain_bbox = grain_crop.bbox
@@ -207,7 +198,6 @@ class GrainStats:
                 # Iterate over all the classes except background
                 for class_index in range(1, mask.shape[2]):
                     grain_crop.stats[class_index] = {}
-                    grain_crop.height_profiles[class_index] = {}
                     class_mask = mask[:, :, class_index]
                     labelled_class_mask = skimage_measure.label(class_mask)
                     # Split the class into connected components
@@ -262,12 +252,6 @@ class GrainStats:
                         feret_statistics = feret.min_max_feret(points)
                         feret_statistics["min_feret"] = feret_statistics["min_feret"] * length_scaling_factor
                         feret_statistics["max_feret"] = feret_statistics["max_feret"] * length_scaling_factor
-
-                        if self.extract_height_profile:
-                            grain_crop.height_profiles[class_index][subgrain_index] = (
-                                height_profiles.interpolate_height_profile(img=image, mask=subgrain_only_mask)
-                            )
-                            LOGGER.debug(f"[{self.filename}] : Height profiles extracted.")
 
                         # Save the stats to dictionary. Note that many of the stats are multiplied by a scaling factor to convert
                         # from pixel units to nanometres.

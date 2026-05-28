@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 from matplotlib.figure import Figure
 
-from topostats.plotting import TopoSum, _pad_array, plot_height_profiles, toposum
+from topostats.plotting import TopoSum, _pad_array, toposum
 
 # pylint: disable=protected-access
 
@@ -166,57 +166,6 @@ def test_plot_violin(toposum_object_single_directory: TopoSum) -> None:
 def test_plot_violin_multiple_directories(toposum_object_multiple_directories: TopoSum) -> None:
     """Test plotting Kernel Density Estimate and Histogram for area with multiple images."""
     fig, _ = toposum_object_multiple_directories.sns_violinplot()
-    return fig
-
-
-@pytest.mark.mpl_image_compare(baseline_dir="resources/img/height_profiles/")
-@pytest.mark.parametrize(
-    ("height_profile"),
-    [
-        pytest.param(np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]), id="Single height profile"),
-        pytest.param(
-            [
-                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
-                np.asarray([0, 0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0, 0]),
-            ],
-            id="Two arrays of same length",
-        ),
-        pytest.param(
-            [
-                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
-                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
-            ],
-            id="Two arrays of different length (diff in length is even)",
-        ),
-        pytest.param(
-            [
-                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
-                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0, 0]),
-            ],
-            id="Two arrays of different length (diff in length is odd)",
-        ),
-        pytest.param(
-            [
-                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
-                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
-                np.asarray([0, 0, 1, 5, 6, 7, 6, 5, 1, 0, 0, 0]),
-            ],
-            id="Three arrays of different length (one even, one odd)",
-        ),
-        pytest.param(
-            [
-                np.asarray([0, 0, 0, 2, 3, 4, 4, 4, 3, 2, 0, 0, 0]),
-                np.asarray([0, 0, 2, 4, 5, 5, 5, 4, 2, 0, 0]),
-                np.asarray([0, 0, 1, 5, 6, 7, 6, 5, 1, 0, 0, 0]),
-                np.asarray([0, 0, 1, 4, 1, 0, 0]),
-            ],
-            id="Four arrays of different length (one even, two odd)",
-        ),
-    ],
-)
-def test_plot_height_profiles(height_profile: list | npt.NDArray) -> None:
-    """Test plotting of height profiles."""
-    fig, _ = plot_height_profiles(height_profile)
     return fig
 
 

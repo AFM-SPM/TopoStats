@@ -314,12 +314,6 @@ DEFAULT_CONFIG_SCHEMA = Schema(
                 "binary_erosion",
                 "canny",
             ),
-            "extract_height_profile": Or(
-                True,
-                False,
-                error="Invalid value in config for 'grainstats.extract_height_profile',"
-                "valid values are 'True' or 'False'",
-            ),
             "class_names": [str],
         },
         "disordered_tracing": {
