@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 import pytest
 from matplotlib.figure import Figure
