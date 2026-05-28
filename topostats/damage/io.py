@@ -194,23 +194,6 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 )
                 molecule_data_collection.add_molecule(molecule_data)
 
-            # get nodestats data for the grain. messy but I don't want to refactor how topostats stores this atm.
-            all_node_coords = []
-            grain_nodes = grain_crop.nodes
-            if grain_nodes is None:
-                print(f"WARN: no node data found for grain {grain_index} in file{filename}, skipping this grain.")
-                continue
-            num_nodes = len(grain_nodes)
-            for _node_index, node_data in grain_nodes.items():
-                node_coords = node_data.node_coords
-                assert node_coords is not None
-                # adjust the node coords to account for padding
-                node_coords[:, 0] -= bbox_added_top
-                node_coords[:, 1] -= bbox_added_left
-                for node_coord in node_coords:
-                    all_node_coords.append(node_coord)
-            all_node_coords_array = np.array(all_node_coords)
-
             grain_model = UnanalysedGrain(
                 file_grain_id=grain_index,
                 filename=filename,
@@ -228,8 +211,6 @@ def load_grain_models_from_topo_files(  # noqa: C901
                 added_left=bbox_added_left,
                 added_top=bbox_added_top,
                 padding=bbox_padding,
-                node_coords=all_node_coords_array,
-                num_nodes=num_nodes,
                 smallest_bounding_area=smallest_bounding_area,
             )
 

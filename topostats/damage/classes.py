@@ -381,8 +381,6 @@ class UnanalysedGrain(BaseDamageAnalysis):
     added_top: int
     padding: int
     mask: npt.NDArray[np.bool_]
-    node_coords: npt.NDArray[np.float64]
-    num_nodes: int
 
     def __str__(self) -> str:
         """Return a simplified string representation of the grain."""
@@ -553,8 +551,6 @@ class GrainModel(UnanalysedGrain):
             added_top=unanalysed_grain.added_top,
             padding=unanalysed_grain.padding,
             mask=unanalysed_grain.mask,
-            node_coords=unanalysed_grain.node_coords,
-            num_nodes=unanalysed_grain.num_nodes,
         )
 
     def __str__(self) -> str:
