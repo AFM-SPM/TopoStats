@@ -33,6 +33,11 @@ authors:
     email: mcgamill1@sheffield.ac.uk
     affiliation: The University of Sheffield
     orcid: "https://orcid.org/0009-0007-3250-5299"
+  - given-names: Laura
+    family-name: Wiggins
+    email: l.wiggins@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: "https://orcid.org/0000-0003-4615-2379"
   - email: mdu12@sheffield.ac.uk
     affiliation: The University of Sheffield
     given-names: Mingxue
@@ -42,6 +47,11 @@ authors:
     family-names: Beton
     affiliation: CSSB Hamburg, Hamburg, DE
     orcid: 0000-0001-7499-3867
+  - given-names: Toby
+    family-names: Allwood
+    email: t.allwood@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: "https://orcid.org/0009-0005-7523-7023"
   - given-names: Luzie
     family-names: Helfmann
     email: helfmann@zib.de
