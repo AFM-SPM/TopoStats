@@ -985,13 +985,9 @@ def calculate_turn_in_distance(
                 )
             except ValueError as e:
                 if "window length exceeds total length of the trace" in str(e):
-                    print(
-                        f"warn: could not calculate turn in distance for grain {global_grain_id} molecule {molecule_id}"
-                        f" because the window length exceeds total length of the trace: {e}"
-                    )
-                    bad_grains.add(global_grain_id)
-                    continue
-                raise e
+                    turn_in_distances = np.full(len(molecule_data.spline_coords_nm), np.nan)
+                else:
+                    raise e
             molecule_data.curvature_data.turn_in_distances_deg = turn_in_distances
             molecule_data.curvature_data.turn_in_distance_window_length_nm = turn_in_distance_window_length_nm
             molecule_data.curvature_data.turn_in_distance_window_end_sampling_points = (
