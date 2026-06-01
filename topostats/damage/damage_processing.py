@@ -589,9 +589,10 @@ def calculate_indirect_defect_gaps(  # noqa: C901
 
 def find_curvature_defects(
     grain_collection: GrainCollection,
-    curvature_defect_method: Literal["iqr", "absolute"],
+    curvature_defect_method: Literal["iqr", "absolute", "turn_in_distance"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
+    curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
@@ -601,7 +602,7 @@ def find_curvature_defects(
     ----------
     grain_collection : GrainCollection
         The GrainCollection.
-    curvature_defect_method : Literal["iqr", "absolute"]
+    curvature_defect_method : Literal["iqr", "absolute", "turn_in_distance"]
         The method to use for finding curvature defects. Options are "iqr" for interquartile range method or "absolute"
         for an absolute threshold in inverse nanometres.
     curvature_threshold_iqr_multiplier : float
@@ -609,6 +610,8 @@ def find_curvature_defects(
     curvature_threshold_absolute_pernm : float
         The absolute threshold in inverse nanometres for curvature defect detection when using the "absolute"
         method.
+    curvature_turn_in_distance_turn_threshold_deg : float
+        The turn threshold in degrees for the "turn_in_distance" method for curvature defect detection.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect.
 
@@ -671,6 +674,37 @@ def find_curvature_defects(
                 curvature_threshold_absolute = curvature_threshold_absolute_pernm / grain_model.pixel_to_nm_scaling
                 curvature_defects_bool = curvatures_abs > curvature_threshold_absolute
 
+                ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
+                    defects_bool=curvature_defects_bool,
+                    trace_points_nm=molecule_data.spline_coords_nm,
+                    distance_to_previous_points_nm=distances_nm(
+                        molecule_data.spline_coords_nm, circular=molecule_data.circular
+                    ),
+                    circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+                )
+
+                molecule_data.curvature_defect_data = MoleculeDefectData(
+                    ordered_defects_and_gaps=ordered_defect_gap_list
+                )
+    elif curvature_defect_method == "turn_in_distance":
+        for global_grain_id, grain_model in grain_collection.items():
+            for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+                molecule_data_curvature_data = molecule_data.curvature_data
+                if molecule_data_curvature_data is None:
+                    print(
+                        f"no curvature data for grain {global_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
+                    )
+                    bad_grains.add(global_grain_id)
+                    continue
+                turn_in_distances = molecule_data_curvature_data.turn_in_distances_deg
+                if turn_in_distances is None:
+                    print(
+                        f"no turn in distance data for grain {global_grain_id} molecule {molecule_id}, skipping curvature defect detection for this molecule"
+                    )
+                    bad_grains.add(global_grain_id)
+                    continue
+                curvature_defects_bool = turn_in_distances > curvature_turn_in_distance_turn_threshold_deg
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords_nm,
@@ -774,9 +808,10 @@ def find_defects_in_height_and_curvature(
     height_defect_method: Literal["iqr", "absolute"],
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
-    curvature_defect_method: Literal["iqr", "absolute"],
+    curvature_defect_method: Literal["iqr", "absolute", "turn_in_distance"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
+    curvature_turn_in_distance_turn_threshold_deg: float,
     connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
@@ -800,6 +835,10 @@ def find_defects_in_height_and_curvature(
         The multiplier for the interquartile range when using the "iqr" method for curvature defect detection.
     curvature_threshold_absolute_pernm : float
         The absolute threshold in inverse nanometres for curvature defect detection when using the "absolute" method.
+    turn_in_distance_turn_threshold_deg : float
+        The threshold in degrees for turn in distance defect detection when using the "turn_in_distance" method for
+        curvature defect detection. If the turn turns more than this value within the window length (defined
+        in the call to the function that calculates the turn in distance), then it is considered a defect.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect
 
@@ -816,6 +855,7 @@ def find_defects_in_height_and_curvature(
         curvature_defect_method=curvature_defect_method,
         curvature_threshold_iqr_multiplier=curvature_threshold_iqr_multiplier,
         curvature_threshold_absolute_pernm=curvature_threshold_absolute_pernm,
+        curvature_turn_in_distance_turn_threshold_deg=curvature_turn_in_distance_turn_threshold_deg,
         connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
     )
     bad_grains.update(additional_bad_grains)
@@ -974,8 +1014,8 @@ def calculate_turn_in_distance(
 ) -> set[int]:
     """Calculate the turn in distance for each molecule in the grain collection."""
     bad_grains = set()
-    for global_grain_id, grain_model in grain_collection.items():
-        for molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+    for _global_grain_id, grain_model in grain_collection.items():
+        for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
             try:
                 turn_in_distances = calculate_turn_in_distance_for_trace_deg(
                     trace_coords_nm=molecule_data.spline_coords_nm,
