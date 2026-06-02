@@ -231,6 +231,7 @@ class MoleculeData(UnanalysedMoleculeData):
     curvature_defect_data: MoleculeDefectData | None = None
     height_defect_data: MoleculeDefectData | None = None
     coinciding_defect_threshold_nm: float
+    smoothed_spline_coords_heights: npt.NDArray[np.float64] | None = None
 
     def from_unanalysed_molecule_data(
         unanalysed_data: UnanalysedMoleculeData,
@@ -252,7 +253,39 @@ class MoleculeData(UnanalysedMoleculeData):
             curvature_data=new_molecule_curvature_stats,
             pixel_to_nm_scaling=unanalysed_data.pixel_to_nm_scaling,
             coinciding_defect_threshold_nm=coinciding_defect_threshold_nm,
+            smoothed_spline_coords_heights=None,
         )
+
+    @computed_field
+    @property
+    def distances_nm(self) -> npt.NDArray[np.float64]:
+        """Get the distances between points in nanometres."""
+        distances_nm = []
+        for index in range(len(self.spline_coords_nm)):
+            if index == 0:
+                if not self.circular:
+                    distances_nm.append(0.0)
+                    continue
+            point = self.spline_coords_nm[index]
+            previous_point = self.spline_coords_nm[index - 1]
+            distance = np.linalg.norm(point - previous_point)
+            distances_nm.append(distance)
+        return np.array(distances_nm)
+
+    @computed_field
+    @property
+    def point_spacing_nm(self) -> np.float64:
+        """Calculate the average spacing between points in nanometres."""
+        # drop the 0 from the start if not circular
+        if not self.circular:
+            distances_nm = self.distances_nm[1:]
+        else:
+            distances_nm = self.distances_nm
+            if np.max(np.diff(distances_nm, axis=0)) > 1e-3:
+                raise ValueError(
+                    f"molecule with id {self.molecule_id} has inconsistent point spacing, with distances {distances_nm}"
+                )
+        return np.mean(distances_nm)
 
     @computed_field
     @property
