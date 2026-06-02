@@ -5,7 +5,7 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
-from topostats.array_manipulation import calculate_distance_of_region, distances_nm
+from topostats.array_manipulation import calculate_distance_of_region, distances_nm, rolling_average
 from topostats.damage.classes import Defect, Gap, GrainCollection, MoleculeDefectData, OrderedDefectGapList
 from topostats.measure.curvature import (
     angle_diff_signed,
@@ -1033,4 +1033,36 @@ def calculate_turn_in_distance(
             molecule_data.curvature_data.turn_in_distance_window_end_sampling_points = (
                 turn_in_distance_window_end_sampling_points
             )
+    return bad_grains
+
+
+def smooth_height_traces(
+    grain_collection: GrainCollection,
+    window_length_nm: float,
+) -> set[int]:
+    """Smooth the height traces for each molecule in the grain collection using a rolling average window."""
+    bad_grains = set()
+    for _global_grain_id, grain_model in grain_collection.items():
+        for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+            try:
+                heights_nm = molecule_data.spline_coords_heights
+                point_spacing_nm = molecule_data.point_spacing_nm
+                window_length_points = int(window_length_nm / point_spacing_nm)
+                if window_length_points < 1:
+                    raise ValueError(
+                        f"window length of {window_length_nm} nm is too small for the point spacing of"
+                        f"{point_spacing_nm} nm, resulting in a window length of {window_length_points} points, which is"
+                        f" less than 1"
+                    )
+                smoothed_heights_nm = rolling_average(
+                    data=heights_nm,
+                    window_size_points=window_length_points,
+                    circular=molecule_data.circular,
+                )
+            except ValueError as e:
+                if "window length exceeds total length of the trace" in str(e):
+                    smoothed_heights_nm = heights_nm
+                else:
+                    raise e
+            molecule_data.smoothed_spline_coords_heights = smoothed_heights_nm
     return bad_grains
