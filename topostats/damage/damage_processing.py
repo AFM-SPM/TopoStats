@@ -587,7 +587,7 @@ def calculate_indirect_defect_gaps(  # noqa: C901
     return indirect_gaps
 
 
-def find_curvature_defects(
+def find_curvature_defects(  # noqa: C901
     grain_collection: GrainCollection,
     curvature_defect_method: Literal["iqr", "absolute", "turn_in_distance"],
     curvature_threshold_iqr_multiplier: float,
@@ -704,7 +704,7 @@ def find_curvature_defects(
                     )
                     bad_grains.add(global_grain_id)
                     continue
-                curvature_defects_bool = turn_in_distances > curvature_turn_in_distance_turn_threshold_deg
+                curvature_defects_bool = np.abs(turn_in_distances) > curvature_turn_in_distance_turn_threshold_deg
                 ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
                     defects_bool=curvature_defects_bool,
                     trace_points_nm=molecule_data.spline_coords_nm,
