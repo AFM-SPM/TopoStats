@@ -327,3 +327,20 @@ def calculate_distance_of_region(
     start_half_distance = distance_to_previous_points_nm[start_index] / 2
     end_half_distance = distance_to_previous_points_nm[end_index + 1] / 2
     return distance_to_end + distance_to_start + start_half_distance + end_half_distance
+
+
+def rolling_average(data: npt.NDArray[np.float64], window_size_points: int, circular: bool) -> npt.NDArray[np.float64]:
+    """Calculate the rolling average of a 1D array with a specified window size and circular / linear padding."""
+    half_window_size = window_size_points // 2
+    # pad the data
+    # for circular, pad by wrapping
+    to_pad = half_window_size
+    if circular:
+        padded_data = np.pad(data, to_pad, mode="wrap")
+    # for linear, pad with the edge values
+    else:
+        padded_data = np.pad(data, to_pad, mode="edge")
+    # convolve with a uniform kernel
+    kernel = np.ones(window_size_points) / window_size_points
+    convolved = np.convolve(padded_data, kernel, mode="valid")
+    return np.array(convolved).astype(np.float64)
