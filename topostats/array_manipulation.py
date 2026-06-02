@@ -339,7 +339,6 @@ def rolling_average(data: npt.NDArray[np.float64], window_size_points: int, circ
         to_pad_left = half_window_size - 1
     else:
         to_pad_left = half_window_size
-    print(f"to pad: ({to_pad_left}, {to_pad_right})")
     if circular:
         padded_data = np.pad(data, (to_pad_left, to_pad_right), mode="wrap")
     # for linear, pad with the edge values
