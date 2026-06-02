@@ -276,15 +276,13 @@ class MoleculeData(UnanalysedMoleculeData):
     @property
     def point_spacing_nm(self) -> np.float64:
         """Calculate the average spacing between points in nanometres."""
-        # drop the 0 from the start if not circular
-        if not self.circular:
-            distances_nm = self.distances_nm[1:]
-        else:
-            distances_nm = self.distances_nm
-            if np.max(np.diff(distances_nm, axis=0)) > 1e-3:
-                raise ValueError(
-                    f"molecule with id {self.molecule_id} has inconsistent point spacing, with distances {distances_nm}"
-                )
+        # drop the first point since this one is often errant and there's nothing that can be done about it,
+        # we are just checking if the rest are regular.
+        distances_nm = self.distances_nm[1:]
+        if np.max(np.diff(distances_nm, axis=0)) > 1e-3:
+            raise ValueError(
+                f"molecule with id {self.molecule_id} has inconsistent point spacing, with distances {distances_nm}"
+            )
         return np.mean(distances_nm)
 
     @computed_field
@@ -962,3 +960,10 @@ class GrainCollection(BaseDamageAnalysis):
                 assert global_grain_id is not None
                 sample_dict[global_grain_id] = grain
         return GrainCollection(grains=sample_dict)
+
+    def get_random_grain(self, seed: int = 0) -> GrainModel:
+        """Return a random grain from the collection."""
+        rng = np.random.default_rng(seed)
+        grain_ids = list(self.grains.keys())
+        random_grain_id = rng.choice(grain_ids)
+        return self.grains[random_grain_id]
