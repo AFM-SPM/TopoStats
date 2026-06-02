@@ -334,13 +334,19 @@ def rolling_average(data: npt.NDArray[np.float64], window_size_points: int, circ
     half_window_size = window_size_points // 2
     # pad the data
     # for circular, pad by wrapping
-    to_pad = half_window_size
+    to_pad_right = half_window_size
+    if window_size_points % 2 == 0:
+        to_pad_left = half_window_size - 1
+    else:
+        to_pad_left = half_window_size
+    print(f"to pad: ({to_pad_left}, {to_pad_right})")
     if circular:
-        padded_data = np.pad(data, to_pad, mode="wrap")
+        padded_data = np.pad(data, (to_pad_left, to_pad_right), mode="wrap")
     # for linear, pad with the edge values
     else:
-        padded_data = np.pad(data, to_pad, mode="edge")
+        padded_data = np.pad(data, (to_pad_left, to_pad_right), mode="edge")
     # convolve with a uniform kernel
     kernel = np.ones(window_size_points) / window_size_points
     convolved = np.convolve(padded_data, kernel, mode="valid")
+    assert len(convolved) == len(data), f"Expected convolved length to be {len(data)}, but got {len(convolved)}"
     return np.array(convolved).astype(np.float64)
