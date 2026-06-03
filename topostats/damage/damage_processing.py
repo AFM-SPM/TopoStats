@@ -726,9 +726,10 @@ def find_curvature_defects(  # noqa: C901
 
 def find_height_defects(
     grain_collection: GrainCollection,
-    height_defect_method: Literal["iqr", "absolute"],
+    height_defect_method: Literal["iqr", "absolute", "percentage_of_median"],
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
+    height_threshold_percentage_of_median: float,
     connect_close_defect_threshold_nm: float | None,
 ) -> set[int]:
     """
@@ -745,6 +746,9 @@ def find_height_defects(
         The multiplier for the interquartile range when using the "iqr" method for height defect detection.
     height_threshold_absolute_nm : float
         The absolute threshold in nanometres for height defect detection when using the "absolute" method.
+    height_threshold_percentage_of_median : float
+        The percentage of the median height of each *grain* to use as a threshold for height defect detection when
+        using the "percentage_of_median" method.
     connect_close_defect_threshold_nm : float | None
         The distance in nanometres between defects below which two defects will be connected into one defect.
 
@@ -797,6 +801,32 @@ def find_height_defects(
                 )
 
                 molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
+    elif height_defect_method == "percentage_of_median":
+        for _global_grain_id, grain_model in grain_collection.items():
+            all_grain_heights = []
+            for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+                heights_nm = molecule_data.spline_coords_heights
+                all_grain_heights.extend(heights_nm)
+            all_grain_heights = np.array(all_grain_heights)
+            median_height = np.median(all_grain_heights)
+            height_threshold_percentage_of_median_value = median_height * height_threshold_percentage_of_median
+            for _molecule_id, molecule_data in grain_model.molecule_data_collection.items():
+                heights_nm = molecule_data.spline_coords_heights
+                spline_coords_nm = molecule_data.spline_coords_nm
+                height_defects_bool = heights_nm > height_threshold_percentage_of_median_value
+
+                ordered_defect_gap_list = get_defects_and_gaps_from_bool_array(
+                    defects_bool=height_defects_bool,
+                    trace_points_nm=spline_coords_nm,
+                    distance_to_previous_points_nm=distances_nm(
+                        coords_nm=spline_coords_nm, circular=molecule_data.circular
+                    ),
+                    circular=molecule_data.circular,
+                    connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
+                )
+
+                molecule_data.height_defect_data = MoleculeDefectData(ordered_defects_and_gaps=ordered_defect_gap_list)
+
     else:
         raise ValueError(f"Invalid height defect method: {height_defect_method}")
 
@@ -808,6 +838,7 @@ def find_defects_in_height_and_curvature(
     height_defect_method: Literal["iqr", "absolute"],
     height_threshold_iqr_multiplier: float,
     height_threshold_absolute_nm: float,
+    height_threshold_percentage_of_median: float,
     curvature_defect_method: Literal["iqr", "absolute", "turn_in_distance"],
     curvature_threshold_iqr_multiplier: float,
     curvature_threshold_absolute_pernm: float,
@@ -828,6 +859,9 @@ def find_defects_in_height_and_curvature(
         The multiplier for the interquartile range when using the "iqr" method for height defect detection.
     height_threshold_absolute_nm : float
         The absolute threshold in nanometres for height defect detection when using the "absolute" method
+    height_threshold_percentage_of_median : float
+        The percentage of the median height of each *grain* to use as a threshold for height defect detection
+        when using the "percentage_of_median" method.
     curvature_defect_method : Literal["iqr", "absolute"]
         The method to use for finding curvature defects. Options are "iqr" for interquartile range method or "absolute"
         for an absolute threshold in inverse nanometres.
@@ -865,6 +899,7 @@ def find_defects_in_height_and_curvature(
         height_defect_method=height_defect_method,
         height_threshold_iqr_multiplier=height_threshold_iqr_multiplier,
         height_threshold_absolute_nm=height_threshold_absolute_nm,
+        height_threshold_percentage_of_median=height_threshold_percentage_of_median,
         connect_close_defect_threshold_nm=connect_close_defect_threshold_nm,
     )
     bad_grains.update(additional_bad_grains)
