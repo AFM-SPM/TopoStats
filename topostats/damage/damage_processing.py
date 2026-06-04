@@ -724,7 +724,7 @@ def find_curvature_defects(  # noqa: C901
     return bad_grains
 
 
-def find_height_defects(
+def find_height_defects(  # noqa: C901
     grain_collection: GrainCollection,
     height_defect_method: Literal["iqr", "absolute", "percentage_of_median"],
     height_threshold_iqr_multiplier: float,

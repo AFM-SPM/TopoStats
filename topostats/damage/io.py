@@ -84,7 +84,7 @@ def load_grain_models_from_topo_files(  # noqa: C901
             raise KeyError(f"could not find file data for image {filename} in loaded scans. debug this!") from e
 
         full_image = np.array(topostats_obj.image)
-        full_mask = np.array(topostats_obj.full_mask_tensor)[:, :, 0]
+        full_mask = np.array(topostats_obj.full_mask_tensor)[:, :, 1]
         pixel_to_nm_scaling = topostats_obj.require_pixel_to_nm_scaling()
         grain_crops = topostats_obj.require_grain_crops()
 
