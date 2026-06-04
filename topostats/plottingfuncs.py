@@ -155,6 +155,8 @@ class Images:
         Optionally number each grain in a plot.
     trace_linewidth : float
         Width of lines when plotting splines/curvature.
+    pad_inches : float
+        Inches to pad a figure by to allow for heightscales + names.
     """
 
     def __init__(
@@ -187,6 +189,7 @@ class Images:
         savefig_dpi: str | float | None = None,
         number_grains: bool = False,
         trace_linewidth: float = 1.0,
+        pad_inches: float | None = None,
     ) -> None:
         """
         Initialise the class.
@@ -256,6 +259,8 @@ class Images:
             Optionally number each grain in a plot.
         trace_linewidth : float
             Width of lines when plotting splines/curvature.
+        pad_inches : float
+            Inches to pad a figure by to allow for heightscales + names.
         """
         if style is None:
             style = "topostats.mplstyle"
@@ -289,6 +294,7 @@ class Images:
         self.savefig_dpi = mpl.rcParams["savefig.dpi"] if savefig_dpi is None else savefig_dpi
         self.number_grains = number_grains
         self.trace_linewidth = trace_linewidth
+        self.pad_inches = pad_inches if pad_inches else mpl.rcParams["savefig.pad_inches"]
 
     def plot_histogram_and_save(self) -> tuple | None:
         """
@@ -608,7 +614,11 @@ class Images:
                     dpi=self.savefig_dpi,
                 )
             else:
-                plt.savefig((self.output_dir / f"{self.filename}.{self.savefig_format}"), dpi=self.savefig_dpi)
+                plt.savefig(
+                    (self.output_dir / f"{self.filename}.{self.savefig_format}"),
+                    pad_inches=self.pad_inches,
+                    dpi=self.savefig_dpi,
+                )
         else:
             plt.xlabel("Nanometres")
             plt.ylabel("Nanometres")
