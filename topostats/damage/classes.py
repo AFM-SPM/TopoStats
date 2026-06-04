@@ -230,6 +230,7 @@ class MoleculeData(UnanalysedMoleculeData):
     curvature_data: NewMoleculeCurvatureStats
     curvature_defect_data: MoleculeDefectData | None = None
     height_defect_data: MoleculeDefectData | None = None
+    beak_defect_data: MoleculeDefectData | None = None
     coinciding_defect_threshold_nm: float
     smoothed_spline_coords_heights: npt.NDArray[np.float64] | None = None
 
