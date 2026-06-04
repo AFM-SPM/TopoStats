@@ -27,7 +27,7 @@ else:
     TOPOSTATS_BASE_VERSION = str(TOPOSTATS_VERSION)
     TOPOSTATS_COMMIT = ""
 CONFIG_DOCUMENTATION_REFERENCE = """# For more information on configuration and how to use it:
-# https://afm-spm.github.io/TopoStats/main/configuration.html\n"""
+# https://afm-spm.github.io/TopoStats/dev/usage/configuration/\n"""
 
 colormaps.register(cmap=Colormap("nanoscope").get_cmap())
 colormaps.register(cmap=Colormap("gwyddion").get_cmap())
