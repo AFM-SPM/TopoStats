@@ -632,6 +632,7 @@ class GrainModel(UnanalysedGrain):
         curvature_defects: bool = False,
         height_defects: bool = False,
         coinciding_defects: bool = False,
+        beak_defects: bool = False,
         title_mode: str = "basic",
         curvature_absolute: bool = False,
         curvature_norm_bounds: tuple[float, float] = (-0.1, 0.1),
@@ -816,6 +817,20 @@ class GrainModel(UnanalysedGrain):
                         edgecolors="yellow",
                         linewidths=1,
                     )
+        if beak_defects:
+            # plot all the beak defects as red dots
+            for molecule_id, molecule_data in self.molecule_data_collection.items():
+                molecule_beak_defect_data = molecule_data.beak_defect_data
+                if molecule_beak_defect_data is None:
+                    raise ValueError(f"molecule with id {molecule_data.molecule_id} has no beak defect data")
+                for item in molecule_beak_defect_data.ordered_defects_and_gaps.defect_gap_list:
+                    if isinstance(item, Defect):
+                        defect_start_index = item.start_index
+                        defect_end_index = item.end_index
+                        spline_coords = self.molecule_data_collection[molecule_id].spline_coords_px
+                        defect_coords = spline_coords[defect_start_index:defect_end_index]
+                        ax.scatter(defect_coords[:, 1], defect_coords[:, 0], color="red", s=10)
+
         # set x ticks to be in nm
         x_ticks = ax.get_xticks()
         x_ticks_nm = x_ticks * self.pixel_to_nm_scaling
