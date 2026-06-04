@@ -23,6 +23,8 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
@@ -32,14 +34,14 @@ keywords = [
   "atomic force microscopy",
   "image processing",
 ]
-requires-python = ">=3.10, <3.12"
+requires-python = ">=3.10, <3.14"
 dependencies = [
   "art",
   "AFMReader",
   "h5py",
   "keras",
   "matplotlib",
-  "numpy~=2.0.0", # Until TensorFlow supports newer versions
+  "numpy>2.0.0", # Until TensorFlow supports newer versions
   "numpyencoder",
   "pandas",
   "pillow<=11.1.0",
