@@ -348,7 +348,7 @@ def remove_scars(
     threshold_high: float = 0.666,
     max_scar_width: int = 4,
     min_scar_length: int = 16,
-) -> tuple[npt.NDArray, npt.NDArray | None]:
+) -> tuple[npt.NDArray, npt.NDArray]:
     """
     Remove scars from an image.
 
@@ -388,9 +388,11 @@ def remove_scars(
     img: npt.NDArray
         The original 2-D image with scars removed, unless the config has run set to False, in which case it
         will not remove the scars.
-    first_marked_mask: npt.NDArray | None
-        Needs updating
+    first_marked_mask: npt.NDArray
+        The scars detected during the first iteration.
     """
+    assert removal_iterations >= 2
+
     LOGGER.info(f"[{filename}] : Removing scars")
 
     first_marked_mask = None
@@ -420,5 +422,6 @@ def remove_scars(
         _remove_marked_scars(img, np.copy(marked_both))
 
         LOGGER.debug("Scars removed")
+    assert first_marked_mask is not None
 
     return img, first_marked_mask
