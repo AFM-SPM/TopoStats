@@ -368,7 +368,7 @@ def min_max_feret(points: npt.NDArray, axis: int = 0, precision: int = 13) -> di
     Returns
     -------
     dict
-        Needs updating: Tuple of the minimum feret distance and its coordinates and the maximum feret distance and  its coordinates.
+        Dictionary containing the minimum and maximum feret diameters of the grain and their corresponding coordinates of contact with the calipers.
     """
     caliper_min_feret = list(rotating_calipers(points, axis))
     min_ferets, calipers, min_feret_coords = zip(*caliper_min_feret)
@@ -409,7 +409,7 @@ def get_feret_from_mask(mask_im: npt.NDArray, axis: int = 0) -> dict[str, Any]:
     Returns
     -------
     dict
-        Needs updating: Returns a tuple of the minimum feret and its coordinates and the maximum feret and its coordinates.
+        Dictionary containing the minimum and maximum feret diameters of the grain and their corresponding coordinates of contact with the calipers.
     """
     eroded = skimage.morphology.erosion(mask_im)
     outline = mask_im ^ eroded
