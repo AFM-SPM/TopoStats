@@ -1,23 +1,20 @@
 [build-system]
-requires = [
-  "setuptools>=45",
-  "setuptools_scm[toml]>=6.2",
-  ]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "topostats"
 description = "Automated Analysis for Atomic Force Microscopy Images of Biomolecules"
 readme = "README.md"
-license = {text = "GPL-3.0-only"}
+license = { text = "GPL-3.0-only" }
 dynamic = ["version"]
 authors = [
-  {name = "TopoStats Team", email = "topostats@sheffield.ac.uk"},
-  {name = "Alice Pyne", email = "a.l.pyne@sheffield.ac.uk"},
-  {name = "Sylvia Whittle", email = "sylvia.whittle@sheffield.ac.uk"},
-  {name = "Neil Shephard", email = "n.shephard@sheffield.ac.uk"},
-  {name = "Max Gamill", email = "mcgamill1@sheffield.ac.uk"},
-  {name = "Jean Du", email = "mdu12@sheffield.ac.uk"},
+  { name = "TopoStats Team", email = "topostats@sheffield.ac.uk" },
+  { name = "Alice Pyne", email = "a.l.pyne@sheffield.ac.uk" },
+  { name = "Sylvia Whittle", email = "sylvia.whittle@sheffield.ac.uk" },
+  { name = "Neil Shephard", email = "n.shephard@sheffield.ac.uk" },
+  { name = "Max Gamill", email = "maxgamill@live.com" },
+  { name = "Jean Du", email = "mdu12@sheffield.ac.uk" },
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -27,11 +24,7 @@ classifiers = [
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",
 ]
-keywords = [
-  "afm",
-  "atomic force microscopy",
-  "image processing",
-]
+keywords = ["afm", "atomic force microscopy", "image processing"]
 requires-python = ">=3.10, <3.12"
 dependencies = [
   "art",
@@ -39,7 +32,7 @@ dependencies = [
   "h5py",
   "keras",
   "matplotlib",
-  "numpy~=2.0.0", # Until TensorFlow supports newer versions
+  "numpy~=2.0.0",   # Until TensorFlow supports newer versions
   "numpyencoder",
   "pandas",
   "pillow<=11.1.0",
@@ -87,11 +80,7 @@ dev = [
   "pytest-icdiff",
   "pytest-testmon",
 ]
-pypi = [
-  "build",
-  "setuptools_scm[toml]",
-  "wheel",
-]
+pypi = ["build", "setuptools_scm[toml]", "wheel"]
 notebooks = [
   "ipython",
   "ipywidgets",
@@ -127,23 +116,17 @@ addopts = ["--cov", "--mpl", "-ra", "--strict-config", "--strict-markers"]
 log_level = "INFO"
 log_cli = true
 log_cli_level = "INFO"
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::PendingDeprecationWarning",
-    "ignore::UserWarning"
+  "ignore::DeprecationWarning",
+  "ignore::PendingDeprecationWarning",
+  "ignore::UserWarning",
 ]
 xfail_strict = true
 
 [tool.coverage.run]
 source = ["topostats"]
-omit = [
-  "topostats/_version.py",
-  "*tests*",
-  "**/__init__*",
-]
+omit = ["topostats/_version.py", "*tests*", "**/__init__*"]
 
 [tool.black]
 line-length = 120
@@ -194,46 +177,40 @@ line-length = 120
 
 [tool.ruff.lint]
 select = [
-  "A", # flake8-builtins
-  "B", # flake8-bugbear
-  "C", #
-  "D", # pydocstyle
-  "E", # pycodestyle error
+  "A",   # flake8-builtins
+  "B",   # flake8-bugbear
+  "C",   #
+  "D",   # pydocstyle
+  "E",   # pycodestyle error
   "F",
-  "I", # isort
+  "I",   # isort
   "NPY", # numpy
-  "PT", # flake8-pytest-style
+  "PT",  # flake8-pytest-style
   "PTH", # flake8-use-pathlib
   "R",
-  "S", #flake8-bandit
-  "W", # pycodestyle warning
+  "S",   #flake8-bandit
+  "W",   # pycodestyle warning
   "U",
-  "UP", # pyupgrade
+  "UP",  # pyupgrade
 ]
-ignore = [
-  "A005",
-  "B905",
-  "E501",
-  "S101",
-  "S403",
-]
+ignore = ["A005", "B905", "E501", "S101", "S403"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
-  "A", # flake8-builtins
-  "B", # flake8-bugbear
-  "C", #
-  "D", # pydocstyle
-  "E", # pycodestyle error
+  "A",   # flake8-builtins
+  "B",   # flake8-bugbear
+  "C",   #
+  "D",   # pydocstyle
+  "E",   # pycodestyle error
   "F",
-  "I", # isort
+  "I",   # isort
   "NPY", # numpy
-  "PT", # flake8-pytest-style
+  "PT",  # flake8-pytest-style
   "PTH", # flake8-use-pathlib
   "R",
-  "S", #flake8-bandit
-  "W", # pycodestyle warning
+  "S",   #flake8-bandit
+  "W",   # pycodestyle warning
   "U",
-  "UP", # pyupgrade
+  "UP",  # pyupgrade
 ]
 unfixable = []
 
@@ -261,24 +238,24 @@ ignore-words-list = 'OT'
 
 [tool.numpydoc_validation]
 checks = [
-  "all", # Perform all check except those listed below
+  "all",  # Perform all check except those listed below
   "ES01",
   "EX01",
   "PR10", # Conflicts with black formatting
   "SA01",
 ]
-exclude = [  # don't report on objects that match any of these regex
-    "\\.undocumented_method$",
-    "\\.__repr__$",
-    "^test_",
-    "^conftest",
-    "^conf$",
-    "^notebooks/*.py$"
+exclude = [ # don't report on objects that match any of these regex
+  "\\.undocumented_method$",
+  "\\.__repr__$",
+  "^test_",
+  "^conftest",
+  "^conf$",
+  "^notebooks/*.py$",
 ]
-override_SS05 = [  # override SS05 to allow docstrings starting with these words
-    "^Process ",
-    "^Assess ",
-    "^Access ",
+override_SS05 = [ # override SS05 to allow docstrings starting with these words
+  "^Process ",
+  "^Assess ",
+  "^Access ",
 ]
 
 [project.scripts]
