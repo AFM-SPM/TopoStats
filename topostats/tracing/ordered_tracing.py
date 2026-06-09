@@ -213,7 +213,7 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def remove_common_values(
-        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list = ()
+        ordered_array: npt.NDArray, common_value_check_array: npt.NDArray, retain: list | None = None
     ) -> npt.NDArray:
         """
         Remove common values in common_value_check_array from ordered_array while retaining specified coordinates.
@@ -225,13 +225,17 @@ class OrderedTraceNodestats:  # pylint: disable=too-many-instance-attributes
         common_value_check_array : npt.NDArray
             Coordinate array containing any common values to be removed from ordered_array.
         retain : list, optional
-            List of possible coordinates to keep, by default ().
+            List of possible coordinates to keep.
 
         Returns
         -------
         npt.NDArray
             Unique ordered_array values and retained coordinates. Retains the order of ordered_array.
         """
+
+        if retain is None:
+            retain = []
+        
         # Convert the arrays to sets for faster common value lookup
         set_arr2 = {tuple(row) for row in common_value_check_array}
         set_retain = {tuple(row) for row in retain}
